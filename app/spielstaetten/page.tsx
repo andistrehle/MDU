@@ -3,16 +3,16 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { getLeagueGroupings, getCurrentSeason } from '@/lib/data';
+import { getLeagueVenueGroupings, getCurrentSeason, getVenueFullAddress } from '@/lib/data';
 
 export default function SpielstaettenPage() {
-  const season = getCurrentSeason();
-  const groups = getLeagueGroupings(season.id);
+  const season  = getCurrentSeason();
+  const groups  = getLeagueVenueGroupings(season.id);
 
-  // Count how many teams have a known venue
-  const teamsWithVenue = groups
-    .flatMap(g => g.teams)
-    .filter(t => t.venue !== null).length;
+  // Count venues that have real data (used to decide whether to show warning)
+  const venueCount = groups
+    .flatMap(g => g.venues)
+    .filter(v => v.venue !== null).length;
 
   return (
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
@@ -33,8 +33,8 @@ export default function SpielstaettenPage() {
           </h1>
         </div>
 
-        {/* Info notice when no venue data is available */}
-        {teamsWithVenue === 0 && (
+        {/* Warning — only shown when no venue data is available at all */}
+        {venueCount === 0 && (
           <div style={{
             background: 'rgba(232,184,74,0.07)', border: '1px solid rgba(232,184,74,0.2)',
             borderRadius: 10, padding: '14px 18px', marginBottom: 36,
@@ -56,9 +56,9 @@ export default function SpielstaettenPage() {
           </div>
         )}
 
-        {/* League groups */}
+        {/* League sections */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-          {groups.map(({ league, teams }) => (
+          {groups.map(({ league, venues }) => (
             <section key={league.id}>
               {/* League heading */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -69,38 +69,47 @@ export default function SpielstaettenPage() {
                 }}>
                   {league.name}
                 </h2>
+                <span style={{
+                  fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B',
+                  fontWeight: 600, marginLeft: 4,
+                }}>
+                  {venues.filter(v => v.venue !== null).length}{' '}
+                  {venues.filter(v => v.venue !== null).length === 1 ? 'Spielstätte' : 'Spielstätten'}
+                </span>
               </div>
 
-              {teams.length === 0 ? (
+              {venues.length === 0 ? (
                 <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6A6E7B', fontStyle: 'italic' }}>
                   Keine Teams für diese Liga in {season.name} eingetragen.
                 </p>
               ) : (
                 <div className="mdu-league-grid" style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
                   gap: 12,
                 }}>
-                  {teams.map(({ team, assignment, venue }) => {
-                    const venueName  = venue?.name    ?? null;
-                    const venueAddr  = venue?.address ?? null;
-                    const venueCity  = venue?.city    ?? null;
-                    const isInactive = team.status === 'inactive';
+                  {venues.map(({ venue, teams }) => {
+                    const venueName    = venue?.name    ?? null;
+                    const fullAddress  = venue ? getVenueFullAddress(venue) : null;
 
                     return (
                       <div
-                        key={team.id}
+                        key={venue?.id ?? '__no-venue__'}
                         style={{
                           background: '#121821',
-                          border: `1px solid ${isInactive ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)'}`,
+                          border: '1px solid rgba(255,255,255,0.06)',
                           borderRadius: 12,
                           padding: '16px 18px',
-                          opacity: isInactive ? 0.5 : 1,
                         }}
                       >
-                        {/* Venue name */}
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-                          <Icon name="pin" size={14} stroke={2} style={{ color: league.color, flexShrink: 0, marginTop: 2 }} />
+                        {/* Venue info */}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
+                          <Icon
+                            name="pin"
+                            size={14}
+                            stroke={2}
+                            style={{ color: league.color, flexShrink: 0, marginTop: 3 }}
+                          />
                           <div>
                             <div style={{
                               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14,
@@ -109,43 +118,60 @@ export default function SpielstaettenPage() {
                             }}>
                               {venueName ?? 'Spielstätte noch nicht verfügbar'}
                             </div>
-                            {(venueAddr || venueCity) && (
-                              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2', marginTop: 2 }}>
-                                {[venueAddr, venueCity].filter(Boolean).join(', ')}
+                            {fullAddress && (
+                              <div style={{
+                                fontFamily: 'var(--font-manrope)', fontSize: 12,
+                                color: '#9AA4B2', marginTop: 3, lineHeight: 1.5,
+                              }}>
+                                {fullAddress}
                               </div>
                             )}
                           </div>
                         </div>
 
                         {/* Divider */}
-                        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginBottom: 10 }} />
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginBottom: 12 }} />
 
-                        {/* Team */}
-                        <Link
-                          href={`/teams/${team.id}`}
-                          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}
-                        >
-                          <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={28} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{
-                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                              color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}>
-                              {team.name}
-                            </div>
-                            {isInactive && (
-                              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#D40000', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                                Zurückgezogen
-                              </div>
-                            )}
-                            {assignment.notes && !isInactive && (
-                              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', marginTop: 1 }}>
-                                {assignment.notes}
-                              </div>
-                            )}
-                          </div>
-                          <Icon name="arrow-right" size={13} stroke={2} style={{ color: '#6A6E7B', flexShrink: 0 }} />
-                        </Link>
+                        {/* Teams at this venue */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {teams.map(({ team, assignment }) => {
+                            const isInactive = team.status === 'inactive';
+                            return (
+                              <Link
+                                key={team.id}
+                                href={`/teams/${team.id}`}
+                                style={{
+                                  textDecoration: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10,
+                                  opacity: isInactive ? 0.5 : 1,
+                                }}
+                              >
+                                <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={28} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{
+                                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+                                    color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                  }}>
+                                    {team.name}
+                                  </div>
+                                  {isInactive && (
+                                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#D40000', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                                      Zurückgezogen
+                                    </div>
+                                  )}
+                                  {assignment.captain && !isInactive && (
+                                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', marginTop: 1 }}>
+                                      TC: {assignment.captain}
+                                    </div>
+                                  )}
+                                </div>
+                                <Icon name="arrow-right" size={13} stroke={2} style={{ color: '#6A6E7B', flexShrink: 0 }} />
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}

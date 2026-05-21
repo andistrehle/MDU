@@ -10,7 +10,7 @@ import { Icon } from '@/components/mdu/icon';
 import {
   TEAMS, findTeam, findLeague, findVenue,
   getTeamAssignment, getPlayerAssignmentsForTeam,
-  getCurrentSeason, getStandings,
+  getCurrentSeason, getStandings, getVenueFullAddress,
 } from '@/lib/data';
 import { shade } from '@/lib/utils';
 
@@ -157,13 +157,17 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
       {/* Body */}
       <div className="mdu-team-body-grid mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 64px', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* Roster */}
+          {/* Roster / Kader */}
           <Card padding={0}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#F5F6FA' }}>Kader</span>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C' }}>{season.name} · Daten folgen</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C' }}>
+                {season.name}{hasPlayers ? '' : captainLabel !== 'Noch nicht verfügbar' ? ' · TC bekannt' : ' · Daten folgen'}
+              </span>
             </div>
-            {hasPlayers ? (
+
+            {/* Full roster — shown when player assignments exist */}
+            {hasPlayers && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase' }}>
                   <span>#</span><span>Name</span><span>Status</span>
@@ -181,7 +185,32 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
                   </div>
                 ))}
               </>
-            ) : (
+            )}
+
+            {/* Captain-only row — shown when no full roster but captain is known */}
+            {!hasPlayers && captainLabel !== 'Noch nicht verfügbar' && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase' }}>
+                  <span>#</span><span>Name</span><span>Rolle</span>
+                </div>
+                <div className="mdu-row-hover" style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>01</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#2C313F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: '#C9CCD6' }}>
+                      {captainLabel.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span style={{ fontWeight: 600, color: '#F5F6FA' }}>{captainLabel}</span>
+                  </div>
+                  <span style={{ color: '#E8B84A', fontSize: 13, fontWeight: 700 }}>TC</span>
+                </div>
+                <div style={{ padding: '12px 18px', fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6B7280', fontStyle: 'italic' }}>
+                  Vollständiger Kader folgt auf dartunion.de.
+                </div>
+              </>
+            )}
+
+            {/* No data at all */}
+            {!hasPlayers && captainLabel === 'Noch nicht verfügbar' && (
               <div style={{ padding: '28px 18px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>
                 Noch keine Spielerdaten verfügbar.{' '}
                 <span style={{ color: '#9AA4B2' }}>Kader folgt auf dartunion.de.</span>
@@ -250,18 +279,43 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
             <div style={{ marginBottom: 12 }}>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Team Info</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>
+
+              {/* League */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="trophy" size={14} stroke={2} />
+                <Icon name="trophy" size={14} stroke={2} style={{ flexShrink: 0 }} />
                 <span>{leagueLabel}</span>
               </div>
+
+              {/* Venue + full address */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <Icon name="pin" size={14} stroke={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <div>
+                  <div>{venueLabel}</div>
+                  {venue && (
+                    <div style={{ fontSize: 11, color: '#8A8F9C', marginTop: 3, lineHeight: 1.5 }}>
+                      {getVenueFullAddress(venue)}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Captain */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="user" size={14} stroke={2} />
-                <span>{captainLabel === 'Noch nicht verfügbar' ? <span style={{ color: '#6B7280', fontStyle: 'italic' }}>Kapitän noch nicht verfügbar</span> : captainLabel}</span>
+                <Icon name="user" size={14} stroke={2} style={{ flexShrink: 0 }} />
+                {captainLabel === 'Noch nicht verfügbar'
+                  ? <span style={{ color: '#6B7280', fontStyle: 'italic' }}>Kapitän noch nicht verfügbar</span>
+                  : <span><span style={{ color: '#8A8F9C', marginRight: 4 }}>TC:</span>{captainLabel}</span>}
               </div>
+
+              {/* External link */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6B7280' }}>
-                <Icon name="globe" size={14} stroke={2} /> dartunion.de
+                <Icon name="globe" size={14} stroke={2} style={{ flexShrink: 0 }} />
+                <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: '#6B7280', textDecoration: 'none' }}>
+                  dartunion.de
+                </a>
               </div>
+
             </div>
           </Card>
         </aside>

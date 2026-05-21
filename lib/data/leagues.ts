@@ -16,7 +16,18 @@
 //
 // ============================================================
 
-export type LeagueCode = 'la' | 'a1' | 'a2' | 'b1' | 'b2' | 'c';
+/** Regular-season league codes (used as foreign key in SeasonTeamAssignment). */
+export type RegularLeagueCode = 'la' | 'a1' | 'a2' | 'b1' | 'b2' | 'c';
+
+/** Playoff competition codes — NOT used in SeasonTeamAssignment. */
+export type PlayoffCode =
+  | 'playoffs-a-aufstieg'
+  | 'playoffs-a-abstieg'
+  | 'playoffs-b-aufstieg'
+  | 'playoffs-b-abstieg';
+
+/** Union of all competition codes — used in League.id / League.code. */
+export type LeagueCode = RegularLeagueCode | PlayoffCode;
 
 export interface League {
   /** Canonical identifier — same value as code */
@@ -39,6 +50,8 @@ export interface League {
   color: string;
   /** Short description */
   description: string;
+  /** 'regular' = normal league season; 'playoff' = promotion/relegation rounds */
+  type?: 'regular' | 'playoff';
 }
 
 // Official league order per MDU regulations
@@ -90,6 +103,47 @@ export const LEAGUES: League[] = [
     teams: 6, season: '2026',
     color: '#10B981',
     description: 'Unterste Spielklasse der Münchner Dart Union',
+  },
+
+  // ── Playoff Rounds · Saison 2026 ─────────────────────────────
+  // Source: dartunion.de (9 competitions listed, 4 playoff groups)
+  // Aufstieg teams sourced from confirmed upcoming matches.
+  // Abstieg teams: Daten folgen auf dartunion.de.
+  {
+    id: 'playoffs-a-aufstieg', code: 'playoffs-a-aufstieg',
+    name: 'Playoffs A Liga Aufstieg', tier: 'Playoffs A Liga',
+    level: 7, sortOrder: 7,
+    teams: 6, season: '2026',
+    color: '#D40000',
+    description: 'Aufstiegs-Playoffs der A Liga · Saison 2026',
+    type: 'playoff',
+  },
+  {
+    id: 'playoffs-a-abstieg', code: 'playoffs-a-abstieg',
+    name: 'Playoffs A Liga Abstieg', tier: 'Playoffs A Liga',
+    level: 8, sortOrder: 8,
+    teams: 4, season: '2026',
+    color: '#D40000',
+    description: 'Abstiegs-Playoffs der A Liga · Saison 2026',
+    type: 'playoff',
+  },
+  {
+    id: 'playoffs-b-aufstieg', code: 'playoffs-b-aufstieg',
+    name: 'Playoffs B Liga Aufstieg', tier: 'Playoffs B Liga',
+    level: 9, sortOrder: 9,
+    teams: 6, season: '2026',
+    color: '#3B82F6',
+    description: 'Aufstiegs-Playoffs der B Liga · Saison 2026',
+    type: 'playoff',
+  },
+  {
+    id: 'playoffs-b-abstieg', code: 'playoffs-b-abstieg',
+    name: 'Playoffs B Liga Abstieg', tier: 'Playoffs B Liga',
+    level: 10, sortOrder: 10,
+    teams: 6, season: '2026',
+    color: '#6366F1',
+    description: 'Abstiegs-Playoffs der B Liga · Saison 2026',
+    type: 'playoff',
   },
 ];
 

@@ -60,9 +60,9 @@ export default function TeamsPage() {
                   gap: 12,
                 }}>
                   {teams.map(({ team, assignment, venue }) => {
-                    const venueName = venue?.name ?? assignment.venueId ?? null;
+                    const venueName   = venue?.name ?? null;
                     const captainName = assignment.captain ?? null;
-                    const isInactive = team.status === 'inactive';
+                    const isInactive  = team.status === 'inactive';
 
                     return (
                       <Link
@@ -89,11 +89,14 @@ export default function TeamsPage() {
                             }}>
                               {team.name}
                             </div>
-                            {isInactive && (
-                              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#D40000', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 }}>
-                                Zurückgezogen
-                              </div>
-                            )}
+                            {/* League label */}
+                            <div style={{
+                              fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
+                              letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2,
+                              color: isInactive ? '#D40000' : league.color,
+                            }}>
+                              {isInactive ? 'Zurückgezogen' : league.name}
+                            </div>
                           </div>
                         </div>
 
@@ -108,7 +111,7 @@ export default function TeamsPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>
                             <Icon name="user" size={12} stroke={2} />
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {captainName ? `Kapitän: ${captainName}` : 'Noch nicht verfügbar'}
+                              {captainName ? `TC: ${captainName}` : 'Noch nicht verfügbar'}
                             </span>
                           </div>
                         </div>

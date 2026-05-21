@@ -26,9 +26,13 @@ interface StandingsTableProps {
   title?: string;
   showForm?: boolean;
   showU?: boolean;
+  /** Called with the team id when a row is clicked */
+  onRowClick?: (teamId: string) => void;
+  /** Id of the currently selected/highlighted team row */
+  activeTeamId?: string;
 }
 
-export function StandingsTable({ rows, title = 'Tabelle', showForm = false, showU = true }: StandingsTableProps) {
+export function StandingsTable({ rows, title = 'Tabelle', showForm = false, showU = true, onRowClick, activeTeamId }: StandingsTableProps) {
   const colTemplate = showForm
     ? '32px 1fr 36px 28px 28px 28px 56px 56px 40px 90px'
     : showU
@@ -79,12 +83,20 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
               display: 'grid', gridTemplateColumns: colTemplate,
               padding: '12px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)',
               fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
-              gap: 6, position: 'relative', cursor: 'pointer',
+              gap: 6, position: 'relative',
+              cursor: onRowClick ? 'pointer' : undefined,
+              background: activeTeamId && r.team === activeTeamId
+                ? 'rgba(255,255,255,0.06)'
+                : undefined,
             }}
+            onClick={() => onRowClick?.(r.team)}
           >
+            {/* Status colour bar — brighter when this row is selected */}
             <span style={{
               position: 'absolute', left: -8, top: 8, bottom: 8, width: 3, borderRadius: 2,
-              background: statusColor(r.status),
+              background: activeTeamId && r.team === activeTeamId
+                ? '#F5F6FA'
+                : statusColor(r.status),
             }} />
             <span style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
