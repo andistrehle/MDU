@@ -63,7 +63,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
 
         {/* Tabs */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(13,17,23,0.6)', position: 'relative', zIndex: 2 }}>
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', gap: 36 }}>
+          <div className="mdu-tabs-row" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', gap: 36 }}>
             {TABS.map((tab, i) => (
               <div key={tab} style={{
                 padding: '16px 0', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
@@ -77,7 +77,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
       </div>
 
       {/* Body */}
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px', display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 22 }}>
+      <div className="mdu-liga-body-grid mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px', display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 22 }}>
         <StandingsTable rows={standings} showU={true} />
 
         {/* Featured Team Card — league leader */}

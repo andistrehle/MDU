@@ -16,7 +16,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div style={{
+    <div className="mdu-bottom-nav" style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
       background: '#0D1117', borderTop: '1px solid rgba(255,255,255,0.06)',
       padding: '10px 6px 26px',

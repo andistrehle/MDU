@@ -53,8 +53,8 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
             <span style={{ color: '#F5F6FA' }}>{team.name}</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>
-            <div style={{
+          <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>
+            <div className="mdu-team-logo" style={{
               width: 144, height: 144, borderRadius: '24%', flexShrink: 0,
               background: `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
               border: '2px solid #E8B84A', boxShadow: `0 24px 60px ${team.color}50, inset 0 2px 0 rgba(255,255,255,0.2)`,
@@ -71,7 +71,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
                 {teamStanding && teamStanding.status === 'promo' && teamStanding.pos > 1 && <Pill tone="blue">Aufstiegsplatz</Pill>}
                 {teamStanding && teamStanding.status === 'releg' && <Pill tone="neutral">Abstiegsplatz</Pill>}
               </div>
-              <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 72, lineHeight: 0.9, letterSpacing: '-0.005em', color: '#F5F6FA', margin: 0, textTransform: 'uppercase' }}>
+              <h1 className="mdu-team-name" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 72, lineHeight: 0.9, letterSpacing: '-0.005em', color: '#F5F6FA', margin: 0, textTransform: 'uppercase' }}>
                 {team.name}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#C9CCD6' }}>
@@ -81,7 +81,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="mdu-team-hero-actions" style={{ display: 'flex', gap: 8 }}>
               <Btn kind="outline" icon="star-o">Favorit</Btn>
               <Btn kind="outline" icon="mail">Kontakt</Btn>
               <Btn kind="primary" icon="users">Team folgen</Btn>
@@ -89,7 +89,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           </div>
 
           {/* KPIs — real data from standings */}
-          <div style={{
+          <div className="mdu-kpi-strip" style={{
             marginTop: 34, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1,
             background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 14, overflow: 'hidden',
@@ -117,7 +117,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
 
       {/* Tabs */}
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 32 }}>
+        <div className="mdu-tabs-row" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 32 }}>
           {TEAM_TABS.map((tab, i) => (
             <div key={tab} style={{
               padding: '18px 0', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14,
@@ -130,7 +130,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
       </div>
 
       {/* Body */}
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 64px', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24 }}>
+      <div className="mdu-team-body-grid mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 64px', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Roster */}
           <Card padding={0}>

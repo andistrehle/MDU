@@ -87,3 +87,193 @@ body {
 
 @keyframes mdu-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 @keyframes ken-burns { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+
+/* =====================================================
+   MOBILE RESPONSIVE SYSTEM
+   Uses !important to override inline-style properties
+   Breakpoint: 768px (mobile), 480px (small phones)
+   ===================================================== */
+
+/* --- Desktop defaults for mobile-only elements --- */
+.mdu-hamburger  { display: none; }
+.mdu-mobile-only{ display: none; }
+.mdu-bottom-nav { display: none !important; }
+
+/* --- Mobile drawer (always in DOM, off-screen by default) --- */
+.mdu-mobile-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.mdu-mobile-overlay.open { display: block; }
+
+.mdu-mobile-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 100;
+  width: 280px; max-width: 85vw;
+  background: #0D1117;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  transform: translateX(100%);
+  transition: transform 300ms cubic-bezier(.25,.8,.25,1);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.mdu-mobile-drawer.open { transform: translateX(0); }
+
+/* --- Table horizontal scroll (always active) --- */
+.mdu-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 14px;
+}
+.mdu-table-scroll::-webkit-scrollbar { height: 4px; }
+.mdu-table-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+.mdu-table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
+
+/* =====================================================
+   @media (max-width: 768px)
+   ===================================================== */
+@media (max-width: 768px) {
+
+  /* Bottom padding for fixed bottom nav */
+  body { padding-bottom: 80px; }
+
+  /* --- Visibility --- */
+  .mdu-desktop-only { display: none !important; }
+  .mdu-mobile-only  { display: block !important; }
+  .mdu-mobile-flex  { display: flex  !important; }
+  .mdu-hamburger    { display: flex  !important; }
+  .mdu-header-nav   { display: none  !important; }
+  .mdu-header-login { display: none  !important; }
+  .mdu-bottom-nav   {
+    display: flex !important;
+    padding-bottom: max(26px, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* --- Hero section --- */
+  .mdu-hero-grid {
+    grid-template-columns: 1fr !important;
+    padding: 40px 20px 48px !important;
+    min-height: auto !important;
+  }
+  .mdu-hero-title {
+    font-size: clamp(46px, 13vw, 80px) !important;
+    line-height: 0.92 !important;
+  }
+  .mdu-hero-subtitle {
+    font-size: 17px !important;
+  }
+  .mdu-hero-cta {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .mdu-hero-cta > * {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  .mdu-hero-dartboard {
+    right: -260px !important;
+    width: 460px !important;
+    height: 460px !important;
+    opacity: 0.22 !important;
+    top: 0 !important;
+    transform: none !important;
+  }
+
+  /* --- Quick access bar: remove negative-margin overlap, 2×2 grid --- */
+  .mdu-quickbar-outer {
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    position: static !important;
+    z-index: auto !important;
+  }
+  .mdu-quickbar-outer > div {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+  }
+  .mdu-quick-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* --- Two-column layouts → single column --- */
+  .mdu-two-col         { grid-template-columns: 1fr !important; }
+  .mdu-content-sidebar { grid-template-columns: 1fr !important; }
+  .mdu-liga-body-grid  { grid-template-columns: 1fr !important; }
+
+  /* --- League grid --- */
+  .mdu-league-grid { grid-template-columns: 1fr !important; }
+
+  /* --- Table scroll: enforce min-width on inner content --- */
+  .mdu-table-scroll > * { min-width: 540px; }
+
+  /* --- Footer grid: single column --- */
+  .mdu-footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+  footer { padding-bottom: 36px !important; }
+
+  /* --- Page side padding --- */
+  .mdu-page-pad {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* --- Team page: hero flex row → keep row but manage size --- */
+  .mdu-team-hero-flex {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .mdu-team-hero-actions { display: none !important; }
+  .mdu-team-logo {
+    width: 80px !important;
+    height: 80px !important;
+    font-size: 36px !important;
+    border-radius: 18% !important;
+  }
+  .mdu-team-name {
+    font-size: clamp(32px, 9vw, 54px) !important;
+    line-height: 0.92 !important;
+  }
+
+  /* --- KPI strip: 6-col → 3-col --- */
+  .mdu-kpi-strip {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* --- Body content + sidebar grid --- */
+  .mdu-team-body-grid { grid-template-columns: 1fr !important; }
+
+  /* --- Tabs: horizontal scroll --- */
+  .mdu-tabs-row {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    flex-wrap: nowrap !important;
+  }
+  .mdu-tabs-row::-webkit-scrollbar { display: none; }
+  .mdu-tabs-row > * { flex-shrink: 0; }
+
+  /* --- Section side padding override --- */
+  .mdu-section-pad {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* =====================================================
+   @media (max-width: 480px) — small phones
+   ===================================================== */
+@media (max-width: 480px) {
+  .mdu-hero-title {
+    font-size: clamp(38px, 12vw, 52px) !important;
+  }
+  .mdu-kpi-strip {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

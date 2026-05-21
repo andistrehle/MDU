@@ -36,6 +36,7 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
       : '32px 1fr 36px 28px 28px 56px 56px 40px';
 
   return (
+    <div className="mdu-table-scroll">
     <div style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '22px 24px' }}>
       {title && (
         <h2 style={{
@@ -123,6 +124,7 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 }

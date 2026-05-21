@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { BottomNav } from '@/components/mdu/bottom-nav';
 
 const sairaCondensed = Saira_Condensed({
   variable: '--font-saira-condensed',
@@ -28,13 +29,22 @@ export const metadata: Metadata = {
   description: 'Die offizielle Liga-Seite für den organisierten Dartsport in München.',
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="de"
       className={`${sairaCondensed.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <BottomNav />
+      </body>
     </html>
   );
 }

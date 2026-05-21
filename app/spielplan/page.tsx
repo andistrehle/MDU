@@ -8,7 +8,7 @@ export default function SpielplanPage() {
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/spielplan" />
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
+      <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#D40000', textTransform: 'uppercase', marginBottom: 8 }}>Liga-Kalender</div>
           <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA', margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block' }}>

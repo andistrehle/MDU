@@ -15,7 +15,7 @@ export default function HomePage() {
       {/* Hero */}
       <section style={{ position: 'relative', overflow: 'hidden', background: '#05070A', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         {/* Hero dartboard photo — absolutely positioned, feathered into background */}
-        <div aria-hidden style={{
+        <div aria-hidden className="mdu-hero-dartboard" style={{
           position: 'absolute', right: -180, top: '50%', transform: 'translateY(-50%)',
           width: 880, height: 880, pointerEvents: 'none',
           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 70%, transparent 92%)',
@@ -36,12 +36,12 @@ export default function HomePage() {
           background: 'linear-gradient(90deg, #05070A 28%, rgba(5,7,10,0.5) 55%, transparent 80%)',
         }} />
 
-        <div style={{
+        <div className="mdu-hero-grid" style={{
           maxWidth: 1280, margin: '0 auto', padding: '80px 28px 84px', position: 'relative',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center', minHeight: 520,
         }}>
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <h1 style={{
+            <h1 className="mdu-hero-title" style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 96,
               lineHeight: 0.92, letterSpacing: '-0.005em', color: '#FFFFFF', margin: 0,
               textTransform: 'uppercase',
@@ -54,7 +54,7 @@ export default function HomePage() {
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, color: '#9AA4B2', margin: '14px 0 0', maxWidth: 440, lineHeight: 1.6 }}>
               Die offizielle Liga-Seite für den organisierten Dartsport in München.
             </p>
-            <div style={{ display: 'flex', gap: 14, marginTop: 34 }}>
+            <div className="mdu-hero-cta" style={{ display: 'flex', gap: 14, marginTop: 34 }}>
               <Link href="/ligen" style={{
                 padding: '14px 28px', background: '#D40000', color: '#fff',
                 borderRadius: 6, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
@@ -78,8 +78,8 @@ export default function HomePage() {
       </section>
 
       {/* Quick Access Bar */}
-      <div style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
-        <div style={{
+      <div className="mdu-quickbar-outer" style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
+        <div className="mdu-quick-bar" style={{
           background: 'linear-gradient(180deg, #121821, #0D1117)',
           border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 8,
           display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
@@ -118,7 +118,7 @@ export default function HomePage() {
       </div>
 
       {/* Aktuelles + Nächste Spiele */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: '56px 28px 70px', display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 36 }}>
+      <section className="mdu-two-col mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '56px 28px 70px', display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 36 }}>
         <div>
           <div style={{ marginBottom: 18 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Aktuelles</h2>

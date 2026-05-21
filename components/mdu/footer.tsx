@@ -9,7 +9,7 @@ export function Footer() {
       borderTop: '1px solid rgba(255,255,255,0.06)',
       padding: '40px 28px 28px',
     }}>
-      <div style={{
+      <div className="mdu-footer-grid" style={{
         maxWidth: 1280, margin: '0 auto',
         display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 40,
       }}>

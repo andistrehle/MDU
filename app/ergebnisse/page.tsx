@@ -9,7 +9,7 @@ export default function ErgebnissePage() {
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/ergebnisse" />
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
+      <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#D40000', textTransform: 'uppercase', marginBottom: 8 }}>Letzte Spieltage</div>
           <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA', margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block' }}>
@@ -17,7 +17,8 @@ export default function ErgebnissePage() {
           </h1>
         </div>
 
-        <div style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden', maxWidth: 860 }}>
+        <div className="mdu-table-scroll" style={{ maxWidth: 860 }}>
+        <div style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}>
           {/* header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '70px 120px 1fr 100px 1fr 130px',
@@ -55,6 +56,7 @@ export default function ErgebnissePage() {
               </div>
             );
           })}
+        </div>
         </div>
       </div>
 
