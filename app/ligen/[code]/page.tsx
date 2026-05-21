@@ -3,23 +3,32 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { StandingsTable } from '@/components/mdu/standings-table';
-import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { A1_STANDINGS, EXTENDED_TEAMS } from '@/lib/data';
+import { findLeague, getStandings } from '@/lib/data';
 
 const TABS = ['Übersicht', 'Tabelle', 'Spielplan', 'Ergebnisse', 'Statistiken', 'Teams'];
 const TEAM_TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistiken'];
 
-const LAST_RESULTS = [
-  { date: '18.05.2024', home: 'DC Bavaria',   away: 'Night Flights', hs: 8, as: 4 },
-  { date: '11.05.2024', home: 'Dart Wizards', away: 'DC Bavaria',    hs: 5, as: 7 },
-  { date: '04.05.2024', home: 'DC Bavaria',   away: 'Close Call',    hs: 9, as: 3 },
-];
-
 export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>) {
   const { code } = await props.params;
-  const leagueName = code.toUpperCase() === 'A1' ? 'A1 Liga' : `${code.toUpperCase()} Liga`;
-  const featuredTeam = EXTENDED_TEAMS['db'];
+  const league = findLeague(code);
+  const leagueName = league?.name ?? `${code.toUpperCase()} Liga`;
+  const standings = getStandings(code);
+
+  // Feature the league leader (first row in standings)
+  const leaderRow = standings[0];
+  const leaderName = leaderRow?.name ?? 'Noch nicht verfügbar';
+  // Strip withdrawal marker (*) for display
+  const leaderDisplayName = leaderName.replace(' *', '');
+  // Short badge code: first letter of each word, max 3
+  const leaderShort = leaderDisplayName
+    .split(' ')
+    .map((w: string) => w[0] ?? '')
+    .join('')
+    .slice(0, 3)
+    .toUpperCase();
+  const leaderColor = league?.color ?? '#9AA4B2';
+  const leaderTeamId = leaderRow?.team ?? '';
 
   return (
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
@@ -48,7 +57,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, lineHeight: 0.92,
             letterSpacing: '-0.005em', color: '#FFFFFF', margin: 0, textTransform: 'uppercase',
-            paddingBottom: 14, borderBottom: '3px solid #D40000', display: 'inline-block',
+            paddingBottom: 14, borderBottom: `3px solid ${league?.color ?? '#D40000'}`, display: 'inline-block',
           }}>{leagueName}</h1>
         </div>
 
@@ -69,16 +78,16 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
 
       {/* Body */}
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px', display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 22 }}>
-        <StandingsTable rows={A1_STANDINGS} showU={true} />
+        <StandingsTable rows={standings} showU={true} />
 
-        {/* Team Profile Card */}
+        {/* Featured Team Card — league leader */}
         <div style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '22px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2', marginBottom: 16 }}>
             <Link href="/" style={{ color: '#9AA4B2', textDecoration: 'none' }}>Startseite</Link>
             <Icon name="chevron" size={10} />
             <span>Teams</span>
             <Icon name="chevron" size={10} />
-            <span style={{ color: '#F5F6FA' }}>DC Bavaria</span>
+            <span style={{ color: '#F5F6FA' }}>{leaderDisplayName}</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
@@ -90,15 +99,15 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
             }}>
               <div style={{
                 width: 46, height: 54, position: 'absolute',
-                background: 'linear-gradient(180deg, #F59E0B, #A06D08)',
+                background: `linear-gradient(180deg, ${leaderColor}, ${leaderColor}99)`,
                 clipPath: 'polygon(50% 0, 100% 18%, 100% 70%, 50% 100%, 0 70%, 0 18%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, color: '#fff', fontSize: 13 }}>DCB</span>
+                <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, color: '#fff', fontSize: 13 }}>{leaderShort}</span>
               </div>
             </div>
             <div>
-              <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 30, letterSpacing: '0.03em', color: '#FFFFFF', margin: 0, textTransform: 'uppercase', lineHeight: 1 }}>DC Bavaria</h2>
+              <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 30, letterSpacing: '0.03em', color: '#FFFFFF', margin: 0, textTransform: 'uppercase', lineHeight: 1 }}>{leaderDisplayName}</h2>
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#9AA4B2', marginTop: 6 }}>{leagueName}</div>
             </div>
           </div>
@@ -118,12 +127,14 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
             <div>
               <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12 }}>Team Info</div>
               {[
-                { k: 'Gegründet', v: '2018' },
-                { k: 'Spielstätte', v: 'Maxvorstadt Treff' },
-                { k: 'Kapitän', v: 'Max Mustermann' },
-                { k: 'E-Mail', v: 'kontakt@dcbavaria.de' },
+                { k: 'Liga',       v: leagueName },
+                { k: 'Saison',     v: league?.season ?? '2026' },
+                { k: 'Tabellenplatz', v: leaderRow ? `Platz ${leaderRow.pos}` : '—' },
+                { k: 'Punkte',     v: leaderRow ? `${leaderRow.pts} Pkt.` : '—' },
+                { k: 'Spielstätte',v: 'Noch nicht verfügbar' },
+                { k: 'Kapitän',    v: 'Noch nicht verfügbar' },
               ].map(row => (
-                <div key={row.k} style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: 10, alignItems: 'start', marginBottom: 10 }}>
+                <div key={row.k} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 10, alignItems: 'start', marginBottom: 10 }}>
                   <span style={{ color: '#9AA4B2', fontSize: 12, fontFamily: 'var(--font-manrope)' }}>{row.k}</span>
                   <span style={{ color: '#F5F6FA', fontWeight: 600, fontSize: 12, fontFamily: 'var(--font-manrope)' }}>{row.v}</span>
                 </div>
@@ -132,34 +143,42 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
             <div>
               <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12 }}>Kurzinfo</div>
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6', lineHeight: 1.55, margin: 0 }}>
-                Wir sind der DC Bavaria und spielen seit der Saison 2019 in der {leagueName} der Münchner Dart Union.
+                {leaderRow
+                  ? `${leaderDisplayName} führt die ${leagueName} nach ${leaderRow.sp} Spielen mit ${leaderRow.pts} Punkten an (${leaderRow.s}S / ${leaderRow.u}U / ${leaderRow.n}N).`
+                  : 'Teamdaten werden aktualisiert.'}
+              </p>
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B', lineHeight: 1.55, margin: '10px 0 0' }}>
+                Vollständige Informationen auf{' '}
+                <span style={{ color: '#9AA4B2' }}>dartunion.de</span>
               </p>
             </div>
           </div>
 
           <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12 }}>Letzte Ergebnisse</div>
-            {LAST_RESULTS.map((r, i) => (
-              <div key={i} style={{
-                display: 'grid', gridTemplateColumns: '82px 1fr 50px 1fr',
-                padding: '10px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center', gap: 10,
-              }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2' }}>{r.date}</span>
-                <span style={{ color: '#F5F6FA', textAlign: 'right', fontWeight: r.home === 'DC Bavaria' ? 700 : 500 }}>{r.home}</span>
-                <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: '#F5F6FA' }}>{r.hs}:{r.as}</span>
-                <span style={{ color: '#F5F6FA', fontWeight: r.away === 'DC Bavaria' ? 700 : 500 }}>{r.away}</span>
-              </div>
-            ))}
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12 }}>Top 3</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              {standings.slice(0, 3).map((r) => (
+                <div key={r.pos} style={{
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 8, padding: '10px 12px',
+                }}>
+                  <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: r.pos <= 2 ? '#E8B84A' : '#F5F6FA' }}>{r.pos}.</div>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {r.name.replace(' *', '')}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2', marginTop: 2 }}>{r.pts} Pkt.</div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <Link href={`/teams/db`} style={{
+          <Link href={`/teams/${leaderTeamId}`} style={{
             display: 'block', marginTop: 18, width: '100%', padding: '13px', background: '#D40000',
             color: '#fff', borderRadius: 6, fontFamily: 'var(--font-manrope)', fontWeight: 800,
             fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', textDecoration: 'none',
             textAlign: 'center', boxShadow: '0 6px 14px rgba(212,0,0,0.32)',
           }}>
-            Zum Spielplan
+            Team-Profil ansehen
           </Link>
         </div>
       </div>

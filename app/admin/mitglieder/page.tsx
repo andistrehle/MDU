@@ -1,15 +1,11 @@
 import { Pill } from '@/components/mdu/pill';
 import { Icon } from '@/components/mdu/icon';
 
+// MDU contact persons from dartunion.de/kontakt.php
+// Player/member data is not publicly listed — to be added once provided by teams
 const MEMBERS = [
-  { initials: 'MA', color: '#D40000', name: 'Markus Achatz',     email: 'achatz@dartunion.de',    role: 'Captain',   status: 'Aktiv',  lastSeen: 'Heute',   avg: 92.4 },
-  { initials: 'SB', color: '#8B5CF6', name: 'Stefan Brandl',     email: 'brandl@dartunion.de',    role: 'Vice',      status: 'Aktiv',  lastSeen: 'Gestern', avg: 88.1 },
-  { initials: 'LR', color: '#E8B84A', name: 'Lisa Reiter',       email: 'reiter@dartunion.de',    role: 'Spieler',   status: 'Aktiv',  lastSeen: '20.05',   avg: 86.7 },
-  { initials: 'TH', color: '#3B82F6', name: 'Thomas Huber',      email: 'huber@dartunion.de',     role: 'Spieler',   status: 'Inaktiv',lastSeen: '15.05',   avg: 84.2 },
-  { initials: 'FK', color: '#10B981', name: 'Franz König',       email: 'koenig@dartunion.de',    role: 'Spieler',   status: 'Aktiv',  lastSeen: '21.05',   avg: 82.9 },
-  { initials: 'AS', color: '#F59E0B', name: 'Anna Steininger',   email: 'steininger@dartunion.de',role: 'Reserve',   status: 'Aktiv',  lastSeen: '19.05',   avg: 81.4 },
-  { initials: 'JV', color: '#0EA5E9', name: 'Josef Vogl',        email: 'vogl@dartunion.de',      role: 'Reserve',   status: 'Inaktiv',lastSeen: '10.05',   avg: 79.6 },
-  { initials: 'PH', color: '#EF4444', name: 'Peter Hartl',       email: 'hartl@dartunion.de',     role: 'Reserve',   status: 'Aktiv',  lastSeen: '22.05',   avg: 77.8 },
+  { initials: 'DK', color: '#D40000', name: 'Dimo Katsikas',    email: 'info@dartunion.de',      role: 'Präsident',  status: 'Aktiv', lastSeen: '—' },
+  { initials: 'MD', color: '#3B82F6', name: 'Manfred Domandl',  email: 'manfred@domandl.com',    role: 'Technik',    status: 'Aktiv', lastSeen: '—' },
 ];
 
 export default function AdminMitgliederPage() {
@@ -32,7 +28,7 @@ export default function AdminMitgliederPage() {
           fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase', gap: 14,
         }}>
           <span></span><span>Mitglied</span><span>Rolle</span><span>Status</span>
-          <span>Zuletzt</span><span style={{ textAlign: 'right' }}>Avg</span><span></span>
+          <span>Zuletzt</span><span style={{ textAlign: 'right' }}></span><span></span>
         </div>
         <div style={{ padding: '0 20px' }}>
           {MEMBERS.map((m, i) => (
@@ -51,7 +47,7 @@ export default function AdminMitgliederPage() {
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>{m.role}</span>
               <Pill tone={m.status === 'Aktiv' ? 'green' : 'neutral'}>{m.status}</Pill>
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>{m.lastSeen}</span>
-              <span style={{ textAlign: 'right', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{m.avg}</span>
+              <span style={{ textAlign: 'right', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 13, color: '#9AA4B2' }}>—</span>
               <button style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#9AA4B2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="edit" size={14} />
               </button>

@@ -7,21 +7,21 @@ import { TeamBadge } from '@/components/mdu/team-badge';
 import { Pill } from '@/components/mdu/pill';
 import { Btn } from '@/components/mdu/button';
 import { Icon } from '@/components/mdu/icon';
-import { ROSTER, TEAMS, findTeam } from '@/lib/data';
-import { shade, diffColor } from '@/lib/utils';
+import { ROSTER, TEAMS, LEAGUES, findTeam, getStandings } from '@/lib/data';
+import { shade } from '@/lib/utils';
 
 const TEAM_TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik', 'Galerie'];
-const RECENT_MATCHES = [
-  { h: 'fb', a: 'fd', hs: 7, as: 2, w: true,  date: '15.05' },
-  { h: 'be', a: 'fb', hs: 3, as: 6, w: true,  date: '08.05' },
-  { h: 'fb', a: 'sw', hs: 8, as: 1, w: true,  date: '01.05' },
-  { h: 'fa', a: 'fb', hs: 5, as: 4, w: false, date: '24.04' },
-  { h: 'fb', a: 'gh', hs: 7, as: 2, w: true,  date: '17.04' },
-];
+// Individual match results not publicly available — shown when data is released on dartunion.de
+const RECENT_MATCHES: never[] = [];
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
   const team = findTeam(id) ?? TEAMS[0];
+  // Look up the team's league and standing position
+  const teamLeague = LEAGUES.find(l => l.code === team.leagueCode);
+  const teamStandings = team.leagueCode ? getStandings(team.leagueCode) : [];
+  const teamStanding = teamStandings.find(r => r.team === team.id);
+  const leagueLabel = teamLeague?.name ?? 'Noch nicht verfügbar';
 
   return (
     <div style={{ background: '#0A0B0F', color: '#F5F6FA', minHeight: '100vh' }}>
@@ -66,16 +66,18 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <Pill tone="red">A Liga · Tabellenführer</Pill>
-                <Pill tone="gold">Meister 2023/24</Pill>
+                {teamLeague && <Pill tone="red">{leagueLabel}</Pill>}
+                {teamStanding && teamStanding.pos === 1 && <Pill tone="gold">Tabellenführer</Pill>}
+                {teamStanding && teamStanding.status === 'promo' && teamStanding.pos > 1 && <Pill tone="blue">Aufstiegsplatz</Pill>}
+                {teamStanding && teamStanding.status === 'releg' && <Pill tone="neutral">Abstiegsplatz</Pill>}
               </div>
               <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 72, lineHeight: 0.9, letterSpacing: '-0.005em', color: '#F5F6FA', margin: 0, textTransform: 'uppercase' }}>
                 {team.name}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#C9CCD6' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="pin" size={14} stroke={2} /> {team.venue}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="users" size={14} stroke={2} /> Captain Achatz · 8 Spieler</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="calendar" size={14} stroke={2} /> Mi · 19:30</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="trophy" size={14} stroke={2} /> {leagueLabel}</span>
+                {teamStanding && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="bar" size={14} stroke={2} /> Platz {teamStanding.pos} · {teamStanding.pts} Pkt.</span>}
               </div>
             </div>
 
@@ -86,19 +88,19 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
             </div>
           </div>
 
-          {/* KPIs */}
+          {/* KPIs — real data from standings */}
           <div style={{
             marginTop: 34, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1,
             background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 14, overflow: 'hidden',
           }}>
             {[
-              { n: '1.', l: 'Tabellenplatz', c: '#E8B84A' },
-              { n: '12', l: 'Siege' },
-              { n: '2',  l: 'Niederlagen' },
-              { n: '168:84', l: 'Legs', mono: true },
-              { n: '+84', l: 'Differenz', c: '#5BE08C' },
-              { n: '36', l: 'Punkte' },
+              { n: teamStanding ? `${teamStanding.pos}.` : '—', l: 'Tabellenplatz', c: teamStanding?.pos === 1 ? '#E8B84A' : undefined },
+              { n: teamStanding ? String(teamStanding.sp) : '—', l: 'Spiele' },
+              { n: teamStanding ? String(teamStanding.s) : '—',  l: 'Siege' },
+              { n: teamStanding ? String(teamStanding.n) : '—',  l: 'Niederlagen' },
+              { n: teamStanding?.legs ?? '—', l: 'Spiele', mono: true },
+              { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte' },
             ].map((s, i) => (
               <div key={i} style={{ background: '#14161E', padding: '18px 18px' }}>
                 <div style={{
@@ -134,28 +136,21 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           <Card padding={0}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#F5F6FA' }}>Kader</span>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C' }}>8 Spieler · Saison 2025/26</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C' }}>Saison 2026 · Daten folgen</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 100px 70px 90px 60px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase' }}>
               <span>#</span><span>Name</span><span>Rolle</span>
-              <span style={{ textAlign: 'right' }}>Avg</span>
-              <span style={{ textAlign: 'right' }}>180er</span>
-              <span style={{ textAlign: 'right' }}>Sp</span>
             </div>
             {ROSTER.map((p, i) => (
-              <div key={p.name} className="mdu-row-hover" style={{ display: 'grid', gridTemplateColumns: '40px 1fr 100px 70px 90px 60px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
+              <div key={i} className="mdu-row-hover" style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
                 <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>{String(i + 1).padStart(2, '0')}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#2C313F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: '#C9CCD6' }}>
-                    {p.name.split(' ').map(x => x[0]).join('')}
+                    —
                   </div>
-                  <span style={{ fontWeight: 700, color: '#F5F6FA' }}>{p.name}</span>
-                  {p.role === 'Captain' && <Pill tone="gold" style={{ padding: '2px 6px', fontSize: 9 }}>C</Pill>}
+                  <span style={{ fontWeight: 500, color: '#6B7280', fontStyle: 'italic' }}>{p.name}</span>
                 </div>
-                <span style={{ color: '#C9CCD6', fontSize: 13 }}>{p.role}</span>
-                <span style={{ textAlign: 'right', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: '#F5F6FA' }}>{p.avg}</span>
-                <span style={{ textAlign: 'right', fontFamily: 'var(--font-jetbrains-mono)', color: '#E8B84A' }}>{p.hf}</span>
-                <span style={{ textAlign: 'right', fontFamily: 'var(--font-jetbrains-mono)', color: '#8A8F9C' }}>{p.games}</span>
+                <span style={{ color: '#6B7280', fontSize: 13, fontStyle: 'italic' }}>{p.role}</span>
               </div>
             ))}
           </Card>
@@ -165,45 +160,27 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
             <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#F5F6FA' }}>Letzte Spiele</span>
             </div>
-            {RECENT_MATCHES.map((g, i) => {
-              const home = findTeam(g.h)!;
-              const away = findTeam(g.a)!;
-              return (
-                <div key={i} className="mdu-row-hover" style={{ display: 'grid', gridTemplateColumns: '56px 1fr 96px 1fr 32px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#8A8F9C' }}>{g.date}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{home.short}</span>
-                    <TeamBadge initials={home.short} color={home.color} size={24} />
-                  </div>
-                  <div style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: '#F5F6FA', background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: '4px 0' }}>
-                    {g.hs} : {g.as}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <TeamBadge initials={away.short} color={away.color} size={24} />
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{away.short}</span>
-                  </div>
-                  <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: g.w ? 'rgba(34,197,94,0.16)' : 'rgba(239,68,68,0.16)', color: g.w ? '#5BE08C' : '#FF6B6B', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 11 }}>
-                    {g.w ? 'W' : 'L'}
-                  </span>
-                </div>
-              );
-            })}
+            {RECENT_MATCHES.length === 0 && (
+              <div style={{ padding: '24px 18px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>
+                Einzelergebnisse sind auf <span style={{ color: '#9AA4B2' }}>dartunion.de</span> verfügbar.
+              </div>
+            )}
           </Card>
         </div>
 
         {/* Sidebar */}
         <aside style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Stats */}
+          {/* Stats — season standings data */}
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Statistik</span>
+              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Saison 2026</span>
             </div>
-            {[
-              { l: 'Team-Average',  v: '89.7', frac: 0.78, c: '#D40000' },
-              { l: '180er / Spiel', v: '4.2',  frac: 0.62, c: '#E8B84A' },
-              { l: 'Checkout %',    v: '38%',  frac: 0.38, c: '#3B82F6' },
-              { l: 'High Finish Ø', v: '114',  frac: 0.71, c: '#22C55E' },
-              { l: 'Leg-Quote',     v: '66%',  frac: 0.66, c: '#8B5CF6' },
+            {teamStanding ? [
+              { l: 'Gespielt',     v: String(teamStanding.sp),      frac: Math.min(teamStanding.sp / 18, 1),           c: '#D40000' },
+              { l: 'Siege',        v: String(teamStanding.s),       frac: Math.min(teamStanding.s / Math.max(teamStanding.sp, 1), 1), c: '#22C55E' },
+              { l: 'Unentschieden',v: String(teamStanding.u),       frac: Math.min(teamStanding.u / Math.max(teamStanding.sp, 1), 1), c: '#E8B84A' },
+              { l: 'Niederlagen',  v: String(teamStanding.n),       frac: Math.min(teamStanding.n / Math.max(teamStanding.sp, 1), 1), c: '#EF4444' },
+              { l: 'Punkte',       v: `${teamStanding.pts} Pkt.`,   frac: Math.min(teamStanding.pts / (teamStanding.sp * 3 || 1), 1), c: '#3B82F6' },
             ].map(s => (
               <div key={s.l} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#C9CCD6' }}>
@@ -214,27 +191,20 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
                   <div style={{ width: `${s.frac * 100}%`, height: '100%', background: `linear-gradient(90deg, ${s.c}, ${shade(s.c, -0.3)})`, borderRadius: 3 }} />
                 </div>
               </div>
-            ))}
+            )) : (
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280', fontStyle: 'italic', margin: 0 }}>
+                Keine Saison-Daten verfügbar.
+              </p>
+            )}
           </Card>
 
           {/* Next match */}
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Nächstes Spiel</span>
-              <Pill tone="red">In 3 Tagen</Pill>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              {[team, null, findTeam('be')].map((t, i) => t ? (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <TeamBadge initials={t.short} color={t.color} size={46} />
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', textAlign: 'center' }}>{t.name}</span>
-                </div>
-              ) : (
-                <div key={i} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 30, color: '#F5F6FA', letterSpacing: '0.04em' }}>VS</div>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#8A8F9C', marginTop: 4 }}>22.05 · 19:30</div>
-                </div>
-              ))}
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280', fontStyle: 'italic', paddingBottom: 14 }}>
+              Spielplan auf <span style={{ color: '#9AA4B2' }}>dartunion.de</span> verfügbar.
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C', paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               <Icon name="pin" size={13} stroke={2} /> {team.venue}
@@ -247,9 +217,8 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Kontakt</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Icon name="user" size={14} stroke={2} /> Markus Achatz (Captain)</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Icon name="mail" size={14} stroke={2} /> bazis@dartunion.de</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Icon name="phone" size={14} stroke={2} /> +49 89 1234 5678</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Icon name="user" size={14} stroke={2} /> Noch nicht verfügbar</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6B7280' }}><Icon name="globe" size={14} stroke={2} /> dartunion.de</div>
             </div>
           </Card>
         </aside>

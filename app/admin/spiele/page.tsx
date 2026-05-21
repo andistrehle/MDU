@@ -2,11 +2,15 @@ import { Pill } from '@/components/mdu/pill';
 import { Icon } from '@/components/mdu/icon';
 
 const MATCHES = [
-  { id: 'A1-047', date: '22.05 · 19:30', home: 'DC Bavaria',      away: 'Flying Arrows',   score: '—',  venue: 'Maxvorstadt Treff', status: 'Geplant' },
-  { id: 'B2-023', date: '22.05 · 18:00', home: 'Super Bulls',     away: 'Dart Crew',       score: '5:3', venue: 'Zum Roten Pfeil',  status: 'LIVE' },
-  { id: 'C2-011', date: '21.05 · 20:00', home: 'Triple Trouble',  away: 'Schwabing Fly.',  score: '7:5', venue: 'Dart Base',        status: 'Final' },
-  { id: 'A1-046', date: '18.05 · 19:30', home: 'DC Bavaria',      away: 'Night Flights',   score: '8:4', venue: 'Maxvorstadt Treff', status: 'Final' },
-  { id: 'LA-009', date: '17.05 · 20:00', home: 'Freibad Bazis',   away: 'Flying Arrows',   score: '7:2', venue: 'Fiaker Stüberl',   status: 'Final' },
+  // Playoff-Phase Saison 2026 — Spielpläne auf dartunion.de
+  { id: 'PL-A-11', date: '28.05 · 20:00', home: 'Alptraum',          away: 'Silberpfeile II',    score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
+  { id: 'PL-A-12', date: '28.05 · 20:00', home: 'DC Animals II',     away: 'Treff Nix Freimann', score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
+  { id: 'PL-B-09', date: '28.05 · 20:00', home: 'Belfort Evolution', away: 'Flying Fighters',    score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
+  { id: 'PL-A-10', date: '21.05 · 20:00', home: 'Gambas',            away: 'Jolly Pirates V',    score: '9:9', venue: 'Noch nicht verfügbar', status: 'Final'   },
+  { id: 'PL-B-08', date: '21.05 · 20:00', home: 'Fiaker Deife',      away: 'Master of Desaster', score: '12:6',venue: 'Noch nicht verfügbar', status: 'Final'   },
+  // Pokal Fight 2026 · Runde 1 Hinspiel (01.12–07.12.2025)
+  { id: 'PK-B-01', date: '07.12 · 2025',  home: 'Lucky Darts One',   away: "De Vogelwuid'n",     score: '10:8',venue: 'Noch nicht verfügbar', status: 'Final'   },
+  { id: 'PK-A-01', date: '07.12 · 2025',  home: 'Game Over',         away: 'Treff Nix Freimann', score: '12:6',venue: 'Noch nicht verfügbar', status: 'Final'   },
 ];
 
 export default function AdminSpielePage() {

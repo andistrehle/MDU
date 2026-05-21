@@ -3,31 +3,30 @@ import { Pill } from '@/components/mdu/pill';
 import { TeamBadge } from '@/components/mdu/team-badge';
 
 const KPI_CARDS = [
-  { kicker: 'Aktive Spiele heute', value: '6', delta: '+2', deltaPos: true,  sub: 'davon 2 live',          c: '#D40000' },
-  { kicker: 'Spieler online',      value: '47', delta: '+12', deltaPos: true, sub: 'letzte 24 Stunden',    c: '#3B82F6' },
-  { kicker: 'Saison-180er',        value: '284', delta: '+18', deltaPos: true, sub: 'diese Saison gesamt', c: '#E8B84A' },
-  { kicker: 'Offene Tickets',      value: '3',  delta: '-1', deltaPos: false,  sub: '2 dringend',          c: '#22C55E' },
+  { kicker: 'Ligen Saison 2026',   value: '6',  delta: '0',  deltaPos: true,  sub: 'LA · A1 · A2 · B1 · B2 · C', c: '#D40000' },
+  { kicker: 'Teams gesamt',        value: '36', delta: '0',  deltaPos: true,  sub: 'alle Spielklassen',           c: '#3B82F6' },
+  { kicker: 'Playoff-Phase',       value: 'Aktiv', delta: '', deltaPos: true, sub: 'Aufstieg & Abstieg laufen',   c: '#E8B84A' },
+  { kicker: 'Offene Tickets',      value: '—',  delta: '',   deltaPos: true,  sub: 'Noch nicht verfügbar',        c: '#22C55E' },
 ];
 
 const MATCH_TABLE = [
-  { id: 'A1-047', date: '22.05 · 19:30', home: 'DC Bavaria',      away: 'Flying Arrows',  score: '—',  venue: 'Maxvorstadt Treff',    status: 'Geplant' },
-  { id: 'B2-023', date: '22.05 · 18:00', home: 'Super Bulls',     away: 'Dart Crew',      score: '5:3', venue: 'Zum Roten Pfeil',     status: 'LIVE' },
-  { id: 'C2-011', date: '21.05 · 20:00', home: 'Triple Trouble',  away: 'Schwabing Fly.', score: '7:5', venue: 'Dart Base',           status: 'Final' },
-  { id: 'A1-046', date: '18.05 · 19:30', home: 'DC Bavaria',      away: 'Night Flights',  score: '8:4', venue: 'Maxvorstadt Treff',   status: 'Final' },
+  { id: 'PL-A-11', date: '28.05 · 20:00', home: 'Alptraum',         away: 'Silberpfeile II',   score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
+  { id: 'PL-B-09', date: '28.05 · 20:00', home: 'Belfort Evolution', away: 'Flying Fighters',  score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
+  { id: 'PL-A-10', date: '21.05 · 20:00', home: 'Gambas',            away: 'Jolly Pirates V',   score: '9:9', venue: 'Noch nicht verfügbar', status: 'Final'   },
+  { id: 'PL-B-08', date: '21.05 · 20:00', home: 'Fiaker Deife',      away: 'Master of Desaster',score: '12:6',venue: 'Noch nicht verfügbar', status: 'Final'   },
 ];
 
 const TODO_ITEMS = [
-  { dot: '#D40000', text: 'Spielbericht A1-047 prüfen und freigeben' },
-  { dot: '#E8B84A', text: 'Neue Spielstätte "Olympia Bar" bestätigen' },
-  { dot: '#3B82F6', text: 'Saison-Endspurt News veröffentlichen' },
-  { dot: '#22C55E', text: 'Kader-Update Freibad Bazis abschließen' },
+  { dot: '#D40000', text: 'Spielstätten aller Teams in der Datenbank ergänzen' },
+  { dot: '#E8B84A', text: 'Playoff-Spielpläne für A Liga und B Liga eintragen' },
+  { dot: '#3B82F6', text: 'Kader-Daten von Vereinen anfordern und pflegen' },
+  { dot: '#22C55E', text: 'Rückzug De Wolperdinga (A2) offiziell verarbeiten' },
 ];
 
+// Real MDU contacts from dartunion.de/kontakt.php
 const MEMBERS = [
-  { initials: 'MA', name: 'Markus Achatz',    email: 'achatz@dartunion.de', role: 'Captain',  status: 'Aktiv',  lastSeen: 'Heute',     avg: 92.4 },
-  { initials: 'SB', name: 'Stefan Brandl',    email: 'brandl@dartunion.de', role: 'Spieler',  status: 'Aktiv',  lastSeen: 'Gestern',   avg: 88.1 },
-  { initials: 'LR', name: 'Lisa Reiter',      email: 'reiter@dartunion.de', role: 'Spieler',  status: 'Aktiv',  lastSeen: '20.05',     avg: 86.7 },
-  { initials: 'TH', name: 'Thomas Huber',     email: 'huber@dartunion.de',  role: 'Reserve',  status: 'Inaktiv',lastSeen: '15.05',     avg: 84.2 },
+  { initials: 'DK', name: 'Dimo Katsikas',   email: 'info@dartunion.de',   role: 'Präsident', status: 'Aktiv', lastSeen: '—' },
+  { initials: 'MD', name: 'Manfred Domandl', email: 'manfred@domandl.com', role: 'Technik',   status: 'Aktiv', lastSeen: '—' },
 ];
 
 export default function AdminDashboard() {
@@ -133,7 +132,7 @@ export default function AdminDashboard() {
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>{m.role}</span>
               <Pill tone={m.status === 'Aktiv' ? 'green' : 'neutral'}>{m.status}</Pill>
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>{m.lastSeen}</span>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{m.avg}</span>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 13, color: '#9AA4B2' }}>—</span>
               <button style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#9AA4B2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="edit" size={13} />
               </button>
