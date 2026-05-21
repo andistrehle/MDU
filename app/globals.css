@@ -41,12 +41,14 @@ html {
   background: #05070A;
   color: #F5F6FA;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* prevent document-level horizontal scroll */
 }
 
 body {
   background: #05070A;
   min-height: 100vh;
   font-family: var(--font-manrope), system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 .font-display  { font-family: var(--font-saira-condensed), 'Archivo Narrow', system-ui, sans-serif; }
@@ -123,6 +125,10 @@ body {
 
 /* --- Table horizontal scroll (always active) --- */
 .mdu-table-scroll {
+  /* Critical: min-width:0 prevents grid/flex items from expanding beyond their cell */
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 14px;
@@ -207,8 +213,12 @@ body {
   /* --- League grid --- */
   .mdu-league-grid { grid-template-columns: 1fr !important; }
 
-  /* --- Table scroll: enforce min-width on inner content --- */
-  .mdu-table-scroll > * { min-width: 540px; }
+  /* --- Standings table inner content: min readable width when scrolled --- */
+  /* Applied to the inner card div only, not the scroll wrapper itself */
+  .mdu-standings-inner { min-width: 480px; }
+
+  /* --- Ergebnisse table inner content --- */
+  .mdu-results-inner { min-width: 520px; }
 
   /* --- Footer grid: single column --- */
   .mdu-footer-grid {
@@ -249,8 +259,21 @@ body {
   /* --- Body content + sidebar grid --- */
   .mdu-team-body-grid { grid-template-columns: 1fr !important; }
 
-  /* --- Tabs: horizontal scroll --- */
+  /* --- Match card: vertical stack on mobile --- */
+  .mdu-match-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .mdu-match-grid-date { text-align: left !important; }
+
+  /* --- Tabs: width-constrained horizontal scroll --- */
   .mdu-tabs-row {
+    /* Must have an explicit width so overflow-x: auto actually triggers */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;

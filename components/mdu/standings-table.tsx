@@ -37,7 +37,7 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
 
   return (
     <div className="mdu-table-scroll">
-    <div style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '22px 24px' }}>
+    <div className="mdu-standings-inner" style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '22px 24px' }}>
       {title && (
         <h2 style={{
           fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,

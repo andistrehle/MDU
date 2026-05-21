@@ -17,8 +17,8 @@ export default function ErgebnissePage() {
           </h1>
         </div>
 
-        <div className="mdu-table-scroll" style={{ maxWidth: 860 }}>
-        <div style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden' }}>
+        <div className="mdu-table-scroll">
+        <div className="mdu-results-inner" style={{ background: '#121821', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14 }}>
           {/* header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '70px 120px 1fr 100px 1fr 130px',

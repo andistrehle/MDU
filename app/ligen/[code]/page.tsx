@@ -46,7 +46,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         </div>
         <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(90deg, #05070A 30%, rgba(5,7,10,0.4) 65%, rgba(5,7,10,0.7))' }} />
 
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '34px 28px 24px', position: 'relative', zIndex: 2 }}>
+        <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '34px 28px 24px', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2', marginBottom: 16 }}>
             <Link href="/" style={{ color: '#9AA4B2', textDecoration: 'none' }}>Startseite</Link>
             <Icon name="chevron" size={12} />
@@ -112,7 +112,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 18 }}>
+          <div className="mdu-tabs-row" style={{ display: 'flex', gap: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 18 }}>
             {TEAM_TABS.map((tab, i) => (
               <div key={tab} style={{
                 padding: '10px 0', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
