@@ -98,7 +98,7 @@ body {
 
 /* --- Desktop defaults for mobile-only elements --- */
 .mdu-hamburger  { display: none; }
-.mdu-mobile-only{ display: none; }
+.mdu-mobile-only{ display: none !important; }
 .mdu-bottom-nav { display: none !important; }
 
 /* --- Mobile drawer (always in DOM, off-screen by default) --- */
@@ -156,6 +156,9 @@ body {
     display: flex !important;
     padding-bottom: max(26px, env(safe-area-inset-bottom)) !important;
   }
+
+  /* --- Hero spacer: second grid column becomes empty row on mobile — hide it --- */
+  .mdu-hero-spacer { display: none !important; }
 
   /* --- Hero section --- */
   .mdu-hero-grid {

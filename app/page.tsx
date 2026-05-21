@@ -73,7 +73,7 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div style={{ minHeight: 540 }} />
+          <div className="mdu-hero-spacer" style={{ minHeight: 540 }} />
         </div>
       </section>
 
