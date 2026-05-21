@@ -7,7 +7,11 @@ import { TeamBadge } from '@/components/mdu/team-badge';
 import { Pill } from '@/components/mdu/pill';
 import { Btn } from '@/components/mdu/button';
 import { Icon } from '@/components/mdu/icon';
-import { ROSTER, TEAMS, LEAGUES, findTeam, getStandings } from '@/lib/data';
+import {
+  TEAMS, findTeam, findLeague, findVenue,
+  getTeamAssignment, getPlayerAssignmentsForTeam,
+  getCurrentSeason, getStandings,
+} from '@/lib/data';
 import { shade } from '@/lib/utils';
 
 const TEAM_TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik', 'Galerie'];
@@ -17,11 +21,31 @@ const RECENT_MATCHES: never[] = [];
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
   const team = findTeam(id) ?? TEAMS[0];
-  // Look up the team's league and standing position
-  const teamLeague = LEAGUES.find(l => l.code === team.leagueCode);
-  const teamStandings = team.leagueCode ? getStandings(team.leagueCode) : [];
-  const teamStanding = teamStandings.find(r => r.team === team.id);
+
+  // ── Season-based assignment ──────────────────────────────────
+  // The team's league, venue, and captain for the current season
+  // are stored in SeasonTeamAssignment — NOT on the team entity itself.
+  const season = getCurrentSeason();
+  const assignment = getTeamAssignment(team.id, season.id);
+
+  // League for this season
+  const teamLeague = assignment ? findLeague(assignment.leagueId) : undefined;
   const leagueLabel = teamLeague?.name ?? 'Noch nicht verfügbar';
+
+  // Venue for this season
+  const venue = assignment?.venueId ? findVenue(assignment.venueId) : undefined;
+  const venueLabel = venue?.name ?? 'Noch nicht verfügbar';
+
+  // Captain for this season
+  const captainLabel = assignment?.captain ?? 'Noch nicht verfügbar';
+
+  // Standings for this season's league
+  const teamStandings = assignment ? getStandings(assignment.leagueId) : [];
+  const teamStanding = teamStandings.find(r => r.team === team.id);
+
+  // Player assignments for this season
+  const playerAssignments = getPlayerAssignmentsForTeam(team.id, season.id);
+  const hasPlayers = playerAssignments.length > 0;
 
   return (
     <div style={{ background: '#0A0B0F', color: '#F5F6FA', minHeight: '100vh' }}>
@@ -70,12 +94,13 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
                 {teamStanding && teamStanding.pos === 1 && <Pill tone="gold">Tabellenführer</Pill>}
                 {teamStanding && teamStanding.status === 'promo' && teamStanding.pos > 1 && <Pill tone="blue">Aufstiegsplatz</Pill>}
                 {teamStanding && teamStanding.status === 'releg' && <Pill tone="neutral">Abstiegsplatz</Pill>}
+                {team.status === 'inactive' && <Pill tone="neutral">Zurückgezogen</Pill>}
               </div>
               <h1 className="mdu-team-name" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 72, lineHeight: 0.9, letterSpacing: '-0.005em', color: '#F5F6FA', margin: 0, textTransform: 'uppercase' }}>
                 {team.name}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#C9CCD6' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="pin" size={14} stroke={2} /> {team.venue}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="pin" size={14} stroke={2} /> {venueLabel}</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="trophy" size={14} stroke={2} /> {leagueLabel}</span>
                 {teamStanding && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="bar" size={14} stroke={2} /> Platz {teamStanding.pos} · {teamStanding.pts} Pkt.</span>}
               </div>
@@ -99,7 +124,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               { n: teamStanding ? String(teamStanding.sp) : '—', l: 'Spiele' },
               { n: teamStanding ? String(teamStanding.s) : '—',  l: 'Siege' },
               { n: teamStanding ? String(teamStanding.n) : '—',  l: 'Niederlagen' },
-              { n: teamStanding?.legs ?? '—', l: 'Spiele', mono: true },
+              { n: teamStanding?.legs ?? '—', l: 'Legs', mono: true },
               { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte' },
             ].map((s, i) => (
               <div key={i} style={{ background: '#14161E', padding: '18px 18px' }}>
@@ -136,23 +161,32 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           <Card padding={0}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#F5F6FA' }}>Kader</span>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C' }}>Saison 2026 · Daten folgen</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C' }}>{season.name} · Daten folgen</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase' }}>
-              <span>#</span><span>Name</span><span>Rolle</span>
-            </div>
-            {ROSTER.map((p, i) => (
-              <div key={i} className="mdu-row-hover" style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>{String(i + 1).padStart(2, '0')}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#2C313F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: '#C9CCD6' }}>
-                    —
-                  </div>
-                  <span style={{ fontWeight: 500, color: '#6B7280', fontStyle: 'italic' }}>{p.name}</span>
+            {hasPlayers ? (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase' }}>
+                  <span>#</span><span>Name</span><span>Status</span>
                 </div>
-                <span style={{ color: '#6B7280', fontSize: 13, fontStyle: 'italic' }}>{p.role}</span>
+                {playerAssignments.map((pa, i) => (
+                  <div key={pa.id} className="mdu-row-hover" style={{ display: 'grid', gridTemplateColumns: '40px 1fr 120px', padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>{String(i + 1).padStart(2, '0')}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#2C313F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: '#C9CCD6' }}>
+                        {pa.playerId.slice(0, 2).toUpperCase()}
+                      </div>
+                      <span style={{ fontWeight: 600, color: '#F5F6FA' }}>{pa.playerId}</span>
+                    </div>
+                    <span style={{ color: '#9AA4B2', fontSize: 13 }}>{pa.status}</span>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div style={{ padding: '28px 18px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>
+                Noch keine Spielerdaten verfügbar.{' '}
+                <span style={{ color: '#9AA4B2' }}>Kader folgt auf dartunion.de.</span>
               </div>
-            ))}
+            )}
           </Card>
 
           {/* Recent matches */}
@@ -170,17 +204,17 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
 
         {/* Sidebar */}
         <aside style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Stats — season standings data */}
+          {/* Season stats */}
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Saison 2026</span>
+              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{season.name}</span>
             </div>
             {teamStanding ? [
-              { l: 'Gespielt',     v: String(teamStanding.sp),      frac: Math.min(teamStanding.sp / 18, 1),           c: '#D40000' },
-              { l: 'Siege',        v: String(teamStanding.s),       frac: Math.min(teamStanding.s / Math.max(teamStanding.sp, 1), 1), c: '#22C55E' },
-              { l: 'Unentschieden',v: String(teamStanding.u),       frac: Math.min(teamStanding.u / Math.max(teamStanding.sp, 1), 1), c: '#E8B84A' },
-              { l: 'Niederlagen',  v: String(teamStanding.n),       frac: Math.min(teamStanding.n / Math.max(teamStanding.sp, 1), 1), c: '#EF4444' },
-              { l: 'Punkte',       v: `${teamStanding.pts} Pkt.`,   frac: Math.min(teamStanding.pts / (teamStanding.sp * 3 || 1), 1), c: '#3B82F6' },
+              { l: 'Gespielt',     v: String(teamStanding.sp),   frac: Math.min(teamStanding.sp / 18, 1),                                        c: '#D40000' },
+              { l: 'Siege',        v: String(teamStanding.s),    frac: Math.min(teamStanding.s / Math.max(teamStanding.sp, 1), 1),               c: '#22C55E' },
+              { l: 'Unentschieden',v: String(teamStanding.u),    frac: Math.min(teamStanding.u / Math.max(teamStanding.sp, 1), 1),               c: '#E8B84A' },
+              { l: 'Niederlagen',  v: String(teamStanding.n),    frac: Math.min(teamStanding.n / Math.max(teamStanding.sp, 1), 1),               c: '#EF4444' },
+              { l: 'Punkte',       v: `${teamStanding.pts} Pkt.`,frac: Math.min(teamStanding.pts / (teamStanding.sp * 3 || 1), 1),              c: '#3B82F6' },
             ].map(s => (
               <div key={s.l} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#C9CCD6' }}>
@@ -207,18 +241,27 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               Spielplan auf <span style={{ color: '#9AA4B2' }}>dartunion.de</span> verfügbar.
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C', paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <Icon name="pin" size={13} stroke={2} /> {team.venue}
+              <Icon name="pin" size={13} stroke={2} /> {venueLabel}
             </div>
           </Card>
 
-          {/* Contact */}
+          {/* Contact / Team info */}
           <Card>
             <div style={{ marginBottom: 12 }}>
-              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Kontakt</span>
+              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Team Info</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Icon name="user" size={14} stroke={2} /> Noch nicht verfügbar</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6B7280' }}><Icon name="globe" size={14} stroke={2} /> dartunion.de</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="trophy" size={14} stroke={2} />
+                <span>{leagueLabel}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="user" size={14} stroke={2} />
+                <span>{captainLabel === 'Noch nicht verfügbar' ? <span style={{ color: '#6B7280', fontStyle: 'italic' }}>Kapitän noch nicht verfügbar</span> : captainLabel}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6B7280' }}>
+                <Icon name="globe" size={14} stroke={2} /> dartunion.de
+              </div>
             </div>
           </Card>
         </aside>
