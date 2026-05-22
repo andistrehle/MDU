@@ -8,7 +8,7 @@ import { Icon } from '@/components/mdu/icon';
 import {
   findLeague, getStandings,
   getCurrentSeason, getTeamAssignment, findVenue, getVenueFullAddress,
-  UPCOMING, getStatisticsForLeague,
+  getStatisticsForLeague, getMatchesForLeague,
 } from '@/lib/data';
 
 export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>) {
@@ -42,8 +42,8 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
   // Player statistics for this league
   const stats = getStatisticsForLeague(code);
 
-  // Upcoming matches — passed to client for league-filtered display
-  const upcoming = UPCOMING;
+  // All matches for this league (scheduled + completed) from matches.ts
+  const matches = getMatchesForLeague(code);
 
   return (
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
@@ -97,8 +97,8 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         rows={standings}
         league={leagueShape}
         teamInfoMap={teamInfoMap}
-        upcoming={upcoming}
         stats={stats}
+        matches={matches}
       />
 
       <Footer />

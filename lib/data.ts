@@ -36,6 +36,29 @@ export { VENUES, findVenue, getVenueById, getVenueFullAddress } from './data/ven
 export type { PlayerStatEntry, LeagueStatistics } from './data/statistics';
 export { STATISTICS_BY_LEAGUE, getStatisticsForLeague } from './data/statistics';
 
+export type {
+  MatchStatus,
+  MatchResult,
+  Match as GameMatch,
+}                                             from './data/matches';
+export {
+  MATCHES,
+  getMatchesForLeague,
+  getScheduledMatches,
+  getCompletedMatches,
+  getUpcomingMatches,
+  getRecentResults,
+  formatMatchDate,
+  formatScheduledDate,
+  normalizeTeamId,
+  isFutureOrOpenMatch,
+  getMatchesForTeam,
+  getScheduledMatchesForTeam,
+  getCompletedMatchesForTeam,
+  getScheduledMatchesByLeague,
+  getCompletedMatchesByLeague,
+}                                             from './data/matches';
+
 export type { PlayerStatus, Player }          from './data/players';
 export { PLAYERS, findPlayer, getPlayerDisplayName } from './data/players';
 
@@ -46,6 +69,7 @@ export type {
   LeagueGrouping,
   VenueWithTeams,
   LeagueVenueGrouping,
+  PlayerWithAssignment,
 }                                             from './data/assignments';
 export {
   SEASON_TEAM_ASSIGNMENTS,
@@ -53,6 +77,7 @@ export {
   getTeamAssignment,
   getAssignmentsForLeague,
   getPlayerAssignmentsForTeam,
+  getPlayersForTeamInSeason,
   getLeagueGroupings,
   getVenueForTeamInSeason,
   getCaptainForTeamInSeason,
@@ -78,7 +103,11 @@ export interface StandingRow {
   status: StandingStatus;
 }
 
-export interface Match {
+/**
+ * Legacy schedule entry used by UPCOMING and MatchCard.
+ * For the richer typed match structure use Match from lib/data/matches.ts.
+ */
+export interface LegacyMatch {
   date: string;
   time: string;
   league: string;
@@ -89,13 +118,25 @@ export interface Match {
   venue: string;
 }
 
+/** Backward-compat alias — kept so existing imports don't break */
+export type Match = LegacyMatch;
+
 export interface Result {
+  /** Display date, e.g. '21.05.2026' */
   date: string;
+  /** Display league name, e.g. 'Playoffs A Liga Aufstieg' */
   league: string;
+  /** League code for filtering, e.g. 'playoffs-a-aufstieg' — optional for backward compat */
+  leagueId?: string;
+  /** Home team ID from lib/data/teams.ts, e.g. 'alptraum' */
   home: string;
+  /** Away team ID from lib/data/teams.ts, e.g. 'silberpfeile-ii' */
   away: string;
+  /** Home score — games won out of 18 */
   hs: number;
+  /** Away score — games won out of 18. hs + as should equal 18 */
   as: number;
+  /** MVP player name or 'Noch nicht verfügbar' */
   mvp: string;
 }
 
@@ -235,7 +276,7 @@ export const A1_STANDINGS = A1_LIGA_STANDINGS;
 
 // ── Upcoming Matches ──────────────────────────────────────────
 
-export const UPCOMING: Match[] = [
+export const UPCOMING: LegacyMatch[] = [
   { date: 'Mi · 28.05.2026', time: '20:00', league: 'Playoffs A Liga Aufstieg', leagueId: 'playoffs-a-aufstieg', home: 'alptraum',          away: 'silberpfeile-ii',    venue: 'Noch nicht verfügbar' },
   { date: 'Mi · 28.05.2026', time: '20:00', league: 'Playoffs A Liga Aufstieg', leagueId: 'playoffs-a-aufstieg', home: 'gambas',             away: 'jolly-pirates-v',    venue: 'Noch nicht verfügbar' },
   { date: 'Mi · 28.05.2026', time: '20:00', league: 'Playoffs A Liga Abstieg',  leagueId: 'playoffs-a-abstieg',  home: 'spartans-vi',        away: 'sound-warriors',     venue: 'Noch nicht verfügbar' },
@@ -250,10 +291,58 @@ export const HOME_MATCHES = UPCOMING.slice(0, 3);
 
 // ── Results ───────────────────────────────────────────────────
 
+// ── How to add a result ────────────────────────────────────────
+//
+//   1. Open lib/data.ts (this file)
+//   2. Add a new line to RESULTS — newest match at the TOP:
+//
+//   { date: 'DD.MM.YYYY',
+//     league:   'Anzeigename der Liga',     // shown in the Ergebnisse table
+//     leagueId: 'liga-code',               // used for filtering (see codes below)
+//     home:     'team-id',                 // home team ID (see teams below)
+//     away:     'team-id',                 // away team ID
+//     hs:       12,                        // home games won (out of 18 total)
+//     as:        6,                        // away games won (hs + as = 18)
+//     mvp:      'Vorname Nachname',        // or 'Noch nicht verfügbar'
+//   },
+//
+// ── Liga-Codes (leagueId) ──────────────────────────────────────
+//   la                    La Liga
+//   a1                    A1 Liga
+//   a2                    A2 Liga
+//   b1                    B1 Liga
+//   b2                    B2 Liga
+//   c                     C Liga
+//   playoffs-a-aufstieg   Playoffs A Liga Aufstieg
+//   playoffs-a-abstieg    Playoffs A Liga Abstieg
+//   playoffs-b-aufstieg   Playoffs B Liga Aufstieg
+//   playoffs-b-abstieg    Playoffs B Liga Abstieg
+//
+// ── Team-IDs (home / away) ────────────────────────────────────
+//  La Liga:    spartans · ohne-jackie · jolly-pirates-kts · dc-null-bull · no-maam · les-dartagnons
+//  A1 Liga:    alptraum · dc-animals-ii · gambas · spartans-vi · sound-warriors · game-over
+//  A2 Liga:    silberpfeile-ii · treff-nix-freimann · jolly-pirates-v · oldies-co · de-wolperdinga
+//  B1 Liga:    flying-fighters · master-of-desaster · flying-seven · lucky-darts-one · de-hutzeldarter · massl-ghabt
+//  B2 Liga:    belfort-evolution · fiaker-deife · freibad-bazis · team-desaster · dc-dark-angels · de-vogelwuidn
+//  C Liga:     wild-indians · muenchen-0815 · lucky-darts-two · funny-darters · black-devils · fuenf-sterne-boazn
+//  Playoffs A Auf: alptraum · dc-animals-ii · gambas · silberpfeile-ii · treff-nix-freimann · jolly-pirates-v
+//  Playoffs A Abs: spartans-vi · sound-warriors · game-over · de-wolperdinga
+//  Playoffs B Auf: belfort-evolution · fiaker-deife · freibad-bazis · flying-fighters · master-of-desaster · flying-seven
+//  Playoffs B Abs: lucky-darts-one · de-hutzeldarter · massl-ghabt · dc-dark-angels · de-vogelwuidn · team-desaster
+//
+// ─────────────────────────────────────────────────────────────
+
 export const RESULTS: Result[] = [
-  { date: '07.12.2025', league: 'Pokal 2026', home: 'lucky-darts-one', away: 'de-vogelwuidn',      hs: 10, as: 8,  mvp: 'Noch nicht verfügbar' },
-  { date: '07.12.2025', league: 'Pokal 2026', home: 'game-over',       away: 'treff-nix-freimann', hs: 12, as: 6,  mvp: 'Noch nicht verfügbar' },
-  { date: '07.12.2025', league: 'Pokal 2026', home: 'belfort-evolution',away: 'flying-fighters',   hs:  0, as: 18, mvp: 'Noch nicht verfügbar' },
+  // ── Pokal 2026 · Rückspiele (18.01.2026) ────────────────────
+  // Rückspiel Rd 2 — De Vogelwuidn hosted Lucky Darts One
+  { date: '18.01.2026', league: 'Pokal 2026', home: 'de-vogelwuidn',      away: 'lucky-darts-one',    hs: 9,  as: 9,  mvp: 'Noch nicht verfügbar' },
+  // Rückspiel Rd 2 — Game Over hosted Treff Nix Freimann
+  { date: '18.01.2026', league: 'Pokal 2026', home: 'game-over',          away: 'treff-nix-freimann', hs: 14, as: 4,  mvp: 'Noch nicht verfügbar' },
+  // ── Pokal 2026 · Hinspiele (07.12.2025) ─────────────────────
+  // Hinspiel Rd 1 — Lucky Darts One hosted De Vogelwuidn
+  { date: '07.12.2025', league: 'Pokal 2026', home: 'lucky-darts-one',    away: 'de-vogelwuidn',      hs: 10, as: 8,  mvp: 'Noch nicht verfügbar' },
+  // Hinspiel Rd 1 — Treff Nix Freimann hosted Game Over
+  { date: '07.12.2025', league: 'Pokal 2026', home: 'treff-nix-freimann', away: 'game-over',          hs: 6,  as: 12, mvp: 'Noch nicht verfügbar' },
 ];
 
 // ── News ──────────────────────────────────────────────────────
@@ -287,6 +376,18 @@ export const EXTENDED_TEAMS: Record<string, { name: string; short: string; color
 
 export function getStandings(code: string): StandingRow[] {
   return STANDINGS_BY_LEAGUE[code.toLowerCase()] ?? [];
+}
+
+/**
+ * Returns all results for a given league code, newest first.
+ * Matches on leagueId (exact) or falls back to league name contains check.
+ */
+export function getResultsForLeague(leagueCode: string): Result[] {
+  return RESULTS.filter(r =>
+    r.leagueId
+      ? r.leagueId === leagueCode.toLowerCase()
+      : r.league.toLowerCase().includes(leagueCode.toLowerCase()),
+  );
 }
 
 /**

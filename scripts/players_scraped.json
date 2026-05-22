@@ -1,0 +1,2280 @@
+{
+  "spartans": [
+    {
+      "lastName": "FRAUNDORFER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 5707",
+      "isCaptain": false
+    },
+    {
+      "lastName": "JEDLICKA",
+      "firstName": "JASON",
+      "licenseNumber": "MDU 26 3705",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KOVRILJA",
+      "firstName": "DEJAN",
+      "licenseNumber": "MDU 3709",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LINDNER",
+      "firstName": "SILVI",
+      "licenseNumber": "MDU 26 3703",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MADAROS",
+      "firstName": "ANTUN",
+      "licenseNumber": "MDU 3710",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAUERER",
+      "firstName": "KAROLINA",
+      "licenseNumber": "MDU 26 3701",
+      "isCaptain": true
+    },
+    {
+      "lastName": "SCHIEGG",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 3714",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHNEIDER",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 3703",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SLIWANSKI",
+      "firstName": "HANSI",
+      "licenseNumber": "MDU 26 3702",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STECKERMEIER",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 3706",
+      "isCaptain": false
+    },
+    {
+      "lastName": "TERESCHENKO",
+      "firstName": "ANDREJ",
+      "licenseNumber": "MDU 3713",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VASILIADIS",
+      "firstName": "NICO",
+      "licenseNumber": "MDU 26 3704",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WEGNER",
+      "firstName": "DIRK",
+      "licenseNumber": "MDU 3716",
+      "isCaptain": false
+    }
+  ],
+  "ohne-jackie": [
+    {
+      "lastName": "BAUER",
+      "firstName": "TONI",
+      "licenseNumber": "MDU 50001",
+      "isCaptain": true
+    },
+    {
+      "lastName": "BERNHARDT",
+      "firstName": "NICKLAS",
+      "licenseNumber": "MDU 7113",
+      "isCaptain": false
+    },
+    {
+      "lastName": "CAM",
+      "firstName": "GUENES",
+      "licenseNumber": "MDU 7108",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DUCKE",
+      "firstName": "STEPHAN",
+      "licenseNumber": "MDU 1642",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EISCHER",
+      "firstName": "MANFRED",
+      "licenseNumber": "MDU 1643",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LEHNER",
+      "firstName": "MARTIN",
+      "licenseNumber": "MDU 7112",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LOZANCIC",
+      "firstName": "ZLATKO",
+      "licenseNumber": "MDU 3711",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LWOWSKI",
+      "firstName": "CHRISS",
+      "licenseNumber": "MDU 7107",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PANKRATZ",
+      "firstName": "RICHI",
+      "licenseNumber": "MDU 7111",
+      "isCaptain": false
+    },
+    {
+      "lastName": "POGREMNO",
+      "firstName": "JIMMY",
+      "licenseNumber": "MDU 71099",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RALL",
+      "firstName": "ALEX",
+      "licenseNumber": "MDU 7106",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RUHLAND",
+      "firstName": "PATRICK",
+      "licenseNumber": "MDU 71066",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHAEFFER",
+      "firstName": "CHRIS",
+      "licenseNumber": "MDU 2699",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SEIDL",
+      "firstName": "PETER",
+      "licenseNumber": "MDU 115006",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WOLF",
+      "firstName": "BENE",
+      "licenseNumber": "MDU 1639",
+      "isCaptain": false
+    }
+  ],
+  "dc-null-bull": [
+    {
+      "lastName": "ARSEN",
+      "firstName": "OORRI",
+      "licenseNumber": "MDU 26 1010",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HALITJAHA",
+      "firstName": "ARBEN",
+      "licenseNumber": "MDU 26 1011",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HASANAJ",
+      "firstName": "FATMIR",
+      "licenseNumber": "MDU 26 1007",
+      "isCaptain": false
+    },
+    {
+      "lastName": "IDRIZI",
+      "firstName": "EFRAIM",
+      "licenseNumber": "MDU 26 1009",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KATSIKAS",
+      "firstName": "DIMOS",
+      "licenseNumber": "MDU 007",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LOSHI",
+      "firstName": "AVNI",
+      "licenseNumber": "MDU 26 1006",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PAJDAKOVIC",
+      "firstName": "DADO",
+      "licenseNumber": "MDU 26 1003",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROGGE",
+      "firstName": "DIETER",
+      "licenseNumber": "MDU 26 1001",
+      "isCaptain": true
+    },
+    {
+      "lastName": "SUBOTIC",
+      "firstName": "ZORAN",
+      "licenseNumber": "MDU 26 1012",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VAYRYNEN",
+      "firstName": "BOBBY",
+      "licenseNumber": "MDU 26 1004",
+      "isCaptain": false
+    }
+  ],
+  "jolly-pirates-kts": [
+    {
+      "lastName": "BERNARDI",
+      "firstName": "SASCHA",
+      "licenseNumber": "MDU 26 5507",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BURGIS",
+      "firstName": "MAXIMILIAN",
+      "licenseNumber": "MDU 26 5512",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EISENHOFER",
+      "firstName": "STEVEN",
+      "licenseNumber": "MDU 26 5504",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FELJAN",
+      "firstName": "STJEPAN",
+      "licenseNumber": "MDU 26 5510",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GALATOVIC",
+      "firstName": "GELI",
+      "licenseNumber": "MDU 26 5502",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HOLETIC",
+      "firstName": "STJPAN",
+      "licenseNumber": "MDU 26 5509",
+      "isCaptain": false
+    },
+    {
+      "lastName": "OBRSTAR",
+      "firstName": "MLADEN",
+      "licenseNumber": "MDU 26 5517",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PREIS",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 5514",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PREISENDÖRFER",
+      "firstName": "MELANIE",
+      "licenseNumber": "MDU 26 5501",
+      "isCaptain": true
+    },
+    {
+      "lastName": "REITER",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 5505",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RICHTER",
+      "firstName": "MORITZ",
+      "licenseNumber": "MDU 26 5513",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMIDKUNZ",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 5508",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHWAIGER",
+      "firstName": "JOHANNES",
+      "licenseNumber": "MDU 26 5506",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STEINBRÜCK",
+      "firstName": "DIRK",
+      "licenseNumber": "MDU 26 5515",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STEINBRÜCK",
+      "firstName": "PHILIPP",
+      "licenseNumber": "MDU 26 5516",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STRIGL",
+      "firstName": "ALEX",
+      "licenseNumber": "MDU 26 5511",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ZIEBUHR",
+      "firstName": "CLAUS",
+      "licenseNumber": "MDU 26 5503",
+      "isCaptain": false
+    }
+  ],
+  "les-dartagnons": [
+    {
+      "lastName": "HAIMMERER",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 5305",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KANDLBINDER",
+      "firstName": "HUBERT",
+      "licenseNumber": "MDU 26 5301",
+      "isCaptain": true
+    },
+    {
+      "lastName": "KNOBLAUCH",
+      "firstName": "ANDREAS",
+      "licenseNumber": "MDU 26 5306",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RAUSCHMEIER",
+      "firstName": "DIETER",
+      "licenseNumber": "MDU 26 5308",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RESCH",
+      "firstName": "ALEXANDER",
+      "licenseNumber": "MDU 26 5310",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RESCH",
+      "firstName": "DANIEL",
+      "licenseNumber": "MDU 26 5309",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SAMHUBER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 5304",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHÃPER",
+      "firstName": "INA",
+      "licenseNumber": "MDU 26 5303",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHREINER",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 5307",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ZIEGLTRUM",
+      "firstName": "REGINA",
+      "licenseNumber": "MDU 26 5302",
+      "isCaptain": false
+    }
+  ],
+  "no-maam": [
+    {
+      "lastName": "DEGEL",
+      "firstName": "MARTIN",
+      "licenseNumber": "MDU 26 6208",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HARTMANN",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 6203",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HERCEG",
+      "firstName": "DRAGAN",
+      "licenseNumber": "MDU 26 6205",
+      "isCaptain": false
+    },
+    {
+      "lastName": "JURIC",
+      "firstName": "ZLATKO",
+      "licenseNumber": "MDU 26 6201",
+      "isCaptain": true
+    },
+    {
+      "lastName": "MÜLLER",
+      "firstName": "PATRICK",
+      "licenseNumber": "MDU 26 6209",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHWARZ",
+      "firstName": "ANDRE",
+      "licenseNumber": "MDU 26 6204",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SOWITSCH",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 6206",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STRAUBINGER",
+      "firstName": "WOLFGANG",
+      "licenseNumber": "MDU 26 6202",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WIMMER",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 6207",
+      "isCaptain": false
+    }
+  ],
+  "alptraum": [
+    {
+      "lastName": "HELMBRECHT",
+      "firstName": "MARTIN",
+      "licenseNumber": "MDU 26 2003",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PIPEREA",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 2008",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PONZLET",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 2004",
+      "isCaptain": false
+    },
+    {
+      "lastName": "REINICKE",
+      "firstName": "HANS",
+      "licenseNumber": "MDU 26 2002",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHRICKER",
+      "firstName": "RALF",
+      "licenseNumber": "MDU 26 2005",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STEINER",
+      "firstName": "MARTIN",
+      "licenseNumber": "MDU 26 2007",
+      "isCaptain": false
+    },
+    {
+      "lastName": "TOKALIC",
+      "firstName": "SANEL",
+      "licenseNumber": "MDU 26 2006",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WAGNER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 2001",
+      "isCaptain": true
+    }
+  ],
+  "dc-animals-ii": [
+    {
+      "lastName": "BRUNNTHALER",
+      "firstName": "REINHARD",
+      "licenseNumber": "MDU 26 4703",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DISTELBERGER",
+      "firstName": "STEVEN",
+      "licenseNumber": "MDU 26 4704",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ERNST",
+      "firstName": "LILO",
+      "licenseNumber": "MDU 26 4702",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FRISCH",
+      "firstName": "RONJA",
+      "licenseNumber": "MDU 26 4705",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FRISCH",
+      "firstName": "TATJANA",
+      "licenseNumber": "MDU 26 4706",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GERHARTSREITER",
+      "firstName": "ALEX",
+      "licenseNumber": "MDU 26 4707",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KONRAD",
+      "firstName": "JÖRG",
+      "licenseNumber": "MDU 26 4708",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LAUSCH",
+      "firstName": "NATASCHA",
+      "licenseNumber": "MDU 26 4709",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LÖFFLER",
+      "firstName": "KEVIN",
+      "licenseNumber": "MDU 26 4713",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAIK",
+      "firstName": "FRANK",
+      "licenseNumber": "MDU 26 4714",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MÜCKSTEIN",
+      "firstName": "ALEX",
+      "licenseNumber": "MDU 26 4701",
+      "isCaptain": true
+    },
+    {
+      "lastName": "SPÄTH",
+      "firstName": "PATRICK",
+      "licenseNumber": "MDU 26 4710",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STANISIC",
+      "firstName": "IVAN",
+      "licenseNumber": "MDU 26 4711",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STOCKNER",
+      "firstName": "LUTZ",
+      "licenseNumber": "MDU 26 4712",
+      "isCaptain": false
+    }
+  ],
+  "gambas": [
+    {
+      "lastName": "EISEB",
+      "firstName": "RICKEY",
+      "licenseNumber": "MDU 6009",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GROSSWIESER",
+      "firstName": "PETER",
+      "licenseNumber": "MDU 6004",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HACKL",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 6008",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HEIDER",
+      "firstName": "AXEL",
+      "licenseNumber": "MDU 6002",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KASPAR",
+      "firstName": "ROMANO",
+      "licenseNumber": "MDU 6007",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KELTERBORN",
+      "firstName": "DOUGLAS",
+      "licenseNumber": "MDU 6010",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KLOS",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 6006",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RATHGEB",
+      "firstName": "HARALD",
+      "licenseNumber": "MDU 6005",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROMBOY",
+      "firstName": "GERHART",
+      "licenseNumber": "MDU 26 6001",
+      "isCaptain": true
+    }
+  ],
+  "spartans-vi": [
+    {
+      "lastName": "BERNECKER",
+      "firstName": "STEFANO",
+      "licenseNumber": "MDU 26 4302",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BÖKEL",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 4304",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BÖKEL",
+      "firstName": "MARTINA",
+      "licenseNumber": "MDU 26 4303",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GEGENFURTNER",
+      "firstName": "FRANZ",
+      "licenseNumber": "MDU 26 4305",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GNADE",
+      "firstName": "STEVEN",
+      "licenseNumber": "MDU 26 4306",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HECHT",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 4308",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HOFSTETTER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 4301",
+      "isCaptain": true
+    },
+    {
+      "lastName": "PLOETZ",
+      "firstName": "LUDWIG",
+      "licenseNumber": "MDU 26 4307",
+      "isCaptain": false
+    }
+  ],
+  "sound-warriors": [
+    {
+      "lastName": "ALEXANDRU FLORIN",
+      "firstName": "URSU",
+      "licenseNumber": "MDU 26 8707",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BARTL",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 8706",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EDELMANN",
+      "firstName": "THORSTEN",
+      "licenseNumber": "MDU 26 8704",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EDELMANN",
+      "firstName": "PHILLIP",
+      "licenseNumber": "MDU 26 8705",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ELMER",
+      "firstName": "JASMIN",
+      "licenseNumber": "MDU 26 8708",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FINK",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 8703",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KABERMANN",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 8702",
+      "isCaptain": false
+    },
+    {
+      "lastName": "OHLENFORST",
+      "firstName": "HERBERT",
+      "licenseNumber": "MDU 26 8709",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROCK",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 8701",
+      "isCaptain": true
+    }
+  ],
+  "game-over": [
+    {
+      "lastName": "KRIEGER",
+      "firstName": "SONJA",
+      "licenseNumber": "MDU 26 1502",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LEBAR",
+      "firstName": "BOSKO",
+      "licenseNumber": "MDU 26 1507",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MEYER",
+      "firstName": "ANNETT",
+      "licenseNumber": "MDU 26 1501",
+      "isCaptain": true
+    },
+    {
+      "lastName": "MEYER",
+      "firstName": "ANDRE",
+      "licenseNumber": "MDU 26 1506",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PINTARIC",
+      "firstName": "GABRIELE",
+      "licenseNumber": "MDU 26 1504",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHÄFFLER",
+      "firstName": "MANUEL",
+      "licenseNumber": "MDU 26 1509",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHLUTOW",
+      "firstName": "REINER",
+      "licenseNumber": "MDU 26 1508",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHÖPPE",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 1505",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VASEV",
+      "firstName": "ROBERT",
+      "licenseNumber": "MDU 26 1510",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WICHE",
+      "firstName": "DENISE",
+      "licenseNumber": "MDU 26 1503",
+      "isCaptain": false
+    }
+  ],
+  "treff-nix-freimann": [
+    {
+      "lastName": "ATTENBERGER",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 2805",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BRUNNER",
+      "firstName": "BERNHARD",
+      "licenseNumber": "MDU 26 2810",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BUCHHOLZ",
+      "firstName": "MANUEL",
+      "licenseNumber": "MDU 26 2801",
+      "isCaptain": true
+    },
+    {
+      "lastName": "FREUDENSPRUNG",
+      "firstName": "JULIA",
+      "licenseNumber": "MDU 26 2803",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GRÖTSCH",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 2804",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HALEMBA",
+      "firstName": "MAXIMILIAN",
+      "licenseNumber": "MDU 26 2811",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HARATSCH",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 2806",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KÜBLBÖCK",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 2802",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LANGHOF",
+      "firstName": "RAINER",
+      "licenseNumber": "MDU 26 2809",
+      "isCaptain": false
+    },
+    {
+      "lastName": "TOTH",
+      "firstName": "ZOLTAN",
+      "licenseNumber": "MDU 26 2807",
+      "isCaptain": false
+    }
+  ],
+  "silberpfeile-ii": [
+    {
+      "lastName": "BAURIEDL",
+      "firstName": "MARIO",
+      "licenseNumber": "MDU 26 8209",
+      "isCaptain": false
+    },
+    {
+      "lastName": "COHNEN",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 8210",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DAXENBERGER",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 8205",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HILGER",
+      "firstName": "AXEL",
+      "licenseNumber": "MDU 26 8208",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HOLZHÄUSER",
+      "firstName": "MAXI",
+      "licenseNumber": "MDU 26 8204",
+      "isCaptain": false
+    },
+    {
+      "lastName": "JENEMANN",
+      "firstName": "FRIEDHELM",
+      "licenseNumber": "MDU 26 8207",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KOENIG",
+      "firstName": "MAIK",
+      "licenseNumber": "MDU 26 8201",
+      "isCaptain": true
+    },
+    {
+      "lastName": "PLESA",
+      "firstName": "ROBERT",
+      "licenseNumber": "MDU 26 8206",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PLESA",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 8211",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHWARZ",
+      "firstName": "HEIKE",
+      "licenseNumber": "MDU 26 8203",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WALTER",
+      "firstName": "MANDY",
+      "licenseNumber": "MDU 26 8202",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ZIEGLER",
+      "firstName": "HANS",
+      "licenseNumber": "MDU 26 8212",
+      "isCaptain": false
+    }
+  ],
+  "jolly-pirates-v": [
+    {
+      "lastName": "ARMBRUSTER",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 3305",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ARMBRUSTER",
+      "firstName": "SVEN",
+      "licenseNumber": "MDU 26 3308",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BLOMANN",
+      "firstName": "WILLI",
+      "licenseNumber": "MDU 26 3304",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KRAUS",
+      "firstName": "HERIBERT",
+      "licenseNumber": "MDU 26 3306",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAYRHOFER",
+      "firstName": "SOPHIE",
+      "licenseNumber": "MDU 26 3312",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MENDL",
+      "firstName": "ROBERT",
+      "licenseNumber": "MDU 26 3307",
+      "isCaptain": false
+    },
+    {
+      "lastName": "NYIRI",
+      "firstName": "MIKI",
+      "licenseNumber": "MDU 26 3309",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PREISENDOERFER",
+      "firstName": "ALINA",
+      "licenseNumber": "MDU 26 3302",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHREIBER",
+      "firstName": "TIM",
+      "licenseNumber": "MDU 26 3310",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SONNTAG",
+      "firstName": "ANDREE",
+      "licenseNumber": "MDU 26 3303",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SPITZENBERGER",
+      "firstName": "HARRY",
+      "licenseNumber": "MDU 26 3301",
+      "isCaptain": true
+    },
+    {
+      "lastName": "TSIRIKOS",
+      "firstName": "THEODOROS",
+      "licenseNumber": "MDU 26 3311",
+      "isCaptain": false
+    }
+  ],
+  "de-wolperdinga": [
+    {
+      "lastName": "BAHADIR",
+      "firstName": "MEHMET",
+      "licenseNumber": "MDU 26 4006",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KUGLER",
+      "firstName": "TOM",
+      "licenseNumber": "MDU 26 4005",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SPEIER",
+      "firstName": "ADDY",
+      "licenseNumber": "MDU 26 4001",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STEININGER",
+      "firstName": "FRANK",
+      "licenseNumber": "MDU 26 4007",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VACCARO",
+      "firstName": "MARIO",
+      "licenseNumber": "MDU 26 4002",
+      "isCaptain": true
+    },
+    {
+      "lastName": "WEILLER",
+      "firstName": "FRANZ",
+      "licenseNumber": "MDU 26 4003",
+      "isCaptain": false
+    }
+  ],
+  "oldies-co": [
+    {
+      "lastName": "ELLING",
+      "firstName": "DIETHARD",
+      "licenseNumber": "MDU 26 4805",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HILSE",
+      "firstName": "FABIAN",
+      "licenseNumber": "MDU 26 4804",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HILSE",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 4803",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HOFMANN",
+      "firstName": "UTE",
+      "licenseNumber": "MDU 26 4801",
+      "isCaptain": true
+    },
+    {
+      "lastName": "SONNTAG",
+      "firstName": "PETER",
+      "licenseNumber": "MDU 26 4802",
+      "isCaptain": false
+    }
+  ],
+  "flying-fighters": [
+    {
+      "lastName": "BENDA",
+      "firstName": "ANDY",
+      "licenseNumber": "MDU 26 3804",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BIBER",
+      "firstName": "ULI",
+      "licenseNumber": "MDU 26 3808",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BRENGEL",
+      "firstName": "DOMINIK",
+      "licenseNumber": "MDU 26 3811",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FISCHER",
+      "firstName": "MARTIN",
+      "licenseNumber": "MDU 26 3815",
+      "isCaptain": false
+    },
+    {
+      "lastName": "JAWORECK",
+      "firstName": "ALEXANDER",
+      "licenseNumber": "MDU 26 3813",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KUCHENBAUR",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 3805",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MASIC",
+      "firstName": "NIKOLA",
+      "licenseNumber": "MDU 26 3803",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MÜHRER",
+      "firstName": "YVES",
+      "licenseNumber": "MDU 26 3814",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MÜLLER",
+      "firstName": "RALF",
+      "licenseNumber": "MDU 26 3810",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHICK",
+      "firstName": "JOCHEN",
+      "licenseNumber": "MDU 26 3807",
+      "isCaptain": false
+    },
+    {
+      "lastName": "URBAN",
+      "firstName": "PHILIPP",
+      "licenseNumber": "MDU 26 3809",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VACCARO",
+      "firstName": "STEPHANIE",
+      "licenseNumber": "MDU 26 3801",
+      "isCaptain": true
+    },
+    {
+      "lastName": "WASNER",
+      "firstName": "KLAUS",
+      "licenseNumber": "MDU 26 3806",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WOLF",
+      "firstName": "JULIA",
+      "licenseNumber": "MDU 26 3802",
+      "isCaptain": false
+    }
+  ],
+  "master-of-desaster": [
+    {
+      "lastName": "FIRAT",
+      "firstName": "DENIZ",
+      "licenseNumber": "MDU 5608",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FIRAT",
+      "firstName": "SABINE 'BINE'",
+      "licenseNumber": "MDU 5610",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GÃMMERLER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 5601",
+      "isCaptain": true
+    },
+    {
+      "lastName": "GROVES",
+      "firstName": "JAN",
+      "licenseNumber": "MDU 5606",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HIRT",
+      "firstName": "ANGELA",
+      "licenseNumber": "MDU 5602",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KOPP",
+      "firstName": "CHRISTIANE",
+      "licenseNumber": "MDU 5604",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KOUHI",
+      "firstName": "BENJAMIN",
+      "licenseNumber": "MDU 5611",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROTHER",
+      "firstName": "KLAUS",
+      "licenseNumber": "MDU 5605",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMID",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 5607",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WIDL",
+      "firstName": "ANDRE",
+      "licenseNumber": "MDU 5609",
+      "isCaptain": false
+    }
+  ],
+  "flying-seven": [
+    {
+      "lastName": "FREINBERGER",
+      "firstName": "FRANZ",
+      "licenseNumber": "MDU 26 7905",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LÖDL",
+      "firstName": "CARMEN-BIANCA",
+      "licenseNumber": "MDU 26 7902",
+      "isCaptain": false
+    },
+    {
+      "lastName": "REISINGER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 7901",
+      "isCaptain": true
+    },
+    {
+      "lastName": "REISINGER",
+      "firstName": "ERIKA",
+      "licenseNumber": "MDU 26 7903",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMELZER",
+      "firstName": "DANIELA",
+      "licenseNumber": "MDU 26 7904",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMELZER",
+      "firstName": "PATRICK",
+      "licenseNumber": "MDU 26 7908",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WITTECK",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 7907",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ZÜCKERT",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 7906",
+      "isCaptain": false
+    }
+  ],
+  "lucky-darts-one": [
+    {
+      "lastName": "ALTAVILLA",
+      "firstName": "ROBERTO",
+      "licenseNumber": "MDU 26 9808",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BAUER",
+      "firstName": "TORSTEN",
+      "licenseNumber": "MDU 26 9801",
+      "isCaptain": true
+    },
+    {
+      "lastName": "DUGDALE",
+      "firstName": "CIARAN",
+      "licenseNumber": "MDU 26 9807",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EXNER",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 9806",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FRIEDEL",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 3812",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HAUMER",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 9805",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KOMMESCHER",
+      "firstName": "MARVIN",
+      "licenseNumber": "MDU 26 9802",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RUHLAND",
+      "firstName": "LUCAS",
+      "licenseNumber": "MDU 26 9804",
+      "isCaptain": false
+    }
+  ],
+  "de-hutzeldarter": [
+    {
+      "lastName": "ARNOLD",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 5105",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BURKHARDT",
+      "firstName": "HANS",
+      "licenseNumber": "MDU 26 5120",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FÜRSICHT",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 5101",
+      "isCaptain": true
+    },
+    {
+      "lastName": "HOPPE",
+      "firstName": "ROBERT",
+      "licenseNumber": "MDU 26 5107",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LÖB",
+      "firstName": "CHRISTOPH",
+      "licenseNumber": "MDU 26 5108",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LÖFFLER",
+      "firstName": "THOMAS",
+      "licenseNumber": "MDU 26 5104",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MEYER",
+      "firstName": "PATRICK",
+      "licenseNumber": "MDU 26 5109",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MÜLLER",
+      "firstName": "FRITZ",
+      "licenseNumber": "MDU 26 5106",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PAINTNER-TUITE",
+      "firstName": "BEATRIX",
+      "licenseNumber": "MDU 26 5103",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PETROVIC",
+      "firstName": "NEBOJSA  BOLE",
+      "licenseNumber": "MDU 26 4004",
+      "isCaptain": false
+    }
+  ],
+  "massl-ghabt": [
+    {
+      "lastName": "DÖRNER",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 7321",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DÜRRBECK",
+      "firstName": "PETER",
+      "licenseNumber": "MDU 26 7301",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ERHARD",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 7306",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KNIEHL",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 7305",
+      "isCaptain": true
+    },
+    {
+      "lastName": "MEMET",
+      "firstName": "ERDAL",
+      "licenseNumber": "MDU 26 7313",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PABEL",
+      "firstName": "OLIVER",
+      "licenseNumber": "MDU 26 7307",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PECHLIVANIDIS",
+      "firstName": "IOANNIS",
+      "licenseNumber": "MDU 26 7311",
+      "isCaptain": false
+    },
+    {
+      "lastName": "REITER",
+      "firstName": "ELY",
+      "licenseNumber": "MDU 26 7302",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STAHL",
+      "firstName": "JOSEF",
+      "licenseNumber": "MDU 26 7314",
+      "isCaptain": false
+    },
+    {
+      "lastName": "THOMA",
+      "firstName": "FRANZ",
+      "licenseNumber": "MDU 26 7309",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WATZLAWEK",
+      "firstName": "MIREK “WASI“",
+      "licenseNumber": "MDU 26 7320",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WILCOX",
+      "firstName": "DAMARIS",
+      "licenseNumber": "MDU 26 7303",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WUDTKE KNIEHL",
+      "firstName": "DENISE",
+      "licenseNumber": "MDU 26 7304",
+      "isCaptain": false
+    }
+  ],
+  "belfort-evolution": [
+    {
+      "lastName": "BERG",
+      "firstName": "MARCELLINO",
+      "licenseNumber": "MDU 26 1108",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BLEICHER",
+      "firstName": "GEORG",
+      "licenseNumber": "MDU 26 1105",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DINKEL",
+      "firstName": "MANUELA",
+      "licenseNumber": "MDU 26 1102",
+      "isCaptain": false
+    },
+    {
+      "lastName": "JÄGER",
+      "firstName": "EDITH",
+      "licenseNumber": "MDU 26 1111",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KLING",
+      "firstName": "MANFRED",
+      "licenseNumber": "MDU 26 1109",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PLUTA",
+      "firstName": "CHRISTINE",
+      "licenseNumber": "MDU 26 1103",
+      "isCaptain": false
+    },
+    {
+      "lastName": "POPPE",
+      "firstName": "DOMINIK",
+      "licenseNumber": "MDU 26 1107",
+      "isCaptain": false
+    },
+    {
+      "lastName": "POPPE",
+      "firstName": "DIETMAR",
+      "licenseNumber": "MDU 26 1101",
+      "isCaptain": true
+    },
+    {
+      "lastName": "RICHTER",
+      "firstName": "DANIEL",
+      "licenseNumber": "MDU 26 1106",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROGGAN",
+      "firstName": "HEINZ",
+      "licenseNumber": "MDU 26 1104",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STECKERMEIER",
+      "firstName": "WALTER",
+      "licenseNumber": "MDU 26 1110",
+      "isCaptain": false
+    }
+  ],
+  "fiaker-deife": [
+    {
+      "lastName": "ALBRECHT",
+      "firstName": "SVEN",
+      "licenseNumber": "MDU 26 4909",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HOFFMANN",
+      "firstName": "BERNHARD",
+      "licenseNumber": "MDU 26 4905",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KARNOLL",
+      "firstName": "TAMARA",
+      "licenseNumber": "MDU 26 4902",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KIRSCHNER",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 4907",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LEWERENZ",
+      "firstName": "TIMO",
+      "licenseNumber": "MDU 26 4911",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MATEJKA",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 4901",
+      "isCaptain": true
+    },
+    {
+      "lastName": "OTTO",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 4906",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PFAFFENZELLER",
+      "firstName": "ANNIKA",
+      "licenseNumber": "MDU 26 4912",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHERER",
+      "firstName": "YVES",
+      "licenseNumber": "MDU 26 4904",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMIDHAMMER",
+      "firstName": "DANI",
+      "licenseNumber": "MDU 26 4910",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMIDT",
+      "firstName": "JÖRG",
+      "licenseNumber": "MDU 26 4903",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHREIL",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 4908",
+      "isCaptain": false
+    }
+  ],
+  "freibad-bazis": [
+    {
+      "lastName": "BECKER",
+      "firstName": "MORITZ",
+      "licenseNumber": "MDU 26 5903",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KÖNIGER",
+      "firstName": "BRENDAN",
+      "licenseNumber": "MDU 26 5911",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KUNTSCHER",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 5907",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAYRING",
+      "firstName": "MATTHIAS",
+      "licenseNumber": "MDU 26 5904",
+      "isCaptain": false
+    },
+    {
+      "lastName": "NOKIC",
+      "firstName": "DENIS",
+      "licenseNumber": "MDU 26 5913",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PREISS",
+      "firstName": "CHRISTOPH",
+      "licenseNumber": "MDU 26 5909",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RAUCH",
+      "firstName": "MANUEL",
+      "licenseNumber": "MDU 26 5905",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROGGE",
+      "firstName": "SEBASTIAN",
+      "licenseNumber": "MDU 26 5906",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STREHLE",
+      "firstName": "ANDREAS",
+      "licenseNumber": "MDU 26 5901",
+      "isCaptain": true
+    },
+    {
+      "lastName": "STREHLE",
+      "firstName": "JULIA",
+      "licenseNumber": "MDU 26 5902",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WALTER",
+      "firstName": "ANDREAS",
+      "licenseNumber": "MDU 26 5910",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WEBER",
+      "firstName": "TIM",
+      "licenseNumber": "MDU 26 5908",
+      "isCaptain": false
+    }
+  ],
+  "team-desaster": [
+    {
+      "lastName": "DOSPIL",
+      "firstName": "FLORIAN",
+      "licenseNumber": "MDU 26 5706",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FISCHER",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 5701",
+      "isCaptain": true
+    },
+    {
+      "lastName": "FOLIE",
+      "firstName": "HELMUT",
+      "licenseNumber": "MDU 26 5703",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HECKMANN",
+      "firstName": "REINER",
+      "licenseNumber": "MDU 26 5712",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HIERMANN",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 5710",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KRAUSS",
+      "firstName": "MARIO",
+      "licenseNumber": "MDU 14487",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KURZ",
+      "firstName": "ULI",
+      "licenseNumber": "MDU 26 5704",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KURZ",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 5705",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LUX",
+      "firstName": "ANITA",
+      "licenseNumber": "MDU 26 5711",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHUY",
+      "firstName": "BENJAMIN",
+      "licenseNumber": "MDU 26 5709",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SOOS",
+      "firstName": "STEPHAN",
+      "licenseNumber": "MDU 26 5708",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WEINBERGER",
+      "firstName": "TAMARA",
+      "licenseNumber": "MDU 26 5702",
+      "isCaptain": false
+    }
+  ],
+  "dc-dark-angels": [
+    {
+      "lastName": "EBERL",
+      "firstName": "SABINE",
+      "licenseNumber": "MDU 26 8502",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EBERL",
+      "firstName": "FRANZ",
+      "licenseNumber": "MDU 26 8501",
+      "isCaptain": true
+    },
+    {
+      "lastName": "EBERL",
+      "firstName": "JUSTIN - MARCO",
+      "licenseNumber": "MDU 26 8503",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WALTER",
+      "firstName": "ROBERT",
+      "licenseNumber": "MDU 26 8504",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WALTER",
+      "firstName": "KARIN",
+      "licenseNumber": "MDU 26 8505",
+      "isCaptain": false
+    }
+  ],
+  "de-vogelwuidn": [
+    {
+      "lastName": "ABRAHAM",
+      "firstName": "ARMIN",
+      "licenseNumber": "MDU 26 3911",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BACHMAIR",
+      "firstName": "PETRA",
+      "licenseNumber": "MDU 26 3902",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GNATOWSKI",
+      "firstName": "SYLWESTER",
+      "licenseNumber": "MDU 26 3904",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LEITZE",
+      "firstName": "DANIEL",
+      "licenseNumber": "MDU 26 3910",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LEWIK",
+      "firstName": "STEVE",
+      "licenseNumber": "MDU 26 3907",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MARCINKO",
+      "firstName": "MARTIN",
+      "licenseNumber": "MDU 26 3908",
+      "isCaptain": false
+    },
+    {
+      "lastName": "OELLERER",
+      "firstName": "KARIN",
+      "licenseNumber": "MDU 26 3903",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ROHR",
+      "firstName": "PETRA",
+      "licenseNumber": "MDU 26 3905",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SÄNGER",
+      "firstName": "HORST",
+      "licenseNumber": "MDU 26 3901",
+      "isCaptain": true
+    },
+    {
+      "lastName": "SCHWEITZER",
+      "firstName": "RALF",
+      "licenseNumber": "MDU 26 3906",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SZYMANSKI",
+      "firstName": "PAWEL",
+      "licenseNumber": "MDU 26 3909",
+      "isCaptain": false
+    }
+  ],
+  "wild-indians": [
+    {
+      "lastName": "BAUMSTARK",
+      "firstName": "JÜRGEN",
+      "licenseNumber": "MDU 26 8112",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BEHREND",
+      "firstName": "REINHOLD",
+      "licenseNumber": "MDU 26 8113",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BRUNNER",
+      "firstName": "STEPHAN",
+      "licenseNumber": "MDU 26 8105",
+      "isCaptain": false
+    },
+    {
+      "lastName": "CORNELIUS",
+      "firstName": "GISI",
+      "licenseNumber": "MDU 26 8101",
+      "isCaptain": false
+    },
+    {
+      "lastName": "CORNELIUS",
+      "firstName": "FRANZ",
+      "licenseNumber": "MDU 26 8102",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KEIL",
+      "firstName": "PETER",
+      "licenseNumber": "MDU 26 8107",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KÖHLER",
+      "firstName": "MARION",
+      "licenseNumber": "MDU 26 8103",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAIER",
+      "firstName": "MONIKA",
+      "licenseNumber": "MDU 26 8106",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAIER",
+      "firstName": "LINDA",
+      "licenseNumber": "MDU 26 8109",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PREIS",
+      "firstName": "NIK",
+      "licenseNumber": "MDU 26 8110",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHUSTER",
+      "firstName": "EIKE",
+      "licenseNumber": "MDU 26 8114",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STEYER",
+      "firstName": "MARKUS",
+      "licenseNumber": "MDU 26 8104",
+      "isCaptain": true
+    },
+    {
+      "lastName": "TREICHEL",
+      "firstName": "ROMAN",
+      "licenseNumber": "MDU 26 8108",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VASZI",
+      "firstName": "CLAUDIA",
+      "licenseNumber": "MDU 26 8115",
+      "isCaptain": false
+    }
+  ],
+  "muenchen-0815": [
+    {
+      "lastName": "GROSS",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 6309",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KIRSCHBAUER",
+      "firstName": "ANDREAS",
+      "licenseNumber": "MDU 26 6305",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KRANABETTER",
+      "firstName": "WALTRAUD",
+      "licenseNumber": "MDU 26 6303",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KRANABETTER",
+      "firstName": "HERBERT",
+      "licenseNumber": "MDU 26 6304",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LISTL",
+      "firstName": "ERWIN",
+      "licenseNumber": "MDU 26 6306",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SIKIMIC",
+      "firstName": "BRANE",
+      "licenseNumber": "MDU 26 6307",
+      "isCaptain": false
+    },
+    {
+      "lastName": "STELZIG",
+      "firstName": "ROBERT",
+      "licenseNumber": "MDU 26 6308",
+      "isCaptain": false
+    },
+    {
+      "lastName": "TSOPANOGLOU",
+      "firstName": "KOSTAS",
+      "licenseNumber": "MDU 26 6302",
+      "isCaptain": false
+    },
+    {
+      "lastName": "WIACEK",
+      "firstName": "LUKASZ",
+      "licenseNumber": "MDU 26 6301",
+      "isCaptain": true
+    }
+  ],
+  "lucky-darts-two": [
+    {
+      "lastName": "ATTENBERGER",
+      "firstName": "JOHANNA",
+      "licenseNumber": "MDU 26 8904",
+      "isCaptain": false
+    },
+    {
+      "lastName": "ATTENBERGER",
+      "firstName": "STEFANIE",
+      "licenseNumber": "MDU 26 8902",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BAUER",
+      "firstName": "SUSANNE",
+      "licenseNumber": "MDU 26 8901",
+      "isCaptain": true
+    },
+    {
+      "lastName": "BAUER",
+      "firstName": "LEA",
+      "licenseNumber": "MDU 26 8903",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BAUER",
+      "firstName": "BENJAMIN",
+      "licenseNumber": "MDU 26 8907",
+      "isCaptain": false
+    },
+    {
+      "lastName": "EXNER",
+      "firstName": "MICHAELA",
+      "licenseNumber": "MDU 26 8906",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MAHR",
+      "firstName": "FABIAN",
+      "licenseNumber": "MDU 26 8908",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VON MAHREN",
+      "firstName": "JESSICA",
+      "licenseNumber": "MDU 26 8905",
+      "isCaptain": false
+    }
+  ],
+  "funny-darters": [
+    {
+      "lastName": "ASSIMENIDU",
+      "firstName": "DESPINA",
+      "licenseNumber": "MDU 26 6504",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HIRSCHFELD",
+      "firstName": "JÖRG",
+      "licenseNumber": "MDU 26 6508",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KAMPMANN",
+      "firstName": "MARCUS",
+      "licenseNumber": "MDU 26 6501",
+      "isCaptain": true
+    },
+    {
+      "lastName": "KARAGKIOZDIS",
+      "firstName": "ATHANASIOS",
+      "licenseNumber": "MDU 26 6507",
+      "isCaptain": false
+    },
+    {
+      "lastName": "MORAITIS",
+      "firstName": "PANOS",
+      "licenseNumber": "MDU 26 6505",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PAPADOPOULOS",
+      "firstName": "VASSILIOS",
+      "licenseNumber": "MDU 26 6509",
+      "isCaptain": false
+    },
+    {
+      "lastName": "PAPADOPOULOS",
+      "firstName": "DIMITRIOS",
+      "licenseNumber": "MDU 26 6506",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SIGL",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 6502",
+      "isCaptain": false
+    },
+    {
+      "lastName": "TERTIOGLOU",
+      "firstName": "IORDANIS",
+      "licenseNumber": "MDU 26 6503",
+      "isCaptain": false
+    },
+    {
+      "lastName": "TERTIROGLOU",
+      "firstName": "IANNIS",
+      "licenseNumber": "MDU 26 6510",
+      "isCaptain": false
+    }
+  ],
+  "black-devils": [
+    {
+      "lastName": "BERGER",
+      "firstName": "MICHAEL",
+      "licenseNumber": "MDU 26 9001",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BRUNNER",
+      "firstName": "ALEXANDRA",
+      "licenseNumber": "MDU 26 9005",
+      "isCaptain": false
+    },
+    {
+      "lastName": "BURDULEA",
+      "firstName": "MITA",
+      "licenseNumber": "MDU 26 9007",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DASSLER",
+      "firstName": "KARSTEN",
+      "licenseNumber": "MDU 26 9003",
+      "isCaptain": false
+    },
+    {
+      "lastName": "DUESING",
+      "firstName": "PATRICIA",
+      "licenseNumber": "MDU 26 9011",
+      "isCaptain": false
+    },
+    {
+      "lastName": "FÖRSTER",
+      "firstName": "DANIEL",
+      "licenseNumber": "MDU 26 9002",
+      "isCaptain": false
+    },
+    {
+      "lastName": "GRUNER",
+      "firstName": "TORSTEN",
+      "licenseNumber": "MDU 26 9004",
+      "isCaptain": false
+    },
+    {
+      "lastName": "HOFNER",
+      "firstName": "MARIA",
+      "licenseNumber": "MDU 26 9006",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KABILKA",
+      "firstName": "MARTINA",
+      "licenseNumber": "MDU 26 9008",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RÖDL",
+      "firstName": "PETRA",
+      "licenseNumber": "MDU 26 9010",
+      "isCaptain": true
+    },
+    {
+      "lastName": "WEINBERGER",
+      "firstName": "CHRISTOPH",
+      "licenseNumber": "MDU 26 9009",
+      "isCaptain": false
+    }
+  ],
+  "fuenf-sterne-boazn": [
+    {
+      "lastName": "BAYER",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 2907",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KADJUREK",
+      "firstName": "SEBASTIAN",
+      "licenseNumber": "MDU 26 2903",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KAMMERGRUBER",
+      "firstName": "ERWIN",
+      "licenseNumber": "MDU 26 2908",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KERKLAU",
+      "firstName": "PETER",
+      "licenseNumber": "MDU 26 2912",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KETIASHVILI",
+      "firstName": "GEORGI",
+      "licenseNumber": "MDU 26 2905",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KRANABETTER",
+      "firstName": "REBECCA",
+      "licenseNumber": "MDU 26 2902",
+      "isCaptain": false
+    },
+    {
+      "lastName": "KUGLER",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 2910",
+      "isCaptain": false
+    },
+    {
+      "lastName": "LACHNER",
+      "firstName": "JUTTA",
+      "licenseNumber": "MDU 26 2901",
+      "isCaptain": true
+    },
+    {
+      "lastName": "LACHNER",
+      "firstName": "ALEXANDER",
+      "licenseNumber": "MDU 26 2909",
+      "isCaptain": false
+    },
+    {
+      "lastName": "NACHTMANN",
+      "firstName": "DOMENIK",
+      "licenseNumber": "MDU 26 2911",
+      "isCaptain": false
+    },
+    {
+      "lastName": "RETTKE",
+      "firstName": "WOLFGANG",
+      "licenseNumber": "MDU 26 2904",
+      "isCaptain": false
+    },
+    {
+      "lastName": "SCHMIDT",
+      "firstName": "CHRISTIAN",
+      "licenseNumber": "MDU 26 2906",
+      "isCaptain": false
+    },
+    {
+      "lastName": "VEITINGER",
+      "firstName": "STEFAN",
+      "licenseNumber": "MDU 26 2913",
+      "isCaptain": false
+    }
+  ]
+}
