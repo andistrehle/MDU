@@ -341,7 +341,7 @@ export function getMatchesForLeague(leagueId: string): Match[] {
 export function getScheduledMatches(leagueId?: string): Match[] {
   return MATCHES
     .filter(m =>
-      m.status === 'scheduled' &&
+      isFutureOrOpenMatch(m) &&
       (leagueId == null || m.leagueId === leagueId.toLowerCase()),
     )
     .sort((a, b) => {
@@ -422,10 +422,15 @@ export function normalizeTeamId(name: string): string {
 // ── Team-specific helpers ─────────────────────────────────────
 
 /**
- * Returns true if a match is open/scheduled — not yet completed.
+ * Returns true if a match is open/scheduled AND either has no date
+ * (not yet scheduled) or its date is today or in the future.
+ * Past-dated scheduled entries are treated as stale placeholders and hidden.
  */
 export function isFutureOrOpenMatch(m: Match): boolean {
-  return m.status === 'scheduled';
+  if (m.status !== 'scheduled') return false;
+  if (!m.date) return true; // no date = open/unscheduled, always show
+  const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  return m.date >= today;
 }
 
 /**
@@ -441,7 +446,7 @@ export function getMatchesForTeam(teamId: string): Match[] {
  */
 export function getScheduledMatchesForTeam(teamId: string): Match[] {
   return getMatchesForTeam(teamId)
-    .filter(m => m.status === 'scheduled')
+    .filter(m => isFutureOrOpenMatch(m))
     .sort((a, b) => {
       if (!a.date && !b.date) return 0;
       if (!a.date) return 1;

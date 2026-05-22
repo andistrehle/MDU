@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { LeagueStandingsPanel, type TeamInfo } from './league-standings-panel';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
-import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague } from '@/lib/data';
+import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getVenueForTeamInSeason } from '@/lib/data';
 import type { StandingRow, PlayerStatEntry } from '@/lib/data';
 import type { Match as GameMatch } from '@/lib/data/matches';
 
@@ -89,7 +89,10 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
     totalGames:  rows.reduce((acc, r) => acc + r.sp, 0),
     totalLeader: rows[0],
   } : null;
-  const scheduled  = matches.filter(m => m.status === 'scheduled').slice(0, 3);
+  const today      = new Date().toISOString().slice(0, 10);
+  const scheduled  = matches
+    .filter(m => m.status === 'scheduled' && (!m.date || m.date >= today))
+    .slice(0, 3);
   const recent     = matches.filter(m => m.status === 'completed').slice(0, 3);
   const topScorer  = stats[0] ?? null;
 
@@ -266,7 +269,8 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
 // ── Spielplan Tab ─────────────────────────────────────────────
 
 function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: LeagueShape }) {
-  const scheduled  = matches.filter(m => m.status === 'scheduled');
+  const today      = new Date().toISOString().slice(0, 10);
+  const scheduled  = matches.filter(m => m.status === 'scheduled' && (!m.date || m.date >= today));
   const isPlayoff  = league.type === 'playoff';
   const ligaId     = LIGA_ID_MAP[league.id] ?? '';
   const dartUrl    = ligaId ? `https://dartunion.de/ranking01.php?LigaId=${ligaId}` : 'https://dartunion.de';
@@ -318,7 +322,7 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
                       {formatScheduledDate(m.date)}{m.time ? ` · ${m.time} Uhr` : ''}
                     </span>
                     <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', padding: '2px 8px', background: 'rgba(255,255,255,0.04)', borderRadius: 4 }}>
-                      Ort folgt
+                      {getVenueForTeamInSeason(m.homeTeamId, 'season-2026')?.name ?? 'Ort folgt'}
                     </span>
                   </div>
                   {/* Teams row — 3-col grid, no overflow */}

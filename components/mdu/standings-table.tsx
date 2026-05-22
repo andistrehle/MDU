@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { TeamBadge } from './team-badge';
 import { FormDots } from './form-dots';
 import { statusColor, diffColor } from '@/lib/utils';
@@ -33,11 +36,23 @@ interface StandingsTableProps {
 }
 
 export function StandingsTable({ rows, title = 'Tabelle', showForm = false, showU = true, onRowClick, activeTeamId }: StandingsTableProps) {
+  const router = useRouter();
+
   const colTemplate = showForm
     ? '32px 1fr 36px 28px 28px 28px 56px 56px 40px 90px'
     : showU
       ? '32px 1fr 36px 28px 28px 28px 56px 56px 40px'
       : '32px 1fr 36px 28px 28px 56px 56px 40px';
+
+  function handleRowClick(teamId: string) {
+    // On mobile (<= 768 px): navigate directly to the team profile page.
+    // On desktop: update the standings-panel team card via the callback.
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      router.push(`/teams/${teamId}`);
+    } else {
+      onRowClick?.(teamId);
+    }
+  }
 
   return (
     <div className="mdu-table-scroll">
@@ -51,7 +66,7 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
       )}
 
       {/* Header */}
-      <div style={{
+      <div className="mdu-standings-row" style={{
         display: 'grid', gridTemplateColumns: colTemplate, padding: '10px 8px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
@@ -62,10 +77,10 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
         <span>Team</span>
         <span style={{ textAlign: 'center' }}>Sp.</span>
         <span style={{ textAlign: 'center' }}>S</span>
-        {showU && <span style={{ textAlign: 'center' }}>U</span>}
+        {showU && <span className="mdu-col-u" style={{ textAlign: 'center' }}>U</span>}
         <span style={{ textAlign: 'center' }}>N</span>
-        <span style={{ textAlign: 'center' }}>Legs</span>
-        <span style={{ textAlign: 'center' }}>Diff.</span>
+        <span className="mdu-col-legs" style={{ textAlign: 'center' }}>Legs</span>
+        <span className="mdu-col-diff" style={{ textAlign: 'center' }}>Diff.</span>
         <span style={{ textAlign: 'right' }}>Pkt.</span>
         {showForm && <span style={{ textAlign: 'center' }}>Form</span>}
       </div>
@@ -78,18 +93,18 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
         return (
           <div
             key={r.pos}
-            className="mdu-row-hover"
+            className="mdu-row-hover mdu-standings-row"
             style={{
               display: 'grid', gridTemplateColumns: colTemplate,
               padding: '12px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)',
               fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
               gap: 6, position: 'relative',
-              cursor: onRowClick ? 'pointer' : undefined,
+              cursor: 'pointer',
               background: activeTeamId && r.team === activeTeamId
                 ? 'rgba(255,255,255,0.06)'
                 : undefined,
             }}
-            onClick={() => onRowClick?.(r.team)}
+            onClick={() => handleRowClick(r.team)}
           >
             {/* Status colour bar — brighter when this row is selected */}
             <span style={{
@@ -110,10 +125,10 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
             </div>
             <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6' }}>{sp}</span>
             <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#5BE08C', fontWeight: 600 }}>{wins}</span>
-            {showU && <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#9AA4B2' }}>{r.u ?? 0}</span>}
+            {showU && <span className="mdu-col-u" style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#9AA4B2' }}>{r.u ?? 0}</span>}
             <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#FF6B6B' }}>{losses}</span>
-            <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6', fontSize: 11 }}>{r.legs}</span>
-            <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 600, color: diffColor(r.diff) }}>{r.diff}</span>
+            <span className="mdu-col-legs" style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6', fontSize: 11 }}>{r.legs}</span>
+            <span className="mdu-col-diff" style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 600, color: diffColor(r.diff) }}>{r.diff}</span>
             <span style={{ textAlign: 'right', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: '#F5F6FA' }}>{r.pts}</span>
             {showForm && r.form && (
               <div style={{ display: 'flex', justifyContent: 'center' }}>

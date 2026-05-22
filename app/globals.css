@@ -216,9 +216,20 @@ body {
   /* --- League grid --- */
   .mdu-league-grid { grid-template-columns: 1fr !important; }
 
-  /* --- Standings table inner content: min readable width when scrolled --- */
-  /* Applied to the inner card div only, not the scroll wrapper itself */
-  .mdu-standings-inner { min-width: 480px; }
+  /* --- Standings table: hide extra columns, re-collapse grid template --- */
+  /* Columns hidden: U (draws), Legs, Diff.  Kept: Pl. Team Sp. S N Pkt. */
+  .mdu-col-u,
+  .mdu-col-legs,
+  .mdu-col-diff { display: none !important; }
+
+  /* Override inline gridTemplateColumns set by React (needs !important).
+     32px=Pl. | 1fr=Team | 36px=Sp. | 28px=S | 28px=N | 40px=Pkt. */
+  .mdu-standings-row {
+    grid-template-columns: 32px 1fr 36px 28px 28px 40px !important;
+  }
+
+  /* Remove the forced min-width so the table fits without horizontal scroll */
+  .mdu-standings-inner { min-width: 0; }
 
   /* --- Ergebnisse table inner content --- */
   .mdu-results-inner { min-width: 520px; }

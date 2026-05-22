@@ -2,7 +2,7 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { MatchCard } from '@/components/mdu/match-card';
 import { getScheduledMatchesByLeague, formatScheduledDate } from '@/lib/data/matches';
-import { findLeague, LEAGUES } from '@/lib/data';
+import { findLeague, LEAGUES, getVenueForTeamInSeason } from '@/lib/data';
 
 /** Canonical league display order for the Spielplan grouping */
 const LEAGUE_ORDER = [
@@ -91,7 +91,7 @@ export default function SpielplanPage() {
                         away={m.awayTeamId}
                         date={formatScheduledDate(m.date)}
                         time={m.time ?? '—'}
-                        venue="Noch nicht verfügbar"
+                        venue={getVenueForTeamInSeason(m.homeTeamId, 'season-2026')?.name ?? 'Noch nicht verfügbar'}
                       />
                     ))}
                   </div>
