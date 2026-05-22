@@ -204,103 +204,177 @@ function NextMatchCard({ match, teamId, teamColor }: { match: Match; teamId: str
 
 function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; captainLabel: string; teamColor: string }) {
 
-  // Prioritise players with isCaptain on top, then alphabetical
+  // Prioritise captains on top, then alphabetical
   const sorted = [...roster].sort((a, b) => {
     if (a.isCaptain && !b.isCaptain) return -1;
     if (!a.isCaptain && b.isCaptain) return 1;
     return a.displayName.localeCompare(b.displayName, 'de');
   });
 
+  // ── Empty state (no full roster) ──────────────────────────────
   if (sorted.length === 0) {
     return (
       <div style={{
         background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: 14, padding: '22px 24px',
       }}>
-        {captainLabel !== 'Noch nicht verfügbar' && (
+        {captainLabel !== 'Noch nicht verfügbar' ? (
           <>
-            {/* Show captain row even when no full roster */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
-              padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
-              fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-              letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase', gap: 12,
-            }}>
-              <span>#</span><span>Name</span><span>Passnr.</span><span>Rolle</span>
-            </div>
-            <div style={{
-              display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
-              padding: '12px 0', alignItems: 'center', gap: 12,
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
-            }}>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>01</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Avatar initials={captainLabel.slice(0, 2)} color={teamColor} />
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{captainLabel}</span>
+            {/* Desktop: single captain table row */}
+            <div className="mdu-desktop-only">
+              <div style={{
+                display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
+                padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
+                fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
+                letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase', gap: 12,
+              }}>
+                <span>#</span><span>Name</span><span>Passnr.</span><span>Rolle</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6B7280' }}>—</span>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#E8B84A' }}>TC</span>
+              <div style={{
+                display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
+                padding: '12px 0', alignItems: 'center', gap: 12,
+                borderBottom: '1px solid rgba(255,255,255,0.04)',
+              }}>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>01</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Avatar initials={captainLabel.slice(0, 2)} color={teamColor} />
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{captainLabel}</span>
+                </div>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6B7280' }}>—</span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#E8B84A' }}>TC</span>
+              </div>
             </div>
+
+            {/* Mobile: captain card */}
+            <div className="mdu-mobile-only" style={{
+              borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: 12,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>01</span>
+                <Avatar initials={captainLabel.slice(0, 2)} color={teamColor} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: '#F5F6FA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {captainLabel}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, color: '#E8B84A', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>
+                      TC
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div style={{ paddingTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6B7280', fontStyle: 'italic' }}>
               Vollständiger Kader folgt auf dartunion.de.
             </div>
           </>
-        )}
-        {captainLabel === 'Noch nicht verfügbar' && (
+        ) : (
           <EmptyNote>Noch keine Spielerdaten verfügbar.</EmptyNote>
         )}
       </div>
     );
   }
 
+  // ── Full roster ───────────────────────────────────────────────
   return (
     <div style={{
       background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
       borderRadius: 14, overflow: 'hidden',
     }}>
-      {/* Header */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
-        padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
-        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-        letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase', gap: 12,
-      }}>
-        <span>#</span>
-        <span>Name</span>
-        <span>Passnr.</span>
-        <span>Rolle</span>
-      </div>
 
-      {sorted.map((p, i) => (
-        <div key={i} className="mdu-row-hover" style={{
+      {/* ── Desktop table ───────────────────────────────── */}
+      <div className="mdu-desktop-only">
+        <div style={{
           display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
-          padding: '12px 18px',
-          borderBottom: i < sorted.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-          alignItems: 'center', gap: 12,
+          padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+          letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase', gap: 12,
         }}>
-          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>
-            {String(i + 1).padStart(2, '0')}
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} />
+          <span>#</span>
+          <span>Name</span>
+          <span>Passnr.</span>
+          <span>Rolle</span>
+        </div>
+
+        {sorted.map((p, i) => (
+          <div key={i} className="mdu-row-hover" style={{
+            display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
+            padding: '12px 18px',
+            borderBottom: i < sorted.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+            alignItems: 'center', gap: 12,
+          }}>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+              <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} />
+              <span style={{
+                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {p.displayName || 'Name nicht verfügbar'}
+              </span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2' }}>
+              {p.licenseNumber ?? '—'}
+            </span>
             <span style={{
-              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
+              color: p.isCaptain ? '#E8B84A' : 'transparent',
             }}>
-              {p.displayName}
+              {p.isCaptain ? 'TC' : ''}
             </span>
           </div>
-          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2' }}>
-            {p.licenseNumber ?? '—'}
-          </span>
-          <span style={{
-            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
-            color: p.isCaptain ? '#E8B84A' : 'transparent',
+        ))}
+      </div>
+
+      {/* ── Mobile card list ────────────────────────────── */}
+      {/* Each player gets a flex row: number | avatar | name+passnr */}
+      <div className="mdu-mobile-only">
+        {sorted.map((p, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 16px',
+            borderBottom: i < sorted.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
           }}>
-            {p.isCaptain ? 'TC' : ''}
-          </span>
-        </div>
-      ))}
+            {/* Row number */}
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {/* Initials avatar */}
+            <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} />
+            {/* Name + license number */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Name row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: '#F5F6FA',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+                }}>
+                  {p.displayName || 'Name nicht verfügbar'}
+                </span>
+                {p.isCaptain && (
+                  <span style={{
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, color: '#E8B84A',
+                    background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)',
+                    borderRadius: 3, padding: '1px 5px', flexShrink: 0,
+                  }}>
+                    TC
+                  </span>
+                )}
+              </div>
+              {/* License number row */}
+              {p.licenseNumber && (
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#6B7280', marginTop: 3 }}>
+                  Passnr.: {p.licenseNumber}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
