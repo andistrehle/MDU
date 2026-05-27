@@ -5,9 +5,20 @@ import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { MatchCard } from '@/components/mdu/match-card';
 import { NewsCard } from '@/components/mdu/news-card';
-import { HOME_MATCHES, HOME_NEWS } from '@/lib/data';
+import {
+  HOME_NEWS,
+  getUpcomingMatches,
+  getRecentResults,
+  findLeague,
+  getVenueForTeamInSeason,
+  getExtendedTeam,
+  formatMatchDate,
+  formatScheduledDate,
+} from '@/lib/data';
 
 export default function HomePage() {
+  const upcoming = getUpcomingMatches(undefined, 5);
+  const recent   = getRecentResults(undefined, 5);
   return (
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/" />
@@ -137,6 +148,7 @@ export default function HomePage() {
         </div>
 
         <div>
+          {/* ── Nächste Spiele ─────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Nächste Spiele</h2>
             <Link href="/spielplan" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000', textDecoration: 'none' }}>
@@ -144,10 +156,93 @@ export default function HomePage() {
             </Link>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {HOME_MATCHES.map((m, i) => (
-              <MatchCard key={i} league={m.league} home={m.home} away={m.away} date={m.date} time={m.time} venue={m.venue} />
-            ))}
+            {upcoming.length === 0 ? (
+              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#9AA4B2', padding: '16px 0' }}>
+                Keine anstehenden Spiele.
+              </div>
+            ) : (
+              upcoming.map((m, i) => {
+                const league = findLeague(m.leagueId);
+                const venue  = getVenueForTeamInSeason(m.homeTeamId, 'season-2026');
+                return (
+                  <MatchCard
+                    key={i}
+                    league={league?.name ?? m.leagueId}
+                    home={m.homeTeamId}
+                    away={m.awayTeamId}
+                    date={formatScheduledDate(m.date)}
+                    time={m.time ?? '20:00'}
+                    venue={venue?.name ?? 'Noch nicht verfügbar'}
+                  />
+                );
+              })
+            )}
           </div>
+
+          {/* ── Letzte Spiele ──────────────────────────────── */}
+          {recent.length > 0 && (
+            <div style={{ marginTop: 36 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
+                <h2 className="section-heading" style={{ margin: 0 }}>Letzte Spiele</h2>
+                <Link href="/ergebnisse" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000', textDecoration: 'none' }}>
+                  Alle anzeigen
+                </Link>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {recent.map((m, i) => {
+                  const home   = getExtendedTeam(m.homeTeamId);
+                  const away   = getExtendedTeam(m.awayTeamId);
+                  const league = findLeague(m.leagueId);
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        padding: '14px 20px', borderRadius: 12,
+                        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      {/* League + date label */}
+                      <div style={{
+                        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+                        letterSpacing: '0.16em', color: '#9AA4B2', textTransform: 'uppercase',
+                        marginBottom: 10,
+                      }}>
+                        {league?.name ?? m.leagueId}
+                        {m.date && (
+                          <span style={{ color: '#6A6E7B' }}> · {formatMatchDate(m.date)}</span>
+                        )}
+                      </div>
+                      {/* Score row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                          flex: 1, fontFamily: 'var(--font-manrope)', fontWeight: 700,
+                          fontSize: 13, color: '#F5F6FA', minWidth: 0,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {home.name}
+                        </span>
+                        <span style={{
+                          fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700,
+                          fontSize: 15, color: '#F5F6FA', flexShrink: 0,
+                          padding: '2px 10px', background: 'rgba(255,255,255,0.06)',
+                          borderRadius: 6, letterSpacing: '0.05em',
+                        }}>
+                          {m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}
+                        </span>
+                        <span style={{
+                          flex: 1, fontFamily: 'var(--font-manrope)', fontWeight: 700,
+                          fontSize: 13, color: '#C9CCD6', textAlign: 'right', minWidth: 0,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {away.name}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

@@ -57,6 +57,12 @@ export {
   getCompletedMatchesForTeam,
   getScheduledMatchesByLeague,
   getCompletedMatchesByLeague,
+  isValidMatchResult,
+  isPlaceholderDate,
+  isFutureScheduledMatch,
+  isPastScheduledWithoutResult,
+  isUpcomingOrOpenMatch,
+  isCompletedMatch,
 }                                             from './data/matches';
 
 export type { PlayerStatus, Player }          from './data/players';
@@ -160,17 +166,20 @@ export interface RosterPlayer {
 // Data from dartunion.de · Saison 2026
 // Sources: ranking01.php LigaId=88(La), 86(A1), 87(A2), 84(B1), 85(B2), 94(C)
 //          89(Playoffs A Auf), 91(Playoffs A Abs), 90(Playoffs B Auf), 92(Playoffs B Abs)
-// Legs column = actual legs won:lost (not game-level sub-scores).
-// Scoring: 3 pts win · 1 pt draw · 0 pts loss
+// La/C/Playoffs last updated: 2026-05-27 from dartunion.de
+// Legs column = actual legs won:lost from dartunion.de "Legs" field.
+// Diff = Legs-For minus Legs-Against.
+// Scoring: 3 pts win · 1 pt draw · 0 pts loss (official dartunion.de Punkte used as-is).
 // Note on treff-nix-freimann: appears in both A1 (withdrawn after 4 games)
 // and A2 (transferred mid-season, 8 games). Current assignment → A2.
 
 const LA_LIGA_STANDINGS: StandingRow[] = [
-  { pos: 1, team: 'spartans',          name: 'Spartans',           sp: 15, s: 15, u: 0, n: 0,  legs: '446:193', diff: '+253', pts: 45, status: null },
+  // Source: https://dartunion.de/ranking01.php?LigaId=88 (2026-05-27)
+  { pos: 1, team: 'spartans',          name: 'Spartans',           sp: 16, s: 15, u: 0, n: 1,  legs: '467:222', diff: '+245', pts: 45, status: null },
   { pos: 2, team: 'ohne-jackie',       name: 'Ohne Jackie',        sp: 18, s: 10, u: 3, n: 5,  legs: '460:293', diff: '+167', pts: 33, status: null },
   { pos: 3, team: 'jolly-pirates-kts', name: "Jolly Pirates KT's", sp: 15, s: 9,  u: 2, n: 4,  legs: '375:272', diff: '+103', pts: 29, status: null },
-  { pos: 4, team: 'dc-null-bull',      name: 'DC Null Bull',       sp: 14, s: 4,  u: 1, n: 9,  legs: '259:324', diff: '-65',  pts: 13, status: null },
-  { pos: 5, team: 'no-maam',           name: "No Ma'am",           sp: 15, s: 3,  u: 5, n: 7,  legs: '302:354', diff: '-52',  pts: 11, status: 'releg' },
+  { pos: 4, team: 'no-maam',           name: "No Ma'am",           sp: 16, s: 4,  u: 5, n: 7,  legs: '331:375', diff: '-44',  pts: 14, status: null },
+  { pos: 5, team: 'dc-null-bull',      name: 'DC Null Bull',       sp: 14, s: 4,  u: 1, n: 9,  legs: '259:324', diff: '-65',  pts: 13, status: 'releg' },
   { pos: 6, team: 'les-dartagnons',    name: 'Les Dartagnons',     sp: 17, s: 0,  u: 1, n: 16, legs: '135:541', diff: '-406', pts: 1,  status: 'releg' },
 ];
 
@@ -212,6 +221,7 @@ const B2_LIGA_STANDINGS: StandingRow[] = [
 ];
 
 const C_LIGA_STANDINGS: StandingRow[] = [
+  // Source: https://dartunion.de/ranking01.php?LigaId=94 (2026-05-27)
   { pos: 1, team: 'wild-indians',       name: 'Wild Indians',         sp: 17, s: 12, u: 3, n: 2,  legs: '440:314', diff: '+126', pts: 39, status: 'promo' },
   { pos: 2, team: 'muenchen-0815',      name: 'München 08/15',        sp: 17, s: 9,  u: 4, n: 4,  legs: '398:351', diff: '+47',  pts: 31, status: 'promo' },
   { pos: 3, team: 'lucky-darts-two',    name: 'Lucky Darts Two',      sp: 17, s: 9,  u: 2, n: 6,  legs: '388:363', diff: '+25',  pts: 29, status: 'promo' },
@@ -225,15 +235,17 @@ const C_LIGA_STANDINGS: StandingRow[] = [
 // All 4 groups have real results. Teams are confirmed from dartunion.de.
 
 const PLAYOFFS_A_AUFSTIEG_STANDINGS: StandingRow[] = [
-  { pos: 1, team: 'alptraum',          name: 'Alptraum',          sp: 6, s: 5, u: 0, n: 1, legs: '158:106', diff: '+52', pts: 15, status: null },
-  { pos: 2, team: 'dc-animals-ii',     name: 'DC Animals II',     sp: 7, s: 3, u: 0, n: 4, legs: '153:148', diff: '+5',  pts: 9,  status: null },
-  { pos: 3, team: 'gambas',            name: 'Gambas',            sp: 6, s: 3, u: 0, n: 3, legs: '113:135', diff: '-22', pts: 9,  status: null },
-  { pos: 4, team: 'silberpfeile-ii',   name: 'Silberpfeile II',   sp: 4, s: 3, u: 0, n: 1, legs: '104:72',  diff: '+32', pts: 9,  status: null },
-  { pos: 5, team: 'treff-nix-freimann',name: 'Treff Nix Freimann',sp: 6, s: 2, u: 0, n: 4, legs: '120:136', diff: '-16', pts: 6,  status: null },
-  { pos: 6, team: 'jolly-pirates-v',   name: 'Jolly Pirates V',   sp: 5, s: 1, u: 0, n: 4, legs: '83:134',  diff: '-51', pts: 3,  status: null },
+  // Source: https://dartunion.de/ranking01.php?LigaId=89 (2026-05-27)
+  { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 6, s: 5, u: 0, n: 1, legs: '158:106', diff: '+52', pts: 15, status: null },
+  { pos: 2, team: 'gambas',             name: 'Gambas',             sp: 7, s: 4, u: 0, n: 3, legs: '141:151', diff: '-10', pts: 12, status: null },
+  { pos: 3, team: 'silberpfeile-ii',    name: 'Silberpfeile II',    sp: 5, s: 3, u: 1, n: 1, legs: '125:92',  diff: '+33', pts: 10, status: null },
+  { pos: 4, team: 'dc-animals-ii',      name: 'DC Animals II',      sp: 7, s: 3, u: 0, n: 4, legs: '153:148', diff: '+5',  pts: 9,  status: null },
+  { pos: 5, team: 'treff-nix-freimann', name: 'Treff Nix Freimann', sp: 6, s: 2, u: 0, n: 4, legs: '120:136', diff: '-16', pts: 6,  status: null },
+  { pos: 6, team: 'jolly-pirates-v',    name: 'Jolly Pirates V',    sp: 7, s: 1, u: 1, n: 5, legs: '119:183', diff: '-64', pts: 4,  status: null },
 ];
 
 const PLAYOFFS_A_ABSTIEG_STANDINGS: StandingRow[] = [
+  // Source: https://dartunion.de/ranking01.php?LigaId=91 (2026-05-27)
   { pos: 1, team: 'spartans-vi',    name: 'Spartans VI',    sp: 3, s: 2, u: 0, n: 1, legs: '75:54', diff: '+21', pts: 6, status: null },
   { pos: 2, team: 'oldies-co',      name: 'Oldies & Co',    sp: 3, s: 2, u: 0, n: 1, legs: '70:64', diff: '+6',  pts: 6, status: null },
   { pos: 3, team: 'sound-warriors', name: "Sound Warrior's",sp: 3, s: 1, u: 0, n: 2, legs: '63:69', diff: '-6',  pts: 3, status: null },
@@ -241,19 +253,21 @@ const PLAYOFFS_A_ABSTIEG_STANDINGS: StandingRow[] = [
 ];
 
 const PLAYOFFS_B_AUFSTIEG_STANDINGS: StandingRow[] = [
+  // Source: https://dartunion.de/ranking01.php?LigaId=90 (2026-05-27)
   { pos: 1, team: 'belfort-evolution',  name: 'Belfort Evolution',  sp: 7, s: 5, u: 1, n: 1, legs: '170:142', diff: '+28', pts: 16, status: null },
   { pos: 2, team: 'fiaker-deife',       name: 'Fiaker Deife',       sp: 7, s: 4, u: 0, n: 3, legs: '160:135', diff: '+25', pts: 12, status: null },
-  { pos: 3, team: 'flying-seven',       name: 'Flying Seven',       sp: 6, s: 3, u: 1, n: 2, legs: '133:118', diff: '+15', pts: 10, status: null },
-  { pos: 4, team: 'master-of-desaster', name: 'Master of Desaster', sp: 7, s: 2, u: 2, n: 3, legs: '150:154', diff: '-4',  pts: 8,  status: null },
-  { pos: 5, team: 'freibad-bazis',      name: 'Freibad Bazis',      sp: 6, s: 2, u: 2, n: 2, legs: '126:133', diff: '-7',  pts: 8,  status: null },
+  { pos: 3, team: 'flying-seven',       name: 'Flying Seven',       sp: 7, s: 3, u: 2, n: 2, legs: '153:141', diff: '+12', pts: 11, status: null },
+  { pos: 4, team: 'freibad-bazis',      name: 'Freibad Bazis',      sp: 7, s: 2, u: 3, n: 2, legs: '149:153', diff: '-4',  pts: 9,  status: null },
+  { pos: 5, team: 'master-of-desaster', name: 'Master of Desaster', sp: 7, s: 2, u: 2, n: 3, legs: '150:154', diff: '-4',  pts: 8,  status: null },
   { pos: 6, team: 'flying-fighters',    name: 'Flying Fighters',    sp: 7, s: 1, u: 0, n: 6, legs: '121:178', diff: '-57', pts: 3,  status: null },
 ];
 
 const PLAYOFFS_B_ABSTIEG_STANDINGS: StandingRow[] = [
+  // Source: https://dartunion.de/ranking01.php?LigaId=92 (2026-05-27)
   { pos: 1, team: 'de-vogelwuidn',      name: "De Vogelwuid'n",     sp: 7, s: 4, u: 2, n: 1, legs: '171:136', diff: '+35', pts: 14, status: null },
   { pos: 2, team: 'lucky-darts-one',    name: 'Lucky Darts One',    sp: 7, s: 4, u: 1, n: 2, legs: '153:146', diff: '+7',  pts: 13, status: null },
-  { pos: 3, team: 'team-desaster',      name: 'Team Desaster',      sp: 6, s: 3, u: 2, n: 1, legs: '144:109', diff: '+35', pts: 11, status: null },
-  { pos: 4, team: 'de-hutzeldarter',    name: 'De Hutzeldarter',    sp: 6, s: 3, u: 1, n: 2, legs: '130:133', diff: '-3',  pts: 10, status: null },
+  { pos: 3, team: 'team-desaster',      name: 'Team Desaster',      sp: 7, s: 3, u: 3, n: 1, legs: '167:130', diff: '+37', pts: 12, status: null },
+  { pos: 4, team: 'de-hutzeldarter',    name: 'De Hutzeldarter',    sp: 7, s: 3, u: 2, n: 2, legs: '151:156', diff: '-5',  pts: 11, status: null },
   { pos: 5, team: 'massl-ghabt',        name: 'Massl Ghabt',        sp: 7, s: 2, u: 0, n: 5, legs: '137:171', diff: '-34', pts: 6,  status: null },
   { pos: 6, team: 'dc-dark-angels',     name: 'DC Dark Angels',     sp: 7, s: 0, u: 2, n: 5, legs: '129:169', diff: '-40', pts: 2,  status: null },
 ];

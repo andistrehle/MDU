@@ -34,6 +34,8 @@
 //              massl-ghabt · de-hutzeldarter · lucky-darts-one
 // ─────────────────────────────────────────────────────────────
 
+import importedRaw from './imported-matches.json';
+
 export type MatchStatus =
   | 'scheduled'
   | 'completed'
@@ -67,7 +69,7 @@ export interface Match {
 
 // ── Match data ────────────────────────────────────────────────
 
-export const MATCHES: Match[] = [
+const STATIC_MATCHES: Match[] = [
 
   // ════════════════════════════════════════════════════════════
   // POKAL FIGHT 2026
@@ -324,6 +326,85 @@ export const MATCHES: Match[] = [
   { id: 'pbb-10-3', seasonId: 'season-2026', leagueId: 'playoffs-b-abstieg', matchday: 10, round: 'rueckrunde', homeTeamId: 'de-hutzeldarter', awayTeamId: 'dc-dark-angels', homeTeamName: 'De Hutzeldarter', awayTeamName: 'DC Dark Angels', date: '2026-06-19', time: '20:00', status: 'scheduled', result: null },
 ];
 
+// ── Import overlay & merge ────────────────────────────────────
+//
+// lib/data/imported-matches.json is written by:
+//   npm run import:dartunion
+//
+// Merge rules (applied at module init, zero runtime cost):
+//   • Static "scheduled" match that import shows as "completed" → upgraded.
+//   • Brand-new match (home+away+league pair not in static set) → appended.
+//   • Static "completed" results → never overwritten.
+
+type _PartialImport = {
+  id: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  leagueId: string;
+  date: string | null;
+  time: string | null;
+  status: string;
+  result: { home: number; away: number } | null;
+  [k: string]: unknown;
+};
+
+function _buildMerged(): Match[] {
+  const imported = importedRaw as unknown as _PartialImport[];
+
+  // Index imported matches by (home, away, league) for quick lookup
+  const importByPair = new Map<string, _PartialImport>();
+  for (const m of imported) {
+    importByPair.set(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`, m);
+  }
+
+  const staticIds   = new Set(STATIC_MATCHES.map(m => m.id));
+  const staticPairs = new Set(
+    STATIC_MATCHES.map(m => `${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`),
+  );
+
+  // Upgrade scheduled → completed where import has a confirmed result
+  const updated: Match[] = STATIC_MATCHES.map(m => {
+    if (m.status === 'scheduled') {
+      const imp = importByPair.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`);
+      if (
+        imp?.status === 'completed' &&
+        imp.result != null &&
+        typeof imp.result.home === 'number' &&
+        typeof imp.result.away === 'number'
+      ) {
+        // Only keep the static date if it's not in the future.
+        // If the match was played before its scheduled date, the static date
+        // would be a future date — clear it to null so it doesn't surface
+        // as a recent result with a future timestamp.
+        const _today = new Date().toISOString().slice(0, 10);
+        const mergedDate =
+          m.date && m.date <= _today ? m.date :
+          imp.date && imp.date <= _today ? imp.date :
+          null;
+        return {
+          ...m,
+          status: 'completed' as const,
+          result: { home: imp.result.home, away: imp.result.away },
+          date: mergedDate,
+        };
+      }
+    }
+    return m;
+  });
+
+  // Append brand-new matches that are not in the static set at all
+  const extras: Match[] = (imported as unknown as Match[]).filter(
+    m =>
+      !staticIds.has(m.id) &&
+      !staticPairs.has(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`),
+  );
+
+  return [...updated, ...extras];
+}
+
+/** All matches — static base data merged with any imported updates from dartunion.de */
+export const MATCHES: Match[] = _buildMerged();
+
 // ── Helper functions ──────────────────────────────────────────
 
 /**
@@ -357,9 +438,12 @@ export function getScheduledMatches(leagueId?: string): Match[] {
  * Sorted descending by date (newest first, null dates last).
  */
 export function getCompletedMatches(leagueId?: string): Match[] {
+  const today = new Date().toISOString().slice(0, 10);
   return MATCHES
     .filter(m =>
       m.status === 'completed' &&
+      m.result != null &&
+      (!m.date || m.date <= today) &&
       (leagueId == null || m.leagueId === leagueId.toLowerCase()),
     )
     .sort((a, b) => {
@@ -459,8 +543,13 @@ export function getScheduledMatchesForTeam(teamId: string): Match[] {
  * Completed matches for a specific team, sorted descending by date (newest first).
  */
 export function getCompletedMatchesForTeam(teamId: string): Match[] {
+  const today = new Date().toISOString().slice(0, 10);
   return getMatchesForTeam(teamId)
-    .filter(m => m.status === 'completed')
+    .filter(m =>
+      m.status === 'completed' &&
+      m.result != null &&
+      (!m.date || m.date <= today),
+    )
     .sort((a, b) => {
       if (!a.date && !b.date) return 0;
       if (!a.date) return 1;
@@ -498,4 +587,66 @@ export function getCompletedMatchesByLeague(): Array<{ leagueId: string; matches
     map.get(m.leagueId)!.push(m);
   }
   return Array.from(map.entries()).map(([leagueId, matches]) => ({ leagueId, matches }));
+}
+
+// ── Match classification helpers ──────────────────────────────
+
+/**
+ * Returns true if home + away are valid MDU leg counts (both ints, sum = 18).
+ */
+export function isValidMatchResult(home: number, away: number): boolean {
+  return (
+    Number.isInteger(home) && Number.isInteger(away) &&
+    home >= 0 && home <= 18 &&
+    away >= 0 && away <= 18 &&
+    home + away === 18
+  );
+}
+
+/** Returns true when a match has no date (not yet scheduled). */
+export function isPlaceholderDate(m: Match): boolean {
+  return !m.date;
+}
+
+/**
+ * Returns true when the match is scheduled and its date is today or later.
+ * Matches with no date are NOT considered future-scheduled (they are open/floating).
+ */
+export function isFutureScheduledMatch(m: Match): boolean {
+  if (m.status !== 'scheduled' || !m.date) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return m.date >= today;
+}
+
+/**
+ * Returns true when the match is still scheduled but its date is in the past.
+ * These are stale placeholders — hidden from Spielplan and "Letzte Spiele".
+ */
+export function isPastScheduledWithoutResult(m: Match): boolean {
+  if (m.status !== 'scheduled' || !m.date) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return m.date < today;
+}
+
+/**
+ * Returns true when the match should appear in Spielplan / "Nächste Spiele":
+ * scheduled with a future date, or scheduled with no date at all.
+ * Alias for isFutureOrOpenMatch — use whichever reads better at the call site.
+ */
+export function isUpcomingOrOpenMatch(m: Match): boolean {
+  return isFutureOrOpenMatch(m);
+}
+
+/**
+ * Returns true when the match is a valid completed result that may appear in
+ * "Letzte Spiele" / Ergebnisse:
+ *   - status = 'completed'
+ *   - result is non-null with a valid MDU score (sum = 18)
+ *   - date is null OR in the past / today (never a future date)
+ */
+export function isCompletedMatch(m: Match): boolean {
+  if (m.status !== 'completed' || m.result == null) return false;
+  if (!isValidMatchResult(m.result.home, m.result.away)) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return !m.date || m.date <= today;
 }

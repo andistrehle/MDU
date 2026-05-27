@@ -93,7 +93,10 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
   const scheduled  = matches
     .filter(m => m.status === 'scheduled' && (!m.date || m.date >= today))
     .slice(0, 3);
-  const recent     = matches.filter(m => m.status === 'completed').slice(0, 3);
+  const recent     = matches
+    .filter(m => m.status === 'completed' && m.result != null && (!m.date || m.date <= today))
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
+    .slice(0, 3);
   const topScorer  = stats[0] ?? null;
 
   return (
@@ -358,7 +361,15 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
 // ── Ergebnisse Tab ────────────────────────────────────────────
 
 function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league: LeagueShape; matches: GameMatch[] }) {
-  const completed = matches.filter(m => m.status === 'completed');
+  const today = new Date().toISOString().slice(0, 10);
+  const completed = matches
+    .filter(m => m.status === 'completed' && m.result != null && (!m.date || m.date <= today))
+    .sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return b.date.localeCompare(a.date);
+    });
   const isPlayoff = league.type === 'playoff';
   const ligaId    = LIGA_ID_MAP[league.id] ?? '';
   const dartUrl   = ligaId
