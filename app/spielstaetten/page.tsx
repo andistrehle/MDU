@@ -3,11 +3,11 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { getLeagueVenueGroupings, getCurrentSeason, getVenueFullAddress } from '@/lib/data';
+import { getPlayoffAwareVenueGroupings, getCurrentSeason, getVenueFullAddress } from '@/lib/data';
 
 export default function SpielstaettenPage() {
   const season  = getCurrentSeason();
-  const groups  = getLeagueVenueGroupings(season.id);
+  const groups  = getPlayoffAwareVenueGroupings(season.id);
 
   // Count venues that have real data (used to decide whether to show warning)
   const venueCount = groups

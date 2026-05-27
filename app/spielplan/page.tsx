@@ -6,9 +6,9 @@ import { findLeague, LEAGUES, getVenueForTeamInSeason } from '@/lib/data';
 
 /** Canonical league display order for the Spielplan grouping */
 const LEAGUE_ORDER = [
-  'la', 'a1', 'a2', 'b1', 'b2', 'c',
   'playoffs-a-aufstieg', 'playoffs-a-abstieg',
   'playoffs-b-aufstieg', 'playoffs-b-abstieg',
+  'la', 'a1', 'a2', 'b1', 'b2', 'c',
   'pokal-2026',
 ];
 

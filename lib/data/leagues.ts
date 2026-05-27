@@ -54,65 +54,27 @@ export interface League {
   type?: 'regular' | 'playoff';
 }
 
-// Official league order per MDU regulations
+// Display order (sortOrder):
+//   1  Playoffs A Liga Aufstieg 2026
+//   2  Playoffs A Liga Abstieg 2026
+//   3  Playoffs B Liga Aufstieg 2026
+//   4  Playoffs B Liga Abstieg 2026
+//   5  La Liga
+//   6  A1 Liga
+//   7  A2 Liga
+//   8  B1 Liga
+//   9  B2 Liga
+//  10  C Liga
+//
+// Note: level = division level (1 = highest); sortOrder = display order.
+// Playoffs are shown first in navigation/pages despite higher level numbers.
 export const LEAGUES: League[] = [
-  {
-    id: 'la', code: 'la',
-    name: 'La Liga', tier: 'La Liga',
-    level: 1, sortOrder: 1,
-    teams: 6, season: '2026',
-    color: '#E8B84A',
-    description: 'Höchste Spielklasse der Münchner Dart Union',
-  },
-  {
-    id: 'a1', code: 'a1',
-    name: 'A1 Liga', tier: 'A Liga',
-    level: 2, sortOrder: 2,
-    teams: 7, season: '2026',
-    color: '#D40000',
-    description: 'Zweithöchste Spielklasse der Münchner Dart Union',
-  },
-  {
-    id: 'a2', code: 'a2',
-    name: 'A2 Liga', tier: 'A Liga',
-    level: 3, sortOrder: 3,
-    teams: 5, season: '2026',
-    color: '#D40000',
-    description: 'Dritte Spielklasse der Münchner Dart Union',
-  },
-  {
-    id: 'b1', code: 'b1',
-    name: 'B1 Liga', tier: 'B Liga',
-    level: 4, sortOrder: 4,
-    teams: 6, season: '2026',
-    color: '#3B82F6',
-    description: 'Vierte Spielklasse der Münchner Dart Union',
-  },
-  {
-    id: 'b2', code: 'b2',
-    name: 'B2 Liga', tier: 'B Liga',
-    level: 5, sortOrder: 5,
-    teams: 6, season: '2026',
-    color: '#6366F1',
-    description: 'Fünfte Spielklasse der Münchner Dart Union',
-  },
-  {
-    id: 'c', code: 'c',
-    name: 'C Liga', tier: 'C Liga',
-    level: 6, sortOrder: 6,
-    teams: 6, season: '2026',
-    color: '#10B981',
-    description: 'Unterste Spielklasse der Münchner Dart Union',
-  },
-
   // ── Playoff Rounds · Saison 2026 ─────────────────────────────
-  // Source: dartunion.de (9 competitions listed, 4 playoff groups)
-  // Aufstieg teams sourced from confirmed upcoming matches.
-  // Abstieg teams: Daten folgen auf dartunion.de.
+  // Shown first in all navigation, Spielplan, Ergebnisse, Teams, Spielstätten.
   {
     id: 'playoffs-a-aufstieg', code: 'playoffs-a-aufstieg',
     name: 'Playoffs A Liga Aufstieg', tier: 'Playoffs A Liga',
-    level: 7, sortOrder: 7,
+    level: 7, sortOrder: 1,
     teams: 6, season: '2026',
     color: '#D40000',
     description: 'Aufstiegs-Playoffs der A Liga · Saison 2026',
@@ -121,7 +83,7 @@ export const LEAGUES: League[] = [
   {
     id: 'playoffs-a-abstieg', code: 'playoffs-a-abstieg',
     name: 'Playoffs A Liga Abstieg', tier: 'Playoffs A Liga',
-    level: 8, sortOrder: 8,
+    level: 8, sortOrder: 2,
     teams: 4, season: '2026',
     color: '#D40000',
     description: 'Abstiegs-Playoffs der A Liga · Saison 2026',
@@ -130,7 +92,7 @@ export const LEAGUES: League[] = [
   {
     id: 'playoffs-b-aufstieg', code: 'playoffs-b-aufstieg',
     name: 'Playoffs B Liga Aufstieg', tier: 'Playoffs B Liga',
-    level: 9, sortOrder: 9,
+    level: 9, sortOrder: 3,
     teams: 6, season: '2026',
     color: '#3B82F6',
     description: 'Aufstiegs-Playoffs der B Liga · Saison 2026',
@@ -139,11 +101,61 @@ export const LEAGUES: League[] = [
   {
     id: 'playoffs-b-abstieg', code: 'playoffs-b-abstieg',
     name: 'Playoffs B Liga Abstieg', tier: 'Playoffs B Liga',
-    level: 10, sortOrder: 10,
+    level: 10, sortOrder: 4,
     teams: 6, season: '2026',
     color: '#6366F1',
     description: 'Abstiegs-Playoffs der B Liga · Saison 2026',
     type: 'playoff',
+  },
+
+  // ── Regular season leagues ────────────────────────────────────
+  {
+    id: 'la', code: 'la',
+    name: 'La Liga', tier: 'La Liga',
+    level: 1, sortOrder: 5,
+    teams: 6, season: '2026',
+    color: '#E8B84A',
+    description: 'Höchste Spielklasse der Münchner Dart Union',
+  },
+  {
+    id: 'a1', code: 'a1',
+    name: 'A1 Liga', tier: 'A Liga',
+    level: 2, sortOrder: 6,
+    teams: 7, season: '2026',
+    color: '#D40000',
+    description: 'Zweithöchste Spielklasse der Münchner Dart Union',
+  },
+  {
+    id: 'a2', code: 'a2',
+    name: 'A2 Liga', tier: 'A Liga',
+    level: 3, sortOrder: 7,
+    teams: 5, season: '2026',
+    color: '#D40000',
+    description: 'Dritte Spielklasse der Münchner Dart Union',
+  },
+  {
+    id: 'b1', code: 'b1',
+    name: 'B1 Liga', tier: 'B Liga',
+    level: 4, sortOrder: 8,
+    teams: 6, season: '2026',
+    color: '#3B82F6',
+    description: 'Vierte Spielklasse der Münchner Dart Union',
+  },
+  {
+    id: 'b2', code: 'b2',
+    name: 'B2 Liga', tier: 'B Liga',
+    level: 5, sortOrder: 9,
+    teams: 6, season: '2026',
+    color: '#6366F1',
+    description: 'Fünfte Spielklasse der Münchner Dart Union',
+  },
+  {
+    id: 'c', code: 'c',
+    name: 'C Liga', tier: 'C Liga',
+    level: 6, sortOrder: 10,
+    teams: 6, season: '2026',
+    color: '#10B981',
+    description: 'Unterste Spielklasse der Münchner Dart Union',
   },
 ];
 

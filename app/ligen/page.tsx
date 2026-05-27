@@ -47,14 +47,7 @@ export default function LigenPage() {
           </h1>
         </div>
 
-        {/* Regular leagues */}
-        <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16, marginBottom: 48 }}>
-          {regularLeagues.map(league => (
-            <LeagueCard key={league.code} league={league} />
-          ))}
-        </div>
-
-        {/* Playoff groups — section divider */}
+        {/* Playoff groups — shown first */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#9AA4B2', textTransform: 'uppercase', marginBottom: 8 }}>Saison 2026</div>
           <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA', margin: 0, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'inline-block' }}>
@@ -62,8 +55,22 @@ export default function LigenPage() {
           </h2>
         </div>
 
-        <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16, marginBottom: 48 }}>
           {playoffGroups.map(league => (
+            <LeagueCard key={league.code} league={league} />
+          ))}
+        </div>
+
+        {/* Regular leagues */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#9AA4B2', textTransform: 'uppercase', marginBottom: 8 }}>Saison 2025/26</div>
+          <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA', margin: 0, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'inline-block' }}>
+            Ligen
+          </h2>
+        </div>
+
+        <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+          {regularLeagues.map(league => (
             <LeagueCard key={league.code} league={league} />
           ))}
         </div>

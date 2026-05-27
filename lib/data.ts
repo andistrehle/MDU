@@ -19,6 +19,17 @@
 // ── Imports from sub-modules (needed locally AND re-exported) ─
 import { TEAMS as _TEAMS }    from './data/teams';
 import { STATISTICS_BY_LEAGUE } from './data/statistics';
+import { LEAGUES as _LEAGUES } from './data/leagues';
+import {
+  SEASON_TEAM_ASSIGNMENTS    as _STA,
+  getAssignmentsForLeague    as _getAssignmentsForLeague,
+  getVenueForTeamInSeason    as _getVenueForTeamInSeason,
+  getVenueGroupingsForLeague as _getVenueGroupingsForLeague,
+  type LeagueGrouping,
+  type TeamWithAssignment,
+  type LeagueVenueGrouping,
+  type VenueWithTeams,
+} from './data/assignments';
 
 // ── Re-exports ────────────────────────────────────────────────
 export type { SeasonStatus, Season }          from './data/seasons';
@@ -103,7 +114,11 @@ export interface StandingRow {
   s: number;
   u: number;
   n: number;
+  /** Individual Spiele wins:losses across all matchdays, e.g. "214:74".
+   *  Undefined for leagues where this data has not been fetched yet. */
+  spiele?: string;
   legs: string;
+  /** Diff based on Spiele (for leagues with spiele data) or Legs otherwise. */
   diff: string;
   pts: number;
   status: StandingStatus;
@@ -175,12 +190,14 @@ export interface RosterPlayer {
 
 const LA_LIGA_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=88 (2026-05-27)
-  { pos: 1, team: 'spartans',          name: 'Spartans',           sp: 16, s: 15, u: 0, n: 1,  legs: '467:222', diff: '+245', pts: 45, status: null },
-  { pos: 2, team: 'ohne-jackie',       name: 'Ohne Jackie',        sp: 18, s: 10, u: 3, n: 5,  legs: '460:293', diff: '+167', pts: 33, status: null },
-  { pos: 3, team: 'jolly-pirates-kts', name: "Jolly Pirates KT's", sp: 15, s: 9,  u: 2, n: 4,  legs: '375:272', diff: '+103', pts: 29, status: null },
-  { pos: 4, team: 'no-maam',           name: "No Ma'am",           sp: 16, s: 4,  u: 5, n: 7,  legs: '331:375', diff: '-44',  pts: 14, status: null },
-  { pos: 5, team: 'dc-null-bull',      name: 'DC Null Bull',       sp: 14, s: 4,  u: 1, n: 9,  legs: '259:324', diff: '-65',  pts: 13, status: 'releg' },
-  { pos: 6, team: 'les-dartagnons',    name: 'Les Dartagnons',     sp: 17, s: 0,  u: 1, n: 16, legs: '135:541', diff: '-406', pts: 1,  status: 'releg' },
+  // Spiele = individual game wins:losses per season (sp × 18 total games).
+  // Diff is Spiele-based (SpieleFor − SpieleAgainst).
+  { pos: 1, team: 'spartans',          name: 'Spartans',           sp: 16, s: 15, u: 0, n: 1,  spiele: '214:74',  legs: '467:222', diff: '+140', pts: 45, status: null },
+  { pos: 2, team: 'ohne-jackie',       name: 'Ohne Jackie',        sp: 18, s: 10, u: 3, n: 5,  spiele: '203:121', legs: '460:293', diff: '+82',  pts: 33, status: null },
+  { pos: 3, team: 'jolly-pirates-kts', name: "Jolly Pirates KT's", sp: 15, s: 9,  u: 2, n: 4,  spiele: '165:105', legs: '375:272', diff: '+60',  pts: 29, status: null },
+  { pos: 4, team: 'no-maam',           name: "No Ma'am",           sp: 16, s: 4,  u: 5, n: 7,  spiele: '131:157', legs: '331:375', diff: '-26',  pts: 14, status: null },
+  { pos: 5, team: 'dc-null-bull',      name: 'DC Null Bull',       sp: 14, s: 4,  u: 1, n: 9,  spiele: '108:144', legs: '259:324', diff: '-36',  pts: 13, status: 'releg' },
+  { pos: 6, team: 'les-dartagnons',    name: 'Les Dartagnons',     sp: 17, s: 0,  u: 1, n: 16, spiele: '43:263',  legs: '135:541', diff: '-220', pts: 1,  status: 'releg' },
 ];
 
 const A1_LIGA_STANDINGS: StandingRow[] = [
@@ -222,12 +239,14 @@ const B2_LIGA_STANDINGS: StandingRow[] = [
 
 const C_LIGA_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=94 (2026-05-27)
-  { pos: 1, team: 'wild-indians',       name: 'Wild Indians',         sp: 17, s: 12, u: 3, n: 2,  legs: '440:314', diff: '+126', pts: 39, status: 'promo' },
-  { pos: 2, team: 'muenchen-0815',      name: 'München 08/15',        sp: 17, s: 9,  u: 4, n: 4,  legs: '398:351', diff: '+47',  pts: 31, status: 'promo' },
-  { pos: 3, team: 'lucky-darts-two',    name: 'Lucky Darts Two',      sp: 17, s: 9,  u: 2, n: 6,  legs: '388:363', diff: '+25',  pts: 29, status: 'promo' },
-  { pos: 4, team: 'funny-darters',      name: 'Funny Darters Munich', sp: 16, s: 6,  u: 1, n: 9,  legs: '351:357', diff: '-6',   pts: 19, status: null },
-  { pos: 5, team: 'black-devils',       name: 'Black Devils',         sp: 17, s: 3,  u: 4, n: 10, legs: '329:413', diff: '-84',  pts: 13, status: 'releg' },
-  { pos: 6, team: 'fuenf-sterne-boazn', name: '5 Sterne Boazn Team',  sp: 16, s: 2,  u: 4, n: 10, legs: '297:405', diff: '-108', pts: 10, status: 'releg' },
+  // Spiele = individual game wins:losses per season (sp × 18 total games).
+  // Diff is Spiele-based (SpieleFor − SpieleAgainst).
+  { pos: 1, team: 'wild-indians',       name: 'Wild Indians',         sp: 17, s: 12, u: 3, n: 2,  spiele: '190:116', legs: '440:314', diff: '+74',  pts: 39, status: 'promo' },
+  { pos: 2, team: 'muenchen-0815',      name: 'München 08/15',        sp: 17, s: 9,  u: 4, n: 4,  spiele: '171:135', legs: '398:351', diff: '+36',  pts: 31, status: 'promo' },
+  { pos: 3, team: 'lucky-darts-two',    name: 'Lucky Darts Two',      sp: 17, s: 9,  u: 2, n: 6,  spiele: '160:146', legs: '388:363', diff: '+14',  pts: 29, status: 'promo' },
+  { pos: 4, team: 'funny-darters',      name: 'Funny Darters Munich', sp: 16, s: 6,  u: 1, n: 9,  spiele: '140:148', legs: '351:357', diff: '-8',   pts: 19, status: null },
+  { pos: 5, team: 'black-devils',       name: 'Black Devils',         sp: 17, s: 3,  u: 4, n: 10, spiele: '126:180', legs: '329:413', diff: '-54',  pts: 13, status: 'releg' },
+  { pos: 6, team: 'fuenf-sterne-boazn', name: '5 Sterne Boazn Team',  sp: 16, s: 2,  u: 4, n: 10, spiele: '113:175', legs: '297:405', diff: '-62',  pts: 10, status: 'releg' },
 ];
 
 // ── Playoff Standings · Saison 2026 ──────────────────────────
@@ -236,40 +255,48 @@ const C_LIGA_STANDINGS: StandingRow[] = [
 
 const PLAYOFFS_A_AUFSTIEG_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=89 (2026-05-27)
-  { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 6, s: 5, u: 0, n: 1, legs: '158:106', diff: '+52', pts: 15, status: null },
-  { pos: 2, team: 'gambas',             name: 'Gambas',             sp: 7, s: 4, u: 0, n: 3, legs: '141:151', diff: '-10', pts: 12, status: null },
-  { pos: 3, team: 'silberpfeile-ii',    name: 'Silberpfeile II',    sp: 5, s: 3, u: 1, n: 1, legs: '125:92',  diff: '+33', pts: 10, status: null },
-  { pos: 4, team: 'dc-animals-ii',      name: 'DC Animals II',      sp: 7, s: 3, u: 0, n: 4, legs: '153:148', diff: '+5',  pts: 9,  status: null },
-  { pos: 5, team: 'treff-nix-freimann', name: 'Treff Nix Freimann', sp: 6, s: 2, u: 0, n: 4, legs: '120:136', diff: '-16', pts: 6,  status: null },
-  { pos: 6, team: 'jolly-pirates-v',    name: 'Jolly Pirates V',    sp: 7, s: 1, u: 1, n: 5, legs: '119:183', diff: '-64', pts: 4,  status: null },
+  // Spiele = individual game wins:losses per season (sp × 18 total games).
+  // Diff is Spiele-based (SpieleFor − SpieleAgainst).
+  { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 6, s: 5, u: 0, n: 1, spiele: '69:39', legs: '158:106', diff: '+30', pts: 15, status: null },
+  { pos: 2, team: 'gambas',             name: 'Gambas',             sp: 7, s: 4, u: 0, n: 3, spiele: '61:65', legs: '141:151', diff: '-4',  pts: 12, status: null },
+  { pos: 3, team: 'silberpfeile-ii',    name: 'Silberpfeile II',    sp: 5, s: 3, u: 1, n: 1, spiele: '55:35', legs: '125:92',  diff: '+20', pts: 10, status: null },
+  { pos: 4, team: 'dc-animals-ii',      name: 'DC Animals II',      sp: 7, s: 3, u: 0, n: 4, spiele: '62:64', legs: '153:148', diff: '-2',  pts: 9,  status: null },
+  { pos: 5, team: 'treff-nix-freimann', name: 'Treff Nix Freimann', sp: 6, s: 2, u: 0, n: 4, spiele: '49:59', legs: '120:136', diff: '-10', pts: 6,  status: null },
+  { pos: 6, team: 'jolly-pirates-v',    name: 'Jolly Pirates V',    sp: 7, s: 1, u: 1, n: 5, spiele: '46:80', legs: '119:183', diff: '-34', pts: 4,  status: null },
 ];
 
 const PLAYOFFS_A_ABSTIEG_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=91 (2026-05-27)
-  { pos: 1, team: 'spartans-vi',    name: 'Spartans VI',    sp: 3, s: 2, u: 0, n: 1, legs: '75:54', diff: '+21', pts: 6, status: null },
-  { pos: 2, team: 'oldies-co',      name: 'Oldies & Co',    sp: 3, s: 2, u: 0, n: 1, legs: '70:64', diff: '+6',  pts: 6, status: null },
-  { pos: 3, team: 'sound-warriors', name: "Sound Warrior's",sp: 3, s: 1, u: 0, n: 2, legs: '63:69', diff: '-6',  pts: 3, status: null },
-  { pos: 4, team: 'game-over',      name: 'Game Over',      sp: 3, s: 1, u: 0, n: 2, legs: '54:75', diff: '-21', pts: 3, status: null },
+  // Spiele = individual game wins:losses per season (sp × 18 total games).
+  // Diff is Spiele-based (SpieleFor − SpieleAgainst).
+  { pos: 1, team: 'spartans-vi',    name: 'Spartans VI',    sp: 3, s: 2, u: 0, n: 1, spiele: '33:21', legs: '75:54', diff: '+12', pts: 6, status: null },
+  { pos: 2, team: 'oldies-co',      name: 'Oldies & Co',    sp: 3, s: 2, u: 0, n: 1, spiele: '29:25', legs: '70:64', diff: '+4',  pts: 6, status: null },
+  { pos: 3, team: 'sound-warriors', name: "Sound Warrior's",sp: 3, s: 1, u: 0, n: 2, spiele: '25:29', legs: '63:69', diff: '-4',  pts: 3, status: null },
+  { pos: 4, team: 'game-over',      name: 'Game Over',      sp: 3, s: 1, u: 0, n: 2, spiele: '21:33', legs: '54:75', diff: '-12', pts: 3, status: null },
 ];
 
 const PLAYOFFS_B_AUFSTIEG_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=90 (2026-05-27)
-  { pos: 1, team: 'belfort-evolution',  name: 'Belfort Evolution',  sp: 7, s: 5, u: 1, n: 1, legs: '170:142', diff: '+28', pts: 16, status: null },
-  { pos: 2, team: 'fiaker-deife',       name: 'Fiaker Deife',       sp: 7, s: 4, u: 0, n: 3, legs: '160:135', diff: '+25', pts: 12, status: null },
-  { pos: 3, team: 'flying-seven',       name: 'Flying Seven',       sp: 7, s: 3, u: 2, n: 2, legs: '153:141', diff: '+12', pts: 11, status: null },
-  { pos: 4, team: 'freibad-bazis',      name: 'Freibad Bazis',      sp: 7, s: 2, u: 3, n: 2, legs: '149:153', diff: '-4',  pts: 9,  status: null },
-  { pos: 5, team: 'master-of-desaster', name: 'Master of Desaster', sp: 7, s: 2, u: 2, n: 3, legs: '150:154', diff: '-4',  pts: 8,  status: null },
-  { pos: 6, team: 'flying-fighters',    name: 'Flying Fighters',    sp: 7, s: 1, u: 0, n: 6, legs: '121:178', diff: '-57', pts: 3,  status: null },
+  // Spiele = individual game wins:losses per season (sp × 18 total games).
+  // Diff is Spiele-based (SpieleFor − SpieleAgainst).
+  { pos: 1, team: 'belfort-evolution',  name: 'Belfort Evolution',  sp: 7, s: 5, u: 1, n: 1, spiele: '70:56', legs: '170:142', diff: '+14', pts: 16, status: null },
+  { pos: 2, team: 'fiaker-deife',       name: 'Fiaker Deife',       sp: 7, s: 4, u: 0, n: 3, spiele: '72:54', legs: '160:135', diff: '+18', pts: 12, status: null },
+  { pos: 3, team: 'flying-seven',       name: 'Flying Seven',       sp: 7, s: 3, u: 2, n: 2, spiele: '66:60', legs: '153:141', diff: '+6',  pts: 11, status: null },
+  { pos: 4, team: 'freibad-bazis',      name: 'Freibad Bazis',      sp: 7, s: 2, u: 3, n: 2, spiele: '60:66', legs: '149:153', diff: '-6',  pts: 9,  status: null },
+  { pos: 5, team: 'master-of-desaster', name: 'Master of Desaster', sp: 7, s: 2, u: 2, n: 3, spiele: '62:64', legs: '150:154', diff: '-2',  pts: 8,  status: null },
+  { pos: 6, team: 'flying-fighters',    name: 'Flying Fighters',    sp: 7, s: 1, u: 0, n: 6, spiele: '48:78', legs: '121:178', diff: '-30', pts: 3,  status: null },
 ];
 
 const PLAYOFFS_B_ABSTIEG_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=92 (2026-05-27)
-  { pos: 1, team: 'de-vogelwuidn',      name: "De Vogelwuid'n",     sp: 7, s: 4, u: 2, n: 1, legs: '171:136', diff: '+35', pts: 14, status: null },
-  { pos: 2, team: 'lucky-darts-one',    name: 'Lucky Darts One',    sp: 7, s: 4, u: 1, n: 2, legs: '153:146', diff: '+7',  pts: 13, status: null },
-  { pos: 3, team: 'team-desaster',      name: 'Team Desaster',      sp: 7, s: 3, u: 3, n: 1, legs: '167:130', diff: '+37', pts: 12, status: null },
-  { pos: 4, team: 'de-hutzeldarter',    name: 'De Hutzeldarter',    sp: 7, s: 3, u: 2, n: 2, legs: '151:156', diff: '-5',  pts: 11, status: null },
-  { pos: 5, team: 'massl-ghabt',        name: 'Massl Ghabt',        sp: 7, s: 2, u: 0, n: 5, legs: '137:171', diff: '-34', pts: 6,  status: null },
-  { pos: 6, team: 'dc-dark-angels',     name: 'DC Dark Angels',     sp: 7, s: 0, u: 2, n: 5, legs: '129:169', diff: '-40', pts: 2,  status: null },
+  // Spiele = individual game wins:losses per season (sp × 18 total games).
+  // Diff is Spiele-based (SpieleFor − SpieleAgainst).
+  { pos: 1, team: 'de-vogelwuidn',      name: "De Vogelwuid'n",     sp: 7, s: 4, u: 2, n: 1, spiele: '72:54', legs: '171:136', diff: '+18', pts: 14, status: null },
+  { pos: 2, team: 'lucky-darts-one',    name: 'Lucky Darts One',    sp: 7, s: 4, u: 1, n: 2, spiele: '65:61', legs: '153:146', diff: '+4',  pts: 13, status: null },
+  { pos: 3, team: 'team-desaster',      name: 'Team Desaster',      sp: 7, s: 3, u: 3, n: 1, spiele: '74:52', legs: '167:130', diff: '+22', pts: 12, status: null },
+  { pos: 4, team: 'de-hutzeldarter',    name: 'De Hutzeldarter',    sp: 7, s: 3, u: 2, n: 2, spiele: '64:62', legs: '151:156', diff: '+2',  pts: 11, status: null },
+  { pos: 5, team: 'massl-ghabt',        name: 'Massl Ghabt',        sp: 7, s: 2, u: 0, n: 5, spiele: '53:73', legs: '137:171', diff: '-20', pts: 6,  status: null },
+  { pos: 6, team: 'dc-dark-angels',     name: 'DC Dark Angels',     sp: 7, s: 0, u: 2, n: 5, spiele: '50:76', legs: '129:169', diff: '-26', pts: 2,  status: null },
 ];
 
 export const STANDINGS_BY_LEAGUE: Record<string, StandingRow[]> = {
@@ -287,6 +314,136 @@ export const STANDINGS_BY_LEAGUE: Record<string, StandingRow[]> = {
 
 // Legacy alias — kept so old imports don't break
 export const A1_STANDINGS = A1_LIGA_STANDINGS;
+
+// ── Playoff-aware grouping helpers ───────────────────────────
+//
+// These must live here (not in assignments.ts) because they need
+// STANDINGS_BY_LEAGUE, which is defined in this file. Moving them
+// to assignments.ts would create a circular import.
+
+/**
+ * Maps teamId → playoff league code for every team currently
+ * participating in any playoff group.
+ *
+ * Built once at module init from STANDINGS_BY_LEAGUE.
+ */
+export const PLAYOFF_TEAM_MAP: Map<string, string> = (() => {
+  const m = new Map<string, string>();
+  for (const [code, rows] of Object.entries(STANDINGS_BY_LEAGUE)) {
+    if (code.startsWith('playoffs-')) {
+      for (const row of rows) m.set(row.team, code);
+    }
+  }
+  return m;
+})();
+
+/**
+ * Returns league groupings with playoff teams shown under their playoff
+ * group rather than their regular-season league.
+ *
+ * Display order (sortOrder ascending):
+ *   Playoffs A Auf → Playoffs A Abs → Playoffs B Auf → Playoffs B Abs →
+ *   La Liga → A1 → A2 → B1 → B2 → C Liga
+ *
+ * Regular-season sections with zero remaining teams are omitted.
+ */
+export function getPlayoffAwareLeagueGroupings(seasonId: string): LeagueGrouping[] {
+  const result: LeagueGrouping[] = [];
+
+  // 1. Playoff leagues — teams drawn from STANDINGS_BY_LEAGUE
+  const playoffLeagues = _LEAGUES
+    .filter(l => l.type === 'playoff')
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  for (const league of playoffLeagues) {
+    const rows = STANDINGS_BY_LEAGUE[league.id] ?? [];
+    const teams: TeamWithAssignment[] = rows.flatMap(row => {
+      const team = _TEAMS.find(t => t.id === row.team);
+      if (!team) return [];
+      const assignment = _STA.find(a => a.seasonId === seasonId && a.teamId === team.id);
+      if (!assignment) return [];
+      const venue = _getVenueForTeamInSeason(team.id, seasonId);
+      return [{ team, assignment, venue }];
+    });
+    result.push({ league, teams });
+  }
+
+  // 2. Regular leagues — exclude teams already in a playoff group
+  const regularLeagues = _LEAGUES
+    .filter(l => l.type !== 'playoff')
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  for (const league of regularLeagues) {
+    const assignments = _getAssignmentsForLeague(league.id, seasonId);
+    const teams: TeamWithAssignment[] = assignments
+      .filter(a => !PLAYOFF_TEAM_MAP.has(a.teamId))
+      .flatMap(a => {
+        const team = _TEAMS.find(t => t.id === a.teamId);
+        if (!team) return [];
+        const venue = _getVenueForTeamInSeason(a.teamId, seasonId);
+        return [{ team, assignment: a, venue }];
+      });
+    if (teams.length > 0) result.push({ league, teams });
+  }
+
+  return result;
+}
+
+/**
+ * Returns venue groupings with playoff teams shown under their playoff
+ * group rather than their regular-season league.
+ *
+ * Same ordering logic as getPlayoffAwareLeagueGroupings.
+ */
+export function getPlayoffAwareVenueGroupings(seasonId: string): LeagueVenueGrouping[] {
+  const result: LeagueVenueGrouping[] = [];
+
+  // 1. Playoff leagues — venues derived from teams' regular-season venue assignments
+  const playoffLeagues = _LEAGUES
+    .filter(l => l.type === 'playoff')
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  for (const league of playoffLeagues) {
+    const rows = STANDINGS_BY_LEAGUE[league.id] ?? [];
+    if (rows.length === 0) continue;
+
+    const venueMap = new Map<string, VenueWithTeams>();
+    for (const row of rows) {
+      const team = _TEAMS.find(t => t.id === row.team);
+      if (!team) continue;
+      const assignment = _STA.find(a => a.seasonId === seasonId && a.teamId === team.id);
+      if (!assignment) continue;
+      const venue = _getVenueForTeamInSeason(team.id, seasonId);
+      const key = assignment.venueId ?? '__no-venue__';
+      if (!venueMap.has(key)) venueMap.set(key, { venue, teams: [] });
+      venueMap.get(key)!.teams.push({ team, assignment, venue });
+    }
+
+    const venues: VenueWithTeams[] = Array.from(venueMap.values()).sort((a, b) => {
+      if (a.venue && !b.venue) return -1;
+      if (!a.venue && b.venue) return  1;
+      return (a.venue?.name ?? '').localeCompare(b.venue?.name ?? '', 'de');
+    });
+    result.push({ league, venues });
+  }
+
+  // 2. Regular leagues — exclude playoff teams from each venue's team list
+  const regularLeagues = _LEAGUES
+    .filter(l => l.type !== 'playoff')
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  for (const league of regularLeagues) {
+    const venues = _getVenueGroupingsForLeague(league.id, seasonId)
+      .map(vg => ({
+        ...vg,
+        teams: vg.teams.filter(t => !PLAYOFF_TEAM_MAP.has(t.team.id)),
+      }))
+      .filter(vg => vg.teams.length > 0);
+    if (venues.length > 0) result.push({ league, venues });
+  }
+
+  return result;
+}
 
 // ── Upcoming Matches ──────────────────────────────────────────
 

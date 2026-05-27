@@ -388,6 +388,16 @@ function _buildMerged(): Match[] {
           date: mergedDate,
         };
       }
+      // Clear stale past date when import says match is still open
+      // (dartunion.de encodes "no date yet" as 30.11.99 → parsed as null).
+      // If the static match had a scheduled date that is now in the past but
+      // the import still shows it as scheduled with no date, clear the date.
+      if (imp?.status === 'scheduled' && imp.date === null && m.date !== null) {
+        const _today = new Date().toISOString().slice(0, 10);
+        if (m.date < _today) {
+          return { ...m, date: null };
+        }
+      }
     }
     return m;
   });

@@ -17,6 +17,8 @@ interface StandingRow {
   u?: number;
   n?: number;
   l?: number;
+  /** Individual game wins:losses across all matchdays (e.g. "214:74") */
+  spiele?: string;
   legs: string;
   diff: string;
   pts: number;
@@ -38,11 +40,12 @@ interface StandingsTableProps {
 export function StandingsTable({ rows, title = 'Tabelle', showForm = false, showU = true, onRowClick, activeTeamId }: StandingsTableProps) {
   const router = useRouter();
 
+  // Grid columns: Pl. | Team | Sp. | S | [U] | N | Spiele | Legs | Diff. | Pkt. | [Form]
   const colTemplate = showForm
-    ? '32px 1fr 36px 28px 28px 28px 56px 56px 40px 90px'
+    ? '32px 1fr 36px 28px 28px 28px 64px 50px 64px 40px 90px'
     : showU
-      ? '32px 1fr 36px 28px 28px 28px 56px 56px 40px'
-      : '32px 1fr 36px 28px 28px 56px 56px 40px';
+      ? '32px 1fr 36px 28px 28px 28px 64px 50px 64px 40px'
+      : '32px 1fr 36px 28px 28px 64px 50px 64px 40px';
 
   function handleRowClick(teamId: string) {
     // On mobile (<= 768 px): navigate directly to the team profile page.
@@ -77,10 +80,11 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
         <span>Team</span>
         <span style={{ textAlign: 'center' }}>Sp.</span>
         <span style={{ textAlign: 'center' }}>S</span>
-        {showU && <span className="mdu-col-u" style={{ textAlign: 'center' }}>U</span>}
+        {showU && <span style={{ textAlign: 'center' }}>U</span>}
         <span style={{ textAlign: 'center' }}>N</span>
-        <span className="mdu-col-legs" style={{ textAlign: 'center' }}>Legs</span>
-        <span className="mdu-col-diff" style={{ textAlign: 'center' }}>Diff.</span>
+        <span style={{ textAlign: 'center' }}>Spiele</span>
+        <span style={{ textAlign: 'center' }}>Legs</span>
+        <span style={{ textAlign: 'center' }}>Diff.</span>
         <span style={{ textAlign: 'right' }}>Pkt.</span>
         {showForm && <span style={{ textAlign: 'center' }}>Form</span>}
       </div>
@@ -125,10 +129,11 @@ export function StandingsTable({ rows, title = 'Tabelle', showForm = false, show
             </div>
             <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6' }}>{sp}</span>
             <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#5BE08C', fontWeight: 600 }}>{wins}</span>
-            {showU && <span className="mdu-col-u" style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#9AA4B2' }}>{r.u ?? 0}</span>}
+            {showU && <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#9AA4B2' }}>{r.u ?? 0}</span>}
             <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#FF6B6B' }}>{losses}</span>
-            <span className="mdu-col-legs" style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6', fontSize: 11 }}>{r.legs}</span>
-            <span className="mdu-col-diff" style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 600, color: diffColor(r.diff) }}>{r.diff}</span>
+            <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6', fontSize: 11 }}>{r.spiele ?? '—'}</span>
+            <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', color: '#C9CCD6', fontSize: 11 }}>{r.legs}</span>
+            <span style={{ textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 600, color: diffColor(r.diff) }}>{r.diff}</span>
             <span style={{ textAlign: 'right', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: '#F5F6FA' }}>{r.pts}</span>
             {showForm && r.form && (
               <div style={{ display: 'flex', justifyContent: 'center' }}>

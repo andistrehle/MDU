@@ -3,11 +3,11 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { getLeagueGroupings, getCurrentSeason } from '@/lib/data';
+import { getPlayoffAwareLeagueGroupings, getCurrentSeason } from '@/lib/data';
 
 export default function TeamsPage() {
   const season = getCurrentSeason();
-  const groups = getLeagueGroupings(season.id);
+  const groups = getPlayoffAwareLeagueGroupings(season.id);
 
   return (
     <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
