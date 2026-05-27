@@ -111,7 +111,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
       }}
     >
       {/* ── Left: Standings table ─────────────────────────── */}
-      <div>
+      <div style={{ minWidth: 0 }}>
         {noData ? (
           /* Empty state for Abstieg groups (no data yet) */
           <div style={{
@@ -160,6 +160,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
 
       {/* ── Right: Team card ──────────────────────────────── */}
       <div style={{
+        minWidth: 0,
         background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: 14, padding: '22px 24px',
       }}>

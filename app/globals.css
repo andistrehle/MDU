@@ -48,7 +48,10 @@ body {
   background: #05070A;
   min-height: 100vh;
   font-family: var(--font-manrope), system-ui, sans-serif;
-  overflow-x: hidden;
+  /* overflow-x: clip prevents page-level horizontal scroll without creating a
+     new block-formatting context. Unlike overflow-x: hidden, clip does NOT
+     block touch-scroll events on child elements in iOS Safari. */
+  overflow-x: clip;
 }
 
 .font-display  { font-family: var(--font-saira-condensed), 'Archivo Narrow', system-ui, sans-serif; }
@@ -134,7 +137,7 @@ body {
   border-radius: 14px;
 }
 /* Keep the inner table wide enough to scroll rather than collapsing columns */
-.mdu-standings-inner { min-width: 700px; }
+.mdu-standings-inner { min-width: 760px; }
 .mdu-table-scroll::-webkit-scrollbar { height: 4px; }
 .mdu-table-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
 .mdu-table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
@@ -214,6 +217,10 @@ body {
   .mdu-two-col         { grid-template-columns: 1fr !important; }
   .mdu-content-sidebar { grid-template-columns: 1fr !important; }
   .mdu-liga-body-grid  { grid-template-columns: 1fr !important; }
+  /* Critical: grid children must not block overflow-x scroll on inner tables */
+  .mdu-liga-body-grid > * { min-width: 0; }
+  .mdu-two-col         > * { min-width: 0; }
+  .mdu-content-sidebar > * { min-width: 0; }
 
   /* --- League grid --- */
   .mdu-league-grid { grid-template-columns: 1fr !important; }
