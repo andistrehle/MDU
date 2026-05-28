@@ -421,7 +421,7 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
         const league  = findLeague(m.leagueId)?.name ?? m.leagueId;
 
         return (
-          <div key={m.id} style={{
+          <div key={m.id} className="mdu-spielplan-card" style={{
             background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 12, padding: '14px 16px',
           }}>
@@ -502,7 +502,7 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
         const outcomeLabel  = outcome === 'win' ? 'Sieg' : outcome === 'loss' ? 'Niederlage' : 'Unentschieden';
 
         return (
-          <div key={m.id} style={{
+          <div key={m.id} className="mdu-spielplan-card" style={{
             background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 12, padding: '14px 16px',
           }}>

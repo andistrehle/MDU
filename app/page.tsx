@@ -155,7 +155,7 @@ export default function HomePage() {
               Alle anzeigen
             </Link>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {upcoming.length === 0 ? (
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#9AA4B2', padding: '16px 0' }}>
                 Keine anstehenden Spiele.
@@ -188,7 +188,7 @@ export default function HomePage() {
                   Alle anzeigen
                 </Link>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {recent.map((m, i) => {
                   const home   = getExtendedTeam(m.homeTeamId);
                   const away   = getExtendedTeam(m.awayTeamId);
@@ -196,6 +196,7 @@ export default function HomePage() {
                   return (
                     <div
                       key={i}
+                      className="mdu-match-card"
                       style={{
                         padding: '14px 20px', borderRadius: 12,
                         background: '#121821', border: '1px solid rgba(255,255,255,0.06)',

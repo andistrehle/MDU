@@ -187,12 +187,17 @@ body {
     text-align: center !important;
   }
   .mdu-hero-dartboard {
-    right: -260px !important;
-    width: 460px !important;
-    height: 460px !important;
-    opacity: 0.22 !important;
-    top: 0 !important;
-    transform: none !important;
+    right: -210px !important;
+    width: 500px !important;
+    height: 500px !important;
+    opacity: 0.28 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+  /* Force the inner Next/Image to fill the container so it isn't zoomed-in/cropped */
+  .mdu-hero-dartboard img {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   /* --- Quick access bar: remove negative-margin overlap, 2×2 grid --- */
@@ -274,6 +279,29 @@ body {
     gap: 10px !important;
   }
   .mdu-match-grid-date { text-align: left !important; }
+
+  /* --- Match cards: tighter outer padding on mobile --- */
+  .mdu-match-card {
+    padding: 10px 12px !important;
+  }
+
+  /* --- Homepage preview match lists: compact gap + limit to 3 items --- */
+  .mdu-home-match-preview {
+    gap: 8px !important;
+  }
+  .mdu-home-match-preview > *:nth-child(n+4) {
+    display: none !important;
+  }
+
+  /* --- Spielplan cards across all tab views --- */
+  .mdu-spielplan-card {
+    padding: 10px 12px !important;
+  }
+
+  /* --- Result inner cards in league/team detail tabs --- */
+  .mdu-ergebnis-inner {
+    padding: 8px 10px !important;
+  }
 
   /* --- Tabs: width-constrained horizontal scroll --- */
   .mdu-tabs-row {

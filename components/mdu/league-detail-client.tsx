@@ -314,7 +314,7 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
               const homeTeam = getExtendedTeam(m.homeTeamId);
               const awayTeam = getExtendedTeam(m.awayTeamId);
               return (
-                <div key={m.id} style={{
+                <div key={m.id} className="mdu-spielplan-card" style={{
                   background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
                   borderRadius: 12, padding: '14px 16px',
                 }}>
@@ -421,7 +421,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
               const homeWon = (m.result?.home ?? 0) > (m.result?.away ?? 0);
               const awayWon = (m.result?.away ?? 0) > (m.result?.home ?? 0);
               return (
-                <div key={m.id} style={{
+                <div key={m.id} className="mdu-ergebnis-inner" style={{
                   padding: '12px 14px', borderRadius: 10,
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(255,255,255,0.06)',

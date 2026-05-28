@@ -135,30 +135,32 @@ export default function ErgebnissePage() {
 
                   {/* Mobile stacked cards */}
                   <div className="mdu-mobile-only">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {matches.map(m => {
                         const home = getExtendedTeam(m.homeTeamId);
                         const away = getExtendedTeam(m.awayTeamId);
                         return (
                           <div key={m.id} style={{
                             background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: 12, padding: '14px 16px',
+                            borderRadius: 10, padding: '8px 12px',
                           }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', color: leagueColor, textTransform: 'uppercase' }}>{leagueName}</span>
-                              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2' }}>{formatMatchDate(m.date)}</span>
+                            {/* League · Date */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, letterSpacing: '0.12em', color: leagueColor, textTransform: 'uppercase' }}>{leagueName}</span>
+                              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#9AA4B2' }}>{formatMatchDate(m.date)}</span>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 56px 1fr', alignItems: 'center', gap: 8 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                                <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={28} />
-                                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{home.name}</span>
+                            {/* Home · Score · Away */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 48px 1fr', alignItems: 'center', gap: 6 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={22} />
+                                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{home.name}</span>
                               </div>
-                              <div style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: '#F5F6FA', background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: '4px 0' }}>
+                              <div style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 17, color: '#F5F6FA', background: 'rgba(255,255,255,0.04)', borderRadius: 5, padding: '3px 0' }}>
                                 {m.result ? `${m.result.home}:${m.result.away}` : '—'}
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
-                                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, textAlign: 'right' }}>{away.name}</span>
-                                <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={28} />
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
+                                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, textAlign: 'right' }}>{away.name}</span>
+                                <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={22} />
                               </div>
                             </div>
                           </div>
