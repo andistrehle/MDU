@@ -593,7 +593,9 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
 
   return (
     <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px' }}>
-      <div className="mdu-table-scroll">
+
+      {/* ── Desktop: rich 5-column scrollable table ── */}
+      <div className="mdu-desktop-only mdu-table-scroll">
         <div className="mdu-standings-inner" style={{
           background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
           borderRadius: 14, padding: '22px 24px',
@@ -678,6 +680,84 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
           })}
         </div>
       </div>
+
+      {/* ── Mobile: compact 4-column no-scroll table ── */}
+      <div className="mdu-mobile-only">
+        <div style={{
+          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, overflow: 'hidden',
+        }}>
+          {/* Heading */}
+          <div style={{ padding: '14px 14px 0' }}>
+            <div style={{
+              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
+              letterSpacing: '0.06em', color: '#F5F6FA', textTransform: 'uppercase', marginBottom: 4,
+            }}>
+              Einzelrangliste
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#6A6E7B',
+              fontStyle: 'italic', marginBottom: 10,
+            }}>
+              Quelle: dartunion.de · {league.name}
+            </div>
+          </div>
+
+          {/* Column header: # | Spieler | T | Pkt. */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '26px 1fr 28px 40px',
+            padding: '7px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
+            letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+            gap: 6, alignItems: 'center',
+          }}>
+            <span>#</span>
+            <span>Spieler</span>
+            <span style={{ textAlign: 'center' }}>T</span>
+            <span style={{ textAlign: 'right' }}>Pkt.</span>
+          </div>
+
+          {/* Data rows */}
+          {stats.map((p, i) => {
+            const td = getExtendedTeam(p.teamId);
+            return (
+              <div key={i} style={{
+                display: 'grid', gridTemplateColumns: '26px 1fr 28px 40px',
+                padding: '9px 14px',
+                borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                alignItems: 'center', gap: 6,
+                background: i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
+                  color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+                }}>
+                  {p.rank}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, color: '#F5F6FA', fontSize: 12,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                  }}>
+                    {p.name}
+                  </span>
+                </div>
+                <div title={p.teamName} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 15,
+                  color: '#F5F6FA', textAlign: 'right',
+                }}>
+                  {p.pts}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   );
 }

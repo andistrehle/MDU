@@ -609,92 +609,175 @@ function StatistikTab({
   }
 
   return (
-    <div className="mdu-table-scroll" style={{ maxWidth: 800 }}>
-      <div className="mdu-standings-inner" style={{
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 14, padding: '22px 24px',
-        minWidth: 560,
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
-          letterSpacing: '0.06em', color: '#F5F6FA', margin: '0 0 6px',
-          textTransform: 'uppercase',
+    <>
+      {/* ── Desktop: rich 5-column scrollable table ── */}
+      <div className="mdu-desktop-only mdu-table-scroll" style={{ maxWidth: 800 }}>
+        <div className="mdu-standings-inner" style={{
+          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, padding: '22px 24px',
+          minWidth: 560,
         }}>
-          Einzelrangliste
-        </div>
-        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6B7280', marginBottom: 18, fontStyle: 'italic' }}>
-          {leagueName} · Saison 2026 · Quelle: dartunion.de
-        </div>
+          <div style={{
+            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
+            letterSpacing: '0.06em', color: '#F5F6FA', margin: '0 0 6px',
+            textTransform: 'uppercase',
+          }}>
+            Einzelrangliste
+          </div>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6B7280', marginBottom: 18, fontStyle: 'italic' }}>
+            {leagueName} · Saison 2026 · Quelle: dartunion.de
+          </div>
 
-        {/* Header */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
-          padding: '10px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)',
-          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-          letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
-          gap: 6, alignItems: 'center',
-        }}>
-          <span>#</span>
-          <span>Spieler</span>
-          <span>Team</span>
-          <span style={{ textAlign: 'center' }}>S · N</span>
-          <span style={{ textAlign: 'right' }}>Pkt.</span>
-        </div>
+          {/* Header */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
+            padding: '10px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+            letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+            gap: 6, alignItems: 'center',
+          }}>
+            <span>#</span>
+            <span>Spieler</span>
+            <span>Team</span>
+            <span style={{ textAlign: 'center' }}>S · N</span>
+            <span style={{ textAlign: 'right' }}>Pkt.</span>
+          </div>
 
-        {stats.map((p, i) => {
-          const isOwnTeam = p.teamId === teamId;
-          return (
-            <div key={i} style={{
-              display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
-              padding: '11px 8px',
-              borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-              fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
-              gap: 6,
-              background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
-              borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
-            }}>
-              <span style={{
-                fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
-                color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+          {stats.map((p, i) => {
+            const isOwnTeam = p.teamId === teamId;
+            return (
+              <div key={i} style={{
+                display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
+                padding: '11px 8px',
+                borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
+                gap: 6,
+                background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
+                borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
               }}>
-                {p.rank}
-              </span>
-              <div style={{ minWidth: 0 }}>
                 <span style={{
-                  fontWeight: isOwnTeam ? 800 : 700,
-                  color: isOwnTeam ? '#F5F6FA' : '#F5F6FA',
-                  fontSize: 13,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
+                  color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
                 }}>
-                  {p.name}
+                  {p.rank}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{
+                    fontWeight: isOwnTeam ? 800 : 700,
+                    color: '#F5F6FA',
+                    fontSize: 13,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                  }}>
+                    {p.name}
+                  </span>
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{
+                    color: isOwnTeam ? teamColor : '#9AA4B2', fontSize: 12,
+                    fontWeight: isOwnTeam ? 700 : 400,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                  }}>
+                    {p.teamName}
+                  </span>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
+                  textAlign: 'center',
+                }}>
+                  {p.wins}·{p.losses}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
+                  color: '#F5F6FA', textAlign: 'right',
+                }}>
+                  {p.pts}
                 </span>
               </div>
-              <div style={{ minWidth: 0 }}>
-                <span style={{
-                  color: isOwnTeam ? teamColor : '#9AA4B2', fontSize: 12,
-                  fontWeight: isOwnTeam ? 700 : 400,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                }}>
-                  {p.teamName}
-                </span>
-              </div>
-              <span style={{
-                fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
-                textAlign: 'center',
-              }}>
-                {p.wins}·{p.losses}
-              </span>
-              <span style={{
-                fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                color: '#F5F6FA', textAlign: 'right',
-              }}>
-                {p.pts}
-              </span>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {/* ── Mobile: compact 4-column no-scroll table ── */}
+      <div className="mdu-mobile-only">
+        <div style={{
+          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, overflow: 'hidden',
+        }}>
+          {/* Heading */}
+          <div style={{ padding: '14px 14px 0' }}>
+            <div style={{
+              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
+              letterSpacing: '0.06em', color: '#F5F6FA', textTransform: 'uppercase', marginBottom: 4,
+            }}>
+              Einzelrangliste
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#6B7280',
+              fontStyle: 'italic', marginBottom: 10,
+            }}>
+              {leagueName} · Quelle: dartunion.de
+            </div>
+          </div>
+
+          {/* Column header: # | Spieler | T | Pkt. */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '26px 1fr 28px 40px',
+            padding: '7px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
+            letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+            gap: 6, alignItems: 'center',
+          }}>
+            <span>#</span>
+            <span>Spieler</span>
+            <span style={{ textAlign: 'center' }}>T</span>
+            <span style={{ textAlign: 'right' }}>Pkt.</span>
+          </div>
+
+          {/* Data rows */}
+          {stats.map((p, i) => {
+            const td = getExtendedTeam(p.teamId);
+            const isOwnTeam = p.teamId === teamId;
+            return (
+              <div key={i} style={{
+                display: 'grid', gridTemplateColumns: '26px 1fr 28px 40px',
+                padding: '9px 14px',
+                borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                alignItems: 'center', gap: 6,
+                background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
+                borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
+                  color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+                }}>
+                  {p.rank}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
+                    color: '#F5F6FA', fontSize: 12,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                  }}>
+                    {p.name}
+                  </span>
+                </div>
+                <div title={p.teamName} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 15,
+                  color: '#F5F6FA', textAlign: 'right',
+                }}>
+                  {p.pts}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
   );
 }
 
