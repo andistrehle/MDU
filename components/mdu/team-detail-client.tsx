@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
 import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague } from '@/lib/data';
-import type { StandingRow } from '@/lib/data';
+import type { StandingRow, PlayerStatEntry } from '@/lib/data';
 import type { Match } from '@/lib/data/matches';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -28,6 +28,8 @@ interface Props {
   roster: RosterEntry[];
   scheduledMatches: Match[];
   completedMatches: Match[];
+  /** Player statistics for the current competition. Empty array = no data yet. */
+  stats: PlayerStatEntry[];
 }
 
 const TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik', 'Galerie'];
@@ -60,7 +62,7 @@ function EmptyNote({ children }: { children: React.ReactNode }) {
 
 function ÜbersichtTab({
   teamId, teamColor, seasonName, leagueName, captainLabel, venueName, venueAddress, standing, scheduledMatches,
-}: Omit<Props, 'roster' | 'completedMatches' | 'leagueId'>) {
+}: Omit<Props, 'roster' | 'completedMatches' | 'leagueId' | 'stats'>) {
   const nextMatch = scheduledMatches[0] ?? null;
 
   return (
@@ -573,6 +575,129 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
   );
 }
 
+// ── Statistik Tab ──────────────────────────────────────────────
+
+function StatistikTab({
+  stats,
+  teamId,
+  teamColor,
+  leagueName,
+}: {
+  stats: PlayerStatEntry[];
+  teamId: string;
+  teamColor: string;
+  leagueName: string;
+}) {
+  if (stats.length === 0) {
+    return (
+      <div style={{
+        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 14, padding: '36px 24px',
+        fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <Icon name="bar" size={16} stroke={2} style={{ color: '#6B7280', flexShrink: 0 }} />
+          <span style={{ fontWeight: 700, color: '#9AA4B2' }}>Statistiken noch nicht verfügbar</span>
+        </div>
+        <div>
+          Einzelrangliste folgt auf{' '}
+          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
+            style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mdu-table-scroll" style={{ maxWidth: 800 }}>
+      <div className="mdu-standings-inner" style={{
+        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 14, padding: '22px 24px',
+        minWidth: 560,
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
+          letterSpacing: '0.06em', color: '#F5F6FA', margin: '0 0 6px',
+          textTransform: 'uppercase',
+        }}>
+          Einzelrangliste
+        </div>
+        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6B7280', marginBottom: 18, fontStyle: 'italic' }}>
+          {leagueName} · Saison 2026 · Quelle: dartunion.de
+        </div>
+
+        {/* Header */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
+          padding: '10px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+          letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+          gap: 6, alignItems: 'center',
+        }}>
+          <span>#</span>
+          <span>Spieler</span>
+          <span>Team</span>
+          <span style={{ textAlign: 'center' }}>S · N</span>
+          <span style={{ textAlign: 'right' }}>Pkt.</span>
+        </div>
+
+        {stats.map((p, i) => {
+          const isOwnTeam = p.teamId === teamId;
+          return (
+            <div key={i} style={{
+              display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
+              padding: '11px 8px',
+              borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
+              gap: 6,
+              background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
+              borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
+                color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+              }}>
+                {p.rank}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <span style={{
+                  fontWeight: isOwnTeam ? 800 : 700,
+                  color: isOwnTeam ? '#F5F6FA' : '#F5F6FA',
+                  fontSize: 13,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                }}>
+                  {p.name}
+                </span>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <span style={{
+                  color: isOwnTeam ? teamColor : '#9AA4B2', fontSize: 12,
+                  fontWeight: isOwnTeam ? 700 : 400,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                }}>
+                  {p.teamName}
+                </span>
+              </div>
+              <span style={{
+                fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
+                textAlign: 'center',
+              }}>
+                {p.wins}·{p.losses}
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
+                color: '#F5F6FA', textAlign: 'right',
+              }}>
+                {p.pts}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Placeholder tabs ───────────────────────────────────────────
 
 function PlaceholderTab({ label, icon }: { label: string; icon: string }) {
@@ -611,6 +736,7 @@ export function TeamDetailClient({
   roster,
   scheduledMatches,
   completedMatches,
+  stats,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -673,7 +799,14 @@ export function TeamDetailClient({
         {activeTab === 3 && (
           <ErgebnisseTab teamId={teamId} completedMatches={completedMatches} teamColor={teamColor} />
         )}
-        {activeTab === 4 && <PlaceholderTab label="Statistiken" icon="bar" />}
+        {activeTab === 4 && (
+          <StatistikTab
+            stats={stats}
+            teamId={teamId}
+            teamColor={teamColor}
+            leagueName={leagueName}
+          />
+        )}
         {activeTab === 5 && <PlaceholderTab label="Galerie" icon="users" />}
       </div>
     </>

@@ -129,7 +129,61 @@ const TEAM_NAMES: Record<string, string> = {
   'fuenf-sterne-boazn': '5 Sterne Boazn Team',
 };
 
+// ── Statistics: team-name → slug ──────────────────────────────
+// Maps the uppercase team names that appear on dartunion.de's
+// ranking pages to our internal team IDs.
+
+const TEAM_NAME_TO_ID: Record<string, string> = {
+  "OHNE JACKIE":           "ohne-jackie",
+  "SPARTANS":              "spartans",
+  "JOLLY PIRATES KT'S":   "jolly-pirates-kts",
+  "JOLLY PIRATES KT´S": "jolly-pirates-kts", // backtick variant
+  "NO MA'AM":              "no-maam",
+  "DC NULL BULL":          "dc-null-bull",
+  "LES DARTAGNONS":        "les-dartagnons",
+  "DC ANIMALS II":         "dc-animals-ii",
+  "TREFF NIX FREIMANN":    "treff-nix-freimann",
+  "JOLLY PIRATES V":       "jolly-pirates-v",
+  "ALPTRAUM":              "alptraum",
+  "SILBERPFEILE II":       "silberpfeile-ii",
+  "GAMBAS":                "gambas",
+  "FREIBAD BAZIS":         "freibad-bazis",
+  "FLYING SEVEN":          "flying-seven",
+  "BELFORT EVOLUTION":     "belfort-evolution",
+  "FIAKER DEIFE":          "fiaker-deife",
+  "MASTER OF DESASTER":    "master-of-desaster",
+  "FLYING FIGHTERS":       "flying-fighters",
+  "SOUND WARRIOR'S":       "sound-warriors",
+  "SOUND WARRIORS":        "sound-warriors",
+  "OLDIES & CO":           "oldies-co",
+  "GAME OVER":             "game-over",
+  "SPARTANS VI":           "spartans-vi",
+  "TEAM DESASTER":         "team-desaster",
+  "DE VOGELWUID'N":        "de-vogelwuidn",
+  "LUCKY DARTS ONE":       "lucky-darts-one",
+  "DC DARK ANGELS":        "dc-dark-angels",
+  "MASSL GHABT":           "massl-ghabt",
+  "DE HUTZELDARTER":       "de-hutzeldarter",
+  "LUCKY DARTS TWO":       "lucky-darts-two",
+  "WILD INDIANS":          "wild-indians",
+  "MÜNCHEN 08/15":    "muenchen-0815", // MÜNCHEN with umlaut
+  "MUENCHEN 08/15":        "muenchen-0815",
+  "FUNNY DARTERS MUNICH":  "funny-darters",
+  "BLACK DEVILS":          "black-devils",
+  "5 STERNE BOAZN TEAM":   "fuenf-sterne-boazn",
+};
+
 // ── Types ─────────────────────────────────────────────────────
+
+interface PlayerStatEntry {
+  rank:     number;
+  name:     string;
+  teamId:   string;
+  teamName: string;
+  pts:      number;
+  wins:     number;
+  losses:   number;
+}
 
 interface ImportedMatch {
   id: string;
@@ -332,7 +386,196 @@ function mergeMatches(
   return Array.from(byId.values());
 }
 
+// ── Statistics helpers ────────────────────────────────────────
+
+/**
+ * Normalises a team name for lookup in TEAM_NAME_TO_ID.
+ * Uppercases, collapses whitespace and normalises backtick/smart apostrophes.
+ */
+function normalizeTeamKey(raw: string): string {
+  return raw
+    .toUpperCase()
+    .replace(/[`´‘’‚‛]/g, "'") // curly/backtick → straight
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Converts a dartunion.de player name to title-case display format.
+ * Handles two formats:
+ *   "FIRSTNAME, LASTNAME"  → "Firstname Lastname"
+ *   "FIRSTNAME LASTNAME"   → "Firstname Lastname"
+ * Preserves hyphens: "PAINTNER-TUITE" → "Paintner-Tuite"
+ */
+function normalizeName(raw: string): string {
+  const parts = raw.includes(',')
+    ? raw.split(',').map(p => p.trim())   // ["FIRSTNAME", "LASTNAME"]
+    : raw.split(' ');                      // ["FIRSTNAME", "LASTNAME", ...]
+  return parts
+    .filter(Boolean)
+    .map(word =>
+      word.split('-').map(w =>
+        w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : ''
+      ).join('-'),
+    )
+    .join(' ');
+}
+
+/**
+ * Strips all HTML tags from a string and decodes common HTML entities.
+ */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g,   '&')
+    .replace(/&uuml;/g,  'ü').replace(/&Uuml;/g,  'Ü')
+    .replace(/&ouml;/g,  'ö').replace(/&Ouml;/g,  'Ö')
+    .replace(/&auml;/g,  'ä').replace(/&Auml;/g,  'Ä')
+    .replace(/&szlig;/g, 'ß')
+    .replace(/&eacute;/g,'é').replace(/&egrave;/g,'è')
+    .replace(/&nbsp;/g,  ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Parses the Einzelrangliste HTML page for a given liga and returns an
+ * array of PlayerStatEntry objects.
+ *
+ * dartunion.de ranking pages use a table with rows that, after stripping
+ * HTML and empty cells, have this approximate structure:
+ *   [rank]  [name]  [license]  [team]  [pts]  [wins:losses or wins]  [losses?]  [legs?]
+ *
+ * The parser:
+ *  1. Prefers <tr id="datarow"> rows (same convention as the Spielplan page).
+ *  2. Falls back to all <tr> rows if none are found.
+ *  3. Identifies cells by content type rather than strict position, so it
+ *     remains robust against minor layout changes.
+ */
+function parseRanking(html: string, ligaId: number): PlayerStatEntry[] {
+  const leagueId = LEAGUE_MAP[ligaId];
+  if (!leagueId) return [];
+
+  const players: PlayerStatEntry[] = [];
+
+  // Prefer id="datarow" rows; fall back to all <tr> rows
+  const dataRowRe   = /<tr[^>]+id=["']datarow["'][^>]*>([\s\S]*?)<\/tr>/gi;
+  const allRowRe    = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  const hasDataRows = /<tr[^>]+id=["']datarow["']/i.test(html);
+  const rowRe       = hasDataRows ? dataRowRe : allRowRe;
+
+  let rowMatch: RegExpExecArray | null;
+
+  while ((rowMatch = rowRe.exec(html)) !== null) {
+    const row = rowMatch[1];
+
+    // Extract text from each <td>
+    const cells: string[] = [];
+    const tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    let tdMatch: RegExpExecArray | null;
+    while ((tdMatch = tdRe.exec(row)) !== null) {
+      cells.push(stripHtml(tdMatch[1]));
+    }
+
+    // Drop image-only / blank cells
+    const cols = cells.filter(c => c.length > 0);
+    if (cols.length < 5) continue;
+
+    // ── Identify each field ───────────────────────────────────
+
+    // Rank: first pure integer in the row (sanity: 1–999)
+    const rankIdx = cols.findIndex(c => /^\d+$/.test(c) && +c >= 1 && +c <= 999);
+    if (rankIdx < 0) continue;
+    const rank = +cols[rankIdx];
+
+    // License: "MDU YY NNNN"
+    const licenseIdx = cols.findIndex(c => /^MDU\s+\d+\s+\d+$/i.test(c));
+
+    // Team: first cell that matches a known team name (after rank)
+    let teamIdx = -1;
+    let teamId  = '';
+    let teamName = '';
+    for (let i = rankIdx + 1; i < cols.length; i++) {
+      if (i === licenseIdx) continue;
+      const key = normalizeTeamKey(cols[i]);
+      const id  = TEAM_NAME_TO_ID[key];
+      if (id) {
+        teamIdx  = i;
+        teamId   = id;
+        teamName = TEAM_NAMES[id] ?? cols[i];
+        break;
+      }
+    }
+    if (teamIdx < 0) continue; // unknown team — skip row
+
+    // Player name: first alphabetic, non-rank, non-license, non-numeric
+    //              cell between rank and team
+    let playerName = '';
+    for (let i = rankIdx + 1; i < teamIdx; i++) {
+      if (i === licenseIdx) continue;
+      const c = cols[i];
+      if (/^\d+$/.test(c))       continue; // pure number
+      if (/^\d+:\d+$/.test(c))   continue; // wins:losses
+      if (/^\(\d+:\d+\)$/.test(c)) continue; // legs
+      if (/[a-zA-ZäöüÄÖÜßčšžČŠŽàáâèéêìíîòóôùúû']/.test(c)) {
+        playerName = normalizeName(c);
+        break;
+      }
+    }
+    if (!playerName) continue;
+
+    // Stats: in columns after the team cell
+    const afterTeam = cols.slice(teamIdx + 1).filter(c => !/^\(\d+:\d+\)$/.test(c)); // drop legs
+
+    let pts: number | null    = null;
+    let wins: number | null   = null;
+    let losses: number | null = null;
+
+    // Case 1: combined wins:losses cell "W:L"
+    const wlCell = afterTeam.find(c => /^\d+:\d+$/.test(c));
+    if (wlCell) {
+      const [w, l] = wlCell.split(':').map(Number);
+      wins   = w;
+      losses = l;
+      // pts = first plain integer before the wins:losses cell
+      const wlPos = afterTeam.findIndex(c => /^\d+:\d+$/.test(c));
+      for (let i = 0; i < wlPos; i++) {
+        if (/^\d+$/.test(afterTeam[i])) { pts = +afterTeam[i]; break; }
+      }
+    } else {
+      // Case 2: pts, wins, losses as separate integer columns
+      const nums = afterTeam.filter(c => /^\d+$/.test(c)).map(Number);
+      if (nums.length >= 3) {
+        [pts, wins, losses] = nums;
+      } else if (nums.length === 2) {
+        [pts, wins] = nums;
+        losses = 0;
+      }
+    }
+
+    if (pts === null || wins === null || losses === null) continue;
+
+    players.push({ rank, name: playerName, teamId, teamName, pts, wins, losses });
+  }
+
+  players.sort((a, b) => a.rank - b.rank);
+  return players;
+}
+
 // ── Network ───────────────────────────────────────────────────
+
+async function fetchRanking(ligaId: number): Promise<string> {
+  const url = `https://dartunion.de/ranking01.php?LigaId=${ligaId}`;
+  process.stdout.write(`  GET ${url}\n`);
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'User-Agent': 'MDU-Platform-Importer/1.0' },
+  });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  return res.text();
+}
 
 async function fetchSpielplan(ligaId: number): Promise<string> {
   const url = `https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=${ligaId}`;
@@ -402,12 +645,63 @@ async function main(): Promise<void> {
     await delay(2000);
   }
 
-  // Write result
+  // Write matches result
   writeFileSync(outputPath, JSON.stringify(merged, null, 2) + '\n', 'utf-8');
   console.log(`\n======================================`);
   console.log(`Fetched ${totalFetched} rows across all leagues.`);
   console.log(`Total in file: ${merged.length} matches.`);
   console.log(`Written to: ${outputPath}`);
+
+  // ── Statistics import ───────────────────────────────────────
+  console.log('\n======================================');
+  console.log('MDU Importer — Einzelranglisten (Statistics)');
+  console.log('======================================');
+
+  const statsPath = join(process.cwd(), 'lib', 'data', 'imported-statistics.json');
+
+  // Load existing data to preserve any leagues we fail to fetch
+  let existingStats: Record<string, PlayerStatEntry[]> = {};
+  if (existsSync(statsPath)) {
+    try {
+      existingStats = JSON.parse(readFileSync(statsPath, 'utf-8')) as Record<string, PlayerStatEntry[]>;
+      console.log(`Loaded existing stats for ${Object.keys(existingStats).length} leagues.`);
+    } catch {
+      console.warn('Could not parse existing statistics file — starting fresh.');
+    }
+  }
+
+  const updatedStats: Record<string, PlayerStatEntry[]> = { ...existingStats };
+  let totalStatsFetched = 0;
+
+  for (const ligaIdStr of Object.keys(LEAGUE_MAP)) {
+    const ligaId   = Number(ligaIdStr);
+    const leagueId = LEAGUE_MAP[ligaId];
+    console.log(`\n[Ranking Liga ${ligaId} → ${leagueId}]`);
+
+    try {
+      const html   = await fetchRanking(ligaId);
+      const parsed = parseRanking(html, ligaId);
+      console.log(`  Parsed ${parsed.length} player entries.`);
+      totalStatsFetched += parsed.length;
+
+      if (parsed.length > 0) {
+        updatedStats[leagueId] = parsed;
+      } else {
+        process.stderr.write(`  WARN no entries parsed — keeping existing data for ${leagueId}\n`);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`  ERROR fetching ranking Liga ${ligaId}: ${msg}`);
+      console.error('  Existing data for this league is preserved.');
+    }
+
+    await delay(2000);
+  }
+
+  writeFileSync(statsPath, JSON.stringify(updatedStats, null, 2) + '\n', 'utf-8');
+  console.log(`\n======================================`);
+  console.log(`Fetched ${totalStatsFetched} player entries across all leagues.`);
+  console.log(`Written to: ${statsPath}`);
   console.log('Done!');
 }
 

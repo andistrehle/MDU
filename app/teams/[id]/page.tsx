@@ -10,28 +10,56 @@ import {
   getTeamAssignment, getPlayersForTeamInSeason,
   getCurrentSeason, getStandings, getVenueFullAddress,
   getScheduledMatchesForTeam, getCompletedMatchesForTeam,
-  getPlayerDisplayName,
+  getPlayerDisplayName, getCurrentCompetitionForTeam,
+  getStatisticsForLeague,
 } from '@/lib/data';
 import { shade } from '@/lib/utils';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
+  const searchParams = await props.searchParams;
   const team = findTeam(id) ?? TEAMS[0];
 
-  // ── Season-based data ────────────────────────────────────────
-  const season     = getCurrentSeason();
-  const assignment = getTeamAssignment(team.id, season.id);
-  const teamLeague = assignment ? findLeague(assignment.leagueId) : undefined;
-  const venue      = assignment?.venueId ? findVenue(assignment.venueId) : undefined;
+  // ── Season ───────────────────────────────────────────────────
+  const season = getCurrentSeason();
+
+  // ── Current competition: playoff > regular, or URL override ──
+  // Allows navigating from /ligen/playoffs-b-aufstieg with ?competition=playoffs-b-aufstieg
+  // so the profile reflects the competition the user just came from.
+  const competitionParam = typeof searchParams?.competition === 'string'
+    ? searchParams.competition
+    : null;
+
+  let competition = getCurrentCompetitionForTeam(team.id, season.id);
+
+  // Apply URL override only if that competition actually contains this team
+  if (competitionParam) {
+    const overrideRows    = getStandings(competitionParam);
+    const overrideRow     = overrideRows.find(r => r.team === team.id) ?? null;
+    if (overrideRow) {
+      const overrideLeague = findLeague(competitionParam);
+      competition = {
+        leagueId:  competitionParam,
+        league:    overrideLeague,
+        standing:  overrideRow,
+        isPlayoff: competitionParam.startsWith('playoffs-'),
+      };
+    }
+  }
+
+  const { leagueId: currentLeagueId, league: teamLeague, standing: teamStanding } = competition;
+
+  // ── Regular-season assignment (for venue + captain data) ─────
+  const assignment   = getTeamAssignment(team.id, season.id);
+  const venue        = assignment?.venueId ? findVenue(assignment.venueId) : undefined;
 
   const leagueLabel  = teamLeague?.name ?? 'Noch nicht verfügbar';
   const venueLabel   = venue?.name ?? 'Noch nicht verfügbar';
   const venueAddress = venue ? getVenueFullAddress(venue) : '';
   const captainLabel = assignment?.captain ?? 'Noch nicht verfügbar';
 
-  // ── Standings ────────────────────────────────────────────────
-  const teamStandings = assignment ? getStandings(assignment.leagueId) : [];
-  const teamStanding  = teamStandings.find(r => r.team === team.id) ?? null;
+  // ── Statistics for current competition ───────────────────────
+  const stats = getStatisticsForLeague(currentLeagueId);
 
   // ── Roster ───────────────────────────────────────────────────
   const playersWithAssignments = getPlayersForTeamInSeason(team.id, season.id);
@@ -41,9 +69,20 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
     isCaptain:     pa.isCaptain ?? false,
   }));
 
-  // ── Team-specific matches ────────────────────────────────────
-  const scheduledMatches = getScheduledMatchesForTeam(team.id);
-  const completedMatches = getCompletedMatchesForTeam(team.id);
+  // ── Team-specific matches, filtered to current competition ───
+  const allScheduled = getScheduledMatchesForTeam(team.id);
+  const allCompleted = getCompletedMatchesForTeam(team.id);
+
+  // Filter to current competition; fall back to all matches if none found
+  const filteredScheduled = currentLeagueId
+    ? allScheduled.filter(m => m.leagueId === currentLeagueId)
+    : allScheduled;
+  const filteredCompleted = currentLeagueId
+    ? allCompleted.filter(m => m.leagueId === currentLeagueId)
+    : allCompleted;
+
+  const scheduledMatches = filteredScheduled.length > 0 ? filteredScheduled : allScheduled;
+  const completedMatches = filteredCompleted.length > 0 ? filteredCompleted : allCompleted;
 
   return (
     <div style={{ background: '#0A0B0F', color: '#F5F6FA', minHeight: '100vh' }}>
@@ -167,7 +206,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
         teamColor={team.color}
         seasonName={season.name}
         leagueName={leagueLabel}
-        leagueId={assignment?.leagueId ?? ''}
+        leagueId={currentLeagueId}
         captainLabel={captainLabel}
         venueName={venueLabel}
         venueAddress={venueAddress}
@@ -175,6 +214,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
         roster={roster}
         scheduledMatches={scheduledMatches}
         completedMatches={completedMatches}
+        stats={stats}
       />
 
       <Footer />

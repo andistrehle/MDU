@@ -562,6 +562,47 @@ export function getResultsForLeague(leagueCode: string): Result[] {
 }
 
 /**
+ * Returns the current active competition context for a team in a season.
+ *
+ * Priority:
+ *   1. Active playoff group (determined from PLAYOFF_TEAM_MAP / standings)
+ *   2. Regular-season assignment from SEASON_TEAM_ASSIGNMENTS
+ *
+ * Used by the team profile page so that playoff teams see their playoff
+ * league/standing instead of the archived regular-season data.
+ */
+export function getCurrentCompetitionForTeam(
+  teamId: string,
+  seasonId: string,
+): {
+  leagueId:  string;
+  league:    import('./data/leagues').League | undefined;
+  standing:  StandingRow | null;
+  isPlayoff: boolean;
+} {
+  // 1. Playoff group takes priority
+  const playoffCode = PLAYOFF_TEAM_MAP.get(teamId);
+  if (playoffCode) {
+    const standings = STANDINGS_BY_LEAGUE[playoffCode] ?? [];
+    const standing  = standings.find(r => r.team === teamId) ?? null;
+    const league    = _LEAGUES.find(l => l.id === playoffCode);
+    return { leagueId: playoffCode, league, standing, isPlayoff: true };
+  }
+
+  // 2. Regular-season assignment
+  const assignment = _STA.find(a => a.seasonId === seasonId && a.teamId === teamId);
+  if (assignment) {
+    const standings = STANDINGS_BY_LEAGUE[assignment.leagueId] ?? [];
+    const standing  = standings.find(r => r.team === teamId) ?? null;
+    const league    = _LEAGUES.find(l => l.id === assignment.leagueId);
+    return { leagueId: assignment.leagueId, league, standing, isPlayoff: false };
+  }
+
+  // 3. No competition found
+  return { leagueId: '', league: undefined, standing: null, isPlayoff: false };
+}
+
+/**
  * Returns { name, short, color } for a team by id.
  * Used by StandingsTable, MatchCard, ErgebnissePage.
  * Falls back to a generated placeholder if the id is not found.

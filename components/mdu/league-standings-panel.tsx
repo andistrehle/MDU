@@ -303,10 +303,10 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
           )}
         </div>
 
-        {/* CTA button — navigates to the selected team profile */}
+        {/* CTA button — navigates to the selected team profile, carrying competition context */}
         {selectedId ? (
           <Link
-            href={`/teams/${selectedId}`}
+            href={`/teams/${selectedId}?competition=${league.id}`}
             style={{
               display: 'block', marginTop: 18, width: '100%', padding: '13px',
               background: '#D40000', color: '#fff', borderRadius: 6,
