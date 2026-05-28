@@ -27,13 +27,13 @@ export default function HomePage() {
       <section style={{ position: 'relative', overflow: 'hidden', background: '#05070A', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         {/* Hero dartboard photo — absolutely positioned, feathered into background */}
         <div aria-hidden className="mdu-hero-dartboard" style={{
-          position: 'absolute', right: -180, top: '50%', transform: 'translateY(-50%)',
+          position: 'absolute', right: 80, top: '50%', transform: 'translateY(-50%)',
           width: 880, height: 880, pointerEvents: 'none',
           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 70%, transparent 92%)',
           maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 70%, transparent 92%)',
         }}>
           <Image
-            src="/hero-dartboard.png"
+            src="/mdu-hero-dartboard-2.png"
             alt=""
             width={880}
             height={880}

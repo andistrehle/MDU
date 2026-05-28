@@ -61,7 +61,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
           maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
         }}>
-          <Image src="/hero-dartboard.png" alt="" width={680} height={680}
+          <Image src="/mdu-hero-dartboard-2.png" alt="" width={680} height={680}
             style={{ width: 680, height: 680, objectFit: 'cover', objectPosition: 'center' }} />
         </div>
         <div aria-hidden style={{
