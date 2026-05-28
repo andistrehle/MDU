@@ -599,6 +599,34 @@ export function getCompletedMatchesByLeague(): Array<{ leagueId: string; matches
   return Array.from(map.entries()).map(([leagueId, matches]) => ({ leagueId, matches }));
 }
 
+// ── Matchday grouping ─────────────────────────────────────────
+
+export interface MatchdayGroup {
+  matchday: number | null;
+  matches: Match[];
+}
+
+/**
+ * Groups a list of matches by matchday, sorted descending (latest first).
+ * Matches without a matchday are collected under `null` and placed last.
+ */
+export function groupMatchesByMatchday(matches: Match[]): MatchdayGroup[] {
+  const map = new Map<number | null, Match[]>();
+  for (const m of matches) {
+    const key = m.matchday ?? null;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(m);
+  }
+  const numbered = Array.from(map.entries())
+    .filter(([k]) => k !== null)
+    .sort(([a], [b]) => (b as number) - (a as number))
+    .map(([matchday, ms]) => ({ matchday, matches: ms }));
+  const nullGroup = map.has(null)
+    ? [{ matchday: null as null, matches: map.get(null)! }]
+    : [];
+  return [...numbered, ...nullGroup];
+}
+
 // ── Match classification helpers ──────────────────────────────
 
 /**

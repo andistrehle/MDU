@@ -8,6 +8,7 @@ import { TeamBadge } from './team-badge';
 import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getVenueForTeamInSeason } from '@/lib/data';
 import type { StandingRow, PlayerStatEntry } from '@/lib/data';
 import type { Match as GameMatch } from '@/lib/data/matches';
+import { groupMatchesByMatchday } from '@/lib/data/matches';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -407,68 +408,84 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
         </a>
       </div>
 
-      {/* Individual match results */}
+      {/* Individual match results — grouped by matchday */}
       {completed.length > 0 && (
-        <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: 14, padding: '22px 24px', marginBottom: 20,
-        }}>
+        <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <SectionLabel>Spielergebnisse</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {completed.map((m) => {
-              const home    = getExtendedTeam(m.homeTeamId);
-              const away    = getExtendedTeam(m.awayTeamId);
-              const homeWon = (m.result?.home ?? 0) > (m.result?.away ?? 0);
-              const awayWon = (m.result?.away ?? 0) > (m.result?.home ?? 0);
-              return (
-                <div key={m.id} className="mdu-ergebnis-inner" style={{
-                  padding: '12px 14px', borderRadius: 10,
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.06)',
+          {groupMatchesByMatchday(completed).map(({ matchday, matches: mdMatches }) => (
+            <div key={matchday ?? 'null'}>
+              {/* Matchday sub-heading */}
+              {matchday !== null && (
+                <div style={{
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+                  letterSpacing: '0.14em', color: '#6A6E7B', textTransform: 'uppercase',
+                  marginBottom: 8,
                 }}>
-                  {/* Date row */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
-                    fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2',
-                  }}>
-                    <Icon name="calendar" size={12} stroke={2} style={{ color: '#9AA4B2', flexShrink: 0 }} />
-                    <span>{formatMatchDate(m.date)}</span>
-                  </div>
-                  {/* Teams + Score — 3-col, mobile-safe */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 1fr', alignItems: 'center', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
-                      <span style={{
-                        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                        color: homeWon ? '#F5F6FA' : '#9AA4B2',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {home.name}
-                      </span>
-                      <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={26} />
-                    </div>
-                    <div style={{
-                      textAlign: 'center',
-                      fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
-                      color: '#F5F6FA',
-                      background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '3px 0',
-                    }}>
-                      {m.result ? `${m.result.home}:${m.result.away}` : '—'}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                      <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={26} />
-                      <span style={{
-                        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                        color: awayWon ? '#F5F6FA' : '#9AA4B2',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {away.name}
-                      </span>
-                    </div>
-                  </div>
+                  {matchday}. Spieltag
                 </div>
-              );
-            })}
-          </div>
+              )}
+              <div style={{
+                background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: 14, padding: '16px 20px',
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {mdMatches.map((m) => {
+                    const home    = getExtendedTeam(m.homeTeamId);
+                    const away    = getExtendedTeam(m.awayTeamId);
+                    const homeWon = (m.result?.home ?? 0) > (m.result?.away ?? 0);
+                    const awayWon = (m.result?.away ?? 0) > (m.result?.home ?? 0);
+                    return (
+                      <div key={m.id} className="mdu-ergebnis-inner" style={{
+                        padding: '12px 14px', borderRadius: 10,
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                      }}>
+                        {/* Date row */}
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
+                          fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2',
+                        }}>
+                          <Icon name="calendar" size={12} stroke={2} style={{ color: '#9AA4B2', flexShrink: 0 }} />
+                          <span>{formatMatchDate(m.date)}</span>
+                        </div>
+                        {/* Teams + Score — 3-col, mobile-safe */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 1fr', alignItems: 'center', gap: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
+                            <span style={{
+                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+                              color: homeWon ? '#F5F6FA' : '#9AA4B2',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {home.name}
+                            </span>
+                            <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={26} />
+                          </div>
+                          <div style={{
+                            textAlign: 'center',
+                            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
+                            color: '#F5F6FA',
+                            background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '3px 0',
+                          }}>
+                            {m.result ? `${m.result.home}:${m.result.away}` : '—'}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                            <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={26} />
+                            <span style={{
+                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+                              color: awayWon ? '#F5F6FA' : '#9AA4B2',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {away.name}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

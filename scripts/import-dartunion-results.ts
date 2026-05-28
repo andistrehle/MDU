@@ -189,6 +189,7 @@ interface ImportedMatch {
   id: string;
   seasonId: string;
   leagueId: string;
+  matchday?: number;
   homeTeamId: string;
   awayTeamId: string;
   homeTeamName: string;
@@ -262,11 +263,28 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
   const matches: ImportedMatch[] = [];
   const seenPairs = new Set<string>(); // prevent duplicates within one fetch
 
-  const rowRe = /<tr[^>]+id=["']datarow["'][^>]*>([\s\S]*?)<\/tr>/gi;
-  let rowMatch: RegExpExecArray | null;
+  // Walk ALL <tr> elements in document order so we can detect matchday heading
+  // rows that appear between groups of data rows (e.g. "1. Spieltag").
+  let currentMatchday: number | null = null;
+  const trRe = /<tr([^>]*)>([\s\S]*?)<\/tr>/gi;
+  let trMatch: RegExpExecArray | null;
 
-  while ((rowMatch = rowRe.exec(html)) !== null) {
-    const row = rowMatch[1];
+  while ((trMatch = trRe.exec(html)) !== null) {
+    const attrs = trMatch[1];
+    const body  = trMatch[2];
+
+    // ── Matchday heading detection ────────────────────────────
+    // Heading rows typically contain text like "1. Spieltag" and are NOT
+    // tagged with id="datarow". We check heading rows first and skip them.
+    if (!/id=["']datarow["']/i.test(attrs)) {
+      const mdMatch = body.match(/\b(\d+)\.\s*Spieltag\b/i);
+      if (mdMatch) {
+        currentMatchday = parseInt(mdMatch[1], 10);
+      }
+      continue;
+    }
+
+    const row = body;
 
     // Selected option in home-team select
     const homeSel = row.match(
@@ -316,6 +334,7 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
     const homeTeamName = TEAM_NAMES[homeTeamId] ?? homeTeamId;
     const awayTeamName = TEAM_NAMES[awayTeamId] ?? awayTeamId;
     const id = `imp-${leagueId}-${homeTeamId}-${awayTeamId}`;
+    const matchday = currentMatchday ?? undefined;
 
     if (isResult(dateRaw, timeRaw)) {
       // Completed match — scores stored as integers in date/time fields
@@ -323,6 +342,7 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
         id,
         seasonId: 'season-2026',
         leagueId,
+        matchday,
         homeTeamId,
         awayTeamId,
         homeTeamName,
@@ -341,6 +361,7 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
         id,
         seasonId: 'season-2026',
         leagueId,
+        matchday,
         homeTeamId,
         awayTeamId,
         homeTeamName,
