@@ -720,61 +720,62 @@ function StatistikTab({
             </div>
           </div>
 
-          {/* Column header: # | Spieler | T | Pkt. */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '26px 1fr 28px 40px',
-            padding: '7px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
-            letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
-            gap: 6, alignItems: 'center',
-          }}>
-            <span>#</span>
-            <span>Spieler</span>
-            <span style={{ textAlign: 'center' }}>T</span>
-            <span style={{ textAlign: 'right' }}>Pkt.</span>
-          </div>
-
-          {/* Data rows */}
-          {stats.map((p, i) => {
-            const td = getExtendedTeam(p.teamId);
-            const isOwnTeam = p.teamId === teamId;
-            return (
-              <div key={i} style={{
-                display: 'grid', gridTemplateColumns: '26px 1fr 28px 40px',
-                padding: '9px 14px',
-                borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                alignItems: 'center', gap: 6,
-                background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
-                borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
-              }}>
-                <span style={{
-                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
-                  color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+          {/* 2-row card rows: name+badge / stats line */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            {stats.map((p, i) => {
+              const td = getExtendedTeam(p.teamId);
+              const isOwnTeam = p.teamId === teamId;
+              const games = p.wins + p.losses;
+              return (
+                <div key={i} style={{
+                  padding: '9px 14px',
+                  borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
+                  borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
                 }}>
-                  {p.rank}
-                </span>
-                <div style={{ minWidth: 0 }}>
-                  <span style={{
-                    fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
-                    color: '#F5F6FA', fontSize: 12,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                  {/* Row 1: rank · name · badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{
+                      fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
+                      color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2', flexShrink: 0, width: 22,
+                    }}>
+                      {p.rank}
+                    </span>
+                    <span style={{
+                      fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
+                      color: '#F5F6FA', fontSize: 12,
+                      flex: 1, minWidth: 0,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {p.name}
+                    </span>
+                    <div title={p.teamName} style={{ flexShrink: 0 }}>
+                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
+                    </div>
+                  </div>
+                  {/* Row 2: stats meta line */}
+                  <div style={{
+                    paddingLeft: 30,
+                    fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B',
+                    letterSpacing: '0.02em',
                   }}>
-                    {p.name}
-                  </span>
+                    <span style={{
+                      color: isOwnTeam ? teamColor : '#9AA4B2',
+                      fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13,
+                    }}>
+                      {p.pts} Pkt.
+                    </span>
+                    <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
+                    {games} Sp.
+                    <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
+                    {p.wins} G
+                    <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
+                    {p.losses} V
+                  </div>
                 </div>
-                <div title={p.teamName} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
-                </div>
-                <span style={{
-                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 15,
-                  color: '#F5F6FA', textAlign: 'right',
-                }}>
-                  {p.pts}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </>
