@@ -763,10 +763,13 @@
     "awayTeamId": "alptraum",
     "homeTeamName": "Gambas",
     "awayTeamName": "Alptraum",
-    "date": "2026-05-30",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 6,
+      "away": 12
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -794,10 +797,13 @@
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "Silberpfeile II",
     "awayTeamName": "Treff Nix Freimann",
-    "date": "2026-05-30",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -926,10 +932,13 @@
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "DC Animals II",
     "awayTeamName": "Treff Nix Freimann",
-    "date": "2026-05-23",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 8,
+      "away": 10
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -1519,10 +1528,13 @@
     "awayTeamId": "sound-warriors",
     "homeTeamName": "Oldies & Co",
     "awayTeamName": "Sound Warrior's",
-    "date": "2026-04-17",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
@@ -1581,10 +1593,13 @@
     "awayTeamId": "game-over",
     "homeTeamName": "Sound Warrior's",
     "awayTeamName": "Game Over",
-    "date": "2026-05-08",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
