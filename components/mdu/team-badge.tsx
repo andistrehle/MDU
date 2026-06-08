@@ -1,4 +1,6 @@
-import Image from 'next/image';
+'use client';
+
+import { useState } from 'react';
 import { shade } from '@/lib/utils';
 
 interface TeamBadgeProps {
@@ -8,7 +10,8 @@ interface TeamBadgeProps {
   ring?: string;
   className?: string;
   /** Path to team logo in /public, e.g. '/team-logos/freibad-bazis.png'.
-   *  If provided the logo is shown instead of the initials badge. */
+   *  If provided the real logo is shown; falls back to the initials badge on
+   *  load error or when undefined. */
   logoUrl?: string;
 }
 
@@ -20,6 +23,9 @@ export function TeamBadge({
   className,
   logoUrl,
 }: TeamBadgeProps) {
+  // If the img fails to load we fall back to the initials badge
+  const [imgFailed, setImgFailed] = useState(false);
+
   const baseStyle: React.CSSProperties = {
     width: size,
     height: size,
@@ -29,18 +35,21 @@ export function TeamBadge({
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 6px rgba(0,0,0,0.4)',
     userSelect: 'none',
     overflow: 'hidden',
-    position: 'relative',
   };
 
-  if (logoUrl) {
+  if (logoUrl && !imgFailed) {
     return (
-      <div className={className} style={{ ...baseStyle, background: '#F5F6FA' }}>
-        <Image
+      <div
+        className={className}
+        style={{ ...baseStyle, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        {/* Plain <img> avoids Next.js image-optimization pipeline edge cases */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={logoUrl}
           alt={initials}
-          width={size}
-          height={size}
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          onError={() => setImgFailed(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
         />
       </div>
     );

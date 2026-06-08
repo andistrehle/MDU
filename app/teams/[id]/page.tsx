@@ -134,8 +134,9 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, color: '#F5F6FA',
             }}>
               {team.logoUrl ? (
-                <Image src={team.logoUrl} alt={team.name} width={140} height={140}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={team.logoUrl} alt={team.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
               ) : (
                 team.short
               )}
