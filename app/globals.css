@@ -165,26 +165,45 @@ body {
   /* --- Hero spacer: second grid column becomes empty row on mobile — hide it --- */
   .mdu-hero-spacer { display: none !important; }
 
-  /* --- Hero section --- */
+  /* --- Hero section: ~35% shorter on mobile --- */
   .mdu-hero-grid {
     grid-template-columns: 1fr !important;
-    padding: 40px 20px 48px !important;
+    padding: 22px 16px 24px !important; /* was 40px 20px 48px */
     min-height: auto !important;
   }
   .mdu-hero-title {
-    font-size: clamp(46px, 13vw, 80px) !important;
-    line-height: 0.92 !important;
+    font-size: clamp(36px, 10.5vw, 56px) !important; /* was clamp(46px,13vw,80px) */
+    line-height: 0.90 !important;
+  }
+  /* Overflow-safe hero content wrapper */
+  .mdu-hero-inner {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden;
   }
   .mdu-hero-subtitle {
-    font-size: 17px !important;
+    font-size: 15px !important; /* was 17px */
+    margin-top: 10px !important; /* overrides inline 18px */
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+  .mdu-hero-desc {
+    font-size: 13px !important;
+    margin-top: 8px !important;  /* overrides inline 14px */
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
   }
   .mdu-hero-cta {
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 8px !important;
+    margin-top: 18px !important; /* overrides inline 34px */
   }
   .mdu-hero-cta > * {
     width: 100% !important;
     text-align: center !important;
+    padding: 10px 20px !important; /* was 14px 28px inline — still comfortably tappable */
+    font-size: 12px !important;
   }
   .mdu-hero-dartboard {
     right: -210px !important;
@@ -329,8 +348,11 @@ body {
    @media (max-width: 480px) — small phones
    ===================================================== */
 @media (max-width: 480px) {
+  .mdu-hero-grid {
+    padding: 16px 16px 20px !important; /* tightest on small phones */
+  }
   .mdu-hero-title {
-    font-size: clamp(38px, 12vw, 52px) !important;
+    font-size: clamp(32px, 10vw, 44px) !important; /* was clamp(38px,12vw,52px) */
   }
   .mdu-kpi-strip {
     grid-template-columns: repeat(2, 1fr) !important;

@@ -51,7 +51,7 @@ export default function HomePage() {
           maxWidth: 1280, margin: '0 auto', padding: '80px 28px 84px', position: 'relative',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center', minHeight: 520,
         }}>
-          <div style={{ position: 'relative', zIndex: 2 }}>
+          <div className="mdu-hero-inner" style={{ position: 'relative', zIndex: 2 }}>
             <h1 className="mdu-hero-title" style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 96,
               lineHeight: 0.92, letterSpacing: '-0.005em', color: '#FFFFFF', margin: 0,
@@ -59,10 +59,10 @@ export default function HomePage() {
             }}>
               Münchner<br />Dart Union
             </h1>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 22, color: '#F5F6FA', marginTop: 18, letterSpacing: '0.01em' }}>
+            <div className="mdu-hero-subtitle" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 22, color: '#F5F6FA', marginTop: 18, letterSpacing: '0.01em' }}>
               Dart. Leidenschaft. Gemeinschaft.
             </div>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, color: '#9AA4B2', margin: '14px 0 0', maxWidth: 440, lineHeight: 1.6 }}>
+            <p className="mdu-hero-desc" style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, color: '#9AA4B2', margin: '14px 0 0', maxWidth: 440, lineHeight: 1.6 }}>
               Die offizielle Liga-Seite für den organisierten Dartsport in München.
             </p>
             <div className="mdu-hero-cta" style={{ display: 'flex', gap: 14, marginTop: 34 }}>
