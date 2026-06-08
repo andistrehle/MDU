@@ -367,11 +367,15 @@ body {
    @media (min-width: 769px) — desktop-only overrides
    ===================================================== */
 @media (min-width: 769px) {
-  /* Quick-access: constrain width, center, and make cards taller */
+  /* Match hero container so cards left-align with hero text (28px left padding) */
   .mdu-quickbar-outer {
-    max-width: 820px !important;   /* narrower than the 1280px content column */
-    padding-left: 0 !important;
+    max-width: 1280px !important;
+    padding-left: 28px !important;  /* same as hero grid left padding */
     padding-right: 0 !important;
+  }
+  /* Constrain card block to ~820px, left-aligned under hero text */
+  .mdu-quick-bar {
+    max-width: 820px !important;
   }
   /* Each card: taller with more horizontal breathing room */
   .mdu-quick-bar > a {
