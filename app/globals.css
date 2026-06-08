@@ -100,31 +100,9 @@ body {
    ===================================================== */
 
 /* --- Desktop defaults for mobile-only elements --- */
-.mdu-hamburger  { display: none; }
-.mdu-mobile-only{ display: none !important; }
-.mdu-bottom-nav { display: none !important; }
-
-/* --- Mobile drawer (always in DOM, off-screen by default) --- */
-.mdu-mobile-overlay {
-  display: none;
-  position: fixed; inset: 0; z-index: 90;
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.mdu-mobile-overlay.open { display: block; }
-
-.mdu-mobile-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 100;
-  width: 280px; max-width: 85vw;
-  background: #0D1117;
-  border-left: 1px solid rgba(255,255,255,0.08);
-  transform: translateX(100%);
-  transition: transform 300ms cubic-bezier(.25,.8,.25,1);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
-}
-.mdu-mobile-drawer.open { transform: translateX(0); }
+.mdu-mobile-only  { display: none !important; }
+.mdu-mobile-login { display: none; }  /* Login button in mobile header, hidden on desktop */
+.mdu-bottom-nav   { display: none !important; }
 
 /* --- Table horizontal scroll (always active) --- */
 .mdu-table-scroll {
@@ -154,7 +132,7 @@ body {
   .mdu-desktop-only { display: none !important; }
   .mdu-mobile-only  { display: block !important; }
   .mdu-mobile-flex  { display: flex  !important; }
-  .mdu-hamburger    { display: flex  !important; }
+  .mdu-mobile-login { display: inline-flex !important; align-items: center; }
   .mdu-header-nav   { display: none  !important; }
   .mdu-header-login { display: none  !important; }
   .mdu-bottom-nav   {

@@ -32,6 +32,20 @@ const SECTIONS = [
     description: 'Kontakt und Informationen zur Münchner Dart Union.',
     ready: false,
   },
+  {
+    href: '/impressum',
+    icon: 'file',
+    label: 'Impressum',
+    description: 'Angaben gemäß § 5 TMG und rechtliche Hinweise.',
+    ready: false,
+  },
+  {
+    href: '/datenschutz',
+    icon: 'list',
+    label: 'Datenschutz',
+    description: 'Datenschutzerklärung und Informationen zur Datenverarbeitung.',
+    ready: false,
+  },
 ] as const;
 
 export default function MehrPage() {
@@ -128,9 +142,45 @@ export default function MehrPage() {
           ))}
         </div>
 
+        {/* Login — secondary entry point */}
+        <Link
+          href="/login"
+          style={{ textDecoration: 'none', display: 'block', marginTop: 16 }}
+          className="mdu-card-hover"
+        >
+          <div style={{
+            background: 'rgba(212,0,0,0.06)',
+            border: '1px solid rgba(212,0,0,0.2)',
+            borderRadius: 12,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+          }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+              background: 'rgba(212,0,0,0.14)',
+              border: '1px solid rgba(212,0,0,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#D40000',
+            }}>
+              <Icon name="user" size={20} stroke={2} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: '#F5F6FA', marginBottom: 3 }}>
+                Login
+              </div>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2', lineHeight: 1.4 }}>
+                Anmelden zum MDU Mitgliederbereich
+              </div>
+            </div>
+            <Icon name="arrow-right" size={16} stroke={2} style={{ color: '#D40000', flexShrink: 0 }} />
+          </div>
+        </Link>
+
         {/* Footer note */}
         <div style={{
-          marginTop: 32, padding: '14px 16px',
+          marginTop: 24, padding: '14px 16px',
           background: 'rgba(255,255,255,0.02)',
           border: '1px solid rgba(255,255,255,0.05)',
           borderRadius: 10,
