@@ -143,21 +143,22 @@ body {
   /* --- Hero spacer: second grid column becomes empty row on mobile — hide it --- */
   .mdu-hero-spacer { display: none !important; }
 
-  /* --- Hero section: ~35% shorter on mobile --- */
+  /* --- Hero section --- */
   .mdu-hero-grid {
     grid-template-columns: 1fr !important;
-    padding: 22px 16px 24px !important; /* was 40px 20px 48px */
+    padding: 30px 16px 28px !important; /* slightly more top padding for umlaut clearance */
     min-height: auto !important;
   }
   .mdu-hero-title {
-    font-size: clamp(36px, 10.5vw, 56px) !important; /* was clamp(46px,13vw,80px) */
-    line-height: 0.90 !important;
+    font-size: clamp(36px, 10.5vw, 56px) !important;
+    line-height: 0.96 !important; /* was 0.90 — eased so Ü dots are not clipped */
   }
-  /* Overflow-safe hero content wrapper */
+  /* Overflow-safe hero content wrapper — overflow-x only; vertical must stay visible for umlauts */
   .mdu-hero-inner {
     max-width: 100% !important;
     min-width: 0 !important;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
   .mdu-hero-subtitle {
     font-size: 15px !important; /* was 17px */
@@ -329,10 +330,10 @@ body {
    ===================================================== */
 @media (max-width: 480px) {
   .mdu-hero-grid {
-    padding: 16px 16px 20px !important; /* tightest on small phones */
+    padding: 22px 16px 22px !important; /* slightly more than before to prevent umlaut clipping */
   }
   .mdu-hero-title {
-    font-size: clamp(32px, 10vw, 44px) !important; /* was clamp(38px,12vw,52px) */
+    font-size: clamp(32px, 10vw, 44px) !important;
   }
   .mdu-kpi-strip {
     grid-template-columns: repeat(2, 1fr) !important;
