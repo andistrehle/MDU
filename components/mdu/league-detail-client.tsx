@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { LeagueStandingsPanel, type TeamInfo } from './league-standings-panel';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
-import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getVenueForTeamInSeason } from '@/lib/data';
+import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getVenueForTeamInSeason, getPlayerPhotoByName, getInitialsFromName } from '@/lib/data';
 import type { StandingRow, PlayerStatEntry } from '@/lib/data';
 import type { Match as GameMatch } from '@/lib/data/matches';
 import { groupMatchesByMatchday } from '@/lib/data/matches';
@@ -582,6 +582,34 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
   );
 }
 
+// ── Player Avatar (shared within this file) ──────────────────
+
+function PlayerAvatar({ name, size = 30 }: { name: string; size?: number }) {
+  const [imgError, setImgError] = useState(false);
+  const photoUrl = getPlayerPhotoByName(name);
+  const initials = getInitialsFromName(name);
+  const showPhoto = photoUrl && !imgError;
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      background: showPhoto ? '#1a2030' : 'rgba(255,255,255,0.08)',
+      border: `1px solid ${showPhoto ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.12)'}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
+      fontFamily: 'var(--font-saira-condensed)', fontWeight: 900,
+      fontSize: Math.max(9, Math.round(size * 0.37)), color: '#9AA4B2',
+    }}>
+      {showPhoto ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt={initials} onError={() => setImgError(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center top', display: 'block' }} />
+      ) : (
+        initials
+      )}
+    </div>
+  );
+}
+
 // ── Statistiken Tab ───────────────────────────────────────────
 
 function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: LeagueShape }) {
@@ -648,10 +676,11 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                 }}>
                   {p.rank}
                 </span>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <PlayerAvatar name={p.name} size={36} />
                   <span style={{
                     fontWeight: 700, color: '#F5F6FA', fontSize: 13,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {p.name}
                   </span>
@@ -716,7 +745,7 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                   borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                   background: i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
                 }}>
-                  {/* Row 1: rank · name · badge */}
+                  {/* Row 1: rank · avatar · name · badge */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
@@ -724,6 +753,7 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                     }}>
                       {p.rank}
                     </span>
+                    <PlayerAvatar name={p.name} size={28} />
                     <span style={{
                       fontFamily: 'var(--font-manrope)', fontWeight: 700, color: '#F5F6FA', fontSize: 12,
                       flex: 1, minWidth: 0,
@@ -735,9 +765,9 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                       <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                     </div>
                   </div>
-                  {/* Row 2: stats meta line */}
+                  {/* Row 2: stats — indent: rank(22) + gap(8) + avatar(28) + gap(8) = 66 */}
                   <div style={{
-                    paddingLeft: 30,
+                    paddingLeft: 66,
                     fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B',
                     letterSpacing: '0.02em',
                   }}>
