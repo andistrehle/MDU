@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
-import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague } from '@/lib/data';
+import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getPlayerPhotoByName, getInitialsFromName } from '@/lib/data';
 import type { StandingRow, PlayerStatEntry } from '@/lib/data';
 import type { Match } from '@/lib/data/matches';
 
@@ -13,6 +13,7 @@ export interface RosterEntry {
   displayName: string;
   licenseNumber: string | null;
   isCaptain: boolean;
+  photoUrl?: string;
 }
 
 interface Props {
@@ -351,7 +352,7 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
               {String(i + 1).padStart(2, '0')}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-              <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} />
+              <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} photoUrl={p.photoUrl} />
               <span style={{
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -385,8 +386,8 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
             <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>
               {String(i + 1).padStart(2, '0')}
             </span>
-            {/* Initials avatar */}
-            <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} />
+            {/* Player avatar */}
+            <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} photoUrl={p.photoUrl} />
             {/* Name + license number */}
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Name row */}
@@ -422,15 +423,25 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
   );
 }
 
-function Avatar({ initials, color }: { initials: string; color: string }) {
+function Avatar({ initials, color, photoUrl }: { initials: string; color: string; photoUrl?: string }) {
+  const [imgError, setImgError] = useState(false);
+  const showPhoto = photoUrl && !imgError;
   return (
     <div style={{
       width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-      background: `${color}22`, border: `1px solid ${color}44`,
+      background: showPhoto ? 'transparent' : `${color}22`,
+      border: `1px solid ${showPhoto ? color + '66' : color + '44'}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color,
     }}>
-      {initials.toUpperCase()}
+      {showPhoto ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt={initials} onError={() => setImgError(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      ) : (
+        initials.toUpperCase()
+      )}
     </div>
   );
 }
@@ -702,12 +713,17 @@ function StatistikTab({
                 }}>
                   {p.rank}
                 </span>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <Avatar
+                    initials={getInitialsFromName(p.name)}
+                    color={teamColor}
+                    photoUrl={getPlayerPhotoByName(p.name)}
+                  />
                   <span style={{
                     fontWeight: isOwnTeam ? 800 : 700,
                     color: '#F5F6FA',
                     fontSize: 13,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {p.name}
                   </span>
@@ -782,6 +798,11 @@ function StatistikTab({
                     }}>
                       {p.rank}
                     </span>
+                    <Avatar
+                      initials={getInitialsFromName(p.name)}
+                      color={teamColor}
+                      photoUrl={getPlayerPhotoByName(p.name)}
+                    />
                     <span style={{
                       fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
                       color: '#F5F6FA', fontSize: 12,
@@ -794,9 +815,9 @@ function StatistikTab({
                       <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                     </div>
                   </div>
-                  {/* Row 2: stats meta line */}
+                  {/* Row 2: stats meta line — indent aligns with name (rank 22 + gap 8 + avatar 30 + gap 8) */}
                   <div style={{
-                    paddingLeft: 30,
+                    paddingLeft: 68,
                     fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B',
                     letterSpacing: '0.02em',
                   }}>

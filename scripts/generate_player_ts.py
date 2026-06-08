@@ -163,6 +163,7 @@ def main():
                 "lastName": last,
                 "licenseNumber": p["licenseNumber"],
                 "status": "active",
+                "photoUrl": p.get("photoUrl"),  # preserved if scraped data includes it
             }
             all_player_ids[pid] = player_rec
             team_entries.append((pid, player_rec, p["isCaptain"]))
@@ -193,6 +194,8 @@ def main():
     players_lines.append("  /** License number as shown on dartunion.de, e.g. \"MDU 26 2003\". Null if unavailable. */")
     players_lines.append("  licenseNumber?: string;")
     players_lines.append("  status: PlayerStatus;")
+    players_lines.append("  /** Path to player photo in /public, e.g. '/player-photos/max-mustermann.jpg'. */")
+    players_lines.append("  photoUrl?: string;")
     players_lines.append("}")
     players_lines.append("")
     players_lines.append("// ── Player roster — Saison 2026 ──────────────────────────────")
@@ -229,9 +232,10 @@ def main():
                 fn = escape_ts(p["firstName"])
                 ln = escape_ts(p["lastName"])
                 lic = p["licenseNumber"]
+                photo_part = f", photoUrl: '{escape_ts(p['photoUrl'])}'" if p.get('photoUrl') else ""
                 players_lines.append(
                     f"  {{ id: '{pid}', firstName: '{fn}', lastName: '{ln}', "
-                    f"licenseNumber: '{lic}', status: 'active' }},{cap_comment}"
+                    f"licenseNumber: '{lic}', status: 'active'{photo_part} }},{cap_comment}"
                 )
         else:
             players_lines.append(f"  // {team_name} — no player data available")

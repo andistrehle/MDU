@@ -67,6 +67,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
     displayName:   getPlayerDisplayName(player),
     licenseNumber: player.licenseNumber ?? null,
     isCaptain:     pa.isCaptain ?? false,
+    photoUrl:      player.photoUrl,
   }));
 
   // ── Team-specific matches, filtered to current competition ───

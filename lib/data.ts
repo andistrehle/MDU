@@ -77,7 +77,16 @@ export {
 }                                             from './data/matches';
 
 export type { PlayerStatus, Player }          from './data/players';
-export { PLAYERS, findPlayer, getPlayerDisplayName } from './data/players';
+export {
+  PLAYERS,
+  findPlayer,
+  getPlayerByLicenseNumber,
+  getPlayerDisplayName,
+  getPlayerPhoto,
+  getPlayerInitials,
+  getPlayerPhotoByName,
+  getInitialsFromName,
+} from './data/players';
 
 export type {
   SeasonTeamAssignment,
