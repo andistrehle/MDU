@@ -378,13 +378,10 @@ export function StandingsTable({
           {/* Rows */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             {rows.map(r => {
+              const _mExt   = getExtendedTeam(r.team);
               const teamData = r.name
-                ? {
-                    name: r.name,
-                    short: r.name.split(' ').map((x: string) => x[0]).join('').slice(0, 3),
-                    color: getExtendedTeam(r.team).color,
-                  }
-                : getExtendedTeam(r.team);
+                ? { name: r.name, short: r.name.split(' ').map((x: string) => x[0]).join('').slice(0, 3), color: _mExt.color, logoUrl: _mExt.logoUrl }
+                : _mExt;
               const sp     = r.sp ?? r.p ?? 0;
               const wins   = r.s ?? r.w ?? 0;
               const draws  = r.u ?? 0;
