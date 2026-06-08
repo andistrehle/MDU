@@ -205,7 +205,10 @@ body {
     position: static !important;
     z-index: auto !important;
   }
-  /* Full-bleed on mobile for both old div child and new single-card <a> child */
+  /* Full-bleed on mobile; 2-column grid stays as-is */
+  .mdu-quick-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
   .mdu-quickbar-outer > div,
   .mdu-quickbar-outer > a {
     border-radius: 0 !important;
@@ -334,4 +337,6 @@ body {
   .mdu-kpi-strip {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+  /* Quick-access card: hide subtitle on small phones to prevent wrapping */
+  .mdu-quickcard-sub { display: none !important; }
 }

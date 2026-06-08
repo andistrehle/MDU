@@ -88,36 +88,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Access — Spielplan (single card, replaces the old 4-tile grid) */}
+      {/* Quick Access — Spielplan + Tabellen */}
       <div className="mdu-quickbar-outer" style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
-        <Link
-          href="/spielplan"
-          className="mdu-card-hover"
-          style={{
-            display: 'flex', alignItems: 'center', gap: 18, textDecoration: 'none',
-            background: 'linear-gradient(180deg, #121821, #0D1117)',
-            border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '18px 24px',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
-          }}
-        >
-          <div style={{
-            width: 46, height: 46, borderRadius: 10, flexShrink: 0,
-            background: 'rgba(212,0,0,0.12)', border: '1px solid rgba(212,0,0,0.25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6B6B',
-          }}>
-            <Icon name="calendar" size={22} stroke={2} />
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: '#FFFFFF' }}>Spielplan</div>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#C9CCD6', marginTop: 2 }}>Alle kommenden Spiele im Überblick</div>
-          </div>
-          <div style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="mdu-desktop-only" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000' }}>
-              Spielplan ansehen
-            </span>
-            <Icon name="arrow-right" size={16} stroke={2.5} style={{ color: '#D40000' }} />
-          </div>
-        </Link>
+        <div className="mdu-quick-bar" style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          background: 'linear-gradient(180deg, #121821, #0D1117)',
+          border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 8,
+          boxShadow: '0 24px 48px rgba(0,0,0,0.5)', gap: 0,
+        }}>
+          {[
+            { icon: 'calendar', title: 'Spielplan', sub: 'Kommende Spiele',  href: '/spielplan' },
+            { icon: 'bar',      title: 'Tabellen',  sub: 'Aktuelle Tabellen', href: '/tabellen'  },
+          ].map((item, idx) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="mdu-card-hover"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 16, padding: '18px 22px',
+                textDecoration: 'none', borderRadius: 10,
+                borderRight: idx === 0 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              }}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+                background: 'rgba(212,0,0,0.12)', border: '1px solid rgba(212,0,0,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6B6B',
+              }}>
+                <Icon name={item.icon} size={22} stroke={2} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: '#FFFFFF' }}>{item.title}</div>
+                <div className="mdu-quickcard-sub" style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#C9CCD6', marginTop: 2 }}>{item.sub}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Aktuelles + Nächste Spiele */}
