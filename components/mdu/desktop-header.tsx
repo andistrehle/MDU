@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
+import { LEAGUES } from '@/lib/data';
 
 const NAV_ITEMS = [
   { label: 'Startseite', href: '/' },
@@ -16,12 +18,33 @@ const NAV_ITEMS = [
   { label: 'Kontakt',    href: '/kontakt' },
 ];
 
+// Sorted league lists for the dropdown — computed once at module level
+const SORTED = [...LEAGUES].sort((a, b) => a.sortOrder - b.sortOrder);
+const DROPDOWN_PLAYOFFS = SORTED.filter(l => l.type === 'playoff');
+const DROPDOWN_REGULAR  = SORTED.filter(l => l.type !== 'playoff');
+
 interface DesktopHeaderProps {
   activeHref?: string;
 }
 
+// Shared link style for dropdown items
+const dropdownItemStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 10,
+  padding: '8px 16px',
+  fontFamily: 'var(--font-manrope)', fontWeight: 500, fontSize: 13,
+  color: '#C9CCD6', textDecoration: 'none',
+  whiteSpace: 'nowrap',
+};
+
 export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
   const pathname = usePathname();
+
+  // Ligen dropdown — hover-intent timer so cursor can travel from link to panel
+  const [ligaOpen, setLigaOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openLiga  = () => { if (closeTimer.current) clearTimeout(closeTimer.current); setLigaOpen(true); };
+  const closeLiga = () => { closeTimer.current = setTimeout(() => setLigaOpen(false), 120); };
 
   return (
     <header style={{
@@ -42,6 +65,125 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         <nav className="mdu-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 26, flex: 1, justifyContent: 'center' }}>
           {NAV_ITEMS.map(item => {
             const active = activeHref ? item.href === activeHref : pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+
+            // Ligen: wrap in hover-sensitive div that hosts the dropdown
+            if (item.dropdown) {
+              return (
+                <div
+                  key={item.label}
+                  style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 70 }}
+                  onMouseEnter={openLiga}
+                  onMouseLeave={closeLiga}
+                >
+                  <Link
+                    href={item.href}
+                    style={{
+                      fontFamily: 'var(--font-manrope)',
+                      fontWeight: active ? 700 : 500,
+                      fontSize: 14,
+                      color: active || ligaOpen ? '#D40000' : '#C9CCD6',
+                      textDecoration: 'none',
+                      padding: '24px 0',
+                      position: 'relative',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      transition: 'color 120ms',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {item.label}
+                    <Icon
+                      name="chevron-down"
+                      size={13}
+                      stroke={2}
+                      style={{
+                        transform: ligaOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 150ms ease',
+                      }}
+                    />
+                    {active && (
+                      <span style={{
+                        position: 'absolute', left: 0, right: 0, bottom: 0,
+                        height: 2, background: '#D40000', borderRadius: 1,
+                      }} />
+                    )}
+                  </Link>
+
+                  {/* Dropdown panel */}
+                  {ligaOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 200,
+                        paddingTop: 6, // invisible bridge so cursor can reach the panel
+                      }}
+                      onMouseEnter={openLiga}
+                      onMouseLeave={closeLiga}
+                    >
+                      <div style={{
+                        background: '#0D1117',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 10,
+                        padding: '8px 0',
+                        minWidth: 250,
+                        boxShadow: '0 20px 56px rgba(0,0,0,0.7)',
+                      }}>
+                        {/* Group: Playoffs */}
+                        <div style={{
+                          fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
+                          letterSpacing: '0.16em', color: '#5A5F6C', textTransform: 'uppercase',
+                          padding: '4px 16px 6px',
+                        }}>
+                          Playoffs
+                        </div>
+                        {DROPDOWN_PLAYOFFS.map(league => (
+                          <Link
+                            key={league.id}
+                            href={`/ligen/${league.id}`}
+                            style={dropdownItemStyle}
+                            className="mdu-nav-dropdown-item"
+                            onClick={() => setLigaOpen(false)}
+                          >
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: league.color, flexShrink: 0 }} />
+                            {league.name}
+                          </Link>
+                        ))}
+
+                        {/* Divider */}
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '6px 0' }} />
+
+                        {/* Group: Ligen */}
+                        <div style={{
+                          fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
+                          letterSpacing: '0.16em', color: '#5A5F6C', textTransform: 'uppercase',
+                          padding: '4px 16px 6px',
+                        }}>
+                          Ligen
+                        </div>
+                        {DROPDOWN_REGULAR.map(league => (
+                          <Link
+                            key={league.id}
+                            href={`/ligen/${league.id}`}
+                            style={dropdownItemStyle}
+                            className="mdu-nav-dropdown-item"
+                            onClick={() => setLigaOpen(false)}
+                          >
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: league.color, flexShrink: 0 }} />
+                            {league.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // All other nav items — unchanged
             return (
               <Link
                 key={item.label}
@@ -63,7 +205,6 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                 className={active ? 'mdu-nav-active' : ''}
               >
                 {item.label}
-                {item.dropdown && <Icon name="chevron-down" size={13} stroke={2} />}
                 {active && (
                   <span style={{
                     position: 'absolute', left: 0, right: 0, bottom: 0,
@@ -75,7 +216,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           })}
         </nav>
 
-        {/* Desktop Login button — hidden on mobile via .mdu-header-login */}
+        {/* Desktop Login button */}
         <Link
           href="/login"
           className="mdu-header-login"
@@ -91,7 +232,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           Login
         </Link>
 
-        {/* Mobile Login button — replaces the old hamburger; hidden on desktop, shown on mobile via .mdu-mobile-login */}
+        {/* Mobile Login button */}
         <Link
           href="/login"
           className="mdu-mobile-login"

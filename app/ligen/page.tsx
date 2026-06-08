@@ -11,7 +11,7 @@ function LeagueCard({ league }: { league: typeof LEAGUES[number] }) {
     <Link
       key={league.code}
       href={`/ligen/${league.code.toLowerCase()}`}
-      className="mdu-card-hover"
+      className="mdu-card-hover mdu-league-card"
       style={{
         display: 'block', textDecoration: 'none', padding: '22px 24px', borderRadius: 14,
         background: 'linear-gradient(180deg, #14161E 0%, #11141B 100%)',
@@ -21,12 +21,12 @@ function LeagueCard({ league }: { league: typeof LEAGUES[number] }) {
       }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: league.color, borderRadius: '14px 0 0 14px' }} />
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+      <div className="mdu-league-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: league.color, textTransform: 'uppercase' }}>{league.tier}</span>
         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#5A5F6C' }}>{league.season}</span>
       </div>
-      <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, color: '#F5F6FA', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{league.name}</div>
-      <div style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#9AA4B2' }}>
+      <div className="mdu-league-card-title" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, color: '#F5F6FA', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{league.name}</div>
+      <div className="mdu-league-card-desc" style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#9AA4B2' }}>
         {league.teams > 0 ? `${league.teams} Teams` : 'Teilnehmer folgen'}
       </div>
     </Link>

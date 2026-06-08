@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss"; /* mdu */
 
 @theme inline {
   --font-saira:     var(--font-saira-condensed);
@@ -77,6 +77,12 @@ body {
 }
 
 .mdu-row-hover:hover { background: rgba(255,255,255,0.025); }
+
+/* ── Ligen nav dropdown item hover ─────────────────────────── */
+.mdu-nav-dropdown-item:hover {
+  color: #D40000 !important;
+  background: rgba(212,0,0,0.07) !important;
+}
 
 .section-heading {
   font-family: var(--font-saira-condensed), system-ui, sans-serif;
@@ -301,6 +307,21 @@ body {
   /* --- Result inner cards in league/team detail tabs --- */
   .mdu-ergebnis-inner {
     padding: 8px 10px !important;
+  }
+
+  /* --- League overview cards (Ligen Übersicht page) — compact on mobile --- */
+  .mdu-league-card {
+    padding: 14px 16px !important;
+  }
+  .mdu-league-card-header {
+    margin-bottom: 6px !important;
+  }
+  .mdu-league-card-title {
+    font-size: 24px !important;
+  }
+  .mdu-league-card-desc {
+    margin-top: 6px !important;
+    font-size: 12px !important;
   }
 
   /* --- Tabs: width-constrained horizontal scroll --- */
