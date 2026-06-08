@@ -129,7 +129,7 @@ export default function ErgebnissePage() {
                                   </span>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
                                     <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{home.name}</span>
-                                    <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={28} />
+                                    <TeamBadge initials={home.short.slice(0, 3)} color={home.color} logoUrl={home.logoUrl} size={28} />
                                   </div>
                                   <div style={{
                                     textAlign: 'center',
@@ -139,7 +139,7 @@ export default function ErgebnissePage() {
                                     {m.result ? `${m.result.home}:${m.result.away}` : '—'}
                                   </div>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={28} />
+                                    <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={28} />
                                     <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{away.name}</span>
                                   </div>
                                 </div>
@@ -183,7 +183,7 @@ export default function ErgebnissePage() {
                                   {/* Home · Score · Away */}
                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 48px 1fr', alignItems: 'center', gap: 6 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                                      <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={22} />
+                                      <TeamBadge initials={home.short.slice(0, 3)} color={home.color} logoUrl={home.logoUrl} size={22} />
                                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{home.name}</span>
                                     </div>
                                     <div style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 17, color: '#F5F6FA', background: 'rgba(255,255,255,0.04)', borderRadius: 5, padding: '3px 0' }}>
@@ -191,7 +191,7 @@ export default function ErgebnissePage() {
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
                                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, textAlign: 'right' }}>{away.name}</span>
-                                      <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={22} />
+                                      <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={22} />
                                     </div>
                                   </div>
                                 </div>

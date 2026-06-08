@@ -234,7 +234,7 @@ function NextMatchCard({ match, teamId, teamColor }: { match: Match; teamId: str
           {isHome ? 'Heim' : 'Auswärts'}
         </span>
         <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>vs</span>
-        <TeamBadge initials={opponent.short.slice(0, 3)} color={opponent.color} size={26} />
+        <TeamBadge initials={opponent.short.slice(0, 3)} color={opponent.color} logoUrl={opponent.logoUrl} size={26} />
         <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {oppName}
         </span>
@@ -491,7 +491,7 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
                 {isHome ? 'Heim' : 'Auswärts'}
               </span>
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B' }}>vs</span>
-              <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} size={28} />
+              <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={28} />
               <span style={{
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -573,7 +573,7 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
                 }}>
                   {isHome ? 'H' : 'A'}
                 </span>
-                <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} size={24} />
+                <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={24} />
                 <span style={{
                   fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -791,7 +791,7 @@ function StatistikTab({
                       {p.name}
                     </span>
                     <div title={p.teamName} style={{ flexShrink: 0 }}>
-                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
+                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                     </div>
                   </div>
                   {/* Row 2: stats meta line */}

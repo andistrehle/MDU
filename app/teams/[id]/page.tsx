@@ -126,13 +126,19 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>
             <div className="mdu-team-logo" style={{
               width: 144, height: 144, borderRadius: '24%', flexShrink: 0,
-              background: `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
+              background: team.logoUrl ? '#F5F6FA' : `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
               border: '2px solid #E8B84A',
               boxShadow: `0 24px 60px ${team.color}50, inset 0 2px 0 rgba(255,255,255,0.2)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden',
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, color: '#F5F6FA',
             }}>
-              {team.short}
+              {team.logoUrl ? (
+                <Image src={team.logoUrl} alt={team.name} width={140} height={140}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                team.short
+              )}
             </div>
 
             <div style={{ flex: 1 }}>

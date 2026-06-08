@@ -155,7 +155,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                     }}>
                       {r.pos}.
                     </span>
-                    <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={28} />
+                    <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={28} />
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
@@ -207,7 +207,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} size={22} />
+                      <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={22} />
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {homeTeam.name}
                       </span>
@@ -215,7 +215,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
                         {awayTeam.name}
                       </span>
-                      <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} size={22} />
+                      <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={22} />
                     </div>
                   </div>
                 );
@@ -337,11 +337,11 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {homeTeam.name}
                       </span>
-                      <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} size={28} />
+                      <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={28} />
                     </div>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B', textAlign: 'center' }}>vs</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                      <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} size={28} />
+                      <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={28} />
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {awayTeam.name}
                       </span>
@@ -460,7 +460,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                             }}>
                               {home.name}
                             </span>
-                            <TeamBadge initials={home.short.slice(0, 3)} color={home.color} size={26} />
+                            <TeamBadge initials={home.short.slice(0, 3)} color={home.color} logoUrl={home.logoUrl} size={26} />
                           </div>
                           <div style={{
                             textAlign: 'center',
@@ -471,7 +471,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                             {m.result ? `${m.result.home}:${m.result.away}` : '—'}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                            <TeamBadge initials={away.short.slice(0, 3)} color={away.color} size={26} />
+                            <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={26} />
                             <span style={{
                               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
                               color: awayWon ? '#F5F6FA' : '#9AA4B2',
@@ -532,7 +532,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                       {r.pos}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
+                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                       <span style={{
                         fontWeight: 700, color: '#F5F6FA', fontSize: 13,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -657,7 +657,7 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={20} />
+                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={20} />
                   <span style={{
                     color: '#9AA4B2', fontSize: 12,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -732,7 +732,7 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                       {p.name}
                     </span>
                     <div title={p.teamName} style={{ flexShrink: 0 }}>
-                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={22} />
+                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                     </div>
                   </div>
                   {/* Row 2: stats meta line */}
@@ -797,7 +797,7 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
                   background: td.color, borderRadius: '12px 0 0 12px',
                 }} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, paddingLeft: 6 }}>
-                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} size={32} />
+                  <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={32} />
                   <div>
                     <div style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,

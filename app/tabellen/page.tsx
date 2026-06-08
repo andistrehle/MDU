@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
-import { LEAGUES } from '@/lib/data';
-import { STANDINGS_BY_LEAGUE } from '@/lib/data';
+import { LEAGUES, STANDINGS_BY_LEAGUE, getExtendedTeam } from '@/lib/data';
+import { TeamBadge } from '@/components/mdu/team-badge';
 
 // ── Types ─────────────────────────────────────────────────────
 type Filter = 'alle' | 'playoffs' | 'ligen';
@@ -157,13 +157,20 @@ export default function TabellenPage() {
                     <Link
                       href={`/teams/${row.team}`}
                       style={{
-                        fontFamily: 'var(--font-manrope)', fontWeight: row.pos === 1 ? 700 : 500,
-                        fontSize: 13, color: '#F5F6FA', textDecoration: 'none',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        minWidth: 0,
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        textDecoration: 'none', minWidth: 0, overflow: 'hidden',
                       }}
                     >
-                      {row.name}
+                      {(() => { const t = getExtendedTeam(row.team); return (
+                        <TeamBadge initials={t.short.slice(0, 3)} color={t.color} logoUrl={t.logoUrl} size={20} ring="transparent" />
+                      ); })()}
+                      <span style={{
+                        fontFamily: 'var(--font-manrope)', fontWeight: row.pos === 1 ? 700 : 500,
+                        fontSize: 13, color: '#F5F6FA',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {row.name}
+                      </span>
                     </Link>
                     <span style={{
                       fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12,

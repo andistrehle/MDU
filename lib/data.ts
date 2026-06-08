@@ -607,8 +607,8 @@ export function getCurrentCompetitionForTeam(
  * Used by StandingsTable, MatchCard, ErgebnissePage.
  * Falls back to a generated placeholder if the id is not found.
  */
-export function getExtendedTeam(id: string): { name: string; short: string; color: string } {
+export function getExtendedTeam(id: string): { name: string; short: string; color: string; logoUrl?: string } {
   const team = _TEAMS.find(t => t.id === id);
-  if (team) return { name: team.name, short: team.short, color: team.color };
+  if (team) return { name: team.name, short: team.short, color: team.color, logoUrl: team.logoUrl };
   return { name: id, short: id.toUpperCase().slice(0, 3), color: '#9AA4B2' };
 }

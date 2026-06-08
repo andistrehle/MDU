@@ -80,7 +80,7 @@ export default function TeamsPage() {
                       >
                         {/* Team header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                          <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={40} />
+                          <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={40} logoUrl={team.logoUrl} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
                               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,

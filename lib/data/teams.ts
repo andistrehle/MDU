@@ -34,6 +34,12 @@ export interface Team {
    * Inactive teams still appear in historical standings.
    */
   status: TeamStatus;
+  /**
+   * Path to the team logo image in /public, e.g. '/team-logos/freibad-bazis.png'.
+   * Source: dartunion.de/images/teams/ (downloaded May 2026).
+   * If absent the UI falls back to the initials badge.
+   */
+  logoUrl?: string;
 }
 
 // ── Real MDU teams · Saison 2026 · dartunion.de ─────────────
@@ -44,51 +50,51 @@ export interface Team {
 
 export const TEAMS: Team[] = [
   // La Liga — 6 teams
-  { id: 'spartans',           name: 'Spartans',             short: 'SPA', color: '#D40000', status: 'active' },
-  { id: 'ohne-jackie',        name: 'Ohne Jackie',          short: 'OJA', color: '#E8B84A', status: 'active' },
-  { id: 'jolly-pirates-kts',  name: "Jolly Pirates KT's",   short: 'JPK', color: '#0EA5E9', status: 'active' },
-  { id: 'dc-null-bull',       name: 'DC Null Bull',         short: 'DNB', color: '#8B5CF6', status: 'active' },
-  { id: 'no-maam',            name: "No Ma'am",             short: 'NMA', color: '#22C55E', status: 'active' },
-  { id: 'les-dartagnons',     name: 'Les Dartagnons',       short: 'LDA', color: '#6B7280', status: 'active' },
+  { id: 'spartans',           name: 'Spartans',             short: 'SPA', color: '#D40000', status: 'active',   logoUrl: '/team-logos/spartans.png' },
+  { id: 'ohne-jackie',        name: 'Ohne Jackie',          short: 'OJA', color: '#E8B84A', status: 'active',   logoUrl: '/team-logos/ohne-jackie.png' },
+  { id: 'jolly-pirates-kts',  name: "Jolly Pirates KT's",   short: 'JPK', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/jolly-pirates-kts.png' },
+  { id: 'dc-null-bull',       name: 'DC Null Bull',         short: 'DNB', color: '#8B5CF6', status: 'active',   logoUrl: '/team-logos/dc-null-bull.png' },
+  { id: 'no-maam',            name: "No Ma'am",             short: 'NMA', color: '#22C55E', status: 'active',   logoUrl: '/team-logos/no-maam.png' },
+  { id: 'les-dartagnons',     name: 'Les Dartagnons',       short: 'LDA', color: '#6B7280', status: 'active',   logoUrl: '/team-logos/les-dartagnons.png' },
 
   // A1 Liga — 6 teams (treff-nix-freimann transferred to A2)
-  { id: 'alptraum',           name: 'Alptraum',             short: 'ALT', color: '#D40000', status: 'active' },
-  { id: 'dc-animals-ii',      name: 'DC Animals II',        short: 'DCA', color: '#3B82F6', status: 'active' },
-  { id: 'gambas',             name: 'Gambas',               short: 'GMB', color: '#F59E0B', status: 'active' },
-  { id: 'spartans-vi',        name: 'Spartans VI',          short: 'SP6', color: '#0EA5E9', status: 'active' },
-  { id: 'sound-warriors',     name: "Sound Warrior's",      short: 'SOW', color: '#8B5CF6', status: 'active' },
-  { id: 'game-over',          name: 'Game Over',            short: 'GMO', color: '#EF4444', status: 'active' },
+  { id: 'alptraum',           name: 'Alptraum',             short: 'ALT', color: '#D40000', status: 'active',   logoUrl: '/team-logos/alptraum.png' },
+  { id: 'dc-animals-ii',      name: 'DC Animals II',        short: 'DCA', color: '#3B82F6', status: 'active',   logoUrl: '/team-logos/dc-animals-ii.png' },
+  { id: 'gambas',             name: 'Gambas',               short: 'GMB', color: '#F59E0B', status: 'active',   logoUrl: '/team-logos/gambas.png' },
+  { id: 'spartans-vi',        name: 'Spartans VI',          short: 'SP6', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/spartans-vi.png' },
+  { id: 'sound-warriors',     name: "Sound Warrior's",      short: 'SOW', color: '#8B5CF6', status: 'active',   logoUrl: '/team-logos/sound-warriors.png' },
+  { id: 'game-over',          name: 'Game Over',            short: 'GMO', color: '#EF4444', status: 'active',   logoUrl: '/team-logos/game-over.png' },
 
   // A2 Liga — 5 teams (incl. treff-nix-freimann, de-wolperdinga inactive)
-  { id: 'treff-nix-freimann', name: 'Treff Nix Freimann',  short: 'TNF', color: '#6B7280', status: 'active' },
-  { id: 'silberpfeile-ii',    name: 'Silberpfeile II',      short: 'SIL', color: '#C9CCD6', status: 'active' },
-  { id: 'jolly-pirates-v',    name: 'Jolly Pirates V',      short: 'JPV', color: '#0EA5E9', status: 'active' },
-  { id: 'de-wolperdinga',     name: 'De Wolperdinga',       short: 'DWP', color: '#A78BFA', status: 'inactive' },
-  { id: 'oldies-co',          name: 'Oldies & Co',          short: 'OLD', color: '#F59E0B', status: 'active' },
+  { id: 'treff-nix-freimann', name: 'Treff Nix Freimann',  short: 'TNF', color: '#6B7280', status: 'active',   logoUrl: '/team-logos/treff-nix-freimann.png' },
+  { id: 'silberpfeile-ii',    name: 'Silberpfeile II',      short: 'SIL', color: '#C9CCD6', status: 'active',   logoUrl: '/team-logos/silberpfeile-ii.png' },
+  { id: 'jolly-pirates-v',    name: 'Jolly Pirates V',      short: 'JPV', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/jolly-pirates-v.png' },
+  { id: 'de-wolperdinga',     name: 'De Wolperdinga',       short: 'DWP', color: '#A78BFA', status: 'inactive' /* no logo on dartunion.de */ },
+  { id: 'oldies-co',          name: 'Oldies & Co',          short: 'OLD', color: '#F59E0B', status: 'active',   logoUrl: '/team-logos/oldies-co.png' },
 
   // B1 Liga — 6 teams
-  { id: 'flying-fighters',    name: 'Flying Fighters',      short: 'FLF', color: '#EF4444', status: 'active' },
-  { id: 'master-of-desaster', name: 'Master of Desaster',   short: 'MOD', color: '#8B5CF6', status: 'active' },
-  { id: 'flying-seven',       name: 'Flying Seven',         short: 'FL7', color: '#0EA5E9', status: 'active' },
-  { id: 'lucky-darts-one',    name: 'Lucky Darts One',      short: 'LD1', color: '#E8B84A', status: 'active' },
-  { id: 'de-hutzeldarter',    name: 'De Hutzeldarter',      short: 'DHD', color: '#22C55E', status: 'active' },
-  { id: 'massl-ghabt',        name: 'Massl Ghabt',          short: 'MSG', color: '#6B7280', status: 'active' },
+  { id: 'flying-fighters',    name: 'Flying Fighters',      short: 'FLF', color: '#EF4444', status: 'active',   logoUrl: '/team-logos/flying-fighters.png' },
+  { id: 'master-of-desaster', name: 'Master of Desaster',   short: 'MOD', color: '#8B5CF6', status: 'active',   logoUrl: '/team-logos/master-of-desaster.png' },
+  { id: 'flying-seven',       name: 'Flying Seven',         short: 'FL7', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/flying-seven.png' },
+  { id: 'lucky-darts-one',    name: 'Lucky Darts One',      short: 'LD1', color: '#E8B84A', status: 'active',   logoUrl: '/team-logos/lucky-darts-one.png' },
+  { id: 'de-hutzeldarter',    name: 'De Hutzeldarter',      short: 'DHD', color: '#22C55E', status: 'active',   logoUrl: '/team-logos/de-hutzeldarter.png' },
+  { id: 'massl-ghabt',        name: 'Massl Ghabt',          short: 'MSG', color: '#6B7280', status: 'active',   logoUrl: '/team-logos/massl-ghabt.png' },
 
   // B2 Liga — 6 teams
-  { id: 'belfort-evolution',  name: 'Belfort Evolution',    short: 'BEV', color: '#E8B84A', status: 'active' },
-  { id: 'fiaker-deife',       name: 'Fiaker Deife',         short: 'FDF', color: '#0EA5E9', status: 'active' },
-  { id: 'freibad-bazis',      name: 'Freibad Bazis',        short: 'FBB', color: '#D40000', status: 'active' },
-  { id: 'team-desaster',      name: 'Team Desaster',        short: 'TDS', color: '#F59E0B', status: 'active' },
-  { id: 'dc-dark-angels',     name: 'DC Dark Angels',       short: 'DDA', color: '#8B5CF6', status: 'active' },
-  { id: 'de-vogelwuidn',      name: "De Vogelwuid'n",       short: 'DVN', color: '#22C55E', status: 'active' },
+  { id: 'belfort-evolution',  name: 'Belfort Evolution',    short: 'BEV', color: '#E8B84A', status: 'active',   logoUrl: '/team-logos/belfort-evolution.png' },
+  { id: 'fiaker-deife',       name: 'Fiaker Deife',         short: 'FDF', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/fiaker-deife.png' },
+  { id: 'freibad-bazis',      name: 'Freibad Bazis',        short: 'FBB', color: '#D40000', status: 'active',   logoUrl: '/team-logos/freibad-bazis.png' },
+  { id: 'team-desaster',      name: 'Team Desaster',        short: 'TDS', color: '#F59E0B', status: 'active',   logoUrl: '/team-logos/team-desaster.png' },
+  { id: 'dc-dark-angels',     name: 'DC Dark Angels',       short: 'DDA', color: '#8B5CF6', status: 'active',   logoUrl: '/team-logos/dc-dark-angels.png' },
+  { id: 'de-vogelwuidn',      name: "De Vogelwuid'n",       short: 'DVN', color: '#22C55E', status: 'active',   logoUrl: '/team-logos/de-vogelwuidn.png' },
 
   // C Liga — 6 teams
-  { id: 'wild-indians',       name: 'Wild Indians',         short: 'WID', color: '#E8B84A', status: 'active' },
-  { id: 'muenchen-0815',      name: 'München 08/15',        short: 'M08', color: '#D40000', status: 'active' },
-  { id: 'lucky-darts-two',    name: 'Lucky Darts Two',      short: 'LD2', color: '#22C55E', status: 'active' },
-  { id: 'funny-darters',      name: 'Funny Darters Munich', short: 'FDM', color: '#F59E0B', status: 'active' },
-  { id: 'black-devils',       name: 'Black Devils',         short: 'BLK', color: '#8B5CF6', status: 'active' },
-  { id: 'fuenf-sterne-boazn', name: '5 Sterne Boazn Team',  short: 'FSB', color: '#0EA5E9', status: 'active' },
+  { id: 'wild-indians',       name: 'Wild Indians',         short: 'WID', color: '#E8B84A', status: 'active',   logoUrl: '/team-logos/wild-indians.png' },
+  { id: 'muenchen-0815',      name: 'München 08/15',        short: 'M08', color: '#D40000', status: 'active',   logoUrl: '/team-logos/muenchen-0815.png' },
+  { id: 'lucky-darts-two',    name: 'Lucky Darts Two',      short: 'LD2', color: '#22C55E', status: 'active',   logoUrl: '/team-logos/lucky-darts-two.png' },
+  { id: 'funny-darters',      name: 'Funny Darters Munich', short: 'FDM', color: '#F59E0B', status: 'active',   logoUrl: '/team-logos/funny-darters.png' },
+  { id: 'black-devils',       name: 'Black Devils',         short: 'BLK', color: '#8B5CF6', status: 'active',   logoUrl: '/team-logos/black-devils.png' },
+  { id: 'fuenf-sterne-boazn', name: '5 Sterne Boazn Team',  short: 'FSB', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/fuenf-sterne-boazn.png' },
 ];
 
 /** Returns a team by id, or undefined if not found. */

@@ -148,7 +148,7 @@ export default function SpielstaettenPage() {
                                   opacity: isInactive ? 0.5 : 1,
                                 }}
                               >
-                                <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={28} />
+                                <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={28} logoUrl={team.logoUrl} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{
                                     fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,

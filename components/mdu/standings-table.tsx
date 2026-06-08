@@ -136,13 +136,10 @@ export function StandingsTable({
           </div>
 
           {rows.map(r => {
+            const _ext    = getExtendedTeam(r.team);
             const teamData = r.name
-              ? {
-                  name: r.name,
-                  short: r.name.split(' ').map((x: string) => x[0]).join('').slice(0, 3),
-                  color: getExtendedTeam(r.team).color,
-                }
-              : getExtendedTeam(r.team);
+              ? { name: r.name, short: r.name.split(' ').map((x: string) => x[0]).join('').slice(0, 3), color: _ext.color, logoUrl: _ext.logoUrl }
+              : _ext;
             const sp    = r.sp ?? r.p ?? 0;
             const wins  = r.s ?? r.w ?? 0;
             const losses = r.n ?? r.l ?? 0;
@@ -204,6 +201,7 @@ export function StandingsTable({
                   <TeamBadge
                     initials={teamData.short.slice(0, 3)}
                     color={teamData.color}
+                    logoUrl={teamData.logoUrl}
                     size={26}
                   />
                   <span
@@ -435,6 +433,7 @@ export function StandingsTable({
                         initials={teamData.short.slice(0, 3)}
                         color={teamData.color}
                         size={22}
+                        logoUrl={teamData.logoUrl}
                       />
                     </div>
 
