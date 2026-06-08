@@ -197,7 +197,7 @@ body {
     height: 100% !important;
   }
 
-  /* --- Quick access bar: remove negative-margin overlap, 2×2 grid --- */
+  /* --- Quick access bar: remove negative-margin overlap --- */
   .mdu-quickbar-outer {
     margin-top: 0 !important;
     padding-left: 0 !important;
@@ -205,14 +205,13 @@ body {
     position: static !important;
     z-index: auto !important;
   }
-  .mdu-quickbar-outer > div {
+  /* Full-bleed on mobile for both old div child and new single-card <a> child */
+  .mdu-quickbar-outer > div,
+  .mdu-quickbar-outer > a {
     border-radius: 0 !important;
     border-left: none !important;
     border-right: none !important;
     box-shadow: none !important;
-  }
-  .mdu-quick-bar {
-    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   /* --- Two-column layouts → single column --- */

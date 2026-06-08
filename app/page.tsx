@@ -88,44 +88,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Access Bar */}
+      {/* Quick Access — Spielplan (single card, replaces the old 4-tile grid) */}
       <div className="mdu-quickbar-outer" style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
-        <div className="mdu-quick-bar" style={{
-          background: 'linear-gradient(180deg, #121821, #0D1117)',
-          border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 8,
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-          boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
-        }}>
-          {[
-            { icon: 'trophy',   title: 'Ligen',      d1: 'C2 bis La Liga',          d2: 'Alle Ligen im Überblick', href: '/ligen' },
-            { icon: 'calendar', title: 'Spielplan',  d1: 'Alle kommenden Spiele',   d2: 'auf einen Blick',         href: '/spielplan' },
-            { icon: 'bar',      title: 'Tabellen',   d1: 'Aktuelle Tabellenstände', d2: 'aller Ligen',             href: '/ligen' },
-            { icon: 'flag',     title: 'Ergebnisse', d1: 'Alle Ergebnisse',         d2: 'der letzten Spieltage',   href: '/ergebnisse' },
-          ].map((item, idx) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="mdu-card-hover"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 16, padding: '20px 22px', textDecoration: 'none',
-                borderRight: idx < 3 ? '1px solid rgba(255,255,255,0.04)' : 'none', borderRadius: 10,
-              }}
-            >
-              <div style={{
-                width: 46, height: 46, borderRadius: 10, flexShrink: 0,
-                background: 'rgba(212,0,0,0.12)', border: '1px solid rgba(212,0,0,0.25)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6B6B',
-              }}>
-                <Icon name={item.icon} size={22} stroke={2} />
-              </div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: '#FFFFFF' }}>{item.title}</div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#C9CCD6', marginTop: 2 }}>{item.d1}</div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B' }}>{item.d2}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <Link
+          href="/spielplan"
+          className="mdu-card-hover"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 18, textDecoration: 'none',
+            background: 'linear-gradient(180deg, #121821, #0D1117)',
+            border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '18px 24px',
+            boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
+          }}
+        >
+          <div style={{
+            width: 46, height: 46, borderRadius: 10, flexShrink: 0,
+            background: 'rgba(212,0,0,0.12)', border: '1px solid rgba(212,0,0,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6B6B',
+          }}>
+            <Icon name="calendar" size={22} stroke={2} />
+          </div>
+          <div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: '#FFFFFF' }}>Spielplan</div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#C9CCD6', marginTop: 2 }}>Alle kommenden Spiele im Überblick</div>
+          </div>
+          <div style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="mdu-desktop-only" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000' }}>
+              Spielplan ansehen
+            </span>
+            <Icon name="arrow-right" size={16} stroke={2.5} style={{ color: '#D40000' }} />
+          </div>
+        </Link>
       </div>
 
       {/* Aktuelles + Nächste Spiele */}
