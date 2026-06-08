@@ -423,22 +423,36 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
   );
 }
 
-function Avatar({ initials, color, photoUrl }: { initials: string; color: string; photoUrl?: string }) {
+function Avatar({
+  initials, color, photoUrl, size = 30,
+}: {
+  initials: string; color: string; photoUrl?: string; size?: number;
+}) {
   const [imgError, setImgError] = useState(false);
   const showPhoto = photoUrl && !imgError;
   return (
     <div style={{
-      width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-      background: showPhoto ? 'transparent' : `${color}22`,
-      border: `1px solid ${showPhoto ? color + '66' : color + '44'}`,
+      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      background: showPhoto ? '#1a2030' : `${color}22`,
+      border: `1px solid ${showPhoto ? color + '55' : color + '44'}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden',
-      fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color,
+      fontFamily: 'var(--font-saira-condensed)', fontWeight: 900,
+      fontSize: Math.max(9, Math.round(size * 0.37)), color,
     }}>
       {showPhoto ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt={initials} onError={() => setImgError(true)}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img
+          src={photoUrl}
+          alt={initials}
+          onError={() => setImgError(true)}
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'contain',
+            objectPosition: 'center top',
+            display: 'block',
+          }}
+        />
       ) : (
         initials.toUpperCase()
       )}
@@ -718,6 +732,7 @@ function StatistikTab({
                     initials={getInitialsFromName(p.name)}
                     color={teamColor}
                     photoUrl={getPlayerPhotoByName(p.name)}
+                    size={36}
                   />
                   <span style={{
                     fontWeight: isOwnTeam ? 800 : 700,
@@ -802,6 +817,7 @@ function StatistikTab({
                       initials={getInitialsFromName(p.name)}
                       color={teamColor}
                       photoUrl={getPlayerPhotoByName(p.name)}
+                      size={28}
                     />
                     <span style={{
                       fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
@@ -815,9 +831,9 @@ function StatistikTab({
                       <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                     </div>
                   </div>
-                  {/* Row 2: stats meta line — indent aligns with name (rank 22 + gap 8 + avatar 30 + gap 8) */}
+                  {/* Row 2: stats meta line — indent: rank(22) + gap(8) + avatar(28) + gap(8) = 66 */}
                   <div style={{
-                    paddingLeft: 68,
+                    paddingLeft: 66,
                     fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B',
                     letterSpacing: '0.02em',
                   }}>
