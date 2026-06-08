@@ -133,26 +133,67 @@ function ÜbersichtTab({
         }}>
           <SectionLabel color={teamColor}>Saison {seasonName}</SectionLabel>
           {standing ? (
-            [
-              { l: 'Gespielt',      v: String(standing.sp), frac: Math.min(standing.sp / 20, 1),                                             c: teamColor },
-              { l: 'Siege',         v: String(standing.s),  frac: Math.min(standing.s / Math.max(standing.sp, 1), 1),                        c: '#22C55E' },
-              { l: 'Unentschieden', v: String(standing.u),  frac: Math.min(standing.u / Math.max(standing.sp, 1), 1),                        c: '#E8B84A' },
-              { l: 'Niederlagen',   v: String(standing.n),  frac: Math.min(standing.n / Math.max(standing.sp, 1), 1),                        c: '#EF4444' },
-              { l: 'Punkte',        v: `${standing.pts} Pkt.`, frac: Math.min(standing.pts / (standing.sp * 3 || 1), 1),                     c: '#3B82F6' },
-              { l: 'Legs-Bilanz',   v: standing.legs,       frac: 0.5,                                                                       c: '#9AA4B2', mono: true },
-            ].map(s => (
-              <div key={s.l} style={{ marginBottom: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#C9CCD6' }}>
-                  <span>{s.l}</span>
-                  <span style={{ fontFamily: s.mono ? 'var(--font-jetbrains-mono)' : 'var(--font-manrope)', fontWeight: 700, color: '#F5F6FA', fontSize: s.mono ? 11 : 13 }}>{s.v}</span>
-                </div>
-                {!s.mono && (
-                  <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-                    <div style={{ width: `${s.frac * 100}%`, height: '100%', background: s.c, borderRadius: 3 }} />
+            <>
+              {/* ── KPI summary chips ─────────────────────── */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                {([
+                  { label: 'Platz',    value: `#${standing.pos}`, accent: teamColor },
+                  { label: 'Punkte',   value: String(standing.pts), accent: '#F5F6FA' },
+                  { label: 'Gespielt', value: String(standing.sp),  accent: '#F5F6FA' },
+                ] as { label: string; value: string; accent: string }[]).map(chip => (
+                  <div key={chip.label} style={{
+                    flex: 1, minWidth: 56, textAlign: 'center',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 8, padding: '8px 6px',
+                  }}>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6A6E7B', marginBottom: 4 }}>
+                      {chip.label}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: chip.accent, lineHeight: 1 }}>
+                      {chip.value}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
-            ))
+
+              {/* ── Win/draw/loss distribution bar (shared scale = sp) ── */}
+              {standing.sp > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', gap: 2 }}>
+                    <div style={{ flex: standing.s || 0.001, background: '#22C55E' }} />
+                    {standing.u > 0 && <div style={{ flex: standing.u, background: '#E8B84A' }} />}
+                    <div style={{ flex: standing.n || 0.001, background: '#EF4444' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 6, fontFamily: 'var(--font-manrope)', fontSize: 10, flexWrap: 'wrap' }}>
+                    <span style={{ color: '#22C55E' }}>● {standing.s}  S</span>
+                    {standing.u > 0 && <span style={{ color: '#E8B84A' }}>● {standing.u}  U</span>}
+                    <span style={{ color: '#EF4444' }}>● {standing.n}  N</span>
+                    <span style={{ color: '#6A6E7B', marginLeft: 'auto' }}>von {standing.sp} Spielen</span>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Stats rows — label + number, no bars ────── */}
+              {([
+                { l: 'Punkte',        v: `${standing.pts} Pkt.`, c: '#F5F6FA' },
+                { l: 'Legs-Bilanz',   v: standing.legs,          c: '#9AA4B2', mono: true },
+                ...(standing.spiele ? [{ l: 'Spiele-Bilanz', v: standing.spiele, c: '#9AA4B2', mono: true }] : []),
+                { l: 'Diff.',         v: standing.diff,          c: standing.diff.startsWith('+') ? '#22C55E' : standing.diff === '0' ? '#9AA4B2' : '#EF4444', mono: true },
+              ] as { l: string; v: string; c: string; mono?: boolean }[]).map(row => (
+                <div key={row.l} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '7px 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                }}>
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>{row.l}</span>
+                  <span style={{
+                    fontFamily: row.mono ? 'var(--font-jetbrains-mono)' : 'var(--font-manrope)',
+                    fontWeight: 700, fontSize: row.mono ? 11 : 13, color: row.c,
+                  }}>{row.v}</span>
+                </div>
+              ))}
+            </>
           ) : (
             <EmptyNote>Keine Saison-Daten verfügbar.</EmptyNote>
           )}
