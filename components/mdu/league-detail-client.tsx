@@ -27,6 +27,8 @@ interface Props {
   stats:       PlayerStatEntry[];
   /** All matches for this league (scheduled + completed) from lib/data/matches.ts */
   matches:     GameMatch[];
+  /** Optional initial tab index (0=Übersicht, 1=Tabelle, …). Defaults to 0. */
+  initialTab?: number;
 }
 
 const TABS = ['Übersicht', 'Tabelle', 'Spielplan', 'Ergebnisse', 'Statistiken', 'Teams'];
@@ -830,8 +832,8 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
 
 // ── Main Client Component ─────────────────────────────────────
 
-export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches }: Props) {
-  const [activeTab, setActiveTab] = useState(0); // Default: Übersicht
+export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, initialTab = 0 }: Props) {
+  const [activeTab, setActiveTab] = useState(initialTab); // initialTab from ?tab= query param, else 0 (Übersicht)
 
   return (
     <>

@@ -190,7 +190,7 @@ export default function TabellenPage() {
                     {rows.length > PREVIEW_ROWS ? `+${rows.length - PREVIEW_ROWS} weitere` : ''}
                   </span>
                   <Link
-                    href={`/ligen/${league.id}`}
+                    href={`/ligen/${league.id}?tab=tabelle`}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
                       fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,

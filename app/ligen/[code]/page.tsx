@@ -11,8 +11,18 @@ import {
   getStatisticsForLeague, getMatchesForLeague,
 } from '@/lib/data';
 
+const TAB_NAMES = ['übersicht', 'tabelle', 'spielplan', 'ergebnisse', 'statistiken', 'teams'] as const;
+
+function resolveInitialTab(tabParam: string | string[] | undefined): number {
+  if (!tabParam || typeof tabParam !== 'string') return 0;
+  const idx = TAB_NAMES.indexOf(tabParam.toLowerCase() as typeof TAB_NAMES[number]);
+  return idx >= 0 ? idx : 0;
+}
+
 export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>) {
   const { code } = await props.params;
+  const sp = await props.searchParams;
+  const initialTab = resolveInitialTab(sp?.tab);
   const league    = findLeague(code);
   const leagueName = league?.name ?? `${code.toUpperCase()} Liga`;
   const standings  = getStandings(code);
@@ -99,6 +109,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         teamInfoMap={teamInfoMap}
         stats={stats}
         matches={matches}
+        initialTab={initialTab}
       />
 
       <Footer />
