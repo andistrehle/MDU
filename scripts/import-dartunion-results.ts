@@ -185,6 +185,22 @@ interface PlayerStatEntry {
   losses:   number;
 }
 
+interface ImportedStandingRow {
+  pos:    number;
+  team:   string;
+  name:   string;
+  sp:     number;
+  s:      number;
+  u:      number;
+  n:      number;
+  /** Individual game wins:losses, e.g. "223:83" */
+  spiele: string;
+  legs:   string;
+  /** Diff computed from Spiele (SpieleFor − SpieleAgainst) */
+  diff:   string;
+  pts:    number;
+}
+
 interface ImportedMatch {
   id: string;
   seasonId: string;
@@ -417,6 +433,7 @@ function normalizeTeamKey(raw: string): string {
   return raw
     .toUpperCase()
     .replace(/[`´‘’‚‛]/g, "'") // curly/backtick → straight
+    .replace(/\s*\/\s*/g, '/') // "08 / 15" → "08/15"
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -473,99 +490,149 @@ function stripHtml(html: string): string {
  *  3. Identifies cells by content type rather than strict position, so it
  *     remains robust against minor layout changes.
  */
+/**
+ * Builds a map of team crest image hash → internal team slug by scanning the
+ * standings rows on a ranking01.php page (those rows contain both the crest
+ * image AND the team name as text).
+ *
+ * Player ranking rows on the same page show the team ONLY as a crest image,
+ * so this map is required to resolve a player's team.
+ */
+function buildTeamImageMap(html: string): Record<string, string> {
+  const map: Record<string, string> = {};
+  const rowRe = /<tr[^>]+id=["']datarow["'][^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowMatch: RegExpExecArray | null;
+
+  while ((rowMatch = rowRe.exec(html)) !== null) {
+    const row = rowMatch[1];
+    // Standings rows are identified by their g/u/v cell
+    if (!/\d+\s*\/\s*\d+\s*\/\s*\d+/.test(stripHtml(row))) continue;
+
+    const img = row.match(/images\/teams\/([^"'.\s]+)\./i);
+    if (!img) continue;
+
+    // Team name = first non-empty text cell that maps to a known team
+    const tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    let tdMatch: RegExpExecArray | null;
+    while ((tdMatch = tdRe.exec(row)) !== null) {
+      const text = stripHtml(tdMatch[1]);
+      if (!text) continue;
+      const teamId = TEAM_NAME_TO_ID[normalizeTeamKey(text)];
+      if (teamId) {
+        map[img[1]] = teamId;
+        break;
+      }
+    }
+  }
+
+  return map;
+}
+
 function parseRanking(html: string, ligaId: number): PlayerStatEntry[] {
   const leagueId = LEAGUE_MAP[ligaId];
   if (!leagueId) return [];
 
+  // Crest image hash → team slug (built from the standings table on this page)
+  const teamImgMap = buildTeamImageMap(html);
+
   const players: PlayerStatEntry[] = [];
-
-  // Prefer id="datarow" rows; fall back to all <tr> rows
-  const dataRowRe   = /<tr[^>]+id=["']datarow["'][^>]*>([\s\S]*?)<\/tr>/gi;
-  const allRowRe    = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  const hasDataRows = /<tr[^>]+id=["']datarow["']/i.test(html);
-  const rowRe       = hasDataRows ? dataRowRe : allRowRe;
-
+  const rowRe = /<tr[^>]+id=["']datarow["'][^>]*>([\s\S]*?)<\/tr>/gi;
   let rowMatch: RegExpExecArray | null;
 
   while ((rowMatch = rowRe.exec(html)) !== null) {
     const row = rowMatch[1];
 
-    // Extract text from each <td>
-    const cells: string[] = [];
+    // Skip standings rows (they have a g/u/v cell)
+    if (/\d+\s*\/\s*\d+\s*\/\s*\d+/.test(stripHtml(row))) continue;
+
+    // Extract raw + text content of each <td>
+    const rawCells:  string[] = [];
+    const textCells: string[] = [];
     const tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
     let tdMatch: RegExpExecArray | null;
     while ((tdMatch = tdRe.exec(row)) !== null) {
-      cells.push(stripHtml(tdMatch[1]));
+      rawCells.push(tdMatch[1]);
+      textCells.push(stripHtml(tdMatch[1]));
     }
 
-    // Drop image-only / blank cells
-    const cols = cells.filter(c => c.length > 0);
-    if (cols.length < 5) continue;
+    const cols = textCells.filter(c => c.length > 0);
+    if (cols.length < 4) continue;
 
-    // ── Identify each field ───────────────────────────────────
-
-    // Rank: first pure integer in the row (sanity: 1–999)
+    // Rank: first pure integer (sanity: 1–999)
     const rankIdx = cols.findIndex(c => /^\d+$/.test(c) && +c >= 1 && +c <= 999);
     if (rankIdx < 0) continue;
     const rank = +cols[rankIdx];
 
-    // License: "MDU YY NNNN"
-    const licenseIdx = cols.findIndex(c => /^MDU\s+\d+\s+\d+$/i.test(c));
+    // License: "MDU 3711" or legacy "MDU 26 2003"
+    const licenseIdx = cols.findIndex(c => /^MDU(\s+\d+)+$/i.test(c));
 
-    // Team: first cell that matches a known team name (after rank)
-    let teamIdx = -1;
-    let teamId  = '';
-    let teamName = '';
-    for (let i = rankIdx + 1; i < cols.length; i++) {
-      if (i === licenseIdx) continue;
-      const key = normalizeTeamKey(cols[i]);
-      const id  = TEAM_NAME_TO_ID[key];
-      if (id) {
-        teamIdx  = i;
-        teamId   = id;
-        teamName = TEAM_NAMES[id] ?? cols[i];
-        break;
+    // ── Team ──────────────────────────────────────────────────
+    // Preferred: crest image (current page layout shows no team text).
+    // Fallback: a text cell matching a known team name (legacy layout).
+    let teamId = '';
+    const teamImg = row.match(/images\/teams\/([^"'.\s]+)\./i);
+    if (teamImg && teamImgMap[teamImg[1]]) {
+      teamId = teamImgMap[teamImg[1]];
+    } else {
+      for (let i = rankIdx + 1; i < cols.length; i++) {
+        if (i === licenseIdx) continue;
+        const id = TEAM_NAME_TO_ID[normalizeTeamKey(cols[i])];
+        if (id) { teamId = id; break; }
       }
     }
-    if (teamIdx < 0) continue; // unknown team — skip row
+    if (!teamId) {
+      process.stderr.write(
+        `  WARN player row without resolvable team (liga=${ligaId}): ${JSON.stringify(cols)}\n`,
+      );
+      continue;
+    }
+    const teamName = TEAM_NAMES[teamId] ?? teamId;
 
-    // Player name: first alphabetic, non-rank, non-license, non-numeric
-    //              cell between rank and team
+    // ── Player name ───────────────────────────────────────────
+    // First alphabetic cell after rank that is not the license and not a
+    // known team name ("ZLATKO, LOZANCIC" → "Zlatko Lozancic").
     let playerName = '';
-    for (let i = rankIdx + 1; i < teamIdx; i++) {
+    for (let i = rankIdx + 1; i < cols.length; i++) {
       if (i === licenseIdx) continue;
       const c = cols[i];
-      if (/^\d+$/.test(c))       continue; // pure number
-      if (/^\d+:\d+$/.test(c))   continue; // wins:losses
-      if (/^\(\d+:\d+\)$/.test(c)) continue; // legs
+      if (/^\d+$/.test(c))               continue; // pure number
+      if (/^\d+\s*:\s*\d+$/.test(c))     continue; // wins:losses
+      if (/^\(\d+\s*:\s*\d+\)$/.test(c)) continue; // legs
+      if (/^MDU\b/i.test(c))             continue; // license-ish
+      if (TEAM_NAME_TO_ID[normalizeTeamKey(c)]) continue; // team name
       if (/[a-zA-ZäöüÄÖÜßčšžČŠŽàáâèéêìíîòóôùúû']/.test(c)) {
         playerName = normalizeName(c);
         break;
       }
     }
-    if (!playerName) continue;
+    if (!playerName) {
+      process.stderr.write(
+        `  WARN player row without name (liga=${ligaId}): ${JSON.stringify(cols)}\n`,
+      );
+      continue;
+    }
 
-    // Stats: in columns after the team cell
-    const afterTeam = cols.slice(teamIdx + 1).filter(c => !/^\(\d+:\d+\)$/.test(c)); // drop legs
+    // ── Stats ─────────────────────────────────────────────────
+    // Layout: P. (points) | Sp. ("W : L") | Legs ("(x : y)")
+    const statCells = cols
+      .filter((_, i) => i !== rankIdx && i !== licenseIdx)
+      .filter(c => !/^\(\d+\s*:\s*\d+\)$/.test(c)); // drop legs
 
     let pts: number | null    = null;
     let wins: number | null   = null;
     let losses: number | null = null;
 
-    // Case 1: combined wins:losses cell "W:L"
-    const wlCell = afterTeam.find(c => /^\d+:\d+$/.test(c));
+    const wlCell = statCells.find(c => /^\d+\s*:\s*\d+$/.test(c));
     if (wlCell) {
-      const [w, l] = wlCell.split(':').map(Number);
+      const [w, l] = wlCell.split(':').map(s => parseInt(s.trim(), 10));
       wins   = w;
       losses = l;
-      // pts = first plain integer before the wins:losses cell
-      const wlPos = afterTeam.findIndex(c => /^\d+:\d+$/.test(c));
-      for (let i = 0; i < wlPos; i++) {
-        if (/^\d+$/.test(afterTeam[i])) { pts = +afterTeam[i]; break; }
-      }
+      // pts = first plain integer cell (other than rank/license, both excluded)
+      const ptsCell = statCells.find(c => /^\d+$/.test(c));
+      if (ptsCell !== undefined) pts = +ptsCell;
     } else {
-      // Case 2: pts, wins, losses as separate integer columns
-      const nums = afterTeam.filter(c => /^\d+$/.test(c)).map(Number);
+      // Legacy layout: pts, wins, losses as separate integer columns
+      const nums = statCells.filter(c => /^\d+$/.test(c)).map(Number);
       if (nums.length >= 3) {
         [pts, wins, losses] = nums;
       } else if (nums.length === 2) {
@@ -574,13 +641,106 @@ function parseRanking(html: string, ligaId: number): PlayerStatEntry[] {
       }
     }
 
-    if (pts === null || wins === null || losses === null) continue;
+    if (pts === null || wins === null || losses === null) {
+      process.stderr.write(
+        `  WARN player row without parseable stats (liga=${ligaId}): ${JSON.stringify(cols)}\n`,
+      );
+      continue;
+    }
 
     players.push({ rank, name: playerName, teamId, teamName, pts, wins, losses });
   }
 
   players.sort((a, b) => a.rank - b.rank);
   return players;
+}
+
+/**
+ * Parses the official standings table on a ranking01.php page.
+ *
+ * Table structure (header row: Wappen | Team | Sp.Tage | Punkte | Spiele | Legs | g/u/v):
+ *   <tr id="datarow">
+ *     <td>1</td> <td><img …></td> <td>SPARTANS</td>
+ *     <td>17</td> <td>46</td> <td>223 : 83</td> <td>490 : 244</td> <td>15 / 1 / 1</td>
+ *   </tr>
+ *
+ * Mapping (per spec): Sp.Tage → sp · g/u/v → s/u/n · Punkte → pts ·
+ * Spiele → spiele · Legs → legs · diff = SpieleFor − SpieleAgainst.
+ *
+ * Rows that don't match this shape (e.g. Einzelrangliste player rows on the
+ * same page) are skipped silently.
+ */
+function parseStandings(html: string, ligaId: number): ImportedStandingRow[] {
+  const leagueId = LEAGUE_MAP[ligaId];
+  if (!leagueId) return [];
+
+  const rows: ImportedStandingRow[] = [];
+  const rowRe = /<tr[^>]+id=["']datarow["'][^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowMatch: RegExpExecArray | null;
+
+  while ((rowMatch = rowRe.exec(html)) !== null) {
+    const row = rowMatch[1];
+
+    const cells: string[] = [];
+    const tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    let tdMatch: RegExpExecArray | null;
+    while ((tdMatch = tdRe.exec(row)) !== null) {
+      cells.push(stripHtml(tdMatch[1]));
+    }
+
+    // Standings rows have a g/u/v cell — player ranking rows don't.
+    const guvIdx = cells.findIndex(c => /^\d+\s*\/\s*\d+\s*\/\s*\d+$/.test(c));
+    if (guvIdx < 0) continue;
+
+    const cols = cells.filter(c => c.length > 0);
+    // Expected: [pos, TEAM, Sp.Tage, Punkte, Spiele, Legs, g/u/v]
+    if (cols.length < 7) {
+      process.stderr.write(`  WARN unexpected standings row (liga=${ligaId}): ${JSON.stringify(cols)}\n`);
+      continue;
+    }
+
+    const [posStr, teamRaw, spStr, ptsStr, spieleRaw, legsRaw, guvRaw] = cols;
+
+    if (!/^\d+$/.test(posStr) || !/^\d+$/.test(spStr) || !/^\d+$/.test(ptsStr)) {
+      process.stderr.write(`  WARN unparseable standings row (liga=${ligaId}): ${JSON.stringify(cols)}\n`);
+      continue;
+    }
+
+    const teamId = TEAM_NAME_TO_ID[normalizeTeamKey(teamRaw)];
+    if (!teamId) {
+      process.stderr.write(`  WARN unknown team in standings (liga=${ligaId}): "${teamRaw}"\n`);
+      continue;
+    }
+
+    const spieleM = spieleRaw.match(/^(\d+)\s*:\s*(\d+)$/);
+    const legsM   = legsRaw.match(/^(\d+)\s*:\s*(\d+)$/);
+    const guvM    = guvRaw.match(/^(\d+)\s*\/\s*(\d+)\s*\/\s*(\d+)$/);
+    if (!spieleM || !legsM || !guvM) {
+      process.stderr.write(`  WARN unparseable standings cells (liga=${ligaId}): ${JSON.stringify(cols)}\n`);
+      continue;
+    }
+
+    const spieleFor     = +spieleM[1];
+    const spieleAgainst = +spieleM[2];
+    const d = spieleFor - spieleAgainst;
+
+    rows.push({
+      pos:    +posStr,
+      team:   teamId,
+      name:   TEAM_NAMES[teamId] ?? teamRaw,
+      sp:     +spStr,
+      s:      +guvM[1],
+      u:      +guvM[2],
+      n:      +guvM[3],
+      spiele: `${spieleFor}:${spieleAgainst}`,
+      legs:   `${+legsM[1]}:${+legsM[2]}`,
+      diff:   d > 0 ? `+${d}` : `${d}`,
+      pts:    +ptsStr,
+    });
+  }
+
+  rows.sort((a, b) => a.pos - b.pos);
+  return rows;
 }
 
 // ── Network ───────────────────────────────────────────────────
@@ -678,7 +838,8 @@ async function main(): Promise<void> {
   console.log('MDU Importer — Einzelranglisten (Statistics)');
   console.log('======================================');
 
-  const statsPath = join(process.cwd(), 'lib', 'data', 'imported-statistics.json');
+  const statsPath     = join(process.cwd(), 'lib', 'data', 'imported-statistics.json');
+  const standingsPath = join(process.cwd(), 'lib', 'data', 'imported-standings.json');
 
   // Load existing data to preserve any leagues we fail to fetch
   let existingStats: Record<string, PlayerStatEntry[]> = {};
@@ -691,8 +852,20 @@ async function main(): Promise<void> {
     }
   }
 
-  const updatedStats: Record<string, PlayerStatEntry[]> = { ...existingStats };
+  let existingStandings: Record<string, ImportedStandingRow[]> = {};
+  if (existsSync(standingsPath)) {
+    try {
+      existingStandings = JSON.parse(readFileSync(standingsPath, 'utf-8')) as Record<string, ImportedStandingRow[]>;
+      console.log(`Loaded existing standings for ${Object.keys(existingStandings).length} leagues.`);
+    } catch {
+      console.warn('Could not parse existing standings file — starting fresh.');
+    }
+  }
+
+  const updatedStats:     Record<string, PlayerStatEntry[]>     = { ...existingStats };
+  const updatedStandings: Record<string, ImportedStandingRow[]> = { ...existingStandings };
   let totalStatsFetched = 0;
+  let totalStandingRows = 0;
 
   for (const ligaIdStr of Object.keys(LEAGUE_MAP)) {
     const ligaId   = Number(ligaIdStr);
@@ -701,6 +874,8 @@ async function main(): Promise<void> {
 
     try {
       const html   = await fetchRanking(ligaId);
+
+      // Einzelrangliste (player statistics)
       const parsed = parseRanking(html, ligaId);
       console.log(`  Parsed ${parsed.length} player entries.`);
       totalStatsFetched += parsed.length;
@@ -709,6 +884,17 @@ async function main(): Promise<void> {
         updatedStats[leagueId] = parsed;
       } else {
         process.stderr.write(`  WARN no entries parsed — keeping existing data for ${leagueId}\n`);
+      }
+
+      // Official standings table (same page)
+      const standings = parseStandings(html, ligaId);
+      console.log(`  Parsed ${standings.length} standings rows.`);
+      totalStandingRows += standings.length;
+
+      if (standings.length > 0) {
+        updatedStandings[leagueId] = standings;
+      } else {
+        process.stderr.write(`  WARN no standings parsed — keeping existing data for ${leagueId}\n`);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -720,9 +906,12 @@ async function main(): Promise<void> {
   }
 
   writeFileSync(statsPath, JSON.stringify(updatedStats, null, 2) + '\n', 'utf-8');
+  writeFileSync(standingsPath, JSON.stringify(updatedStandings, null, 2) + '\n', 'utf-8');
   console.log(`\n======================================`);
   console.log(`Fetched ${totalStatsFetched} player entries across all leagues.`);
   console.log(`Written to: ${statsPath}`);
+  console.log(`Fetched ${totalStandingRows} standings rows across all leagues.`);
+  console.log(`Written to: ${standingsPath}`);
   console.log('Done!');
 }
 

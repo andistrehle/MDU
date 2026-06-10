@@ -30,6 +30,7 @@ import {
   type LeagueVenueGrouping,
   type VenueWithTeams,
 } from './data/assignments';
+import importedStandingsRaw from './data/imported-standings.json';
 
 // ── Re-exports ────────────────────────────────────────────────
 export type { SeasonStatus, Season }          from './data/seasons';
@@ -308,7 +309,7 @@ const PLAYOFFS_B_ABSTIEG_STANDINGS: StandingRow[] = [
   { pos: 6, team: 'dc-dark-angels',     name: 'DC Dark Angels',     sp: 7, s: 0, u: 2, n: 5, spiele: '50:76', legs: '129:169', diff: '-26', pts: 2,  status: null },
 ];
 
-export const STANDINGS_BY_LEAGUE: Record<string, StandingRow[]> = {
+const STATIC_STANDINGS_BY_LEAGUE: Record<string, StandingRow[]> = {
   la: LA_LIGA_STANDINGS,
   a1: A1_LIGA_STANDINGS,
   a2: A2_LIGA_STANDINGS,
@@ -320,6 +321,34 @@ export const STANDINGS_BY_LEAGUE: Record<string, StandingRow[]> = {
   'playoffs-b-aufstieg': PLAYOFFS_B_AUFSTIEG_STANDINGS,
   'playoffs-b-abstieg':  PLAYOFFS_B_ABSTIEG_STANDINGS,
 };
+
+// ── Imported official standings overlay ──────────────────────
+// imported-standings.json is written by `npm run import:dartunion` and holds
+// the official dartunion.de tables for the active leagues (La, C, Playoffs).
+// Official data overrides the static fallback above; the static `status`
+// markers (promo/releg) are preserved per team since dartunion.de does not
+// publish them. Leagues without imported data keep their static rows.
+
+type ImportedStandingRow = Omit<StandingRow, 'status'>;
+
+const IMPORTED_STANDINGS = importedStandingsRaw as unknown as Record<string, ImportedStandingRow[]>;
+
+export const STANDINGS_BY_LEAGUE: Record<string, StandingRow[]> = (() => {
+  const merged: Record<string, StandingRow[]> = { ...STATIC_STANDINGS_BY_LEAGUE };
+  for (const [code, rows] of Object.entries(IMPORTED_STANDINGS)) {
+    if (!rows || rows.length === 0) continue;
+    const statusByTeam = new Map<string, StandingStatus>(
+      (STATIC_STANDINGS_BY_LEAGUE[code] ?? []).map(r => [r.team, r.status]),
+    );
+    merged[code] = rows.map(r => ({
+      ...r,
+      // Preserve display-name overrides from static rows (e.g. "De Wolperdinga *")
+      name: STATIC_STANDINGS_BY_LEAGUE[code]?.find(s => s.team === r.team)?.name ?? r.name,
+      status: statusByTeam.get(r.team) ?? null,
+    }));
+  }
+  return merged;
+})();
 
 // Legacy alias — kept so old imports don't break
 export const A1_STANDINGS = A1_LIGA_STANDINGS;
