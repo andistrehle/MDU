@@ -218,9 +218,9 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           })}
         </nav>
 
-        {/* Theme switch — desktop top right, next to Login */}
+        {/* Old School / New Design switch — desktop top right, next to Login */}
         <span className="mdu-header-login" style={{ display: 'inline-flex', flexShrink: 0 }}>
-          <ThemeToggle />
+          <ThemeToggle compact />
         </span>
 
         {/* Desktop Login button */}

@@ -195,6 +195,19 @@ html[data-theme="light"] .mdu-wordmark-accent {
   color: #ADB2B8;
 }
 
+/* Old School / New Design switch — visible keyboard focus */
+.mdu-world-switch:focus-visible {
+  outline: 2px solid var(--th-accent);
+  outline-offset: 3px;
+}
+/* Short labels (OLD/NEW) replace the full ones when the header gets tight */
+.mdu-ws-short { display: none; }
+@media (max-width: 1240px) {
+  .mdu-world-switch--compact { width: 132px !important; }
+  .mdu-world-switch--compact .mdu-ws-full  { display: none; }
+  .mdu-world-switch--compact .mdu-ws-short { display: inline; }
+}
+
 :root {
   --color-bg-primary:   #05070A;
   --color-bg-secondary: #0D1117;

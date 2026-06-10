@@ -72,25 +72,27 @@ export default function MehrPage() {
           </h1>
         </div>
 
-        {/* Theme switch (mobile main menu) */}
-        <div style={{
-          background: 'var(--th-bg-card)',
-          border: '1px solid var(--th-line-6)',
-          borderRadius: 12,
-          padding: '16px 18px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          marginBottom: 10,
-        }}>
-          <span style={{
-            fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15,
-            color: 'var(--th-text-strong)',
+        {/* Old School / New Design switch — mobile main menu only
+            (desktop uses the header switch, so only one is ever visible). */}
+        <div className="mdu-mobile-only" style={{ marginBottom: 10 }}>
+          <div style={{
+            background: 'var(--th-bg-card)',
+            border: '1px solid var(--th-line-6)',
+            borderRadius: 12,
+            padding: '16px 18px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
           }}>
-            Darstellung
-          </span>
-          <ThemeToggle showLabel />
+            <span style={{
+              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15,
+              color: 'var(--th-text-strong)', alignSelf: 'flex-start',
+            }}>
+              Darstellung
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Section link cards */}
