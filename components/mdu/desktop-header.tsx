@@ -244,6 +244,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           <ThemeToggle mini />
           <Link
             href="/login"
+            className="mdu-mobile-login"
             style={{
               padding: '8px 14px', borderRadius: 6,
               background: 'transparent', color: 'var(--th-accent)',
