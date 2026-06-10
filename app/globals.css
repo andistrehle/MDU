@@ -58,6 +58,19 @@
   /* Sticky tab bars (league / team detail) */
   --th-bg-tabbar1: rgba(13,17,23,0.6);
   --th-bg-tabbar2: rgba(10,11,15,0.8);
+
+  /* Brand accent — red in dark mode, dartunion green in light mode.
+     Semantic reds (Abstieg, losses) do NOT use these tokens. */
+  --th-accent:       #D40000;
+  --th-accent-hover: #FF1F1F;
+  --th-accent-deep:  #8A0000;
+  --th-accent-a07: rgba(212,0,0,0.07);
+  --th-accent-a12: rgba(212,0,0,0.12);
+  --th-accent-a25: rgba(212,0,0,0.25);
+  --th-accent-a30: rgba(212,0,0,0.3);
+  --th-accent-a32: rgba(212,0,0,0.32);
+  --th-accent-a35: rgba(212,0,0,0.35);
+  --th-accent-a40: rgba(212,0,0,0.4);
 }
 
 html[data-theme="light"] {
@@ -102,55 +115,84 @@ html[data-theme="light"] {
 
   --th-bg-tabbar1: rgba(255,255,255,0.8);
   --th-bg-tabbar2: rgba(255,255,255,0.88);
+
+  /* Dartunion green accent in light mode */
+  --th-accent:       #3E9C33;
+  --th-accent-hover: #4FB83F;
+  --th-accent-deep:  #2E7526;
+  --th-accent-a07: rgba(62,156,51,0.07);
+  --th-accent-a12: rgba(62,156,51,0.12);
+  --th-accent-a25: rgba(62,156,51,0.25);
+  --th-accent-a30: rgba(62,156,51,0.3);
+  --th-accent-a32: rgba(62,156,51,0.32);
+  --th-accent-a35: rgba(62,156,51,0.35);
+  --th-accent-a40: rgba(62,156,51,0.4);
 }
 
 /* =====================================================
-   LIGHT MODE — classic dartunion.de look
-   Blue header bar, green table header, light-blue rows
-   (matches the long-standing dartunion.de design).
-   !important is required to override inline styles.
+   LIGHT MODE — modern take on the classic dartunion.de
+   look: blue header bar, green accents, blue-tinted
+   table rows. !important overrides inline styles.
    ===================================================== */
 
-/* Blue header bar (old site: blue banner + green nav) */
+/* Blue header bar (nod to the old site's blue banner) */
 html[data-theme="light"] .mdu-site-header {
-  background: linear-gradient(180deg, #7FA6DA 0%, #5F8CC9 100%) !important;
-  border-bottom: 1px solid #4E79B4 !important;
+  background: linear-gradient(135deg, #6B95CE 0%, #4E7DBD 100%) !important;
+  border-bottom: none !important;
+  box-shadow: 0 2px 14px rgba(46,78,128,0.28);
 }
 html[data-theme="light"] .mdu-nav-link {
-  color: #FFFFFF !important;
+  color: rgba(255,255,255,0.92) !important;
 }
 html[data-theme="light"] .mdu-nav-link:hover {
-  color: #EAF2C0 !important;
+  color: #DCF5C8 !important;
 }
 html[data-theme="light"] .mdu-header-login a,
 html[data-theme="light"] a.mdu-header-login,
 html[data-theme="light"] a.mdu-mobile-login {
   color: #FFFFFF !important;
-  border-color: #FFFFFF !important;
+  border-color: rgba(255,255,255,0.85) !important;
+  background: rgba(255,255,255,0.10) !important;
 }
 
-/* Standings table — green header row, light-blue data rows */
+/* Standings table — modern dartunion green header, soft blue rows */
 html[data-theme="light"] .mdu-st-head {
-  background: #A9C83D !important;
-  color: #243018 !important;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #4FA63B, #3E8F2D) !important;
+  color: #FFFFFF !important;
+  border-radius: 8px;
   border-bottom: none !important;
 }
 html[data-theme="light"] .mdu-st-row {
-  background: #A9BFE6 !important;
+  background: #DCE6F6 !important;
   border-bottom: 1px solid #FFFFFF !important;
 }
 html[data-theme="light"] .mdu-st-row:hover {
-  background: #98B1DF !important;
+  background: #CBDAF1 !important;
 }
 html[data-theme="light"] .mdu-st-row-m {
-  background: #A9BFE6 !important;
+  background: #DCE6F6 !important;
   border-bottom: 1px solid #FFFFFF !important;
+}
+
+/* Cards get a soft, modern elevation instead of dark-mode glow */
+html[data-theme="light"] .mdu-card {
+  box-shadow: 0 1px 2px rgba(15,23,42,0.05), 0 10px 28px rgba(46,78,128,0.10);
+  border-color: rgba(15,23,42,0.06);
 }
 
 /* Soften the dartboard photo on sub-page banners (league/team) */
 html[data-theme="light"] .mdu-banner-dartboard {
   opacity: 0.28 !important;
+}
+
+/* Homepage hero wordmark — echoes the classic MDU logo colors
+   (grey badge with silver "DART"). Light mode only; dark mode
+   spans simply inherit the h1 color. */
+html[data-theme="light"] .mdu-wordmark-solid {
+  color: #6E7177;
+}
+html[data-theme="light"] .mdu-wordmark-accent {
+  color: #ADB2B8;
 }
 
 :root {
@@ -219,16 +261,16 @@ body {
 }
 .mdu-card-hover:hover {
   transform: translateY(-2px);
-  border-color: rgba(212,0,0,0.4) !important;
-  box-shadow: 0 18px 36px rgba(0,0,0,0.45), 0 0 0 1px rgba(212,0,0,0.25) !important;
+  border-color: var(--th-accent-a40) !important;
+  box-shadow: 0 18px 36px rgba(0,0,0,0.45), 0 0 0 1px var(--th-accent-a25) !important;
 }
 
 .mdu-row-hover:hover { background: var(--th-line-3); }
 
 /* ── Ligen nav dropdown item hover ─────────────────────────── */
 .mdu-nav-dropdown-item:hover {
-  color: #D40000 !important;
-  background: rgba(212,0,0,0.07) !important;
+  color: var(--th-accent) !important;
+  background: var(--th-accent-a07) !important;
 }
 
 .section-heading {
@@ -239,7 +281,7 @@ body {
   color: var(--th-text-strong);
   text-transform: uppercase;
   padding-bottom: 8px;
-  border-bottom: 2px solid #D40000;
+  border-bottom: 2px solid var(--th-accent);
   display: inline-block;
 }
 

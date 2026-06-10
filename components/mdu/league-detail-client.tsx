@@ -53,7 +53,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
-      letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12,
+      letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 12,
     }}>
       {children}
     </div>
@@ -385,14 +385,14 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
       {/* Status banner */}
       <div style={{
         background: isPlayoff ? 'rgba(212,0,0,0.08)' : 'rgba(16,185,129,0.08)',
-        border: `1px solid ${isPlayoff ? 'rgba(212,0,0,0.25)' : 'rgba(16,185,129,0.25)'}`,
+        border: `1px solid ${isPlayoff ? 'var(--th-accent-a25)' : 'rgba(16,185,129,0.25)'}`,
         borderRadius: 10, padding: '14px 18px', marginBottom: 20,
         display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
       }}>
         <Icon
           name={isPlayoff ? 'lightning' : 'check'}
           size={16} stroke={2}
-          style={{ color: isPlayoff ? '#D40000' : '#10B981', flexShrink: 0 }}
+          style={{ color: isPlayoff ? 'var(--th-accent)' : '#10B981', flexShrink: 0 }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
@@ -887,9 +887,9 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
               style={{
                 padding: '16px 0',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                color: i === activeTab ? '#D40000' : 'var(--th-text-muted)',
+                color: i === activeTab ? 'var(--th-accent)' : 'var(--th-text-muted)',
                 borderTop: 'none', borderLeft: 'none', borderRight: 'none',
-                borderBottom: i === activeTab ? '2px solid #D40000' : '2px solid transparent',
+                borderBottom: i === activeTab ? '2px solid var(--th-accent)' : '2px solid transparent',
                 marginBottom: -1, cursor: 'pointer',
                 letterSpacing: '0.04em', textTransform: 'uppercase',
                 background: 'none',

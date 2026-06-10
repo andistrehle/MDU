@@ -33,7 +33,8 @@ export default function HomePage() {
           maskImage: 'radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 70%, transparent 92%)',
         }}>
           <Image
-            src="/mdu-hero-dartboard-2.png"
+            src="/mdu-hero-dartboard-2.webp"
+            unoptimized
             alt=""
             width={1250}
             height={1250}
@@ -57,7 +58,9 @@ export default function HomePage() {
               lineHeight: 0.92, letterSpacing: '-0.005em', color: 'var(--th-text-strong)', margin: 0,
               textTransform: 'uppercase',
             }}>
-              Münchner<br />Dart Union
+              <span className="mdu-wordmark-solid">Münchner</span><br />
+              <span className="mdu-wordmark-accent">Dart</span>{' '}
+              <span className="mdu-wordmark-solid">Union</span>
             </h1>
             <div className="mdu-hero-subtitle" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 22, color: 'var(--th-text-strong)', marginTop: 18, letterSpacing: '0.01em' }}>
               Dart. Leidenschaft. Gemeinschaft.
@@ -67,10 +70,10 @@ export default function HomePage() {
             </p>
             <div className="mdu-hero-cta" style={{ display: 'flex', gap: 14, marginTop: 34 }}>
               <Link href="/ligen" style={{
-                padding: '14px 28px', background: '#D40000', color: '#fff',
+                padding: '14px 28px', background: 'var(--th-accent)', color: '#fff',
                 borderRadius: 6, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
                 letterSpacing: '0.1em', textTransform: 'uppercase',
-                boxShadow: '0 8px 22px rgba(212,0,0,0.4)', textDecoration: 'none', display: 'inline-block',
+                boxShadow: '0 8px 22px var(--th-accent-a40)', textDecoration: 'none', display: 'inline-block',
               }}>
                 Ligen Übersicht
               </Link>
@@ -112,7 +115,7 @@ export default function HomePage() {
             >
               <div style={{
                 width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                background: 'rgba(212,0,0,0.12)', border: '1px solid rgba(212,0,0,0.25)',
+                background: 'var(--th-accent-a12)', border: '1px solid var(--th-accent-a25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-loss)',
               }}>
                 <Icon name={item.icon} size={22} stroke={2} />
@@ -139,7 +142,7 @@ export default function HomePage() {
           </div>
           <Link href="/news" style={{
             marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 6,
-            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000', textDecoration: 'none',
+            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none',
           }}>
             Alle News anzeigen <Icon name="arrow-right" size={14} stroke={2.5} />
           </Link>
@@ -149,7 +152,7 @@ export default function HomePage() {
           {/* ── Nächste Spiele ─────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Nächste Spiele</h2>
-            <Link href="/spielplan" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000', textDecoration: 'none' }}>
+            <Link href="/spielplan" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
               Alle anzeigen
             </Link>
           </div>
@@ -182,7 +185,7 @@ export default function HomePage() {
             <div style={{ marginTop: 36 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
                 <h2 className="section-heading" style={{ margin: 0 }}>Letzte Spiele</h2>
-                <Link href="/ergebnisse" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#D40000', textDecoration: 'none' }}>
+                <Link href="/ergebnisse" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
                   Alle anzeigen
                 </Link>
               </div>

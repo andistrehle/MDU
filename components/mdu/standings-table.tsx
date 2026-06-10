@@ -505,7 +505,7 @@ export function StandingsTable({
                         flexShrink: 0,
                         display: 'flex',
                         alignItems: 'center',
-                        color: isExpanded ? '#D40000' : 'var(--th-text-faint)',
+                        color: isExpanded ? 'var(--th-accent)' : 'var(--th-text-faint)',
                       }}
                     >
                       <Icon
@@ -592,7 +592,7 @@ export function StandingsTable({
                           fontFamily: 'var(--font-manrope)',
                           fontWeight: 700,
                           fontSize: 11,
-                          color: '#D40000',
+                          color: 'var(--th-accent)',
                           textDecoration: 'none',
                         }}
                       >

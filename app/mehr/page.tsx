@@ -59,14 +59,14 @@ export default function MehrPage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{
             fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '0.2em', color: '#D40000', textTransform: 'uppercase', marginBottom: 8,
+            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
           }}>
             Münchner Dart Union
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
             letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
+            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
           }}>
             Mehr
           </h1>
@@ -114,8 +114,8 @@ export default function MehrPage() {
                 {/* Icon */}
                 <div style={{
                   width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                  background: item.ready ? 'rgba(212,0,0,0.12)' : 'var(--th-line-4)',
-                  border: item.ready ? '1px solid rgba(212,0,0,0.25)' : '1px solid var(--th-line-8)',
+                  background: item.ready ? 'var(--th-accent-a12)' : 'var(--th-line-4)',
+                  border: item.ready ? '1px solid var(--th-accent-a25)' : '1px solid var(--th-line-8)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: item.ready ? 'var(--th-loss)' : 'var(--th-text-faint2)',
                 }}>
@@ -182,9 +182,9 @@ export default function MehrPage() {
             <div style={{
               width: 44, height: 44, borderRadius: 10, flexShrink: 0,
               background: 'rgba(212,0,0,0.14)',
-              border: '1px solid rgba(212,0,0,0.3)',
+              border: '1px solid var(--th-accent-a30)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#D40000',
+              color: 'var(--th-accent)',
             }}>
               <Icon name="user" size={20} stroke={2} />
             </div>
@@ -196,7 +196,7 @@ export default function MehrPage() {
                 Anmelden zum MDU Mitgliederbereich
               </div>
             </div>
-            <Icon name="arrow-right" size={16} stroke={2} style={{ color: '#D40000', flexShrink: 0 }} />
+            <Icon name="arrow-right" size={16} stroke={2} style={{ color: 'var(--th-accent)', flexShrink: 0 }} />
           </div>
         </Link>
 

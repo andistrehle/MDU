@@ -204,8 +204,8 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
               style={{
                 padding: '10px 0',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
-                color: i === 0 ? '#D40000' : 'var(--th-text-muted)',
-                borderBottom: i === 0 ? '2px solid #D40000' : '2px solid transparent',
+                color: i === 0 ? 'var(--th-accent)' : 'var(--th-text-muted)',
+                borderBottom: i === 0 ? '2px solid var(--th-accent)' : '2px solid transparent',
                 marginBottom: -1, cursor: 'pointer',
                 letterSpacing: '0.04em', textTransform: 'uppercase',
               }}
@@ -221,7 +221,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
           <div>
             <div style={{
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
-              letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12,
+              letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 12,
             }}>
               Team Info
             </div>
@@ -244,7 +244,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
           <div>
             <div style={{
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
-              letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12,
+              letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 12,
             }}>
               Kurzinfo
             </div>
@@ -262,7 +262,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
         <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid var(--th-line-6)' }}>
           <div style={{
             fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
-            letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12,
+            letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 12,
           }}>
             Top 3
           </div>
@@ -309,11 +309,11 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
             href={`/teams/${selectedId}?competition=${league.id}`}
             style={{
               display: 'block', marginTop: 18, width: '100%', padding: '13px',
-              background: '#D40000', color: '#fff', borderRadius: 6,
+              background: 'var(--th-accent)', color: '#fff', borderRadius: 6,
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
               letterSpacing: '0.16em', textTransform: 'uppercase',
               textDecoration: 'none', textAlign: 'center',
-              boxShadow: '0 6px 14px rgba(212,0,0,0.32)',
+              boxShadow: '0 6px 14px var(--th-accent-a32)',
             }}
           >
             Team-Profil ansehen

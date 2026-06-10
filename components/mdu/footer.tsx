@@ -14,7 +14,7 @@ export function Footer() {
         display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 40,
       }}>
         <div>
-          <Image src="/mdu-logo.png" alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
+          <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
           <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 14, lineHeight: 1.6, maxWidth: 280 }}>
             Die offizielle Liga-Seite für den organisierten Dartsport in München.
           </p>

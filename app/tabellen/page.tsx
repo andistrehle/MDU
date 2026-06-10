@@ -36,14 +36,14 @@ export default function TabellenPage() {
         <div style={{ marginBottom: 28 }}>
           <div style={{
             fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '0.2em', color: '#D40000', textTransform: 'uppercase', marginBottom: 8,
+            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
           }}>
             Saison 2026
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
             letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
+            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
           }}>
             Tabellenübersicht
           </h1>
@@ -63,7 +63,7 @@ export default function TabellenPage() {
                 padding: '7px 18px', borderRadius: 6, cursor: 'pointer', border: 'none',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
                 letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: filter === f.value ? '#D40000' : 'var(--th-line-6)',
+                background: filter === f.value ? 'var(--th-accent)' : 'var(--th-line-6)',
                 color:      filter === f.value ? '#fff'    : 'var(--th-text-muted)',
                 transition: 'background 120ms, color 120ms',
               }}
@@ -113,8 +113,8 @@ export default function TabellenPage() {
                     <span style={{
                       fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9,
                       letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0,
-                      color: '#D40000', background: 'rgba(212,0,0,0.12)',
-                      border: '1px solid rgba(212,0,0,0.25)',
+                      color: 'var(--th-accent)', background: 'var(--th-accent-a12)',
+                      border: '1px solid var(--th-accent-a25)',
                       borderRadius: 4, padding: '3px 8px',
                     }}>
                       Playoffs
@@ -201,7 +201,7 @@ export default function TabellenPage() {
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
                       fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
-                      color: '#D40000', textDecoration: 'none',
+                      color: 'var(--th-accent)', textDecoration: 'none',
                     }}
                   >
                     Vollständige Tabelle ansehen

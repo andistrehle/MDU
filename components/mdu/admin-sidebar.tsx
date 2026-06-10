@@ -28,7 +28,7 @@ export function AdminSidebar() {
       minHeight: '100vh', position: 'sticky', top: 0,
     }}>
       <div style={{ padding: '0 6px 16px', borderBottom: '1px solid var(--th-line-6)', marginBottom: 14 }}>
-        <Image src="/mdu-logo.png" alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
+        <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
         <div style={{ marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--th-text-faint2)', textTransform: 'uppercase' }}>
           Admin Konsole
         </div>
@@ -43,9 +43,9 @@ export function AdminSidebar() {
             style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
               borderRadius: 8, textDecoration: 'none',
-              background: active ? 'rgba(212,0,0,0.12)' : 'transparent',
+              background: active ? 'var(--th-accent-a12)' : 'transparent',
               color: active ? 'var(--th-text-strong)' : 'var(--th-text-dim)',
-              border: active ? '1px solid rgba(212,0,0,0.3)' : '1px solid transparent',
+              border: active ? '1px solid var(--th-accent-a30)' : '1px solid transparent',
               fontFamily: 'var(--font-manrope)', fontWeight: active ? 700 : 500, fontSize: 14,
               transition: 'all 150ms',
             }}
@@ -55,7 +55,7 @@ export function AdminSidebar() {
             {item.badge && (
               <span style={{
                 minWidth: 20, height: 20, borderRadius: 10, padding: '0 6px',
-                background: '#D40000', color: '#fff',
+                background: 'var(--th-accent)', color: '#fff',
                 fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 11,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>
@@ -70,7 +70,7 @@ export function AdminSidebar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
           <div style={{
             width: 34, height: 34, borderRadius: '50%',
-            background: 'linear-gradient(135deg,#D40000,#8A0000)',
+            background: 'linear-gradient(135deg,var(--th-accent),var(--th-accent-deep))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, color: '#fff', fontSize: 14,
             flexShrink: 0,

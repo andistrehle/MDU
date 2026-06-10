@@ -13,7 +13,7 @@ interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<BtnKind, React.CSSProperties> = {
-  primary: { background: '#D40000', color: '#fff', border: '1px solid #FF1F1F', boxShadow: '0 6px 18px rgba(212,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' },
+  primary: { background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', boxShadow: '0 6px 18px var(--th-accent-a35), inset 0 1px 0 rgba(255,255,255,0.2)' },
   ghost:   { background: 'var(--th-line-4)', color: 'var(--th-text-strong)', border: '1px solid var(--th-line-10)' },
   outline: { background: 'transparent', color: 'var(--th-text-strong)', border: '1px solid var(--th-line-18)' },
   dark:    { background: 'var(--th-bg-card3)', color: 'var(--th-text-strong)', border: '1px solid var(--th-line-10)' },

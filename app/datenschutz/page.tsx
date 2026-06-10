@@ -20,12 +20,12 @@ export default function DatenschutzPage() {
         }}>
           <div style={{
             width: 56, height: 56, borderRadius: '50%',
-            background: 'rgba(212,0,0,0.12)',
-            border: '1px solid rgba(212,0,0,0.25)',
+            background: 'var(--th-accent-a12)',
+            border: '1px solid var(--th-accent-a25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 24px',
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D40000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--th-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>
             </svg>
           </div>
@@ -50,13 +50,13 @@ export default function DatenschutzPage() {
             style={{
               display: 'inline-block',
               padding: '12px 28px',
-              background: '#D40000',
+              background: 'var(--th-accent)',
               color: '#fff',
               borderRadius: 6,
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
               letterSpacing: '0.16em', textTransform: 'uppercase',
               textDecoration: 'none',
-              boxShadow: '0 6px 14px rgba(212,0,0,0.32)',
+              boxShadow: '0 6px 14px var(--th-accent-a32)',
             }}
           >
             Zurück zu Mehr

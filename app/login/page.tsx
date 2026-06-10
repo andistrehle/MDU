@@ -15,7 +15,7 @@ export default function LoginPage() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <Link href="/" style={{ display: 'inline-block' }}>
-            <Image src="/mdu-logo.png" alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} />
+            <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} />
           </Link>
           <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, color: 'var(--th-text-strong)', marginTop: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Anmelden
@@ -60,11 +60,11 @@ export default function LoginPage() {
           <button
             type="submit"
             style={{
-              width: '100%', padding: '14px', background: '#D40000', color: '#fff',
-              border: '1px solid #FF1F1F', borderRadius: 8, fontFamily: 'var(--font-manrope)',
+              width: '100%', padding: '14px', background: 'var(--th-accent)', color: '#fff',
+              border: '1px solid var(--th-accent-hover)', borderRadius: 8, fontFamily: 'var(--font-manrope)',
               fontWeight: 800, fontSize: 14, letterSpacing: '0.08em', cursor: 'pointer',
               textTransform: 'uppercase', marginTop: 8,
-              boxShadow: '0 8px 22px rgba(212,0,0,0.4)',
+              boxShadow: '0 8px 22px var(--th-accent-a40)',
             }}
           >
             Anmelden
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
         <p style={{ textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 24 }}>
           Kein Zugang?{' '}
-          <Link href="/kontakt" style={{ color: '#D40000', textDecoration: 'none' }}>Kontakt aufnehmen</Link>
+          <Link href="/kontakt" style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>Kontakt aufnehmen</Link>
         </p>
       </div>
     </div>

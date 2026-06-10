@@ -16,7 +16,7 @@ export function SectionHeader({ kicker, title, action }: SectionHeaderProps) {
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: '0.22em',
-            color: '#D40000',
+            color: 'var(--th-accent)',
             textTransform: 'uppercase',
             marginBottom: 6,
           }}>

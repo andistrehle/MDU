@@ -27,7 +27,7 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
     >
       <div style={{
         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-        letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase',
+        letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase',
         marginBottom: compact ? 10 : 12,
       }}>
         {league}

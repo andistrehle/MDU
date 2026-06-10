@@ -20,12 +20,12 @@ export default function NewsPage() {
         }}>
           <div style={{
             width: 56, height: 56, borderRadius: '50%',
-            background: 'rgba(212,0,0,0.12)',
-            border: '1px solid rgba(212,0,0,0.25)',
+            background: 'var(--th-accent-a12)',
+            border: '1px solid var(--th-accent-a25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 24px',
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D40000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--th-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" />
               <path d="M16 2v4" /><path d="M8 10h8" /><path d="M8 14h8" /><path d="M8 18h5" />
             </svg>
@@ -51,13 +51,13 @@ export default function NewsPage() {
             style={{
               display: 'inline-block',
               padding: '12px 28px',
-              background: '#D40000',
+              background: 'var(--th-accent)',
               color: '#fff',
               borderRadius: 6,
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
               letterSpacing: '0.16em', textTransform: 'uppercase',
               textDecoration: 'none',
-              boxShadow: '0 6px 14px rgba(212,0,0,0.32)',
+              boxShadow: '0 6px 14px var(--th-accent-a32)',
             }}
           >
             Zurück zur Startseite

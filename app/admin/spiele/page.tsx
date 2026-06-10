@@ -21,7 +21,7 @@ export default function AdminSpielePage() {
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', color: 'var(--th-text-faint2)', textTransform: 'uppercase', marginBottom: 6 }}>Admin · Spielverwaltung</div>
           <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 }}>Spiele</h1>
         </div>
-        <button style={{ padding: '11px 18px', background: '#D40000', color: '#fff', border: '1px solid #FF1F1F', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button style={{ padding: '11px 18px', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="plus" size={16} /> Neues Spiel
         </button>
       </div>

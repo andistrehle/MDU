@@ -59,7 +59,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24,
       }}>
         <Link href="/" style={{ display: 'block', flexShrink: 0 }}>
-          <Image src="/mdu-logo.png" alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} priority />
+          <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} priority />
         </Link>
 
         {/* Desktop nav — hidden on mobile via .mdu-header-nav */}
@@ -83,7 +83,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                       fontFamily: 'var(--font-manrope)',
                       fontWeight: active ? 700 : 500,
                       fontSize: 14,
-                      color: active || ligaOpen ? '#D40000' : 'var(--th-text-body)',
+                      color: active || ligaOpen ? 'var(--th-accent)' : 'var(--th-text-body)',
                       textDecoration: 'none',
                       padding: '24px 0',
                       position: 'relative',
@@ -107,7 +107,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                     {active && (
                       <span style={{
                         position: 'absolute', left: 0, right: 0, bottom: 0,
-                        height: 2, background: '#D40000', borderRadius: 1,
+                        height: 2, background: 'var(--th-accent)', borderRadius: 1,
                       }} />
                     )}
                   </Link>
@@ -194,7 +194,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                   fontFamily: 'var(--font-manrope)',
                   fontWeight: active ? 700 : 500,
                   fontSize: 14,
-                  color: active ? '#D40000' : 'var(--th-text-body)',
+                  color: active ? 'var(--th-accent)' : 'var(--th-text-body)',
                   textDecoration: 'none',
                   padding: '24px 0',
                   position: 'relative',
@@ -210,7 +210,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                 {active && (
                   <span style={{
                     position: 'absolute', left: 0, right: 0, bottom: 0,
-                    height: 2, background: '#D40000', borderRadius: 1,
+                    height: 2, background: 'var(--th-accent)', borderRadius: 1,
                   }} />
                 )}
               </Link>
@@ -229,8 +229,8 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           className="mdu-header-login"
           style={{
             padding: '9px 22px', borderRadius: 6,
-            background: 'transparent', color: '#D40000',
-            border: '1.5px solid #D40000', fontFamily: 'var(--font-manrope)',
+            background: 'transparent', color: 'var(--th-accent)',
+            border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
             fontWeight: 700, fontSize: 14, textDecoration: 'none',
             letterSpacing: '0.02em', transition: 'all 150ms', flexShrink: 0,
             display: 'inline-block',
@@ -245,8 +245,8 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           className="mdu-mobile-login"
           style={{
             padding: '8px 16px', borderRadius: 6,
-            background: 'transparent', color: '#D40000',
-            border: '1.5px solid #D40000', fontFamily: 'var(--font-manrope)',
+            background: 'transparent', color: 'var(--th-accent)',
+            border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
             fontWeight: 700, fontSize: 13, textDecoration: 'none',
             letterSpacing: '0.04em', flexShrink: 0,
           }}

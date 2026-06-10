@@ -64,8 +64,8 @@ export default function AdminNewsPage() {
           />
 
           {/* Image dropzone */}
-          <div style={{ marginTop: 16, padding: '28px 20px', border: '1.5px dashed rgba(212,0,0,0.4)', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-            <Icon name="upload" size={22} style={{ color: '#D40000' }} />
+          <div style={{ marginTop: 16, padding: '28px 20px', border: '1.5px dashed var(--th-accent-a40)', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+            <Icon name="upload" size={22} style={{ color: 'var(--th-accent)' }} />
             <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Bild hier ablegen oder klicken zum Hochladen</span>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function AdminNewsPage() {
           ))}
 
           <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
-            <button style={{ flex: 1, padding: '11px', background: '#D40000', color: '#fff', border: '1px solid #FF1F1F', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Veröffentlichen</button>
+            <button style={{ flex: 1, padding: '11px', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Veröffentlichen</button>
             <button style={{ padding: '11px 16px', background: 'var(--th-line-4)', color: 'var(--th-text-body)', border: '1px solid var(--th-line-8)', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Entwurf</button>
           </div>
         </div>

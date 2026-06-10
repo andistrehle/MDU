@@ -37,7 +37,7 @@ const TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik', 'Ga
 
 // ── Shared helpers ─────────────────────────────────────────────
 
-function SectionLabel({ children, color = '#D40000' }: { children: React.ReactNode; color?: string }) {
+function SectionLabel({ children, color = 'var(--th-accent)' }: { children: React.ReactNode; color?: string }) {
   return (
     <div style={{
       fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,

@@ -16,13 +16,13 @@ export default function TeamsPage() {
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
         {/* Page header */}
         <div style={{ marginBottom: 40 }}>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#D40000', textTransform: 'uppercase', marginBottom: 8 }}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8 }}>
             {season.name}
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48,
             letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
+            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
           }}>
             Teams
           </h1>
@@ -93,7 +93,7 @@ export default function TeamsPage() {
                             <div style={{
                               fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
                               letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2,
-                              color: isInactive ? '#D40000' : league.color,
+                              color: isInactive ? 'var(--th-accent)' : league.color,
                             }}>
                               {isInactive ? 'Zurückgezogen' : league.name}
                             </div>

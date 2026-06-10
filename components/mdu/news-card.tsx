@@ -10,7 +10,7 @@ interface NewsCardProps {
 }
 
 const toneColor: Record<TagTone, string> = {
-  red:     '#D40000',
+  red:     'var(--th-accent)',
   gold:    'var(--th-gold)',
   blue:    '#3B82F6',
   green:   '#22C55E',

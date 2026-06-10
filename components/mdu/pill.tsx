@@ -12,11 +12,11 @@ interface PillProps {
 
 const tones: Record<PillTone, { bg: string; fg: string; dot: string }> = {
   neutral: { bg: 'var(--th-line-6)', fg: 'var(--th-text-body)', dot: 'var(--th-text-dim)' },
-  red:     { bg: 'rgba(212,0,0,0.16)',     fg: 'var(--th-loss)', dot: '#FF1F1F' },
+  red:     { bg: 'rgba(212,0,0,0.16)',     fg: 'var(--th-loss)', dot: 'var(--th-accent-hover)' },
   green:   { bg: 'rgba(34,197,94,0.14)',   fg: 'var(--th-win)', dot: '#22C55E' },
   blue:    { bg: 'rgba(59,130,246,0.14)',  fg: '#6FA3FF', dot: '#3B82F6' },
   gold:    { bg: 'rgba(232,184,74,0.16)',  fg: '#F0CB6E', dot: 'var(--th-gold)' },
-  live:    { bg: 'rgba(212,0,0,0.18)',     fg: 'var(--th-loss)', dot: '#FF1F1F' },
+  live:    { bg: 'rgba(212,0,0,0.18)',     fg: 'var(--th-loss)', dot: 'var(--th-accent-hover)' },
 };
 
 export function Pill({ tone = 'neutral', children, dot = true, style, className }: PillProps) {

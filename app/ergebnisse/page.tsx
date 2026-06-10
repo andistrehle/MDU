@@ -35,14 +35,14 @@ export default function ErgebnissePage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{
             fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '0.2em', color: '#D40000', textTransform: 'uppercase', marginBottom: 8,
+            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
           }}>
             Letzte Spieltage
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48,
             letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
+            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
           }}>
             Ergebnisse
           </h1>
@@ -62,7 +62,7 @@ export default function ErgebnissePage() {
             {groups.map(({ leagueId, matches }) => {
               const league = findLeague(leagueId);
               const leagueName  = league?.name  ?? leagueId.toUpperCase();
-              const leagueColor = league?.color ?? '#D40000';
+              const leagueColor = league?.color ?? 'var(--th-accent)';
 
               const matchdayGroups = groupMatchesByMatchday(matches);
 

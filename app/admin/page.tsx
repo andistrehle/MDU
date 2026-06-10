@@ -3,7 +3,7 @@ import { Pill } from '@/components/mdu/pill';
 import { TeamBadge } from '@/components/mdu/team-badge';
 
 const KPI_CARDS = [
-  { kicker: 'Ligen Saison 2026',   value: '6',  delta: '0',  deltaPos: true,  sub: 'LA · A1 · A2 · B1 · B2 · C', c: '#D40000' },
+  { kicker: 'Ligen Saison 2026',   value: '6',  delta: '0',  deltaPos: true,  sub: 'LA · A1 · A2 · B1 · B2 · C', c: 'var(--th-accent)' },
   { kicker: 'Teams gesamt',        value: '36', delta: '0',  deltaPos: true,  sub: 'alle Spielklassen',           c: '#3B82F6' },
   { kicker: 'Playoff-Phase',       value: 'Aktiv', delta: '', deltaPos: true, sub: 'Aufstieg & Abstieg laufen',   c: 'var(--th-gold)' },
   { kicker: 'Offene Tickets',      value: '—',  delta: '',   deltaPos: true,  sub: 'Noch nicht verfügbar',        c: '#22C55E' },
@@ -17,7 +17,7 @@ const MATCH_TABLE = [
 ];
 
 const TODO_ITEMS = [
-  { dot: '#D40000', text: 'Spielstätten aller Teams in der Datenbank ergänzen' },
+  { dot: 'var(--th-accent)', text: 'Spielstätten aller Teams in der Datenbank ergänzen' },
   { dot: 'var(--th-gold)', text: 'Playoff-Spielpläne für A Liga und B Liga eintragen' },
   { dot: '#3B82F6', text: 'Kader-Daten von Vereinen anfordern und pflegen' },
   { dot: '#22C55E', text: 'Rückzug De Wolperdinga (A2) offiziell verarbeiten' },
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
         <div style={{ background: 'linear-gradient(180deg, var(--th-bg-card3), var(--th-bg-card2))', border: '1px solid var(--th-line-6)', borderRadius: 14 }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--th-line-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Spiele</span>
-            <button style={{ padding: '8px 14px', background: '#D40000', color: '#fff', border: 'none', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button style={{ padding: '8px 14px', background: 'var(--th-accent)', color: '#fff', border: 'none', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="plus" size={14} /> Neues Spiel
             </button>
           </div>
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
               padding: '14px 0', borderBottom: i < MEMBERS.length - 1 ? '1px solid var(--th-line-4)' : 'none',
               alignItems: 'center', gap: 14,
             }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#D40000,#8A0000)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12, color: '#fff' }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--th-accent),var(--th-accent-deep))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12, color: '#fff' }}>
                 {m.initials}
               </div>
               <div>

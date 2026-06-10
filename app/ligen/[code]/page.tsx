@@ -44,7 +44,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
   const leagueShape = {
     id:     league?.id     ?? code,
     name:   leagueName,
-    color:  league?.color  ?? '#D40000',
+    color:  league?.color  ?? 'var(--th-accent)',
     season: league?.season ?? '2026',
     type:   league?.type,
   } as const;
@@ -71,7 +71,8 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
           maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
         }}>
-          <Image src="/mdu-hero-dartboard-2.png" alt="" width={680} height={680}
+          <Image src="/mdu-hero-dartboard-2.webp"
+            unoptimized alt="" width={680} height={680}
             style={{ width: 680, height: 680, objectFit: 'cover', objectPosition: 'center' }} />
         </div>
         <div aria-hidden style={{
@@ -95,7 +96,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, lineHeight: 0.92,
             letterSpacing: '-0.005em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
-            paddingBottom: 14, borderBottom: `3px solid ${league?.color ?? '#D40000'}`, display: 'inline-block',
+            paddingBottom: 14, borderBottom: `3px solid ${league?.color ?? 'var(--th-accent)'}`, display: 'inline-block',
           }}>
             {leagueName}
           </h1>

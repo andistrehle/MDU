@@ -30,14 +30,14 @@ export function BottomNav() {
             href={item.href}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-              position: 'relative', color: active ? '#D40000' : 'var(--th-text-muted)',
+              position: 'relative', color: active ? 'var(--th-accent)' : 'var(--th-text-muted)',
               textDecoration: 'none', minWidth: 48,
             }}
           >
             {active && (
               <span style={{
                 position: 'absolute', top: -10, width: 5, height: 5, borderRadius: '50%',
-                background: '#D40000', boxShadow: '0 0 8px #D40000',
+                background: 'var(--th-accent)', boxShadow: '0 0 8px var(--th-accent)',
               }} />
             )}
             <Icon name={item.icon} size={20} stroke={active ? 2.2 : 1.8} />

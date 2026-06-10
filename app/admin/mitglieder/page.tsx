@@ -4,7 +4,7 @@ import { Icon } from '@/components/mdu/icon';
 // MDU contact persons from dartunion.de/kontakt.php
 // Player/member data is not publicly listed — to be added once provided by teams
 const MEMBERS = [
-  { initials: 'DK', color: '#D40000', name: 'Dimo Katsikas',    email: 'info@dartunion.de',      role: 'Präsident',  status: 'Aktiv', lastSeen: '—' },
+  { initials: 'DK', color: 'var(--th-accent)', name: 'Dimo Katsikas',    email: 'info@dartunion.de',      role: 'Präsident',  status: 'Aktiv', lastSeen: '—' },
   { initials: 'MD', color: '#3B82F6', name: 'Manfred Domandl',  email: 'manfred@domandl.com',    role: 'Technik',    status: 'Aktiv', lastSeen: '—' },
 ];
 
@@ -16,7 +16,7 @@ export default function AdminMitgliederPage() {
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', color: 'var(--th-text-faint2)', textTransform: 'uppercase', marginBottom: 6 }}>Admin · Verwaltung</div>
           <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 }}>Mitglieder</h1>
         </div>
-        <button style={{ padding: '11px 18px', background: '#D40000', color: '#fff', border: '1px solid #FF1F1F', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button style={{ padding: '11px 18px', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="plus" size={16} /> Mitglied hinzufügen
         </button>
       </div>
