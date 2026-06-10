@@ -6,6 +6,153 @@
   --font-jetbrains: var(--font-jetbrains-mono);
 }
 
+/* =====================================================
+   THEME TOKENS — Dark (default) / Light
+   All component inline styles reference these via var().
+   Light mode is activated by html[data-theme="light"]
+   (set by ThemeToggle, persisted in localStorage).
+   ===================================================== */
+:root {
+  /* Backgrounds */
+  --th-bg-page:    #05070A;
+  --th-bg-deep:    #0A0B0F;
+  --th-bg-header:  #0D1117;
+  --th-bg-card:    #121821;
+  --th-bg-card2:   #11141B;
+  --th-bg-card3:   #14161E;
+  --th-bg-inset:   #1a2030;
+  --th-bg-raised:  #1E2330;
+
+  /* Text */
+  --th-text-strong: #F5F6FA;
+  --th-text-body:   #C9CCD6;
+  --th-text-muted:  #9AA4B2;
+  --th-text-dim:    #8A8F9C;
+  --th-text-faint:  #6A6E7B;
+  --th-text-faint2: #5A5F6C;
+
+  /* Borders / white-alpha surfaces */
+  --th-line-3:  rgba(255,255,255,0.03);
+  --th-line-4:  rgba(255,255,255,0.04);
+  --th-line-5:  rgba(255,255,255,0.05);
+  --th-line-6:  rgba(255,255,255,0.06);
+  --th-line-8:  rgba(255,255,255,0.08);
+  --th-line-10: rgba(255,255,255,0.10);
+  --th-line-18: rgba(255,255,255,0.18);
+
+  /* Semantic accents that need a light-mode variant for contrast */
+  --th-win:  #5BE08C;
+  --th-loss: #FF6B6B;
+  --th-gold: #E8B84A;
+
+  --th-shadow: rgba(0,0,0,0.25);
+
+  /* Sticky header glass background */
+  --th-bg-glass: rgba(5,7,10,0.92);
+
+  /* Hero/banner overlay veils (page-bg tinted, varying opacity) */
+  --th-veil-40: rgba(5,7,10,0.4);
+  --th-veil-50: rgba(5,7,10,0.5);
+  --th-veil-70: rgba(5,7,10,0.7);
+
+  /* Sticky tab bars (league / team detail) */
+  --th-bg-tabbar1: rgba(13,17,23,0.6);
+  --th-bg-tabbar2: rgba(10,11,15,0.8);
+}
+
+html[data-theme="light"] {
+  --th-bg-page:    #F2F4F7;
+  --th-bg-deep:    #E9ECF1;
+  --th-bg-header:  #FFFFFF;
+  --th-bg-card:    #FFFFFF;
+  --th-bg-card2:   #FFFFFF;
+  --th-bg-card3:   #F8F9FB;
+  --th-bg-inset:   #E7EAF0;
+  --th-bg-raised:  #E2E6EC;
+
+  --th-text-strong: #1A1D24;
+  --th-text-body:   #3D4452;
+  --th-text-muted:  #5C6470;
+  --th-text-dim:    #6E7480;
+  --th-text-faint:  #818793;
+  --th-text-faint2: #9AA0AA;
+
+  --th-line-3:  rgba(15,23,42,0.03);
+  --th-line-4:  rgba(15,23,42,0.05);
+  --th-line-5:  rgba(15,23,42,0.06);
+  --th-line-6:  rgba(15,23,42,0.08);
+  --th-line-8:  rgba(15,23,42,0.10);
+  --th-line-10: rgba(15,23,42,0.13);
+  --th-line-18: rgba(15,23,42,0.20);
+
+  --th-win:  #1E9E5A;
+  --th-loss: #CC2E2E;
+  --th-gold: #B8860B;
+
+  --th-shadow: rgba(15,23,42,0.10);
+
+  --th-bg-glass: rgba(255,255,255,0.92);
+
+  /* Subpage banner veils are much stronger in light mode so the dark
+     dartboard photo fades softly into the light background. The homepage
+     hero keeps its own balance via veil-50. */
+  --th-veil-40: rgba(242,244,247,0.82);
+  --th-veil-50: rgba(242,244,247,0.5);
+  --th-veil-70: rgba(242,244,247,0.96);
+
+  --th-bg-tabbar1: rgba(255,255,255,0.8);
+  --th-bg-tabbar2: rgba(255,255,255,0.88);
+}
+
+/* =====================================================
+   LIGHT MODE — classic dartunion.de look
+   Blue header bar, green table header, light-blue rows
+   (matches the long-standing dartunion.de design).
+   !important is required to override inline styles.
+   ===================================================== */
+
+/* Blue header bar (old site: blue banner + green nav) */
+html[data-theme="light"] .mdu-site-header {
+  background: linear-gradient(180deg, #7FA6DA 0%, #5F8CC9 100%) !important;
+  border-bottom: 1px solid #4E79B4 !important;
+}
+html[data-theme="light"] .mdu-nav-link {
+  color: #FFFFFF !important;
+}
+html[data-theme="light"] .mdu-nav-link:hover {
+  color: #EAF2C0 !important;
+}
+html[data-theme="light"] .mdu-header-login a,
+html[data-theme="light"] a.mdu-header-login,
+html[data-theme="light"] a.mdu-mobile-login {
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+}
+
+/* Standings table — green header row, light-blue data rows */
+html[data-theme="light"] .mdu-st-head {
+  background: #A9C83D !important;
+  color: #243018 !important;
+  border-radius: 6px;
+  border-bottom: none !important;
+}
+html[data-theme="light"] .mdu-st-row {
+  background: #A9BFE6 !important;
+  border-bottom: 1px solid #FFFFFF !important;
+}
+html[data-theme="light"] .mdu-st-row:hover {
+  background: #98B1DF !important;
+}
+html[data-theme="light"] .mdu-st-row-m {
+  background: #A9BFE6 !important;
+  border-bottom: 1px solid #FFFFFF !important;
+}
+
+/* Soften the dartboard photo on sub-page banners (league/team) */
+html[data-theme="light"] .mdu-banner-dartboard {
+  opacity: 0.28 !important;
+}
+
 :root {
   --color-bg-primary:   #05070A;
   --color-bg-secondary: #0D1117;
@@ -38,14 +185,14 @@
 * { box-sizing: border-box; }
 
 html {
-  background: #05070A;
-  color: #F5F6FA;
+  background: var(--th-bg-page);
+  color: var(--th-text-strong);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden; /* prevent document-level horizontal scroll */
 }
 
 body {
-  background: #05070A;
+  background: var(--th-bg-page);
   min-height: 100vh;
   font-family: var(--font-manrope), system-ui, sans-serif;
   /* overflow-x: clip prevents page-level horizontal scroll without creating a
@@ -58,10 +205,10 @@ body {
 .font-mono-mdu { font-family: var(--font-jetbrains-mono), ui-monospace, monospace; }
 
 .mdu-card {
-  background: linear-gradient(180deg, #14161E 0%, #11141B 100%);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%);
+  border: 1px solid var(--th-line-6);
   border-radius: 14px;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 28px rgba(0,0,0,0.25);
+  box-shadow: 0 1px 0 var(--th-line-4) inset, 0 8px 28px var(--th-shadow);
 }
 
 .mdu-card-hover {
@@ -76,7 +223,7 @@ body {
   box-shadow: 0 18px 36px rgba(0,0,0,0.45), 0 0 0 1px rgba(212,0,0,0.25) !important;
 }
 
-.mdu-row-hover:hover { background: rgba(255,255,255,0.025); }
+.mdu-row-hover:hover { background: var(--th-line-3); }
 
 /* ── Ligen nav dropdown item hover ─────────────────────────── */
 .mdu-nav-dropdown-item:hover {
@@ -89,7 +236,7 @@ body {
   font-weight: 900;
   font-size: 26px;
   letter-spacing: 0.06em;
-  color: #F5F6FA;
+  color: var(--th-text-strong);
   text-transform: uppercase;
   padding-bottom: 8px;
   border-bottom: 2px solid #D40000;
@@ -124,8 +271,8 @@ body {
    Fixed columns sum to ~440px; the rest goes to the team name (ellipsized). */
 .mdu-standings-inner { min-width: 580px; }
 .mdu-table-scroll::-webkit-scrollbar { height: 4px; }
-.mdu-table-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-.mdu-table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
+.mdu-table-scroll::-webkit-scrollbar-track { background: var(--th-line-3); }
+.mdu-table-scroll::-webkit-scrollbar-thumb { background: var(--th-line-10); border-radius: 2px; }
 
 /* =====================================================
    @media (max-width: 1100px) — narrow desktop / tablet

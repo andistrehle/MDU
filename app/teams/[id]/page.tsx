@@ -86,16 +86,16 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const completedMatches = filteredCompleted.length > 0 ? filteredCompleted : allCompleted;
 
   return (
-    <div style={{ background: '#0A0B0F', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-deep)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/teams" />
 
       {/* Hero */}
       <div style={{
         position: 'relative', overflow: 'hidden',
-        background: `linear-gradient(180deg, ${shade(team.color, -0.55)}22 0%, #0A0B0F 100%), #0A0B0F`,
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: `linear-gradient(180deg, ${shade(team.color, -0.55)}22 0%, var(--th-bg-deep) 100%), var(--th-bg-deep)`,
+        borderBottom: '1px solid var(--th-line-6)',
       }}>
-        <div aria-hidden style={{
+        <div aria-hidden className="mdu-banner-dartboard" style={{
           position: 'absolute', right: -220, top: '50%', transform: 'translateY(-50%)',
           width: 680, height: 680, pointerEvents: 'none', opacity: 0.5,
           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
@@ -110,29 +110,29 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
         }} />
         <div aria-hidden style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(90deg, #0A0B0F 35%, rgba(10,11,15,0.4) 65%, rgba(10,11,15,0.75))',
+          background: 'linear-gradient(90deg, var(--th-bg-deep) 35%, var(--th-veil-40) 65%, var(--th-veil-70))',
         }} />
 
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '34px 32px 30px', position: 'relative' }}>
           {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#8A8F9C', marginBottom: 24 }}>
-            <Link href="/" style={{ color: '#8A8F9C', textDecoration: 'none' }}>Startseite</Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-dim)', marginBottom: 24 }}>
+            <Link href="/" style={{ color: 'var(--th-text-dim)', textDecoration: 'none' }}>Startseite</Link>
             <Icon name="chevron" size={12} />
-            <Link href="/teams" style={{ color: '#8A8F9C', textDecoration: 'none' }}>Teams</Link>
+            <Link href="/teams" style={{ color: 'var(--th-text-dim)', textDecoration: 'none' }}>Teams</Link>
             <Icon name="chevron" size={12} />
-            <span style={{ color: '#F5F6FA' }}>{team.name}</span>
+            <span style={{ color: 'var(--th-text-strong)' }}>{team.name}</span>
           </div>
 
           {/* Team identity */}
           <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>
             <div className="mdu-team-logo" style={{
               width: 144, height: 144, borderRadius: '24%', flexShrink: 0,
-              background: team.logoUrl ? '#F5F6FA' : `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
-              border: '2px solid #E8B84A',
+              background: team.logoUrl ? 'var(--th-text-strong)' : `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
+              border: '2px solid var(--th-gold)',
               boxShadow: `0 24px 60px ${team.color}50, inset 0 2px 0 rgba(255,255,255,0.2)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden',
-              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, color: '#F5F6FA',
+              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, color: 'var(--th-text-strong)',
             }}>
               {team.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -153,12 +153,12 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               </div>
               <h1 className="mdu-team-name" style={{
                 fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 72,
-                lineHeight: 0.9, letterSpacing: '-0.005em', color: '#F5F6FA',
+                lineHeight: 0.9, letterSpacing: '-0.005em', color: 'var(--th-text-strong)',
                 margin: 0, textTransform: 'uppercase',
               }}>
                 {team.name}
               </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#C9CCD6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-body)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Icon name="pin" size={14} stroke={2} /> {venueLabel}
                 </span>
@@ -177,28 +177,28 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           {/* KPI strip */}
           <div className="mdu-kpi-strip" style={{
             marginTop: 34, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1,
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-line-6)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, overflow: 'hidden',
           }}>
             {[
-              { n: teamStanding ? `${teamStanding.pos}.` : '—', l: 'Tabellenplatz', c: teamStanding?.pos === 1 ? '#E8B84A' : undefined },
+              { n: teamStanding ? `${teamStanding.pos}.` : '—', l: 'Tabellenplatz', c: teamStanding?.pos === 1 ? 'var(--th-gold)' : undefined },
               { n: teamStanding ? String(teamStanding.sp) : '—', l: 'Spiele' },
               { n: teamStanding ? String(teamStanding.s)  : '—', l: 'Siege' },
               { n: teamStanding ? String(teamStanding.n)  : '—', l: 'Niederlagen' },
               { n: teamStanding?.legs ?? '—',                     l: 'Legs', mono: true },
               { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte' },
             ].map((s, i) => (
-              <div key={i} style={{ background: '#14161E', padding: '18px 18px' }}>
+              <div key={i} style={{ background: 'var(--th-bg-card3)', padding: '18px 18px' }}>
                 <div style={{
                   fontFamily: s.mono ? 'var(--font-jetbrains-mono)' : 'var(--font-saira-condensed)',
                   fontWeight: 900, fontSize: s.mono ? 22 : 32,
-                  color: s.c ?? '#F5F6FA', lineHeight: 1,
+                  color: s.c ?? 'var(--th-text-strong)', lineHeight: 1,
                 }}>
                   {s.n}
                 </div>
                 <div style={{
                   fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                  letterSpacing: '0.2em', color: '#8A8F9C', textTransform: 'uppercase', marginTop: 8,
+                  letterSpacing: '0.2em', color: 'var(--th-text-dim)', textTransform: 'uppercase', marginTop: 8,
                 }}>
                   {s.l}
                 </div>

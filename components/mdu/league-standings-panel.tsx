@@ -50,7 +50,7 @@ function HexBadge({ short, color }: { short: string; color: string }) {
   return (
     <div style={{
       width: 62, height: 72, flexShrink: 0, position: 'relative',
-      background: 'linear-gradient(180deg, #2C313F, #14161E)',
+      background: 'linear-gradient(180deg, #2C313F, var(--th-bg-card3))',
       clipPath: 'polygon(50% 0, 100% 18%, 100% 70%, 50% 100%, 0 70%, 0 18%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
@@ -115,20 +115,20 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
         {noData ? (
           /* Empty state for Abstieg groups (no data yet) */
           <div style={{
-            background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, padding: '36px 24px',
-            fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6A6E7B',
+            fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)',
             fontStyle: 'italic',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <Icon name="calendar" size={16} stroke={2} style={{ color: '#6A6E7B', flexShrink: 0 }} />
-              <span style={{ fontWeight: 700, color: '#9AA4B2', fontStyle: 'normal' }}>
+              <Icon name="calendar" size={16} stroke={2} style={{ color: 'var(--th-text-faint)', flexShrink: 0 }} />
+              <span style={{ fontWeight: 700, color: 'var(--th-text-muted)', fontStyle: 'normal' }}>
                 Spielstände noch nicht verfügbar
               </span>
             </div>
             <div>
               Teilnehmer und Spielplan folgen auf{' '}
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: '#9AA4B2', textDecoration: 'underline' }}>
+              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
                 dartunion.de
               </a>.
             </div>
@@ -148,7 +148,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
                 background: 'rgba(232,184,74,0.07)', border: '1px solid rgba(232,184,74,0.15)',
                 borderRadius: 8, padding: '10px 14px',
                 display: 'flex', alignItems: 'center', gap: 10,
-                fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#E8B84A',
+                fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-gold)',
               }}>
                 <Icon name="calendar" size={14} stroke={2} style={{ flexShrink: 0 }} />
                 Spielplan noch nicht verfügbar — erste Spiele am 28.05.2026.
@@ -161,19 +161,19 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
       {/* ── Right: Team card ──────────────────────────────── */}
       <div style={{
         minWidth: 0,
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
         borderRadius: 14, padding: '22px 24px',
       }}>
         {/* Breadcrumb */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2', marginBottom: 16,
+          fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginBottom: 16,
         }}>
-          <Link href="/" style={{ color: '#9AA4B2', textDecoration: 'none' }}>Startseite</Link>
+          <Link href="/" style={{ color: 'var(--th-text-muted)', textDecoration: 'none' }}>Startseite</Link>
           <Icon name="chevron" size={10} />
           <span>Teams</span>
           <Icon name="chevron" size={10} />
-          <span style={{ color: '#F5F6FA' }}>{displayName || '—'}</span>
+          <span style={{ color: 'var(--th-text-strong)' }}>{displayName || '—'}</span>
         </div>
 
         {/* Badge + name */}
@@ -182,12 +182,12 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
           <div>
             <h2 style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 30,
-              letterSpacing: '0.03em', color: '#FFFFFF', margin: 0,
+              letterSpacing: '0.03em', color: 'var(--th-text-strong)', margin: 0,
               textTransform: 'uppercase', lineHeight: 1,
             }}>
               {displayName || '—'}
             </h2>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#9AA4B2', marginTop: 6 }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 6 }}>
               {league.name}
             </div>
           </div>
@@ -196,7 +196,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
         {/* Tab bar (decorative) */}
         <div
           className="mdu-tabs-row"
-          style={{ display: 'flex', gap: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 18 }}
+          style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--th-line-6)', marginBottom: 18 }}
         >
           {TEAM_TABS.map((tab, i) => (
             <div
@@ -204,7 +204,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
               style={{
                 padding: '10px 0',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
-                color: i === 0 ? '#D40000' : '#9AA4B2',
+                color: i === 0 ? '#D40000' : 'var(--th-text-muted)',
                 borderBottom: i === 0 ? '2px solid #D40000' : '2px solid transparent',
                 marginBottom: -1, cursor: 'pointer',
                 letterSpacing: '0.04em', textTransform: 'uppercase',
@@ -234,8 +234,8 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
               { k: 'Kapitän',       v: info.captain },
             ].map(row => (
               <div key={row.k} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 10, alignItems: 'start', marginBottom: 10 }}>
-                <span style={{ color: '#9AA4B2', fontSize: 12, fontFamily: 'var(--font-manrope)' }}>{row.k}</span>
-                <span style={{ color: '#F5F6FA', fontWeight: 600, fontSize: 12, fontFamily: 'var(--font-manrope)' }}>{row.v}</span>
+                <span style={{ color: 'var(--th-text-muted)', fontSize: 12, fontFamily: 'var(--font-manrope)' }}>{row.k}</span>
+                <span style={{ color: 'var(--th-text-strong)', fontWeight: 600, fontSize: 12, fontFamily: 'var(--font-manrope)' }}>{row.v}</span>
               </div>
             ))}
           </div>
@@ -248,18 +248,18 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
             }}>
               Kurzinfo
             </div>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6', lineHeight: 1.55, margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.55, margin: 0 }}>
               {kurzinfo}
             </p>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B', lineHeight: 1.55, margin: '10px 0 0' }}>
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.55, margin: '10px 0 0' }}>
               Vollständige Informationen auf{' '}
-              <span style={{ color: '#9AA4B2' }}>dartunion.de</span>
+              <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>
             </p>
           </div>
         </div>
 
         {/* Top 3 */}
-        <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid var(--th-line-6)' }}>
           <div style={{
             fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
             letterSpacing: '0.16em', color: '#D40000', textTransform: 'uppercase', marginBottom: 12,
@@ -272,7 +272,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
                 <div
                   key={r.pos}
                   style={{
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--th-line-3)', border: '1px solid var(--th-line-6)',
                     borderRadius: 8, padding: '10px 12px',
                     cursor: 'pointer',
                   }}
@@ -280,24 +280,24 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
                 >
                   <div style={{
                     fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                    color: r.pos <= 2 ? '#E8B84A' : '#F5F6FA',
+                    color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-strong)',
                   }}>
                     {r.pos}.
                   </div>
                   <div style={{
-                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA',
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)',
                     marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>
                     {r.name.replace(' *', '')}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2', marginTop: 2 }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
                     {r.pts} Pkt.
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B', fontStyle: 'italic' }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
               Noch keine Spielstände verfügbar.
             </div>
           )}
@@ -321,7 +321,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
         ) : (
           <div style={{
             marginTop: 18, width: '100%', padding: '13px',
-            background: '#1E2330', color: '#6A6E7B', borderRadius: 6,
+            background: 'var(--th-bg-raised)', color: 'var(--th-text-faint)', borderRadius: 6,
             fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
             letterSpacing: '0.16em', textTransform: 'uppercase', textAlign: 'center',
           }}>

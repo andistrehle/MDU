@@ -63,19 +63,19 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function EmptyState({ icon, text, sub }: { icon: string; text: string; sub?: string }) {
   return (
     <div style={{
-      background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
       borderRadius: 14, padding: '36px 24px',
-      fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6A6E7B',
+      fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <Icon name={icon as 'calendar'} size={16} stroke={2} style={{ color: '#6A6E7B', flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, color: '#9AA4B2', fontStyle: 'normal' }}>{text}</span>
+        <Icon name={icon as 'calendar'} size={16} stroke={2} style={{ color: 'var(--th-text-faint)', flexShrink: 0 }} />
+        <span style={{ fontWeight: 700, color: 'var(--th-text-muted)', fontStyle: 'normal' }}>{text}</span>
       </div>
       {sub && (
         <div>
           {sub}{' '}
           <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#9AA4B2', textDecoration: 'underline' }}>
+            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
             dartunion.de
           </a>.
         </div>
@@ -109,7 +109,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
 
         {/* League Summary card */}
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <SectionLabel>Liga Übersicht</SectionLabel>
@@ -121,10 +121,10 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
               { k: 'Status',  v: league.type === 'playoff' ? 'Playoffs · laufend' : 'Reguläre Saison · abgeschlossen' },
             ].map(item => (
               <div key={item.k} style={{ borderLeft: `3px solid ${league.color}`, paddingLeft: 10 }}>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', marginBottom: 2 }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginBottom: 2 }}>
                   {item.k}
                 </div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
                   {item.v}
                 </div>
               </div>
@@ -135,7 +135,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
         {/* Top 3 */}
         {top3.length > 0 && (
           <div style={{
-            background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, padding: '22px 24px',
           }}>
             <SectionLabel>Tabellenkopf</SectionLabel>
@@ -146,12 +146,12 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                   <div key={r.team} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 12px', borderRadius: 8,
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--th-line-3)', border: '1px solid var(--th-line-6)',
                     cursor: 'pointer',
                   }}>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
-                      color: r.pos <= 2 ? '#E8B84A' : '#F5F6FA', width: 28, flexShrink: 0,
+                      color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-strong)', width: 28, flexShrink: 0,
                     }}>
                       {r.pos}.
                     </span>
@@ -159,19 +159,19 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                        color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {r.name.replace(' *', '')}
                       </div>
-                      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2', marginTop: 2 }}>
+                      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
                         {r.sp} Sp · {r.s}W {r.u}U {r.n}N
                       </div>
                     </div>
                     <div style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
-                      color: '#F5F6FA', flexShrink: 0,
+                      color: 'var(--th-text-strong)', flexShrink: 0,
                     }}>
-                      {r.pts} <span style={{ fontSize: 12, color: '#9AA4B2', fontFamily: 'var(--font-manrope)', fontWeight: 600 }}>Pkt</span>
+                      {r.pts} <span style={{ fontSize: 12, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 600 }}>Pkt</span>
                     </div>
                   </div>
                 );
@@ -186,7 +186,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
 
         {/* Next matches */}
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <SectionLabel>Nächste Spiele</SectionLabel>
@@ -198,21 +198,21 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                 return (
                   <div key={m.id} style={{
                     padding: '10px 12px', borderRadius: 8,
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--th-line-3)', border: '1px solid var(--th-line-6)',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                      <Icon name="calendar" size={12} stroke={2} style={{ color: '#9AA4B2', flexShrink: 0 }} />
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2' }}>
+                      <Icon name="calendar" size={12} stroke={2} style={{ color: 'var(--th-text-muted)', flexShrink: 0 }} />
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)' }}>
                         {formatScheduledDate(m.date)}{m.time ? ` · ${m.time}` : ''}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={22} />
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {homeTeam.name}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', flexShrink: 0 }}>vs</span>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', flexShrink: 0 }}>vs</span>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
                         {awayTeam.name}
                       </span>
                       <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={22} />
@@ -222,9 +222,9 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
               })}
             </div>
           ) : (
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B', fontStyle: 'italic' }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
               Spielplan wird auf{' '}
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>
+              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>
               {' '}veröffentlicht.
             </div>
           )}
@@ -233,7 +233,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
         {/* Top scorer */}
         {topScorer && (
           <div style={{
-            background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, padding: '22px 24px',
           }}>
             <SectionLabel>Bester Spieler</SectionLabel>
@@ -248,21 +248,21 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                 </span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: '#F5F6FA', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: 'var(--th-text-strong)', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
                   {topScorer.name}
                 </div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2', marginTop: 2 }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
                   {topScorer.teamName}
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, color: '#E8B84A' }}>
+                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, color: 'var(--th-gold)' }}>
                   {topScorer.pts}
                 </div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2' }}>Punkte</div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)' }}>Punkte</div>
               </div>
             </div>
-            <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B' }}>
+            <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>
               {topScorer.wins}W · {topScorer.losses}N — Einzelrangliste · dartunion.de
             </div>
           </div>
@@ -293,16 +293,16 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
           }}>
             <Icon name="check" size={16} stroke={2} style={{ color: '#10B981', flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
                 Reguläre Saison abgeschlossen
               </div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2', marginTop: 2 }}>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
                 {league.name} · Saison {league.season} · alle Spieltage gespielt
               </div>
             </div>
             <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{
               fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-              color: '#9AA4B2', textDecoration: 'underline', flexShrink: 0,
+              color: 'var(--th-text-muted)', textDecoration: 'underline', flexShrink: 0,
             }}>
               Spielplan auf dartunion.de →
             </a>
@@ -318,31 +318,31 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
               const awayTeam = getExtendedTeam(m.awayTeamId);
               return (
                 <div key={m.id} className="mdu-spielplan-card" style={{
-                  background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
                   borderRadius: 12, padding: '14px 16px',
                 }}>
                   {/* Date/time row */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <Icon name="calendar" size={12} stroke={2} style={{ color: '#9AA4B2', flexShrink: 0 }} />
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2' }}>
+                    <Icon name="calendar" size={12} stroke={2} style={{ color: 'var(--th-text-muted)', flexShrink: 0 }} />
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)' }}>
                       {formatScheduledDate(m.date)}{m.time ? ` · ${m.time} Uhr` : ''}
                     </span>
-                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', padding: '2px 8px', background: 'rgba(255,255,255,0.04)', borderRadius: 4 }}>
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', padding: '2px 8px', background: 'var(--th-line-4)', borderRadius: 4 }}>
                       {getVenueForTeamInSeason(m.homeTeamId, 'season-2026')?.name ?? 'Ort folgt'}
                     </span>
                   </div>
                   {/* Teams row — 3-col grid, no overflow */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 1fr', alignItems: 'center', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end', minWidth: 0 }}>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {homeTeam.name}
                       </span>
                       <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={28} />
                     </div>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B', textAlign: 'center' }}>vs</div>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', textAlign: 'center' }}>vs</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                       <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={28} />
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {awayTeam.name}
                       </span>
                     </div>
@@ -351,9 +351,9 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
               );
             })}
           </div>
-          <div style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', fontStyle: 'italic' }}>
+          <div style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
             Vollständiger Spielplan auf{' '}
-            <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+            <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
           </div>
         </>
       )}
@@ -395,16 +395,16 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
           style={{ color: isPlayoff ? '#D40000' : '#10B981', flexShrink: 0 }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
             {isPlayoff ? 'Playoffs · laufend' : 'Reguläre Saison · abgeschlossen'}
           </div>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2', marginTop: 2 }}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
             {league.name} · Saison {league.season}
           </div>
         </div>
         <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{
           fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-          color: '#9AA4B2', textDecoration: 'underline', flexShrink: 0,
+          color: 'var(--th-text-muted)', textDecoration: 'underline', flexShrink: 0,
         }}>
           Alle Ergebnisse auf dartunion.de →
         </a>
@@ -420,14 +420,14 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
               {matchday !== null && (
                 <div style={{
                   fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-                  letterSpacing: '0.14em', color: '#6A6E7B', textTransform: 'uppercase',
+                  letterSpacing: '0.14em', color: 'var(--th-text-faint)', textTransform: 'uppercase',
                   marginBottom: 8,
                 }}>
                   {matchday}. Spieltag
                 </div>
               )}
               <div style={{
-                background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+                background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
                 borderRadius: 14, padding: '16px 20px',
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -439,15 +439,15 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                     return (
                       <div key={m.id} className="mdu-ergebnis-inner" style={{
                         padding: '12px 14px', borderRadius: 10,
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        background: 'var(--th-line-3)',
+                        border: '1px solid var(--th-line-6)',
                       }}>
                         {/* Date row */}
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
-                          fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2',
+                          fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)',
                         }}>
-                          <Icon name="calendar" size={12} stroke={2} style={{ color: '#9AA4B2', flexShrink: 0 }} />
+                          <Icon name="calendar" size={12} stroke={2} style={{ color: 'var(--th-text-muted)', flexShrink: 0 }} />
                           <span>{formatMatchDate(m.date)}</span>
                         </div>
                         {/* Teams + Score — 3-col, mobile-safe */}
@@ -455,7 +455,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
                             <span style={{
                               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                              color: homeWon ? '#F5F6FA' : '#9AA4B2',
+                              color: homeWon ? 'var(--th-text-strong)' : 'var(--th-text-muted)',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
                               {home.name}
@@ -465,8 +465,8 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                           <div style={{
                             textAlign: 'center',
                             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
-                            color: '#F5F6FA',
-                            background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '3px 0',
+                            color: 'var(--th-text-strong)',
+                            background: 'var(--th-line-6)', borderRadius: 6, padding: '3px 0',
                           }}>
                             {m.result ? `${m.result.home}:${m.result.away}` : '—'}
                           </div>
@@ -474,7 +474,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                             <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={26} />
                             <span style={{
                               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                              color: awayWon ? '#F5F6FA' : '#9AA4B2',
+                              color: awayWon ? 'var(--th-text-strong)' : 'var(--th-text-muted)',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
                               {away.name}
@@ -494,7 +494,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
       {/* Season records table */}
       {rows.length > 0 ? (
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <SectionLabel>Saisonbilanz · {league.name}</SectionLabel>
@@ -503,9 +503,9 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
               {/* Header */}
               <div style={{
                 display: 'grid', gridTemplateColumns: '28px 1fr 90px 90px 60px',
-                padding: '8px 4px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+                padding: '8px 4px', borderBottom: '1px solid var(--th-line-8)',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-                letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+                letterSpacing: '0.1em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
                 gap: 8, alignItems: 'center',
               }}>
                 <span>#</span>
@@ -521,40 +521,40 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                   <div key={r.team} style={{
                     display: 'grid', gridTemplateColumns: '28px 1fr 90px 90px 60px',
                     padding: '11px 4px',
-                    borderBottom: i < rows.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                    borderBottom: i < rows.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                     fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
                     gap: 8,
                   }}>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
-                      color: '#9AA4B2',
+                      color: 'var(--th-text-muted)',
                     }}>
                       {r.pos}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                       <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
                       <span style={{
-                        fontWeight: 700, color: '#F5F6FA', fontSize: 13,
+                        fontWeight: 700, color: 'var(--th-text-strong)', fontSize: 13,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {r.name.replace(' *', '')}
                       </span>
                     </div>
                     <span style={{
-                      fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
+                      fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
                       textAlign: 'center',
                     }}>
                       {r.s}·{r.u}·{r.n}
                     </span>
                     <span style={{
-                      fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
+                      fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
                       textAlign: 'center',
                     }}>
                       {r.legs}
                     </span>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                      color: '#F5F6FA', textAlign: 'right',
+                      color: 'var(--th-text-strong)', textAlign: 'right',
                     }}>
                       {r.pts}
                     </span>
@@ -563,10 +563,10 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
               })}
             </div>
           </div>
-          <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', fontStyle: 'italic' }}>
+          <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
             Quelle: dartunion.de · Einzelergebnisse (Spieltag-Details) unter{' '}
             <a href={dartUrl} target="_blank" rel="noopener noreferrer"
-              style={{ color: '#9AA4B2', textDecoration: 'underline' }}>
+              style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
               dartunion.de
             </a>
           </div>
@@ -592,12 +592,12 @@ function PlayerAvatar({ name, size = 30 }: { name: string; size?: number }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: showPhoto ? '#1a2030' : 'rgba(255,255,255,0.08)',
-      border: `1px solid ${showPhoto ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.12)'}`,
+      background: showPhoto ? 'var(--th-bg-inset)' : 'var(--th-line-8)',
+      border: `1px solid ${showPhoto ? 'var(--th-line-18)' : 'rgba(255,255,255,0.12)'}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden',
       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900,
-      fontSize: Math.max(9, Math.round(size * 0.37)), color: '#9AA4B2',
+      fontSize: Math.max(9, Math.round(size * 0.37)), color: 'var(--th-text-muted)',
     }}>
       {showPhoto ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -627,18 +627,18 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
       {/* ── Desktop: rich 5-column scrollable table ── */}
       <div className="mdu-desktop-only mdu-table-scroll">
         <div className="mdu-standings-inner" style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <div style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
-            letterSpacing: '0.08em', color: '#F5F6FA', margin: '0 0 18px',
+            letterSpacing: '0.08em', color: 'var(--th-text-strong)', margin: '0 0 18px',
             textTransform: 'uppercase',
           }}>
             Einzelrangliste
           </div>
           <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B',
+            fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)',
             marginBottom: 16, fontStyle: 'italic',
           }}>
             Quelle: dartunion.de · Saison 2026 · Top-Spieler der {league.name}
@@ -647,9 +647,9 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
           {/* Header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
-            padding: '10px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+            padding: '10px 8px', borderBottom: '1px solid var(--th-line-8)',
             fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-            letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+            letterSpacing: '0.1em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
             gap: 6, alignItems: 'center',
           }}>
             <span>#</span>
@@ -665,21 +665,21 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
               <div key={i} style={{
                 display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
                 padding: '11px 8px',
-                borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                 fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
                 gap: 6,
                 background: i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
               }}>
                 <span style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
-                  color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+                  color: p.rank <= 3 ? 'var(--th-gold)' : 'var(--th-text-muted)',
                 }}>
                   {p.rank}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <PlayerAvatar name={p.name} size={36} />
                   <span style={{
-                    fontWeight: 700, color: '#F5F6FA', fontSize: 13,
+                    fontWeight: 700, color: 'var(--th-text-strong)', fontSize: 13,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {p.name}
@@ -688,21 +688,21 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={20} />
                   <span style={{
-                    color: '#9AA4B2', fontSize: 12,
+                    color: 'var(--th-text-muted)', fontSize: 12,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {p.teamName}
                   </span>
                 </div>
                 <span style={{
-                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
+                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
                   textAlign: 'center',
                 }}>
                   {p.wins}·{p.losses}
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                  color: '#F5F6FA', textAlign: 'right',
+                  color: 'var(--th-text-strong)', textAlign: 'right',
                 }}>
                   {p.pts}
                 </span>
@@ -715,19 +715,19 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
       {/* ── Mobile: compact 4-column no-scroll table ── */}
       <div className="mdu-mobile-only">
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, overflow: 'hidden',
         }}>
           {/* Heading */}
           <div style={{ padding: '14px 14px 0' }}>
             <div style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-              letterSpacing: '0.06em', color: '#F5F6FA', textTransform: 'uppercase', marginBottom: 4,
+              letterSpacing: '0.06em', color: 'var(--th-text-strong)', textTransform: 'uppercase', marginBottom: 4,
             }}>
               Einzelrangliste
             </div>
             <div style={{
-              fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#6A6E7B',
+              fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-text-faint)',
               fontStyle: 'italic', marginBottom: 10,
             }}>
               Quelle: dartunion.de · {league.name}
@@ -735,27 +735,27 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
           </div>
 
           {/* 2-row card rows: name+badge / stats line */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ borderTop: '1px solid var(--th-line-6)' }}>
             {stats.map((p, i) => {
               const td = getExtendedTeam(p.teamId);
               const games = p.wins + p.losses;
               return (
                 <div key={i} style={{
                   padding: '9px 14px',
-                  borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   background: i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
                 }}>
                   {/* Row 1: rank · avatar · name · badge */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
-                      color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2', flexShrink: 0, width: 22,
+                      color: p.rank <= 3 ? 'var(--th-gold)' : 'var(--th-text-muted)', flexShrink: 0, width: 22,
                     }}>
                       {p.rank}
                     </span>
                     <PlayerAvatar name={p.name} size={28} />
                     <span style={{
-                      fontFamily: 'var(--font-manrope)', fontWeight: 700, color: '#F5F6FA', fontSize: 12,
+                      fontFamily: 'var(--font-manrope)', fontWeight: 700, color: 'var(--th-text-strong)', fontSize: 12,
                       flex: 1, minWidth: 0,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
@@ -768,10 +768,10 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                   {/* Row 2: stats — indent: rank(22) + gap(8) + avatar(28) + gap(8) = 66 */}
                   <div style={{
                     paddingLeft: 66,
-                    fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B',
+                    fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--th-text-faint)',
                     letterSpacing: '0.02em',
                   }}>
-                    <span style={{ color: '#9AA4B2', fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13 }}>
+                    <span style={{ color: 'var(--th-text-muted)', fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13 }}>
                       {p.pts} Pkt.
                     </span>
                     <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
@@ -819,7 +819,7 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
               className="mdu-card-hover"
             >
               <div style={{
-                background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+                background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
                 borderRadius: 12, padding: '16px 18px', position: 'relative', overflow: 'hidden',
               }}>
                 <div style={{
@@ -831,7 +831,7 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
                   <div>
                     <div style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                      color: '#F5F6FA', textTransform: 'uppercase', letterSpacing: '0.02em',
+                      color: 'var(--th-text-strong)', textTransform: 'uppercase', letterSpacing: '0.02em',
                     }}>
                       {r.name.replace(' *', '')}
                     </div>
@@ -846,8 +846,8 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
                     { k: 'Spielstätte',v: info.venueName },
                   ].map(item => (
                     <div key={item.k} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', flexShrink: 0, width: 80 }}>{item.k}</span>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 600, color: '#C9CCD6' }}>{item.v}</span>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', flexShrink: 0, width: 80 }}>{item.k}</span>
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 600, color: 'var(--th-text-body)' }}>{item.v}</span>
                     </div>
                   ))}
                 </div>
@@ -869,8 +869,8 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
     <>
       {/* Tab bar — visually merges with the banner above */}
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        background: 'rgba(13,17,23,0.6)',
+        borderTop: '1px solid var(--th-line-6)',
+        background: 'var(--th-bg-tabbar1)',
         position: 'sticky', top: 0, zIndex: 10,
       }}>
         <div
@@ -887,7 +887,7 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
               style={{
                 padding: '16px 0',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                color: i === activeTab ? '#D40000' : '#9AA4B2',
+                color: i === activeTab ? '#D40000' : 'var(--th-text-muted)',
                 borderTop: 'none', borderLeft: 'none', borderRight: 'none',
                 borderBottom: i === activeTab ? '2px solid #D40000' : '2px solid transparent',
                 marginBottom: -1, cursor: 'pointer',

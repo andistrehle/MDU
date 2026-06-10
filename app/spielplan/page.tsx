@@ -28,7 +28,7 @@ export default function SpielplanPage() {
   const totalCount = groups.reduce((s, g) => s + g.matches.length, 0);
 
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/spielplan" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
@@ -42,7 +42,7 @@ export default function SpielplanPage() {
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA',
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
             margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
           }}>
             Spielplan
@@ -51,12 +51,12 @@ export default function SpielplanPage() {
 
         {totalCount === 0 ? (
           <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6A6E7B',
+            fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)',
             fontStyle: 'italic', padding: '24px 0',
           }}>
             Keine bevorstehenden Spiele — vollständiger Spielplan auf{' '}
             <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-              style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+              style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
@@ -72,11 +72,11 @@ export default function SpielplanPage() {
                     <div style={{ width: 4, height: 24, borderRadius: 2, background: leagueColor, flexShrink: 0 }} />
                     <h2 style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
-                      letterSpacing: '0.06em', color: '#F5F6FA', margin: 0, textTransform: 'uppercase',
+                      letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
                     }}>
                       {leagueName}
                     </h2>
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6A6E7B', fontWeight: 600 }}>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontWeight: 600 }}>
                       {matches.length} {matches.length === 1 ? 'Spiel' : 'Spiele'}
                     </span>
                   </div>

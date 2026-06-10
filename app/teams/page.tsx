@@ -10,7 +10,7 @@ export default function TeamsPage() {
   const groups = getPlayoffAwareLeagueGroupings(season.id);
 
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/teams" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
@@ -21,7 +21,7 @@ export default function TeamsPage() {
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA',
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
             margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
           }}>
             Teams
@@ -37,12 +37,12 @@ export default function TeamsPage() {
                 <div style={{ width: 4, height: 28, borderRadius: 2, background: league.color, flexShrink: 0 }} />
                 <h2 style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26,
-                  letterSpacing: '0.06em', color: '#F5F6FA', margin: 0, textTransform: 'uppercase',
+                  letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
                 }}>
                   {league.name}
                 </h2>
                 <span style={{
-                  fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B',
+                  fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)',
                   fontWeight: 600, marginLeft: 4,
                 }}>
                   {teams.length} {teams.length === 1 ? 'Team' : 'Teams'}
@@ -50,7 +50,7 @@ export default function TeamsPage() {
               </div>
 
               {teams.length === 0 ? (
-                <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6A6E7B', fontStyle: 'italic' }}>
+                <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
                   Keine Teams für diese Liga in {season.name} eingetragen.
                 </p>
               ) : (
@@ -71,8 +71,8 @@ export default function TeamsPage() {
                         className="mdu-card-hover"
                         style={{
                           display: 'block', textDecoration: 'none',
-                          background: '#121821',
-                          border: `1px solid ${isInactive ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)'}`,
+                          background: 'var(--th-bg-card)',
+                          border: `1px solid ${isInactive ? 'var(--th-line-3)' : 'var(--th-line-6)'}`,
                           borderRadius: 12,
                           padding: '16px 18px',
                           opacity: isInactive ? 0.5 : 1,
@@ -84,7 +84,7 @@ export default function TeamsPage() {
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
                               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                              color: '#F5F6FA', letterSpacing: '0.03em', textTransform: 'uppercase',
+                              color: 'var(--th-text-strong)', letterSpacing: '0.03em', textTransform: 'uppercase',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
                               {team.name}
@@ -102,13 +102,13 @@ export default function TeamsPage() {
 
                         {/* Details */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
                             <Icon name="pin" size={12} stroke={2} />
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {venueName ?? 'Noch nicht verfügbar'}
                             </span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
                             <Icon name="user" size={12} stroke={2} />
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {captainName ? `TC: ${captainName}` : 'Noch nicht verfügbar'}
@@ -118,7 +118,7 @@ export default function TeamsPage() {
 
                         {/* Arrow hint */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-                          <Icon name="arrow-right" size={14} stroke={2} style={{ color: '#6A6E7B' }} />
+                          <Icon name="arrow-right" size={14} stroke={2} style={{ color: 'var(--th-text-faint)' }} />
                         </div>
                       </Link>
                     );

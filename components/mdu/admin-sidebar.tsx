@@ -23,13 +23,13 @@ export function AdminSidebar() {
   return (
     <aside style={{
       width: 260, background: '#0E1117',
-      borderRight: '1px solid rgba(255,255,255,0.06)',
+      borderRight: '1px solid var(--th-line-6)',
       padding: '22px 14px', display: 'flex', flexDirection: 'column', gap: 6,
       minHeight: '100vh', position: 'sticky', top: 0,
     }}>
-      <div style={{ padding: '0 6px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 14 }}>
+      <div style={{ padding: '0 6px 16px', borderBottom: '1px solid var(--th-line-6)', marginBottom: 14 }}>
         <Image src="/mdu-logo.png" alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
-        <div style={{ marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: '#5A5F6C', textTransform: 'uppercase' }}>
+        <div style={{ marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--th-text-faint2)', textTransform: 'uppercase' }}>
           Admin Konsole
         </div>
       </div>
@@ -44,7 +44,7 @@ export function AdminSidebar() {
               display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
               borderRadius: 8, textDecoration: 'none',
               background: active ? 'rgba(212,0,0,0.12)' : 'transparent',
-              color: active ? '#F5F6FA' : '#8A8F9C',
+              color: active ? 'var(--th-text-strong)' : 'var(--th-text-dim)',
               border: active ? '1px solid rgba(212,0,0,0.3)' : '1px solid transparent',
               fontFamily: 'var(--font-manrope)', fontWeight: active ? 700 : 500, fontSize: 14,
               transition: 'all 150ms',
@@ -66,7 +66,7 @@ export function AdminSidebar() {
         );
       })}
 
-      <div style={{ marginTop: 'auto', paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ marginTop: 'auto', paddingTop: 14, borderTop: '1px solid var(--th-line-6)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
           <div style={{
             width: 34, height: 34, borderRadius: '50%',
@@ -76,10 +76,10 @@ export function AdminSidebar() {
             flexShrink: 0,
           }}>SA</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>Stefan Achatz</div>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#8A8F9C' }}>Vorstand · Admin</div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>Stefan Achatz</div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-dim)' }}>Vorstand · Admin</div>
           </div>
-          <Icon name="logout" size={16} style={{ color: '#5A5F6C', flexShrink: 0 }} />
+          <Icon name="logout" size={16} style={{ color: 'var(--th-text-faint2)', flexShrink: 0 }} />
         </div>
       </div>
     </aside>

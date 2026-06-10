@@ -27,7 +27,7 @@ export default function TabellenPage() {
   });
 
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/tabellen" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
@@ -42,7 +42,7 @@ export default function TabellenPage() {
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA',
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
             margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
           }}>
             Tabellenübersicht
@@ -63,8 +63,8 @@ export default function TabellenPage() {
                 padding: '7px 18px', borderRadius: 6, cursor: 'pointer', border: 'none',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
                 letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: filter === f.value ? '#D40000' : 'rgba(255,255,255,0.06)',
-                color:      filter === f.value ? '#fff'    : '#9AA4B2',
+                background: filter === f.value ? '#D40000' : 'var(--th-line-6)',
+                color:      filter === f.value ? '#fff'    : 'var(--th-text-muted)',
                 transition: 'background 120ms, color 120ms',
               }}
             >
@@ -84,8 +84,8 @@ export default function TabellenPage() {
               <div
                 key={league.id}
                 style={{
-                  background: '#121821',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'var(--th-bg-card)',
+                  border: '1px solid var(--th-line-6)',
                   borderRadius: 14,
                   overflow: 'hidden',
                   borderLeft: `3px solid ${league.color}`,
@@ -94,18 +94,18 @@ export default function TabellenPage() {
                 {/* Card header */}
                 <div style={{
                   padding: '13px 18px 11px',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  borderBottom: '1px solid var(--th-line-6)',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
                 }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 17,
-                      letterSpacing: '0.04em', textTransform: 'uppercase', color: '#F5F6FA',
+                      letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {league.name}
                     </div>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#5A5F6C', marginTop: 2 }}>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-text-faint2)', marginTop: 2 }}>
                       Saison {league.season}
                     </div>
                   </div>
@@ -126,7 +126,7 @@ export default function TabellenPage() {
                 <div style={{
                   display: 'grid', gridTemplateColumns: '28px 1fr 40px 48px',
                   padding: '6px 18px', gap: 6,
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  borderBottom: '1px solid var(--th-line-4)',
                 }}>
                   {['#', 'Team', 'Sp.', 'Pkt.'].map((h, i) => (
                     <span key={h} style={{
@@ -144,12 +144,12 @@ export default function TabellenPage() {
                     style={{
                       display: 'grid', gridTemplateColumns: '28px 1fr 40px 48px',
                       padding: '8px 18px', gap: 6,
-                      borderBottom: i < preview.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none',
+                      borderBottom: i < preview.length - 1 ? '1px solid var(--th-line-3)' : 'none',
                     }}
                   >
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
-                      color: row.pos <= 3 ? '#E8B84A' : '#6A6E7B',
+                      color: row.pos <= 3 ? 'var(--th-gold)' : 'var(--th-text-faint)',
                       lineHeight: '1.3',
                     }}>
                       {row.pos}
@@ -166,7 +166,7 @@ export default function TabellenPage() {
                       ); })()}
                       <span style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: row.pos === 1 ? 700 : 500,
-                        fontSize: 13, color: '#F5F6FA',
+                        fontSize: 13, color: 'var(--th-text-strong)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {row.name}
@@ -174,13 +174,13 @@ export default function TabellenPage() {
                     </Link>
                     <span style={{
                       fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12,
-                      color: '#9AA4B2', textAlign: 'right', lineHeight: '1.3',
+                      color: 'var(--th-text-muted)', textAlign: 'right', lineHeight: '1.3',
                     }}>
                       {row.sp}
                     </span>
                     <span style={{
                       fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 13,
-                      color: '#F5F6FA', textAlign: 'right', lineHeight: '1.3',
+                      color: 'var(--th-text-strong)', textAlign: 'right', lineHeight: '1.3',
                     }}>
                       {row.pts}
                     </span>
@@ -190,7 +190,7 @@ export default function TabellenPage() {
                 {/* Footer: overflow hint + full-table link */}
                 <div style={{
                   padding: '9px 18px',
-                  borderTop: '1px solid rgba(255,255,255,0.04)',
+                  borderTop: '1px solid var(--th-line-4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                   <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#3A3E4A' }}>

@@ -4,15 +4,15 @@ import { Footer } from '@/components/mdu/footer';
 
 export default function NewsPage() {
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader />
 
       <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
         <div style={{
-          background: 'linear-gradient(180deg, #14161E 0%, #11141B 100%)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          background: 'linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%)',
+          border: '1px solid var(--th-line-6)',
           borderRadius: 14,
-          boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 28px rgba(0,0,0,0.25)',
+          boxShadow: '0 1px 0 var(--th-line-4) inset, 0 8px 28px var(--th-shadow)',
           padding: '48px 40px',
           maxWidth: 520,
           width: '100%',
@@ -33,14 +33,14 @@ export default function NewsPage() {
 
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,
-            letterSpacing: '0.06em', textTransform: 'uppercase', color: '#F5F6FA',
+            letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
             margin: '0 0 12px',
           }}>
             Seite befindet sich noch im Aufbau
           </h1>
 
           <p style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#9AA4B2',
+            fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)',
             lineHeight: 1.6, margin: '0 0 32px',
           }}>
             Diese Funktion wird aktuell vorbereitet und steht bald zur Verfügung.

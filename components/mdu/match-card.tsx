@@ -21,8 +21,8 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
       style={{
         padding: '16px 20px',
         borderRadius: 12,
-        background: '#121821',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)',
+        border: '1px solid var(--th-line-6)',
       }}
     >
       <div style={{
@@ -36,22 +36,22 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
       {compact ? (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#F5F6FA', fontWeight: 600 }}>
-              {date} <span style={{ color: '#9AA4B2' }}>· {time}</span>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-strong)', fontWeight: 600 }}>
+              {date} <span style={{ color: 'var(--th-text-muted)' }}>· {time}</span>
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={26} />
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA' }}>{homeTeam.name}</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)' }}>{homeTeam.name}</span>
             </div>
-            <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, color: '#9AA4B2' }}>VS</span>
+            <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, color: 'var(--th-text-muted)' }}>VS</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA' }}>{awayTeam.name}</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)' }}>{awayTeam.name}</span>
               <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={26} />
             </div>
           </div>
-          <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#9AA4B2', textAlign: 'right' }}>{venue}</div>
+          <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-text-muted)', textAlign: 'right' }}>{venue}</div>
         </div>
       ) : (
         <>
@@ -59,17 +59,17 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
           <div className="mdu-desktop-only" style={{ display: 'grid', gridTemplateColumns: '1.4fr auto 1.4fr auto', alignItems: 'center', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
               <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={38} />
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
             </div>
-            <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: '#9AA4B2', letterSpacing: '0.06em', flexShrink: 0 }}>VS</span>
+            <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: 'var(--th-text-muted)', letterSpacing: '0.06em', flexShrink: 0 }}>VS</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
               <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={38} />
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#F5F6FA', fontWeight: 600 }}>{date}</div>
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#F5F6FA' }}>{time}</div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#9AA4B2', marginTop: 2 }}>{venue}</div>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-strong)', fontWeight: 600 }}>{date}</div>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-strong)' }}>{time}</div>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>{venue}</div>
             </div>
           </div>
 
@@ -79,19 +79,19 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6, marginBottom: 7 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                 <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={24} />
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: '#6A6E7B', padding: '0 2px', flexShrink: 0 }}>vs</span>
+              <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: 'var(--th-text-faint)', padding: '0 2px', flexShrink: 0 }}>vs</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#F5F6FA', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
                 <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={24} />
               </div>
             </div>
             {/* Meta row: date · time · venue */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#9AA4B2', fontWeight: 600 }}>{date}</span>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B' }}>· {time}</span>
-              {venue && <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#6A6E7B' }}>· {venue}</span>}
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--th-text-muted)', fontWeight: 600 }}>{date}</span>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--th-text-faint)' }}>· {time}</span>
+              {venue && <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-text-faint)' }}>· {venue}</span>}
             </div>
           </div>
         </>

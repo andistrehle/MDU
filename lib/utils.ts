@@ -22,7 +22,7 @@ export function statusColor(status: string | null): string {
 }
 
 export function diffColor(diff: string): string {
-  if (diff.startsWith('+')) return '#5BE08C';
-  if (diff.startsWith('-')) return '#FF6B6B';
-  return '#9AA4B2';
+  if (diff.startsWith('+')) return 'var(--th-win)';
+  if (diff.startsWith('-')) return 'var(--th-loss)';
+  return 'var(--th-text-muted)';
 }

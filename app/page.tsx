@@ -20,11 +20,11 @@ export default function HomePage() {
   const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/" />
 
       {/* Hero */}
-      <section style={{ position: 'relative', overflow: 'hidden', background: '#05070A', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--th-bg-page)', borderBottom: '1px solid var(--th-line-4)' }}>
         {/* Hero dartboard photo — absolutely positioned, feathered into background */}
         <div aria-hidden className="mdu-hero-dartboard" style={{
           position: 'absolute', right: -25, top: '50%', transform: 'translateY(-50%)',
@@ -44,7 +44,7 @@ export default function HomePage() {
         {/* Left-to-right dark gradient for text contrast */}
         <div aria-hidden style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(90deg, #05070A 28%, rgba(5,7,10,0.5) 55%, transparent 80%)',
+          background: 'linear-gradient(90deg, var(--th-bg-page) 28%, var(--th-veil-50) 55%, transparent 80%)',
         }} />
 
         <div className="mdu-hero-grid" style={{
@@ -54,15 +54,15 @@ export default function HomePage() {
           <div className="mdu-hero-inner" style={{ position: 'relative', zIndex: 2 }}>
             <h1 className="mdu-hero-title" style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 96,
-              lineHeight: 0.92, letterSpacing: '-0.005em', color: '#FFFFFF', margin: 0,
+              lineHeight: 0.92, letterSpacing: '-0.005em', color: 'var(--th-text-strong)', margin: 0,
               textTransform: 'uppercase',
             }}>
               Münchner<br />Dart Union
             </h1>
-            <div className="mdu-hero-subtitle" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 22, color: '#F5F6FA', marginTop: 18, letterSpacing: '0.01em' }}>
+            <div className="mdu-hero-subtitle" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 22, color: 'var(--th-text-strong)', marginTop: 18, letterSpacing: '0.01em' }}>
               Dart. Leidenschaft. Gemeinschaft.
             </div>
-            <p className="mdu-hero-desc" style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, color: '#9AA4B2', margin: '14px 0 0', maxWidth: 440, lineHeight: 1.6 }}>
+            <p className="mdu-hero-desc" style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, color: 'var(--th-text-muted)', margin: '14px 0 0', maxWidth: 440, lineHeight: 1.6 }}>
               Die offizielle Liga-Seite für den organisierten Dartsport in München.
             </p>
             <div className="mdu-hero-cta" style={{ display: 'flex', gap: 14, marginTop: 34 }}>
@@ -75,8 +75,8 @@ export default function HomePage() {
                 Ligen Übersicht
               </Link>
               <Link href="/ergebnisse" style={{
-                padding: '14px 28px', background: 'transparent', color: '#F5F6FA',
-                border: '1.5px solid rgba(255,255,255,0.18)', borderRadius: 6,
+                padding: '14px 28px', background: 'transparent', color: 'var(--th-text-strong)',
+                border: '1.5px solid var(--th-line-18)', borderRadius: 6,
                 fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
                 letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-block',
               }}>
@@ -92,8 +92,8 @@ export default function HomePage() {
       <div className="mdu-quickbar-outer" style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
         <div className="mdu-quick-bar" style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr',
-          background: 'linear-gradient(180deg, #121821, #0D1117)',
-          border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 8,
+          background: 'linear-gradient(180deg, var(--th-bg-card), var(--th-bg-header))',
+          border: '1px solid var(--th-line-6)', borderRadius: 14, padding: 8,
           boxShadow: '0 24px 48px rgba(0,0,0,0.5)', gap: 0,
         }}>
           {[
@@ -107,19 +107,19 @@ export default function HomePage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 16, padding: '18px 22px',
                 textDecoration: 'none', borderRadius: 10,
-                borderRight: idx === 0 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                borderRight: idx === 0 ? '1px solid var(--th-line-4)' : 'none',
               }}
             >
               <div style={{
                 width: 44, height: 44, borderRadius: 10, flexShrink: 0,
                 background: 'rgba(212,0,0,0.12)', border: '1px solid rgba(212,0,0,0.25)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6B6B',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-loss)',
               }}>
                 <Icon name={item.icon} size={22} stroke={2} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: '#FFFFFF' }}>{item.title}</div>
-                <div className="mdu-quickcard-sub" style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#C9CCD6', marginTop: 2 }}>{item.sub}</div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: 'var(--th-text-strong)' }}>{item.title}</div>
+                <div className="mdu-quickcard-sub" style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-body)', marginTop: 2 }}>{item.sub}</div>
               </div>
             </Link>
           ))}
@@ -155,7 +155,7 @@ export default function HomePage() {
           </div>
           <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {upcoming.length === 0 ? (
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: '#9AA4B2', padding: '16px 0' }}>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', padding: '16px 0' }}>
                 Keine anstehenden Spiele.
               </div>
             ) : (
@@ -197,40 +197,40 @@ export default function HomePage() {
                       className="mdu-match-card"
                       style={{
                         padding: '14px 20px', borderRadius: 12,
-                        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+                        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
                       }}
                     >
                       {/* League + date label */}
                       <div style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-                        letterSpacing: '0.16em', color: '#9AA4B2', textTransform: 'uppercase',
+                        letterSpacing: '0.16em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
                         marginBottom: 10,
                       }}>
                         {league?.name ?? m.leagueId}
                         {m.date && (
-                          <span style={{ color: '#6A6E7B' }}> · {formatMatchDate(m.date)}</span>
+                          <span style={{ color: 'var(--th-text-faint)' }}> · {formatMatchDate(m.date)}</span>
                         )}
                       </div>
                       {/* Score row */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{
                           flex: 1, fontFamily: 'var(--font-manrope)', fontWeight: 700,
-                          fontSize: 13, color: '#F5F6FA', minWidth: 0,
+                          fontSize: 13, color: 'var(--th-text-strong)', minWidth: 0,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {home.name}
                         </span>
                         <span style={{
                           fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700,
-                          fontSize: 15, color: '#F5F6FA', flexShrink: 0,
-                          padding: '2px 10px', background: 'rgba(255,255,255,0.06)',
+                          fontSize: 15, color: 'var(--th-text-strong)', flexShrink: 0,
+                          padding: '2px 10px', background: 'var(--th-line-6)',
                           borderRadius: 6, letterSpacing: '0.05em',
                         }}>
                           {m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}
                         </span>
                         <span style={{
                           flex: 1, fontFamily: 'var(--font-manrope)', fontWeight: 700,
-                          fontSize: 13, color: '#C9CCD6', textAlign: 'right', minWidth: 0,
+                          fontSize: 13, color: 'var(--th-text-body)', textAlign: 'right', minWidth: 0,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {away.name}

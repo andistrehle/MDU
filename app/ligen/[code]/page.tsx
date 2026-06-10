@@ -56,16 +56,16 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
   const matches = getMatchesForLeague(code);
 
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/ligen" />
 
       {/* Banner — title + breadcrumb only (tab bar lives in LeagueDetailClient) */}
       <div style={{
         position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(180deg, #0D1117 0%, #05070A 100%)',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        background: 'linear-gradient(180deg, var(--th-bg-header) 0%, var(--th-bg-page) 100%)',
+        borderBottom: '1px solid var(--th-line-4)',
       }}>
-        <div aria-hidden style={{
+        <div aria-hidden className="mdu-banner-dartboard" style={{
           position: 'absolute', right: -260, top: '50%', transform: 'translateY(-50%)',
           width: 680, height: 680, pointerEvents: 'none', opacity: 0.7,
           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
@@ -76,7 +76,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         </div>
         <div aria-hidden style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(90deg, #05070A 30%, rgba(5,7,10,0.4) 65%, rgba(5,7,10,0.7))',
+          background: 'linear-gradient(90deg, var(--th-bg-page) 30%, var(--th-veil-40) 65%, var(--th-veil-70))',
         }} />
 
         <div className="mdu-section-pad" style={{
@@ -84,17 +84,17 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2', marginBottom: 16,
+            fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginBottom: 16,
           }}>
-            <Link href="/" style={{ color: '#9AA4B2', textDecoration: 'none' }}>Startseite</Link>
+            <Link href="/" style={{ color: 'var(--th-text-muted)', textDecoration: 'none' }}>Startseite</Link>
             <Icon name="chevron" size={12} />
-            <Link href="/ligen" style={{ color: '#9AA4B2', textDecoration: 'none' }}>Ligen</Link>
+            <Link href="/ligen" style={{ color: 'var(--th-text-muted)', textDecoration: 'none' }}>Ligen</Link>
             <Icon name="chevron" size={12} />
-            <span style={{ color: '#F5F6FA' }}>{leagueName}</span>
+            <span style={{ color: 'var(--th-text-strong)' }}>{leagueName}</span>
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, lineHeight: 0.92,
-            letterSpacing: '-0.005em', color: '#FFFFFF', margin: 0, textTransform: 'uppercase',
+            letterSpacing: '-0.005em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
             paddingBottom: 14, borderBottom: `3px solid ${league?.color ?? '#D40000'}`, display: 'inline-block',
           }}>
             {leagueName}

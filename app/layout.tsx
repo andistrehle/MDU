@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
@@ -40,8 +41,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="de"
       className={`${sairaCondensed.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
       <body>
+        {/* Restore the persisted theme before first paint (no flash).
+            Dark is the default; only "light" sets the data attribute. */}
+        <Script id="mdu-theme-init" strategy="beforeInteractive">
+          {"try{if(localStorage.getItem('mdu-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}"}
+        </Script>
         {children}
         <BottomNav />
       </body>

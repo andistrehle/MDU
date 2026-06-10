@@ -14,10 +14,10 @@ interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<BtnKind, React.CSSProperties> = {
   primary: { background: '#D40000', color: '#fff', border: '1px solid #FF1F1F', boxShadow: '0 6px 18px rgba(212,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' },
-  ghost:   { background: 'rgba(255,255,255,0.04)', color: '#F5F6FA', border: '1px solid rgba(255,255,255,0.10)' },
-  outline: { background: 'transparent', color: '#F5F6FA', border: '1px solid rgba(255,255,255,0.18)' },
-  dark:    { background: '#14161E', color: '#F5F6FA', border: '1px solid rgba(255,255,255,0.10)' },
-  gold:    { background: '#E8B84A', color: '#0A0B0F', border: '1px solid #F0CB6E', boxShadow: '0 6px 14px rgba(232,184,74,0.25)' },
+  ghost:   { background: 'var(--th-line-4)', color: 'var(--th-text-strong)', border: '1px solid var(--th-line-10)' },
+  outline: { background: 'transparent', color: 'var(--th-text-strong)', border: '1px solid var(--th-line-18)' },
+  dark:    { background: 'var(--th-bg-card3)', color: 'var(--th-text-strong)', border: '1px solid var(--th-line-10)' },
+  gold:    { background: 'var(--th-gold)', color: 'var(--th-bg-deep)', border: '1px solid #F0CB6E', boxShadow: '0 6px 14px rgba(232,184,74,0.25)' },
 };
 
 const sizes: Record<BtnSize, React.CSSProperties> = {

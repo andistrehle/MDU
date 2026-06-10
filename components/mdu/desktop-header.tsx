@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
+import { ThemeToggle } from './theme-toggle';
 import { LEAGUES } from '@/lib/data';
 
 const NAV_ITEMS = [
@@ -32,7 +33,7 @@ const dropdownItemStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 10,
   padding: '8px 16px',
   fontFamily: 'var(--font-manrope)', fontWeight: 500, fontSize: 13,
-  color: '#C9CCD6', textDecoration: 'none',
+  color: 'var(--th-text-body)', textDecoration: 'none',
   whiteSpace: 'nowrap',
 };
 
@@ -47,11 +48,11 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
   const closeLiga = () => { closeTimer.current = setTimeout(() => setLigaOpen(false), 120); };
 
   return (
-    <header style={{
+    <header className="mdu-site-header" style={{
       position: 'sticky', top: 0, zIndex: 50,
-      background: 'rgba(5,7,10,0.92)',
+      background: 'var(--th-bg-glass)',
       backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      borderBottom: '1px solid var(--th-line-6)',
     }}>
       <div style={{
         maxWidth: 1280, margin: '0 auto', padding: '0 28px', height: 70,
@@ -77,11 +78,12 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                 >
                   <Link
                     href={item.href}
+                    className="mdu-nav-link"
                     style={{
                       fontFamily: 'var(--font-manrope)',
                       fontWeight: active ? 700 : 500,
                       fontSize: 14,
-                      color: active || ligaOpen ? '#D40000' : '#C9CCD6',
+                      color: active || ligaOpen ? '#D40000' : 'var(--th-text-body)',
                       textDecoration: 'none',
                       padding: '24px 0',
                       position: 'relative',
@@ -125,8 +127,8 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                       onMouseLeave={closeLiga}
                     >
                       <div style={{
-                        background: '#0D1117',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--th-bg-header)',
+                        border: '1px solid var(--th-line-8)',
                         borderRadius: 10,
                         padding: '8px 0',
                         minWidth: 250,
@@ -135,7 +137,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                         {/* Group: Playoffs */}
                         <div style={{
                           fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                          letterSpacing: '0.16em', color: '#5A5F6C', textTransform: 'uppercase',
+                          letterSpacing: '0.16em', color: 'var(--th-text-faint2)', textTransform: 'uppercase',
                           padding: '4px 16px 6px',
                         }}>
                           Playoffs
@@ -154,12 +156,12 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                         ))}
 
                         {/* Divider */}
-                        <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '6px 0' }} />
+                        <div style={{ height: 1, background: 'var(--th-line-6)', margin: '6px 0' }} />
 
                         {/* Group: Ligen */}
                         <div style={{
                           fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                          letterSpacing: '0.16em', color: '#5A5F6C', textTransform: 'uppercase',
+                          letterSpacing: '0.16em', color: 'var(--th-text-faint2)', textTransform: 'uppercase',
                           padding: '4px 16px 6px',
                         }}>
                           Ligen
@@ -192,7 +194,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                   fontFamily: 'var(--font-manrope)',
                   fontWeight: active ? 700 : 500,
                   fontSize: 14,
-                  color: active ? '#D40000' : '#C9CCD6',
+                  color: active ? '#D40000' : 'var(--th-text-body)',
                   textDecoration: 'none',
                   padding: '24px 0',
                   position: 'relative',
@@ -202,7 +204,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                   transition: 'color 120ms',
                   whiteSpace: 'nowrap',
                 }}
-                className={active ? 'mdu-nav-active' : ''}
+                className={active ? 'mdu-nav-link mdu-nav-active' : 'mdu-nav-link'}
               >
                 {item.label}
                 {active && (
@@ -215,6 +217,11 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
             );
           })}
         </nav>
+
+        {/* Theme switch — desktop top right, next to Login */}
+        <span className="mdu-header-login" style={{ display: 'inline-flex', flexShrink: 0 }}>
+          <ThemeToggle />
+        </span>
 
         {/* Desktop Login button */}
         <Link

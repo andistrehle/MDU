@@ -82,8 +82,8 @@ export function StandingsTable({
         <div
           className="mdu-standings-inner"
           style={{
-            background: '#121821',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)',
+            border: '1px solid var(--th-line-6)',
             borderRadius: 14,
             padding: '22px 24px',
           }}
@@ -95,7 +95,7 @@ export function StandingsTable({
                 fontWeight: 900,
                 fontSize: 22,
                 letterSpacing: '0.08em',
-                color: '#F5F6FA',
+                color: 'var(--th-text-strong)',
                 margin: '0 0 18px',
                 textTransform: 'uppercase',
               }}
@@ -106,17 +106,17 @@ export function StandingsTable({
 
           {/* Header */}
           <div
-            className="mdu-standings-row"
+            className="mdu-standings-row mdu-st-head"
             style={{
               display: 'grid',
               gridTemplateColumns: colTemplate,
               padding: '10px 8px',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              borderBottom: '1px solid var(--th-line-8)',
               fontFamily: 'var(--font-manrope)',
               fontWeight: 700,
               fontSize: 11,
               letterSpacing: '0.1em',
-              color: '#9AA4B2',
+              color: 'var(--th-text-muted)',
               textTransform: 'uppercase',
               gap: 6,
               alignItems: 'center',
@@ -146,12 +146,12 @@ export function StandingsTable({
             return (
               <div
                 key={r.pos}
-                className="mdu-row-hover mdu-standings-row"
+                className="mdu-row-hover mdu-standings-row mdu-st-row"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: colTemplate,
                   padding: '12px 8px',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  borderBottom: '1px solid var(--th-line-4)',
                   fontFamily: 'var(--font-manrope)',
                   fontSize: 13,
                   alignItems: 'center',
@@ -160,7 +160,7 @@ export function StandingsTable({
                   cursor: 'pointer',
                   background:
                     activeTeamId && r.team === activeTeamId
-                      ? 'rgba(255,255,255,0.06)'
+                      ? 'var(--th-line-6)'
                       : undefined,
                 }}
                 onClick={() => handleDesktopRowClick(r.team)}
@@ -176,7 +176,7 @@ export function StandingsTable({
                     borderRadius: 2,
                     background:
                       activeTeamId && r.team === activeTeamId
-                        ? '#F5F6FA'
+                        ? 'var(--th-text-strong)'
                         : statusColor(r.status),
                   }}
                 />
@@ -185,7 +185,7 @@ export function StandingsTable({
                     fontFamily: 'var(--font-saira-condensed)',
                     fontWeight: 800,
                     fontSize: 16,
-                    color: r.pos <= 2 ? '#E8B84A' : '#F5F6FA',
+                    color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-strong)',
                   }}
                 >
                   {r.pos}
@@ -207,7 +207,7 @@ export function StandingsTable({
                   <span
                     style={{
                       fontWeight: 700,
-                      color: '#F5F6FA',
+                      color: 'var(--th-text-strong)',
                       fontSize: 13,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -221,7 +221,7 @@ export function StandingsTable({
                   style={{
                     textAlign: 'center',
                     fontFamily: 'var(--font-jetbrains-mono)',
-                    color: '#C9CCD6',
+                    color: 'var(--th-text-body)',
                   }}
                 >
                   {sp}
@@ -232,7 +232,7 @@ export function StandingsTable({
                     fontFamily: 'var(--font-saira-condensed)',
                     fontWeight: 900,
                     fontSize: 18,
-                    color: '#F5F6FA',
+                    color: 'var(--th-text-strong)',
                   }}
                 >
                   {r.pts}
@@ -241,7 +241,7 @@ export function StandingsTable({
                   style={{
                     textAlign: 'center',
                     fontFamily: 'var(--font-jetbrains-mono)',
-                    color: '#5BE08C',
+                    color: 'var(--th-win)',
                     fontWeight: 600,
                   }}
                 >
@@ -252,7 +252,7 @@ export function StandingsTable({
                     style={{
                       textAlign: 'center',
                       fontFamily: 'var(--font-jetbrains-mono)',
-                      color: '#9AA4B2',
+                      color: 'var(--th-text-muted)',
                     }}
                   >
                     {r.u ?? 0}
@@ -262,7 +262,7 @@ export function StandingsTable({
                   style={{
                     textAlign: 'center',
                     fontFamily: 'var(--font-jetbrains-mono)',
-                    color: '#FF6B6B',
+                    color: 'var(--th-loss)',
                   }}
                 >
                   {losses}
@@ -271,7 +271,7 @@ export function StandingsTable({
                   style={{
                     textAlign: 'center',
                     fontFamily: 'var(--font-jetbrains-mono)',
-                    color: '#C9CCD6',
+                    color: 'var(--th-text-body)',
                     fontSize: 11,
                   }}
                 >
@@ -281,7 +281,7 @@ export function StandingsTable({
                   style={{
                     textAlign: 'center',
                     fontFamily: 'var(--font-jetbrains-mono)',
-                    color: '#C9CCD6',
+                    color: 'var(--th-text-body)',
                     fontSize: 11,
                   }}
                 >
@@ -310,7 +310,7 @@ export function StandingsTable({
             style={{
               marginTop: 18,
               paddingTop: 16,
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid var(--th-line-6)',
               display: 'flex',
               gap: 22,
               flexWrap: 'wrap',
@@ -325,7 +325,7 @@ export function StandingsTable({
                   gap: 8,
                   fontFamily: 'var(--font-manrope)',
                   fontSize: 12,
-                  color: '#C9CCD6',
+                  color: 'var(--th-text-body)',
                 }}
               >
                 <span
@@ -350,8 +350,8 @@ export function StandingsTable({
       <div className="mdu-mobile-only">
         <div
           style={{
-            background: '#121821',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)',
+            border: '1px solid var(--th-line-6)',
             borderRadius: 14,
             overflow: 'hidden',
           }}
@@ -365,7 +365,7 @@ export function StandingsTable({
                   fontWeight: 900,
                   fontSize: 18,
                   letterSpacing: '0.06em',
-                  color: '#F5F6FA',
+                  color: 'var(--th-text-strong)',
                   margin: 0,
                   textTransform: 'uppercase',
                 }}
@@ -376,7 +376,7 @@ export function StandingsTable({
           )}
 
           {/* Rows */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ borderTop: '1px solid var(--th-line-6)' }}>
             {rows.map(r => {
               const _mExt   = getExtendedTeam(r.team);
               const teamData = r.name
@@ -393,8 +393,9 @@ export function StandingsTable({
               return (
                 <div
                   key={r.pos}
+                  className="mdu-st-row-m"
                   style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    borderBottom: '1px solid var(--th-line-4)',
                     borderLeft: barColor !== 'transparent'
                       ? `3px solid ${barColor}`
                       : '3px solid transparent',
@@ -415,7 +416,7 @@ export function StandingsTable({
                         fontFamily: 'var(--font-saira-condensed)',
                         fontWeight: 800,
                         fontSize: 15,
-                        color: r.pos <= 2 ? '#E8B84A' : '#9AA4B2',
+                        color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-muted)',
                         flexShrink: 0,
                         width: 20,
                         textAlign: 'center',
@@ -444,7 +445,7 @@ export function StandingsTable({
                           fontFamily: 'var(--font-manrope)',
                           fontWeight: 700,
                           fontSize: 12,
-                          color: '#F5F6FA',
+                          color: 'var(--th-text-strong)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -462,7 +463,7 @@ export function StandingsTable({
                           fontFamily: 'var(--font-saira-condensed)',
                           fontWeight: 900,
                           fontSize: 15,
-                          color: '#F5F6FA',
+                          color: 'var(--th-text-strong)',
                           lineHeight: 1.1,
                         }}
                       >
@@ -472,7 +473,7 @@ export function StandingsTable({
                             fontFamily: 'var(--font-manrope)',
                             fontWeight: 700,
                             fontSize: 9,
-                            color: '#9AA4B2',
+                            color: 'var(--th-text-muted)',
                           }}
                         >
                           Pkt.
@@ -482,7 +483,7 @@ export function StandingsTable({
                         style={{
                           fontFamily: 'var(--font-jetbrains-mono)',
                           fontSize: 10,
-                          color: '#6A6E7B',
+                          color: 'var(--th-text-faint)',
                           marginTop: 1,
                         }}
                       >
@@ -504,7 +505,7 @@ export function StandingsTable({
                         flexShrink: 0,
                         display: 'flex',
                         alignItems: 'center',
-                        color: isExpanded ? '#D40000' : '#6A6E7B',
+                        color: isExpanded ? '#D40000' : 'var(--th-text-faint)',
                       }}
                     >
                       <Icon
@@ -537,19 +538,19 @@ export function StandingsTable({
                         }}
                       >
                         {[
-                          { label: 'Siege',   value: wins,            color: '#5BE08C' },
+                          { label: 'Siege',   value: wins,            color: 'var(--th-win)' },
                           ...(showU
-                            ? [{ label: 'Unent.',  value: draws,           color: '#9AA4B2' }]
+                            ? [{ label: 'Unent.',  value: draws,           color: 'var(--th-text-muted)' }]
                             : []),
-                          { label: 'Niedl.',  value: losses,          color: '#FF6B6B' },
-                          { label: 'Spiele',  value: r.spiele ?? '—', color: '#C9CCD6' },
-                          { label: 'Legs',    value: r.legs,          color: '#C9CCD6' },
+                          { label: 'Niedl.',  value: losses,          color: 'var(--th-loss)' },
+                          { label: 'Spiele',  value: r.spiele ?? '—', color: 'var(--th-text-body)' },
+                          { label: 'Legs',    value: r.legs,          color: 'var(--th-text-body)' },
                           { label: 'Diff.',   value: r.diff,          color: diffColor(r.diff) },
                         ].map(item => (
                           <div
                             key={item.label}
                             style={{
-                              background: 'rgba(255,255,255,0.03)',
+                              background: 'var(--th-line-3)',
                               borderRadius: 6,
                               padding: '5px 7px',
                             }}
@@ -560,7 +561,7 @@ export function StandingsTable({
                                 fontWeight: 700,
                                 fontSize: 9,
                                 letterSpacing: '0.1em',
-                                color: '#6A6E7B',
+                                color: 'var(--th-text-faint)',
                                 textTransform: 'uppercase',
                                 marginBottom: 2,
                               }}
@@ -609,7 +610,7 @@ export function StandingsTable({
           <div
             style={{
               padding: '10px 14px',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid var(--th-line-6)',
               display: 'flex',
               gap: 14,
               flexWrap: 'wrap',
@@ -624,7 +625,7 @@ export function StandingsTable({
                   gap: 6,
                   fontFamily: 'var(--font-manrope)',
                   fontSize: 10,
-                  color: '#9AA4B2',
+                  color: 'var(--th-text-muted)',
                 }}
               >
                 <span

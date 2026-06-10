@@ -18,7 +18,7 @@ export function BottomNav() {
   return (
     <div className="mdu-bottom-nav" style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-      background: '#0D1117', borderTop: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--th-bg-header)', borderTop: '1px solid var(--th-line-6)',
       padding: '10px 6px 26px',
       display: 'flex', alignItems: 'center', justifyContent: 'space-around',
     }}>
@@ -30,7 +30,7 @@ export function BottomNav() {
             href={item.href}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-              position: 'relative', color: active ? '#D40000' : '#9AA4B2',
+              position: 'relative', color: active ? '#D40000' : 'var(--th-text-muted)',
               textDecoration: 'none', minWidth: 48,
             }}
           >

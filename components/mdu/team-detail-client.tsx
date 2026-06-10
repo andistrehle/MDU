@@ -73,7 +73,7 @@ function ÜbersichtTab({
 
         {/* Next match */}
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <SectionLabel color={teamColor}>Nächstes Spiel</SectionLabel>
@@ -83,38 +83,38 @@ function ÜbersichtTab({
             <EmptyNote>
               Keine bevorstehenden Spiele — Spielplan auf{' '}
               <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-                style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+                style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
             </EmptyNote>
           )}
         </div>
 
         {/* Team info */}
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <SectionLabel color={teamColor}>Team Info</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#C9CCD6' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Icon name="trophy" size={14} stroke={2} style={{ flexShrink: 0, color: '#9AA4B2' }} />
+              <Icon name="trophy" size={14} stroke={2} style={{ flexShrink: 0, color: 'var(--th-text-muted)' }} />
               <span>{leagueName}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <Icon name="pin" size={14} stroke={2} style={{ flexShrink: 0, marginTop: 1, color: '#9AA4B2' }} />
+              <Icon name="pin" size={14} stroke={2} style={{ flexShrink: 0, marginTop: 1, color: 'var(--th-text-muted)' }} />
               <div>
                 <div>{venueName}</div>
                 {venueAddress && (
-                  <div style={{ fontSize: 11, color: '#8A8F9C', marginTop: 3, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 11, color: 'var(--th-text-dim)', marginTop: 3, lineHeight: 1.5 }}>
                     {venueAddress}
                   </div>
                 )}
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Icon name="user" size={14} stroke={2} style={{ flexShrink: 0, color: '#9AA4B2' }} />
+              <Icon name="user" size={14} stroke={2} style={{ flexShrink: 0, color: 'var(--th-text-muted)' }} />
               {captainLabel === 'Noch nicht verfügbar'
                 ? <span style={{ color: '#6B7280', fontStyle: 'italic' }}>Kapitän noch nicht verfügbar</span>
-                : <span><span style={{ color: '#8A8F9C', marginRight: 4 }}>TC:</span>{captainLabel}</span>
+                : <span><span style={{ color: 'var(--th-text-dim)', marginRight: 4 }}>TC:</span>{captainLabel}</span>
               }
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6B7280' }}>
@@ -129,7 +129,7 @@ function ÜbersichtTab({
       {/* Right column — season stats */}
       <div>
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
           <SectionLabel color={teamColor}>Saison {seasonName}</SectionLabel>
@@ -139,16 +139,16 @@ function ÜbersichtTab({
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                 {([
                   { label: 'Platz',    value: `#${standing.pos}`, accent: teamColor },
-                  { label: 'Punkte',   value: String(standing.pts), accent: '#F5F6FA' },
-                  { label: 'Gespielt', value: String(standing.sp),  accent: '#F5F6FA' },
+                  { label: 'Punkte',   value: String(standing.pts), accent: 'var(--th-text-strong)' },
+                  { label: 'Gespielt', value: String(standing.sp),  accent: 'var(--th-text-strong)' },
                 ] as { label: string; value: string; accent: string }[]).map(chip => (
                   <div key={chip.label} style={{
                     flex: 1, minWidth: 56, textAlign: 'center',
-                    background: 'rgba(255,255,255,0.04)',
+                    background: 'var(--th-line-4)',
                     border: '1px solid rgba(255,255,255,0.07)',
                     borderRadius: 8, padding: '8px 6px',
                   }}>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6A6E7B', marginBottom: 4 }}>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', marginBottom: 4 }}>
                       {chip.label}
                     </div>
                     <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: chip.accent, lineHeight: 1 }}>
@@ -163,31 +163,31 @@ function ÜbersichtTab({
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', gap: 2 }}>
                     <div style={{ flex: standing.s || 0.001, background: '#22C55E' }} />
-                    {standing.u > 0 && <div style={{ flex: standing.u, background: '#E8B84A' }} />}
+                    {standing.u > 0 && <div style={{ flex: standing.u, background: 'var(--th-gold)' }} />}
                     <div style={{ flex: standing.n || 0.001, background: '#EF4444' }} />
                   </div>
                   <div style={{ display: 'flex', gap: 10, marginTop: 6, fontFamily: 'var(--font-manrope)', fontSize: 10, flexWrap: 'wrap' }}>
                     <span style={{ color: '#22C55E' }}>● {standing.s}  S</span>
-                    {standing.u > 0 && <span style={{ color: '#E8B84A' }}>● {standing.u}  U</span>}
+                    {standing.u > 0 && <span style={{ color: 'var(--th-gold)' }}>● {standing.u}  U</span>}
                     <span style={{ color: '#EF4444' }}>● {standing.n}  N</span>
-                    <span style={{ color: '#6A6E7B', marginLeft: 'auto' }}>von {standing.sp} Spielen</span>
+                    <span style={{ color: 'var(--th-text-faint)', marginLeft: 'auto' }}>von {standing.sp} Spielen</span>
                   </div>
                 </div>
               )}
 
               {/* ── Stats rows — label + number, no bars ────── */}
               {([
-                { l: 'Punkte',        v: `${standing.pts} Pkt.`, c: '#F5F6FA' },
-                { l: 'Legs-Bilanz',   v: standing.legs,          c: '#9AA4B2', mono: true },
-                ...(standing.spiele ? [{ l: 'Spiele-Bilanz', v: standing.spiele, c: '#9AA4B2', mono: true }] : []),
-                { l: 'Diff.',         v: standing.diff,          c: standing.diff.startsWith('+') ? '#22C55E' : standing.diff === '0' ? '#9AA4B2' : '#EF4444', mono: true },
+                { l: 'Punkte',        v: `${standing.pts} Pkt.`, c: 'var(--th-text-strong)' },
+                { l: 'Legs-Bilanz',   v: standing.legs,          c: 'var(--th-text-muted)', mono: true },
+                ...(standing.spiele ? [{ l: 'Spiele-Bilanz', v: standing.spiele, c: 'var(--th-text-muted)', mono: true }] : []),
+                { l: 'Diff.',         v: standing.diff,          c: standing.diff.startsWith('+') ? '#22C55E' : standing.diff === '0' ? 'var(--th-text-muted)' : '#EF4444', mono: true },
               ] as { l: string; v: string; c: string; mono?: boolean }[]).map(row => (
                 <div key={row.l} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '7px 0',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  borderBottom: '1px solid var(--th-line-4)',
                 }}>
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>{row.l}</span>
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{row.l}</span>
                   <span style={{
                     fontFamily: row.mono ? 'var(--font-jetbrains-mono)' : 'var(--font-manrope)',
                     fontWeight: 700, fontSize: row.mono ? 11 : 13, color: row.c,
@@ -219,7 +219,7 @@ function NextMatchCard({ match, teamId, teamColor }: { match: Match; teamId: str
         <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: teamColor, textTransform: 'uppercase' }}>
           {league}{match.matchday ? ` · Spieltag ${match.matchday}` : ''}
         </span>
-        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#8A8F9C' }}>
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-dim)' }}>
           {formatScheduledDate(match.date)}{match.time ? ` · ${match.time} Uhr` : ''}
         </span>
       </div>
@@ -227,16 +227,16 @@ function NextMatchCard({ match, teamId, teamColor }: { match: Match; teamId: str
         <span style={{
           fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
           letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: isHome ? '#22C55E' : '#E8B84A',
+          color: isHome ? '#22C55E' : 'var(--th-gold)',
           background: isHome ? 'rgba(34,197,94,0.1)' : 'rgba(232,184,74,0.1)',
           border: isHome ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(232,184,74,0.25)',
           borderRadius: 4, padding: '2px 6px', flexShrink: 0,
         }}>
           {isHome ? 'Heim' : 'Auswärts'}
         </span>
-        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2' }}>vs</span>
+        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>vs</span>
         <TeamBadge initials={opponent.short.slice(0, 3)} color={opponent.color} logoUrl={opponent.logoUrl} size={26} />
-        <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {oppName}
         </span>
       </div>
@@ -259,7 +259,7 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
   if (sorted.length === 0) {
     return (
       <div style={{
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
         borderRadius: 14, padding: '22px 24px',
       }}>
         {captainLabel !== 'Noch nicht verfügbar' ? (
@@ -268,40 +268,40 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
             <div className="mdu-desktop-only">
               <div style={{
                 display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
-                padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
+                padding: '10px 0', borderBottom: '1px solid var(--th-line-6)',
                 fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase', gap: 12,
+                letterSpacing: '0.14em', color: 'var(--th-text-dim)', textTransform: 'uppercase', gap: 12,
               }}>
                 <span>#</span><span>Name</span><span>Passnr.</span><span>Rolle</span>
               </div>
               <div style={{
                 display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
                 padding: '12px 0', alignItems: 'center', gap: 12,
-                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                borderBottom: '1px solid var(--th-line-4)',
               }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>01</span>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: 'var(--th-text-faint2)', fontSize: 12 }}>01</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Avatar initials={captainLabel.slice(0, 2)} color={teamColor} />
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA' }}>{captainLabel}</span>
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{captainLabel}</span>
                 </div>
                 <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6B7280' }}>—</span>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: '#E8B84A' }}>TC</span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-gold)' }}>TC</span>
               </div>
             </div>
 
             {/* Mobile: captain card */}
             <div className="mdu-mobile-only" style={{
-              borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: 12,
+              borderBottom: '1px solid var(--th-line-4)', paddingBottom: 12,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>01</span>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: 'var(--th-text-faint2)', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>01</span>
                 <Avatar initials={captainLabel.slice(0, 2)} color={teamColor} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: '#F5F6FA', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {captainLabel}
                     </span>
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, color: '#E8B84A', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>
                       TC
                     </span>
                   </div>
@@ -323,7 +323,7 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
   // ── Full roster ───────────────────────────────────────────────
   return (
     <div style={{
-      background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
       borderRadius: 14, overflow: 'hidden',
     }}>
 
@@ -331,9 +331,9 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
       <div className="mdu-desktop-only">
         <div style={{
           display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
-          padding: '12px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          padding: '12px 18px', borderBottom: '1px solid var(--th-line-8)',
           fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-          letterSpacing: '0.14em', color: '#8A8F9C', textTransform: 'uppercase', gap: 12,
+          letterSpacing: '0.14em', color: 'var(--th-text-dim)', textTransform: 'uppercase', gap: 12,
         }}>
           <span>#</span>
           <span>Name</span>
@@ -345,27 +345,27 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
           <div key={i} className="mdu-row-hover" style={{
             display: 'grid', gridTemplateColumns: '40px 1fr 180px 80px',
             padding: '12px 18px',
-            borderBottom: i < sorted.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+            borderBottom: i < sorted.length - 1 ? '1px solid var(--th-line-4)' : 'none',
             alignItems: 'center', gap: 12,
           }}>
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 12 }}>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: 'var(--th-text-faint2)', fontSize: 12 }}>
               {String(i + 1).padStart(2, '0')}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
               <Avatar initials={p.displayName.slice(0, 2)} color={teamColor} photoUrl={p.photoUrl} />
               <span style={{
-                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
+                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
                 {p.displayName || 'Name nicht verfügbar'}
               </span>
             </div>
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2' }}>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)' }}>
               {p.licenseNumber ?? '—'}
             </span>
             <span style={{
               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
-              color: p.isCaptain ? '#E8B84A' : 'transparent',
+              color: p.isCaptain ? 'var(--th-gold)' : 'transparent',
             }}>
               {p.isCaptain ? 'TC' : ''}
             </span>
@@ -380,10 +380,10 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '12px 16px',
-            borderBottom: i < sorted.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+            borderBottom: i < sorted.length - 1 ? '1px solid var(--th-line-4)' : 'none',
           }}>
             {/* Row number */}
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#5A5F6C', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', color: 'var(--th-text-faint2)', fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0 }}>
               {String(i + 1).padStart(2, '0')}
             </span>
             {/* Player avatar */}
@@ -393,14 +393,14 @@ function KaderTab({ roster, captainLabel, teamColor }: { roster: RosterEntry[]; 
               {/* Name row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{
-                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: '#F5F6FA',
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                 }}>
                   {p.displayName || 'Name nicht verfügbar'}
                 </span>
                 {p.isCaptain && (
                   <span style={{
-                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, color: '#E8B84A',
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, color: 'var(--th-gold)',
                     background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)',
                     borderRadius: 3, padding: '1px 5px', flexShrink: 0,
                   }}>
@@ -433,7 +433,7 @@ function Avatar({
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: showPhoto ? '#1a2030' : `${color}22`,
+      background: showPhoto ? 'var(--th-bg-inset)' : `${color}22`,
       border: `1px solid ${showPhoto ? color + '55' : color + '44'}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden',
@@ -466,12 +466,12 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
   if (scheduledMatches.length === 0) {
     return (
       <div style={{
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
         borderRadius: 14, padding: '28px 24px',
       }}>
         <EmptyNote>Keine bevorstehenden Spiele — vollständiger Spielplan auf{' '}
           <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
         </EmptyNote>
       </div>
     );
@@ -488,7 +488,7 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
 
         return (
           <div key={m.id} className="mdu-spielplan-card" style={{
-            background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
             borderRadius: 12, padding: '14px 16px',
           }}>
             {/* Meta row */}
@@ -499,7 +499,7 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
               }}>
                 {league}{m.matchday ? ` · Spieltag ${m.matchday}` : ''}
               </span>
-              <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#8A8F9C' }}>
+              <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-dim)' }}>
                 {formatScheduledDate(m.date)}{m.time ? ` · ${m.time} Uhr` : ''}
               </span>
             </div>
@@ -508,17 +508,17 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
               <span style={{
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
                 letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0,
-                color: isHome ? '#22C55E' : '#E8B84A',
+                color: isHome ? '#22C55E' : 'var(--th-gold)',
                 background: isHome ? 'rgba(34,197,94,0.1)' : 'rgba(232,184,74,0.1)',
                 border: isHome ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(232,184,74,0.25)',
                 borderRadius: 4, padding: '2px 7px',
               }}>
                 {isHome ? 'Heim' : 'Auswärts'}
               </span>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#6A6E7B' }}>vs</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>vs</span>
               <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={28} />
               <span style={{
-                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
+                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
                 {oppName}
@@ -537,12 +537,12 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
   if (completedMatches.length === 0) {
     return (
       <div style={{
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
         borderRadius: 14, padding: '28px 24px',
       }}>
         <EmptyNote>Noch keine Ergebnisse — aktuelle Ergebnisse auf{' '}
           <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
         </EmptyNote>
       </div>
     );
@@ -563,13 +563,13 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
           : myScore < oppScore! ? 'loss'
           : 'draw';
 
-        const outcomeColor  = outcome === 'win' ? '#22C55E' : outcome === 'loss' ? '#EF4444' : '#E8B84A';
+        const outcomeColor  = outcome === 'win' ? '#22C55E' : outcome === 'loss' ? '#EF4444' : 'var(--th-gold)';
         const outcomeLetter = outcome === 'win' ? 'S' : outcome === 'loss' ? 'N' : 'U';
         const outcomeLabel  = outcome === 'win' ? 'Sieg' : outcome === 'loss' ? 'Niederlage' : 'Unentschieden';
 
         return (
           <div key={m.id} className="mdu-spielplan-card" style={{
-            background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
             borderRadius: 12, padding: '14px 16px',
           }}>
             {/* Meta row */}
@@ -580,7 +580,7 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
               }}>
                 {league}{m.matchday ? ` · Spieltag ${m.matchday}` : ''}
               </span>
-              <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#8A8F9C' }}>
+              <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-dim)' }}>
                 {formatMatchDate(m.date)}
               </span>
             </div>
@@ -591,7 +591,7 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
                 <span style={{
                   fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
                   letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0,
-                  color: isHome ? '#22C55E' : '#E8B84A',
+                  color: isHome ? '#22C55E' : 'var(--th-gold)',
                   background: isHome ? 'rgba(34,197,94,0.1)' : 'rgba(232,184,74,0.1)',
                   border: isHome ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(232,184,74,0.25)',
                   borderRadius: 4, padding: '2px 7px',
@@ -600,7 +600,7 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
                 </span>
                 <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={24} />
                 <span style={{
-                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: '#F5F6FA',
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {oppName}
@@ -610,13 +610,13 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
               <div style={{ textAlign: 'center', minWidth: 80 }}>
                 {m.result ? (
                   <span style={{
-                    fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: '#F5F6FA',
-                    background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '3px 10px', display: 'inline-block',
+                    fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: 'var(--th-text-strong)',
+                    background: 'var(--th-line-6)', borderRadius: 6, padding: '3px 10px', display: 'inline-block',
                   }}>
                     {isHome ? m.result.home : m.result.away}:{isHome ? m.result.away : m.result.home}
                   </span>
                 ) : (
-                  <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: '#6A6E7B' }}>—</span>
+                  <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: 'var(--th-text-faint)' }}>—</span>
                 )}
               </div>
               {/* Outcome badge */}
@@ -657,18 +657,18 @@ function StatistikTab({
   if (stats.length === 0) {
     return (
       <div style={{
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
         borderRadius: 14, padding: '36px 24px',
         fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <Icon name="bar" size={16} stroke={2} style={{ color: '#6B7280', flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, color: '#9AA4B2' }}>Statistiken noch nicht verfügbar</span>
+          <span style={{ fontWeight: 700, color: 'var(--th-text-muted)' }}>Statistiken noch nicht verfügbar</span>
         </div>
         <div>
           Einzelrangliste folgt auf{' '}
           <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>.
+            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
         </div>
       </div>
     );
@@ -679,13 +679,13 @@ function StatistikTab({
       {/* ── Desktop: rich 5-column scrollable table ── */}
       <div className="mdu-desktop-only mdu-table-scroll" style={{ maxWidth: 800 }}>
         <div className="mdu-standings-inner" style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
           minWidth: 560,
         }}>
           <div style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
-            letterSpacing: '0.06em', color: '#F5F6FA', margin: '0 0 6px',
+            letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: '0 0 6px',
             textTransform: 'uppercase',
           }}>
             Einzelrangliste
@@ -697,9 +697,9 @@ function StatistikTab({
           {/* Header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
-            padding: '10px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+            padding: '10px 8px', borderBottom: '1px solid var(--th-line-8)',
             fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-            letterSpacing: '0.1em', color: '#9AA4B2', textTransform: 'uppercase',
+            letterSpacing: '0.1em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
             gap: 6, alignItems: 'center',
           }}>
             <span>#</span>
@@ -715,7 +715,7 @@ function StatistikTab({
               <div key={i} style={{
                 display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
                 padding: '11px 8px',
-                borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                 fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
                 gap: 6,
                 background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
@@ -723,7 +723,7 @@ function StatistikTab({
               }}>
                 <span style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
-                  color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2',
+                  color: p.rank <= 3 ? 'var(--th-gold)' : 'var(--th-text-muted)',
                 }}>
                   {p.rank}
                 </span>
@@ -736,7 +736,7 @@ function StatistikTab({
                   />
                   <span style={{
                     fontWeight: isOwnTeam ? 800 : 700,
-                    color: '#F5F6FA',
+                    color: 'var(--th-text-strong)',
                     fontSize: 13,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
@@ -745,7 +745,7 @@ function StatistikTab({
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <span style={{
-                    color: isOwnTeam ? teamColor : '#9AA4B2', fontSize: 12,
+                    color: isOwnTeam ? teamColor : 'var(--th-text-muted)', fontSize: 12,
                     fontWeight: isOwnTeam ? 700 : 400,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
                   }}>
@@ -753,14 +753,14 @@ function StatistikTab({
                   </span>
                 </div>
                 <span style={{
-                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2',
+                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
                   textAlign: 'center',
                 }}>
                   {p.wins}·{p.losses}
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                  color: '#F5F6FA', textAlign: 'right',
+                  color: 'var(--th-text-strong)', textAlign: 'right',
                 }}>
                   {p.pts}
                 </span>
@@ -773,14 +773,14 @@ function StatistikTab({
       {/* ── Mobile: compact 4-column no-scroll table ── */}
       <div className="mdu-mobile-only">
         <div style={{
-          background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, overflow: 'hidden',
         }}>
           {/* Heading */}
           <div style={{ padding: '14px 14px 0' }}>
             <div style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-              letterSpacing: '0.06em', color: '#F5F6FA', textTransform: 'uppercase', marginBottom: 4,
+              letterSpacing: '0.06em', color: 'var(--th-text-strong)', textTransform: 'uppercase', marginBottom: 4,
             }}>
               Einzelrangliste
             </div>
@@ -793,7 +793,7 @@ function StatistikTab({
           </div>
 
           {/* 2-row card rows: name+badge / stats line */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ borderTop: '1px solid var(--th-line-6)' }}>
             {stats.map((p, i) => {
               const td = getExtendedTeam(p.teamId);
               const isOwnTeam = p.teamId === teamId;
@@ -801,7 +801,7 @@ function StatistikTab({
               return (
                 <div key={i} style={{
                   padding: '9px 14px',
-                  borderBottom: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
                   borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
                 }}>
@@ -809,7 +809,7 @@ function StatistikTab({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
-                      color: p.rank <= 3 ? '#E8B84A' : '#9AA4B2', flexShrink: 0, width: 22,
+                      color: p.rank <= 3 ? 'var(--th-gold)' : 'var(--th-text-muted)', flexShrink: 0, width: 22,
                     }}>
                       {p.rank}
                     </span>
@@ -821,7 +821,7 @@ function StatistikTab({
                     />
                     <span style={{
                       fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
-                      color: '#F5F6FA', fontSize: 12,
+                      color: 'var(--th-text-strong)', fontSize: 12,
                       flex: 1, minWidth: 0,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
@@ -834,11 +834,11 @@ function StatistikTab({
                   {/* Row 2: stats meta line — indent: rank(22) + gap(8) + avatar(28) + gap(8) = 66 */}
                   <div style={{
                     paddingLeft: 66,
-                    fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6A6E7B',
+                    fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--th-text-faint)',
                     letterSpacing: '0.02em',
                   }}>
                     <span style={{
-                      color: isOwnTeam ? teamColor : '#9AA4B2',
+                      color: isOwnTeam ? teamColor : 'var(--th-text-muted)',
                       fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13,
                     }}>
                       {p.pts} Pkt.
@@ -865,18 +865,18 @@ function StatistikTab({
 function PlaceholderTab({ label, icon }: { label: string; icon: string }) {
   return (
     <div style={{
-      background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
       borderRadius: 14, padding: '36px 24px',
       fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <Icon name={icon as 'bar'} size={16} stroke={2} style={{ color: '#6B7280', flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, color: '#9AA4B2' }}>{label} folgt</span>
+        <span style={{ fontWeight: 700, color: 'var(--th-text-muted)' }}>{label} folgt</span>
       </div>
       <div>
         Daten werden auf{' '}
         <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-          style={{ color: '#9AA4B2', textDecoration: 'underline' }}>dartunion.de</a>{' '}
+          style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>{' '}
         veröffentlicht.
       </div>
     </div>
@@ -906,8 +906,8 @@ export function TeamDetailClient({
     <>
       {/* Tab bar */}
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        background: 'rgba(10,11,15,0.8)',
+        borderTop: '1px solid var(--th-line-6)',
+        background: 'var(--th-bg-tabbar2)',
         position: 'sticky', top: 0, zIndex: 10,
       }}>
         <div
@@ -924,7 +924,7 @@ export function TeamDetailClient({
               style={{
                 padding: '18px 0',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                color: i === activeTab ? '#F5F6FA' : '#8A8F9C',
+                color: i === activeTab ? 'var(--th-text-strong)' : 'var(--th-text-dim)',
                 borderTop: 'none', borderLeft: 'none', borderRight: 'none',
                 borderBottom: i === activeTab ? `2px solid ${teamColor}` : '2px solid transparent',
                 marginBottom: -1, cursor: 'pointer',

@@ -11,10 +11,10 @@ interface NewsCardProps {
 
 const toneColor: Record<TagTone, string> = {
   red:     '#D40000',
-  gold:    '#E8B84A',
+  gold:    'var(--th-gold)',
   blue:    '#3B82F6',
   green:   '#22C55E',
-  neutral: '#9AA4B2',
+  neutral: 'var(--th-text-muted)',
 };
 
 export function NewsCard({ date, tag, tagTone = 'neutral', title }: NewsCardProps) {
@@ -24,19 +24,19 @@ export function NewsCard({ date, tag, tagTone = 'neutral', title }: NewsCardProp
       style={{
         display: 'flex', alignItems: 'flex-start', gap: 14,
         padding: '16px 18px', borderRadius: 12,
-        background: '#121821', border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
       }}
     >
       <div style={{
         width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9AA4B2',
+        background: 'var(--th-line-4)', border: '1px solid var(--th-line-8)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-text-muted)',
       }}>
         <Icon name="calendar" size={18} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#9AA4B2' }}>{date}</span>
+          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)' }}>{date}</span>
           <span style={{
             fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
             letterSpacing: '0.18em', color: toneColor[tagTone], textTransform: 'uppercase',
@@ -44,7 +44,7 @@ export function NewsCard({ date, tag, tagTone = 'neutral', title }: NewsCardProp
         </div>
         <div style={{
           fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14,
-          color: '#F5F6FA', lineHeight: 1.4, marginTop: 6,
+          color: 'var(--th-text-strong)', lineHeight: 1.4, marginTop: 6,
         }}>
           {title}
         </div>

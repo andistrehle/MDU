@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
+import { ThemeToggle } from '@/components/mdu/theme-toggle';
 
 const SECTIONS = [
   {
@@ -50,7 +51,7 @@ const SECTIONS = [
 
 export default function MehrPage() {
   return (
-    <div style={{ background: '#05070A', color: '#F5F6FA', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/mehr" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '40px 20px 80px' }}>
@@ -64,11 +65,32 @@ export default function MehrPage() {
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: '#F5F6FA',
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
             margin: 0, paddingBottom: 12, borderBottom: '3px solid #D40000', display: 'inline-block',
           }}>
             Mehr
           </h1>
+        </div>
+
+        {/* Theme switch (mobile main menu) */}
+        <div style={{
+          background: 'var(--th-bg-card)',
+          border: '1px solid var(--th-line-6)',
+          borderRadius: 12,
+          padding: '16px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          marginBottom: 10,
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15,
+            color: 'var(--th-text-strong)',
+          }}>
+            Darstellung
+          </span>
+          <ThemeToggle showLabel />
         </div>
 
         {/* Section link cards */}
@@ -81,8 +103,8 @@ export default function MehrPage() {
               className="mdu-card-hover"
             >
               <div style={{
-                background: '#121821',
-                border: '1px solid rgba(255,255,255,0.06)',
+                background: 'var(--th-bg-card)',
+                border: '1px solid var(--th-line-6)',
                 borderRadius: 12,
                 padding: '16px 18px',
                 display: 'flex',
@@ -92,10 +114,10 @@ export default function MehrPage() {
                 {/* Icon */}
                 <div style={{
                   width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                  background: item.ready ? 'rgba(212,0,0,0.12)' : 'rgba(255,255,255,0.04)',
-                  border: item.ready ? '1px solid rgba(212,0,0,0.25)' : '1px solid rgba(255,255,255,0.08)',
+                  background: item.ready ? 'rgba(212,0,0,0.12)' : 'var(--th-line-4)',
+                  border: item.ready ? '1px solid rgba(212,0,0,0.25)' : '1px solid var(--th-line-8)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: item.ready ? '#FF6B6B' : '#5A5F6C',
+                  color: item.ready ? 'var(--th-loss)' : 'var(--th-text-faint2)',
                 }}>
                   <Icon name={item.icon} size={20} stroke={2} />
                 </div>
@@ -105,7 +127,7 @@ export default function MehrPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                     <span style={{
                       fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15,
-                      color: item.ready ? '#F5F6FA' : '#6A6E7B',
+                      color: item.ready ? 'var(--th-text-strong)' : 'var(--th-text-faint)',
                     }}>
                       {item.label}
                     </span>
@@ -113,8 +135,8 @@ export default function MehrPage() {
                       <span style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
-                        color: '#5A5F6C', background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'var(--th-text-faint2)', background: 'var(--th-line-4)',
+                        border: '1px solid var(--th-line-8)',
                         borderRadius: 4, padding: '1px 6px',
                       }}>
                         Folgt
@@ -123,7 +145,7 @@ export default function MehrPage() {
                   </div>
                   <div style={{
                     fontFamily: 'var(--font-manrope)', fontSize: 12,
-                    color: item.ready ? '#9AA4B2' : '#4A4E5A',
+                    color: item.ready ? 'var(--th-text-muted)' : '#4A4E5A',
                     lineHeight: 1.4,
                   }}>
                     {item.description}
@@ -135,7 +157,7 @@ export default function MehrPage() {
                   name="arrow-right"
                   size={16}
                   stroke={2}
-                  style={{ color: item.ready ? '#6A6E7B' : '#3A3E4A', flexShrink: 0 }}
+                  style={{ color: item.ready ? 'var(--th-text-faint)' : '#3A3E4A', flexShrink: 0 }}
                 />
               </div>
             </Link>
@@ -167,10 +189,10 @@ export default function MehrPage() {
               <Icon name="user" size={20} stroke={2} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: '#F5F6FA', marginBottom: 3 }}>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)', marginBottom: 3 }}>
                 Login
               </div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#9AA4B2', lineHeight: 1.4 }}>
+              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.4 }}>
                 Anmelden zum MDU Mitgliederbereich
               </div>
             </div>
@@ -182,13 +204,13 @@ export default function MehrPage() {
         <div style={{
           marginTop: 24, padding: '14px 16px',
           background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.05)',
+          border: '1px solid var(--th-line-5)',
           borderRadius: 10,
-          fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#5A5F6C', lineHeight: 1.6,
+          fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint2)', lineHeight: 1.6,
         }}>
           Weitere Informationen unter{' '}
           <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#9AA4B2', textDecoration: 'underline' }}>
+            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
             dartunion.de
           </a>
         </div>

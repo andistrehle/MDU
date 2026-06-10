@@ -20,7 +20,7 @@ export function FormDots({ form }: FormDotsProps) {
             fontFamily: 'var(--font-jetbrains-mono)',
             fontWeight: 700,
             fontSize: 9,
-            color: r === 'W' ? '#5BE08C' : '#FF6B6B',
+            color: r === 'W' ? 'var(--th-win)' : 'var(--th-loss)',
           }}
         >
           {r}
