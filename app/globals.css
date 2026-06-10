@@ -200,6 +200,12 @@ html[data-theme="light"] .mdu-wordmark-accent {
   outline: 2px solid var(--th-accent);
   outline-offset: 3px;
 }
+/* Mobile header actions (compact toggle + Login) — desktop hides this */
+.mdu-mobile-actions { display: none; }
+/* Light mode: blue frame on the switch to match the blue header bar */
+html[data-theme="light"] .mdu-world-switch {
+  border-color: #4E7DBD !important;
+}
 /* Short labels (OLD/NEW) replace the full ones when the header gets tight */
 .mdu-ws-short { display: none; }
 @media (max-width: 1240px) {
@@ -352,6 +358,8 @@ body {
   .mdu-mobile-only  { display: block !important; }
   .mdu-mobile-flex  { display: flex  !important; }
   .mdu-mobile-login { display: inline-flex !important; align-items: center; }
+  .mdu-mobile-actions { display: flex !important; }
+  .mdu-header-inner { padding-left: 14px !important; padding-right: 14px !important; }
   .mdu-header-nav   { display: none  !important; }
   .mdu-header-login { display: none  !important; }
   .mdu-bottom-nav   {

@@ -37,7 +37,7 @@ function SubLabel({ text, color, lineColor, fontSize }: { text: string; color: s
  *
  * `compact` renders the smaller header variant.
  */
-export function ThemeToggle({ compact = false }: { compact?: boolean }) {
+export function ThemeToggle({ compact = false, mini = false }: { compact?: boolean; mini?: boolean }) {
   // Render the dark state during SSR; sync to the real theme after mount.
   const [theme, setTheme] = useState<Theme>('dark');
   const [mounted, setMounted] = useState(false);
@@ -77,13 +77,13 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const isDark = !mounted || theme === 'dark'; // true = New Design active
 
   // ── Sizing (Variante 2 proportions) ─────────────────────────
-  const W       = compact ? 220 : 288;
-  const H       = compact ? 46  : 54;
-  const pad     = 4;
-  const thumbD  = H - pad * 2 - 2;           // small round handle, stays inside
-  const clear   = thumbD + 6;                // active-label clearance on handle side
-  const fz      = compact ? 11.5 : 13;       // main label
-  const fz2      = compact ? 7.5 : 8.5;      // sub label
+  const W       = mini ? 156 : compact ? 220 : 288;
+  const H       = mini ? 38  : compact ? 46  : 54;
+  const pad     = mini ? 3 : 4;
+  const thumbD  = mini ? 24 : H - pad * 2 - 2; // small round handle, stays inside
+  const clear   = mini ? 26 : thumbD + 6;      // active-label clearance on handle side
+  const fz      = mini ? 8.5 : compact ? 11.5 : 13; // main label
+  const fz2     = compact ? 7.5 : 8.5;       // sub label (not shown in mini)
 
   const OLD_GREEN = '#3E9C33';
 
@@ -102,7 +102,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       aria-checked={isDark}
       aria-label={`Design wechseln: Old School oder New Design. Aktuelles Design: ${isDark ? 'New Design' : 'Old School'}`}
       onClick={toggle}
-      className={compact ? 'mdu-world-switch mdu-world-switch--compact' : 'mdu-world-switch'}
+      className={`mdu-world-switch${compact ? ' mdu-world-switch--compact' : ''}${mini ? ' mdu-world-switch--mini' : ''}`}
       style={{
         position: 'relative',
         width: W, maxWidth: '100%', height: H,
@@ -131,13 +131,22 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
             transition: 'padding 300ms cubic-bezier(.4,.95,.4,1.05), box-shadow 250ms ease',
           }}
         >
-          <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.05em', color: oldMain, whiteSpace: 'nowrap', transition: 'color 250ms ease' }}>
-            <span className="mdu-ws-full">Old School</span>
-            <span className="mdu-ws-short">Old</span>
-          </span>
-          <span className="mdu-ws-full">
-            <SubLabel text="Hell" color="#8A8F9C" lineColor={!isDark ? '#5F8CC9' : '#C7CCD4'} fontSize={fz2} />
-          </span>
+          {mini ? (
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.06, color: oldMain, transition: 'color 250ms ease' }}>
+              <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.03em' }}>Old</span>
+              <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.03em' }}>School</span>
+            </span>
+          ) : (
+            <>
+              <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.05em', color: oldMain, whiteSpace: 'nowrap', transition: 'color 250ms ease' }}>
+                <span className="mdu-ws-full">Old School</span>
+                <span className="mdu-ws-short">Old</span>
+              </span>
+              <span className="mdu-ws-full">
+                <SubLabel text="Hell" color="#8A8F9C" lineColor={!isDark ? '#5F8CC9' : '#C7CCD4'} fontSize={fz2} />
+              </span>
+            </>
+          )}
         </span>
 
         {/* Right — New Design (always the dark world) */}
@@ -152,13 +161,22 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
             transition: 'padding 300ms cubic-bezier(.4,.95,.4,1.05), box-shadow 250ms ease',
           }}
         >
-          <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.05em', color: newMain, whiteSpace: 'nowrap', transition: 'color 250ms ease' }}>
-            <span className="mdu-ws-full">New Design</span>
-            <span className="mdu-ws-short">New</span>
-          </span>
-          <span className="mdu-ws-full">
-            <SubLabel text="Dark" color="#9AA0AC" lineColor={isDark ? '#E23A3A' : '#5A616B'} fontSize={fz2} />
-          </span>
+          {mini ? (
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.06, color: newMain, transition: 'color 250ms ease' }}>
+              <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.03em' }}>New</span>
+              <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.03em' }}>Design</span>
+            </span>
+          ) : (
+            <>
+              <span style={{ fontWeight: 800, fontSize: fz, letterSpacing: '0.05em', color: newMain, whiteSpace: 'nowrap', transition: 'color 250ms ease' }}>
+                <span className="mdu-ws-full">New Design</span>
+                <span className="mdu-ws-short">New</span>
+              </span>
+              <span className="mdu-ws-full">
+                <SubLabel text="Dark" color="#9AA0AC" lineColor={isDark ? '#E23A3A' : '#5A616B'} fontSize={fz2} />
+              </span>
+            </>
+          )}
         </span>
       </span>
 

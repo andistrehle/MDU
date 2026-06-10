@@ -54,7 +54,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
       backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
       borderBottom: '1px solid var(--th-line-6)',
     }}>
-      <div style={{
+      <div className="mdu-header-inner" style={{
         maxWidth: 1280, margin: '0 auto', padding: '0 28px', height: 70,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24,
       }}>
@@ -239,20 +239,22 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           Login
         </Link>
 
-        {/* Mobile Login button */}
-        <Link
-          href="/login"
-          className="mdu-mobile-login"
-          style={{
-            padding: '8px 16px', borderRadius: 6,
-            background: 'transparent', color: 'var(--th-accent)',
-            border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
-            fontWeight: 700, fontSize: 13, textDecoration: 'none',
-            letterSpacing: '0.04em', flexShrink: 0,
-          }}
-        >
-          Login
-        </Link>
+        {/* Mobile actions — compact theme toggle + Login (mobile only) */}
+        <span className="mdu-mobile-actions" style={{ alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <ThemeToggle mini />
+          <Link
+            href="/login"
+            style={{
+              padding: '8px 14px', borderRadius: 6,
+              background: 'transparent', color: 'var(--th-accent)',
+              border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
+              fontWeight: 700, fontSize: 13, textDecoration: 'none',
+              letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap',
+            }}
+          >
+            Login
+          </Link>
+        </span>
       </div>
     </header>
   );

@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
-import { ThemeToggle } from '@/components/mdu/theme-toggle';
 
 const SECTIONS = [
   {
@@ -70,29 +69,6 @@ export default function MehrPage() {
           }}>
             Mehr
           </h1>
-        </div>
-
-        {/* Old School / New Design switch — mobile main menu only
-            (desktop uses the header switch, so only one is ever visible). */}
-        <div className="mdu-mobile-only" style={{ marginBottom: 10 }}>
-          <div style={{
-            background: 'var(--th-bg-card)',
-            border: '1px solid var(--th-line-6)',
-            borderRadius: 12,
-            padding: '16px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 12,
-          }}>
-            <span style={{
-              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15,
-              color: 'var(--th-text-strong)', alignSelf: 'flex-start',
-            }}>
-              Darstellung
-            </span>
-            <ThemeToggle />
-          </div>
         </div>
 
         {/* Section link cards */}
