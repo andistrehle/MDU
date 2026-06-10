@@ -5,6 +5,8 @@ import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { MatchCard } from '@/components/mdu/match-card';
 import { NewsCard } from '@/components/mdu/news-card';
+import { NewsArticleCard } from '@/components/mdu/news-article-card';
+import { getLatestNews } from '@/lib/data/news';
 import {
   HOME_NEWS,
   getUpcomingMatches,
@@ -19,6 +21,7 @@ import {
 export default function HomePage() {
   const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
+  const latestNews = getLatestNews();
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/" />
@@ -136,6 +139,7 @@ export default function HomePage() {
             <h2 className="section-heading" style={{ margin: 0 }}>Aktuelles</h2>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {latestNews && <NewsArticleCard article={latestNews} />}
             {HOME_NEWS.map((n, i) => (
               <NewsCard key={i} date={n.date} tag={n.tag} tagTone={n.tagTone} title={n.title} />
             ))}
