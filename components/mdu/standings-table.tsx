@@ -57,12 +57,12 @@ export function StandingsTable({
   const router = useRouter();
   const [expandedPos, setExpandedPos] = useState<number | null>(null);
 
-  // Grid columns: Pl. | Team | Sp. | S | [U] | N | Spiele | Legs | Diff. | Pkt. | [Form]
+  // Grid columns: Pl. | Team | Sp. | Pkt. | S | [U] | N | Spiele | Legs | Diff. | [Form]
   const colTemplate = showForm
-    ? '32px 1fr 36px 28px 28px 28px 64px 50px 64px 40px 90px'
+    ? '32px 1fr 36px 40px 28px 28px 28px 64px 50px 64px 90px'
     : showU
-      ? '32px 1fr 36px 28px 28px 28px 64px 50px 64px 40px'
-      : '32px 1fr 36px 28px 28px 64px 50px 64px 40px';
+      ? '32px 1fr 36px 40px 28px 28px 28px 64px 50px 64px'
+      : '32px 1fr 36px 40px 28px 28px 64px 50px 64px';
 
   function handleDesktopRowClick(teamId: string) {
     // Desktop only: update the standings-panel team card
@@ -125,13 +125,13 @@ export function StandingsTable({
             <span>Pl.</span>
             <span>Team</span>
             <span style={{ textAlign: 'center' }}>Sp.</span>
+            <span style={{ textAlign: 'center' }}>Pkt.</span>
             <span style={{ textAlign: 'center' }}>S</span>
             {showU && <span style={{ textAlign: 'center' }}>U</span>}
             <span style={{ textAlign: 'center' }}>N</span>
             <span style={{ textAlign: 'center' }}>Spiele</span>
             <span style={{ textAlign: 'center' }}>Legs</span>
             <span style={{ textAlign: 'center' }}>Diff.</span>
-            <span style={{ textAlign: 'right' }}>Pkt.</span>
             {showForm && <span style={{ textAlign: 'center' }}>Form</span>}
           </div>
 
@@ -229,6 +229,17 @@ export function StandingsTable({
                 <span
                   style={{
                     textAlign: 'center',
+                    fontFamily: 'var(--font-saira-condensed)',
+                    fontWeight: 900,
+                    fontSize: 18,
+                    color: '#F5F6FA',
+                  }}
+                >
+                  {r.pts}
+                </span>
+                <span
+                  style={{
+                    textAlign: 'center',
                     fontFamily: 'var(--font-jetbrains-mono)',
                     color: '#5BE08C',
                     fontWeight: 600,
@@ -285,17 +296,6 @@ export function StandingsTable({
                   }}
                 >
                   {r.diff}
-                </span>
-                <span
-                  style={{
-                    textAlign: 'right',
-                    fontFamily: 'var(--font-saira-condensed)',
-                    fontWeight: 900,
-                    fontSize: 18,
-                    color: '#F5F6FA',
-                  }}
-                >
-                  {r.pts}
                 </span>
                 {showForm && r.form && (
                   <div style={{ display: 'flex', justifyContent: 'center' }}>

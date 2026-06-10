@@ -120,11 +120,22 @@ body {
   -webkit-overflow-scrolling: touch;
   border-radius: 14px;
 }
-/* Keep the inner table wide enough to scroll rather than collapsing columns */
-.mdu-standings-inner { min-width: 760px; }
+/* Keep the inner table wide enough to scroll rather than collapsing columns.
+   Fixed columns sum to ~440px; the rest goes to the team name (ellipsized). */
+.mdu-standings-inner { min-width: 580px; }
 .mdu-table-scroll::-webkit-scrollbar { height: 4px; }
 .mdu-table-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
 .mdu-table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
+
+/* =====================================================
+   @media (max-width: 1100px) — narrow desktop / tablet
+   ===================================================== */
+/* The liga body grid (standings table + team card) is too cramped for two
+   columns below ~1100px — the table would be cut off. Stack to one column. */
+@media (max-width: 1100px) {
+  .mdu-liga-body-grid     { grid-template-columns: 1fr !important; }
+  .mdu-liga-body-grid > * { min-width: 0; }
+}
 
 /* =====================================================
    @media (max-width: 768px)
