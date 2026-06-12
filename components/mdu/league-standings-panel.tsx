@@ -140,6 +140,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
               showU={true}
               onRowClick={setSelectedId}
               activeTeamId={selectedId}
+              competitionId={league.id}
             />
             {/* Playoff notice: games not yet played */}
             {isPlayoff && rows.every(r => r.sp === 0) && (

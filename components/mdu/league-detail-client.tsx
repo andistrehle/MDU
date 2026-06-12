@@ -5,7 +5,13 @@ import Link from 'next/link';
 import { LeagueStandingsPanel, type TeamInfo } from './league-standings-panel';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
-import { getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getVenueForTeamInSeason, getPlayerPhotoByName, getInitialsFromName } from '@/lib/data';
+import { TeamLink } from './team-link';
+import { PlayerCard, type PlayerCardData } from './player-card';
+import {
+  getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague, getVenueForTeamInSeason,
+  getPlayerPhotoByName, getInitialsFromName,
+  getPlayerSeasonStatsFromEntry, getPlayerDisplayName, getCurrentSeason,
+} from '@/lib/data';
 import type { StandingRow, PlayerStatEntry } from '@/lib/data';
 import type { Match as GameMatch } from '@/lib/data/matches';
 import { groupMatchesByMatchday } from '@/lib/data/matches';
@@ -86,7 +92,7 @@ function EmptyState({ icon, text, sub }: { icon: string; text: string; sub?: str
 
 // ── Übersicht Tab ────────────────────────────────────────────
 
-function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
+function ÜbersichtTab({ rows, league, matches, stats, onSelectPlayer }: Props & { onSelectPlayer: (entry: PlayerStatEntry) => void }) {
   const top3        = rows.slice(0, 3);
   const leagueStats = rows.length > 0 ? {
     totalGames:  rows.reduce((acc, r) => acc + r.sp, 0),
@@ -143,11 +149,10 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
               {top3.map(r => {
                 const td = getExtendedTeam(r.team);
                 return (
-                  <div key={r.team} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
+                  <TeamLink key={r.team} teamId={r.team} competitionId={league.id} teamName={r.name.replace(' *', '')} style={{
+                    display: 'flex', width: '100%', gap: 12,
                     padding: '10px 12px', borderRadius: 8,
                     background: 'var(--th-line-3)', border: '1px solid var(--th-line-6)',
-                    cursor: 'pointer',
                   }}>
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
@@ -157,7 +162,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                     </span>
                     <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={28} />
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{
+                      <div className="mdu-link-name" style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
                         color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
@@ -173,7 +178,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                     }}>
                       {r.pts} <span style={{ fontSize: 12, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 600 }}>Pkt</span>
                     </div>
-                  </div>
+                  </TeamLink>
                 );
               })}
             </div>
@@ -207,15 +212,19 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={22} />
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {homeTeam.name}
-                      </span>
+                      <TeamLink teamId={m.homeTeamId} competitionId={league.id} teamName={homeTeam.name} style={{ flex: 1, gap: 8, minWidth: 0 }}>
+                        <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={22} />
+                        <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                          {homeTeam.name}
+                        </span>
+                      </TeamLink>
                       <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', flexShrink: 0 }}>vs</span>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
-                        {awayTeam.name}
-                      </span>
-                      <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={22} />
+                      <TeamLink teamId={m.awayTeamId} competitionId={league.id} teamName={awayTeam.name} style={{ flex: 1, gap: 8, minWidth: 0, justifyContent: 'flex-end' }}>
+                        <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, textAlign: 'right' }}>
+                          {awayTeam.name}
+                        </span>
+                        <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={22} />
+                      </TeamLink>
                     </div>
                   </div>
                 );
@@ -237,7 +246,13 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
             borderRadius: 14, padding: '22px 24px',
           }}>
             <SectionLabel>Bester Spieler</SectionLabel>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button
+              type="button"
+              onClick={() => onSelectPlayer(topScorer)}
+              aria-label={`Spielerprofil von ${topScorer.name} öffnen`}
+              className="mdu-entity-link"
+              style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 14, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}
+            >
               <div style={{
                 width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
                 background: `linear-gradient(135deg, ${league.color}, ${league.color}66)`,
@@ -248,7 +263,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                 </span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: 'var(--th-text-strong)', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+                <div className="mdu-link-name" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: 'var(--th-text-strong)', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
                   {topScorer.name}
                 </div>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
@@ -261,7 +276,7 @@ function ÜbersichtTab({ rows, league, matches, stats, teamInfoMap }: Props) {
                 </div>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)' }}>Punkte</div>
               </div>
-            </div>
+            </button>
             <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>
               {topScorer.wins}W · {topScorer.losses}N — Einzelrangliste · dartunion.de
             </div>
@@ -333,19 +348,19 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
                   </div>
                   {/* Teams row — 3-col grid, no overflow */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 1fr', alignItems: 'center', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end', minWidth: 0 }}>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <TeamLink teamId={m.homeTeamId} competitionId={league.id} teamName={homeTeam.name} style={{ display: 'flex', width: '100%', gap: 10, justifyContent: 'flex-end', minWidth: 0 }}>
+                      <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {homeTeam.name}
                       </span>
                       <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={28} />
-                    </div>
+                    </TeamLink>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', textAlign: 'center' }}>vs</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <TeamLink teamId={m.awayTeamId} competitionId={league.id} teamName={awayTeam.name} style={{ display: 'flex', width: '100%', gap: 10, minWidth: 0 }}>
                       <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={28} />
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {awayTeam.name}
                       </span>
-                    </div>
+                    </TeamLink>
                   </div>
                 </div>
               );
@@ -452,8 +467,8 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                         </div>
                         {/* Teams + Score — 3-col, mobile-safe */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 1fr', alignItems: 'center', gap: 8 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
-                            <span style={{
+                          <TeamLink teamId={m.homeTeamId} competitionId={league.id} teamName={home.name} style={{ display: 'flex', width: '100%', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
+                            <span className="mdu-link-name" style={{
                               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
                               color: homeWon ? 'var(--th-text-strong)' : 'var(--th-text-muted)',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -461,7 +476,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                               {home.name}
                             </span>
                             <TeamBadge initials={home.short.slice(0, 3)} color={home.color} logoUrl={home.logoUrl} size={26} />
-                          </div>
+                          </TeamLink>
                           <div style={{
                             textAlign: 'center',
                             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
@@ -470,16 +485,16 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                           }}>
                             {m.result ? `${m.result.home}:${m.result.away}` : '—'}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                          <TeamLink teamId={m.awayTeamId} competitionId={league.id} teamName={away.name} style={{ display: 'flex', width: '100%', gap: 8, minWidth: 0 }}>
                             <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={26} />
-                            <span style={{
+                            <span className="mdu-link-name" style={{
                               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
                               color: awayWon ? 'var(--th-text-strong)' : 'var(--th-text-muted)',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
                               {away.name}
                             </span>
-                          </div>
+                          </TeamLink>
                         </div>
                       </div>
                     );
@@ -531,15 +546,15 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
                     }}>
                       {r.pos}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <TeamLink teamId={r.team} competitionId={league.id} teamName={r.name.replace(' *', '')} style={{ display: 'flex', gap: 8, minWidth: 0 }}>
                       <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
-                      <span style={{
+                      <span className="mdu-link-name" style={{
                         fontWeight: 700, color: 'var(--th-text-strong)', fontSize: 13,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {r.name.replace(' *', '')}
                       </span>
-                    </div>
+                    </TeamLink>
                     <span style={{
                       fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
                       textAlign: 'center',
@@ -612,7 +627,7 @@ function PlayerAvatar({ name, size = 30 }: { name: string; size?: number }) {
 
 // ── Statistiken Tab ───────────────────────────────────────────
 
-function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: LeagueShape }) {
+function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntry[]; league: LeagueShape; onSelectPlayer: (entry: PlayerStatEntry) => void }) {
   if (stats.length === 0) {
     return (
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px' }}>
@@ -676,24 +691,30 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                 }}>
                   {p.rank}
                 </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <button
+                  type="button"
+                  onClick={() => onSelectPlayer(p)}
+                  aria-label={`Spielerprofil von ${p.name} öffnen`}
+                  className="mdu-entity-link"
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}
+                >
                   <PlayerAvatar name={p.name} size={36} />
-                  <span style={{
+                  <span className="mdu-link-name" style={{
                     fontWeight: 700, color: 'var(--th-text-strong)', fontSize: 13,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {p.name}
                   </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                </button>
+                <TeamLink teamId={p.teamId} competitionId={league.id} teamName={p.teamName} style={{ display: 'flex', gap: 8, minWidth: 0 }}>
                   <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={20} />
-                  <span style={{
+                  <span className="mdu-link-name" style={{
                     color: 'var(--th-text-muted)', fontSize: 12,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {p.teamName}
                   </span>
-                </div>
+                </TeamLink>
                 <span style={{
                   fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
                   textAlign: 'center',
@@ -740,7 +761,10 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
               const td = getExtendedTeam(p.teamId);
               const games = p.wins + p.losses;
               return (
-                <div key={i} style={{
+                <button key={i} type="button" onClick={() => onSelectPlayer(p)}
+                  aria-label={`Spielerprofil von ${p.name} öffnen`}
+                  className="mdu-kader-row" style={{
+                  display: 'block', width: '100%', textAlign: 'left', border: 'none',
                   padding: '9px 14px',
                   borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   background: i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
@@ -781,7 +805,7 @@ function StatistikTab({ stats, league }: { stats: PlayerStatEntry[]; league: Lea
                     <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
                     {p.losses} V
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -814,7 +838,8 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
           return (
             <Link
               key={r.team}
-              href={`/teams/${r.team}`}
+              href={`/teams/${r.team}?competition=${league.id}`}
+              aria-label={`Teamprofil von ${r.name.replace(' *', '')} öffnen`}
               style={{ textDecoration: 'none' }}
               className="mdu-card-hover"
             >
@@ -864,6 +889,24 @@ function TeamsTab({ rows, league, teamInfoMap }: Pick<Props, 'rows' | 'league' |
 
 export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, initialTab = 0 }: Props) {
   const [activeTab, setActiveTab] = useState(initialTab); // initialTab from ?tab= query param, else 0 (Übersicht)
+  const [card, setCard] = useState<PlayerCardData | null>(null);
+
+  // Open the player card from an Einzelrangliste entry (resolve player by name).
+  const openPlayer = (entry: PlayerStatEntry) => {
+    const seasonId = getCurrentSeason().id;
+    const { stats: builtStats, player } = getPlayerSeasonStatsFromEntry(entry, seasonId);
+    const td = getExtendedTeam(entry.teamId);
+    setCard({
+      playerId: player?.id ?? null,
+      displayName: player ? getPlayerDisplayName(player) : entry.name,
+      nickname: player?.nickname ?? null,
+      photoUrl: player?.photoUrl ?? getPlayerPhotoByName(entry.name),
+      teamId: entry.teamId,
+      teamName: entry.teamName,
+      teamColor: td.color,
+      stats: builtStats,
+    });
+  };
 
   return (
     <>
@@ -904,7 +947,7 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
 
       {/* Tab content */}
       {activeTab === 0 && (
-        <ÜbersichtTab rows={rows} league={league} teamInfoMap={teamInfoMap} matches={matches} stats={stats} />
+        <ÜbersichtTab rows={rows} league={league} teamInfoMap={teamInfoMap} matches={matches} stats={stats} onSelectPlayer={openPlayer} />
       )}
       {activeTab === 1 && (
         <LeagueStandingsPanel rows={rows} league={league} teamInfoMap={teamInfoMap} />
@@ -916,11 +959,13 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
         <ErgebnisseTab rows={rows} league={league} matches={matches} />
       )}
       {activeTab === 4 && (
-        <StatistikTab stats={stats} league={league} />
+        <StatistikTab stats={stats} league={league} onSelectPlayer={openPlayer} />
       )}
       {activeTab === 5 && (
         <TeamsTab rows={rows} league={league} teamInfoMap={teamInfoMap} />
       )}
+
+      {card && <PlayerCard data={card} onClose={() => setCard(null)} />}
     </>
   );
 }

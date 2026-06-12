@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
+import { TeamLink } from './team-link';
 import { PlayerCard, type PlayerCardData } from './player-card';
 import {
   getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague,
@@ -246,10 +247,12 @@ function NextMatchCard({ match, teamId, teamColor }: { match: Match; teamId: str
           {isHome ? 'Heim' : 'Auswärts'}
         </span>
         <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>vs</span>
-        <TeamBadge initials={opponent.short.slice(0, 3)} color={opponent.color} logoUrl={opponent.logoUrl} size={26} />
-        <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {oppName}
-        </span>
+        <TeamLink teamId={oppId} teamName={oppName} style={{ gap: 10, minWidth: 0 }}>
+          <TeamBadge initials={opponent.short.slice(0, 3)} color={opponent.color} logoUrl={opponent.logoUrl} size={26} />
+          <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {oppName}
+          </span>
+        </TeamLink>
       </div>
     </div>
   );
@@ -609,13 +612,15 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
                 {isHome ? 'Heim' : 'Auswärts'}
               </span>
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>vs</span>
-              <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={28} />
-              <span style={{
-                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {oppName}
-              </span>
+              <TeamLink teamId={oppId} teamName={oppName} style={{ gap: 10, minWidth: 0 }}>
+                <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={28} />
+                <span className="mdu-link-name" style={{
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {oppName}
+                </span>
+              </TeamLink>
             </div>
           </div>
         );
@@ -691,13 +696,15 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
                 }}>
                   {isHome ? 'H' : 'A'}
                 </span>
-                <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={24} />
-                <span style={{
-                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {oppName}
-                </span>
+                <TeamLink teamId={oppId} teamName={oppName} style={{ gap: 8, minWidth: 0 }}>
+                  <TeamBadge initials={opp.short.slice(0, 3)} color={opp.color} logoUrl={opp.logoUrl} size={24} />
+                  <span className="mdu-link-name" style={{
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {oppName}
+                  </span>
+                </TeamLink>
               </div>
               {/* Score */}
               <div style={{ textAlign: 'center', minWidth: 80 }}>
@@ -1007,6 +1014,7 @@ export function TeamDetailClient({
       displayName: entry.displayName,
       nickname: entry.nickname,
       photoUrl: entry.photoUrl,
+      teamId: entry.stats.teamId || teamId,
       teamName: entry.teamName,
       teamColor,
       stats: entry.stats,
@@ -1022,6 +1030,7 @@ export function TeamDetailClient({
       displayName: player ? getPlayerDisplayName(player) : entry.name,
       nickname: player?.nickname ?? null,
       photoUrl: player?.photoUrl ?? getPlayerPhotoByName(entry.name),
+      teamId: entry.teamId,
       teamName: entry.teamName,
       teamColor: entry.teamId === teamId ? teamColor : td.color,
       stats: builtStats,

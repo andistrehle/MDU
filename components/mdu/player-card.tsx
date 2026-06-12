@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from './icon';
+import { TeamLink } from './team-link';
 import { formatWinRate, type SeasonPlayerStats } from '@/lib/data';
 
 // ── Data shape ─────────────────────────────────────────────────
@@ -13,6 +14,7 @@ export interface PlayerCardData {
   displayName: string;
   nickname: string | null;
   photoUrl?: string;
+  teamId: string | null;
   teamName: string;
   /** Accent colour — the player's team colour. */
   teamColor: string;
@@ -180,9 +182,17 @@ export function PlayerCard({ data, onClose }: { data: PlayerCardData; onClose: (
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
                 <Icon name="users" size={13} stroke={2} style={{ color: accent, flexShrink: 0 }} />
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-body)' }}>
-                  {data.teamName}
-                </span>
+                {data.teamId ? (
+                  <TeamLink teamId={data.teamId} teamName={data.teamName} style={{ gap: 6, minWidth: 0 }}>
+                    <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-body)' }}>
+                      {data.teamName}
+                    </span>
+                  </TeamLink>
+                ) : (
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-body)' }}>
+                    {data.teamName}
+                  </span>
+                )}
               </div>
             </div>
           </div>

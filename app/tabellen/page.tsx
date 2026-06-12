@@ -156,6 +156,8 @@ export default function TabellenPage() {
                     </span>
                     <Link
                       href={`/teams/${row.team}`}
+                      aria-label={`Teamprofil von ${row.name} öffnen`}
+                      className="mdu-entity-link"
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6,
                         textDecoration: 'none', minWidth: 0, overflow: 'hidden',
@@ -164,7 +166,7 @@ export default function TabellenPage() {
                       {(() => { const t = getExtendedTeam(row.team); return (
                         <TeamBadge initials={t.short.slice(0, 3)} color={t.color} logoUrl={t.logoUrl} size={20} ring="transparent" />
                       ); })()}
-                      <span style={{
+                      <span className="mdu-link-name" style={{
                         fontFamily: 'var(--font-manrope)', fontWeight: row.pos === 1 ? 700 : 500,
                         fontSize: 13, color: 'var(--th-text-strong)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',

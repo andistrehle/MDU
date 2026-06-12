@@ -4,6 +4,7 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { MatchCard } from '@/components/mdu/match-card';
+import { TeamLink } from '@/components/mdu/team-link';
 import { NewsCard } from '@/components/mdu/news-card';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
 import { getLatestNews } from '@/lib/data/news';
@@ -220,13 +221,15 @@ export default function HomePage() {
                       </div>
                       {/* Score row */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{
-                          flex: 1, fontFamily: 'var(--font-manrope)', fontWeight: 700,
-                          fontSize: 13, color: 'var(--th-text-strong)', minWidth: 0,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {home.name}
-                        </span>
+                        <TeamLink teamId={m.homeTeamId} teamName={home.name} style={{ flex: 1, minWidth: 0 }}>
+                          <span className="mdu-link-name" style={{
+                            fontFamily: 'var(--font-manrope)', fontWeight: 700,
+                            fontSize: 13, color: 'var(--th-text-strong)', minWidth: 0,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                            {home.name}
+                          </span>
+                        </TeamLink>
                         <span style={{
                           fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700,
                           fontSize: 15, color: 'var(--th-text-strong)', flexShrink: 0,
@@ -235,13 +238,15 @@ export default function HomePage() {
                         }}>
                           {m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}
                         </span>
-                        <span style={{
-                          flex: 1, fontFamily: 'var(--font-manrope)', fontWeight: 700,
-                          fontSize: 13, color: 'var(--th-text-body)', textAlign: 'right', minWidth: 0,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {away.name}
-                        </span>
+                        <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+                          <span className="mdu-link-name" style={{
+                            fontFamily: 'var(--font-manrope)', fontWeight: 700,
+                            fontSize: 13, color: 'var(--th-text-body)', textAlign: 'right', minWidth: 0,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                            {away.name}
+                          </span>
+                        </TeamLink>
                       </div>
                     </div>
                   );

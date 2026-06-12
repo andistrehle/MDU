@@ -4,10 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { TeamBadge } from './team-badge';
+import { TeamLink } from './team-link';
 import { FormDots } from './form-dots';
 import { Icon } from './icon';
 import { statusColor, diffColor } from '@/lib/utils';
 import { getExtendedTeam } from '@/lib/data';
+import { getTeamUrl } from '@/lib/links';
 
 interface StandingRow {
   pos: number;
@@ -38,6 +40,8 @@ interface StandingsTableProps {
   onRowClick?: (teamId: string) => void;
   /** Id of the currently selected/highlighted team row */
   activeTeamId?: string;
+  /** Optional competition context carried into team-profile links. */
+  competitionId?: string;
 }
 
 const LEGEND = [
@@ -53,6 +57,7 @@ export function StandingsTable({
   showU = true,
   onRowClick,
   activeTeamId,
+  competitionId,
 }: StandingsTableProps) {
   const router = useRouter();
   const [expandedPos, setExpandedPos] = useState<number | null>(null);
@@ -190,13 +195,12 @@ export function StandingsTable({
                 >
                   {r.pos}
                 </span>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    minWidth: 0,
-                  }}
+                <TeamLink
+                  teamId={r.team}
+                  teamName={r.name ?? teamData.name}
+                  competitionId={competitionId}
+                  stopPropagation
+                  style={{ display: 'flex', gap: 10, minWidth: 0 }}
                 >
                   <TeamBadge
                     initials={teamData.short.slice(0, 3)}
@@ -205,6 +209,7 @@ export function StandingsTable({
                     size={26}
                   />
                   <span
+                    className="mdu-link-name"
                     style={{
                       fontWeight: 700,
                       color: 'var(--th-text-strong)',
@@ -216,7 +221,7 @@ export function StandingsTable({
                   >
                     {r.name ?? teamData.name}
                   </span>
-                </div>
+                </TeamLink>
                 <span
                   style={{
                     textAlign: 'center',
@@ -425,22 +430,23 @@ export function StandingsTable({
                       {r.pos}
                     </span>
 
-                    {/* Badge */}
-                    <div style={{ flexShrink: 0 }}>
-                      <TeamBadge
-                        initials={teamData.short.slice(0, 3)}
-                        color={teamData.color}
-                        size={22}
-                        logoUrl={teamData.logoUrl}
-                      />
-                    </div>
-
-                    {/* Team name → navigates to team profile */}
-                    <Link
-                      href={`/teams/${r.team}`}
-                      style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}
+                    {/* Badge + name → navigates to team profile */}
+                    <TeamLink
+                      teamId={r.team}
+                      teamName={displayName}
+                      competitionId={competitionId}
+                      style={{ flex: 1, minWidth: 0, gap: 8 }}
                     >
+                      <span style={{ flexShrink: 0, display: 'inline-flex' }}>
+                        <TeamBadge
+                          initials={teamData.short.slice(0, 3)}
+                          color={teamData.color}
+                          size={22}
+                          logoUrl={teamData.logoUrl}
+                        />
+                      </span>
                       <span
+                        className="mdu-link-name"
                         style={{
                           fontFamily: 'var(--font-manrope)',
                           fontWeight: 700,
@@ -449,12 +455,12 @@ export function StandingsTable({
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          display: 'block',
+                          minWidth: 0,
                         }}
                       >
                         {displayName}
                       </span>
-                    </Link>
+                    </TeamLink>
 
                     {/* Pts + Sp */}
                     <div style={{ flexShrink: 0, textAlign: 'right' }}>
@@ -584,7 +590,7 @@ export function StandingsTable({
 
                       {/* Link to full team profile */}
                       <Link
-                        href={`/teams/${r.team}`}
+                        href={getTeamUrl(r.team, competitionId)}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',

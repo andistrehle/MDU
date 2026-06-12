@@ -1,4 +1,5 @@
 import { TeamBadge } from './team-badge';
+import { TeamLink } from './team-link';
 import { getExtendedTeam } from '@/lib/data';
 
 interface MatchCardProps {
@@ -41,15 +42,15 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <TeamLink teamId={home} teamName={homeTeam.name} style={{ display: 'flex', width: '100%', gap: 8 }}>
               <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={26} />
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)' }}>{homeTeam.name}</span>
-            </div>
+              <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
+            </TeamLink>
             <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, color: 'var(--th-text-muted)' }}>VS</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)' }}>{awayTeam.name}</span>
+            <TeamLink teamId={away} teamName={awayTeam.name} style={{ display: 'flex', width: '100%', gap: 8, justifyContent: 'flex-end' }}>
+              <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
               <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={26} />
-            </div>
+            </TeamLink>
           </div>
           <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-text-muted)', textAlign: 'right' }}>{venue}</div>
         </div>
@@ -57,15 +58,15 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
         <>
           {/* Desktop layout */}
           <div className="mdu-desktop-only" style={{ display: 'grid', gridTemplateColumns: '1.4fr auto 1.4fr auto', alignItems: 'center', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <TeamLink teamId={home} teamName={homeTeam.name} style={{ display: 'flex', width: '100%', gap: 12, minWidth: 0 }}>
               <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={38} />
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
-            </div>
+              <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
+            </TeamLink>
             <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: 'var(--th-text-muted)', letterSpacing: '0.06em', flexShrink: 0 }}>VS</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
+            <TeamLink teamId={away} teamName={awayTeam.name} style={{ display: 'flex', width: '100%', gap: 12, minWidth: 0 }}>
+              <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
               <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={38} />
-            </div>
+            </TeamLink>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-strong)', fontWeight: 600 }}>{date}</div>
               <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-strong)' }}>{time}</div>
@@ -77,15 +78,15 @@ export function MatchCard({ league, home, away, date, time, venue, compact = fal
           <div className="mdu-mobile-only">
             {/* Teams row: Home vs Away side-by-side */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+              <TeamLink teamId={home} teamName={homeTeam.name} style={{ display: 'flex', width: '100%', gap: 6, minWidth: 0 }}>
                 <TeamBadge initials={homeTeam.short.slice(0, 3)} color={homeTeam.color} logoUrl={homeTeam.logoUrl} size={24} />
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
-              </div>
+                <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{homeTeam.name}</span>
+              </TeamLink>
               <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: 'var(--th-text-faint)', padding: '0 2px', flexShrink: 0 }}>vs</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
+              <TeamLink teamId={away} teamName={awayTeam.name} style={{ display: 'flex', width: '100%', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
+                <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayTeam.name}</span>
                 <TeamBadge initials={awayTeam.short.slice(0, 3)} color={awayTeam.color} logoUrl={awayTeam.logoUrl} size={24} />
-              </div>
+              </TeamLink>
             </div>
             {/* Meta row: date · time · venue */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>

@@ -108,6 +108,14 @@ export {
   buildSeasonPlayerStats,
 }                                             from './data/player-stats';
 
+export {
+  getTeamUrl,
+  getPlayerUrl,
+  resolveTeamFromName,
+  resolveTeamFromMatchSide,
+  resolvePlayerFromRankingRow,
+}                                             from './links';
+
 export type { PlayerStatus, Player }          from './data/players';
 export {
   PLAYERS,
