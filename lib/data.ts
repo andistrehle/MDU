@@ -32,6 +32,23 @@ import {
 } from './data/assignments';
 import importedStandingsRaw from './data/imported-standings.json';
 
+// ── Player-stats wiring (orchestration lives here so it can use ──
+//    getCurrentCompetitionForTeam + getStatisticsForLeague without a cycle) ─
+import { findPlayer as _findPlayer, getPlayerDisplayName as _getPlayerDisplayName, type Player as _Player } from './data/players';
+import { getStatisticsForLeague as _getStatisticsForLeague, type PlayerStatEntry as _PlayerStatEntry } from './data/statistics';
+import {
+  TEAM_PLAYER_ASSIGNMENTS as _TPA,
+  getPlayersForTeamInSeason as _getPlayersForTeamInSeason,
+  type TeamPlayerAssignment as _TeamPlayerAssignment,
+} from './data/assignments';
+import {
+  buildSeasonPlayerStats as _buildSeasonPlayerStats,
+  findStatEntryForPlayer as _findStatEntryForPlayer,
+  comparePlayerPerformance as _comparePlayerPerformance,
+  getPlayerByName as _getPlayerByName,
+  type SeasonPlayerStats,
+} from './data/player-stats';
+
 // ── Re-exports ────────────────────────────────────────────────
 export type { SeasonStatus, Season }          from './data/seasons';
 export { SEASONS, getCurrentSeason }          from './data/seasons';
@@ -76,6 +93,20 @@ export {
   isUpcomingOrOpenMatch,
   isCompletedMatch,
 }                                             from './data/matches';
+
+export type {
+  SeasonPlayerStats,
+  PlayerRecentResult,
+  FormResult,
+}                                             from './data/player-stats';
+export {
+  normalizePlayerName,
+  computeWinRate,
+  formatWinRate,
+  getPlayerByName,
+  findStatEntryForPlayer,
+  buildSeasonPlayerStats,
+}                                             from './data/player-stats';
 
 export type { PlayerStatus, Player }          from './data/players';
 export {
@@ -649,4 +680,95 @@ export function getExtendedTeam(id: string): { name: string; short: string; colo
   const team = _TEAMS.find(t => t.id === id);
   if (team) return { name: team.name, short: team.short, color: team.color, logoUrl: team.logoUrl };
   return { name: id, short: id.toUpperCase().slice(0, 3), color: '#9AA4B2' };
+}
+
+// ── Player statistics orchestration ───────────────────────────
+//
+// These tie the player roster to the official Einzelranglisten. They must
+// live here (not in player-stats.ts) because they depend on
+// getCurrentCompetitionForTeam + getStatisticsForLeague, which would create
+// a circular import the other way around.
+
+export interface RankedRosterEntry {
+  player: _Player;
+  isCaptain: boolean;
+  teamName: string;
+  stats: SeasonPlayerStats;
+}
+
+/**
+ * Returns a team's roster enriched with season statistics, sorted by
+ * performance (points → win rate → wins → fewer losses → name).
+ *
+ * Players that were confidently matched to the Einzelrangliste are ranked
+ * on top. Players without official stats keep the existing roster order
+ * below them (captain still flagged via isCaptain).
+ */
+export function getRankedRosterForTeam(teamId: string, seasonId: string): RankedRosterEntry[] {
+  const team     = _TEAMS.find(t => t.id === teamId);
+  const teamName = team?.name ?? teamId;
+  const comp     = getCurrentCompetitionForTeam(teamId, seasonId);
+  const stats    = _getStatisticsForLeague(comp.leagueId);
+
+  const entries: RankedRosterEntry[] = _getPlayersForTeamInSeason(teamId, seasonId).map(
+    ({ player, assignment }) => {
+      const entry = _findStatEntryForPlayer(player, teamId, stats);
+      return {
+        player,
+        isCaptain: assignment.isCaptain ?? false,
+        teamName,
+        stats: _buildSeasonPlayerStats(player.id, teamId, comp.leagueId, seasonId, entry),
+      };
+    },
+  );
+
+  const withStats = entries
+    .filter(e => e.stats.hasOfficialStats)
+    .sort((a, b) => _comparePlayerPerformance(
+      { stats: a.stats, name: _getPlayerDisplayName(a.player) },
+      { stats: b.stats, name: _getPlayerDisplayName(b.player) },
+    ));
+
+  // No-stat players keep their original roster order (spec: bisherige Reihenfolge)
+  const withoutStats = entries.filter(e => !e.stats.hasOfficialStats);
+
+  return [...withStats, ...withoutStats];
+}
+
+/**
+ * Returns a single player's season statistics for the season's current
+ * competition, or null if the player id is unknown. A player with no team
+ * assignment this season still gets a zeroed stat object (clean placeholders).
+ */
+export function getPlayerSeasonStats(playerId: string, seasonId: string): SeasonPlayerStats | null {
+  const player = _findPlayer(playerId);
+  if (!player) return null;
+
+  const pa = _TPA.find(a => a.playerId === playerId && a.seasonId === seasonId);
+  if (!pa) return _buildSeasonPlayerStats(playerId, '', '', seasonId, null);
+
+  const comp  = getCurrentCompetitionForTeam(pa.teamId, seasonId);
+  const stats = _getStatisticsForLeague(comp.leagueId);
+  const entry = _findStatEntryForPlayer(player, pa.teamId, stats);
+  return _buildSeasonPlayerStats(playerId, pa.teamId, comp.leagueId, seasonId, entry);
+}
+
+/**
+ * Builds player-card data straight from an Einzelrangliste entry (used when
+ * the click originates in a ranking table rather than a team roster).
+ * Resolves the roster player by name so a photo / nickname / profile link
+ * can be shown when available; returns player = null otherwise.
+ */
+export function getPlayerSeasonStatsFromEntry(
+  entry: _PlayerStatEntry,
+  seasonId: string,
+): { stats: SeasonPlayerStats; player: _Player | null } {
+  const player = _getPlayerByName(entry.name) ?? null;
+  const stats  = _buildSeasonPlayerStats(player?.id ?? '', entry.teamId, '', seasonId, entry);
+  return { stats, player };
+}
+
+/** Returns every team assignment for a player across all seasons (for team history). */
+export function getTeamAssignmentsForPlayer(playerId: string): _TeamPlayerAssignment[] {
+  return _TPA.filter(a => a.playerId === playerId);
 }

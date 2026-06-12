@@ -18,6 +18,8 @@ export interface Player {
   lastName: string;
   /** Optional display name override (e.g. nickname). Falls back to "firstName lastName". */
   displayName?: string;
+  /** Optional nickname / Spitzname, shown as a secondary label on the player card. */
+  nickname?: string;
   /** License number as shown on dartunion.de, e.g. "MDU 26 2003". Null if unavailable. */
   licenseNumber?: string;
   status: PlayerStatus;

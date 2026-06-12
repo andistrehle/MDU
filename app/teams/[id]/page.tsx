@@ -7,7 +7,7 @@ import { Icon } from '@/components/mdu/icon';
 import { TeamDetailClient, type RosterEntry } from '@/components/mdu/team-detail-client';
 import {
   TEAMS, findTeam, findLeague, findVenue,
-  getTeamAssignment, getPlayersForTeamInSeason,
+  getTeamAssignment, getRankedRosterForTeam,
   getCurrentSeason, getStandings, getVenueFullAddress,
   getScheduledMatchesForTeam, getCompletedMatchesForTeam,
   getPlayerDisplayName, getCurrentCompetitionForTeam,
@@ -61,13 +61,17 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   // ── Statistics for current competition ───────────────────────
   const stats = getStatisticsForLeague(currentLeagueId);
 
-  // ── Roster ───────────────────────────────────────────────────
-  const playersWithAssignments = getPlayersForTeamInSeason(team.id, season.id);
-  const roster: RosterEntry[] = playersWithAssignments.map(({ player, assignment: pa }) => ({
+  // ── Roster — ranked by performance, enriched with season stats ─
+  const rankedRoster = getRankedRosterForTeam(team.id, season.id);
+  const roster: RosterEntry[] = rankedRoster.map(({ player, isCaptain, teamName, stats: playerStats }) => ({
+    playerId:      player.id,
     displayName:   getPlayerDisplayName(player),
+    nickname:      player.nickname ?? null,
     licenseNumber: player.licenseNumber ?? null,
-    isCaptain:     pa.isCaptain ?? false,
+    isCaptain,
     photoUrl:      player.photoUrl,
+    teamName,
+    stats:         playerStats,
   }));
 
   // ── Team-specific matches, filtered to current competition ───
@@ -213,6 +217,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
       <TeamDetailClient
         teamId={team.id}
         teamColor={team.color}
+        seasonId={season.id}
         seasonName={season.name}
         leagueName={leagueLabel}
         leagueId={currentLeagueId}

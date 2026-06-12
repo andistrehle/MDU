@@ -308,6 +308,29 @@ body {
 @keyframes ken-burns { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
 
 /* =====================================================
+   PLAYER CARD (quick-view modal / mobile bottom-sheet)
+   ===================================================== */
+@keyframes mdu-card-pop  { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes mdu-card-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.mdu-player-card-overlay { animation: mdu-card-pop 140ms ease-out; }
+.mdu-player-card-panel   { animation: mdu-card-pop 180ms cubic-bezier(.2,.7,.3,1); }
+/* Clickable roster rows in the Kader tab */
+.mdu-kader-row { cursor: pointer; transition: background 140ms ease; text-align: left; }
+.mdu-kader-row:hover { background: var(--th-line-4); }
+
+@media (max-width: 768px) {
+  /* Dock the card to the bottom as a sheet on phones */
+  .mdu-player-card-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .mdu-player-card-panel {
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    animation: mdu-card-rise 220ms cubic-bezier(.2,.7,.3,1) !important;
+  }
+}
+
+/* =====================================================
    MOBILE RESPONSIVE SYSTEM
    Uses !important to override inline-style properties
    Breakpoint: 768px (mobile), 480px (small phones)
