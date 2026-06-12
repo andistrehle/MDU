@@ -181,7 +181,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
 
           {/* KPI strip */}
           <div className="mdu-kpi-strip" style={{
-            marginTop: 34, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1,
+            marginTop: 34, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1,
             background: 'var(--th-line-6)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, overflow: 'hidden',
           }}>
@@ -189,11 +189,12 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               { n: teamStanding ? `${teamStanding.pos}.` : '—', l: 'Tabellenplatz', c: teamStanding?.pos === 1 ? 'var(--th-gold)' : undefined },
               { n: teamStanding ? String(teamStanding.sp) : '—', l: 'Spiele' },
               { n: teamStanding ? String(teamStanding.s)  : '—', l: 'Siege' },
+              { n: teamStanding ? String(teamStanding.u)  : '—', l: 'Unentschieden' },
               { n: teamStanding ? String(teamStanding.n)  : '—', l: 'Niederlagen' },
               { n: teamStanding?.legs ?? '—',                     l: 'Legs', mono: true },
-              { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte' },
+              { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte', wide: true },
             ].map((s, i) => (
-              <div key={i} style={{ background: 'var(--th-bg-card3)', padding: '18px 18px' }}>
+              <div key={i} className={`mdu-kpi-cell${s.wide ? ' mdu-kpi-cell-wide' : ''}`} style={{ background: 'var(--th-bg-card3)', padding: '18px 18px' }}>
                 <div style={{
                   fontFamily: s.mono ? 'var(--font-jetbrains-mono)' : 'var(--font-saira-condensed)',
                   fontWeight: 900, fontSize: s.mono ? 22 : 32,
@@ -203,7 +204,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
                 </div>
                 <div style={{
                   fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                  letterSpacing: '0.2em', color: 'var(--th-text-dim)', textTransform: 'uppercase', marginTop: 8,
+                  letterSpacing: '0.16em', color: 'var(--th-text-dim)', textTransform: 'uppercase', marginTop: 8,
                 }}>
                   {s.l}
                 </div>
