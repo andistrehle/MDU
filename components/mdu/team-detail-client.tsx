@@ -144,7 +144,7 @@ function ÜbersichtTab({
           background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
           borderRadius: 14, padding: '22px 24px',
         }}>
-          <SectionLabel color={teamColor}>Saison {seasonName}</SectionLabel>
+          <SectionLabel color={teamColor}>{seasonName}</SectionLabel>
           {standing ? (
             <>
               {/* ── KPI summary chips ─────────────────────── */}
@@ -188,12 +188,31 @@ function ÜbersichtTab({
               )}
 
               {/* ── Stats rows — label + number, no bars ────── */}
-              {([
-                { l: 'Punkte',        v: `${standing.pts} Pkt.`, c: 'var(--th-text-strong)' },
-                { l: 'Legs-Bilanz',   v: standing.legs,          c: 'var(--th-text-muted)', mono: true },
-                ...(standing.spiele ? [{ l: 'Spiele-Bilanz', v: standing.spiele, c: 'var(--th-text-muted)', mono: true }] : []),
-                { l: 'Diff.',         v: standing.diff,          c: standing.diff.startsWith('+') ? '#22C55E' : standing.diff === '0' ? 'var(--th-text-muted)' : '#EF4444', mono: true },
-              ] as { l: string; v: string; c: string; mono?: boolean }[]).map(row => (
+              {(() => {
+                // Diff = "for" − "against", parsed from a "X:Y" balance string.
+                // Returns null when the balance isn't available (no fake values).
+                const diffFromBalance = (balance?: string): string | null => {
+                  if (!balance) return null;
+                  const [f, a] = balance.split(':').map(n => parseInt(n, 10));
+                  if (Number.isNaN(f) || Number.isNaN(a)) return null;
+                  const d = f - a;
+                  return d > 0 ? `+${d}` : String(d);
+                };
+                const diffColor = (d: string | null): string =>
+                  d == null ? 'var(--th-text-faint)'
+                    : d.startsWith('+') ? '#22C55E'
+                    : d === '0' ? 'var(--th-text-muted)'
+                    : '#EF4444';
+                const spieleDiff = diffFromBalance(standing.spiele);
+                const legDiff    = diffFromBalance(standing.legs);
+                return ([
+                  { l: 'Punkte',        v: `${standing.pts} Pkt.`,    c: 'var(--th-text-strong)' },
+                  { l: 'Spiele-Bilanz', v: standing.spiele ?? '—',    c: 'var(--th-text-muted)', mono: true },
+                  { l: 'Legs-Bilanz',   v: standing.legs,             c: 'var(--th-text-muted)', mono: true },
+                  { l: 'Spiele-Diff.',  v: spieleDiff ?? '—',         c: diffColor(spieleDiff),  mono: true },
+                  { l: 'Leg-Diff.',     v: legDiff ?? '—',            c: diffColor(legDiff),     mono: true },
+                ] as { l: string; v: string; c: string; mono?: boolean }[]);
+              })().map(row => (
                 <div key={row.l} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '7px 0',

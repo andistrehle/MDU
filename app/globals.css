@@ -528,12 +528,9 @@ body {
     line-height: 0.92 !important;
   }
 
-  /* --- KPI strip: 7-col → 3-col; last tile (Punkte) spans full width --- */
+  /* --- KPI strip: 6-col → 2-col (clean 2×3 grid) on mobile --- */
   .mdu-kpi-strip {
-    grid-template-columns: repeat(3, 1fr) !important;
-  }
-  .mdu-kpi-cell-wide {
-    grid-column: 1 / -1 !important; /* Punkte tile full width on mobile */
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   /* --- Body content + sidebar grid --- */
