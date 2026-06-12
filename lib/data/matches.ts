@@ -550,7 +550,13 @@ export function getScheduledMatchesForTeam(teamId: string): Match[] {
 }
 
 /**
- * Completed matches for a specific team, sorted descending by date (newest first).
+ * Completed matches for a specific team, sorted by matchday descending
+ * (latest matchday first), then by date descending within the same matchday.
+ *
+ * matchday is treated numerically (10 before 9 before 2). Matches without a
+ * matchday are placed last; matches without a date are placed after dated
+ * ones within the same matchday. Sort is stable, so otherwise-equal matches
+ * keep their source order.
  */
 export function getCompletedMatchesForTeam(teamId: string): Match[] {
   const today = new Date().toISOString().slice(0, 10);
@@ -561,6 +567,14 @@ export function getCompletedMatchesForTeam(teamId: string): Match[] {
       (!m.date || m.date <= today),
     )
     .sort((a, b) => {
+      const ma = a.matchday ?? null;
+      const mb = b.matchday ?? null;
+      // Matches without a matchday go to the end
+      if (ma === null && mb !== null) return 1;
+      if (ma !== null && mb === null) return -1;
+      // Both have a matchday and they differ → numeric descending
+      if (ma !== null && mb !== null && ma !== mb) return mb - ma;
+      // Same matchday (or both missing) → newest date first, null dates last
       if (!a.date && !b.date) return 0;
       if (!a.date) return 1;
       if (!b.date) return -1;
