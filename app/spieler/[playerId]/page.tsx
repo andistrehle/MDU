@@ -132,9 +132,9 @@ export default async function PlayerProfilePage(
           }}>
             {[
               { n: stats?.rank != null ? `${stats.rank}.` : '—', l: 'Rang', c: stats?.rank === 1 ? 'var(--th-gold)' : undefined },
-              { n: hasOfficial ? String(stats!.matches) : '—', l: 'Spiele' },
-              { n: hasOfficial ? String(stats!.wins) : '—', l: 'Siege' },
-              { n: hasOfficial ? String(stats!.losses) : '—', l: 'Niederlagen' },
+              { n: hasOfficial ? String(stats!.singlesPlayed) : '—', l: 'Einzelspiele' },
+              { n: hasOfficial ? String(stats!.singlesWon) : '—', l: 'Gewonnen' },
+              { n: hasOfficial ? String(stats!.singlesLost) : '—', l: 'Verloren' },
               { n: stats ? formatWinRate(stats.winRate) : '—', l: 'Siegquote' },
               { n: stats?.points != null ? String(stats.points) : '—', l: 'Punkte' },
             ].map((s, i) => (
@@ -166,12 +166,12 @@ export default async function PlayerProfilePage(
             {stats ? (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <StatRow label="Ranglistenplatz" value={stats.rank != null ? `#${stats.rank}` : '–'} />
-                <StatRow label="Spiele" value={hasOfficial ? String(stats.matches) : '–'} />
-                <StatRow label="Siege" value={hasOfficial ? String(stats.wins) : '–'} valueColor="#22C55E" />
-                <StatRow label="Unentschieden" value={hasOfficial ? String(stats.draws) : '–'} />
-                <StatRow label="Niederlagen" value={hasOfficial ? String(stats.losses) : '–'} valueColor="#EF4444" />
+                <StatRow label="Punkte" value={stats.points != null ? String(stats.points) : '–'} />
+                <StatRow label="Einzelspiele" value={hasOfficial ? String(stats.singlesPlayed) : '–'} />
+                <StatRow label="Gewonnen" value={hasOfficial ? String(stats.singlesWon) : '–'} valueColor="#22C55E" />
+                <StatRow label="Verloren" value={hasOfficial ? String(stats.singlesLost) : '–'} valueColor="#EF4444" />
                 <StatRow label="Siegquote" value={formatWinRate(stats.winRate)} />
-                <StatRow label="Punkte" value={stats.points != null ? `${stats.points} Pkt.` : '–'} last />
+                <StatRow label="Leg-Bilanz" value={stats.legBalance ?? '–'} last />
               </div>
             ) : (
               <Empty>Noch keine Saisonstatistik verfügbar.</Empty>
@@ -325,9 +325,10 @@ function SpecialTile({ label, value }: { label: string; value: number | null | u
   );
 }
 
-function FormBadge({ outcome }: { outcome: 'W' | 'D' | 'L' }) {
-  const color = outcome === 'W' ? '#22C55E' : outcome === 'L' ? '#EF4444' : 'var(--th-gold)';
-  const label = outcome === 'W' ? 'S' : outcome === 'L' ? 'N' : 'U';
+function FormBadge({ outcome }: { outcome: 'W' | 'L' }) {
+  // W = gewonnenes Einzelspiel, L = verlorenes — kein Unentschieden bei Spielern
+  const color = outcome === 'W' ? '#22C55E' : '#EF4444';
+  const label = outcome === 'W' ? 'W' : 'L';
   return (
     <span style={{
       width: 28, height: 28, borderRadius: 7,

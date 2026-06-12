@@ -879,10 +879,13 @@
     "awayTeamId": "gambas",
     "homeTeamName": "DC Animals II",
     "awayTeamName": "Gambas",
-    "date": "2026-06-06",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {

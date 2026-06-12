@@ -14,14 +14,36 @@
 
 import importedRaw from './imported-statistics.json';
 
+/**
+ * Eine Zeile der offiziellen Einzelrangliste (dartunion.de).
+ *
+ * Dart-Fachlogik: Spieler spielen EINZELSPIELE — die enden 2:0, 2:1,
+ * 1:2 oder 0:2; ein Unentschieden gibt es bei Spielern nicht.
+ * Offizielles Spalten-Mapping:
+ *   P.   → pts    (Punkte)
+ *   Sp.  → wins:losses (Einzelspiel-Bilanz, z. B. "30 : 2")
+ *   Legs → legsWon:legsLost (Leg-Bilanz, z. B. "(62 : 14)")
+ */
 export interface PlayerStatEntry {
   rank:     number;
   name:     string;
   teamId:   string;
   teamName: string;
+  /** Punkte (offizielle Spalte „P.") */
   pts:      number;
+  /** Gewonnene Einzelspiele (offizielle Spalte „Sp.", linker Wert) */
   wins:     number;
+  /** Verlorene Einzelspiele (offizielle Spalte „Sp.", rechter Wert) */
   losses:   number;
+  /** Gewonnene Legs (offizielle Spalte „Legs") — optional, nie erfunden */
+  legsWon?:  number;
+  /** Verlorene Legs (offizielle Spalte „Legs") — optional, nie erfunden */
+  legsLost?: number;
+  // ── Vorbereitet für spätere Premium-Statistik (NICHT erfinden!) ──
+  /** 2:0-Siege */ wins20?:   number;
+  /** 2:1-Siege */ wins21?:   number;
+  /** 1:2-Niederlagen */ losses12?: number;
+  /** 0:2-Niederlagen */ losses02?: number;
 }
 
 export interface LeagueStatistics {

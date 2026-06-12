@@ -388,7 +388,7 @@ function KaderTab({
               <span>Spieler</span>
               <span>Passnr.</span>
               <span style={{ textAlign: 'center' }}>Rang</span>
-              <span style={{ textAlign: 'center' }}>S · U · N</span>
+              <span style={{ textAlign: 'center' }}>Bilanz</span>
               <span style={{ textAlign: 'center' }}>Quote</span>
               <span style={{ textAlign: 'right' }}>Pkt.</span>
             </div>
@@ -443,7 +443,7 @@ function KaderTab({
                     fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, textAlign: 'center',
                     color: has ? 'var(--th-text-body)' : 'var(--th-text-faint2)',
                   }}>
-                    {has ? `${s.wins} · ${s.draws} · ${s.losses}` : '–'}
+                    {has ? s.singlesBalance : '–'}
                   </span>
                   <span style={{
                     fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, textAlign: 'center',
@@ -512,7 +512,8 @@ function KaderTab({
                   {has ? (
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
                       <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)' }}>
-                        {s.wins} S · {s.draws} U · {s.losses} N · {formatWinRate(s.winRate)}
+                        {s.singlesBalance} Einzelspiele · {formatWinRate(s.winRate)}
+                        {s.legBalance ? ` · Legs ${s.legBalance}` : ''}
                       </span>
                       <span style={{
                         marginLeft: 'auto', fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13,

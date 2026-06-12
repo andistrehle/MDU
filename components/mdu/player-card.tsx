@@ -73,9 +73,10 @@ function StatTile({ label, value, accent }: { label: string; value: string; acce
   );
 }
 
-function FormBadge({ outcome }: { outcome: 'W' | 'D' | 'L' }) {
-  const color = outcome === 'W' ? '#22C55E' : outcome === 'L' ? '#EF4444' : 'var(--th-gold)';
-  const label = outcome === 'W' ? 'S' : outcome === 'L' ? 'N' : 'U';
+function FormBadge({ outcome }: { outcome: 'W' | 'L' }) {
+  // W = gewonnenes Einzelspiel, L = verlorenes — kein Unentschieden bei Spielern
+  const color = outcome === 'W' ? '#22C55E' : '#EF4444';
+  const label = outcome === 'W' ? 'W' : 'L';
   return (
     <span style={{
       width: 24, height: 24, borderRadius: 6, flexShrink: 0,
@@ -117,9 +118,8 @@ export function PlayerCard({ data, onClose }: { data: PlayerCardData; onClose: (
     };
   }, [onClose]);
 
-  const balance = stats.hasOfficialStats
-    ? `${stats.wins} S · ${stats.draws} U · ${stats.losses} N`
-    : '–';
+  // Einzelspiel-Bilanz, z. B. "30:2" — Dart-Logik, kein Unentschieden
+  const balance = stats.singlesBalance ?? '–';
 
   return (
     <div
@@ -207,8 +207,8 @@ export function PlayerCard({ data, onClose }: { data: PlayerCardData; onClose: (
             <StatTile label="Quote" value={formatWinRate(stats.winRate)} accent={stats.winRate !== null ? '#22C55E' : undefined} />
           </div>
 
-          {/* Bilanz */}
-          <SectionTitle accent={accent}>Bilanz</SectionTitle>
+          {/* Einzelspiel-Bilanz (Dart-Logik: kein Unentschieden) */}
+          <SectionTitle accent={accent}>Einzelspiel-Bilanz</SectionTitle>
           {stats.hasOfficialStats ? (
             <>
               <div style={{
@@ -216,15 +216,23 @@ export function PlayerCard({ data, onClose }: { data: PlayerCardData; onClose: (
                 color: 'var(--th-text-strong)', marginBottom: 10,
               }}>
                 {balance}
-                <span style={{ color: 'var(--th-text-faint)', fontWeight: 400 }}>{`  ·  ${stats.matches} Spiele`}</span>
+                <span style={{ color: 'var(--th-text-faint)', fontWeight: 400 }}>{`  ·  ${stats.singlesPlayed} Einzelspiele`}</span>
               </div>
-              {stats.matches > 0 && (
-                <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', gap: 2, marginBottom: 18 }}>
-                  <div style={{ flex: stats.wins || 0.001, background: '#22C55E' }} />
-                  {stats.draws > 0 && <div style={{ flex: stats.draws, background: 'var(--th-gold)' }} />}
-                  <div style={{ flex: stats.losses || 0.001, background: '#EF4444' }} />
+              {stats.singlesPlayed > 0 && (
+                <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', gap: 2, marginBottom: 14 }}>
+                  <div style={{ flex: stats.singlesWon || 0.001, background: '#22C55E' }} />
+                  <div style={{ flex: stats.singlesLost || 0.001, background: '#EF4444' }} />
                 </div>
               )}
+              <div style={{
+                display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 18,
+                fontFamily: 'var(--font-manrope)', fontSize: 13,
+              }}>
+                <span style={{ color: 'var(--th-text-muted)' }}>Leg-Bilanz</span>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: stats.legBalance ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
+                  {stats.legBalance ?? '–'}
+                </span>
+              </div>
             </>
           ) : (
             <PlaceholderNote>Noch keine Detaildaten verfügbar.</PlaceholderNote>

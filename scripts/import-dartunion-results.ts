@@ -180,9 +180,16 @@ interface PlayerStatEntry {
   name:     string;
   teamId:   string;
   teamName: string;
+  /** Punkte (offizielle Spalte "P.") */
   pts:      number;
+  /** Gewonnene Einzelspiele (Spalte "Sp.", linker Wert) */
   wins:     number;
+  /** Verlorene Einzelspiele (Spalte "Sp.", rechter Wert) */
   losses:   number;
+  /** Gewonnene Legs (Spalte "Legs", z. B. "(62 : 14)" → 62) */
+  legsWon?:  number;
+  /** Verlorene Legs (Spalte "Legs", z. B. "(62 : 14)" → 14) */
+  legsLost?: number;
 }
 
 interface ImportedStandingRow {
@@ -613,10 +620,21 @@ function parseRanking(html: string, ligaId: number): PlayerStatEntry[] {
     }
 
     // ── Stats ─────────────────────────────────────────────────
-    // Layout: P. (points) | Sp. ("W : L") | Legs ("(x : y)")
+    // Layout: P. (points) | Sp. ("W : L" = Einzelspiel-Bilanz) | Legs ("(x : y)" = Leg-Bilanz)
+    const legsCell = cols.find(c => /^\(\d+\s*:\s*\d+\)$/.test(c));
+    let legsWon: number | undefined;
+    let legsLost: number | undefined;
+    if (legsCell) {
+      const m = legsCell.match(/^\((\d+)\s*:\s*(\d+)\)$/);
+      if (m) {
+        legsWon  = parseInt(m[1], 10);
+        legsLost = parseInt(m[2], 10);
+      }
+    }
+
     const statCells = cols
       .filter((_, i) => i !== rankIdx && i !== licenseIdx)
-      .filter(c => !/^\(\d+\s*:\s*\d+\)$/.test(c)); // drop legs
+      .filter(c => !/^\(\d+\s*:\s*\d+\)$/.test(c)); // legs cell handled above
 
     let pts: number | null    = null;
     let wins: number | null   = null;
@@ -648,7 +666,10 @@ function parseRanking(html: string, ligaId: number): PlayerStatEntry[] {
       continue;
     }
 
-    players.push({ rank, name: playerName, teamId, teamName, pts, wins, losses });
+    players.push({
+      rank, name: playerName, teamId, teamName, pts, wins, losses,
+      ...(legsWon !== undefined && legsLost !== undefined ? { legsWon, legsLost } : {}),
+    });
   }
 
   players.sort((a, b) => a.rank - b.rank);
