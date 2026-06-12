@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { AuthShell, AuthField, AuthError, AuthSubmit } from '@/components/mdu/auth-shell';
+import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit } from '@/components/mdu/auth-shell';
 
 export default function RegisterPage() {
   const { signUp } = useAuth();
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [confirmEmailSent, setConfirmEmailSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -28,9 +29,29 @@ export default function RegisterPage() {
     setBusy(false);
     if (res.error) {
       setError(res.error);
+    } else if (res.needsEmailConfirmation) {
+      // Supabase verlangt E-Mail-Bestätigung → Hinweis statt Redirect
+      setConfirmEmailSent(true);
     } else {
       router.push('/mein-bereich');
     }
+  }
+
+  if (confirmEmailSent) {
+    return (
+      <AuthShell title="Fast geschafft" subtitle="Nur noch ein Schritt">
+        <AuthSuccess message={`Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link an ${email} geschickt.`} />
+        <p style={{
+          textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13,
+          color: 'var(--th-text-muted)', marginTop: 24,
+        }}>
+          Danach kannst du dich{' '}
+          <Link href="/login" style={{ color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 700 }}>
+            anmelden
+          </Link>.
+        </p>
+      </AuthShell>
+    );
   }
 
   return (

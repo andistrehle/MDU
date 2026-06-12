@@ -43,8 +43,11 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setTheme(getStoredTheme());
-    setMounted(true);
+    // Initial-Sync außerhalb des Effect-Bodys (react-hooks/set-state-in-effect)
+    queueMicrotask(() => {
+      setTheme(getStoredTheme());
+      setMounted(true);
+    });
     // Keep every switch instance in sync (e.g. header + /mehr) and across tabs.
     const onChange = (e: Event) => setTheme((e as CustomEvent<Theme>).detail);
     const onStorage = (e: StorageEvent) => {

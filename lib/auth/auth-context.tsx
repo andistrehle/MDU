@@ -1,38 +1,42 @@
 'use client';
 
 // ============================================================
-// MDU Auth — Session-Context (Sprint 5.1)
+// MDU Auth — Session-Context (Sprint 5.2: echte Supabase-Auth)
 // ============================================================
 //
-// ⚠️  ENTWICKLUNGS-MOCK — KEINE ECHTE AUTHENTIFIZIERUNG  ⚠️
+// Standard: echte Supabase-Authentifizierung.
+//   • Login        → supabase.auth.signInWithPassword
+//   • Registrierung→ supabase.auth.signUp (+ profiles via DB-Trigger)
+//   • Reset        → supabase.auth.resetPasswordForEmail
+//   • Session      → supabase.auth.getSession + onAuthStateChange
+//   • Rolle        → aus public.profiles geladen (siehe supabase/schema.sql)
 //
-// Es ist noch kein Auth-Backend (Supabase) angebunden. Dieser
-// Provider stellt die spätere Supabase-Auth-API nach, damit
-// UI, Routen und Rollen-Logik bereits gebaut und getestet
-// werden können.
+// Dev-Mock: NUR aktiv, wenn explizit NEXT_PUBLIC_USE_AUTH_MOCK=true
+// gesetzt ist (lokale Entwicklung ohne Supabase). Der Mock leitet
+// die Rolle aus dem E-Mail-Präfix ab und schützt nichts.
 //
-// TODO (Supabase-Integration):
-//   1. `npm install @supabase/supabase-js @supabase/ssr`
-//   2. signIn/signUp/signOut/resetPassword unten durch
-//      supabase.auth.signInWithPassword / signUp / signOut /
-//      resetPasswordForEmail ersetzen.
-//   3. Profil (Rolle, playerId, teamId) aus einer `profiles`-
-//      Tabelle laden (id = auth.users.id) statt aus dem Mock.
-//   4. Session-Persistenz übernimmt dann Supabase (Cookies via
-//      @supabase/ssr) — den sessionStorage-Code entfernen.
-//
-// Sicherheits-Hinweise (gelten auch für den Mock):
-//   • Es werden KEINE Passwörter gespeichert oder geprüft.
-//   • In sessionStorage liegt nur das unkritische Profil
-//     (Name, E-Mail, Rolle) — kein Token, kein Passwort.
-//   • Der Mock schützt nichts: alle Inhalte bleiben öffentlich,
-//     bis echte Auth + serverseitige Prüfungen existieren.
+// Sicherheit:
+//   • Es werden keine Passwörter gespeichert.
+//   • Session-Persistenz übernimmt Supabase (anon key only).
+//   • Rollen werden serverseitig durch RLS abgesichert — das
+//     Frontend blendet nur UI aus, es ist KEINE Sicherheitsgrenze.
 // ============================================================
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import type { UserProfile, UserRole } from './roles';
 
-const SESSION_KEY = 'mdu-auth-session';
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_AUTH_MOCK === 'true';
+const MOCK_SESSION_KEY = 'mdu-auth-session';
+
+const NOT_CONFIGURED_ERROR =
+  'Anmeldung ist derzeit nicht verfügbar (Auth-Backend nicht konfiguriert).';
+
+interface SignUpResult {
+  error: string | null;
+  /** True, wenn Supabase eine E-Mail-Bestätigung verlangt (keine Session). */
+  needsEmailConfirmation?: boolean;
+}
 
 interface AuthContextValue {
   /** Eingeloggter Benutzer oder null (Gast). */
@@ -40,20 +44,89 @@ interface AuthContextValue {
   /** True bis die Session beim ersten Render geprüft wurde. */
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (name: string, email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: () => void;
+  signUp: (name: string, email: string, password: string) => Promise<SignUpResult>;
+  signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  /** Neues Passwort setzen (Reset-Flow, Seite /passwort-zuruecksetzen). */
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// ── Dev-Mock-Backend ──────────────────────────────────────────
-// Rolle wird im Mock aus dem E-Mail-Präfix abgeleitet, damit alle
-// Rollen-Ansichten testbar sind:
-//   kapitaen@…  → team_captain
-//   vorstand@…  → league_admin
-//   admin@…     → super_admin
-//   alles andere → player
+// ── Fehlertexte (Supabase → Deutsch) ──────────────────────────
+
+function germanAuthError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'E-Mail oder Passwort ist falsch.';
+  if (m.includes('email not confirmed'))       return 'Bitte bestätige zuerst deine E-Mail-Adresse.';
+  if (m.includes('user already registered'))   return 'Für diese E-Mail existiert bereits ein Konto.';
+  if (m.includes('password should be at least')) return 'Das Passwort ist zu kurz.';
+  if (m.includes('rate limit') || m.includes('too many requests')) return 'Zu viele Versuche — bitte kurz warten.';
+  if (m.includes('failed to fetch') || m.includes('network')) return 'Verbindung fehlgeschlagen — bitte später erneut versuchen.';
+  return 'Es ist ein Fehler aufgetreten. Bitte erneut versuchen.';
+}
+
+// ── Profil laden / anlegen ────────────────────────────────────
+
+interface ProfileRow {
+  id: string;
+  email: string;
+  display_name: string;
+  role: UserRole;
+  player_id: string | null;
+  team_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function toUserProfile(row: ProfileRow): UserProfile {
+  return {
+    id: row.id,
+    email: row.email,
+    displayName: row.display_name,
+    role: row.role,
+    playerId: row.player_id ?? undefined,
+    teamId: row.team_id ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/**
+ * Lädt das Profil zu einer auth.users-Id. Fehlt die Zeile (Bestands-
+ * konto ohne Trigger), wird sie mit Rolle 'player' angelegt —
+ * die RLS-Policy "profiles_insert_own" erlaubt genau das.
+ */
+async function loadProfile(userId: string, email: string, displayNameFallback: string): Promise<UserProfile | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[MDU Auth] Profil konnte nicht geladen werden:', error.message);
+    return null;
+  }
+  if (data) return toUserProfile(data as ProfileRow);
+
+  // Profil fehlt → Fallback-Anlage (Rolle: player)
+  const { data: created, error: insertError } = await supabase
+    .from('profiles')
+    .insert({ id: userId, email, display_name: displayNameFallback || email.split('@')[0], role: 'player' })
+    .select('*')
+    .maybeSingle();
+
+  if (insertError || !created) {
+    console.error('[MDU Auth] Profil konnte nicht angelegt werden:', insertError?.message);
+    return null;
+  }
+  return toUserProfile(created as ProfileRow);
+}
+
+// ── Dev-Mock (nur bei NEXT_PUBLIC_USE_AUTH_MOCK=true) ─────────
 
 function mockRoleForEmail(email: string): UserRole {
   const local = email.split('@')[0]?.toLowerCase() ?? '';
@@ -75,22 +148,18 @@ function mockProfile(email: string, displayName?: string): UserProfile {
   };
 }
 
-function readSession(): UserProfile | null {
+function readMockSession(): UserProfile | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = sessionStorage.getItem(MOCK_SESSION_KEY);
     return raw ? (JSON.parse(raw) as UserProfile) : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-function writeSession(user: UserProfile | null) {
+function writeMockSession(user: UserProfile | null) {
   try {
-    if (user) sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    else sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    /* storage unavailable — session lebt dann nur im Speicher */
-  }
+    if (user) sessionStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(user));
+    else sessionStorage.removeItem(MOCK_SESSION_KEY);
+  } catch { /* storage unavailable */ }
 }
 
 // ── Provider ──────────────────────────────────────────────────
@@ -100,49 +169,149 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO Supabase: supabase.auth.getSession() + onAuthStateChange
-    setUser(readSession());
-    setLoading(false);
+    if (USE_MOCK) {
+      // Initial-Sync aus sessionStorage außerhalb des Effect-Bodys
+      // (vermeidet kaskadierende Renders, react-hooks/set-state-in-effect)
+      queueMicrotask(() => {
+        setUser(readMockSession());
+        setLoading(false);
+      });
+      return;
+    }
+    if (!supabase) {
+      queueMicrotask(() => setLoading(false));
+      return;
+    }
+
+    let cancelled = false;
+
+    async function syncFromSession() {
+      const { data } = await supabase!.auth.getSession();
+      const sessionUser = data.session?.user;
+      if (cancelled) return;
+      if (sessionUser) {
+        const profile = await loadProfile(
+          sessionUser.id,
+          sessionUser.email ?? '',
+          (sessionUser.user_metadata?.display_name as string) ?? '',
+        );
+        if (!cancelled) setUser(profile);
+      } else {
+        setUser(null);
+      }
+      if (!cancelled) setLoading(false);
+    }
+
+    syncFromSession();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return;
+      if (!session?.user) {
+        setUser(null);
+        return;
+      }
+      loadProfile(
+        session.user.id,
+        session.user.email ?? '',
+        (session.user.user_metadata?.display_name as string) ?? '',
+      ).then(profile => { if (!cancelled) setUser(profile); });
+    });
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    // TODO Supabase: supabase.auth.signInWithPassword({ email, password })
-    await new Promise(r => setTimeout(r, 500)); // simulierte Netzwerk-Latenz
-    if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
-    if (password.length < 6) return { error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' };
-    const profile = mockProfile(email);
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 400));
+      if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
+      if (password.length < 6) return { error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' };
+      const profile = mockProfile(email);
+      setUser(profile);
+      writeMockSession(profile);
+      return { error: null };
+    }
+    if (!supabase) return { error: NOT_CONFIGURED_ERROR };
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: germanAuthError(error.message) };
+
+    const profile = await loadProfile(
+      data.user.id,
+      data.user.email ?? email,
+      (data.user.user_metadata?.display_name as string) ?? '',
+    );
+    if (!profile) return { error: 'Dein Profil konnte nicht geladen werden. Bitte später erneut versuchen.' };
     setUser(profile);
-    writeSession(profile);
     return { error: null };
   }, []);
 
-  const signUp = useCallback(async (name: string, email: string, password: string) => {
-    // TODO Supabase: supabase.auth.signUp({ email, password, options: { data: { displayName: name } } })
-    await new Promise(r => setTimeout(r, 500));
-    if (name.trim().length < 2) return { error: 'Bitte einen Namen eingeben.' };
-    if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
-    if (password.length < 6) return { error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' };
-    const profile = mockProfile(email, name.trim());
-    setUser(profile);
-    writeSession(profile);
+  const signUp = useCallback(async (name: string, email: string, password: string): Promise<SignUpResult> => {
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 400));
+      if (name.trim().length < 2) return { error: 'Bitte einen Namen eingeben.' };
+      if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
+      if (password.length < 6) return { error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' };
+      const profile = mockProfile(email, name.trim());
+      setUser(profile);
+      writeMockSession(profile);
+      return { error: null };
+    }
+    if (!supabase) return { error: NOT_CONFIGURED_ERROR };
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: name.trim() } },
+    });
+    if (error) return { error: germanAuthError(error.message) };
+
+    // E-Mail-Bestätigung aktiv → keine Session, Hinweis anzeigen
+    if (!data.session) return { error: null, needsEmailConfirmation: true };
+
+    const profile = await loadProfile(data.user!.id, email, name.trim());
+    if (profile) setUser(profile);
     return { error: null };
   }, []);
 
-  const signOut = useCallback(() => {
-    // TODO Supabase: supabase.auth.signOut()
+  const signOut = useCallback(async () => {
+    if (USE_MOCK) {
+      setUser(null);
+      writeMockSession(null);
+      return;
+    }
+    if (supabase) await supabase.auth.signOut();
     setUser(null);
-    writeSession(null);
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
-    // TODO Supabase: supabase.auth.resetPasswordForEmail(email, { redirectTo: … })
-    await new Promise(r => setTimeout(r, 500));
-    if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 400));
+      if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
+      return { error: null };
+    }
+    if (!supabase) return { error: NOT_CONFIGURED_ERROR };
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/passwort-zuruecksetzen`,
+    });
+    if (error) return { error: germanAuthError(error.message) };
+    return { error: null };
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    if (USE_MOCK) return { error: 'Im Mock-Modus nicht verfügbar.' };
+    if (!supabase) return { error: NOT_CONFIGURED_ERROR };
+
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return { error: germanAuthError(error.message) };
     return { error: null };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
