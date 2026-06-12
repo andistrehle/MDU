@@ -1,81 +1,71 @@
-import Image from 'next/image';
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
+import { AuthShell, AuthField, AuthError, AuthSubmit } from '@/components/mdu/auth-shell';
 
 export default function LoginPage() {
+  const { signIn } = useAuth();
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    const res = await signIn(email, password);
+    setBusy(false);
+    if (res.error) {
+      setError(res.error);
+    } else {
+      router.push('/mein-bereich');
+    }
+  }
+
+  const linkStyle: React.CSSProperties = { color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 700 };
+
   return (
-    <div style={{
-      minHeight: '100vh', background: 'var(--th-bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px',
-    }}>
+    <AuthShell title="Anmelden" subtitle="Zum MDU Mitgliederbereich">
+      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {error && <AuthError message={error} />}
+        <AuthField
+          label="E-Mail"
+          type="email"
+          placeholder="name@dartunion.de"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+        <AuthField
+          label="Passwort"
+          type="password"
+          placeholder="••••••••"
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+        <AuthSubmit busy={busy}>Anmelden</AuthSubmit>
+      </form>
+
       <div style={{
-        width: '100%', maxWidth: 420,
-        background: 'linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%)',
-        border: '1px solid var(--th-line-6)', borderRadius: 20, padding: 40,
-        boxShadow: '0 40px 80px rgba(0,0,0,0.5)',
+        display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center',
+        marginTop: 24, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Link href="/" style={{ display: 'inline-block' }}>
-            <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} />
-          </Link>
-          <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, color: 'var(--th-text-strong)', marginTop: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Anmelden
-          </h1>
-          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', marginTop: 8 }}>
-            Zum MDU Mitgliederbereich
-          </p>
-        </div>
-
-        <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em' }}>
-              E-MAIL
-            </label>
-            <input
-              type="email"
-              placeholder="name@dartunion.de"
-              style={{
-                width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
-                border: '1px solid var(--th-line-10)', borderRadius: 8,
-                color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14,
-                outline: 'none',
-              }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em' }}>
-              PASSWORT
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              style={{
-                width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
-                border: '1px solid var(--th-line-10)', borderRadius: 8,
-                color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14,
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            style={{
-              width: '100%', padding: '14px', background: 'var(--th-accent)', color: '#fff',
-              border: '1px solid var(--th-accent-hover)', borderRadius: 8, fontFamily: 'var(--font-manrope)',
-              fontWeight: 800, fontSize: 14, letterSpacing: '0.08em', cursor: 'pointer',
-              textTransform: 'uppercase', marginTop: 8,
-              boxShadow: '0 8px 22px var(--th-accent-a40)',
-            }}
-          >
-            Anmelden
-          </button>
-        </form>
-
-        <p style={{ textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 24 }}>
-          Kein Zugang?{' '}
-          <Link href="/kontakt" style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>Kontakt aufnehmen</Link>
-        </p>
+        <span>
+          Noch kein Konto?{' '}
+          <Link href="/registrieren" style={linkStyle}>Jetzt registrieren</Link>
+        </span>
+        <Link href="/passwort-vergessen" style={{ ...linkStyle, fontWeight: 600, color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
+          Passwort vergessen?
+        </Link>
       </div>
-    </div>
+    </AuthShell>
   );
 }

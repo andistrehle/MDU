@@ -3,6 +3,7 @@ import Script from 'next/script';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
+import { AuthProvider } from '@/lib/auth/auth-context';
 
 const sairaCondensed = Saira_Condensed({
   variable: '--font-saira-condensed',
@@ -49,8 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="mdu-theme-init" strategy="beforeInteractive">
           {"try{if(localStorage.getItem('mdu-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}"}
         </Script>
-        {children}
-        <BottomNav />
+        <AuthProvider>
+          {children}
+          <BottomNav />
+        </AuthProvider>
       </body>
     </html>
   );

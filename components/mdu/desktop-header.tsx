@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
 import { ThemeToggle } from './theme-toggle';
 import { LEAGUES } from '@/lib/data';
+import { useAuth } from '@/lib/auth/auth-context';
 
 const NAV_ITEMS = [
   { label: 'Startseite', href: '/' },
@@ -39,6 +40,11 @@ const dropdownItemStyle: React.CSSProperties = {
 
 export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
   const pathname = usePathname();
+
+  // Login-Zustand: Gast → „Login" (/login), eingeloggt → „Mein Bereich"
+  const { user } = useAuth();
+  const accountHref  = user ? '/mein-bereich' : '/login';
+  const accountLabel = user ? 'Mein Bereich' : 'Login';
 
   // Ligen dropdown — hover-intent timer so cursor can travel from link to panel
   const [ligaOpen, setLigaOpen] = useState(false);
@@ -223,9 +229,9 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           <ThemeToggle compact />
         </span>
 
-        {/* Desktop Login button */}
+        {/* Desktop account button — Login (Gast) / Mein Bereich (eingeloggt) */}
         <Link
-          href="/login"
+          href={accountHref}
           className="mdu-header-login"
           style={{
             padding: '9px 22px', borderRadius: 6,
@@ -233,27 +239,29 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
             border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
             fontWeight: 700, fontSize: 14, textDecoration: 'none',
             letterSpacing: '0.02em', transition: 'all 150ms', flexShrink: 0,
-            display: 'inline-block',
+            display: 'inline-block', whiteSpace: 'nowrap',
           }}
         >
-          Login
+          {accountLabel}
         </Link>
 
-        {/* Mobile actions — compact theme toggle + Login (mobile only) */}
+        {/* Mobile actions — compact theme toggle + account button (mobile only) */}
         <span className="mdu-mobile-actions" style={{ alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <ThemeToggle mini />
           <Link
-            href="/login"
+            href={accountHref}
             className="mdu-mobile-login"
+            aria-label={accountLabel}
             style={{
               padding: '8px 14px', borderRadius: 6,
               background: 'transparent', color: 'var(--th-accent)',
               border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
               fontWeight: 700, fontSize: 13, textDecoration: 'none',
               letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
             }}
           >
-            Login
+            {user ? <Icon name="user" size={16} stroke={2.2} /> : 'Login'}
           </Link>
         </span>
       </div>
