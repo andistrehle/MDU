@@ -1,159 +1,142 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { DesktopHeader } from '@/components/mdu/desktop-header';
-import { Icon } from '@/components/mdu/icon';
+import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ROLE_LABELS } from '@/lib/auth/roles';
+import { ROLE_LABELS, canEditPlayerProfile } from '@/lib/auth/roles';
+import { findTeam, findPlayer, getPlayerDisplayName } from '@/lib/data';
+import { loadPlayerProfile, savePlayerProfile, type PlayerProfileExtras } from '@/lib/supabase/profiles';
 
 export default function MeinProfilPage() {
   const { user, loading } = useAuth();
-  // TODO Supabase: Spitzname in der profiles-Tabelle persistieren.
-  const [nickname, setNickname] = useState('');
-  const [saved, setSaved] = useState(false);
+  const playerId = user?.playerId ?? null;
+  const player = playerId ? findPlayer(playerId) : undefined;
+  const team = user?.teamId ? findTeam(user.teamId) : undefined;
+  const canEdit = !!playerId && canEditPlayerProfile(user, playerId);
 
-  function onSave(e: React.FormEvent) {
+  const [extras, setExtras] = useState<PlayerProfileExtras | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  useEffect(() => {
+    if (canEdit && playerId) loadPlayerProfile(playerId).then(setExtras);
+  }, [canEdit, playerId]);
+
+  async function onSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    if (!playerId || !extras) return;
+    setBusy(true);
+    setMsg(null);
+    const { error } = await savePlayerProfile(playerId, extras);
+    setBusy(false);
+    setMsg(error ? { kind: 'err', text: error } : { kind: 'ok', text: 'Gespeichert.' });
+  }
+
+  function set<K extends keyof PlayerProfileExtras>(key: K, value: string) {
+    setExtras(prev => prev ? { ...prev, [key]: value || null } : prev);
   }
 
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
-      <DesktopHeader activeHref="/mein-bereich" />
-
-      <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '40px 20px 80px' }}>
-        {/* Breadcrumb */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20,
-          fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)',
-        }}>
-          <Link href="/mein-bereich" style={{ color: 'var(--th-text-muted)', textDecoration: 'none' }}>Mein Bereich</Link>
-          <Icon name="chevron" size={11} />
-          <span style={{ color: 'var(--th-text-strong)' }}>Mein Profil</span>
-        </div>
-
-        <h1 style={{
-          fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 36,
-          letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-          margin: '0 0 24px', paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
-        }}>
-          Mein Profil
-        </h1>
-
-        {loading ? (
-          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' }}>Lade …</p>
-        ) : !user ? (
-          <div style={{
-            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-            borderRadius: 14, padding: '28px 24px',
-          }}>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', margin: '0 0 16px' }}>
-              Bitte einloggen, um dein Profil zu sehen.
-            </p>
-            <Link href="/login" style={{ color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
-              Zur Anmeldung →
-            </Link>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <MemberShell title="Mein Profil">
+      {loading ? <Muted>Lade …</Muted>
+        : !user ? <Notice title="Bitte einloggen">Dein Profil ist nur mit Konto verfügbar.{' '}<LoginLink /></Notice>
+        : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 620 }}>
             {/* Basisdaten */}
-            <div style={{
-              background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-              borderRadius: 14, padding: '22px 24px',
-            }}>
-              <div style={{
-                fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
-                letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 14,
-              }}>
-                Basisdaten
-              </div>
+            <Card title="Basisdaten">
               {[
-                { k: 'Name',   v: user.displayName },
-                { k: 'E-Mail', v: user.email },
-                { k: 'Rolle',  v: ROLE_LABELS[user.role] },
-                { k: 'Spielerprofil', v: user.playerId ?? 'Noch nicht verknüpft' },
-                { k: 'Team',          v: user.teamId ?? 'Noch nicht verknüpft' },
+                { k: 'Name',          v: user.displayName },
+                { k: 'E-Mail',        v: user.email },
+                { k: 'Rolle',         v: ROLE_LABELS[user.role] },
+                { k: 'Spielerprofil', v: player ? getPlayerDisplayName(player) : 'Noch nicht verknüpft' },
+                { k: 'Team',          v: team?.name ?? 'Noch nicht verknüpft' },
               ].map(row => (
                 <div key={row.k} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 10, marginBottom: 10 }}>
                   <span style={{ color: 'var(--th-text-muted)', fontSize: 13, fontFamily: 'var(--font-manrope)' }}>{row.k}</span>
                   <span style={{ color: 'var(--th-text-strong)', fontWeight: 600, fontSize: 13, fontFamily: 'var(--font-manrope)' }}>{row.v}</span>
                 </div>
               ))}
-              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.55, margin: '12px 0 0' }}>
-                Die Verknüpfung mit deinem Spielerprofil und Team erfolgt durch die Ligaleitung.
-              </p>
-            </div>
+              {player && (
+                <Link href={`/spieler/${player.id}`} style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                  Öffentliches Spielerprofil ansehen →
+                </Link>
+              )}
+            </Card>
 
-            {/* Spitzname */}
-            <form
-              onSubmit={onSave}
-              style={{
-                background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-                borderRadius: 14, padding: '22px 24px',
-              }}
-            >
-              <div style={{
-                fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11,
-                letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 14,
-              }}>
-                Spitzname
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  placeholder="z. B. „The Machine“"
-                  value={nickname}
-                  onChange={e => setNickname(e.target.value)}
-                  style={{
-                    flex: 1, minWidth: 200, padding: '11px 14px',
-                    background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
-                    borderRadius: 8, color: 'var(--th-text-strong)',
-                    fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
-                  }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    padding: '11px 20px', borderRadius: 8, cursor: 'pointer',
-                    background: 'var(--th-accent)', color: '#fff', border: 'none',
-                    fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
-                    letterSpacing: '0.06em', textTransform: 'uppercase',
-                  }}
-                >
-                  Speichern
-                </button>
-              </div>
-              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: saved ? 'var(--th-win)' : 'var(--th-text-faint)', margin: '10px 0 0' }}>
-                {saved
-                  ? 'Gespeichert (Hinweis: dauerhafte Speicherung folgt mit der Backend-Anbindung).'
-                  : 'Wird mit der Backend-Anbindung dauerhaft gespeichert.'}
-              </p>
-            </form>
+            {!canEdit ? (
+              <Notice title="Konto noch nicht mit Spieler verknüpft">
+                Sobald die Ligaleitung dein Konto mit deinem Spielerprofil verknüpft, kannst du
+                hier Spitzname und „Über mich“ pflegen.
+              </Notice>
+            ) : !extras ? (
+              <Muted>Profildaten werden geladen …</Muted>
+            ) : (
+              <form onSubmit={onSave} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <Card title="Mein Profil bearbeiten">
+                  {msg && (
+                    <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{
+                      padding: '10px 14px', borderRadius: 8, marginBottom: 14, fontFamily: 'var(--font-manrope)', fontSize: 13,
+                      background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)',
+                      border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`,
+                      color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)',
+                    }}>{msg.text}</div>
+                  )}
 
-            {/* Profilbild — Coming soon */}
-            <div style={{
-              background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-              borderRadius: 14, padding: '22px 24px', opacity: 0.55,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="image" size={18} stroke={2} style={{ color: 'var(--th-text-faint2)' }} />
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>
-                  Profilbild ändern
-                </span>
-                <span style={{
-                  marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9,
-                  letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)',
-                  border: '1px solid var(--th-line-8)', borderRadius: 4, padding: '2px 6px',
-                }}>
-                  Folgt
-                </span>
-              </div>
-            </div>
+                  <Field label="Spitzname">
+                    <input value={extras.nickname ?? ''} onChange={e => set('nickname', e.target.value)}
+                      placeholder={'z. B. „The Machine"'} style={inputStyle} />
+                  </Field>
+                  <Field label="Über mich">
+                    <textarea value={extras.aboutMe ?? ''} onChange={e => set('aboutMe', e.target.value)}
+                      rows={4} placeholder="Erzähl etwas über dich und dein Dart-Spiel …" style={{ ...inputStyle, resize: 'vertical' }} />
+                  </Field>
+                  <Field label="Profilbild (Bild-URL)">
+                    <input value={extras.profileImageUrl ?? ''} onChange={e => set('profileImageUrl', e.target.value)}
+                      placeholder="https://…" style={inputStyle} />
+                  </Field>
+                  <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '2px 0 0', lineHeight: 1.55 }}>
+                    Direkter Foto-Upload folgt mit Supabase Storage. Bis dahin kann eine Bild-URL hinterlegt werden.
+                    Bitte nur Bilder verwenden, für die du die nötigen Rechte hast. Spitzname, „Über mich“ und
+                    Profilbild sind auf deinem öffentlichen Spielerprofil sichtbar und können jederzeit hier geändert
+                    oder geleert (gelöscht) werden.
+                  </p>
+
+                  <button type="submit" disabled={busy} style={{
+                    marginTop: 16, alignSelf: 'flex-start', padding: '12px 28px', borderRadius: 8, cursor: busy ? 'wait' : 'pointer',
+                    background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)',
+                    fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.06em',
+                    textTransform: 'uppercase', opacity: busy ? 0.7 : 1,
+                  }}>{busy ? 'Speichern …' : 'Speichern'}</button>
+                </Card>
+              </form>
+            )}
           </div>
         )}
-      </div>
+    </MemberShell>
+  );
+}
+
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '20px 22px' }}>
+      <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 14 }}>{title}</div>
+      {children}
     </div>
   );
 }
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '11px 14px', background: 'var(--th-bg-header)',
+  border: '1px solid var(--th-line-10)', borderRadius: 8,
+  color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
+};

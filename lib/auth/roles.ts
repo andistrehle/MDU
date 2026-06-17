@@ -116,3 +116,28 @@ export function canManageLeague(user: UserProfile | null): boolean {
 export function canManageUsers(user: UserProfile | null): boolean {
   return hasRole(user, 'super_admin');
 }
+
+/** Ist der Benutzer Super Admin? */
+export function isSuperAdmin(user: UserProfile | null): boolean {
+  return hasRole(user, 'super_admin');
+}
+
+/** Benutzerliste einsehen (Ligaleitung aufwärts). */
+export function canViewUsers(user: UserProfile | null): boolean {
+  return hasMinRole(user, 'league_admin');
+}
+
+/** Rollen vergeben/ändern — exklusiv Super Admin (kein Ernennen durch Ligaleitung). */
+export function canManageRoles(user: UserProfile | null): boolean {
+  return hasRole(user, 'super_admin');
+}
+
+/** Eigenes Konto-/Spielerprofil bearbeiten (jeder eingeloggte Nicht-Gast). */
+export function canEditOwnProfile(user: UserProfile | null): boolean {
+  return hasMinRole(user, 'player');
+}
+
+/** Teamkapitän eines bestimmten Teams (ohne Admin-Override). */
+export function isCaptainOfTeam(user: UserProfile | null, teamId: string): boolean {
+  return hasRole(user, 'team_captain') && user?.teamId === teamId;
+}

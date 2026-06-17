@@ -20,42 +20,40 @@ interface Tile {
 function tilesFor(user: UserProfile): Tile[] {
   const tiles: Tile[] = [];
 
-  // Spieler aufwärts
+  // Spieler aufwärts — eigenes Profil
   if (hasMinRole(user, 'player')) {
     tiles.push(
-      { icon: 'user',   label: 'Mein Profil',        description: 'Basisdaten prüfen und Spitznamen pflegen.', href: '/mein-profil', ready: true },
-      { icon: 'image', label: 'Profilbild ändern',  description: 'Eigenes Spielerfoto hochladen.', ready: false },
+      { icon: 'user',  label: 'Mein Profil',       description: 'Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true },
+      { icon: 'image', label: 'Profilbild ändern', description: 'Eigenes Spielerfoto hochladen (folgt mit Storage).', ready: false },
     );
   }
 
-  // Teamkapitän
+  // Teamkapitän — eigenes Team
   if (hasRole(user, 'team_captain')) {
     tiles.push(
-      { icon: 'users',    label: 'Mein Team',             description: 'Teamdaten und Social Media pflegen.', ready: false },
-      { icon: 'list',     label: 'Spieler verwalten',     description: 'Kader des eigenen Teams verwalten.', ready: false },
-      { icon: 'image',   label: 'Mannschaftsbild',       description: 'Teamfoto hochladen.', ready: false },
-      { icon: 'file',     label: 'Spielbericht hochladen', description: 'Ergebnisse und Berichte erfassen.', ready: false },
-      { icon: 'calendar', label: 'Mannschaft anmelden',   description: 'Team zur neuen Saison anmelden.', ready: false },
+      { icon: 'users',    label: 'Mein Team',         description: 'Übersicht deines Teams.', href: '/mein-team', ready: true },
+      { icon: 'edit',     label: 'Team bearbeiten',   description: 'Beschreibung, Logo, Social Media.', href: '/mein-team/bearbeiten', ready: true },
+      { icon: 'list',     label: 'Kader',             description: 'Spieler deines Teams ansehen.', href: '/mein-team/kader', ready: true },
+      { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden (folgt).', ready: false },
     );
   }
 
-  // Ligaleitung / Vorstand aufwärts
+  // Ligaleitung / Vorstand aufwärts — Verwaltung
   if (canManageLeague(user)) {
     tiles.push(
-      { icon: 'list',     label: 'Anmeldungen verwalten',   description: 'Mannschaftsanmeldungen prüfen.', ready: false },
-      { icon: 'check',    label: 'Teams freigeben',         description: 'Neue Teams für die Saison freigeben.', ready: false },
-      { icon: 'file',     label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', ready: false },
-      { icon: 'bell',     label: 'News pflegen',            description: 'Aktuelles auf der Startseite verwalten.', ready: false },
-      { icon: 'globe',    label: 'Inhalte moderieren',      description: 'Inhalte prüfen und moderieren.', ready: false },
+      { icon: 'check',  label: 'Teams freigeben',         description: 'Teams für die Saison verwalten.', href: '/admin/teams', ready: true },
+      { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true },
+      { icon: 'list',   label: 'Saisonanmeldungen',       description: 'Mannschaftsanmeldungen bearbeiten.', href: '/admin/anmeldungen', ready: true },
+      { icon: 'file',   label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', href: '/admin/spielberichte', ready: true },
+      { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
     );
   }
 
-  // Super Admin
+  // Super Admin — exklusiv
   if (canManageUsers(user)) {
     tiles.push(
-      { icon: 'users',    label: 'Benutzerverwaltung',    description: 'Konten verwalten und verknüpfen.', href: '/admin/users', ready: true },
-      { icon: 'edit',     label: 'Rollenverwaltung',      description: 'Rollen und Rechte vergeben.', ready: false },
-      { icon: 'settings', label: 'Systemeinstellungen',   description: 'Plattform-Einstellungen verwalten.', ready: false },
+      { icon: 'edit',     label: 'Rollenverwaltung',    description: 'Rollen vergeben (in der Benutzerverwaltung).', href: '/admin/users', ready: true },
+      { icon: 'settings', label: 'Systemeinstellungen', description: 'Plattform-Einstellungen (folgt).', ready: false },
     );
   }
 

@@ -1,70 +1,84 @@
-import Link from 'next/link';
-import { DesktopHeader } from '@/components/mdu/desktop-header';
-import { Footer } from '@/components/mdu/footer';
+import type { Metadata } from 'next';
+import { LegalPage, LegalSection } from '@/components/mdu/legal-page';
+
+export const metadata: Metadata = {
+  title: 'Datenschutzerklärung · Münchner Dart Union',
+  description: 'Informationen zur Verarbeitung personenbezogener Daten auf der MDU-Plattform.',
+};
 
 export default function DatenschutzPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <DesktopHeader />
+    <LegalPage title="Datenschutzerklärung" updated="[Stand-Datum]">
+      <LegalSection title="1. Verantwortlicher">
+        Verantwortlich für die Datenverarbeitung auf dieser Website:<br />
+        [Name des Verantwortlichen]<br />
+        [Adresse]<br />
+        E-Mail (Datenschutzkontakt): [E-Mail Datenschutzkontakt]<br />
+        Vertretungsberechtigt: [Vertretungsberechtigter]
+      </LegalSection>
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
-        <div style={{
-          background: 'linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%)',
-          border: '1px solid var(--th-line-6)',
-          borderRadius: 14,
-          boxShadow: '0 1px 0 var(--th-line-4) inset, 0 8px 28px var(--th-shadow)',
-          padding: '48px 40px',
-          maxWidth: 520,
-          width: '100%',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: '50%',
-            background: 'var(--th-accent-a12)',
-            border: '1px solid var(--th-accent-a25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 24px',
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--th-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>
-            </svg>
-          </div>
+      <LegalSection title="2. Hosting (Vercel)">
+        Diese Website wird bei Vercel gehostet. Beim Aufruf werden technisch notwendige
+        Daten (z. B. IP-Adresse, Datum/Uhrzeit, abgerufene Seite, Browsertyp) in
+        Server-Logs verarbeitet, um die Auslieferung und Sicherheit zu gewährleisten.
+        Rechtsgrundlage: berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO).
+        TODO: Auftragsverarbeitungsvertrag mit Vercel prüfen.
+      </LegalSection>
 
-          <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,
-            letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: '0 0 12px',
-          }}>
-            Seite befindet sich noch im Aufbau
-          </h1>
+      <LegalSection title="3. Benutzerkonten & Authentifizierung (Supabase)">
+        Für interne Funktionen (eigenes Profil, Team-Bereich) kann ein Benutzerkonto
+        erstellt werden. Authentifizierung und Datenbank werden über Supabase betrieben
+        (Region EU). Verarbeitet werden: E-Mail-Adresse, ein gehashtes Passwort,
+        Anzeigename, Rolle sowie optionale Verknüpfungen zu Spieler/Team.
+        Rechtsgrundlage: Vertrag/Nutzung (Art. 6 Abs. 1 lit. b DSGVO).
+        TODO: Auftragsverarbeitungsvertrag mit Supabase prüfen.
+      </LegalSection>
 
-          <p style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)',
-            lineHeight: 1.6, margin: '0 0 32px',
-          }}>
-            Die Datenschutzerklärung wird aktuell vorbereitet und steht bald zur Verfügung.
-          </p>
+      <LegalSection title="4. Profil- und Spielerdaten">
+        Eingeloggte Nutzer können Spitzname, einen „Über mich“-Text und ein Profilbild
+        (bzw. Bild-URL) hinterlegen. Diese Angaben sind auf dem öffentlichen Spielerprofil
+        sichtbar und können jederzeit durch den Nutzer selbst geändert oder gelöscht
+        werden. Liga-Stammdaten (Namen, Ergebnisse, Ranglisten) stammen aus öffentlich
+        verfügbaren Quellen (u. a. dartunion.de).
+      </LegalSection>
 
-          <Link
-            href="/mehr"
-            style={{
-              display: 'inline-block',
-              padding: '12px 28px',
-              background: 'var(--th-accent)',
-              color: '#fff',
-              borderRadius: 6,
-              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
-              letterSpacing: '0.16em', textTransform: 'uppercase',
-              textDecoration: 'none',
-              boxShadow: '0 6px 14px var(--th-accent-a32)',
-            }}
-          >
-            Zurück zu Mehr
-          </Link>
-        </div>
-      </main>
+      <LegalSection title="5. Spieler- und Mannschaftsbilder">
+        Bilder werden nur verwendet, wenn sie öffentlich verfügbar sind oder eine
+        Zustimmung der abgebildeten Personen vorliegt. Mannschaftsbilder werden durch
+        Teamkapitäne oder Administratoren hinterlegt; diese stellen die erforderlichen
+        Zustimmungen sicher. Für die Entfernung oder Korrektur eines Bildes genügt eine
+        Nachricht an den Datenschutzkontakt (siehe Abschnitt 1 / 9).
+      </LegalSection>
 
-      <Footer />
-    </div>
+      <LegalSection title="6. Kontaktaufnahme">
+        Bei Kontaktaufnahme (z. B. per E-Mail) werden die übermittelten Angaben zur
+        Bearbeitung der Anfrage verarbeitet und nicht ohne Einwilligung weitergegeben.
+      </LegalSection>
+
+      <LegalSection title="7. Cookies / lokale Speicherung">
+        Es werden technisch notwendige Mechanismen für die Anmeldung (Session) sowie die
+        Designauswahl (Hell/Dunkel) genutzt. Es werden keine Tracking- oder
+        Marketing-Cookies eingesetzt. TODO: Bei späterem Einsatz von Analyse-/Marketing-
+        Diensten ist ein Consent-Banner zu ergänzen.
+      </LegalSection>
+
+      <LegalSection title="8. Server-Logs">
+        Zur Sicherstellung des Betriebs werden Server-Logfiles automatisch erfasst und
+        nach den Vorgaben der eingesetzten Anbieter (Vercel, Supabase) gespeichert.
+      </LegalSection>
+
+      <LegalSection title="9. Rechte der betroffenen Personen">
+        Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
+        Verarbeitung, Datenübertragbarkeit und Widerspruch. Zudem besteht ein
+        Beschwerderecht bei einer Aufsichtsbehörde. Zur Wahrnehmung Ihrer Rechte wenden
+        Sie sich an: [E-Mail Datenschutzkontakt].
+      </LegalSection>
+
+      <LegalSection title="10. Hinweis">
+        TODO: Diese Datenschutzerklärung ist eine Vorlage. Sie muss mit den tatsächlichen
+        Angaben gefüllt und vor dem offiziellen Livegang rechtlich geprüft werden. Sie
+        stellt keine Rechtsberatung dar.
+      </LegalSection>
+    </LegalPage>
   );
 }

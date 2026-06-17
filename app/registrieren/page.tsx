@@ -99,8 +99,14 @@ export default function RegisterPage() {
           fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)',
           lineHeight: 1.55, margin: 0,
         }}>
-          Hinweis: Dein Konto wird ggf. später durch die Ligaleitung freigegeben und
-          mit deinem Spielerprofil bzw. Team verknüpft.
+          Das Konto wird erstellt, um interne Funktionen (eigenes Profil, Team-Bereich)
+          nutzen zu können. Dein Konto wird ggf. durch die Ligaleitung freigegeben und mit
+          deinem Spielerprofil bzw. Team verknüpft. Mit der Registrierung bestätigst du,
+          die{' '}
+          <Link href="/datenschutz" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
+            Datenschutzerklärung
+          </Link>{' '}
+          zur Kenntnis genommen zu haben.
         </p>
 
         <AuthSubmit busy={busy}>Registrieren</AuthSubmit>

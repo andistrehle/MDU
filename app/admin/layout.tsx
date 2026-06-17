@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { AdminSidebar } from '@/components/mdu/admin-sidebar';
 import { Icon } from '@/components/mdu/icon';
+
+// Admin-Bereich — nicht von Suchmaschinen indexieren.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

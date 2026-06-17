@@ -1,70 +1,56 @@
-import Link from 'next/link';
-import { DesktopHeader } from '@/components/mdu/desktop-header';
-import { Footer } from '@/components/mdu/footer';
+import type { Metadata } from 'next';
+import { LegalPage, LegalSection } from '@/components/mdu/legal-page';
+
+export const metadata: Metadata = {
+  title: 'Impressum · Münchner Dart Union',
+  description: 'Impressum und Anbieterkennzeichnung der Münchner Dart Union.',
+};
 
 export default function ImpressumPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <DesktopHeader />
+    <LegalPage title="Impressum" updated="[Stand-Datum]">
+      <LegalSection title="Angaben gemäß § 5 TMG">
+        [Name der Organisation / des Vereins]<br />
+        [Straße und Hausnummer]<br />
+        [PLZ und Ort]
+      </LegalSection>
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
-        <div style={{
-          background: 'linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%)',
-          border: '1px solid var(--th-line-6)',
-          borderRadius: 14,
-          boxShadow: '0 1px 0 var(--th-line-4) inset, 0 8px 28px var(--th-shadow)',
-          padding: '48px 40px',
-          maxWidth: 520,
-          width: '100%',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: '50%',
-            background: 'var(--th-accent-a12)',
-            border: '1px solid var(--th-accent-a25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 24px',
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--th-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/>
-            </svg>
-          </div>
+      <LegalSection title="Vertreten durch">
+        [Vertretungsberechtigte Person, z. B. 1. Vorsitzender / Präsident]
+      </LegalSection>
 
-          <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,
-            letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: '0 0 12px',
-          }}>
-            Seite befindet sich noch im Aufbau
-          </h1>
+      <LegalSection title="Kontakt">
+        E-Mail: [E-Mail-Adresse]<br />
+        Telefon: [optional]
+      </LegalSection>
 
-          <p style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)',
-            lineHeight: 1.6, margin: '0 0 32px',
-          }}>
-            Das Impressum wird aktuell vorbereitet und steht bald zur Verfügung.
-          </p>
+      <LegalSection title="Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV">
+        [Name]<br />
+        [Anschrift, falls abweichend]
+      </LegalSection>
 
-          <Link
-            href="/mehr"
-            style={{
-              display: 'inline-block',
-              padding: '12px 28px',
-              background: 'var(--th-accent)',
-              color: '#fff',
-              borderRadius: 6,
-              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
-              letterSpacing: '0.16em', textTransform: 'uppercase',
-              textDecoration: 'none',
-              boxShadow: '0 6px 14px var(--th-accent-a32)',
-            }}
-          >
-            Zurück zu Mehr
-          </Link>
-        </div>
-      </main>
+      <LegalSection title="Vereinsregister (falls eingetragener Verein)">
+        Registergericht: [z. B. Amtsgericht München]<br />
+        Registernummer: [VR …]
+      </LegalSection>
 
-      <Footer />
-    </div>
+      <LegalSection title="Haftung für Inhalte">
+        Die Inhalte dieser Seiten wurden mit größtmöglicher Sorgfalt erstellt. Für die
+        Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann jedoch keine Gewähr
+        übernommen werden. Liga-Daten (Tabellen, Spielpläne, Ergebnisse, Ranglisten)
+        stammen aus öffentlich verfügbaren Quellen (u. a. dartunion.de).
+      </LegalSection>
+
+      <LegalSection title="Haftung für Links">
+        Diese Website enthält Links zu externen Websites Dritter, auf deren Inhalte kein
+        Einfluss besteht. Für die Inhalte der verlinkten Seiten ist stets der jeweilige
+        Anbieter verantwortlich.
+      </LegalSection>
+
+      <LegalSection title="Hinweis">
+        TODO: Dieses Impressum ist eine Vorlage und muss mit den tatsächlichen Angaben
+        gefüllt sowie rechtlich geprüft werden.
+      </LegalSection>
+    </LegalPage>
   );
 }

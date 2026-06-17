@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canManageUsers, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
+import { canViewUsers, isSuperAdmin, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
 
 interface ProfileRow {
@@ -58,7 +58,8 @@ function teamName(id: string | null): string {
 
 export default function AdminUsersPage() {
   const { user, loading: authLoading } = useAuth();
-  const allowed = canManageUsers(user);
+  const allowed = canViewUsers(user);      // Ligaleitung aufwärts darf einsehen
+  const canEdit = isSuperAdmin(user);      // Bearbeiten/Rollen nur Super Admin
 
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -82,7 +83,9 @@ export default function AdminUsersPage() {
   }, []);
 
   useEffect(() => {
-    if (allowed) load();
+    // load() setzt synchron State → außerhalb des Effect-Bodys ausführen
+    // (react-hooks/set-state-in-effect)
+    if (allowed) queueMicrotask(() => load());
   }, [allowed, load]);
 
   // ── Zugriffsschutz ──────────────────────────────────────────
@@ -93,7 +96,7 @@ export default function AdminUsersPage() {
     return (
       <Shell>
         <Notice title="Bitte einloggen">
-          Die Benutzerverwaltung ist nur für angemeldete Super Admins verfügbar.{' '}
+          Die Benutzerverwaltung ist nur für Ligaleitung und Super Admins verfügbar.{' '}
           <Link href="/login" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Zur Anmeldung →</Link>
         </Notice>
       </Shell>
@@ -103,7 +106,7 @@ export default function AdminUsersPage() {
     return (
       <Shell>
         <Notice title="Keine Berechtigung">
-          Dieser Bereich ist nur für Super Admins. Deine Rolle: {ROLE_LABELS[user.role]}.
+          Dieser Bereich ist nur für Ligaleitung und Super Admins. Deine Rolle: {ROLE_LABELS[user.role]}.
         </Notice>
       </Shell>
     );
@@ -121,7 +124,8 @@ export default function AdminUsersPage() {
       {status === 'idle' && (
         <>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginBottom: 16 }}>
-            {profiles.length} {profiles.length === 1 ? 'Benutzer' : 'Benutzer'} · Quelle: Supabase <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>public.profiles</code>
+            {profiles.length} Benutzer · Quelle: Supabase <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>public.profiles</code>
+            {!canEdit && ' · Nur-Lese-Ansicht (Bearbeiten nur Super Admin)'}
           </div>
 
           {/* ── Desktop-Tabelle ──────────────────────────────── */}
@@ -147,7 +151,9 @@ export default function AdminUsersPage() {
                   <span><RoleBadge role={p.role} /></span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName(p.player_id)}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(p.team_id)}</span>
-                  <button onClick={() => setEditing(p)} style={editBtn}>Bearb.</button>
+                  {canEdit
+                    ? <button onClick={() => setEditing(p)} style={editBtn}>Bearb.</button>
+                    : <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>—</span>}
                 </div>
               ))}
               {profiles.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>Noch keine Benutzer registriert.</div>}
@@ -167,7 +173,7 @@ export default function AdminUsersPage() {
                   <span>Spieler: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(p.player_id)}</strong></span>
                   <span>Team: <strong style={{ color: 'var(--th-text-strong)' }}>{teamName(p.team_id)}</strong></span>
                 </div>
-                <button onClick={() => setEditing(p)} style={{ ...editBtn, width: '100%', padding: '9px' }}>Bearbeiten</button>
+                {canEdit && <button onClick={() => setEditing(p)} style={{ ...editBtn, width: '100%', padding: '9px' }}>Bearbeiten</button>}
               </div>
             ))}
             {profiles.length === 0 && <p style={muted}>Noch keine Benutzer registriert.</p>}

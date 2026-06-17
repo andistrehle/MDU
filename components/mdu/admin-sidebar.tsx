@@ -11,6 +11,8 @@ const NAV_ITEMS = [
   { icon: 'trophy',   label: 'Ligen',        href: '/admin/ligen' },
   { icon: 'calendar', label: 'Spiele',       href: '/admin/spiele', badge: '3' },
   { icon: 'users',    label: 'Teams',        href: '/admin/teams' },
+  { icon: 'list',     label: 'Anmeldungen',  href: '/admin/anmeldungen' },
+  { icon: 'file',     label: 'Spielberichte', href: '/admin/spielberichte' },
   { icon: 'user',     label: 'Mitglieder',   href: '/admin/mitglieder' },
   { icon: 'pin',      label: 'Spielstätten', href: '/admin/spielstaetten' },
   { icon: 'file',     label: 'News',         href: '/admin/news' },
