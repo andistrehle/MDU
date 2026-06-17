@@ -2,18 +2,21 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canManageLeague } from '@/lib/auth/roles';
+import { canManageLeague, isSuperAdmin } from '@/lib/auth/roles';
 
 /**
- * Schützt Ligaleitungs-Verwaltungsseiten unter /admin.
- * Zeigt Heading + Inhalt nur für league_admin / super_admin.
+ * Schützt Verwaltungsseiten unter /admin.
+ * `require`: 'league' (Ligaleitung+) oder 'super' (nur Super Admin).
  */
-export function AdminGuard({ title, subtitle, children }: {
+export function AdminGuard({ title, subtitle, require = 'league', children }: {
   title: string;
   subtitle?: string;
+  require?: 'league' | 'super';
   children: React.ReactNode;
 }) {
   const { user, loading } = useAuth();
+  const allowed = require === 'super' ? isSuperAdmin(user) : canManageLeague(user);
+  const roleHint = require === 'super' ? 'Super Admins' : 'Ligaleitung und Super Admins';
 
   return (
     <div>
@@ -26,12 +29,13 @@ export function AdminGuard({ title, subtitle, children }: {
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' }}>Lade …</p>
       ) : !user ? (
         <AdminNotice title="Bitte einloggen">
-          Dieser Verwaltungsbereich ist nur für Ligaleitung und Super Admins.{' '}
+          Dieser Verwaltungsbereich ist nur für {roleHint}.{' '}
           <Link href="/login" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Zur Anmeldung →</Link>
         </AdminNotice>
-      ) : !canManageLeague(user) ? (
+      ) : !allowed ? (
         <AdminNotice title="Keine Berechtigung">
-          Dieser Bereich ist nur für Ligaleitung und Super Admins.
+          Dieser Bereich ist nur für {roleHint}. Eigene Daten findest du im{' '}
+          <Link href="/mein-bereich" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Mein Bereich</Link>.
         </AdminNotice>
       ) : (
         children

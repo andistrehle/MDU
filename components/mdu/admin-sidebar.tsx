@@ -4,30 +4,45 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
+import { useAuth } from '@/lib/auth/auth-context';
+import { canManageLeague, isSuperAdmin, ROLE_LABELS } from '@/lib/auth/roles';
 
-const NAV_ITEMS = [
-  { icon: 'bar',      label: 'Dashboard',    href: '/admin' },
-  { icon: 'user',     label: 'Benutzer',     href: '/admin/users' },
-  { icon: 'trophy',   label: 'Ligen',        href: '/admin/ligen' },
-  { icon: 'calendar', label: 'Spiele',       href: '/admin/spiele', badge: '3' },
-  { icon: 'users',    label: 'Teams',        href: '/admin/teams' },
-  { icon: 'list',     label: 'Anmeldungen',  href: '/admin/anmeldungen' },
-  { icon: 'file',     label: 'Spielberichte', href: '/admin/spielberichte' },
-  { icon: 'user',     label: 'Mitglieder',   href: '/admin/mitglieder' },
-  { icon: 'pin',      label: 'Spielstätten', href: '/admin/spielstaetten' },
-  { icon: 'file',     label: 'News',         href: '/admin/news' },
-  { icon: 'upload',   label: 'Medien',       href: '/admin/medien' },
-  { icon: 'bar',      label: 'Statistik',    href: '/admin/statistik' },
+interface NavItem {
+  icon: string;
+  label: string;
+  href: string;
+  /** Mindestzugriff: 'league' (Ligaleitung+) oder 'super' (nur Super Admin). */
+  require: 'league' | 'super';
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { icon: 'bar',      label: 'Dashboard',     href: '/admin',               require: 'league' },
+  { icon: 'users',    label: 'Benutzer',      href: '/admin/users',         require: 'league' },
+  { icon: 'edit',     label: 'Rollen',        href: '/admin/roles',         require: 'league' },
+  { icon: 'trophy',   label: 'Teams',         href: '/admin/teams',         require: 'league' },
+  { icon: 'user',     label: 'Spieler',       href: '/admin/players',       require: 'league' },
+  { icon: 'list',     label: 'Anmeldungen',   href: '/admin/anmeldungen',   require: 'league' },
+  { icon: 'file',     label: 'Spielberichte', href: '/admin/spielberichte', require: 'league' },
+  { icon: 'bell',     label: 'News',          href: '/admin/news',          require: 'league' },
+  { icon: 'download', label: 'Downloads',     href: '/admin/downloads',     require: 'league' },
+  { icon: 'upload',   label: 'Import',        href: '/admin/import',        require: 'league' },
+  { icon: 'check',    label: 'Sicherheit',    href: '/admin/security',      require: 'league' },
+  { icon: 'settings', label: 'Einstellungen', href: '/admin/settings',      require: 'super' },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
+
+  const items = NAV_ITEMS.filter(item =>
+    item.require === 'super' ? isSuperAdmin(user) : canManageLeague(user),
+  );
 
   return (
     <aside style={{
       width: 260, background: '#0E1117',
       borderRight: '1px solid var(--th-line-6)',
-      padding: '22px 14px', display: 'flex', flexDirection: 'column', gap: 6,
+      padding: '22px 14px', display: 'flex', flexDirection: 'column', gap: 4,
       minHeight: '100vh', position: 'sticky', top: 0,
     }}>
       <div style={{ padding: '0 6px 16px', borderBottom: '1px solid var(--th-line-6)', marginBottom: 14 }}>
@@ -37,14 +52,14 @@ export function AdminSidebar() {
         </div>
       </div>
 
-      {NAV_ITEMS.map(item => {
+      {items.map(item => {
         const active = pathname === item.href;
         return (
           <Link
-            key={item.label}
+            key={item.href}
             href={item.href}
             style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+              display: 'flex', alignItems: 'center', gap: 12, padding: '9px 12px',
               borderRadius: 8, textDecoration: 'none',
               background: active ? 'var(--th-accent-a12)' : 'transparent',
               color: active ? 'var(--th-text-strong)' : 'var(--th-text-dim)',
@@ -53,36 +68,34 @@ export function AdminSidebar() {
               transition: 'all 150ms',
             }}
           >
-            <Icon name={item.icon} size={17} />
+            <Icon name={item.icon as 'bar'} size={17} />
             <span style={{ flex: 1 }}>{item.label}</span>
-            {item.badge && (
-              <span style={{
-                minWidth: 20, height: 20, borderRadius: 10, padding: '0 6px',
-                background: 'var(--th-accent)', color: '#fff',
-                fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 11,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {item.badge}
-              </span>
-            )}
           </Link>
         );
       })}
 
+      {/* Echter eingeloggter Benutzer */}
       <div style={{ marginTop: 'auto', paddingTop: 14, borderTop: '1px solid var(--th-line-6)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px' }}>
           <div style={{
-            width: 34, height: 34, borderRadius: '50%',
+            width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
             background: 'linear-gradient(135deg,var(--th-accent),var(--th-accent-deep))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, color: '#fff', fontSize: 14,
-            flexShrink: 0,
-          }}>SA</div>
+          }}>{user ? user.displayName.slice(0, 2).toUpperCase() : '–'}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>Stefan Achatz</div>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-dim)' }}>Vorstand · Admin</div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user ? user.displayName : 'Nicht eingeloggt'}
+            </div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-dim)' }}>
+              {user ? ROLE_LABELS[user.role] : '—'}
+            </div>
           </div>
-          <Icon name="logout" size={16} style={{ color: 'var(--th-text-faint2)', flexShrink: 0 }} />
+          {user && (
+            <button onClick={() => signOut()} aria-label="Logout" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint2)', flexShrink: 0, display: 'flex' }}>
+              <Icon name="logout" size={16} />
+            </button>
+          )}
         </div>
       </div>
     </aside>

@@ -1,145 +1,97 @@
+'use client';
+
+import Link from 'next/link';
 import { Icon } from '@/components/mdu/icon';
-import { Pill } from '@/components/mdu/pill';
-import { TeamBadge } from '@/components/mdu/team-badge';
+import { AdminGuard } from '@/components/mdu/admin-guard';
+import { useAuth } from '@/lib/auth/auth-context';
+import { ROLE_LABELS, isSuperAdmin } from '@/lib/auth/roles';
+import { TEAMS, PLAYERS, LEAGUES } from '@/lib/data';
 
-const KPI_CARDS = [
-  { kicker: 'Ligen Saison 2026',   value: '6',  delta: '0',  deltaPos: true,  sub: 'LA · A1 · A2 · B1 · B2 · C', c: 'var(--th-accent)' },
-  { kicker: 'Teams gesamt',        value: '36', delta: '0',  deltaPos: true,  sub: 'alle Spielklassen',           c: '#3B82F6' },
-  { kicker: 'Playoff-Phase',       value: 'Aktiv', delta: '', deltaPos: true, sub: 'Aufstieg & Abstieg laufen',   c: 'var(--th-gold)' },
-  { kicker: 'Offene Tickets',      value: '—',  delta: '',   deltaPos: true,  sub: 'Noch nicht verfügbar',        c: '#22C55E' },
+interface AdminCard {
+  icon: string;
+  label: string;
+  desc: string;
+  href: string;
+  super?: boolean;
+}
+
+const CARDS: AdminCard[] = [
+  { icon: 'users',    label: 'Benutzerverwaltung', desc: 'Konten, Rollen & Verknüpfungen.', href: '/admin/users' },
+  { icon: 'edit',     label: 'Rollenverwaltung',   desc: 'Rollen & Rechte im Überblick.',   href: '/admin/roles' },
+  { icon: 'trophy',   label: 'Teams',              desc: 'Teams der Saison verwalten.',     href: '/admin/teams' },
+  { icon: 'user',     label: 'Spieler',            desc: 'Spieler & Verknüpfungen.',        href: '/admin/players' },
+  { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/anmeldungen' },
+  { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte' },
+  { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
+  { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },
+  { icon: 'upload',   label: 'Datenimport',        desc: 'dartunion.de-Importstatus.',      href: '/admin/import' },
+  { icon: 'check',    label: 'Sicherheit',         desc: 'Datenschutz- & Security-Status.', href: '/admin/security' },
+  { icon: 'settings', label: 'Einstellungen',      desc: 'Systemeinstellungen.',            href: '/admin/settings', super: true },
 ];
 
-const MATCH_TABLE = [
-  { id: 'PL-A-11', date: '28.05 · 20:00', home: 'Alptraum',         away: 'Silberpfeile II',   score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
-  { id: 'PL-B-09', date: '28.05 · 20:00', home: 'Belfort Evolution', away: 'Flying Fighters',  score: '—',   venue: 'Noch nicht verfügbar', status: 'Geplant' },
-  { id: 'PL-A-10', date: '21.05 · 20:00', home: 'Gambas',            away: 'Jolly Pirates V',   score: '9:9', venue: 'Noch nicht verfügbar', status: 'Final'   },
-  { id: 'PL-B-08', date: '21.05 · 20:00', home: 'Fiaker Deife',      away: 'Master of Desaster',score: '12:6',venue: 'Noch nicht verfügbar', status: 'Final'   },
-];
+export default function AdminDashboardPage() {
+  const { user } = useAuth();
+  const superUser = isSuperAdmin(user);
+  const cards = CARDS.filter(c => !c.super || superUser);
 
-const TODO_ITEMS = [
-  { dot: 'var(--th-accent)', text: 'Spielstätten aller Teams in der Datenbank ergänzen' },
-  { dot: 'var(--th-gold)', text: 'Playoff-Spielpläne für A Liga und B Liga eintragen' },
-  { dot: '#3B82F6', text: 'Kader-Daten von Vereinen anfordern und pflegen' },
-  { dot: '#22C55E', text: 'Rückzug De Wolperdinga (A2) offiziell verarbeiten' },
-];
-
-// Real MDU contacts from dartunion.de/kontakt.php
-const MEMBERS = [
-  { initials: 'DK', name: 'Dimo Katsikas',   email: 'info@dartunion.de',   role: 'Präsident', status: 'Aktiv', lastSeen: '—' },
-  { initials: 'MD', name: 'Manfred Domandl', email: 'manfred@domandl.com', role: 'Technik',   status: 'Aktiv', lastSeen: '—' },
-];
-
-export default function AdminDashboard() {
   return (
-    <div style={{ color: 'var(--th-text-strong)' }}>
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', color: 'var(--th-text-faint2)', textTransform: 'uppercase', marginBottom: 6 }}>Admin · Übersicht</div>
-        <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 32, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 }}>Dashboard</h1>
+    <AdminGuard title="Dashboard" subtitle="Zentrale Verwaltung der MDU-Plattform.">
+      {user && (
+        <div style={{
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14,
+          padding: '16px 20px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+        }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>
+              Willkommen, {user.displayName}
+            </div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
+              Angemeldet als {ROLE_LABELS[user.role]}
+            </div>
+          </div>
+          <Link href="/" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
+            Zur öffentlichen Seite →
+          </Link>
+        </div>
+      )}
+
+      {/* System-Status (echte Zahlen aus Projektdaten) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12, marginBottom: 22 }}>
+        <Stat label="Ligen / Playoffs" value={String(LEAGUES.length)} />
+        <Stat label="Teams" value={String(TEAMS.length)} />
+        <Stat label="Spieler" value={String(PLAYERS.length)} />
+        <Stat label="Auth" value="aktiv" accent />
       </div>
 
-      {/* KPI cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-        {KPI_CARDS.map(kpi => (
-          <div key={kpi.kicker} style={{
-            background: 'linear-gradient(180deg, var(--th-bg-card3), var(--th-bg-card2))',
-            border: '1px solid var(--th-line-6)', borderRadius: 14, padding: 20,
-            position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', right: -20, top: -20, width: 90, height: 90, borderRadius: '50%', background: `radial-gradient(circle, ${kpi.c}33, transparent 70%)` }} />
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', color: 'var(--th-text-dim)', textTransform: 'uppercase' }}>{kpi.kicker}</div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 12 }}>
-              <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40, color: 'var(--th-text-strong)', lineHeight: 1 }}>{kpi.value}</div>
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, fontWeight: 700, color: kpi.deltaPos ? 'var(--th-win)' : 'var(--th-loss)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Icon name="arrow-up" size={11} stroke={3} style={{ transform: kpi.deltaPos ? 'none' : 'rotate(180deg)' }} />
-                {kpi.delta}
+      {/* Schnellzugriffe */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 12 }}>
+        {cards.map(c => (
+          <Link key={c.href} href={c.href} className="mdu-card-hover" style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: 18, height: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 9, flexShrink: 0,
+                  background: 'var(--th-accent-a12)', border: '1px solid var(--th-accent-a25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-accent)',
+                }}>
+                  <Icon name={c.icon as 'users'} size={18} stroke={2} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>{c.label}</span>
               </div>
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.5, margin: 0 }}>{c.desc}</p>
             </div>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint2)', marginTop: 6 }}>{kpi.sub}</div>
-          </div>
+          </Link>
         ))}
       </div>
+    </AdminGuard>
+  );
+}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, marginBottom: 24 }}>
-        {/* Match table */}
-        <div style={{ background: 'linear-gradient(180deg, var(--th-bg-card3), var(--th-bg-card2))', border: '1px solid var(--th-line-6)', borderRadius: 14 }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--th-line-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Spiele</span>
-            <button style={{ padding: '8px 14px', background: 'var(--th-accent)', color: '#fff', border: 'none', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="plus" size={14} /> Neues Spiel
-            </button>
-          </div>
-          <div style={{ padding: '0 20px' }}>
-            {MATCH_TABLE.map((m, i) => (
-              <div key={m.id} style={{
-                display: 'grid', gridTemplateColumns: '70px 120px 1fr 80px 1fr 140px 80px 36px',
-                padding: '14px 0', borderBottom: i < MATCH_TABLE.length - 1 ? '1px solid var(--th-line-4)' : 'none',
-                alignItems: 'center', gap: 12, fontFamily: 'var(--font-manrope)', fontSize: 12,
-              }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-faint2)' }}>{m.id}</span>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)' }}>{m.date}</span>
-                <span style={{ color: 'var(--th-text-strong)', fontWeight: 600 }}>{m.home}</span>
-                <span style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 16, color: 'var(--th-text-strong)' }}>{m.score}</span>
-                <span style={{ color: 'var(--th-text-strong)', fontWeight: 600 }}>{m.away}</span>
-                <span style={{ color: 'var(--th-text-muted)', fontSize: 11 }}>{m.venue}</span>
-                <Pill tone={m.status === 'LIVE' ? 'live' : m.status === 'Final' ? 'green' : 'neutral'}>{m.status}</Pill>
-                <button style={{ width: 30, height: 30, borderRadius: 6, background: 'var(--th-line-4)', border: '1px solid var(--th-line-6)', color: 'var(--th-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name="edit" size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* To-Do */}
-        <div style={{ background: 'linear-gradient(180deg, var(--th-bg-card3), var(--th-bg-card2))', border: '1px solid var(--th-line-6)', borderRadius: 14 }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--th-line-6)' }}>
-            <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Aufgaben</span>
-          </div>
-          <div style={{ padding: '8px 0' }}>
-            {TODO_ITEMS.map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 20px', cursor: 'pointer' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
-                <span style={{ flex: 1, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.4 }}>{item.text}</span>
-                <Icon name="chevron" size={14} style={{ color: 'var(--th-text-faint2)', flexShrink: 0 }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Members */}
-      <div style={{ background: 'linear-gradient(180deg, var(--th-bg-card3), var(--th-bg-card2))', border: '1px solid var(--th-line-6)', borderRadius: 14 }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--th-line-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Mitglieder</span>
-          <button style={{ padding: '8px 14px', background: 'var(--th-line-4)', color: 'var(--th-text-body)', border: '1px solid var(--th-line-8)', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-            Alle anzeigen
-          </button>
-        </div>
-        <div style={{ padding: '0 20px' }}>
-          {MEMBERS.map((m, i) => (
-            <div key={m.name} style={{
-              display: 'grid', gridTemplateColumns: '36px 1fr 100px 80px 80px 70px 36px',
-              padding: '14px 0', borderBottom: i < MEMBERS.length - 1 ? '1px solid var(--th-line-4)' : 'none',
-              alignItems: 'center', gap: 14,
-            }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--th-accent),var(--th-accent-deep))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12, color: '#fff' }}>
-                {m.initials}
-              </div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)' }}>{m.name}</div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{m.email}</div>
-              </div>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>{m.role}</span>
-              <Pill tone={m.status === 'Aktiv' ? 'green' : 'neutral'}>{m.status}</Pill>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{m.lastSeen}</span>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-muted)' }}>—</span>
-              <button style={{ width: 30, height: 30, borderRadius: 6, background: 'var(--th-line-4)', border: '1px solid var(--th-line-6)', color: 'var(--th-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="edit" size={13} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 16px' }}>
+      <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26, color: accent ? 'var(--th-win)' : 'var(--th-text-strong)', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', marginTop: 6 }}>{label}</div>
     </div>
   );
 }
