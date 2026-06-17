@@ -21,7 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: 'edit',     label: 'Rollen',        href: '/admin/roles',         require: 'league' },
   { icon: 'trophy',   label: 'Teams',         href: '/admin/teams',         require: 'league' },
   { icon: 'user',     label: 'Spieler',       href: '/admin/players',       require: 'league' },
-  { icon: 'list',     label: 'Anmeldungen',   href: '/admin/anmeldungen',   require: 'league' },
+  { icon: 'list',     label: 'Anmeldungen',   href: '/admin/registrations',   require: 'league' },
   { icon: 'file',     label: 'Spielberichte', href: '/admin/spielberichte', require: 'league' },
   { icon: 'bell',     label: 'News',          href: '/admin/news',          require: 'league' },
   { icon: 'download', label: 'Downloads',     href: '/admin/downloads',     require: 'league' },

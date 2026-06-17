@@ -141,3 +141,13 @@ export function canEditOwnProfile(user: UserProfile | null): boolean {
 export function isCaptainOfTeam(user: UserProfile | null, teamId: string): boolean {
   return hasRole(user, 'team_captain') && user?.teamId === teamId;
 }
+
+/** Darf eine Mannschaftsanmeldung erstellen (Kapitän, Ligaleitung, Super Admin). */
+export function canStartRegistration(user: UserProfile | null): boolean {
+  return hasRole(user, 'team_captain') || hasMinRole(user, 'league_admin');
+}
+
+/** Darf Anmeldungen prüfen/freigeben (Ligaleitung aufwärts). */
+export function canApproveRegistrations(user: UserProfile | null): boolean {
+  return hasMinRole(user, 'league_admin');
+}

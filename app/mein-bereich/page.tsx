@@ -34,7 +34,8 @@ function tilesFor(user: UserProfile): Tile[] {
       { icon: 'users',    label: 'Mein Team',         description: 'Übersicht deines Teams.', href: '/mein-team', ready: true },
       { icon: 'edit',     label: 'Team bearbeiten',   description: 'Beschreibung, Logo, Social Media.', href: '/mein-team/bearbeiten', ready: true },
       { icon: 'list',     label: 'Kader',             description: 'Spieler deines Teams ansehen.', href: '/mein-team/kader', ready: true },
-      { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden (folgt).', ready: false },
+      { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
+      { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true },
     );
   }
 
@@ -43,7 +44,7 @@ function tilesFor(user: UserProfile): Tile[] {
     tiles.push(
       { icon: 'check',  label: 'Teams freigeben',         description: 'Teams für die Saison verwalten.', href: '/admin/teams', ready: true },
       { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true },
-      { icon: 'list',   label: 'Saisonanmeldungen',       description: 'Mannschaftsanmeldungen bearbeiten.', href: '/admin/anmeldungen', ready: true },
+      { icon: 'list',   label: 'Saisonanmeldungen',       description: 'Mannschaftsanmeldungen bearbeiten.', href: '/admin/registrations', ready: true },
       { icon: 'file',   label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', href: '/admin/spielberichte', ready: true },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
     );
