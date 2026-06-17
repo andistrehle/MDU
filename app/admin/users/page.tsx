@@ -1,0 +1,362 @@
+'use client';
+
+// ============================================================
+// Benutzerverwaltung — echte Supabase profiles (Super Admin)
+// ============================================================
+//
+// Lädt public.profiles aus Supabase und erlaubt dem Super Admin,
+// displayName / role / player_id / team_id zu bearbeiten.
+// E-Mail, id und created_at sind nicht editierbar.
+//
+// Zugriff: nur super_admin (canManageUsers). RLS in der DB sichert
+// das zusätzlich serverseitig ab — das Frontend blendet nur aus.
+// ============================================================
+
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/auth/auth-context';
+import { canManageUsers, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
+import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
+
+interface ProfileRow {
+  id: string;
+  email: string;
+  display_name: string;
+  role: UserRole;
+  player_id: string | null;
+  team_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const ROLE_OPTIONS: UserRole[] = ['player', 'team_captain', 'league_admin', 'super_admin'];
+
+// Sortierte Listen für die Dropdowns
+const PLAYER_OPTIONS = [...PLAYERS]
+  .map(p => ({ id: p.id, name: getPlayerDisplayName(p) }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+
+const TEAM_OPTIONS = [...TEAMS]
+  .map(t => ({ id: t.id, name: t.name }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '–';
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function playerName(id: string | null): string {
+  if (!id) return '–';
+  return PLAYER_OPTIONS.find(p => p.id === id)?.name ?? id;
+}
+function teamName(id: string | null): string {
+  if (!id) return '–';
+  return TEAM_OPTIONS.find(t => t.id === id)?.name ?? id;
+}
+
+export default function AdminUsersPage() {
+  const { user, loading: authLoading } = useAuth();
+  const allowed = canManageUsers(user);
+
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [editing, setEditing] = useState<ProfileRow | null>(null);
+
+  const load = useCallback(async () => {
+    if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
+    setStatus('loading');
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) {
+      setStatus('error');
+      setErrorMsg(error.message);
+      return;
+    }
+    setProfiles((data ?? []) as ProfileRow[]);
+    setStatus('idle');
+  }, []);
+
+  useEffect(() => {
+    if (allowed) load();
+  }, [allowed, load]);
+
+  // ── Zugriffsschutz ──────────────────────────────────────────
+  if (authLoading) {
+    return <Shell><p style={muted}>Lade …</p></Shell>;
+  }
+  if (!user) {
+    return (
+      <Shell>
+        <Notice title="Bitte einloggen">
+          Die Benutzerverwaltung ist nur für angemeldete Super Admins verfügbar.{' '}
+          <Link href="/login" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Zur Anmeldung →</Link>
+        </Notice>
+      </Shell>
+    );
+  }
+  if (!allowed) {
+    return (
+      <Shell>
+        <Notice title="Keine Berechtigung">
+          Dieser Bereich ist nur für Super Admins. Deine Rolle: {ROLE_LABELS[user.role]}.
+        </Notice>
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell>
+      {status === 'loading' && <p style={muted}>Benutzer werden geladen …</p>}
+      {status === 'error' && (
+        <Notice title="Fehler beim Laden">
+          {errorMsg}
+        </Notice>
+      )}
+
+      {status === 'idle' && (
+        <>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginBottom: 16 }}>
+            {profiles.length} {profiles.length === 1 ? 'Benutzer' : 'Benutzer'} · Quelle: Supabase <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>public.profiles</code>
+          </div>
+
+          {/* ── Desktop-Tabelle ──────────────────────────────── */}
+          <div className="mdu-desktop-only mdu-table-scroll">
+            <div style={{ minWidth: 820, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 70px',
+                padding: '12px 18px', borderBottom: '1px solid var(--th-line-8)',
+                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+                letterSpacing: '0.1em', color: 'var(--th-text-dim)', textTransform: 'uppercase', gap: 12,
+              }}>
+                <span>Name</span><span>E-Mail</span><span>Rolle</span><span>Spieler</span><span>Team</span><span></span>
+              </div>
+              {profiles.map((p, i) => (
+                <div key={p.id} style={{
+                  display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 70px',
+                  padding: '12px 18px', gap: 12, alignItems: 'center',
+                  borderBottom: i < profiles.length - 1 ? '1px solid var(--th-line-4)' : 'none',
+                  fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)',
+                }}>
+                  <span style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                  <span style={{ color: 'var(--th-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</span>
+                  <span><RoleBadge role={p.role} /></span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName(p.player_id)}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(p.team_id)}</span>
+                  <button onClick={() => setEditing(p)} style={editBtn}>Bearb.</button>
+                </div>
+              ))}
+              {profiles.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>Noch keine Benutzer registriert.</div>}
+            </div>
+          </div>
+
+          {/* ── Mobile-Karten ────────────────────────────────── */}
+          <div className="mdu-mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {profiles.map(p => (
+              <div key={p.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                  <RoleBadge role={p.role} />
+                </div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)', display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <span>Spieler: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(p.player_id)}</strong></span>
+                  <span>Team: <strong style={{ color: 'var(--th-text-strong)' }}>{teamName(p.team_id)}</strong></span>
+                </div>
+                <button onClick={() => setEditing(p)} style={{ ...editBtn, width: '100%', padding: '9px' }}>Bearbeiten</button>
+              </div>
+            ))}
+            {profiles.length === 0 && <p style={muted}>Noch keine Benutzer registriert.</p>}
+          </div>
+        </>
+      )}
+
+      {editing && (
+        <EditModal
+          profile={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(updated) => {
+            setProfiles(prev => prev.map(p => p.id === updated.id ? updated : p));
+            setEditing(null);
+          }}
+        />
+      )}
+    </Shell>
+  );
+}
+
+// ── Edit Modal ────────────────────────────────────────────────
+
+function EditModal({ profile, onClose, onSaved }: {
+  profile: ProfileRow;
+  onClose: () => void;
+  onSaved: (p: ProfileRow) => void;
+}) {
+  const [displayName, setDisplayName] = useState(profile.display_name);
+  const [role, setRole] = useState<UserRole>(profile.role);
+  const [playerId, setPlayerId] = useState(profile.player_id ?? '');
+  const [teamId, setTeamId] = useState(profile.team_id ?? '');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabase) { setErr('Supabase ist nicht konfiguriert.'); return; }
+    setBusy(true);
+    setErr(null);
+    const patch = {
+      display_name: displayName.trim() || profile.email.split('@')[0],
+      role,
+      player_id: playerId || null,
+      team_id: teamId || null,
+    };
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(patch)
+      .eq('id', profile.id)
+      .select('*')
+      .maybeSingle();
+    setBusy(false);
+    if (error || !data) {
+      setErr(error?.message ?? 'Speichern fehlgeschlagen.');
+      return;
+    }
+    onSaved(data as ProfileRow);
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}>
+      <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Benutzer ${profile.display_name} bearbeiten`}
+        style={{
+          width: '100%', maxWidth: 460, maxHeight: '88vh', overflowY: 'auto',
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)',
+          borderRadius: 16, padding: '24px 26px', boxShadow: '0 30px 70px rgba(0,0,0,0.5)',
+        }}>
+        <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: 'var(--th-text-strong)', margin: '0 0 4px', textTransform: 'uppercase' }}>
+          Benutzer bearbeiten
+        </h2>
+        <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '0 0 18px' }}>
+          {profile.email} · registriert {fmtDate(profile.created_at)}
+        </p>
+
+        <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {err && (
+            <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A' }}>{err}</div>
+          )}
+
+          <Field label="Anzeigename">
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)} style={inputStyle} />
+          </Field>
+
+          <Field label="Rolle">
+            <select value={role} onChange={e => setRole(e.target.value as UserRole)} style={inputStyle}>
+              {ROLE_OPTIONS.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+            </select>
+          </Field>
+
+          <Field label="Verknüpfter Spieler">
+            <select value={playerId} onChange={e => setPlayerId(e.target.value)} style={inputStyle}>
+              <option value="">— keine Verknüpfung —</option>
+              {PLAYER_OPTIONS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </Field>
+
+          <Field label="Verknüpftes Team">
+            <select value={teamId} onChange={e => setTeamId(e.target.value)} style={inputStyle}>
+              <option value="">— kein Team —</option>
+              {TEAM_OPTIONS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </Field>
+
+          <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+            <button type="button" onClick={onClose} style={{ ...editBtn, flex: 1, padding: '12px' }}>Abbrechen</button>
+            <button type="submit" disabled={busy} style={{
+              flex: 1, padding: '12px', borderRadius: 8, cursor: busy ? 'wait' : 'pointer',
+              background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)',
+              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em',
+              opacity: busy ? 0.7 : 1,
+            }}>{busy ? 'Speichern …' : 'Speichern'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Kleine Bausteine ──────────────────────────────────────────
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div>
+      <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 30, color: 'var(--th-text-strong)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        Benutzerverwaltung
+      </h1>
+      <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', margin: '0 0 22px' }}>
+        Rollen vergeben und Konten mit Spielern / Teams verknüpfen.
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function Notice({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '28px 24px', maxWidth: 520 }}>
+      <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)', marginBottom: 8 }}>{title}</div>
+      <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.6, margin: 0 }}>{children}</p>
+    </div>
+  );
+}
+
+function RoleBadge({ role }: { role: UserRole }) {
+  const isAdmin = role === 'super_admin' || role === 'league_admin';
+  return (
+    <span style={{
+      fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, letterSpacing: '0.06em',
+      textTransform: 'uppercase', padding: '3px 8px', borderRadius: 5, whiteSpace: 'nowrap',
+      color: isAdmin ? 'var(--th-accent)' : 'var(--th-text-muted)',
+      background: isAdmin ? 'var(--th-accent-a12)' : 'var(--th-line-5)',
+      border: `1px solid ${isAdmin ? 'var(--th-accent-a25)' : 'var(--th-line-8)'}`,
+    }}>
+      {ROLE_LABELS[role]}
+    </span>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
+
+const editBtn: React.CSSProperties = {
+  padding: '7px 12px', borderRadius: 7, cursor: 'pointer',
+  background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)',
+  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '11px 14px', background: 'var(--th-bg-header)',
+  border: '1px solid var(--th-line-10)', borderRadius: 8,
+  color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
+};

@@ -53,7 +53,7 @@ function tilesFor(user: UserProfile): Tile[] {
   // Super Admin
   if (canManageUsers(user)) {
     tiles.push(
-      { icon: 'users',    label: 'Benutzerverwaltung',    description: 'Konten verwalten und verknüpfen.', href: '/admin', ready: true },
+      { icon: 'users',    label: 'Benutzerverwaltung',    description: 'Konten verwalten und verknüpfen.', href: '/admin/users', ready: true },
       { icon: 'edit',     label: 'Rollenverwaltung',      description: 'Rollen und Rechte vergeben.', ready: false },
       { icon: 'settings', label: 'Systemeinstellungen',   description: 'Plattform-Einstellungen verwalten.', ready: false },
     );

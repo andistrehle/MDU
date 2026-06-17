@@ -7,6 +7,7 @@ import { Icon } from './icon';
 
 const NAV_ITEMS = [
   { icon: 'bar',      label: 'Dashboard',    href: '/admin' },
+  { icon: 'user',     label: 'Benutzer',     href: '/admin/users' },
   { icon: 'trophy',   label: 'Ligen',        href: '/admin/ligen' },
   { icon: 'calendar', label: 'Spiele',       href: '/admin/spiele', badge: '3' },
   { icon: 'users',    label: 'Teams',        href: '/admin/teams' },
