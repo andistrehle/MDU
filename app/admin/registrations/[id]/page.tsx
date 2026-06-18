@@ -10,6 +10,14 @@ import {
   getRegistration, getRegistrationPlayers, reviewRegistration,
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
+import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
+import type { EmailType } from '@/lib/server/email/send-email';
+
+const EMAIL_TYPE_FOR_STATUS: Partial<Record<'approved' | 'rejected' | 'changes_requested', EmailType>> = {
+  approved: 'registration_approved',
+  rejected: 'registration_rejected',
+  changes_requested: 'registration_changes_requested',
+};
 
 export default function RegistrationDetailPage() {
   const params = useParams<{ id: string }>();
@@ -22,6 +30,7 @@ export default function RegistrationDetailPage() {
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [okMsg, setOkMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canReview || !id) return;
@@ -36,10 +45,30 @@ export default function RegistrationDetailPage() {
       setMsg('Bitte eine Begründung / Anmerkung eingeben.');
       return;
     }
-    setBusy(true); setMsg(null);
-    const { error } = await reviewRegistration(id, status, note.trim() || undefined);
+    setBusy(true); setMsg(null); setOkMsg(null);
+    const reason = note.trim();
+    const { error } = await reviewRegistration(id, status, reason || undefined);
     if (error) { setMsg(error); setBusy(false); return; }
-    setReg(await getRegistration(id));
+
+    const fresh = await getRegistration(id);
+    setReg(fresh);
+
+    // E-Mail an Team Captain bei approved / rejected / changes_requested.
+    const emailType = EMAIL_TYPE_FOR_STATUS[status as 'approved' | 'rejected' | 'changes_requested'];
+    if (emailType && fresh) {
+      const result = await triggerRegistrationEmail({
+        type: emailType,
+        to: fresh.contact_email,
+        name: fresh.contact_name,
+        teamName: fresh.team_name,
+        reason: reason || null,
+        registrationId: id,
+      });
+      setOkMsg(`Status gespeichert. ${EMAIL_STATUS_HINT[result.status]}`);
+    } else {
+      setOkMsg('Status gespeichert.');
+    }
+
     setBusy(false);
     setNote('');
   }
@@ -53,6 +82,7 @@ export default function RegistrationDetailPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 760, marginTop: 16 }}>
           {msg && <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A' }}>{msg}</div>}
+          {okMsg && <div role="status" style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-win)' }}>{okMsg}</div>}
 
           {/* Kopf */}
           <Card>
@@ -108,6 +138,15 @@ export default function RegistrationDetailPage() {
           </Card>
 
           {reg.notes && <Card title="Notizen"><span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>{reg.notes}</span></Card>}
+
+          {/* Prüf-Verlauf */}
+          {(reg.submitted_at || reg.reviewed_at || reg.review_note) && (
+            <Card title="Verlauf">
+              <Row k="Eingereicht am" v={reg.submitted_at ? new Date(reg.submitted_at).toLocaleString('de-DE') : null} />
+              <Row k="Geprüft am" v={reg.reviewed_at ? new Date(reg.reviewed_at).toLocaleString('de-DE') : null} />
+              <Row k="Begründung / Anmerkung" v={reg.review_note} />
+            </Card>
+          )}
 
           {/* Workflow-Aktionen */}
           <Card title="Freigabe-Workflow">

@@ -1,11 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/mdu/icon';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ROLE_LABELS, isSuperAdmin } from '@/lib/auth/roles';
+import { ROLE_LABELS, isSuperAdmin, canManageLeague } from '@/lib/auth/roles';
 import { TEAMS, PLAYERS, LEAGUES } from '@/lib/data';
+import { listAdminNotifications, markNotificationRead, type AdminNotification } from '@/lib/supabase/notifications';
 
 interface AdminCard {
   icon: string;
@@ -55,6 +57,9 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* Offene Hinweise für Ligaleitung / Super Admin */}
+      {canManageLeague(user) && <NotificationsPanel />}
+
       {/* System-Status (echte Zahlen aus Projektdaten) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12, marginBottom: 22 }}>
         <Stat label="Ligen / Playoffs" value={String(LEAGUES.length)} />
@@ -84,6 +89,68 @@ export default function AdminDashboardPage() {
         ))}
       </div>
     </AdminGuard>
+  );
+}
+
+function NotificationsPanel() {
+  const [items, setItems] = useState<AdminNotification[] | null>(null);
+
+  useEffect(() => {
+    listAdminNotifications(true).then(setItems);
+  }, []);
+
+  async function dismiss(n: AdminNotification) {
+    await markNotificationRead(n.id);
+    setItems(prev => (prev ?? []).filter(x => x.id !== n.id));
+  }
+
+  if (items === null) return null;
+
+  return (
+    <div style={{
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14,
+      padding: '16px 20px', marginBottom: 22,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: items.length ? 12 : 0 }}>
+        <Icon name="bell" size={16} stroke={2} style={{ color: 'var(--th-accent)' }} />
+        <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>
+          Offene Aufgaben
+        </span>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 22, height: 22, padding: '0 6px',
+          borderRadius: 11, background: items.length ? 'var(--th-accent)' : 'var(--th-line-8)', color: items.length ? '#fff' : 'var(--th-text-faint)',
+          fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12,
+        }}>{items.length}</span>
+      </div>
+
+      {items.length === 0 ? (
+        <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', margin: 0 }}>
+          Keine offenen Hinweise.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map(n => (
+            <div key={n.id} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px',
+              background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{n.title}</div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>{n.message}</div>
+              </div>
+              {n.related_entity_type === 'team_registration' && n.related_entity_id && (
+                <Link href={`/admin/registrations/${n.related_entity_id}`}
+                  style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                  Ansehen →
+                </Link>
+              )}
+              <button type="button" onClick={() => dismiss(n)} aria-label="Als erledigt markieren"
+                style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

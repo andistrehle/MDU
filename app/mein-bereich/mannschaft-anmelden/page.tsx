@@ -16,6 +16,7 @@ import {
   getRegistration, getRegistrationPlayers,
   type RegistrationDraft, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
+import { triggerRegistrationEmail } from '@/lib/supabase/notifications';
 
 const SEASON = getCurrentSeason();
 const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -183,8 +184,16 @@ export default function MannschaftAnmeldenPage() {
     const id = await persist();
     if (!id) { setBusy(false); return; }
     const { error } = await submitRegistration(id);
+    if (error) { setBusy(false); setMsg({ kind: 'err', text: error }); return; }
+    // Eingangsbestätigung an den Team Captain (best-effort, blockiert nicht).
+    await triggerRegistrationEmail({
+      type: 'registration_submitted',
+      to: draft.contact_email,
+      name: draft.contact_name,
+      teamName: draft.team_name,
+      registrationId: id,
+    });
     setBusy(false);
-    if (error) { setMsg({ kind: 'err', text: error }); return; }
     router.push('/mein-bereich/anmeldungen');
   }
 

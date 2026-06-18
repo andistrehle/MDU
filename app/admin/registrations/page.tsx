@@ -41,8 +41,34 @@ export default function AdminRegistrationsPage() {
       .filter(r => !needle || r.team_name.toLowerCase().includes(needle) || r.contact_name.toLowerCase().includes(needle));
   }, [rows, statusFilter, typeFilter, q]);
 
+  const pendingCount = useMemo(
+    () => (rows ?? []).filter(r => r.status === 'submitted' || r.status === 'in_review').length,
+    [rows],
+  );
+
   return (
     <AdminGuard title="Saisonanmeldungen" subtitle="Mannschaftsanmeldungen prüfen und freigeben.">
+      {pendingCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === 'submitted' ? '' : 'submitted')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 820, marginBottom: 14,
+            padding: '12px 16px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+            background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)',
+          }}
+        >
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 26, height: 26, padding: '0 7px',
+            borderRadius: 13, background: 'var(--th-accent)', color: '#fff',
+            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 14,
+          }}>{pendingCount}</span>
+          <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
+            {pendingCount === 1 ? 'Anmeldung wartet auf Prüfung' : 'Anmeldungen warten auf Prüfung'}
+          </span>
+        </button>
+      )}
+
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, maxWidth: 820 }}>
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Team oder Kontakt suchen …"
           style={{ flex: 1, minWidth: 180, ...ctl }} />

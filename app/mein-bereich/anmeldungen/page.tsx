@@ -9,6 +9,7 @@ import {
   listMyRegistrations, submitRegistration,
   REGISTRATION_STATUS_LABELS, type TeamRegistration,
 } from '@/lib/supabase/registrations';
+import { triggerRegistrationEmail } from '@/lib/supabase/notifications';
 import { getCurrentSeason } from '@/lib/data';
 
 const SEASON = getCurrentSeason();
@@ -32,7 +33,19 @@ export default function MeineAnmeldungenPage() {
 
   async function onSubmit(id: string) {
     setBusyId(id);
-    await submitRegistration(id);
+    const { error } = await submitRegistration(id);
+    if (!error) {
+      const reg = (rows ?? []).find(r => r.id === id);
+      if (reg) {
+        await triggerRegistrationEmail({
+          type: 'registration_submitted',
+          to: reg.contact_email,
+          name: reg.contact_name,
+          teamName: reg.team_name,
+          registrationId: id,
+        });
+      }
+    }
     setRows(await listMyRegistrations());
     setBusyId(null);
   }
@@ -74,6 +87,11 @@ export default function MeineAnmeldungenPage() {
                         {r.review_note && (r.status === 'rejected' || r.status === 'changes_requested') && (
                           <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)' }}>
                             Anmerkung der Ligaleitung: {r.review_note}
+                          </div>
+                        )}
+                        {r.status !== 'draft' && (
+                          <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', lineHeight: 1.5 }}>
+                            Zu Statusänderungen wird zusätzlich eine E-Mail an {r.contact_email} versendet bzw. vorbereitet.
                           </div>
                         )}
                         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
