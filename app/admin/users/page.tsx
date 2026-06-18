@@ -18,7 +18,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canViewUsers, isSuperAdmin, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
-import { triggerAccountActivatedEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
+import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 
 interface ProfileRow {
   id: string;
@@ -273,8 +273,18 @@ function EditModal({ profile, onClose, onSaved }: {
     // „Konto freigeschaltet"-Mail an den Benutzer (best-effort, blockiert nicht).
     let notice: string | undefined = 'Benutzer gespeichert.';
     if (justActivated) {
-      const r = await triggerAccountActivatedEmail(profile.email, newName, profile.id);
-      notice = `Konto freigeschaltet. ${EMAIL_STATUS_HINT[r.status]}`;
+      const r = await triggerAccountActivatedEmail(profile.email, newName, {
+        role,
+        playerName: playerId ? playerName(playerId) : undefined,
+        teamName: teamId ? teamName(teamId) : undefined,
+        profileId: profile.id,
+      });
+      const hint = r.status === 'sent'
+        ? 'Eine E-Mail mit Rolle und Rechten wurde an den Benutzer versendet.'
+        : r.status === 'skipped_no_provider'
+          ? 'E-Mail vorbereitet – es ist kein E-Mail-Anbieter konfiguriert.'
+          : 'E-Mail konnte nicht versendet werden (siehe E-Mail-Log).';
+      notice = `Konto freigeschaltet (${ROLE_LABELS[role]}). ${hint}`;
     }
     setBusy(false);
     onSaved(data as ProfileRow, notice);

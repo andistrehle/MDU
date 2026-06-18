@@ -59,6 +59,8 @@ export async function POST(request: Request) {
   const teamName = typeof body.teamName === 'string' ? body.teamName : '';
   const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
   const registrationId = typeof body.registrationId === 'string' ? body.registrationId : null;
+  const role = typeof body.role === 'string' ? body.role : undefined;
+  const playerName = typeof body.playerName === 'string' ? body.playerName : undefined;
 
   if (!VALID_TYPES.includes(type)) {
     return NextResponse.json({ error: 'Unbekannter E-Mail-Typ.' }, { status: 400 });
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
 
   // ── Versand (ehrlicher Status) ──────────────────────────────
   const result = await sendRegistrationEmail({
-    type, to, name, teamName, reason: reason || null, relatedEntityId: registrationId,
+    type, to, name, teamName, reason: reason || null, role, playerName, relatedEntityId: registrationId,
   });
 
   return NextResponse.json(result, { status: 200 });

@@ -61,6 +61,8 @@ export interface RegistrationEmailRequest {
   name: string;
   teamName?: string;
   reason?: string | null;
+  role?: string;
+  playerName?: string;
   registrationId?: string | null;
 }
 
@@ -96,13 +98,16 @@ export async function triggerRegistrationEmail(
 export async function triggerAccountActivatedEmail(
   to: string,
   name: string,
-  profileId?: string | null,
+  opts: { role?: string; playerName?: string; teamName?: string; profileId?: string | null } = {},
 ): Promise<{ status: EmailStatus; error?: string }> {
   return triggerRegistrationEmail({
     type: 'account_activated',
     to,
     name,
-    registrationId: profileId ?? null,
+    role: opts.role,
+    playerName: opts.playerName,
+    teamName: opts.teamName,
+    registrationId: opts.profileId ?? null,
   });
 }
 

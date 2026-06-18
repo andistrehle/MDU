@@ -15,6 +15,16 @@
 
 import 'server-only';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
+
+/** Kurzbeschreibung der Rechte je Rolle — für die Freischalt-Mail. */
+const ROLE_RIGHTS: Record<UserRole, string> = {
+  guest:        'Es sind noch keine besonderen Rechte hinterlegt.',
+  player:       'Damit kannst du dich einloggen, dein Spielerprofil pflegen (Spitzname, „Über mich") und deine persönlichen Statistiken einsehen.',
+  team_captain: 'Damit kannst du zusätzlich zu den Spielerrechten dein Team verwalten (Beschreibung, Logo, Kader), Mannschaften zur Saison anmelden und den Status deiner Anmeldungen verfolgen.',
+  league_admin: 'Damit hast du Verwaltungsrechte: Teams freigeben, Benutzer einsehen, Saisonanmeldungen und Spielberichte bearbeiten sowie News pflegen.',
+  super_admin:  'Damit hast du volle Administratorrechte inklusive Benutzer- und Rollenverwaltung sowie Systemeinstellungen.',
+};
 
 export type EmailType =
   | 'registration_submitted'
@@ -30,10 +40,13 @@ export interface RegistrationEmailInput {
   to: string;
   /** Anrede-Name (Kontaktperson / Team Captain / Benutzer). */
   name: string;
-  /** Nur für Mannschafts-Mails relevant. */
+  /** Nur für Mannschafts-Mails relevant (bzw. verknüpftes Team bei Konto-Mail). */
   teamName?: string;
   /** Pflicht bei rejected / changes_requested. */
   reason?: string | null;
+  /** Nur für account_activated: zugewiesene Rolle + verknüpfter Spieler. */
+  role?: string;
+  playerName?: string;
   relatedEntityId?: string | null;
 }
 
@@ -87,14 +100,25 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `Hinweis der Ligaleitung:\n${reason}\n\n` +
           `Bitte prüfe deine Anmeldung und reiche sie anschließend erneut ein.` + SIGNATURE,
       };
-    case 'account_activated':
+    case 'account_activated': {
+      const roleKey = (input.role ?? 'player') as UserRole;
+      const roleLabel = ROLE_LABELS[roleKey] ?? ROLE_LABELS.player;
+      const rights = ROLE_RIGHTS[roleKey] ?? ROLE_RIGHTS.player;
+      const links: string[] = [];
+      if (input.playerName) links.push(`Verknüpftes Spielerprofil: ${input.playerName}`);
+      if (input.teamName) links.push(`Team: ${input.teamName}`);
+      const linkBlock = links.length ? `\n${links.join('\n')}\n` : '';
       return {
         subject: 'Dein MDU-Konto wurde freigeschaltet',
         text:
           `Hallo ${name},\n\n` +
           `dein Konto bei der Münchner Dart Union wurde von der Ligaleitung geprüft und freigeschaltet.\n\n` +
-          `Du kannst dich jetzt im Mitgliederbereich anmelden und deinen persönlichen Bereich nutzen.` + SIGNATURE,
+          `Zugewiesene Rolle: ${roleLabel}\n` +
+          `${rights}\n` +
+          linkBlock +
+          `\nDu kannst dich jetzt im Mitgliederbereich anmelden und deinen persönlichen Bereich nutzen.` + SIGNATURE,
       };
+    }
   }
 }
 
