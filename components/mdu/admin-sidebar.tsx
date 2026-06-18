@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: 'settings', label: 'Einstellungen', href: '/admin/settings',      require: 'super' },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
 
@@ -43,7 +43,7 @@ export function AdminSidebar() {
       width: 260, background: '#0E1117',
       borderRight: '1px solid var(--th-line-6)',
       padding: '22px 14px', display: 'flex', flexDirection: 'column', gap: 4,
-      minHeight: '100vh', position: 'sticky', top: 0,
+      minHeight: '100vh',
     }}>
       <div style={{ padding: '0 6px 16px', borderBottom: '1px solid var(--th-line-6)', marginBottom: 14 }}>
         <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
@@ -58,6 +58,7 @@ export function AdminSidebar() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNavigate}
             style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '9px 12px',
               borderRadius: 8, textDecoration: 'none',

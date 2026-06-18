@@ -202,6 +202,15 @@ html[data-theme="light"] .mdu-wordmark-accent {
 }
 /* Mobile header actions (compact toggle + Login) — desktop hides this */
 .mdu-mobile-actions { display: none; }
+
+/* Admin-Konsole: Sidebar links auf Desktop, Drawer auf Mobile. */
+.mdu-admin-topbar-mobile  { display: none; }
+.mdu-admin-topbar-desktop { display: flex; }
+@media (max-width: 768px) {
+  .mdu-admin-sidebar-desktop { display: none !important; }
+  .mdu-admin-topbar-desktop  { display: none !important; }
+  .mdu-admin-topbar-mobile   { display: flex !important; }
+}
 /* Light mode: blue frame on the switch to match the blue header bar */
 html[data-theme="light"] .mdu-world-switch {
   border-color: #4E7DBD !important;
