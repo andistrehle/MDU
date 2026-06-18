@@ -9,7 +9,9 @@ import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit } from '@/comp
 export default function RegisterPage() {
   const { signUp } = useAuth();
   const router = useRouter();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [intent, setIntent] = useState<'player' | 'team_captain'>('player');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -25,7 +27,7 @@ export default function RegisterPage() {
       return;
     }
     setBusy(true);
-    const res = await signUp(name, email, password);
+    const res = await signUp({ firstName, lastName, email, password, intent });
     setBusy(false);
     if (res.error) {
       setError(res.error);
@@ -59,14 +61,43 @@ export default function RegisterPage() {
       <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {error && <AuthError message={error} />}
         <AuthField
-          label="Name"
+          label="Vorname"
           type="text"
-          placeholder="Vor- und Nachname"
-          autoComplete="name"
+          placeholder="Vorname"
+          autoComplete="given-name"
           required
-          value={name}
-          onChange={e => setName(e.target.value)}
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
         />
+        <AuthField
+          label="Nachname"
+          type="text"
+          placeholder="Nachname"
+          autoComplete="family-name"
+          required
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
+        />
+        <div>
+          <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Ich registriere mich als
+          </label>
+          <select
+            value={intent}
+            onChange={e => setIntent(e.target.value as 'player' | 'team_captain')}
+            style={{
+              width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
+              border: '1px solid var(--th-line-10)', borderRadius: 8,
+              color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
+            }}
+          >
+            <option value="player">Spieler</option>
+            <option value="team_captain">Teamkapitän / TC</option>
+          </select>
+          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', lineHeight: 1.5, margin: '8px 0 0' }}>
+            Die Auswahl hilft der Ligaleitung bei der Freigabe. Rollen und Teamrechte werden erst nach Prüfung vergeben.
+          </p>
+        </div>
         <AuthField
           label="E-Mail"
           type="email"

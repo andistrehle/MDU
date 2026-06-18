@@ -152,6 +152,26 @@ export default function MeinBereichPage() {
               </button>
             </div>
 
+            {/* Hinweise: erkanntes Spielerprofil / Teamkapitän-Wunsch */}
+            {(() => {
+              const hints: string[] = [];
+              if (user.matchedPlayerId && !user.playerId) {
+                hints.push('Wir haben wahrscheinlich dein Spielerprofil erkannt. Die Verknüpfung wird noch von der Ligaleitung geprüft.');
+              }
+              if (user.registrationIntent === 'team_captain' && user.role === 'player') {
+                hints.push('Deine Teamkapitän-Anfrage wartet auf Freigabe durch die Ligaleitung.');
+              }
+              return hints.length === 0 ? null : (
+                <div style={{
+                  background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 12,
+                  padding: '14px 16px', marginBottom: 18,
+                  fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.6,
+                }}>
+                  {hints.map(h => <div key={h}>{h}</div>)}
+                </div>
+              );
+            })()}
+
             {/* Rollen-Kacheln */}
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,

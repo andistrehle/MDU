@@ -29,6 +29,19 @@ export interface UserProfile {
   playerId?: string;
   /** Optionale Verknüpfung mit einem Team (relevant für team_captain) */
   teamId?: string;
+  // ── Registrierungs-/Erkennungsdaten (Vorschlag, nie Rechtevergabe) ──
+  firstName?: string;
+  lastName?: string;
+  /** Wunsch bei Registrierung: 'player' | 'team_captain' (kein Rechtebeweis). */
+  registrationIntent?: string;
+  /** Automatisch erkannter Spieler (Vorschlag). */
+  matchedPlayerId?: string;
+  /** Automatisch erkanntes Team (Vorschlag). */
+  matchedTeamId?: string;
+  /** 'exact' | 'likely' | 'ambiguous' | 'none' */
+  matchConfidence?: string;
+  /** 'pending' | 'confirmed' | 'rejected' | 'manual' */
+  matchStatus?: string;
   createdAt: string;
   updatedAt: string;
 }

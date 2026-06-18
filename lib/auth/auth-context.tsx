@@ -24,6 +24,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { getRegistrationMatchSuggestion } from './player-match';
 import type { UserProfile, UserRole } from './roles';
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_AUTH_MOCK === 'true';
@@ -38,13 +39,22 @@ interface SignUpResult {
   needsEmailConfirmation?: boolean;
 }
 
+export interface SignUpParams {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  /** Registrierungs-Wunsch (kein Rechtebeweis). */
+  intent: 'player' | 'team_captain';
+}
+
 interface AuthContextValue {
   /** Eingeloggter Benutzer oder null (Gast). */
   user: UserProfile | null;
   /** True bis die Session beim ersten Render geprüft wurde. */
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (name: string, email: string, password: string) => Promise<SignUpResult>;
+  signUp: (params: SignUpParams) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   /** Neues Passwort setzen (Reset-Flow, Seite /passwort-zuruecksetzen). */
@@ -75,6 +85,13 @@ interface ProfileRow {
   role: UserRole;
   player_id: string | null;
   team_id: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  registration_intent?: string | null;
+  matched_player_id?: string | null;
+  matched_team_id?: string | null;
+  match_confidence?: string | null;
+  match_status?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -87,6 +104,13 @@ function toUserProfile(row: ProfileRow): UserProfile {
     role: row.role,
     playerId: row.player_id ?? undefined,
     teamId: row.team_id ?? undefined,
+    firstName: row.first_name ?? undefined,
+    lastName: row.last_name ?? undefined,
+    registrationIntent: row.registration_intent ?? undefined,
+    matchedPlayerId: row.matched_player_id ?? undefined,
+    matchedTeamId: row.matched_team_id ?? undefined,
+    matchConfidence: row.match_confidence ?? undefined,
+    matchStatus: row.match_status ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -248,30 +272,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: null };
   }, []);
 
-  const signUp = useCallback(async (name: string, email: string, password: string): Promise<SignUpResult> => {
+  const signUp = useCallback(async (params: SignUpParams): Promise<SignUpResult> => {
+    const firstName = params.firstName.trim();
+    const lastName = params.lastName.trim();
+    const { email, password, intent } = params;
+    const displayName = `${firstName} ${lastName}`.trim();
+
     if (USE_MOCK) {
       await new Promise(r => setTimeout(r, 400));
-      if (name.trim().length < 2) return { error: 'Bitte einen Namen eingeben.' };
+      if (firstName.length < 1 || lastName.length < 1) return { error: 'Bitte Vor- und Nachnamen eingeben.' };
       if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
       if (password.length < 6) return { error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' };
-      const profile = mockProfile(email, name.trim());
+      const profile = mockProfile(email, displayName);
       setUser(profile);
       writeMockSession(profile);
       return { error: null };
     }
     if (!supabase) return { error: NOT_CONFIGURED_ERROR };
 
+    // Automatische Spieler-/Team-Erkennung (nur Vorschlag, keine Rechtevergabe)
+    const match = getRegistrationMatchSuggestion(firstName, lastName);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { display_name: name.trim() } },
+      options: {
+        data: {
+          display_name: displayName,
+          first_name: firstName,
+          last_name: lastName,
+          registration_intent: intent,
+          matched_player_id: match.matchedPlayerId ?? '',
+          matched_team_id: match.matchedTeamId ?? '',
+          match_confidence: match.confidence,
+        },
+      },
     });
     if (error) return { error: germanAuthError(error.message) };
 
     // E-Mail-Bestätigung aktiv → keine Session, Hinweis anzeigen
     if (!data.session) return { error: null, needsEmailConfirmation: true };
 
-    const profile = await loadProfile(data.user!.id, email, name.trim());
+    const profile = await loadProfile(data.user!.id, email, displayName);
     if (profile) setUser(profile);
     return { error: null };
   }, []);

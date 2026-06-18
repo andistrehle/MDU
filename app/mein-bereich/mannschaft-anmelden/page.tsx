@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
@@ -43,6 +43,8 @@ export default function MannschaftAnmeldenPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [matchHint, setMatchHint] = useState<string | null>(null);
+  const didPreselect = useRef(false);
 
   // Bestehenden Entwurf laden (?id=…)
   useEffect(() => {
@@ -64,6 +66,23 @@ export default function MannschaftAnmeldenPage() {
       setPlayers(await getRegistrationPlayers(id));
     })();
   }, [allowed]);
+
+  // Erkannte Mannschaft vorauswählen (eigenes Team oder eindeutiger Match).
+  useEffect(() => {
+    if (!user || regId || didPreselect.current) return;
+    if (new URLSearchParams(window.location.search).get('id')) return; // Entwurf wird geladen
+    const preTeam = user.teamId
+      ?? ((user.matchConfidence === 'exact' || user.matchConfidence === 'likely') ? user.matchedTeamId : undefined);
+    if (!preTeam) return;
+    didPreselect.current = true;
+    queueMicrotask(() => {
+      onChoice(preTeam);
+      const name = findTeam(preTeam)?.name ?? preTeam;
+      setMatchHint(user.teamId
+        ? `Deine Mannschaft „${name}" wurde übernommen. Bitte prüfe die Angaben.`
+        : `Wir haben anhand deines Spielerprofils die Mannschaft „${name}" erkannt. Bitte prüfe die Angaben.`);
+    });
+  }, [user, regId]);
 
   // Kontakt aus dem Konto vorbelegen (nur bei leerem neuem Formular).
   // setState außerhalb des Effect-Bodys (react-hooks/set-state-in-effect).
@@ -183,6 +202,13 @@ export default function MannschaftAnmeldenPage() {
                 border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`,
                 color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)',
               }}>{msg.text}</div>
+            )}
+
+            {matchHint && (
+              <div style={{
+                background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
+                padding: '10px 14px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.55,
+              }}>{matchHint}</div>
             )}
 
             {/* 1. Auswahl */}

@@ -26,6 +26,11 @@ interface ProfileRow {
   role: UserRole;
   player_id: string | null;
   team_id: string | null;
+  registration_intent: string | null;
+  matched_player_id: string | null;
+  matched_team_id: string | null;
+  match_confidence: string | null;
+  match_status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -146,7 +151,10 @@ export default function AdminUsersPage() {
                   borderBottom: i < profiles.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)',
                 }}>
-                  <span style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                    <span style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                    <IntentBadge profile={p} />
+                  </span>
                   <span style={{ color: 'var(--th-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</span>
                   <span><RoleBadge role={p.role} /></span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName(p.player_id)}</span>
@@ -166,6 +174,7 @@ export default function AdminUsersPage() {
               <div key={p.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                  <IntentBadge profile={p} />
                   <RoleBadge role={p.role} />
                 </div>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</div>
@@ -222,11 +231,16 @@ function EditModal({ profile, onClose, onSaved }: {
     if (!supabase) { setErr('Supabase ist nicht konfiguriert.'); return; }
     setBusy(true);
     setErr(null);
+    // match_status: 'confirmed' wenn der Vorschlag übernommen wurde, sonst 'manual'
+    const matchStatus = playerId
+      ? (playerId === (profile.matched_player_id ?? '') ? 'confirmed' : 'manual')
+      : profile.match_status ?? 'pending';
     const patch = {
       display_name: displayName.trim() || profile.email.split('@')[0],
       role,
       player_id: playerId || null,
       team_id: teamId || null,
+      match_status: matchStatus,
     };
     const { data, error } = await supabase
       .from('profiles')
@@ -263,6 +277,28 @@ function EditModal({ profile, onClose, onSaved }: {
         <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {err && (
             <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A' }}>{err}</div>
+          )}
+
+          {/* Automatischer Erkennungs-Vorschlag */}
+          {(profile.registration_intent || profile.matched_player_id) && (
+            <div style={{ background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10, padding: '12px 14px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.6 }}>
+              {profile.registration_intent && (
+                <div>Wunsch: <strong style={{ color: 'var(--th-text-strong)' }}>{profile.registration_intent === 'team_captain' ? 'Teamkapitän / TC' : 'Spieler'}</strong></div>
+              )}
+              {profile.matched_player_id ? (
+                <>
+                  <div>Erkannt: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(profile.matched_player_id)}</strong>
+                    {profile.matched_team_id ? ` · ${teamName(profile.matched_team_id)}` : ''}
+                    {profile.match_confidence ? ` (${profile.match_confidence})` : ''}</div>
+                  <button type="button" onClick={() => { setPlayerId(profile.matched_player_id ?? ''); if (profile.matched_team_id) setTeamId(profile.matched_team_id); }}
+                    style={{ marginTop: 8, padding: '7px 12px', borderRadius: 7, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
+                    Vorschlag übernehmen
+                  </button>
+                </>
+              ) : (
+                <div style={{ color: 'var(--th-text-faint)' }}>Kein eindeutiger Spieler erkannt — bitte manuell zuordnen.</div>
+              )}
+            </div>
           )}
 
           <Field label="Anzeigename">
@@ -340,6 +376,20 @@ function RoleBadge({ role }: { role: UserRole }) {
       border: `1px solid ${isAdmin ? 'var(--th-accent-a25)' : 'var(--th-line-8)'}`,
     }}>
       {ROLE_LABELS[role]}
+    </span>
+  );
+}
+
+/** Zeigt den TC-Wunsch (nur solange noch nicht als Kapitän bestätigt). */
+function IntentBadge({ profile }: { profile: ProfileRow }) {
+  if (profile.registration_intent !== 'team_captain' || profile.role === 'team_captain') return null;
+  return (
+    <span style={{
+      fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9, letterSpacing: '0.08em',
+      textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap', flexShrink: 0,
+      color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)',
+    }}>
+      TC-Wunsch
     </span>
   );
 }
