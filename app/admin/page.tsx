@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/mdu/icon';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, isSuperAdmin, canManageLeague } from '@/lib/auth/roles';
 import { TEAMS, PLAYERS, LEAGUES } from '@/lib/data';
-import { listAdminNotifications, markNotificationRead, type AdminNotification } from '@/lib/supabase/notifications';
+import { useNotifications, relativeTime } from '@/lib/supabase/user-notifications';
 
 interface AdminCard {
   icon: string;
@@ -93,67 +92,59 @@ export default function AdminDashboardPage() {
 }
 
 function NotificationsPanel() {
-  const [items, setItems] = useState<AdminNotification[] | null>(null);
-
-  useEffect(() => {
-    listAdminNotifications(true).then(setItems);
-  }, []);
-
-  async function dismiss(n: AdminNotification) {
-    await markNotificationRead(n.id);
-    setItems(prev => (prev ?? []).filter(x => x.id !== n.id));
-  }
-
-  if (items === null) return null;
+  const { items, unread, markRead } = useNotifications();
+  const latest = items.slice(0, 5);
 
   return (
     <div style={{
       background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14,
       padding: '16px 20px', marginBottom: 22,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: items.length ? 12 : 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: latest.length ? 12 : 0 }}>
         <Icon name="bell" size={16} stroke={2} style={{ color: 'var(--th-accent)' }} />
         <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>
-          Offene Aufgaben
+          Letzte Benachrichtigungen
         </span>
         <span style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 22, height: 22, padding: '0 6px',
-          borderRadius: 11, background: items.length ? 'var(--th-accent)' : 'var(--th-line-8)', color: items.length ? '#fff' : 'var(--th-text-faint)',
+          borderRadius: 11, background: unread ? 'var(--th-accent)' : 'var(--th-line-8)', color: unread ? '#fff' : 'var(--th-text-faint)',
           fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12,
-        }}>{items.length}</span>
+        }}>{unread}</span>
       </div>
 
-      {items.length === 0 ? (
+      {latest.length === 0 ? (
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', margin: 0 }}>
-          Keine offenen Hinweise.
+          Keine neuen Benachrichtigungen.
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {items.map(n => (
-            <div key={n.id} style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px',
-              background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{n.title}</div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>{n.message}</div>
-              </div>
-              {n.related_entity_type === 'team_registration' && n.related_entity_id && (
-                <Link href={`/admin/registrations/${n.related_entity_id}`}
-                  style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>
-                  Ansehen →
-                </Link>
-              )}
-              {n.related_entity_type === 'profile' && (
-                <Link href="/admin/users"
-                  style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>
-                  Ansehen →
-                </Link>
-              )}
-              <button type="button" onClick={() => dismiss(n)} aria-label="Als erledigt markieren"
-                style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', fontSize: 18, lineHeight: 1 }}>×</button>
-            </div>
-          ))}
+          {latest.map(n => {
+            const unreadItem = !n.read_at;
+            const inner = (
+              <>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', marginTop: 5, flexShrink: 0, background: unreadItem ? 'var(--th-accent)' : 'transparent' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: unreadItem ? 700 : 500, fontSize: 13, color: 'var(--th-text-strong)' }}>{n.short_text}</div>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginTop: 2 }}>{relativeTime(n.created_at)}</div>
+                </div>
+                {n.action_url && (
+                  <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)' }}>Ansehen →</span>
+                )}
+              </>
+            );
+            const rowStyle: React.CSSProperties = {
+              display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px', textDecoration: 'none',
+              background: unreadItem ? 'var(--th-accent-a07)' : 'var(--th-line-4)',
+              border: '1px solid var(--th-line-6)', borderRadius: 10,
+            };
+            return n.action_url ? (
+              <Link key={n.id} href={n.action_url} onClick={() => { if (unreadItem) markRead(n.id); }} style={rowStyle}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={n.id} style={rowStyle}>{inner}</div>
+            );
+          })}
         </div>
       )}
     </div>

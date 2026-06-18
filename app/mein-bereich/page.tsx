@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/auth/roles';
 import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
+import { useNotifications, type NotificationArea } from '@/lib/supabase/user-notifications';
 
 interface Tile {
   icon: string;
@@ -16,8 +17,10 @@ interface Tile {
   href?: string;
   /** false → Coming-Soon-Karte (deaktiviert) */
   ready: boolean;
-  /** Welcher Admin-Zähler als Badge auf dieser Kachel erscheint. */
+  /** Welcher Admin-Zähler (offene Aufgaben) als Badge auf dieser Kachel erscheint. */
   badgeKey?: keyof AdminNotificationCounts;
+  /** Welcher Notification-Bereich (ungelesene) als Badge erscheint. */
+  notifKey?: NotificationArea;
 }
 
 /** Rollenbasierte Kacheln — zentral definiert, Rechte via roles.ts. */
@@ -27,7 +30,7 @@ function tilesFor(user: UserProfile): Tile[] {
   // Spieler aufwärts — eigenes Profil
   if (hasMinRole(user, 'player')) {
     tiles.push(
-      { icon: 'user',  label: 'Mein Profil',       description: 'Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true },
+      { icon: 'user',  label: 'Mein Profil',       description: 'Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile' },
       { icon: 'image', label: 'Profilbild ändern', description: 'Eigenes Spielerfoto hochladen (folgt mit Storage).', ready: false },
     );
   }
@@ -35,11 +38,11 @@ function tilesFor(user: UserProfile): Tile[] {
   // Teamkapitän — eigenes Team
   if (hasRole(user, 'team_captain')) {
     tiles.push(
-      { icon: 'users',    label: 'Mein Team',         description: 'Übersicht deines Teams.', href: '/mein-team', ready: true },
+      { icon: 'users',    label: 'Mein Team',         description: 'Übersicht deines Teams.', href: '/mein-team', ready: true, notifKey: 'team' },
       { icon: 'edit',     label: 'Team bearbeiten',   description: 'Beschreibung, Logo, Social Media.', href: '/mein-team/bearbeiten', ready: true },
       { icon: 'list',     label: 'Kader',             description: 'Spieler deines Teams ansehen.', href: '/mein-team/kader', ready: true },
       { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
-      { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true },
+      { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },
     );
   }
 
@@ -68,6 +71,7 @@ function tilesFor(user: UserProfile): Tile[] {
 export default function MeinBereichPage() {
   const { user, loading, signOut } = useAuth();
   const { counts } = useAdminNotificationCounts();
+  const { byArea } = useNotifications();
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -182,7 +186,7 @@ export default function MeinBereichPage() {
               display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,
             }}>
               {tilesFor(user).map(tile => {
-                const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : 0;
+                const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : tile.notifKey ? byArea[tile.notifKey] : 0;
                 const inner = (
                   <div style={{
                     background: 'var(--th-bg-card)',

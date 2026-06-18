@@ -1,59 +1,15 @@
 // ============================================================
-// Client-Datenzugriff: interne Hinweise + E-Mail-Trigger
+// Client-Datenzugriff: E-Mail-Trigger
 // ============================================================
 //
-// admin_notifications werden per DB-Trigger erzeugt (migrations/0005) und
-// per RLS nur für Ligaleitung/Super Admin sichtbar gemacht — hier nur Lesen
-// und Quittieren. Der E-Mail-Versand läuft serverseitig über
-// /api/notifications/email; hier wird nur der Aufruf mit dem Session-Token
-// gekapselt. Keine Secrets im Client.
+// Der E-Mail-Versand läuft serverseitig über /api/notifications/email; hier
+// wird nur der Aufruf mit dem Session-Token gekapselt. Keine Secrets im
+// Client. Die UI-Benachrichtigungen (Glocke/Dropdown) liegen in
+// user-notifications.ts (Tabelle public.notifications).
 // ============================================================
 
 import { supabase } from './client';
 import type { EmailStatus, EmailType } from '@/lib/server/email/send-email';
-
-export interface AdminNotification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  target_roles: string[];
-  related_entity_type: string | null;
-  related_entity_id: string | null;
-  status: 'unread' | 'read';
-  created_at: string;
-  read_at: string | null;
-  read_by: string | null;
-}
-
-/** Hinweise für Ligaleitung/Super Admin (RLS filtert auf Admin-Rechte). */
-export async function listAdminNotifications(onlyUnread = false): Promise<AdminNotification[]> {
-  if (!supabase) return [];
-  let query = supabase.from('admin_notifications').select('*').order('created_at', { ascending: false });
-  if (onlyUnread) query = query.eq('status', 'unread');
-  const { data } = await query.limit(50);
-  return (data ?? []) as AdminNotification[];
-}
-
-export async function countUnreadNotifications(): Promise<number> {
-  if (!supabase) return 0;
-  const { count } = await supabase
-    .from('admin_notifications')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'unread');
-  return count ?? 0;
-}
-
-/** Hinweis als gelesen markieren (RLS prüft Admin-Recht). */
-export async function markNotificationRead(id: string): Promise<{ error: string | null }> {
-  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
-  const { data: auth } = await supabase.auth.getUser();
-  const { error } = await supabase
-    .from('admin_notifications')
-    .update({ status: 'read', read_at: new Date().toISOString(), read_by: auth.user?.id ?? null })
-    .eq('id', id);
-  return { error: error?.message ?? null };
-}
 
 export interface RegistrationEmailRequest {
   type: EmailType;

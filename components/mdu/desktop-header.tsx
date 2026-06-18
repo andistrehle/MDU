@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
 import { ThemeToggle } from './theme-toggle';
 import { NotificationBadge } from './notification-badge';
+import { NotificationBell } from './notification-bell';
 import { LEAGUES } from '@/lib/data';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useAdminNotificationCounts } from '@/lib/supabase/admin-counts';
@@ -252,9 +253,17 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           <NotificationBadge count={adminTotal} absolute ringColor="var(--th-bg-glass)" title={`${adminTotal} offene Admin-Aufgaben`} />
         </Link>
 
+        {/* Glocke (Desktop) — nur für eingeloggte Nutzer, rechts neben „Mein Bereich" */}
+        {user && (
+          <span className="mdu-header-login" style={{ display: 'inline-flex', flexShrink: 0 }}>
+            <NotificationBell />
+          </span>
+        )}
+
         {/* Mobile actions — compact theme toggle + account button (mobile only) */}
         <span className="mdu-mobile-actions" style={{ alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <ThemeToggle mini />
+          {user && <NotificationBell />}
           <Link
             href={accountHref}
             className="mdu-mobile-login"
