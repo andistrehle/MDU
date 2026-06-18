@@ -295,6 +295,20 @@ body {
 
 .mdu-row-hover:hover { background: var(--th-line-3); }
 
+/* ── Notification-Glocke ───────────────────────────────────────
+   Klarer, auffälliger Button mit Hover-Glow und sichtbarem Fokus. */
+.mdu-bell-btn:hover {
+  background: var(--th-accent-a12) !important;
+  border-color: var(--th-accent) !important;
+  box-shadow: 0 0 0 3px var(--th-accent-a12);
+  color: var(--th-accent) !important;
+}
+.mdu-bell-btn:focus-visible {
+  outline: none;
+  border-color: var(--th-accent) !important;
+  box-shadow: 0 0 0 3px var(--th-accent-a25);
+}
+
 /* ── Entity links (clickable teams / players) ──────────────────
    Subtle, theme-aware affordance: accent-coloured underline on hover.
    The accent is red (dark) / green (Old School light) via --th-accent. */

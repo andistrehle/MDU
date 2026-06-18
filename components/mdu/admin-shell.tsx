@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { AdminSidebar } from './admin-sidebar';
 import { Icon } from './icon';
 
@@ -67,11 +68,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         }}>
           <Image src="/mdu-logo.webp" unoptimized alt="MDU" height={26} width={74} style={{ height: 26, width: 'auto' }} />
           <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.18em', color: 'var(--th-text-faint2)', textTransform: 'uppercase' }}>Admin</span>
+          <Link
+            href="/"
+            aria-label="Zurück zur Homepage"
+            style={{
+              marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px', borderRadius: 8, textDecoration: 'none',
+              background: 'transparent', border: '1px solid var(--th-line-8)',
+              color: 'var(--th-text-body)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap',
+            }}
+          >
+            <Icon name="home" size={15} stroke={2} /> Website
+          </Link>
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Admin-Menü öffnen"
             style={{
-              marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
               background: 'var(--th-accent-a12)', border: '1px solid var(--th-accent-a25)',
               color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
@@ -98,12 +111,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-faint2)', background: 'var(--th-line-4)', padding: '2px 6px', borderRadius: 4 }}>⌘K</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 8, background: 'var(--th-line-4)', border: '1px solid var(--th-line-6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--th-text-muted)' }}>
-              <Icon name="bell" size={16} />
-            </div>
-            <div style={{ width: 38, height: 38, borderRadius: 8, background: 'var(--th-line-4)', border: '1px solid var(--th-line-6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--th-text-muted)' }}>
-              <Icon name="settings" size={16} />
-            </div>
+            <Link
+              href="/"
+              aria-label="Zurück zur Homepage"
+              className="mdu-bell-btn"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 16px',
+                borderRadius: 8, textDecoration: 'none',
+                background: 'var(--th-bg-page)', border: '1px solid var(--th-line-8)',
+                color: 'var(--th-text-body)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
+              }}
+            >
+              <Icon name="home" size={16} stroke={2} /> Zurück zur Homepage
+            </Link>
           </div>
         </div>
 

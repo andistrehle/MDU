@@ -88,8 +88,27 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         );
       })}
 
+      {/* Zurück zur Homepage (kein Logout — Session bleibt) */}
+      <Link
+        href="/"
+        onClick={onNavigate}
+        aria-label="Zurück zur Homepage"
+        style={{
+          marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+          borderRadius: 8, textDecoration: 'none',
+          background: 'transparent', color: 'var(--th-text-dim)',
+          border: '1px solid var(--th-line-8)',
+          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+          transition: 'all 150ms',
+        }}
+        className="mdu-row-hover"
+      >
+        <Icon name="home" size={16} />
+        <span>Zurück zur Homepage</span>
+      </Link>
+
       {/* Echter eingeloggter Benutzer */}
-      <div style={{ marginTop: 'auto', paddingTop: 14, borderTop: '1px solid var(--th-line-6)' }}>
+      <div style={{ paddingTop: 14, borderTop: '1px solid var(--th-line-6)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px' }}>
           <div style={{
             width: 34, height: 34, borderRadius: '50%', flexShrink: 0,

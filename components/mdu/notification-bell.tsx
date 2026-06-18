@@ -42,17 +42,21 @@ export function NotificationBell() {
     <div ref={ref} style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
       <button
         type="button"
-        aria-label="Benachrichtigungen"
+        aria-label="Benachrichtigungen öffnen"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen(o => !o)}
+        className="mdu-bell-btn"
         style={{
           position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 40, height: 40, borderRadius: 8, cursor: 'pointer',
-          background: 'transparent', border: '1.5px solid var(--th-line-10)', color: 'var(--th-text-body)',
+          width: 42, height: 42, borderRadius: 10, cursor: 'pointer',
+          background: open ? 'var(--th-accent-a12)' : 'var(--th-bg-card)',
+          border: `1.5px solid ${open ? 'var(--th-accent)' : 'var(--th-line-12, var(--th-line-10))'}`,
+          color: 'var(--th-text-strong)',
+          transition: 'background 140ms, border-color 140ms, box-shadow 140ms',
         }}
       >
-        <Icon name="bell" size={19} stroke={2} />
+        <Icon name="bell" size={22} stroke={2.2} />
         <NotificationBadge count={unread} absolute ringColor="var(--th-bg-glass)" title={`${unread} ungelesene Benachrichtigungen`} />
       </button>
 
