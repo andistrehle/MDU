@@ -69,8 +69,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Image src="/mdu-logo.webp" unoptimized alt="MDU" height={26} width={74} style={{ height: 26, width: 'auto' }} />
           <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.18em', color: 'var(--th-text-faint2)', textTransform: 'uppercase' }}>Admin</span>
           <Link
-            href="/"
-            aria-label="Zurück zur Homepage"
+            href="/mein-bereich"
+            aria-label="Zu Mein Bereich"
             style={{
               marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 12px', borderRadius: 8, textDecoration: 'none',
@@ -78,7 +78,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               color: 'var(--th-text-body)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap',
             }}
           >
-            <Icon name="home" size={15} stroke={2} /> Website
+            <Icon name="home" size={15} stroke={2} /> Mein Bereich
           </Link>
           <button
             onClick={() => setDrawerOpen(true)}
@@ -112,8 +112,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link
-              href="/"
-              aria-label="Zurück zur Homepage"
+              href="/mein-bereich"
+              aria-label="Zu Mein Bereich"
               className="mdu-bell-btn"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 16px',
@@ -122,7 +122,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 color: 'var(--th-text-body)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
               }}
             >
-              <Icon name="home" size={16} stroke={2} /> Zurück zur Homepage
+              <Icon name="home" size={16} stroke={2} /> Mein Bereich
             </Link>
           </div>
         </div>

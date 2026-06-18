@@ -88,11 +88,11 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         );
       })}
 
-      {/* Zurück zur Homepage (kein Logout — Session bleibt) */}
+      {/* Zu „Mein Bereich" (kein Logout — Session bleibt) */}
       <Link
-        href="/"
+        href="/mein-bereich"
         onClick={onNavigate}
-        aria-label="Zurück zur Homepage"
+        aria-label="Zu Mein Bereich"
         style={{
           marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
           borderRadius: 8, textDecoration: 'none',
@@ -104,7 +104,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         className="mdu-row-hover"
       >
         <Icon name="home" size={16} />
-        <span>Zurück zur Homepage</span>
+        <span>Mein Bereich</span>
       </Link>
 
       {/* Echter eingeloggter Benutzer */}
