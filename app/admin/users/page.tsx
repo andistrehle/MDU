@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canViewUsers, isSuperAdmin, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
+import { triggerAccountActivatedEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
 
 interface ProfileRow {
   id: string;
@@ -70,6 +71,7 @@ export default function AdminUsersPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [editing, setEditing] = useState<ProfileRow | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
@@ -124,6 +126,13 @@ export default function AdminUsersPage() {
         <Notice title="Fehler beim Laden">
           {errorMsg}
         </Notice>
+      )}
+
+      {notice && (
+        <div role="status" style={{ marginBottom: 16, padding: '11px 15px', borderRadius: 10, background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-win)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ flex: 1 }}>{notice}</span>
+          <button onClick={() => setNotice(null)} aria-label="Schließen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', fontSize: 18, lineHeight: 1 }}>×</button>
+        </div>
       )}
 
       {status === 'idle' && (
@@ -194,9 +203,10 @@ export default function AdminUsersPage() {
         <EditModal
           profile={editing}
           onClose={() => setEditing(null)}
-          onSaved={(updated) => {
+          onSaved={(updated, msg) => {
             setProfiles(prev => prev.map(p => p.id === updated.id ? updated : p));
             setEditing(null);
+            setNotice(msg ?? null);
           }}
         />
       )}
@@ -209,7 +219,7 @@ export default function AdminUsersPage() {
 function EditModal({ profile, onClose, onSaved }: {
   profile: ProfileRow;
   onClose: () => void;
-  onSaved: (p: ProfileRow) => void;
+  onSaved: (p: ProfileRow, notice?: string) => void;
 }) {
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [role, setRole] = useState<UserRole>(profile.role);
@@ -231,12 +241,18 @@ function EditModal({ profile, onClose, onSaved }: {
     if (!supabase) { setErr('Supabase ist nicht konfiguriert.'); return; }
     setBusy(true);
     setErr(null);
+    // Ein Konto gilt als „freigeschaltet", sobald ein Spieler verknüpft oder
+    // eine Rolle über 'player' hinaus vergeben wird.
+    const reviewed = !!playerId || role !== 'player';
     // match_status: 'confirmed' wenn der Vorschlag übernommen wurde, sonst 'manual'
     const matchStatus = playerId
       ? (playerId === (profile.matched_player_id ?? '') ? 'confirmed' : 'manual')
-      : profile.match_status ?? 'pending';
+      : (reviewed ? 'confirmed' : (profile.match_status ?? 'pending'));
+    const wasPending = (profile.match_status ?? 'pending') === 'pending';
+    const justActivated = wasPending && reviewed; // nur beim ersten Bestätigen mailen
+    const newName = displayName.trim() || profile.email.split('@')[0];
     const patch = {
-      display_name: displayName.trim() || profile.email.split('@')[0],
+      display_name: newName,
       role,
       player_id: playerId || null,
       team_id: teamId || null,
@@ -248,12 +264,20 @@ function EditModal({ profile, onClose, onSaved }: {
       .eq('id', profile.id)
       .select('*')
       .maybeSingle();
-    setBusy(false);
     if (error || !data) {
+      setBusy(false);
       setErr(error?.message ?? 'Speichern fehlgeschlagen.');
       return;
     }
-    onSaved(data as ProfileRow);
+
+    // „Konto freigeschaltet"-Mail an den Benutzer (best-effort, blockiert nicht).
+    let notice: string | undefined = 'Benutzer gespeichert.';
+    if (justActivated) {
+      const r = await triggerAccountActivatedEmail(profile.email, newName, profile.id);
+      notice = `Konto freigeschaltet. ${EMAIL_STATUS_HINT[r.status]}`;
+    }
+    setBusy(false);
+    onSaved(data as ProfileRow, notice);
   }
 
   return (

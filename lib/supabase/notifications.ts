@@ -59,7 +59,7 @@ export interface RegistrationEmailRequest {
   type: EmailType;
   to: string;
   name: string;
-  teamName: string;
+  teamName?: string;
   reason?: string | null;
   registrationId?: string | null;
 }
@@ -90,6 +90,20 @@ export async function triggerRegistrationEmail(
   } catch (err) {
     return { status: 'failed', error: err instanceof Error ? err.message : 'Netzwerkfehler.' };
   }
+}
+
+/** Schickt die „Konto freigeschaltet"-Mail an einen Benutzer (best-effort). */
+export async function triggerAccountActivatedEmail(
+  to: string,
+  name: string,
+  profileId?: string | null,
+): Promise<{ status: EmailStatus; error?: string }> {
+  return triggerRegistrationEmail({
+    type: 'account_activated',
+    to,
+    name,
+    registrationId: profileId ?? null,
+  });
 }
 
 /** Menschlich lesbarer Hinweis zum Mail-Status (für UI). */

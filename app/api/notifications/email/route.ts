@@ -20,6 +20,7 @@ const VALID_TYPES: EmailType[] = [
   'registration_approved',
   'registration_rejected',
   'registration_changes_requested',
+  'account_activated',
 ];
 
 const REASON_REQUIRED: EmailType[] = ['registration_rejected', 'registration_changes_requested'];

@@ -20,16 +20,18 @@ export type EmailType =
   | 'registration_submitted'
   | 'registration_approved'
   | 'registration_rejected'
-  | 'registration_changes_requested';
+  | 'registration_changes_requested'
+  | 'account_activated';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
 export interface RegistrationEmailInput {
   type: EmailType;
   to: string;
-  /** Anrede-Name (Kontaktperson / Team Captain). */
+  /** Anrede-Name (Kontaktperson / Team Captain / Benutzer). */
   name: string;
-  teamName: string;
+  /** Nur für Mannschafts-Mails relevant. */
+  teamName?: string;
   /** Pflicht bei rejected / changes_requested. */
   reason?: string | null;
   relatedEntityId?: string | null;
@@ -84,6 +86,14 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `für deine Mannschaftsanmeldung ${team} ist noch eine Nachbesserung erforderlich.\n\n` +
           `Hinweis der Ligaleitung:\n${reason}\n\n` +
           `Bitte prüfe deine Anmeldung und reiche sie anschließend erneut ein.` + SIGNATURE,
+      };
+    case 'account_activated':
+      return {
+        subject: 'Dein MDU-Konto wurde freigeschaltet',
+        text:
+          `Hallo ${name},\n\n` +
+          `dein Konto bei der Münchner Dart Union wurde von der Ligaleitung geprüft und freigeschaltet.\n\n` +
+          `Du kannst dich jetzt im Mitgliederbereich anmelden und deinen persönlichen Bereich nutzen.` + SIGNATURE,
       };
   }
 }
