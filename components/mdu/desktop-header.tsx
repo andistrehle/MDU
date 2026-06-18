@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
 import { ThemeToggle } from './theme-toggle';
+import { NotificationBadge } from './notification-badge';
 import { LEAGUES } from '@/lib/data';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useAdminNotificationCounts } from '@/lib/supabase/admin-counts';
 
 const NAV_ITEMS = [
   { label: 'Startseite', href: '/' },
@@ -45,6 +47,10 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
   const { user } = useAuth();
   const accountHref  = user ? '/mein-bereich' : '/login';
   const accountLabel = user ? 'Mein Bereich' : 'Login';
+
+  // Gesamt-Badge für offene Admin-Aufgaben (nur für Admins > 0).
+  const { counts } = useAdminNotificationCounts();
+  const adminTotal = counts.total;
 
   // Ligen dropdown — hover-intent timer so cursor can travel from link to panel
   const [ligaOpen, setLigaOpen] = useState(false);
@@ -239,10 +245,11 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
             border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
             fontWeight: 700, fontSize: 14, textDecoration: 'none',
             letterSpacing: '0.02em', transition: 'all 150ms', flexShrink: 0,
-            display: 'inline-block', whiteSpace: 'nowrap',
+            display: 'inline-block', whiteSpace: 'nowrap', position: 'relative',
           }}
         >
           {accountLabel}
+          <NotificationBadge count={adminTotal} absolute ringColor="var(--th-bg-glass)" title={`${adminTotal} offene Admin-Aufgaben`} />
         </Link>
 
         {/* Mobile actions — compact theme toggle + account button (mobile only) */}
@@ -258,10 +265,11 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
               border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)',
               fontWeight: 700, fontSize: 13, textDecoration: 'none',
               letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
+              display: 'inline-flex', alignItems: 'center', gap: 6, position: 'relative',
             }}
           >
             {user ? <Icon name="user" size={16} stroke={2.2} /> : 'Login'}
+            <NotificationBadge count={adminTotal} absolute ringColor="var(--th-bg-glass)" title={`${adminTotal} offene Admin-Aufgaben`} />
           </Link>
         </span>
       </div>

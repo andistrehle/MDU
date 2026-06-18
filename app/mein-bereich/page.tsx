@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
+import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/auth/roles';
+import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 
 interface Tile {
   icon: string;
@@ -14,6 +16,8 @@ interface Tile {
   href?: string;
   /** false → Coming-Soon-Karte (deaktiviert) */
   ready: boolean;
+  /** Welcher Admin-Zähler als Badge auf dieser Kachel erscheint. */
+  badgeKey?: keyof AdminNotificationCounts;
 }
 
 /** Rollenbasierte Kacheln — zentral definiert, Rechte via roles.ts. */
@@ -43,8 +47,8 @@ function tilesFor(user: UserProfile): Tile[] {
   if (canManageLeague(user)) {
     tiles.push(
       { icon: 'check',  label: 'Teams freigeben',         description: 'Teams für die Saison verwalten.', href: '/admin/teams', ready: true },
-      { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true },
-      { icon: 'list',   label: 'Saisonanmeldungen',       description: 'Mannschaftsanmeldungen bearbeiten.', href: '/admin/registrations', ready: true },
+      { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true, badgeKey: 'users' },
+      { icon: 'list',   label: 'Saisonanmeldungen',       description: 'Mannschaftsanmeldungen bearbeiten.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
       { icon: 'file',   label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', href: '/admin/spielberichte', ready: true },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
     );
@@ -63,6 +67,7 @@ function tilesFor(user: UserProfile): Tile[] {
 
 export default function MeinBereichPage() {
   const { user, loading, signOut } = useAuth();
+  const { counts } = useAdminNotificationCounts();
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -177,6 +182,7 @@ export default function MeinBereichPage() {
               display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,
             }}>
               {tilesFor(user).map(tile => {
+                const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : 0;
                 const inner = (
                   <div style={{
                     background: 'var(--th-bg-card)',
@@ -184,7 +190,14 @@ export default function MeinBereichPage() {
                     borderRadius: 12, padding: '18px 18px', height: '100%',
                     display: 'flex', flexDirection: 'column', gap: 10,
                     opacity: tile.ready ? 1 : 0.55,
+                    position: 'relative',
                   }}>
+                    <NotificationBadge
+                      count={badgeCount}
+                      absolute
+                      ringColor="var(--th-bg-page)"
+                      title={`${badgeCount} offene Aufgabe${badgeCount === 1 ? '' : 'n'}: ${tile.label}`}
+                    />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{
                         width: 38, height: 38, borderRadius: 9, flexShrink: 0,

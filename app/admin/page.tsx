@@ -144,6 +144,12 @@ function NotificationsPanel() {
                   Ansehen →
                 </Link>
               )}
+              {n.related_entity_type === 'profile' && (
+                <Link href="/admin/users"
+                  style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                  Ansehen →
+                </Link>
+              )}
               <button type="button" onClick={() => dismiss(n)} aria-label="Als erledigt markieren"
                 style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', fontSize: 18, lineHeight: 1 }}>×</button>
             </div>

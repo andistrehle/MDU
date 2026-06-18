@@ -4,8 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
+import { NotificationBadge } from './notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageLeague, isSuperAdmin, ROLE_LABELS } from '@/lib/auth/roles';
+import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 
 interface NavItem {
   icon: string;
@@ -13,15 +15,17 @@ interface NavItem {
   href: string;
   /** Mindestzugriff: 'league' (Ligaleitung+) oder 'super' (nur Super Admin). */
   require: 'league' | 'super';
+  /** Admin-Zähler, der als Badge neben dem Menüpunkt erscheint. */
+  badgeKey?: keyof AdminNotificationCounts;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { icon: 'bar',      label: 'Dashboard',     href: '/admin',               require: 'league' },
-  { icon: 'users',    label: 'Benutzer',      href: '/admin/users',         require: 'league' },
+  { icon: 'users',    label: 'Benutzer',      href: '/admin/users',         require: 'league', badgeKey: 'users' },
   { icon: 'edit',     label: 'Rollen',        href: '/admin/roles',         require: 'league' },
   { icon: 'trophy',   label: 'Teams',         href: '/admin/teams',         require: 'league' },
   { icon: 'user',     label: 'Spieler',       href: '/admin/players',       require: 'league' },
-  { icon: 'list',     label: 'Anmeldungen',   href: '/admin/registrations',   require: 'league' },
+  { icon: 'list',     label: 'Anmeldungen',   href: '/admin/registrations',   require: 'league', badgeKey: 'registrations' },
   { icon: 'file',     label: 'Spielberichte', href: '/admin/spielberichte', require: 'league' },
   { icon: 'bell',     label: 'News',          href: '/admin/news',          require: 'league' },
   { icon: 'download', label: 'Downloads',     href: '/admin/downloads',     require: 'league' },
@@ -33,6 +37,7 @@ const NAV_ITEMS: NavItem[] = [
 export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const { counts } = useAdminNotificationCounts();
 
   const items = NAV_ITEMS.filter(item =>
     item.require === 'super' ? isSuperAdmin(user) : canManageLeague(user),
@@ -71,6 +76,14 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
           >
             <Icon name={item.icon as 'bar'} size={17} />
             <span style={{ flex: 1 }}>{item.label}</span>
+            {item.badgeKey && (
+              <NotificationBadge
+                count={counts[item.badgeKey]}
+                ringColor="#0E1117"
+                title={`${counts[item.badgeKey]} offen: ${item.label}`}
+                style={{ flexShrink: 0 }}
+              />
+            )}
           </Link>
         );
       })}
