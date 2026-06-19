@@ -51,7 +51,8 @@ function tilesFor(user: UserProfile): Tile[] {
     tiles.push(
       { icon: 'check',  label: 'Teams freigeben',         description: 'Teams für die Saison verwalten.', href: '/admin/teams', ready: true },
       { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true, badgeKey: 'users' },
-      { icon: 'list',   label: 'Saisonanmeldungen',       description: 'Mannschaftsanmeldungen bearbeiten.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
+      { icon: 'list',   label: 'Offene Saisonanmeldungen', description: 'Mannschaftsanmeldungen prüfen und freigeben.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
+      { icon: 'trophy', label: 'Saison-Teams',            description: 'Freigegebene Mannschaften je Saison.', href: '/admin/season-teams', ready: true },
       { icon: 'file',   label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', href: '/admin/spielberichte', ready: true },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
     );
