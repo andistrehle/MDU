@@ -234,8 +234,8 @@ export default function RegistrationDetailPage() {
               <Row k="Status" v="Freigegeben · übernommen (completed)" />
               <Row k="Erzeugtes Team" v={reg.result_team_id} />
               <Row k="Übernommen am" v={new Date(reg.applied_at).toLocaleString('de-DE')} />
-              <Link href="/admin/teams" style={{ display: 'inline-block', marginTop: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
-                Zur Team-Verwaltung →
+              <Link href="/admin/season-teams" style={{ display: 'inline-block', marginTop: 8, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                Zu den Saison-Teams →
               </Link>
             </Card>
           )}
