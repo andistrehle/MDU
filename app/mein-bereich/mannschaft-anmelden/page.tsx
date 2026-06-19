@@ -9,6 +9,7 @@ import { canStartRegistration } from '@/lib/auth/roles';
 import {
   TEAMS, findTeam, getCurrentSeason, getVenueForTeamInSeason,
   getRankedRosterForTeam, getPlayerDisplayName,
+  getTeamAssignment, MAIN_LEAGUES, mainLeagueForSubCode,
 } from '@/lib/data';
 import { loadTeamProfile } from '@/lib/supabase/profiles';
 import {
@@ -30,6 +31,7 @@ function emptyDraft(): RegistrationDraft {
     venue_name: '', venue_address: '', venue_info: '',
     contact_name: '', contact_email: '', contact_phone: '',
     instagram_url: '', facebook_url: '', website_url: '', notes: '',
+    requested_league: null,
   };
 }
 
@@ -64,6 +66,7 @@ export default function MannschaftAnmeldenPage() {
         venue_name: reg.venue_name ?? '', venue_address: reg.venue_address ?? '', venue_info: reg.venue_info ?? '',
         contact_name: reg.contact_name, contact_email: reg.contact_email, contact_phone: reg.contact_phone ?? '',
         instagram_url: reg.instagram_url ?? '', facebook_url: reg.facebook_url ?? '', website_url: reg.website_url ?? '', notes: reg.notes ?? '',
+        requested_league: reg.requested_league ?? null,
       });
       setPlayers(await getRegistrationPlayers(id));
     })();
@@ -122,6 +125,9 @@ export default function MannschaftAnmeldenPage() {
     const venue = getVenueForTeamInSeason(value, SEASON.id) as { name?: string; address?: string } | null;
     const extras = await loadTeamProfile(value);
     const roster = getRankedRosterForTeam(value, SEASON.id);
+    // Hauptliga aus aktueller Saison als Vorschlag (Unterstaffel NICHT übernehmen).
+    const assignment = getTeamAssignment(value, SEASON.id);
+    const suggestedLeague = assignment ? (mainLeagueForSubCode(assignment.leagueId) ?? null) : null;
     setDraft(d => ({
       ...emptyDraft(),
       source_team_id: value, is_new_team: false,
@@ -132,6 +138,7 @@ export default function MannschaftAnmeldenPage() {
       venue_name: venue?.name ?? '', venue_address: venue?.address ?? '',
       instagram_url: extras.instagramUrl ?? '', facebook_url: extras.facebookUrl ?? '', website_url: extras.websiteUrl ?? '',
       contact_name: d.contact_name, contact_email: d.contact_email,
+      requested_league: suggestedLeague,
     }));
     setPlayers(roster.map(e => ({
       player_id: e.player.id,
@@ -151,6 +158,7 @@ export default function MannschaftAnmeldenPage() {
 
   function validate(): string | null {
     if (!draft.team_name.trim()) return 'Bitte einen Teamnamen angeben.';
+    if (!draft.requested_league) return 'Bitte wähle aus, für welche Liga die Mannschaft angemeldet werden soll.';
     if (!draft.contact_name.trim()) return 'Bitte einen Ansprechpartner angeben.';
     if (!/^\S+@\S+\.\S+$/.test(draft.contact_email)) return 'Bitte eine gültige Kontakt-E-Mail angeben.';
     if (!draft.venue_name?.trim()) return 'Bitte den Namen der Spielstätte angeben.';
@@ -254,6 +262,28 @@ export default function MannschaftAnmeldenPage() {
                   <Field label="Teamlogo (Bild-URL)"><input value={draft.logo_url ?? ''} onChange={e => set('logo_url', e.target.value)} placeholder="https://…" style={inputStyle} /></Field>
                   <Field label="Mannschaftsbild (Bild-URL)"><input value={draft.team_image_url ?? ''} onChange={e => set('team_image_url', e.target.value)} placeholder="https://…" style={inputStyle} /></Field>
                   <p style={hintStyle}>Direkter Datei-Upload (Logo/Mannschaftsbild) folgt mit Supabase Storage. Bis dahin bitte Bild-URL angeben. Nur Bilder verwenden, für die die nötigen Rechte vorliegen.</p>
+
+                  <Field label="Für welche Liga möchtet ihr eure Mannschaft anmelden? *">
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {MAIN_LEAGUES.map(l => {
+                        const active = draft.requested_league === l.value;
+                        return (
+                          <button type="button" key={l.value}
+                            onClick={() => setDraft(d => ({ ...d, requested_league: l.value }))}
+                            style={{
+                              padding: '10px 18px', borderRadius: 8, cursor: 'pointer',
+                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+                              background: active ? 'var(--th-accent)' : 'transparent',
+                              color: active ? '#fff' : 'var(--th-accent)',
+                              border: `1.5px solid ${active ? 'var(--th-accent-hover)' : 'var(--th-accent)'}`,
+                            }}>
+                            {l.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p style={{ ...hintStyle, marginTop: 8 }}>Die endgültige Staffelzuordnung, z. B. B1 oder B2, erfolgt später durch die Ligaleitung.</p>
+                  </Field>
                 </Section>
 
                 {/* 3. Spielstätte */}

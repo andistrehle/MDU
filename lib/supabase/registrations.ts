@@ -54,6 +54,8 @@ export interface TeamRegistration {
   facebook_url: string | null;
   website_url: string | null;
   notes: string | null;
+  /** Gewünschte Hauptliga (la_liga|a_liga|b_liga|c_liga) — Wahl des Teamkapitäns. */
+  requested_league: string | null;
   status: RegistrationStatus;
   review_note: string | null;
   submitted_by: string;
@@ -76,7 +78,7 @@ export type RegistrationDraft = Pick<TeamRegistration,
   'season_id' | 'source_team_id' | 'is_new_team' | 'team_name' | 'short_name' | 'description' |
   'logo_url' | 'team_image_url' | 'venue_name' | 'venue_address' | 'venue_info' |
   'contact_name' | 'contact_email' | 'contact_phone' |
-  'instagram_url' | 'facebook_url' | 'website_url' | 'notes'>;
+  'instagram_url' | 'facebook_url' | 'website_url' | 'notes' | 'requested_league'>;
 
 const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 
@@ -169,6 +171,13 @@ async function replacePlayers(registrationId: string, players: RegistrationPlaye
 export async function updateRegistrationSeason(id: string, seasonId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const { error } = await supabase.from('team_registrations').update({ season_id: seasonId }).eq('id', id);
+  return { error: error?.message ?? null };
+}
+
+/** Endgültige Staffel (assigned_competition_id) setzen — Entscheidung der Ligaleitung. */
+export async function updateRegistrationAssignedCompetition(id: string, code: string | null): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { error } = await supabase.from('team_registrations').update({ assigned_competition_id: code }).eq('id', id);
   return { error: error?.message ?? null };
 }
 

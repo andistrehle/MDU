@@ -53,8 +53,11 @@ import {
 export type { SeasonStatus, Season }          from './data/seasons';
 export { SEASONS, getCurrentSeason }          from './data/seasons';
 
-export type { RegularLeagueCode, PlayoffCode, LeagueCode, League } from './data/leagues';
-export { LEAGUES, findLeague }                from './data/leagues';
+export type { RegularLeagueCode, PlayoffCode, LeagueCode, League, MainLeague } from './data/leagues';
+export {
+  LEAGUES, findLeague,
+  MAIN_LEAGUES, MAIN_LEAGUE_LABELS, subLeaguesForMain, mainLeagueForSubCode,
+} from './data/leagues';
 
 export type { TeamStatus, Team }              from './data/teams';
 export { TEAMS, findTeam }                    from './data/teams';

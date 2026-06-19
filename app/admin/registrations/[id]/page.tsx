@@ -8,9 +8,10 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import {
   getRegistration, getRegistrationPlayers, reviewRegistration, applyApprovedTeamRegistration,
-  updateRegistrationSeason,
+  updateRegistrationSeason, updateRegistrationAssignedCompetition,
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
+import { MAIN_LEAGUE_LABELS, subLeaguesForMain, type MainLeague } from '@/lib/data';
 import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
 import {
   getActiveSeason, listSeasons, canRegisterTeamsForSeason, SEASON_STATUS_LABELS, type DbSeason,
@@ -40,6 +41,7 @@ export default function RegistrationDetailPage() {
   const [targetSeasonId, setTargetSeasonId] = useState<string>('');
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmActiveSeason, setConfirmActiveSeason] = useState(false);
+  const [assignedCompetition, setAssignedCompetition] = useState('');
 
   // Aktuell gewählte Ziel-Saison (für Anzeige + Validierung).
   const targetSeason = seasons.find(s => s.id === targetSeasonId) ?? null;
@@ -49,6 +51,7 @@ export default function RegistrationDetailPage() {
     (async () => {
       const r = await getRegistration(id);
       setReg(r);
+      if (r?.assigned_competition_id) setAssignedCompetition(r.assigned_competition_id);
       setPlayers(await getRegistrationPlayers(id));
       const all = await listSeasons();
       setSeasons(all);
@@ -103,6 +106,13 @@ export default function RegistrationDetailPage() {
       const up = await updateRegistrationSeason(id, targetSeasonId);
       if (up.error) { setMsg(up.error); setBusy(false); setConfirmApprove(false); return; }
       setReg({ ...reg, season_id: targetSeasonId });
+    }
+
+    // Endgültige Staffel (Entscheidung Ligaleitung) speichern, bevor die RPC sie übernimmt.
+    if (reg && (assignedCompetition || null) !== (reg.assigned_competition_id ?? null)) {
+      const upc = await updateRegistrationAssignedCompetition(id, assignedCompetition || null);
+      if (upc.error) { setMsg(upc.error); setBusy(false); setConfirmApprove(false); return; }
+      setReg({ ...reg, assigned_competition_id: assignedCompetition || null });
     }
 
     const r = await applyApprovedTeamRegistration(id, { reviewNote: reason || undefined, allowActiveSeason: allowActive });
@@ -225,6 +235,36 @@ export default function RegistrationDetailPage() {
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8, lineHeight: 1.55 }}>
               Die aktuell laufende Saison bleibt unverändert. Die freigegebenen Daten werden ausschließlich
               für die gewählte Ziel-Saison übernommen.{!reg.is_new_team && ' Bestehende Mannschaftsdaten dienen nur als Vorlage; laufende/historische Saisoninformationen werden nicht überschrieben.'}
+            </p>
+          </Card>
+
+          {/* Liga: Wunsch + endgültige Staffel */}
+          <Card title="Liga">
+            <Row k="Gewünschte Liga (Team)" v={reg.requested_league ? (MAIN_LEAGUE_LABELS[reg.requested_league as MainLeague] ?? reg.requested_league) : 'Keine Angabe'} />
+            {reg.applied_at ? (
+              <Row k="Endgültige Staffel" v={reg.assigned_competition_id ? reg.assigned_competition_id.toUpperCase() : 'noch nicht zugewiesen'} />
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: '5px 0', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Endgültige Staffel</span>
+                {reg.requested_league ? (
+                  <select
+                    value={assignedCompetition}
+                    onChange={e => setAssignedCompetition(e.target.value)}
+                    style={{ width: '100%', maxWidth: 320, padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }}
+                  >
+                    <option value="">— noch nicht zuweisen —</option>
+                    {subLeaguesForMain(reg.requested_league as MainLeague).map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint2)' }}>Kein Ligawunsch angegeben.</span>
+                )}
+              </div>
+            )}
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8, lineHeight: 1.55 }}>
+              Der Ligawunsch des Teams bleibt erhalten. Die endgültige Staffel kann auch später noch vergeben werden;
+              eine Freigabe ist auch ohne Staffel möglich.
             </p>
           </Card>
 

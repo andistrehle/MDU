@@ -163,3 +163,42 @@ export const LEAGUES: League[] = [
 export function findLeague(code: string): League | undefined {
   return LEAGUES.find(l => l.code === code.toLowerCase());
 }
+
+// ── Haupt-Liga-Wahl bei der Mannschaftsanmeldung ──────────────
+//
+// Der Teamkapitän wählt nur die HAUPTLIGA (La/A/B/C). Die endgültige
+// Staffel (z. B. B1 oder B2) bestimmt später die Ligaleitung.
+// Mapping Hauptliga → tier-Feld der regulären Ligen.
+
+export type MainLeague = 'la_liga' | 'a_liga' | 'b_liga' | 'c_liga';
+
+export const MAIN_LEAGUE_LABELS: Record<MainLeague, string> = {
+  la_liga: 'La Liga',
+  a_liga:  'A Liga',
+  b_liga:  'B Liga',
+  c_liga:  'C Liga',
+};
+
+const MAIN_LEAGUE_TIER: Record<MainLeague, string> = {
+  la_liga: 'La Liga',
+  a_liga:  'A Liga',
+  b_liga:  'B Liga',
+  c_liga:  'C Liga',
+};
+
+export const MAIN_LEAGUES: { value: MainLeague; label: string }[] =
+  (Object.keys(MAIN_LEAGUE_LABELS) as MainLeague[]).map(value => ({ value, label: MAIN_LEAGUE_LABELS[value] }));
+
+/** Zulässige reguläre Endstaffeln für eine Hauptliga (keine Playoffs). */
+export function subLeaguesForMain(main: MainLeague): League[] {
+  const tier = MAIN_LEAGUE_TIER[main];
+  return LEAGUES.filter(l => l.type !== 'playoff' && l.tier === tier).sort((a, b) => a.level - b.level);
+}
+
+/** Hauptliga aus einer Unterstaffel (z. B. 'b2' → 'b_liga') — für Vorauswahl. */
+export function mainLeagueForSubCode(code: string): MainLeague | undefined {
+  const league = findLeague(code);
+  if (!league) return undefined;
+  const entry = (Object.keys(MAIN_LEAGUE_TIER) as MainLeague[]).find(m => MAIN_LEAGUE_TIER[m] === league.tier);
+  return entry;
+}
