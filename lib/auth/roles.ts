@@ -125,9 +125,32 @@ export function canManageLeague(user: UserProfile | null): boolean {
   return hasMinRole(user, 'league_admin');
 }
 
-/** Benutzer & Rollen verwalten, Systemeinstellungen (nur Super Admin). */
+/** Systemeinstellungen / exklusive Super-Admin-Funktionen (nur Super Admin). */
 export function canManageUsers(user: UserProfile | null): boolean {
   return hasRole(user, 'super_admin');
+}
+
+/** Darf die Benutzerverwaltung bearbeiten (Ligaleitung aufwärts). */
+export function canEditUsers(user: UserProfile | null): boolean {
+  return hasMinRole(user, 'league_admin');
+}
+
+/**
+ * Darf ein konkretes Konto bearbeiten?
+ * Super Admin: alle. Ligaleitung: alle außer Super-Admin-Konten.
+ */
+export function canEditUserAccount(actor: UserProfile | null, targetRole: UserRole): boolean {
+  if (isSuperAdmin(actor)) return true;
+  return hasMinRole(actor, 'league_admin') && targetRole !== 'super_admin';
+}
+
+/**
+ * Darf eine bestimmte Rolle vergeben?
+ * Super Admin: alle. Ligaleitung: alle außer 'super_admin' (keine Eskalation).
+ */
+export function canAssignRole(actor: UserProfile | null, role: UserRole): boolean {
+  if (isSuperAdmin(actor)) return true;
+  return hasMinRole(actor, 'league_admin') && role !== 'super_admin';
 }
 
 /** Ist der Benutzer Super Admin? */

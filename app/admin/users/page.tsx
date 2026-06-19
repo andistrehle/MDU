@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canViewUsers, isSuperAdmin, ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
+import { canViewUsers, canEditUsers, canEditUserAccount, canAssignRole, ROLE_LABELS, type UserRole, type UserProfile } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 
@@ -65,7 +65,7 @@ function teamName(id: string | null): string {
 export default function AdminUsersPage() {
   const { user, loading: authLoading } = useAuth();
   const allowed = canViewUsers(user);      // Ligaleitung aufwärts darf einsehen
-  const canEdit = isSuperAdmin(user);      // Bearbeiten/Rollen nur Super Admin
+  const canEdit = canEditUsers(user);      // Ligaleitung aufwärts darf bearbeiten (Super-Admin-Konten bleiben geschützt)
 
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -168,9 +168,9 @@ export default function AdminUsersPage() {
                   <span><RoleBadge role={p.role} /></span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName(p.player_id)}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(p.team_id)}</span>
-                  {canEdit
+                  {canEdit && canEditUserAccount(user, p.role)
                     ? <button onClick={() => setEditing(p)} style={editBtn}>Bearb.</button>
-                    : <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>—</span>}
+                    : <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }} title={p.role === 'super_admin' ? 'Super-Admin-Konten kann nur ein Super Admin bearbeiten.' : undefined}>—</span>}
                 </div>
               ))}
               {profiles.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>Noch keine Benutzer registriert.</div>}
@@ -191,7 +191,7 @@ export default function AdminUsersPage() {
                   <span>Spieler: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(p.player_id)}</strong></span>
                   <span>Team: <strong style={{ color: 'var(--th-text-strong)' }}>{teamName(p.team_id)}</strong></span>
                 </div>
-                {canEdit && <button onClick={() => setEditing(p)} style={{ ...editBtn, width: '100%', padding: '9px' }}>Bearbeiten</button>}
+                {canEdit && canEditUserAccount(user, p.role) && <button onClick={() => setEditing(p)} style={{ ...editBtn, width: '100%', padding: '9px' }}>Bearbeiten</button>}
               </div>
             ))}
             {profiles.length === 0 && <p style={muted}>Noch keine Benutzer registriert.</p>}
@@ -201,6 +201,7 @@ export default function AdminUsersPage() {
 
       {editing && (
         <EditModal
+          actor={user}
           profile={editing}
           onClose={() => setEditing(null)}
           onSaved={(updated, msg) => {
@@ -216,11 +217,14 @@ export default function AdminUsersPage() {
 
 // ── Edit Modal ────────────────────────────────────────────────
 
-function EditModal({ profile, onClose, onSaved }: {
+function EditModal({ actor, profile, onClose, onSaved }: {
+  actor: UserProfile | null;
   profile: ProfileRow;
   onClose: () => void;
   onSaved: (p: ProfileRow, notice?: string) => void;
 }) {
+  // Rollen, die der aktuelle Admin vergeben darf (Ligaleitung ohne 'super_admin').
+  const roleOptions = ROLE_OPTIONS.filter(r => canAssignRole(actor, r));
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [role, setRole] = useState<UserRole>(profile.role);
   const [playerId, setPlayerId] = useState(profile.player_id ?? '');
@@ -341,7 +345,7 @@ function EditModal({ profile, onClose, onSaved }: {
 
           <Field label="Rolle">
             <select value={role} onChange={e => setRole(e.target.value as UserRole)} style={inputStyle}>
-              {ROLE_OPTIONS.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+              {roleOptions.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
             </select>
           </Field>
 
