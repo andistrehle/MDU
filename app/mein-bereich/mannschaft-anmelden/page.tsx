@@ -17,6 +17,7 @@ import {
   type RegistrationDraft, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
 import { triggerRegistrationEmail } from '@/lib/supabase/notifications';
+import { getRegistrationSeason } from '@/lib/supabase/seasons';
 
 const SEASON = getCurrentSeason();
 const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -84,6 +85,15 @@ export default function MannschaftAnmeldenPage() {
         : `Wir haben anhand deines Spielerprofils die Mannschaft „${name}" erkannt. Bitte prüfe die Angaben.`);
     });
   }, [user, regId]);
+
+  // Ziel-Saison = Anmelde-Saison (registration_open / upcoming), nicht die laufende.
+  // Nur bei NEUEM Formular setzen (bestehender Entwurf behält seine season_id).
+  useEffect(() => {
+    if (regId) return;
+    getRegistrationSeason().then(s => {
+      if (s) queueMicrotask(() => setDraft(d => ({ ...d, season_id: s.id })));
+    });
+  }, [regId]);
 
   // Kontakt aus dem Konto vorbelegen (nur bei leerem neuem Formular).
   // setState außerhalb des Effect-Bodys (react-hooks/set-state-in-effect).

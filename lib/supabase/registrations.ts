@@ -62,6 +62,13 @@ export interface TeamRegistration {
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+  // Übernahme-/Ergebnisfelder (Migration 0008)
+  result_team_id?: string | null;
+  applied_at?: string | null;
+  application_status?: string | null;
+  application_error?: string | null;
+  requested_competition_id?: string | null;
+  assigned_competition_id?: string | null;
 }
 
 /** Editierbare Felder einer Anmeldung (ohne Workflow-/Meta-Spalten). */
@@ -168,13 +175,28 @@ export async function submitRegistration(id: string): Promise<{ error: string | 
   return { error: error?.message ?? null };
 }
 
-/** Statuswechsel durch Ligaleitung/Super Admin (RLS prüft Admin-Recht). */
+/**
+ * Statuswechsel durch Ligaleitung/Super Admin (RLS prüft Admin-Recht).
+ *
+ * Bei status === 'approved' wird NICHT nur der Status gesetzt, sondern die
+ * atomare RPC apply_team_registration() ausgeführt (Team + Saisonzuordnung +
+ * Kader anlegen, idempotent). Erst wenn die Übernahme vollständig erfolgreich
+ * war, gilt die Anmeldung als freigegeben — kein optischer Teilerfolg.
+ *
+ * Für aktive Ziel-Saison verlangt die RPC eine ausdrückliche Bestätigung
+ * (allowActiveSeason) — sonst wird der Fehler 'ACTIVE_SEASON' zurückgegeben.
+ */
 export async function reviewRegistration(
   id: string,
   status: Extract<RegistrationStatus, 'in_review' | 'approved' | 'rejected' | 'changes_requested'>,
   reviewNote?: string,
-): Promise<{ error: string | null }> {
+): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean }> {
   if (!supabase) return { error: NOT_CONFIGURED };
+
+  if (status === 'approved') {
+    return applyApprovedTeamRegistration(id, { reviewNote });
+  }
+
   const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase
     .from('team_registrations')
@@ -185,29 +207,39 @@ export async function reviewRegistration(
       reviewed_at: new Date().toISOString(),
     })
     .eq('id', id);
-  if (error) return { error: error.message };
-
-  if (status === 'approved') {
-    // TODO: Übernahme in offizielle Team-/Saisondaten — siehe unten.
-    await applyApprovedTeamRegistration(id);
-  }
-  return { error: null };
+  return { error: error?.message ?? null };
 }
 
 /**
- * STUB / TODO — Übernahme einer freigegebenen Anmeldung in die offiziellen
- * Team-/Saisondaten. Aktuell bewusst NICHT umgesetzt (keine Fake-Übernahme).
- *
- * Später soll diese Funktion:
- *   • neue Mannschaft anlegen oder bestehende aktualisieren
- *   • Kader übernehmen (team_registration_players → Saison-Kader)
- *   • Team-Saison-Zuordnung erstellen
- *   • Bilder (Logo/Mannschaftsbild) übernehmen
- *
- * Erfordert eine schreibbare Team-/Saison-Struktur in Supabase (derzeit
- * stammen Team-/Saisondaten statisch aus lib/data). Bis dahin: no-op.
+ * Freigabe + automatische Übernahme über die serverseitige RPC. Idempotent,
+ * atomar (Rollback bei Fehler), saisongetrennt. Setzt vorab review_note,
+ * danach erledigt die RPC den Statuswechsel auf approved.
  */
-export async function applyApprovedTeamRegistration(registrationId: string): Promise<void> {
-  void registrationId;
-  // absichtlich leer — Freigabe wird gespeichert, Übernahme folgt in einem späteren Sprint.
+export async function applyApprovedTeamRegistration(
+  registrationId: string,
+  opts: { reviewNote?: string; allowActiveSeason?: boolean } = {},
+): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+
+  // Begründung/Anmerkung vorab speichern (RPC kümmert sich um den Status).
+  if (opts.reviewNote !== undefined) {
+    await supabase.from('team_registrations').update({ review_note: opts.reviewNote || null }).eq('id', registrationId);
+  }
+
+  const { data, error } = await supabase.rpc('apply_team_registration', {
+    p_registration_id: registrationId,
+    p_allow_active: opts.allowActiveSeason ?? false,
+  });
+
+  if (error) {
+    // PostgREST verpackt RAISE-Meldungen in error.message
+    if (error.message?.includes('ACTIVE_SEASON')) {
+      return { error: null, activeSeasonWarning: true };
+    }
+    return { error: error.message };
+  }
+
+  const res = (data ?? {}) as { ok?: boolean; error?: string; team_id?: string | null };
+  if (res.ok === false) return { error: res.error ?? 'Automatische Übernahme fehlgeschlagen.' };
+  return { error: null, resultTeamId: res.team_id ?? null };
 }
