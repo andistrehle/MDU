@@ -37,10 +37,12 @@ create table if not exists public.seasons (
   updated_at              timestamptz not null default now()
 );
 
--- Seed: laufende Saison 2026 (active, gespiegelt zu lib/data) + Ziel-Saison 2027.
-insert into public.seasons (id, name, year, status) values
-  ('season-2026', 'Saison 2026', 2026, 'active'),
-  ('season-2027', 'Saison 2027', 2027, 'registration_open')
+-- Seed: laufende Saison 2025/2026 (active, id season-2026 gespiegelt zu lib/data)
+-- + Ziel-Saison 2026/2027 (Anmeldung geöffnet, Start Oktober 2026).
+-- Hinweis: ids sind intern/opak; die Anzeigenamen sind maßgeblich.
+insert into public.seasons (id, name, year, status, starts_at) values
+  ('season-2026', 'Saison 2025/2026', 2026, 'active', null),
+  ('season-2027', 'Saison 2026/2027', 2027, 'registration_open', date '2026-10-01')
 on conflict (id) do nothing;
 
 

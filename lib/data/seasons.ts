@@ -32,13 +32,17 @@ export interface Season {
 export const SEASONS: Season[] = [
   {
     id: 'season-2026',
-    name: 'Saison 2026',
+    name: 'Saison 2025/2026',
     year: 2026,
     status: 'current',
   },
+  // Die kommende Saison „Saison 2026/2027" (Start Okt 2026) wird in der
+  // Supabase-Tabelle `seasons` geführt (id season-2027, status registration_open);
+  // neue Mannschaftsanmeldungen laufen darüber.
+  //
   // Previous seasons can be added here as 'archived' for historical data.
   // Example:
-  // { id: 'season-2025', name: 'Saison 2025', year: 2025, status: 'archived' },
+  // { id: 'season-2025', name: 'Saison 2024/2025', year: 2025, status: 'archived' },
 ];
 
 /**
