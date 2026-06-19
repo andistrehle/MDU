@@ -165,6 +165,13 @@ async function replacePlayers(registrationId: string, players: RegistrationPlaye
   return error?.message ?? null;
 }
 
+/** Ziel-Saison einer Anmeldung setzen (nur Admin per RLS). */
+export async function updateRegistrationSeason(id: string, seasonId: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { error } = await supabase.from('team_registrations').update({ season_id: seasonId }).eq('id', id);
+  return { error: error?.message ?? null };
+}
+
 /** Anmeldung einreichen (draft/changes_requested → submitted). */
 export async function submitRegistration(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };

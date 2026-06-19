@@ -8,11 +8,12 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import {
   getRegistration, getRegistrationPlayers, reviewRegistration, applyApprovedTeamRegistration,
+  updateRegistrationSeason,
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
 import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
 import {
-  getActiveSeason, getSeason, canRegisterTeamsForSeason, SEASON_STATUS_LABELS, type DbSeason,
+  getActiveSeason, listSeasons, canRegisterTeamsForSeason, SEASON_STATUS_LABELS, type DbSeason,
 } from '@/lib/supabase/seasons';
 import type { EmailType } from '@/lib/server/email/send-email';
 
@@ -35,9 +36,13 @@ export default function RegistrationDetailPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
   const [activeSeason, setActiveSeason] = useState<DbSeason | null>(null);
-  const [targetSeason, setTargetSeason] = useState<DbSeason | null>(null);
+  const [seasons, setSeasons] = useState<DbSeason[]>([]);
+  const [targetSeasonId, setTargetSeasonId] = useState<string>('');
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmActiveSeason, setConfirmActiveSeason] = useState(false);
+
+  // Aktuell gewählte Ziel-Saison (für Anzeige + Validierung).
+  const targetSeason = seasons.find(s => s.id === targetSeasonId) ?? null;
 
   useEffect(() => {
     if (!canReview || !id) return;
@@ -45,8 +50,17 @@ export default function RegistrationDetailPage() {
       const r = await getRegistration(id);
       setReg(r);
       setPlayers(await getRegistrationPlayers(id));
+      const all = await listSeasons();
+      setSeasons(all);
       setActiveSeason(await getActiveSeason());
-      if (r) setTargetSeason(await getSeason(r.season_id));
+      // Standard-Ziel: gespeicherte Saison — außer sie ist die aktive und es gibt
+      // eine offene Anmelde-Saison, dann diese vorauswählen (häufigster Fall).
+      if (r) {
+        const stored = all.find(s => s.id === r.season_id);
+        const regOpen = all.find(s => s.status === 'registration_open');
+        const preferred = (stored?.status === 'active' && regOpen) ? regOpen.id : r.season_id;
+        queueMicrotask(() => setTargetSeasonId(preferred));
+      }
     })();
   }, [canReview, id]);
 
@@ -83,6 +97,14 @@ export default function RegistrationDetailPage() {
   async function runApprove(allowActive: boolean) {
     setBusy(true); setMsg(null); setOkMsg(null);
     const reason = note.trim();
+
+    // Ziel-Saison ggf. korrigieren, bevor die RPC sie liest.
+    if (reg && targetSeasonId && targetSeasonId !== reg.season_id) {
+      const up = await updateRegistrationSeason(id, targetSeasonId);
+      if (up.error) { setMsg(up.error); setBusy(false); setConfirmApprove(false); return; }
+      setReg({ ...reg, season_id: targetSeasonId });
+    }
+
     const r = await applyApprovedTeamRegistration(id, { reviewNote: reason || undefined, allowActiveSeason: allowActive });
 
     if (r.activeSeasonWarning) {
@@ -181,11 +203,28 @@ export default function RegistrationDetailPage() {
           {/* Saison-Kontext */}
           <Card title="Saison">
             <Row k="Aktuelle Saison" v={activeSeason ? `${activeSeason.name} – ${SEASON_STATUS_LABELS[activeSeason.status]}` : '–'} />
-            <Row k="Ziel-Saison" v={targetSeason ? `${targetSeason.name} – ${SEASON_STATUS_LABELS[targetSeason.status]}` : reg.season_id} />
+            {reg.applied_at ? (
+              <Row k="Ziel-Saison" v={targetSeason ? `${targetSeason.name} – ${SEASON_STATUS_LABELS[targetSeason.status]}` : reg.season_id} />
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: '5px 0', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Ziel-Saison</span>
+                <select
+                  value={targetSeasonId}
+                  onChange={e => setTargetSeasonId(e.target.value)}
+                  style={{ width: '100%', maxWidth: 320, padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }}
+                >
+                  {seasons.map(s => (
+                    <option key={s.id} value={s.id} disabled={s.status === 'archived' || s.status === 'completed'}>
+                      {s.name} – {SEASON_STATUS_LABELS[s.status]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <Row k="Mannschaft" v={reg.is_new_team ? 'Neue Mannschaft' : 'Bestehende Mannschaft (Vorlage)'} />
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8, lineHeight: 1.55 }}>
               Die aktuell laufende Saison bleibt unverändert. Die freigegebenen Daten werden ausschließlich
-              für die Ziel-Saison übernommen.{!reg.is_new_team && ' Bestehende Mannschaftsdaten dienen nur als Vorlage; laufende/historische Saisoninformationen werden nicht überschrieben.'}
+              für die gewählte Ziel-Saison übernommen.{!reg.is_new_team && ' Bestehende Mannschaftsdaten dienen nur als Vorlage; laufende/historische Saisoninformationen werden nicht überschrieben.'}
             </p>
           </Card>
 
