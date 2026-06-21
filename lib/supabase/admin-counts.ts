@@ -58,14 +58,24 @@ export async function getNewUserCount(user: UserProfile | null): Promise<number>
   return count ?? 0;
 }
 
-/** Alle Admin-Zähler in einem Rutsch (zwei parallele Count-Queries). */
+/** Eingereichte Spielberichte (warten auf Freigabe). */
+export async function getPendingMatchReportCount(user: UserProfile | null): Promise<number> {
+  if (!supabase || !canManageLeague(user)) return 0;
+  const { count } = await supabase
+    .from('match_reports')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'submitted');
+  return count ?? 0;
+}
+
+/** Alle Admin-Zähler in einem Rutsch (parallele Count-Queries). */
 export async function getAdminNotificationCounts(user: UserProfile | null): Promise<AdminNotificationCounts> {
   if (!canManageLeague(user)) return ZERO_COUNTS;
-  const [registrations, users] = await Promise.all([
+  const [registrations, users, matchReports] = await Promise.all([
     getPendingRegistrationCount(user),
     getNewUserCount(user),
+    getPendingMatchReportCount(user),
   ]);
-  const matchReports = 0;
   return { registrations, users, matchReports, total: registrations + users + matchReports };
 }
 

@@ -43,6 +43,7 @@ function tilesFor(user: UserProfile): Tile[] {
       { icon: 'list',     label: 'Kader',             description: 'Spieler deines Teams ansehen.', href: '/mein-team/kader', ready: true },
       { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
       { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },
+      { icon: 'edit',     label: 'Spielbericht erfassen', description: 'Spielberichtsbogen online ausfüllen.', href: '/mein-bereich/spielberichte', ready: true },
     );
   }
 
@@ -53,7 +54,7 @@ function tilesFor(user: UserProfile): Tile[] {
       { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true, badgeKey: 'users' },
       { icon: 'list',   label: 'Offene Saisonanmeldungen', description: 'Mannschaftsanmeldungen prüfen und freigeben.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
       { icon: 'trophy', label: 'Saison-Teams',            description: 'Freigegebene Mannschaften je Saison.', href: '/admin/season-teams', ready: true },
-      { icon: 'file',   label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', href: '/admin/spielberichte', ready: true },
+      { icon: 'file',   label: 'Spielberichte freigeben', description: 'Eingereichte Berichte prüfen.', href: '/admin/spielberichte', ready: true, badgeKey: 'matchReports' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
     );
   }
