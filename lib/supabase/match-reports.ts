@@ -143,6 +143,60 @@ export function computeTotals(games: ReportGame[]): ReportTotals {
   return { spieleHome, spieleGuest, legsHome, legsGuest, pointsHome, pointsGuest, homePlayerPoints, guestPlayerPoints };
 }
 
+export interface PlayerRankingRow {
+  side: 'home' | 'guest';
+  slot: number;
+  name: string;
+  team: string;
+  singles: number;
+  wins: number;
+  losses: number;
+  legsWon: number;
+  legsLost: number;
+  points: number;
+}
+
+/**
+ * Einzelranglisten-Auswertung — pro tatsächlich eingesetztem Spieler (Slot),
+ * nur Einzelspiele, reproduzierbar aus den gespeicherten Spielen.
+ */
+export function computePlayerRanking(
+  games: ReportGame[], players: ReportPlayer[], homeTeam: string, guestTeam: string,
+): PlayerRankingRow[] {
+  const map = new Map<string, PlayerRankingRow>();
+  const ensure = (side: 'home' | 'guest', slot: number): PlayerRankingRow => {
+    const key = side + slot;
+    let r = map.get(key);
+    if (!r) {
+      const p = players.find(x => x.side === side && x.slot === slot);
+      r = { side, slot, name: p?.name?.trim() || `${side === 'home' ? 'H' : 'G'}${slot}`,
+        team: side === 'home' ? homeTeam : guestTeam, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0 };
+      map.set(key, r);
+    }
+    return r;
+  };
+  for (const g of games) {
+    if (g.game_type !== 'single' || g.legs_home == null || g.legs_guest == null) continue;
+    if (g.home_slot != null) {
+      const r = ensure('home', g.home_slot);
+      r.singles++; r.legsWon += g.legs_home; r.legsLost += g.legs_guest;
+      if (g.legs_home > g.legs_guest) r.wins++; else r.losses++;
+      r.points += pointsForLegs(g.legs_home, g.legs_guest);
+    }
+    if (g.guest_slot != null) {
+      const r = ensure('guest', g.guest_slot);
+      r.singles++; r.legsWon += g.legs_guest; r.legsLost += g.legs_home;
+      if (g.legs_guest > g.legs_home) r.wins++; else r.losses++;
+      r.points += pointsForLegs(g.legs_guest, g.legs_home);
+    }
+  }
+  return [...map.values()]
+    .filter(r => r.singles > 0)
+    .sort((a, b) => a.side !== b.side
+      ? (a.side === 'home' ? -1 : 1)
+      : (b.points - a.points) || ((b.legsWon - b.legsLost) - (a.legsWon - a.legsLost)));
+}
+
 const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 
 export type ReportHeaderDraft = Pick<MatchReport,

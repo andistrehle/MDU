@@ -12,13 +12,14 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canUploadMatchReport } from '@/lib/auth/roles';
 import {
   TEAMS, findTeam, getCurrentSeason, getVenueForTeamInSeason,
-  getRankedRosterForTeam, getPlayerDisplayName,
+  getRankedRosterForTeam, getPlayerDisplayName, getCaptainForTeamInSeason,
 } from '@/lib/data';
 import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import {
   GAME_SCHEDULE, LEG_RESULTS, REPORT_STATUS_LABELS, computeTotals,
   createReport, updateReport, submitReport, listMyReports,
   getReport, getReportPlayers, getReportGames, confirmReport, requestReportChange,
+  computePlayerRanking,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type MatchReport, type LegResult,
 } from '@/lib/supabase/match-reports';
 
@@ -93,6 +94,10 @@ export default function SpielberichtePage() {
   }
 
   const totals = useMemo(() => computeTotals(games), [games]);
+  const ranking = useMemo(
+    () => computePlayerRanking(games, [...homePlayers, ...guestPlayers], header.home_team_name || 'Heim', header.guest_team_name || 'Gast'),
+    [games, homePlayers, guestPlayers, header.home_team_name, header.guest_team_name],
+  );
   const homeRoster = useMemo(() => rosterOptions(header.home_team_id), [header.home_team_id]);
   const guestRoster = useMemo(() => rosterOptions(header.guest_team_id), [header.guest_team_id]);
   const isCaptainFixed = user?.role === 'team_captain' && !!user?.teamId;
@@ -105,7 +110,8 @@ export default function SpielberichtePage() {
   }
   function onGuestTeam(id: string) {
     const t = findTeam(id);
-    setHeader(h => ({ ...h, guest_team_id: id || null, guest_team_name: t?.name ?? '' }));
+    const captain = id ? (getCaptainForTeamInSeason(id, SEASON.id) ?? '') : '';
+    setHeader(h => ({ ...h, guest_team_id: id || null, guest_team_name: t?.name ?? '', tc_guest: captain }));
     setGuestPlayers(emptyPlayers('guest'));
   }
 
@@ -120,8 +126,11 @@ export default function SpielberichtePage() {
         didInit.current = true;
         const teamName = user?.teamId ? (findTeam(user.teamId)?.name ?? '') : '';
         const venue = user?.teamId ? ((getVenueForTeamInSeason(user.teamId, SEASON.id) as { name?: string } | null)?.name ?? '') : '';
+        // Heutiges Datum lokal (kein UTC-Versatz) als Default bei neuem Bericht.
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         setSeasonId(s?.id ?? '');
-        setHeader(h => ({ ...h, season_id: s?.id ?? null, home_team_id: user?.teamId ?? null, home_team_name: teamName, venue, tc_home: user?.displayName ?? '' }));
+        setHeader(h => ({ ...h, season_id: s?.id ?? null, home_team_id: user?.teamId ?? null, home_team_name: teamName, venue, tc_home: user?.displayName ?? '', match_date: today }));
       }
       setRows(await listMyReports());
     })();
@@ -253,7 +262,12 @@ export default function SpielberichtePage() {
               </Row2>
               <Row2>
                 <Field label="TC Heim"><input value={header.tc_home ?? ''} onChange={e => setH('tc_home', e.target.value)} style={input} /></Field>
-                <Field label="TC Gast"><input value={header.tc_guest ?? ''} onChange={e => setH('tc_guest', e.target.value)} style={input} /></Field>
+                <Field label="TC Gast">
+                  <input value={header.tc_guest ?? ''} onChange={e => setH('tc_guest', e.target.value)} style={input} />
+                  {header.guest_team_id && !header.tc_guest?.trim() && (
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-gold)' }}>Kein Teamkapitän hinterlegt</span>
+                  )}
+                </Field>
               </Row2>
             </Section>
 
@@ -311,6 +325,37 @@ export default function SpielberichtePage() {
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8 }}>
                 Einzelspieler-Punkte fließen in die Einzelrangliste (nur Einzelspiele). Doppel zählen für Spiele/Legs.
               </p>
+            </Section>
+
+            {/* Einzelranglisten-Auswertung (live) */}
+            <Section title="Einzelranglisten-Auswertung">
+              {ranking.length === 0 ? (
+                <Muted>Sobald Einzelergebnisse eingetragen sind, erscheint hier die Auswertung.</Muted>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 13, minWidth: 520 }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        <th style={th}>Spieler</th><th style={th}>Team</th><th style={thC}>Einzel</th><th style={thC}>S</th><th style={thC}>N</th><th style={thC}>Legs</th><th style={thC}>Punkte</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ranking.map(r => (
+                        <tr key={r.side + r.slot} style={{ borderTop: '1px solid var(--th-line-4)' }}>
+                          <td style={{ ...td, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.name}</td>
+                          <td style={{ ...td, color: 'var(--th-text-muted)' }}>{r.team}</td>
+                          <td style={tdC}>{r.singles}</td>
+                          <td style={tdC}>{r.wins}</td>
+                          <td style={tdC}>{r.losses}</td>
+                          <td style={tdC}>{r.legsWon}:{r.legsLost}</td>
+                          <td style={{ ...tdC, fontWeight: 800, color: 'var(--th-accent)' }}>{r.points}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Nur Einzelspiele · Punkte dem tatsächlich eingesetzten Spieler zugeordnet (inkl. Auswechslungen).</p>
             </Section>
 
             <Section title="Protest">
@@ -393,15 +438,18 @@ function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
     <div>
       <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12, color: 'var(--th-accent)', marginBottom: 6 }}>{label}</div>
       {!teamChosen && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginBottom: 6 }}>Bitte zuerst Mannschaft wählen.</div>}
-      {players.map(p => (
-        <div key={p.slot} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-          <span style={{ width: 26, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: p.slot <= 4 ? 'var(--th-text-body)' : 'var(--th-text-faint)' }}>{prefix}{p.slot}</span>
-          <select value={p.player_id ?? ''} onChange={e => pick(p.slot, e.target.value)} disabled={!teamChosen} style={{ ...input, flex: 1, padding: '7px 9px', opacity: teamChosen ? 1 : 0.6 }}>
-            <option value="">{p.slot <= 4 ? '— Spieler wählen * —' : '— Wechsel (optional) —'}</option>
-            {options.map(o => <option key={o.id} value={o.id}>{o.name}{o.isCaptain ? ' (C)' : ''}</option>)}
-          </select>
-        </div>
-      ))}
+      {players.map(p => {
+        const usedByOthers = new Set(players.filter(x => x.slot !== p.slot && x.player_id).map(x => x.player_id));
+        return (
+          <div key={p.slot} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <span style={{ width: 26, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: p.slot <= 4 ? 'var(--th-text-body)' : 'var(--th-text-faint)' }}>{prefix}{p.slot}</span>
+            <select value={p.player_id ?? ''} onChange={e => pick(p.slot, e.target.value)} disabled={!teamChosen} style={{ ...input, flex: 1, padding: '7px 9px', opacity: teamChosen ? 1 : 0.6 }}>
+              <option value="">{p.slot <= 4 ? '— Spieler wählen * —' : '— Wechsel (optional) —'}</option>
+              {options.map(o => <option key={o.id} value={o.id} disabled={usedByOthers.has(o.id)}>{o.name}{o.isCaptain ? ' (C)' : ''}{usedByOthers.has(o.id) ? ' — bereits gewählt' : ''}</option>)}
+            </select>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -449,5 +497,9 @@ const input: React.CSSProperties = {
   width: '100%', padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
   borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
 };
+const th: React.CSSProperties = { padding: '6px 8px', fontWeight: 700 };
+const thC: React.CSSProperties = { ...th, textAlign: 'center' };
+const td: React.CSSProperties = { padding: '7px 8px', whiteSpace: 'nowrap' };
+const tdC: React.CSSProperties = { ...td, textAlign: 'center' };
 const ghost: React.CSSProperties = { padding: '12px 22px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
 const primary: React.CSSProperties = { padding: '12px 28px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
