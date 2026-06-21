@@ -10,7 +10,10 @@ import { useRouter } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canUploadMatchReport } from '@/lib/auth/roles';
-import { findTeam } from '@/lib/data';
+import {
+  TEAMS, findTeam, getCurrentSeason, getVenueForTeamInSeason,
+  getRankedRosterForTeam, getPlayerDisplayName,
+} from '@/lib/data';
 import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import {
   GAME_SCHEDULE, LEG_RESULTS, REPORT_STATUS_LABELS, computeTotals,
@@ -20,7 +23,17 @@ import {
 } from '@/lib/supabase/match-reports';
 
 const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
-const SLOTS = [1, 2, 3, 4, 5, 6];
+const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8]; // 4 Starter + bis zu 4 Wechsel
+const SEASON = getCurrentSeason();
+const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+
+interface RosterOption { id: string; name: string; isCaptain: boolean }
+function rosterOptions(teamId: string | null | undefined): RosterOption[] {
+  if (!teamId) return [];
+  return getRankedRosterForTeam(teamId, SEASON.id).map(e => ({
+    id: e.player.id, name: getPlayerDisplayName(e.player), isCaptain: e.isCaptain,
+  }));
+}
 
 function emptyPlayers(side: 'home' | 'guest'): ReportPlayer[] {
   return SLOTS.map(slot => ({ side, slot, pass_no: '', name: '', player_id: null, points: 0 }));
@@ -58,6 +71,21 @@ export default function SpielberichtePage() {
   const didInit = useRef(false);
 
   const totals = useMemo(() => computeTotals(games), [games]);
+  const homeRoster = useMemo(() => rosterOptions(header.home_team_id), [header.home_team_id]);
+  const guestRoster = useMemo(() => rosterOptions(header.guest_team_id), [header.guest_team_id]);
+  const isCaptainFixed = user?.role === 'team_captain' && !!user?.teamId;
+
+  function onHomeTeam(id: string) {
+    const t = findTeam(id);
+    const v = (getVenueForTeamInSeason(id, SEASON.id) as { name?: string } | null)?.name ?? '';
+    setHeader(h => ({ ...h, home_team_id: id || null, home_team_name: t?.name ?? '', venue: v }));
+    setHomePlayers(emptyPlayers('home'));
+  }
+  function onGuestTeam(id: string) {
+    const t = findTeam(id);
+    setHeader(h => ({ ...h, guest_team_id: id || null, guest_team_name: t?.name ?? '' }));
+    setGuestPlayers(emptyPlayers('guest'));
+  }
 
   // Saison + Liste laden, Heim-Team vorbelegen
   useEffect(() => {
@@ -69,8 +97,9 @@ export default function SpielberichtePage() {
       else if (!didInit.current) {
         didInit.current = true;
         const teamName = user?.teamId ? (findTeam(user.teamId)?.name ?? '') : '';
+        const venue = user?.teamId ? ((getVenueForTeamInSeason(user.teamId, SEASON.id) as { name?: string } | null)?.name ?? '') : '';
         setSeasonId(s?.id ?? '');
-        setHeader(h => ({ ...h, season_id: s?.id ?? null, home_team_id: user?.teamId ?? null, home_team_name: teamName }));
+        setHeader(h => ({ ...h, season_id: s?.id ?? null, home_team_id: user?.teamId ?? null, home_team_name: teamName, venue, tc_home: user?.displayName ?? '' }));
       }
       setRows(await listMyReports());
     })();
@@ -183,8 +212,22 @@ export default function SpielberichtePage() {
                 <Field label="Spielort"><input value={header.venue ?? ''} onChange={e => setH('venue', e.target.value)} style={input} /></Field>
               </Row2>
               <Row2>
-                <Field label="Heimmannschaft *"><input value={header.home_team_name} onChange={e => setH('home_team_name', e.target.value)} style={input} /></Field>
-                <Field label="Gastmannschaft *"><input value={header.guest_team_name} onChange={e => setH('guest_team_name', e.target.value)} style={input} /></Field>
+                <Field label="Heimmannschaft *">
+                  {isCaptainFixed ? (
+                    <input value={header.home_team_name} disabled style={{ ...input, opacity: 0.7 }} />
+                  ) : (
+                    <select value={header.home_team_id ?? ''} onChange={e => onHomeTeam(e.target.value)} style={input}>
+                      <option value="">— wählen —</option>
+                      {TEAM_OPTIONS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  )}
+                </Field>
+                <Field label="Gastmannschaft *">
+                  <select value={header.guest_team_id ?? ''} onChange={e => onGuestTeam(e.target.value)} style={input}>
+                    <option value="">— wählen —</option>
+                    {TEAM_OPTIONS.filter(t => t.id !== header.home_team_id).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </Field>
               </Row2>
               <Row2>
                 <Field label="TC Heim"><input value={header.tc_home ?? ''} onChange={e => setH('tc_home', e.target.value)} style={input} /></Field>
@@ -193,10 +236,10 @@ export default function SpielberichtePage() {
             </Section>
 
             {/* Aufstellung */}
-            <Section title="Aufstellung (H1–H6 / G1–G6, Position 1–4 spielt)">
+            <Section title="Aufstellung (H1–H8 / G1–G8 · Position 1–4 startet, 5–8 Wechsel)">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <Lineup label="Heim" players={homePlayers} setPlayers={setHomePlayers} prefix="H" />
-                <Lineup label="Gast" players={guestPlayers} setPlayers={setGuestPlayers} prefix="G" />
+                <Lineup label="Heim" players={homePlayers} setPlayers={setHomePlayers} prefix="H" options={homeRoster} teamChosen={!!header.home_team_id} />
+                <Lineup label="Gast" players={guestPlayers} setPlayers={setGuestPlayers} prefix="G" options={guestRoster} teamChosen={!!header.guest_team_id} />
               </div>
             </Section>
 
@@ -284,14 +327,26 @@ export default function SpielberichtePage() {
 
 // ── kleine Bausteine ───────────────────────────────────────────
 
-function Lineup({ label, players, setPlayers, prefix }: { label: string; players: ReportPlayer[]; setPlayers: (f: (a: ReportPlayer[]) => ReportPlayer[]) => void; prefix: string }) {
+function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
+  label: string; players: ReportPlayer[];
+  setPlayers: (f: (a: ReportPlayer[]) => ReportPlayer[]) => void;
+  prefix: string; options: RosterOption[]; teamChosen: boolean;
+}) {
+  function pick(slot: number, id: string) {
+    const opt = options.find(o => o.id === id);
+    setPlayers(arr => arr.map(x => x.slot === slot ? { ...x, player_id: id || null, name: opt ? opt.name : '' } : x));
+  }
   return (
     <div>
       <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12, color: 'var(--th-accent)', marginBottom: 6 }}>{label}</div>
+      {!teamChosen && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginBottom: 6 }}>Bitte zuerst Mannschaft wählen.</div>}
       {players.map(p => (
         <div key={p.slot} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
           <span style={{ width: 26, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: p.slot <= 4 ? 'var(--th-text-body)' : 'var(--th-text-faint)' }}>{prefix}{p.slot}</span>
-          <input value={p.name} onChange={e => setPlayers(arr => arr.map(x => x.slot === p.slot ? { ...x, name: e.target.value } : x))} placeholder={p.slot <= 4 ? 'Name *' : 'Name (Wechsel)'} style={{ ...input, flex: 1, padding: '7px 9px' }} />
+          <select value={p.player_id ?? ''} onChange={e => pick(p.slot, e.target.value)} disabled={!teamChosen} style={{ ...input, flex: 1, padding: '7px 9px', opacity: teamChosen ? 1 : 0.6 }}>
+            <option value="">{p.slot <= 4 ? '— Spieler wählen * —' : '— Wechsel (optional) —'}</option>
+            {options.map(o => <option key={o.id} value={o.id}>{o.name}{o.isCaptain ? ' (C)' : ''}</option>)}
+          </select>
         </div>
       ))}
     </div>
@@ -302,7 +357,7 @@ function SlotSel({ value, onChange, prefix }: { value: number | null; onChange: 
   return (
     <select value={value ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)} style={{ ...input, width: 56, padding: '6px 6px' }}>
       <option value="">{prefix}?</option>
-      {[1, 2, 3, 4, 5, 6].map(s => <option key={s} value={s}>{prefix}{s}</option>)}
+      {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>{prefix}{s}</option>)}
     </select>
   );
 }
