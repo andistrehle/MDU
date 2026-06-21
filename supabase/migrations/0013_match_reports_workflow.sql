@@ -15,6 +15,9 @@
 
 -- ── 1. Status-Constraint erweitern ───────────────────────────
 alter table public.match_reports drop constraint if exists match_reports_status_check;
+-- Alt-Status auf neues Modell mappen (frühere Tests: approved/rejected)
+update public.match_reports set status = 'confirmed'         where status = 'approved';
+update public.match_reports set status = 'changes_requested' where status = 'rejected';
 alter table public.match_reports
   add constraint match_reports_status_check
   check (status in ('draft','submitted','confirmed','changes_requested'));
