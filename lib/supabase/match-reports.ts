@@ -10,10 +10,10 @@
 
 import { supabase } from './client';
 
-export type ReportStatus = 'draft' | 'submitted' | 'approved' | 'rejected';
+export type ReportStatus = 'draft' | 'submitted' | 'confirmed' | 'changes_requested';
 
 export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
-  draft: 'Entwurf', submitted: 'Eingereicht', approved: 'Freigegeben', rejected: 'Abgelehnt',
+  draft: 'Entwurf', submitted: 'Eingereicht', confirmed: 'Vom Gegner bestätigt', changes_requested: 'Änderung angefordert',
 };
 
 /** Feste Spielreihenfolge des MDU 4er-Bogens. Doppel (9/10) in der Mitte. */
@@ -104,6 +104,9 @@ export interface MatchReport {
   status: ReportStatus;
   review_note: string | null;
   reviewed_at: string | null;
+  guest_change_note: string | null;
+  guest_responded_at: string | null;
+  guest_response_user_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -244,13 +247,23 @@ export async function submitReport(id: string): Promise<{ error: string | null }
   return { error: error?.message ?? null };
 }
 
-export async function reviewReport(
-  id: string, status: Extract<ReportStatus, 'approved' | 'rejected'>, reviewNote?: string,
-): Promise<{ error: string | null }> {
+/** Gast-Kapitän bestätigt den Spielbericht. */
+export async function confirmReport(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase.from('match_reports').update({
-    status, review_note: reviewNote ?? null, reviewed_by: auth.user?.id ?? null, reviewed_at: new Date().toISOString(),
+    status: 'confirmed', guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
+  }).eq('id', id);
+  return { error: error?.message ?? null };
+}
+
+/** Gast-Kapitän fordert eine Änderung an (Ergebnis bleibt vorerst bestehen). */
+export async function requestReportChange(id: string, note: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from('match_reports').update({
+    status: 'changes_requested', guest_change_note: note,
+    guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
   }).eq('id', id);
   return { error: error?.message ?? null };
 }

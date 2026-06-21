@@ -9,12 +9,12 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveMatchReports } from '@/lib/auth/roles';
 import {
-  listAllReports, getReportPlayers, getReportGames, reviewReport,
+  listAllReports, getReportPlayers, getReportGames,
   GAME_SCHEDULE, REPORT_STATUS_LABELS,
   type MatchReport, type ReportPlayer, type ReportGame, type ReportStatus,
 } from '@/lib/supabase/match-reports';
 
-const STATUSES: ReportStatus[] = ['submitted', 'approved', 'rejected', 'draft'];
+const STATUSES: ReportStatus[] = ['submitted', 'confirmed', 'changes_requested', 'draft'];
 
 export default function AdminSpielberichtePage() {
   const { user } = useAuth();
@@ -24,9 +24,6 @@ export default function AdminSpielberichtePage() {
   const [open, setOpen] = useState<MatchReport | null>(null);
   const [players, setPlayers] = useState<ReportPlayer[]>([]);
   const [games, setGames] = useState<ReportGame[]>([]);
-  const [note, setNote] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => { if (canReview) listAllReports().then(setRows); }, [canReview]);
 
@@ -36,20 +33,9 @@ export default function AdminSpielberichtePage() {
   );
 
   async function openReport(r: MatchReport) {
-    setOpen(r); setNote(''); setMsg(null);
+    setOpen(r);
     setPlayers(await getReportPlayers(r.id));
     setGames(await getReportGames(r.id));
-  }
-
-  async function act(status: 'approved' | 'rejected') {
-    if (!open) return;
-    if (status === 'rejected' && !note.trim()) { setMsg('Bitte eine Begründung eingeben.'); return; }
-    setBusy(true); setMsg(null);
-    const { error } = await reviewReport(open.id, status, note.trim() || undefined);
-    setBusy(false);
-    if (error) { setMsg(error); return; }
-    setRows(await listAllReports());
-    setOpen(null);
   }
 
   const playerName = (side: 'home' | 'guest', slot: number | null) =>
@@ -82,7 +68,7 @@ export default function AdminSpielberichtePage() {
                     {r.league_label}{r.matchday ? ` · Spieltag ${r.matchday}` : ''}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''}
                   </div>
                 </div>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'approved' ? 'var(--th-win)' : r.status === 'rejected' ? 'var(--th-loss)' : 'var(--th-accent)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-accent)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
               </button>
             ))}
           </div>
@@ -101,8 +87,6 @@ export default function AdminSpielberichtePage() {
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '0 0 14px' }}>
               {open.league_label}{open.matchday ? ` · Spieltag ${open.matchday}` : ''}{open.match_date ? ` · ${new Date(open.match_date).toLocaleDateString('de-DE')}` : ''}{open.venue ? ` · ${open.venue}` : ''}
             </p>
-
-            {msg && <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A', marginBottom: 12 }}>{msg}</div>}
 
             <div style={{ display: 'flex', gap: 14, marginBottom: 14, flexWrap: 'wrap' }}>
               <Mini label="Spiele" v={`${open.spiele_home}:${open.spiele_guest}`} />
@@ -148,21 +132,13 @@ export default function AdminSpielberichtePage() {
 
             {open.protest && <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-gold)', marginBottom: 12 }}>⚠️ Protest: {open.protest_note || '—'}</p>}
 
-            {/* Freigabe */}
-            {open.status === 'submitted' ? (
-              <>
-                <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Begründung (Pflicht bei Ablehnung)"
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none', resize: 'vertical', marginBottom: 10 }} />
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => act('rejected')} disabled={busy} style={btnRed}>Ablehnen</button>
-                  <button onClick={() => act('approved')} disabled={busy} style={btnGreen}>Freigeben</button>
-                </div>
-              </>
-            ) : (
-              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-                Status: {REPORT_STATUS_LABELS[open.status]}{open.review_note ? ` · ${open.review_note}` : ''}
-              </p>
-            )}
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', margin: 0 }}>
+              Status: <strong style={{ color: 'var(--th-text-strong)' }}>{REPORT_STATUS_LABELS[open.status]}</strong>
+              {open.status === 'changes_requested' && open.guest_change_note ? ` · Änderungswunsch: ${open.guest_change_note}` : ''}
+            </p>
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 6 }}>
+              Spielberichte werden nicht von der Ligaleitung freigegeben — diese Ansicht dient der Übersicht.
+            </p>
           </div>
         </div>
       )}
@@ -181,5 +157,3 @@ function Mini({ label, v }: { label: string; v: string }) {
 
 const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
 const ctl: React.CSSProperties = { padding: '10px 14px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' };
-const btnGreen: React.CSSProperties = { padding: '10px 20px', borderRadius: 8, cursor: 'pointer', background: '#1E9E5A', color: '#fff', border: '1px solid #1E9E5A', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
-const btnRed: React.CSSProperties = { padding: '10px 18px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-loss)', border: '1px solid var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };

@@ -18,7 +18,7 @@ import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import {
   GAME_SCHEDULE, LEG_RESULTS, REPORT_STATUS_LABELS, computeTotals,
   createReport, updateReport, submitReport, listMyReports,
-  getReport, getReportPlayers, getReportGames,
+  getReport, getReportPlayers, getReportGames, confirmReport, requestReportChange,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type MatchReport, type LegResult,
 } from '@/lib/supabase/match-reports';
 
@@ -68,7 +68,29 @@ export default function SpielberichtePage() {
   const [rows, setRows] = useState<MatchReport[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
   const didInit = useRef(false);
+
+  const myId = user?.id;
+  const myTeamId = user?.teamId;
+  const myReports = (rows ?? []).filter(r => r.home_captain_user_id === myId);
+  const toReview = (rows ?? []).filter(r => r.guest_team_id === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted');
+
+  async function onConfirm(id: string) {
+    setBusy(true);
+    await confirmReport(id);
+    setRows(await listMyReports());
+    setBusy(false);
+  }
+  async function onRequestChange(id: string) {
+    if (!reviewNote.trim()) { setMsg({ kind: 'err', text: 'Bitte beschreibe die gewünschte Änderung.' }); return; }
+    setBusy(true);
+    await requestReportChange(id, reviewNote.trim());
+    setReviewId(null); setReviewNote('');
+    setRows(await listMyReports());
+    setBusy(false);
+  }
 
   const totals = useMemo(() => computeTotals(games), [games]);
   const homeRoster = useMemo(() => rosterOptions(header.home_team_id), [header.home_team_id]);
@@ -254,17 +276,19 @@ export default function SpielberichtePage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)' }}>
                       <span style={{ width: 22, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-faint)' }}>{s.no}</span>
                       {s.type === 'single' ? (
-                        <span style={{ flex: 1, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {playerName('home', g.home_slot)} <span style={{ color: 'var(--th-text-faint)' }}>vs</span> {playerName('guest', g.guest_slot)}
+                        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-manrope)', fontSize: 12 }}>
+                          <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} />
+                          <span style={{ color: 'var(--th-text-faint)' }}>vs</span>
+                          <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} />
                         </span>
                       ) : (
                         <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-manrope)', fontSize: 12 }}>
                           <strong style={{ color: 'var(--th-accent)' }}>Doppel</strong>
-                          <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" />
-                          <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" />
+                          <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} />
+                          <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" players={homePlayers} />
                           <span style={{ color: 'var(--th-text-faint)' }}>vs</span>
-                          <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" />
-                          <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" />
+                          <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} />
+                          <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" players={guestPlayers} />
                         </span>
                       )}
                       <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px' }}>
@@ -301,19 +325,48 @@ export default function SpielberichtePage() {
               <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
             </div>
 
-            {/* Eigene Berichte */}
-            {rows && rows.length > 0 && (
+            {/* Zu prüfen (als Gegner) */}
+            {toReview.length > 0 && (
+              <Section title={`Zu prüfen (Gegner) · ${toReview.length}`}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {toReview.map(r => (
+                    <div key={r.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--th-line-4)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{r.home_team_name} {r.spiele_home}:{r.spiele_guest} {r.guest_team_name}</div>
+                          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{r.league_label}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''} · Spiele {r.spiele_home}:{r.spiele_guest}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                        <button onClick={() => onConfirm(r.id)} disabled={busy} style={{ ...ghost, padding: '8px 16px', color: 'var(--th-win)', borderColor: 'var(--th-win)' }}>Bestätigen</button>
+                        <button onClick={() => { setReviewId(reviewId === r.id ? null : r.id); setReviewNote(''); }} disabled={busy} style={{ ...ghost, padding: '8px 16px', color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung anfordern</button>
+                      </div>
+                      {reviewId === r.id && (
+                        <div style={{ marginTop: 8 }}>
+                          <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)} rows={2} placeholder="Was stimmt nicht?" style={{ ...input, resize: 'vertical' }} />
+                          <button onClick={() => onRequestChange(r.id)} disabled={busy} style={{ ...primary, marginTop: 6, padding: '8px 16px' }}>Änderung absenden</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Das Ergebnis ist bereits übernommen. Eine Änderungsanforderung informiert die Heimmannschaft.</p>
+              </Section>
+            )}
+
+            {/* Meine Spielberichte (Übersicht) */}
+            {myReports.length > 0 && (
               <Section title="Meine Spielberichte">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {rows.map(r => (
+                  {myReports.map(r => (
                     <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--th-line-4)' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{r.home_team_name} {r.spiele_home}:{r.spiele_guest} {r.guest_team_name}</div>
                         <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{r.league_label}{r.matchday ? ` · Spieltag ${r.matchday}` : ''}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''}</div>
-                        {r.review_note && r.status === 'rejected' && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: '#E24B4A', marginTop: 2 }}>Anmerkung: {r.review_note}</div>}
+                        {r.status === 'changes_requested' && r.guest_change_note && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-gold)', marginTop: 2 }}>Änderungswunsch des Gegners: {r.guest_change_note}</div>}
                       </div>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'approved' ? 'var(--th-win)' : r.status === 'rejected' ? 'var(--th-loss)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
-                      {(r.status === 'draft' || r.status === 'rejected') && <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>}
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
+                      {r.status !== 'confirmed' && <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>}
                     </div>
                   ))}
                 </div>
@@ -353,11 +406,12 @@ function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
   );
 }
 
-function SlotSel({ value, onChange, prefix }: { value: number | null; onChange: (v: number | null) => void; prefix: string }) {
+function SlotSel({ value, onChange, prefix, players }: { value: number | null; onChange: (v: number | null) => void; prefix: string; players: ReportPlayer[] }) {
+  const named = players.filter(p => p.name.trim());
   return (
-    <select value={value ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)} style={{ ...input, width: 56, padding: '6px 6px' }}>
+    <select value={value ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)} style={{ ...input, width: 150, padding: '6px 8px' }}>
       <option value="">{prefix}?</option>
-      {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>{prefix}{s}</option>)}
+      {named.map(p => <option key={p.slot} value={p.slot}>{prefix}{p.slot} · {p.name}</option>)}
     </select>
   );
 }
