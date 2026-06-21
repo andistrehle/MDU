@@ -1,8 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './icon';
 import type { NewsArticle } from '@/lib/data/news';
+
+/** Rendert einfache Markdown-Fettschrift (**…**) als <strong>. */
+function renderRich(text: string): ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
+    const m = /^\*\*([^*]+)\*\*$/.exec(part);
+    return m
+      ? <strong key={i} style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{m[1]}</strong>
+      : <span key={i}>{part}</span>;
+  });
+}
 
 /**
  * Featured news card for the Homepage „Aktuelles" section.
@@ -134,7 +144,7 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
                   fontFamily: 'var(--font-manrope)', fontSize: 15, lineHeight: 1.65,
                   color: 'var(--th-text-body)', margin: 0,
                 }}>
-                  {p}
+                  {renderRich(p)}
                 </p>
               ))}
             </div>

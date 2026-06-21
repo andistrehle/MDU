@@ -961,10 +961,13 @@
     "awayTeamId": "alptraum",
     "homeTeamName": "Treff Nix Freimann",
     "awayTeamName": "Alptraum",
-    "date": "2026-06-19",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 11,
+      "away": 7
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -1465,10 +1468,13 @@
     "awayTeamId": "flying-seven",
     "homeTeamName": "Master of Desaster",
     "awayTeamName": "Flying Seven",
-    "date": "2026-06-20",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
@@ -1479,10 +1485,13 @@
     "awayTeamId": "flying-fighters",
     "homeTeamName": "Freibad Bazis",
     "awayTeamName": "Flying Fighters",
-    "date": "2026-06-20",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 12,
+      "away": 6
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
@@ -1694,10 +1703,13 @@
     "awayTeamId": "spartans-vi",
     "homeTeamName": "Oldies & Co",
     "awayTeamName": "Spartans VI",
-    "date": "2026-06-19",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
@@ -2167,10 +2179,13 @@
     "awayTeamId": "team-desaster",
     "homeTeamName": "Massl Ghabt",
     "awayTeamName": "Team Desaster",
-    "date": "2026-04-11",
-    "time": "19:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
@@ -2181,10 +2196,13 @@
     "awayTeamId": "de-vogelwuidn",
     "homeTeamName": "Lucky Darts One",
     "awayTeamName": "De Vogelwuid'n",
-    "date": "2026-06-19",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
@@ -2195,10 +2213,13 @@
     "awayTeamId": "dc-dark-angels",
     "homeTeamName": "De Hutzeldarter",
     "awayTeamName": "DC Dark Angels",
-    "date": "2026-06-19",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 13,
+      "away": 5
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
