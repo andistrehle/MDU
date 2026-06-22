@@ -108,6 +108,7 @@ export interface MatchReport {
   guest_responded_at: string | null;
   guest_response_user_id: string | null;
   proposed_changes: ReportGame[] | null;
+  proposal_base: ReportGame[] | null;
   proposed_by: string | null;
   proposed_at: string | null;
   negotiation_rounds: number;
@@ -346,19 +347,21 @@ export async function notifyReportChange(id: string, action: 'changed' | 'delete
 }
 
 /** Gast-Kapitän schickt einen konkreten Änderungsvorschlag (Spiel-Ergebnisse) mit. */
-export async function submitGuestProposal(id: string, games: ReportGame[], note: string): Promise<{ error: string | null }> {
+const slimGame = (g: ReportGame) => ({
+  game_no: g.game_no, game_type: g.game_type,
+  home_slot: g.home_slot, guest_slot: g.guest_slot, home_slot2: g.home_slot2, guest_slot2: g.guest_slot2,
+  legs_home: g.legs_home, legs_guest: g.legs_guest,
+});
+
+export async function submitGuestProposal(id: string, games: ReportGame[], base: ReportGame[], note: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const { data: auth } = await supabase.auth.getUser();
-  const proposed = games.map(g => ({
-    game_no: g.game_no, game_type: g.game_type,
-    home_slot: g.home_slot, guest_slot: g.guest_slot, home_slot2: g.home_slot2, guest_slot2: g.guest_slot2,
-    legs_home: g.legs_home, legs_guest: g.legs_guest,
-  }));
   const now = new Date().toISOString();
   const { data: rep } = await supabase.from('match_reports').select('negotiation_rounds').eq('id', id).maybeSingle();
   const rounds = (((rep as { negotiation_rounds?: number } | null)?.negotiation_rounds) ?? 0) + 1;
   const { error } = await supabase.from('match_reports').update({
-    proposed_changes: proposed, proposed_by: auth.user?.id ?? null, proposed_at: now,
+    proposed_changes: games.map(slimGame), proposal_base: base.map(slimGame),
+    proposed_by: auth.user?.id ?? null, proposed_at: now,
     guest_change_note: note, status: 'changes_requested', guest_responded_at: now, guest_response_user_id: auth.user?.id ?? null,
     negotiation_rounds: rounds,
   }).eq('id', id);
@@ -377,7 +380,7 @@ export async function confirmReport(id: string): Promise<{ error: string | null 
   const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase.from('match_reports').update({
     status: 'confirmed', guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
-    proposed_changes: null, proposed_by: null, proposed_at: null,
+    proposed_changes: null, proposal_base: null, proposed_by: null, proposed_at: null,
   }).eq('id', id);
   return { error: error?.message ?? null };
 }

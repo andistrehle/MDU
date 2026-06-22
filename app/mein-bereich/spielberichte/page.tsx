@@ -83,6 +83,8 @@ function SpielberichteInner() {
   const [proposing, setProposing] = useState(false);       // Gast erstellt Vorschlag
   const [proposalNote, setProposalNote] = useState('');
   const [proposedGames, setProposedGames] = useState<ReportGame[] | null>(null); // Vorschlag des Gegners (für Heim sichtbar)
+  const [baseGames, setBaseGames] = useState<ReportGame[] | null>(null);         // Ausgangswerte zum Vorschlag (Vergleich)
+  const [submitBase, setSubmitBase] = useState<ReportGame[] | null>(null);       // Momentaufnahme beim Start des Vorschlags
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const proposeParam = searchParams.get('propose');
@@ -103,6 +105,11 @@ function SpielberichteInner() {
     (proposedGames ?? []).forEach(g => m.set(g.game_no, g));
     return m;
   }, [proposedGames]);
+  const baseByNo = useMemo(() => {
+    const m = new Map<number, ReportGame>();
+    (baseGames ?? []).forEach(g => m.set(g.game_no, g));
+    return m;
+  }, [baseGames]);
 
   const homeRoster = useMemo(() => rosterOptions(header.home_team_id), [header.home_team_id]);
   const guestRoster = useMemo(() => rosterOptions(header.guest_team_id), [header.guest_team_id]);
@@ -144,6 +151,7 @@ function SpielberichteInner() {
         setChangeNote(null);
         setHistory([]);
         setProposedGames(null); setProposing(false); setProposalNote('');
+        setBaseGames(null); setSubmitBase(null);
         setSeasonId(s?.id ?? '');
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
@@ -174,6 +182,11 @@ function SpielberichteInner() {
       ? GAME_SCHEDULE.map(s => r.proposed_changes!.find(g => g.game_no === s.no)
           ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null })
       : null);
+    setBaseGames(r.proposal_base && r.proposal_base.length
+      ? GAME_SCHEDULE.map(s => r.proposal_base!.find(g => g.game_no === s.no)
+          ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null })
+      : null);
+    setSubmitBase(null);
     setSeasonId(r.season_id ?? '');
     getReportHistory(id).then(setHistory);
     setHeader({
@@ -186,7 +199,10 @@ function SpielberichteInner() {
     const gs = await getReportGames(id);
     setHomePlayers(SLOTS.map(slot => ps.find(p => p.side === 'home' && p.slot === slot) ?? { side: 'home', slot, pass_no: '', name: '', player_id: null, points: 0 }));
     setGuestPlayers(SLOTS.map(slot => ps.find(p => p.side === 'guest' && p.slot === slot) ?? { side: 'guest', slot, pass_no: '', name: '', player_id: null, points: 0 }));
-    setGames(GAME_SCHEDULE.map(s => gs.find(g => g.game_no === s.no) ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null }));
+    const loadedGames = GAME_SCHEDULE.map(s => gs.find(g => g.game_no === s.no) ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null });
+    setGames(loadedGames);
+    // Bei ?propose=1 die aktuellen Werte als Vergleichsbasis sichern.
+    if (proposeParam === '1' && guestViewer) setSubmitBase(loadedGames.map(g => ({ ...g })));
   }
 
   function setH<K extends keyof ReportHeaderDraft>(k: K, v: ReportHeaderDraft[K]) { setHeader(h => ({ ...h, [k]: v })); }
@@ -301,7 +317,7 @@ function SpielberichteInner() {
     if (!regId) return;
     if (!proposalNote.trim()) { setMsg({ kind: 'err', text: 'Bitte beschreibe kurz deinen Änderungswunsch.' }); return; }
     setBusy(true); setMsg(null);
-    const { error } = await submitGuestProposal(regId, games, proposalNote.trim());
+    const { error } = await submitGuestProposal(regId, games, submitBase ?? games, proposalNote.trim());
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
     router.push('/mein-bereich/spielberichte/uebersicht');
@@ -342,7 +358,7 @@ function SpielberichteInner() {
             )}
             {readOnly && !proposing && proposedGames && loadedStatus === 'submitted' && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                <strong style={{ color: 'var(--th-gold)' }}>Antwort der Heimmannschaft:</strong> Der Bericht wurde nach deinem Vorschlag erneut eingereicht. <span style={{ color: '#A77A00', fontWeight: 700 }}>Gold markiert</span> zeigt, wo das aktuelle Ergebnis von deinem Vorschlag abweicht (Badge = dein Vorschlag). Du kannst final <strong>bestätigen</strong> oder erneut eine <strong>Änderung anfordern</strong>.
+                <strong style={{ color: 'var(--th-gold)' }}>Antwort der Heimmannschaft:</strong> Der Bericht wurde nach deinem Vorschlag erneut eingereicht. <span style={{ color: 'var(--th-win)', fontWeight: 700 }}>Grün ✓</span> = dein Vorschlag wurde übernommen, <span style={{ color: '#A77A00', fontWeight: 700 }}>Gold ➜</span> = weicht noch ab (Badge = dein Vorschlag). Du kannst final <strong>bestätigen</strong> oder erneut eine <strong>Änderung anfordern</strong>.
               </div>
             )}
 
@@ -409,14 +425,18 @@ function SpielberichteInner() {
               {GAME_SCHEDULE.map((s, i) => {
                 const g = games[i];
                 const showRound = i === 0 || GAME_SCHEDULE[i - 1].round !== s.round;
-                const prop = proposedByNo.get(s.no);
-                const propStr = prop && prop.legs_home != null && prop.legs_guest != null ? `${prop.legs_home}:${prop.legs_guest}` : null;
-                const curStr = g.legs_home != null && g.legs_guest != null ? `${g.legs_home}:${g.legs_guest}` : null;
-                const proposedDiff = propStr && propStr !== curStr ? propStr : null;
+                const legStr = (x?: ReportGame | null) => x && x.legs_home != null && x.legs_guest != null ? `${x.legs_home}:${x.legs_guest}` : null;
+                const propStr = legStr(proposedByNo.get(s.no));
+                const baseStr = legStr(baseByNo.get(s.no));
+                const curStr = legStr(g);
+                const guestChanged = !!propStr && propStr !== baseStr;   // Gegner hat dieses Spiel anders vorgeschlagen
+                const accepted = guestChanged && curStr === propStr;     // übernommen
+                const pending = guestChanged && curStr !== propStr;      // abweichend / noch offen
+                const proposedDiff = guestChanged;
                 return (
                   <div key={s.no}>
                     {showRound && <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', margin: '10px 0 4px' }}>{s.round}</div>}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)', background: proposedDiff ? 'rgba(232,184,74,0.10)' : 'transparent', borderRadius: proposedDiff ? 6 : 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)', background: accepted ? 'rgba(34,197,94,0.10)' : pending ? 'rgba(232,184,74,0.10)' : 'transparent', borderRadius: proposedDiff ? 6 : 0 }}>
                       <span style={{ width: 22, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-faint)' }}>{s.no}</span>
                       {s.type === 'single' ? (
                         <span className="mdu-mr-single">
@@ -437,13 +457,18 @@ function SpielberichteInner() {
                           </span>
                         </span>
                       )}
-                      <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px', ...(proposedDiff ? { borderColor: 'var(--th-gold)' } : {}) }}>
+                      <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px', ...(accepted ? { borderColor: 'var(--th-win)' } : pending ? { borderColor: 'var(--th-gold)' } : {}) }}>
                         <option value="">—</option>
                         {LEG_RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
-                      {proposedDiff && (
-                        <span title="Abweichung vom Vorschlag" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: '#A77A00', background: 'rgba(232,184,74,0.18)', border: '1px solid var(--th-gold)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
-                          ➜ {proposedDiff}
+                      {accepted && (
+                        <span title={`Vorschlag übernommen (${baseStr ?? '–'} → ${curStr})`} style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: 'var(--th-win)', background: 'rgba(34,197,94,0.16)', border: '1px solid var(--th-win)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
+                          ✓ {propStr}
+                        </span>
+                      )}
+                      {pending && (
+                        <span title={`Vorschlag ${propStr} – aktuell ${curStr ?? '–'}`} style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: '#A77A00', background: 'rgba(232,184,74,0.18)', border: '1px solid var(--th-gold)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
+                          ➜ {propStr}
                         </span>
                       )}
                     </div>
@@ -536,7 +561,7 @@ function SpielberichteInner() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => { setProposing(true); setMsg(null); }} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung vorschlagen</button>
+                  <button type="button" onClick={() => { setSubmitBase(games.map(g => ({ ...g }))); setProposing(true); setMsg(null); }} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung vorschlagen</button>
                   <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zurück zur Übersicht</Link>
                 </div>
               )
