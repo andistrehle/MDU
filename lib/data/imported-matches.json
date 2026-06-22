@@ -259,10 +259,13 @@
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "Jolly Pirates KT's",
     "awayTeamName": "DC Null Bull",
-    "date": "2025-12-19",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 14,
+      "away": 4
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
@@ -1502,10 +1505,13 @@
     "awayTeamId": "fiaker-deife",
     "homeTeamName": "Belfort Evolution",
     "awayTeamName": "Fiaker Deife",
-    "date": "2026-05-31",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 7,
+      "away": 11
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
