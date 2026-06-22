@@ -19,6 +19,7 @@ import { usePathname } from 'next/navigation';
 import { supabase } from './client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations, canViewUsers, canManageLeague, type UserProfile } from '@/lib/auth/roles';
+import { countPendingNominations } from './nominations';
 
 export interface AdminNotificationCounts {
   /** team_registrations mit Status submitted / in_review */
@@ -27,11 +28,13 @@ export interface AdminNotificationCounts {
   users: number;
   /** noch keine Datenquelle — bleibt 0 */
   matchReports: number;
+  /** offene Spieler-Nachmeldungen (pending) */
+  nominations: number;
   /** Summe aller offenen Admin-Aufgaben */
   total: number;
 }
 
-export const ZERO_COUNTS: AdminNotificationCounts = { registrations: 0, users: 0, matchReports: 0, total: 0 };
+export const ZERO_COUNTS: AdminNotificationCounts = { registrations: 0, users: 0, matchReports: 0, nominations: 0, total: 0 };
 
 /** Offene Mannschaftsanmeldungen (warten auf Prüfung). */
 export async function getPendingRegistrationCount(user: UserProfile | null): Promise<number> {
@@ -61,13 +64,14 @@ export async function getNewUserCount(user: UserProfile | null): Promise<number>
 /** Alle Admin-Zähler in einem Rutsch (parallele Count-Queries). */
 export async function getAdminNotificationCounts(user: UserProfile | null): Promise<AdminNotificationCounts> {
   if (!canManageLeague(user)) return ZERO_COUNTS;
-  const [registrations, users] = await Promise.all([
+  const [registrations, users, nominations] = await Promise.all([
     getPendingRegistrationCount(user),
     getNewUserCount(user),
+    countPendingNominations(),
   ]);
   // Spielberichte werden nicht von der Ligaleitung freigegeben → keine Admin-Aufgabe.
   const matchReports = 0;
-  return { registrations, users, matchReports, total: registrations + users + matchReports };
+  return { registrations, users, matchReports, nominations, total: registrations + users + matchReports + nominations };
 }
 
 export function getTotalAdminNotificationCount(counts: AdminNotificationCounts): number {

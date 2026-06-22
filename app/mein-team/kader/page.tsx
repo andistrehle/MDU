@@ -4,6 +4,7 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageTeamPlayers } from '@/lib/auth/roles';
 import { getRankedRosterForTeam, getCurrentSeason, getPlayerDisplayName, findTeam } from '@/lib/data';
+import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
 
 export default function KaderPage() {
   const { user, loading } = useAuth();
@@ -21,8 +22,11 @@ export default function KaderPage() {
         : !allowed ? <Notice title="Keine Berechtigung">Du kannst nur den Kader deines eigenen Teams verwalten.</Notice>
         : (
           <>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginBottom: 16 }}>
-              {team?.name ?? teamId} · Saison {season.name} · {roster.length} Spieler
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+              <div style={{ flex: 1, minWidth: 200, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+                {team?.name ?? teamId} · Saison {season.name} · {roster.length} Spieler
+              </div>
+              <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} />
             </div>
 
             <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden' }}>
@@ -45,7 +49,7 @@ export default function KaderPage() {
             </div>
 
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 14 }}>
-              Spieler hinzufügen oder entfernen wird vorbereitet — die Kaderpflege folgt in einem kommenden Schritt.
+              Neue Spieler über „＋ Spieler nachmelden" einreichen — die Ligaleitung prüft die Nachmeldung.
             </p>
           </>
         )}

@@ -56,6 +56,7 @@ function tilesFor(user: UserProfile): Tile[] {
       { icon: 'list',   label: 'Offene Saisonanmeldungen', description: 'Mannschaftsanmeldungen prüfen und freigeben.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
       { icon: 'trophy', label: 'Saison-Teams',            description: 'Freigegebene Mannschaften je Saison.', href: '/admin/season-teams', ready: true },
       { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true },
+      { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
     );
   }

@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
 import { loadTeamProfile, saveTeamProfile, type TeamProfileExtras } from '@/lib/supabase/profiles';
+import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
 
 export default function TeamBearbeitenPage() {
   const { user, loading } = useAuth();
@@ -44,9 +45,12 @@ export default function TeamBearbeitenPage() {
         : !extras ? <Muted>Teamdaten werden geladen …</Muted>
         : (
           <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 620 }}>
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-              Team: <strong style={{ color: 'var(--th-text-strong)' }}>{team?.name ?? teamId}</strong>
-              <span style={{ color: 'var(--th-text-faint)' }}> · der Teamname wird zentral verwaltet</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 200, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+                Team: <strong style={{ color: 'var(--th-text-strong)' }}>{team?.name ?? teamId}</strong>
+                <span style={{ color: 'var(--th-text-faint)' }}> · der Teamname wird zentral verwaltet</span>
+              </div>
+              <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} />
             </div>
 
             {msg && (
