@@ -77,13 +77,14 @@ function SpielberichteInner() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [loadedStatus, setLoadedStatus] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
   // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
   const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
-  // Gegner-Kapitän (nicht Eigentümer, kein Admin) → nur Lese-Ansicht.
-  const readOnly = !!ownerId && ownerId !== user?.id && !isAdminRole;
+  // Nur-Lese-Ansicht: Gegner-Kapitän ODER bereits bestätigter Bericht (außer Admin).
+  const readOnly = !isAdminRole && ((!!ownerId && ownerId !== user?.id) || loadedStatus === 'confirmed');
 
   const totals = useMemo(() => computeTotals(games), [games]);
   const ranking = useMemo(
@@ -123,6 +124,8 @@ function SpielberichteInner() {
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         setRegId(null);
+        setOwnerId(null);
+        setLoadedStatus(null);
         setSeasonId(s?.id ?? '');
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
@@ -143,6 +146,7 @@ function SpielberichteInner() {
     if (!r) return;
     setRegId(r.id);
     setOwnerId(r.home_captain_user_id);
+    setLoadedStatus(r.status);
     setSeasonId(r.season_id ?? '');
     setHeader({
       season_id: r.season_id, league_label: r.league_label ?? '', matchday: r.matchday, match_date: r.match_date,

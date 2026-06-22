@@ -58,7 +58,8 @@ export default function AdminSpielberichtePage() {
                 <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: 'var(--th-accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
                   {league} <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', fontWeight: 700 }}>· {list.length}</span>
                 </div>
-                <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflowX: 'auto' }}>
+                {/* Desktop: Tabelle */}
+                <div className="mdu-desktop-only" style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 640 }}>
                     <thead>
                       <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -84,6 +85,29 @@ export default function AdminSpielberichtePage() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile: kompakte Karten */}
+                <div className="mdu-mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {list.map(r => (
+                    <div key={r.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 10, padding: '10px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {r.home_team_name} <span style={{ color: 'var(--th-accent)' }}>{r.spiele_home}:{r.spiele_guest}</span> {r.guest_team_name}
+                        </span>
+                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-muted)', marginTop: 3 }}>
+                        {r.matchday ? `Sptg ${r.matchday} · ` : ''}{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : ''}
+                      </div>
+                      <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
+                        <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>
+                        <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                          {busy === r.id ? '…' : 'Löschen'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

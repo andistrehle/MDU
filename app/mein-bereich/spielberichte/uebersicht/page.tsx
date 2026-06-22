@@ -88,17 +88,19 @@ export default function SpielberichteUebersichtPage() {
               {rows === null ? <Muted>Lade …</Muted>
                 : allReports.length === 0 ? <Muted>Noch keine Spielberichte vorhanden.</Muted>
                 : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 600 }}>
+                  <>
+                    {/* Desktop: Tabelle */}
+                    <table className="mdu-desktop-only" style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
                       <thead>
                         <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                          <th style={h}>Liga</th><th style={h}>Datum</th><th style={h}>Rolle</th><th style={h}>Heim</th><th style={h}>Gast</th><th style={h}>Erg.</th><th style={h}>Status</th><th style={h}></th>
+                          <th style={h}>Liga</th><th style={h}>Sptg.</th><th style={h}>Datum</th><th style={h}>Rolle</th><th style={h}>Heim</th><th style={h}>Gast</th><th style={h}>Erg.</th><th style={h}>Status</th><th style={h}></th>
                         </tr>
                       </thead>
                       <tbody>
                         {allReports.map(r => (
                           <tr key={r.id} style={{ borderTop: '1px solid var(--th-line-4)' }}>
                             <td style={d}>{r.league_label ?? '–'}</td>
+                            <td style={d}>{r.matchday ?? '–'}</td>
                             <td style={d}>{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : '–'}</td>
                             <td style={{ ...d, fontWeight: 700, color: isOwner(r) ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{isOwner(r) ? 'Heim' : 'Gast'}</td>
                             <td style={{ ...d, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.home_team_name}</td>
@@ -110,7 +112,24 @@ export default function SpielberichteUebersichtPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+
+                    {/* Mobile: kompakte Karten (kein horizontales Scrollen) */}
+                    <div className="mdu-mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {allReports.map(r => (
+                        <Link key={r.id} href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ textDecoration: 'none', border: '1px solid var(--th-line-6)', borderRadius: 10, padding: '10px 12px', display: 'block' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {r.home_team_name} <span style={{ color: 'var(--th-accent)' }}>{r.spiele_home}:{r.spiele_guest}</span> {r.guest_team_name}
+                            </span>
+                            <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-muted)', marginTop: 3 }}>
+                            {r.league_label}{r.matchday ? ` · Sptg ${r.matchday}` : ''}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''} · {isOwner(r) ? 'Heim' : 'Gast'}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </>
                 )}
             </Card>
           </div>
