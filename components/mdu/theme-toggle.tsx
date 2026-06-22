@@ -80,12 +80,12 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
   const isDark = !mounted || theme === 'dark'; // true = New Design active
 
   // ── Sizing (Variante 2 proportions) ─────────────────────────
-  const W       = mini ? 156 : compact ? 220 : 288;
-  const H       = mini ? 38  : compact ? 46  : 54;
-  const pad     = mini ? 3 : 4;
-  const thumbD  = mini ? 24 : H - pad * 2 - 2; // small round handle, stays inside
-  const clear   = mini ? 26 : thumbD + 6;      // active-label clearance on handle side
-  const fz      = mini ? 8.5 : compact ? 11.5 : 13; // main label
+  const W       = mini ? 118 : compact ? 220 : 288;
+  const H       = mini ? 34  : compact ? 46  : 54;
+  const pad     = mini ? 2 : 4;
+  const thumbD  = mini ? 20 : H - pad * 2 - 2; // small round handle, stays inside
+  const clear   = mini ? 22 : thumbD + 6;      // active-label clearance on handle side
+  const fz      = mini ? 8 : compact ? 11.5 : 13; // main label
   const fz2     = compact ? 7.5 : 8.5;       // sub label (not shown in mini)
 
   const OLD_GREEN = '#3E9C33';
@@ -109,13 +109,14 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
       style={{
         position: 'relative',
         width: W, maxWidth: '100%', height: H,
-        borderRadius: 999, padding: pad, border: '1px solid var(--th-line-8)',
+        borderRadius: 999, padding: pad,
+        border: mini ? 'none' : '1px solid var(--th-line-8)',
         cursor: 'pointer', flexShrink: 0,
-        background: '#14171F',
-        // Subtle active-world glow — no rainbow ring.
-        boxShadow: isDark
+        background: mini ? 'transparent' : '#14171F',
+        // Subtle active-world glow — no rainbow ring (kein Rahmen in mini).
+        boxShadow: mini ? 'none' : (isDark
           ? '0 2px 8px rgba(0,0,0,0.30), 0 0 14px rgba(212,0,0,0.20)'
-          : '0 2px 8px rgba(46,78,128,0.16), 0 0 12px rgba(95,140,201,0.18)',
+          : '0 2px 8px rgba(46,78,128,0.16), 0 0 12px rgba(95,140,201,0.18)'),
         transition: 'box-shadow 250ms ease',
         overflow: 'hidden',
       }}

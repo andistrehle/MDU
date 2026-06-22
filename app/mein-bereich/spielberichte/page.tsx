@@ -4,9 +4,9 @@
 // Mein Bereich — Spielbericht erfassen (MDU 4er-Bogen, online)
 // ============================================================
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canUploadMatchReport } from '@/lib/auth/roles';
@@ -52,6 +52,14 @@ function legToResult(g: ReportGame): LegResult | '' {
 }
 
 export default function SpielberichtePage() {
+  return (
+    <Suspense fallback={<MemberShell title="Spielbericht erfassen"><Muted>Lade …</Muted></MemberShell>}>
+      <SpielberichteInner />
+    </Suspense>
+  );
+}
+
+function SpielberichteInner() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const allowed = canUploadMatchReport(user, user?.teamId ?? '') || (user?.role === 'team_captain') || (user ? user.role === 'league_admin' || user.role === 'super_admin' : false);
@@ -71,7 +79,8 @@ export default function SpielberichtePage() {
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [reviewId, setReviewId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState('');
-  const didInit = useRef(false);
+  const searchParams = useSearchParams();
+  const idParam = searchParams.get('id');
 
   const myId = user?.id;
   const myTeamId = user?.teamId;
@@ -115,27 +124,38 @@ export default function SpielberichtePage() {
     setGuestPlayers(emptyPlayers('guest'));
   }
 
-  // Saison + Liste laden, Heim-Team vorbelegen
+  // Laden: bestehenden Bericht (?id=…) ODER neues Formular mit Defaults.
+  // Reagiert auf id-Wechsel (auch bei In-Page-Navigation aus der Liste).
   useEffect(() => {
     if (!allowed) return;
+    let cancelled = false;
     (async () => {
-      const s = (await getRegistrationSeason()) ?? (await getActiveSeason());
-      const id = new URLSearchParams(window.location.search).get('id');
-      if (id) await loadExisting(id);
-      else if (!didInit.current) {
-        didInit.current = true;
+      if (idParam) {
+        await loadExisting(idParam);
+      } else {
+        const s = (await getRegistrationSeason()) ?? (await getActiveSeason());
+        if (cancelled) return;
         const teamName = user?.teamId ? (findTeam(user.teamId)?.name ?? '') : '';
         const venue = user?.teamId ? ((getVenueForTeamInSeason(user.teamId, SEASON.id) as { name?: string } | null)?.name ?? '') : '';
-        // Heutiges Datum lokal (kein UTC-Versatz) als Default bei neuem Bericht.
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        setRegId(null);
         setSeasonId(s?.id ?? '');
-        setHeader(h => ({ ...h, season_id: s?.id ?? null, home_team_id: user?.teamId ?? null, home_team_name: teamName, venue, tc_home: user?.displayName ?? '', match_date: today }));
+        setHeader({
+          season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
+          home_team_id: user?.teamId ?? null, guest_team_id: null, home_team_name: teamName, guest_team_name: '',
+          tc_home: user?.displayName ?? '', tc_guest: '', protest: false, protest_note: '',
+        });
+        setHomePlayers(emptyPlayers('home'));
+        setGuestPlayers(emptyPlayers('guest'));
+        setGames(emptyGames());
       }
-      setRows(await listMyReports());
+      const r = await listMyReports();
+      if (!cancelled) setRows(r);
     })();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allowed]);
+  }, [allowed, idParam]);
 
   async function loadExisting(id: string) {
     const r = await getReport(id);
@@ -166,6 +186,37 @@ export default function SpielberichtePage() {
   }
   function setGameSlot(no: number, field: 'home_slot' | 'guest_slot' | 'home_slot2' | 'guest_slot2', v: number | null) {
     setGames(arr => arr.map(g => g.game_no === no ? { ...g, [field]: v } : g));
+  }
+
+  // aktive (in der Aufstellung gewählte) Slots je Seite
+  function activeSlots(side: 'home' | 'guest'): number[] {
+    return (side === 'home' ? homePlayers : guestPlayers).filter(p => p.name.trim()).map(p => p.slot);
+  }
+
+  /**
+   * Erlaubte Spieler-Slots für ein Einzel an fester Position:
+   *  • der Startspieler dieser Position
+   *  • Wechselspieler (5–8), die noch ungebunden ODER genau an diese Position gebunden sind
+   * (Wechselspieler bindet sich beim ersten Einsatz fest an eine Position.)
+   */
+  function singlesAllowed(side: 'home' | 'guest', position: number): number[] {
+    const subPos = new Map<number, Set<number>>();
+    for (const g of games) {
+      if (g.game_type !== 'single') continue;
+      const sch = GAME_SCHEDULE.find(s => s.no === g.game_no);
+      const pos = side === 'home' ? sch?.homeSlot : sch?.guestSlot;
+      const slot = side === 'home' ? g.home_slot : g.guest_slot;
+      if (pos == null || slot == null || slot <= 4) continue;
+      if (!subPos.has(slot)) subPos.set(slot, new Set());
+      subPos.get(slot)!.add(pos);
+    }
+    return activeSlots(side).filter(slot => {
+      if (slot === position) return true;       // Startspieler dieser Position
+      if (slot <= 4) return false;              // andere Startspieler nicht erlaubt
+      const ps = subPos.get(slot);              // Wechselspieler
+      if (!ps || ps.size === 0) return true;    // noch ungebunden
+      return ps.size === 1 && ps.has(position); // fest an genau diese Position gebunden
+    });
   }
 
   function playerName(side: 'home' | 'guest', slot: number | null): string {
@@ -290,19 +341,22 @@ export default function SpielberichtePage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)' }}>
                       <span style={{ width: 22, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-faint)' }}>{s.no}</span>
                       {s.type === 'single' ? (
-                        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-manrope)', fontSize: 12 }}>
-                          <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} />
-                          <span style={{ color: 'var(--th-text-faint)' }}>vs</span>
-                          <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} />
+                        <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                          <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} allowedSlots={singlesAllowed('home', s.homeSlot!)} />
+                          <span style={{ alignSelf: 'center', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>vs</span>
+                          <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} allowedSlots={singlesAllowed('guest', s.guestSlot!)} />
                         </span>
                       ) : (
-                        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-manrope)', fontSize: 12 }}>
-                          <strong style={{ color: 'var(--th-accent)' }}>Doppel</strong>
-                          <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} />
-                          <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" players={homePlayers} />
-                          <span style={{ color: 'var(--th-text-faint)' }}>vs</span>
-                          <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} />
-                          <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" players={guestPlayers} />
+                        <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                          <span style={{ display: 'flex', gap: 4 }}>
+                            <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} allowedSlots={activeSlots('home').filter(x => x !== g.home_slot2)} />
+                            <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" players={homePlayers} allowedSlots={activeSlots('home').filter(x => x !== g.home_slot)} />
+                          </span>
+                          <span style={{ alignSelf: 'center', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>vs</span>
+                          <span style={{ display: 'flex', gap: 4 }}>
+                            <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} allowedSlots={activeSlots('guest').filter(x => x !== g.guest_slot2)} />
+                            <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" players={guestPlayers} allowedSlots={activeSlots('guest').filter(x => x !== g.guest_slot)} />
+                          </span>
                         </span>
                       )}
                       <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px' }}>
@@ -332,28 +386,33 @@ export default function SpielberichtePage() {
               {ranking.length === 0 ? (
                 <Muted>Sobald Einzelergebnisse eingetragen sind, erscheint hier die Auswertung.</Muted>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 13, minWidth: 520 }}>
-                    <thead>
-                      <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        <th style={th}>Spieler</th><th style={th}>Team</th><th style={thC}>Einzel</th><th style={thC}>S</th><th style={thC}>N</th><th style={thC}>Legs</th><th style={thC}>Punkte</th>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12, tableLayout: 'fixed' }}>
+                  <thead>
+                    <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <th style={{ padding: '4px 4px', width: 'auto' }}>Spieler</th>
+                      <th style={{ padding: '4px 2px', width: 34, textAlign: 'center' }}>Sp.</th>
+                      <th style={{ padding: '4px 2px', width: 24, textAlign: 'center' }}>S</th>
+                      <th style={{ padding: '4px 2px', width: 24, textAlign: 'center' }}>N</th>
+                      <th style={{ padding: '4px 2px', width: 46, textAlign: 'center' }}>Legs</th>
+                      <th style={{ padding: '4px 4px', width: 40, textAlign: 'center' }}>Pkt</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ranking.map(r => (
+                      <tr key={r.side + r.slot} style={{ borderTop: '1px solid var(--th-line-4)' }}>
+                        <td style={{ padding: '6px 4px', maxWidth: 0 }}>
+                          <div style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
+                          <div style={{ fontSize: 10, color: 'var(--th-text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.team}</div>
+                        </td>
+                        <td style={{ padding: '6px 2px', textAlign: 'center' }}>{r.singles}</td>
+                        <td style={{ padding: '6px 2px', textAlign: 'center' }}>{r.wins}</td>
+                        <td style={{ padding: '6px 2px', textAlign: 'center' }}>{r.losses}</td>
+                        <td style={{ padding: '6px 2px', textAlign: 'center', whiteSpace: 'nowrap' }}>{r.legsWon}:{r.legsLost}</td>
+                        <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 800, color: 'var(--th-accent)' }}>{r.points}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {ranking.map(r => (
-                        <tr key={r.side + r.slot} style={{ borderTop: '1px solid var(--th-line-4)' }}>
-                          <td style={{ ...td, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.name}</td>
-                          <td style={{ ...td, color: 'var(--th-text-muted)' }}>{r.team}</td>
-                          <td style={tdC}>{r.singles}</td>
-                          <td style={tdC}>{r.wins}</td>
-                          <td style={tdC}>{r.losses}</td>
-                          <td style={tdC}>{r.legsWon}:{r.legsLost}</td>
-                          <td style={{ ...tdC, fontWeight: 800, color: 'var(--th-accent)' }}>{r.points}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               )}
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Nur Einzelspiele · Punkte dem tatsächlich eingesetzten Spieler zugeordnet (inkl. Auswechslungen).</p>
             </Section>
@@ -399,21 +458,35 @@ export default function SpielberichtePage() {
               </Section>
             )}
 
-            {/* Meine Spielberichte (Übersicht) */}
+            {/* Meine Spielberichte (Übersicht als Tabelle) */}
             {myReports.length > 0 && (
               <Section title="Meine Spielberichte">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {myReports.map(r => (
-                    <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--th-line-4)' }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{r.home_team_name} {r.spiele_home}:{r.spiele_guest} {r.guest_team_name}</div>
-                        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{r.league_label}{r.matchday ? ` · Spieltag ${r.matchday}` : ''}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''}</div>
-                        {r.status === 'changes_requested' && r.guest_change_note && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-gold)', marginTop: 2 }}>Änderungswunsch des Gegners: {r.guest_change_note}</div>}
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
-                      {r.status !== 'confirmed' && <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>}
-                    </div>
-                  ))}
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 560 }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        <th style={ovh}>Liga</th><th style={ovh}>Jahr</th><th style={ovh}>Sptg.</th><th style={ovh}>Datum</th><th style={ovh}>Heim</th><th style={ovh}>Gast</th><th style={ovh}>Status</th><th style={ovh}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myReports.map(r => (
+                        <tr key={r.id} style={{ borderTop: '1px solid var(--th-line-4)' }}>
+                          <td style={ovd}>{r.league_label ?? '–'}</td>
+                          <td style={ovd}>{r.match_date ? new Date(r.match_date).getFullYear() : '–'}</td>
+                          <td style={ovd}>{r.matchday ?? '–'}</td>
+                          <td style={ovd}>{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : '–'}</td>
+                          <td style={{ ...ovd, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.home_team_name}</td>
+                          <td style={ovd}>{r.guest_team_name}</td>
+                          <td style={{ ...ovd, fontWeight: 700, color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</td>
+                          <td style={ovd}>
+                            <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                              {r.status === 'confirmed' ? 'Ansehen' : 'Bearbeiten'}
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </Section>
             )}
@@ -454,10 +527,10 @@ function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
   );
 }
 
-function SlotSel({ value, onChange, prefix, players }: { value: number | null; onChange: (v: number | null) => void; prefix: string; players: ReportPlayer[] }) {
-  const named = players.filter(p => p.name.trim());
+function SlotSel({ value, onChange, prefix, players, allowedSlots }: { value: number | null; onChange: (v: number | null) => void; prefix: string; players: ReportPlayer[]; allowedSlots?: number[] }) {
+  const named = players.filter(p => p.name.trim() && (!allowedSlots || allowedSlots.includes(p.slot) || p.slot === value));
   return (
-    <select value={value ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)} style={{ ...input, width: 150, padding: '6px 8px' }}>
+    <select value={value ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)} style={{ ...input, flex: 1, minWidth: 0, width: '100%', padding: '6px 8px' }}>
       <option value="">{prefix}?</option>
       {named.map(p => <option key={p.slot} value={p.slot}>{prefix}{p.slot} · {p.name}</option>)}
     </select>
@@ -497,9 +570,7 @@ const input: React.CSSProperties = {
   width: '100%', padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
   borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
 };
-const th: React.CSSProperties = { padding: '6px 8px', fontWeight: 700 };
-const thC: React.CSSProperties = { ...th, textAlign: 'center' };
-const td: React.CSSProperties = { padding: '7px 8px', whiteSpace: 'nowrap' };
-const tdC: React.CSSProperties = { ...td, textAlign: 'center' };
+const ovh: React.CSSProperties = { padding: '5px 8px', fontWeight: 700, whiteSpace: 'nowrap' };
+const ovd: React.CSSProperties = { padding: '8px 8px', whiteSpace: 'nowrap', color: 'var(--th-text-body)' };
 const ghost: React.CSSProperties = { padding: '12px 22px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
 const primary: React.CSSProperties = { padding: '12px 28px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
