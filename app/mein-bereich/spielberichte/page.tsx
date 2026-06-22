@@ -19,7 +19,7 @@ import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
-  submitGuestProposal, clearProposal, computePlayerRanking,
+  submitGuestProposal, computePlayerRanking,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
 } from '@/lib/supabase/match-reports';
 
@@ -290,10 +290,7 @@ function SpielberichteInner() {
     const id = await persist();
     if (!id) { setBusy(false); return; }
     const { error } = await submitReport(id);
-    if (!error) {
-      await clearProposal(id); // ein evtl. offener Gegner-Vorschlag ist erledigt
-      if (adminEditsForeign) await notifyReportChange(id, 'changed');
-    }
+    if (!error && adminEditsForeign) await notifyReportChange(id, 'changed');
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
     router.push(adminEditsForeign ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht');
@@ -341,6 +338,11 @@ function SpielberichteInner() {
             {proposing && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                 <strong style={{ color: 'var(--th-gold)' }}>Vorschlagsmodus:</strong> Passe die Ergebnisse an, wie sie deiner Meinung nach lauten. Dein Vorschlag wird dem Heim-Kapitän angezeigt – er entscheidet über die Übernahme.
+              </div>
+            )}
+            {readOnly && !proposing && proposedGames && loadedStatus === 'submitted' && (
+              <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                <strong style={{ color: 'var(--th-gold)' }}>Antwort der Heimmannschaft:</strong> Der Bericht wurde nach deinem Vorschlag erneut eingereicht. <span style={{ color: '#A77A00', fontWeight: 700 }}>Gold markiert</span> zeigt, wo das aktuelle Ergebnis von deinem Vorschlag abweicht (Badge = dein Vorschlag). Du kannst final <strong>bestätigen</strong> oder erneut eine <strong>Änderung anfordern</strong>.
               </div>
             )}
 
@@ -440,7 +442,7 @@ function SpielberichteInner() {
                         {LEG_RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
                       {proposedDiff && (
-                        <span title="Vorschlag des Gegners" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: '#A77A00', background: 'rgba(232,184,74,0.18)', border: '1px solid var(--th-gold)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
+                        <span title="Abweichung vom Vorschlag" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: '#A77A00', background: 'rgba(232,184,74,0.18)', border: '1px solid var(--th-gold)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
                           ➜ {proposedDiff}
                         </span>
                       )}

@@ -110,6 +110,7 @@ export interface MatchReport {
   proposed_changes: ReportGame[] | null;
   proposed_by: string | null;
   proposed_at: string | null;
+  negotiation_rounds: number;
   created_at: string;
   updated_at: string;
 }
@@ -251,6 +252,7 @@ export const HISTORY_ACTION_LABELS: Record<string, string> = {
   confirmed: 'Vom Gegner bestätigt',
   changes_requested: 'Änderung angefordert',
   admin_changed: 'Von der Ligaleitung geändert',
+  escalated: 'An Ligaleitung eskaliert',
 };
 
 export async function getReportHistory(reportId: string): Promise<ReportHistoryEntry[]> {
@@ -353,9 +355,12 @@ export async function submitGuestProposal(id: string, games: ReportGame[], note:
     legs_home: g.legs_home, legs_guest: g.legs_guest,
   }));
   const now = new Date().toISOString();
+  const { data: rep } = await supabase.from('match_reports').select('negotiation_rounds').eq('id', id).maybeSingle();
+  const rounds = (((rep as { negotiation_rounds?: number } | null)?.negotiation_rounds) ?? 0) + 1;
   const { error } = await supabase.from('match_reports').update({
     proposed_changes: proposed, proposed_by: auth.user?.id ?? null, proposed_at: now,
     guest_change_note: note, status: 'changes_requested', guest_responded_at: now, guest_response_user_id: auth.user?.id ?? null,
+    negotiation_rounds: rounds,
   }).eq('id', id);
   return { error: error?.message ?? null };
 }
@@ -372,6 +377,7 @@ export async function confirmReport(id: string): Promise<{ error: string | null 
   const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase.from('match_reports').update({
     status: 'confirmed', guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
+    proposed_changes: null, proposed_by: null, proposed_at: null,
   }).eq('id', id);
   return { error: error?.message ?? null };
 }
