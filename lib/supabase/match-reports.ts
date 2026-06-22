@@ -234,6 +234,32 @@ export async function getReportGames(reportId: string): Promise<ReportGame[]> {
   return (data ?? []) as ReportGame[];
 }
 
+export interface ReportHistoryEntry {
+  id: string;
+  report_id: string;
+  action: string;
+  actor_user_id: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export const HISTORY_ACTION_LABELS: Record<string, string> = {
+  submitted: 'Eingereicht',
+  confirmed: 'Vom Gegner bestätigt',
+  changes_requested: 'Änderung angefordert',
+  admin_changed: 'Von der Ligaleitung geändert',
+};
+
+export async function getReportHistory(reportId: string): Promise<ReportHistoryEntry[]> {
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from('match_report_history')
+    .select('*')
+    .eq('report_id', reportId)
+    .order('created_at', { ascending: true });
+  return (data ?? []) as ReportHistoryEntry[];
+}
+
 // ── Schreiben ──────────────────────────────────────────────────
 
 /** Legt einen Bericht (Entwurf) an inkl. Aufstellung + Spiele. */

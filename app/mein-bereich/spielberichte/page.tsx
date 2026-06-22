@@ -18,9 +18,9 @@ import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
-  getReport, getReportPlayers, getReportGames,
+  getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   computePlayerRanking,
-  type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult,
+  type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
 } from '@/lib/supabase/match-reports';
 
 const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
@@ -78,6 +78,8 @@ function SpielberichteInner() {
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [loadedStatus, setLoadedStatus] = useState<string | null>(null);
+  const [changeNote, setChangeNote] = useState<string | null>(null);
+  const [history, setHistory] = useState<ReportHistoryEntry[]>([]);
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
@@ -128,6 +130,8 @@ function SpielberichteInner() {
         setRegId(null);
         setOwnerId(null);
         setLoadedStatus(null);
+        setChangeNote(null);
+        setHistory([]);
         setSeasonId(s?.id ?? '');
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
@@ -149,7 +153,9 @@ function SpielberichteInner() {
     setRegId(r.id);
     setOwnerId(r.home_captain_user_id);
     setLoadedStatus(r.status);
+    setChangeNote(r.guest_change_note ?? null);
     setSeasonId(r.season_id ?? '');
+    getReportHistory(id).then(setHistory);
     setHeader({
       season_id: r.season_id, league_label: r.league_label ?? '', matchday: r.matchday, match_date: r.match_date,
       venue: r.venue ?? '', home_team_id: r.home_team_id, guest_team_id: r.guest_team_id,
@@ -278,6 +284,12 @@ function SpielberichteInner() {
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 760 }}>
             {msg && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}
+
+            {loadedStatus === 'changes_requested' && changeNote && (
+              <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                <strong style={{ color: 'var(--th-gold)' }}>Änderungswunsch des Gegners:</strong> {changeNote}
+              </div>
+            )}
 
             {readOnly && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
@@ -438,6 +450,22 @@ function SpielberichteInner() {
             </Section>
 
             </fieldset>
+
+            {history.length > 0 && (
+              <Section title="Verlauf">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {history.map(e => (
+                    <div key={e.id} style={{ display: 'flex', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', borderBottom: '1px solid var(--th-line-4)', paddingBottom: 5 }}>
+                      <span style={{ flexShrink: 0, color: 'var(--th-text-faint)', minWidth: 120 }}>{new Date(e.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <strong style={{ color: 'var(--th-text-strong)' }}>{HISTORY_ACTION_LABELS[e.action] ?? e.action}</strong>
+                        {e.note ? `: ${e.note}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
 
             {readOnly ? (
               <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', alignSelf: 'flex-start' }}>Zurück zur Übersicht</Link>
