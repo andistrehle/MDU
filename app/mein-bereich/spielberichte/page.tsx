@@ -560,9 +560,18 @@ function SpielberichteInner() {
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => { setSubmitBase(games.map(g => ({ ...g }))); setProposing(true); setMsg(null); }} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung vorschlagen</button>
-                  <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zurück zur Übersicht</Link>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {loadedStatus === 'changes_requested' && (
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+                      Dein Änderungswunsch wurde übermittelt – jetzt ist die Heimmannschaft am Zug. Sobald sie den Bericht erneut einreicht, kannst du bestätigen oder erneut ändern.
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    {loadedStatus === 'submitted' && (
+                      <button type="button" onClick={() => { setSubmitBase(games.map(g => ({ ...g }))); setProposing(true); setMsg(null); }} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung vorschlagen</button>
+                    )}
+                    <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zurück zur Übersicht</Link>
+                  </div>
                 </div>
               )
             ) : (
