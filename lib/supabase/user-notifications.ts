@@ -28,12 +28,13 @@ export interface AppNotification {
 }
 
 /** Bereich für Kachel-Badges aus der Ziel-URL ableiten (robust). */
-export type NotificationArea = 'users' | 'registrations' | 'anmeldungen' | 'profile' | 'team' | 'other';
+export type NotificationArea = 'users' | 'registrations' | 'anmeldungen' | 'spielberichte' | 'profile' | 'team' | 'other';
 
 export function areaFromNotification(n: AppNotification): NotificationArea {
   const url = n.action_url ?? '';
   if (url.startsWith('/admin/users')) return 'users';
   if (url.startsWith('/admin/registrations')) return 'registrations';
+  if (url.startsWith('/mein-bereich/spielberichte') || n.related_entity_type === 'match_report') return 'spielberichte';
   if (url.startsWith('/mein-bereich/anmeldungen')) return 'anmeldungen';
   if (url.startsWith('/mein-profil')) return 'profile';
   if (url.startsWith('/mein-bereich') || n.type === 'team_linked' || n.type === 'role_changed') return 'team';
@@ -98,7 +99,7 @@ export async function markAllNotificationsRead(): Promise<{ error: string | null
 
 export type AreaCounts = Record<NotificationArea, number>;
 
-const ZERO_AREAS: AreaCounts = { users: 0, registrations: 0, anmeldungen: 0, profile: 0, team: 0, other: 0 };
+const ZERO_AREAS: AreaCounts = { users: 0, registrations: 0, anmeldungen: 0, spielberichte: 0, profile: 0, team: 0, other: 0 };
 
 export interface UseNotificationsResult {
   items: AppNotification[];
