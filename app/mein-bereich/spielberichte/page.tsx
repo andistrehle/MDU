@@ -98,7 +98,8 @@ function SpielberichteInner() {
   function onHomeTeam(id: string) {
     const t = findTeam(id);
     const v = (getVenueForTeamInSeason(id, SEASON.id) as { name?: string } | null)?.name ?? '';
-    setHeader(h => ({ ...h, home_team_id: id || null, home_team_name: t?.name ?? '', venue: v }));
+    const captain = id ? (getCaptainForTeamInSeason(id, SEASON.id) ?? '') : '';
+    setHeader(h => ({ ...h, home_team_id: id || null, home_team_name: t?.name ?? '', venue: v, tc_home: captain }));
     setHomePlayers(emptyPlayers('home'));
   }
   function onGuestTeam(id: string) {
@@ -121,6 +122,7 @@ function SpielberichteInner() {
         if (cancelled) return;
         const teamName = user?.teamId ? (findTeam(user.teamId)?.name ?? '') : '';
         const venue = user?.teamId ? ((getVenueForTeamInSeason(user.teamId, SEASON.id) as { name?: string } | null)?.name ?? '') : '';
+        const homeCaptain = user?.teamId ? (getCaptainForTeamInSeason(user.teamId, SEASON.id) ?? '') : '';
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         setRegId(null);
@@ -130,7 +132,7 @@ function SpielberichteInner() {
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
           home_team_id: user?.teamId ?? null, guest_team_id: null, home_team_name: teamName, guest_team_name: '',
-          tc_home: user?.displayName ?? '', tc_guest: '', protest: false, protest_note: '',
+          tc_home: homeCaptain, tc_guest: '', protest: false, protest_note: '',
         });
         setHomePlayers(emptyPlayers('home'));
         setGuestPlayers(emptyPlayers('guest'));
@@ -318,7 +320,12 @@ function SpielberichteInner() {
                 </Field>
               </Row2>
               <Row2>
-                <Field label="TC Heim"><input value={header.tc_home ?? ''} onChange={e => setH('tc_home', e.target.value)} style={input} /></Field>
+                <Field label="TC Heim">
+                  <input value={header.tc_home ?? ''} onChange={e => setH('tc_home', e.target.value)} style={input} />
+                  {header.home_team_id && !header.tc_home?.trim() && (
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-gold)' }}>Kein Teamkapitän hinterlegt</span>
+                  )}
+                </Field>
                 <Field label="TC Gast">
                   <input value={header.tc_guest ?? ''} onChange={e => setH('tc_guest', e.target.value)} style={input} />
                   {header.guest_team_id && !header.tc_guest?.trim() && (
