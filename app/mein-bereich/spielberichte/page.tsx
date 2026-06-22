@@ -19,7 +19,7 @@ import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
-  computePlayerRanking,
+  submitGuestProposal, clearProposal, computePlayerRanking,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
 } from '@/lib/supabase/match-reports';
 
@@ -80,6 +80,9 @@ function SpielberichteInner() {
   const [loadedStatus, setLoadedStatus] = useState<string | null>(null);
   const [changeNote, setChangeNote] = useState<string | null>(null);
   const [history, setHistory] = useState<ReportHistoryEntry[]>([]);
+  const [proposing, setProposing] = useState(false);       // Gast erstellt Vorschlag
+  const [proposalNote, setProposalNote] = useState('');
+  const [proposedGames, setProposedGames] = useState<ReportGame[] | null>(null); // Vorschlag des Gegners (für Heim sichtbar)
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
@@ -132,6 +135,7 @@ function SpielberichteInner() {
         setLoadedStatus(null);
         setChangeNote(null);
         setHistory([]);
+        setProposedGames(null); setProposing(false); setProposalNote('');
         setSeasonId(s?.id ?? '');
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
@@ -154,6 +158,11 @@ function SpielberichteInner() {
     setOwnerId(r.home_captain_user_id);
     setLoadedStatus(r.status);
     setChangeNote(r.guest_change_note ?? null);
+    setProposing(false); setProposalNote('');
+    setProposedGames(r.proposed_changes && r.proposed_changes.length
+      ? GAME_SCHEDULE.map(s => r.proposed_changes!.find(g => g.game_no === s.no)
+          ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null })
+      : null);
     setSeasonId(r.season_id ?? '');
     getReportHistory(id).then(setHistory);
     setHeader({
@@ -270,10 +279,32 @@ function SpielberichteInner() {
     const id = await persist();
     if (!id) { setBusy(false); return; }
     const { error } = await submitReport(id);
-    if (!error && adminEditsForeign) await notifyReportChange(id, 'changed');
+    if (!error) {
+      await clearProposal(id); // ein evtl. offener Gegner-Vorschlag ist erledigt
+      if (adminEditsForeign) await notifyReportChange(id, 'changed');
+    }
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
-    router.push(adminEditsForeign ? '/admin/spielberichte' : '/mein-bereich');
+    router.push(adminEditsForeign ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht');
+  }
+
+  /** Gast: Vorschlag (geänderte Ergebnisse) absenden. */
+  async function onSubmitProposal() {
+    if (!regId) return;
+    if (!proposalNote.trim()) { setMsg({ kind: 'err', text: 'Bitte beschreibe kurz deinen Änderungswunsch.' }); return; }
+    setBusy(true); setMsg(null);
+    const { error } = await submitGuestProposal(regId, games, proposalNote.trim());
+    setBusy(false);
+    if (error) { setMsg({ kind: 'err', text: error }); return; }
+    router.push('/mein-bereich/spielberichte/uebersicht');
+  }
+
+  /** Heim: Vorschlag des Gegners in den Bogen übernehmen (noch nicht gespeichert). */
+  function applyProposal() {
+    if (!proposedGames) return;
+    setGames(proposedGames);
+    setProposedGames(null);
+    setMsg({ kind: 'ok', text: 'Vorschlag übernommen — bitte prüfen und anschließend „Spielbericht absenden".' });
   }
 
   return (
@@ -291,13 +322,18 @@ function SpielberichteInner() {
               </div>
             )}
 
-            {readOnly && (
+            {readOnly && !proposing && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                Nur-Lese-Ansicht (du bist die Gastmannschaft). Zum Bestätigen oder Ändern zurück zur Übersicht.
+                Nur-Lese-Ansicht (du bist die Gastmannschaft). Du kannst den Bericht bestätigen oder unten einen Änderungsvorschlag eintragen.
+              </div>
+            )}
+            {proposing && (
+              <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                <strong style={{ color: 'var(--th-gold)' }}>Vorschlagsmodus:</strong> Passe die Ergebnisse an, wie sie deiner Meinung nach lauten. Dein Vorschlag wird dem Heim-Kapitän angezeigt – er entscheidet über die Übernahme.
               </div>
             )}
 
-            <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <fieldset disabled={readOnly && !proposing} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Kopf */}
             <Section title="Spielbericht – Kopfdaten">
               <Row2>
@@ -468,13 +504,36 @@ function SpielberichteInner() {
             )}
 
             {readOnly ? (
-              <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', alignSelf: 'flex-start' }}>Zurück zur Übersicht</Link>
+              proposing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <textarea value={proposalNote} onChange={e => setProposalNote(e.target.value)} rows={2} placeholder="Was soll geändert werden? (Pflicht)" style={{ ...input, resize: 'vertical' }} />
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={onSubmitProposal} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Vorschlag absenden'}</button>
+                    <button type="button" onClick={() => { setProposing(false); if (regId) loadExisting(regId); }} disabled={busy} style={ghost}>Abbrechen</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => { setProposing(true); setMsg(null); }} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung vorschlagen</button>
+                  <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zurück zur Übersicht</Link>
+                </div>
+              )
             ) : (
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
-                <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
-                <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
-              </div>
+              <>
+                {proposedGames && (
+                  <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)' }}>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', marginBottom: 8 }}>
+                      <strong style={{ color: 'var(--th-gold)' }}>Der Gegner hat einen Änderungsvorschlag gemacht.</strong> Übernimm ihn in den Bogen, prüfe und sende erneut ab – oder ignoriere ihn.
+                    </div>
+                    <button type="button" onClick={applyProposal} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Vorschlag übernehmen</button>
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
+                  <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
+                  <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
+                </div>
+              </>
             )}
           </div>
         )}

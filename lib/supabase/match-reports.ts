@@ -107,6 +107,9 @@ export interface MatchReport {
   guest_change_note: string | null;
   guest_responded_at: string | null;
   guest_response_user_id: string | null;
+  proposed_changes: ReportGame[] | null;
+  proposed_by: string | null;
+  proposed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -338,6 +341,29 @@ export async function deleteReport(id: string): Promise<{ error: string | null }
 export async function notifyReportChange(id: string, action: 'changed' | 'deleted'): Promise<void> {
   if (!supabase) return;
   await supabase.rpc('notify_report_change', { p_report_id: id, p_action: action });
+}
+
+/** Gast-Kapitän schickt einen konkreten Änderungsvorschlag (Spiel-Ergebnisse) mit. */
+export async function submitGuestProposal(id: string, games: ReportGame[], note: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { data: auth } = await supabase.auth.getUser();
+  const proposed = games.map(g => ({
+    game_no: g.game_no, game_type: g.game_type,
+    home_slot: g.home_slot, guest_slot: g.guest_slot, home_slot2: g.home_slot2, guest_slot2: g.guest_slot2,
+    legs_home: g.legs_home, legs_guest: g.legs_guest,
+  }));
+  const now = new Date().toISOString();
+  const { error } = await supabase.from('match_reports').update({
+    proposed_changes: proposed, proposed_by: auth.user?.id ?? null, proposed_at: now,
+    guest_change_note: note, status: 'changes_requested', guest_responded_at: now, guest_response_user_id: auth.user?.id ?? null,
+  }).eq('id', id);
+  return { error: error?.message ?? null };
+}
+
+/** Vorschlag zurücksetzen (z. B. nachdem der Heim-Kapitän ihn übernommen/abgelehnt hat). */
+export async function clearProposal(id: string): Promise<void> {
+  if (!supabase) return;
+  await supabase.from('match_reports').update({ proposed_changes: null, proposed_by: null, proposed_at: null }).eq('id', id);
 }
 
 /** Gast-Kapitän bestätigt den Spielbericht. */
