@@ -17,7 +17,7 @@ import {
 import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
-  createReport, updateReport, submitReport,
+  createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames,
   computePlayerRanking,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult,
@@ -76,8 +76,11 @@ function SpielberichteInner() {
   const [games, setGames] = useState<ReportGame[]>(emptyGames());
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [ownerId, setOwnerId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
+  // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
+  const adminEditsForeign = (user?.role === 'league_admin' || user?.role === 'super_admin') && !!ownerId && ownerId !== user?.id;
 
   const totals = useMemo(() => computeTotals(games), [games]);
   const ranking = useMemo(
@@ -136,6 +139,7 @@ function SpielberichteInner() {
     const r = await getReport(id);
     if (!r) return;
     setRegId(r.id);
+    setOwnerId(r.home_captain_user_id);
     setSeasonId(r.season_id ?? '');
     setHeader({
       season_id: r.season_id, league_label: r.league_label ?? '', matchday: r.matchday, match_date: r.match_date,
@@ -240,6 +244,7 @@ function SpielberichteInner() {
   async function onSaveDraft() {
     setBusy(true); setMsg(null);
     const id = await persist();
+    if (id && adminEditsForeign) await notifyReportChange(id, 'changed');
     setBusy(false);
     if (id) setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' });
   }
@@ -250,9 +255,10 @@ function SpielberichteInner() {
     const id = await persist();
     if (!id) { setBusy(false); return; }
     const { error } = await submitReport(id);
+    if (!error && adminEditsForeign) await notifyReportChange(id, 'changed');
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
-    router.push('/mein-bereich');
+    router.push(adminEditsForeign ? '/admin/spielberichte' : '/mein-bereich');
   }
 
   return (
@@ -327,19 +333,19 @@ function SpielberichteInner() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)' }}>
                       <span style={{ width: 22, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-faint)' }}>{s.no}</span>
                       {s.type === 'single' ? (
-                        <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                        <span className="mdu-mr-single">
                           <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} allowedSlots={singlesAllowed('home', s.homeSlot!)} />
-                          <span style={{ alignSelf: 'center', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>vs</span>
+                          <span className="mdu-mr-vs">vs</span>
                           <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} allowedSlots={singlesAllowed('guest', s.guestSlot!)} />
                         </span>
                       ) : (
-                        <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-                          <span style={{ display: 'flex', gap: 4 }}>
+                        <span className="mdu-mr-double">
+                          <span className="mdu-mr-pair">
                             <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} allowedSlots={doublesAllowed('home', s.no, g.home_slot2)} />
                             <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" players={homePlayers} allowedSlots={doublesAllowed('home', s.no, g.home_slot)} />
                           </span>
-                          <span style={{ alignSelf: 'center', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>vs</span>
-                          <span style={{ display: 'flex', gap: 4 }}>
+                          <span className="mdu-mr-vs">vs</span>
+                          <span className="mdu-mr-pair">
                             <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} allowedSlots={doublesAllowed('guest', s.no, g.guest_slot2)} />
                             <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" players={guestPlayers} allowedSlots={doublesAllowed('guest', s.no, g.guest_slot)} />
                           </span>

@@ -295,6 +295,19 @@ body {
 
 .mdu-row-hover:hover { background: var(--th-line-3); }
 
+/* ── Spielbericht: Partie-Layout ──────────────────────────────
+   Einzel: mobil gestapelt (Heim / vs / Gast), Desktop nebeneinander.
+   Doppel: immer Heim links (2 übereinander) · vs · Gast rechts. */
+.mdu-mr-single { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.mdu-mr-vs { align-self: center; font-family: var(--font-manrope); font-size: 11px; color: var(--th-text-faint); }
+@media (min-width: 680px) {
+  .mdu-mr-single { flex-direction: row; align-items: center; gap: 10px; }
+  .mdu-mr-single > select { flex: 1; min-width: 0; }
+  .mdu-mr-vs { align-self: auto; }
+}
+.mdu-mr-double { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.mdu-mr-pair { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+
 /* ── Notification-Glocke ───────────────────────────────────────
    Klarer, auffälliger Button mit Hover-Glow und sichtbarem Fokus. */
 .mdu-bell-btn:hover {

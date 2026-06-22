@@ -1,159 +1,101 @@
 'use client';
 
 // ============================================================
-// Admin — Spielberichte prüfen & freigeben
+// Admin — Spielberichte: Übersicht (nach Liga), Bearbeiten & Löschen
 // ============================================================
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveMatchReports } from '@/lib/auth/roles';
 import {
-  listAllReports, getReportPlayers, getReportGames,
-  GAME_SCHEDULE, REPORT_STATUS_LABELS,
-  type MatchReport, type ReportPlayer, type ReportGame, type ReportStatus,
+  listAllReports, deleteReport, notifyReportChange,
+  REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
-
-const STATUSES: ReportStatus[] = ['submitted', 'confirmed', 'changes_requested', 'draft'];
 
 export default function AdminSpielberichtePage() {
   const { user } = useAuth();
-  const canReview = canApproveMatchReports(user);
+  const canManage = canApproveMatchReports(user); // Ligaleitung aufwärts
   const [rows, setRows] = useState<MatchReport[] | null>(null);
-  const [statusFilter, setStatusFilter] = useState('submitted');
-  const [open, setOpen] = useState<MatchReport | null>(null);
-  const [players, setPlayers] = useState<ReportPlayer[]>([]);
-  const [games, setGames] = useState<ReportGame[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
 
-  useEffect(() => { if (canReview) listAllReports().then(setRows); }, [canReview]);
+  useEffect(() => { if (canManage) listAllReports().then(setRows); }, [canManage]);
 
-  const filtered = useMemo(
-    () => (rows ?? []).filter(r => !statusFilter || r.status === statusFilter),
-    [rows, statusFilter],
-  );
+  // Nach Liga gruppieren (sortiert), darin nach Datum absteigend.
+  const groups = useMemo(() => {
+    const map = new Map<string, MatchReport[]>();
+    for (const r of rows ?? []) {
+      const key = r.league_label || 'Ohne Liga';
+      (map.get(key) ?? map.set(key, []).get(key)!).push(r);
+    }
+    return [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], 'de'))
+      .map(([league, list]) => [league, list.sort((x, y) => (y.match_date ?? '').localeCompare(x.match_date ?? ''))] as const);
+  }, [rows]);
 
-  async function openReport(r: MatchReport) {
-    setOpen(r);
-    setPlayers(await getReportPlayers(r.id));
-    setGames(await getReportGames(r.id));
+  async function onDelete(r: MatchReport) {
+    if (!confirm(`Spielbericht ${r.home_team_name} – ${r.guest_team_name} wirklich löschen? Die Kapitäne werden benachrichtigt.`)) return;
+    setBusy(r.id);
+    await notifyReportChange(r.id, 'deleted'); // vor dem Löschen (Team-Infos noch lesbar)
+    const { error } = await deleteReport(r.id);
+    setBusy(null);
+    if (error) { alert(error); return; }
+    setRows(await listAllReports());
   }
 
-  const playerName = (side: 'home' | 'guest', slot: number | null) =>
-    slot == null ? '?' : (players.find(p => p.side === side && p.slot === slot)?.name || `${side === 'home' ? 'H' : 'G'}${slot}`);
-
   return (
-    <AdminGuard title="Spielberichte freigeben" subtitle="Von Teamkapitänen eingereichte Spielberichte prüfen.">
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={ctl}>
-          <option value="">Alle Status</option>
-          {STATUSES.map(s => <option key={s} value={s}>{REPORT_STATUS_LABELS[s]}</option>)}
-        </select>
-      </div>
-
+    <AdminGuard title="Spielberichte" subtitle="Alle eingereichten Spielberichte – ändern oder löschen (keine Freigabe nötig).">
       {rows === null ? <p style={muted}>Lade …</p>
-        : filtered.length === 0 ? (
+        : (rows.length === 0) ? (
           <div style={{ background: 'var(--th-bg-card)', border: '1px dashed var(--th-line-10)', borderRadius: 14, padding: '32px 24px', maxWidth: 620, ...muted }}>
-            Keine Spielberichte für diesen Filter.
+            Es wurden noch keine Spielberichte eingereicht.
           </div>
         ) : (
-          <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden', maxWidth: 900 }}>
-            {filtered.map((r, i) => (
-              <button key={r.id} type="button" onClick={() => openReport(r)} className="mdu-row-hover"
-                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '13px 18px', cursor: 'pointer', background: 'transparent', border: 'none', borderBottom: i < filtered.length - 1 ? '1px solid var(--th-line-4)' : 'none' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)' }}>
-                    {r.home_team_name} <span style={{ color: 'var(--th-accent)' }}>{r.spiele_home}:{r.spiele_guest}</span> {r.guest_team_name}
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                    {r.league_label}{r.matchday ? ` · Spieltag ${r.matchday}` : ''}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''}
-                  </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 960 }}>
+            {groups.map(([league, list]) => (
+              <div key={league}>
+                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: 'var(--th-accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
+                  {league} <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', fontWeight: 700 }}>· {list.length}</span>
                 </div>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-accent)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
-              </button>
+                <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 640 }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        <th style={h}>Sptg.</th><th style={h}>Datum</th><th style={h}>Heim</th><th style={h}>Gast</th><th style={h}>Erg.</th><th style={h}>Status</th><th style={h}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {list.map((r, i) => (
+                        <tr key={r.id} style={{ borderTop: i ? '1px solid var(--th-line-4)' : 'none' }}>
+                          <td style={d}>{r.matchday ?? '–'}</td>
+                          <td style={d}>{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : '–'}</td>
+                          <td style={{ ...d, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.home_team_name}</td>
+                          <td style={d}>{r.guest_team_name}</td>
+                          <td style={{ ...d, fontWeight: 700 }}>{r.spiele_home}:{r.spiele_guest}</td>
+                          <td style={{ ...d, fontWeight: 700, color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</td>
+                          <td style={{ ...d, display: 'flex', gap: 12 }}>
+                            <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>Bearbeiten</Link>
+                            <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                              {busy === r.id ? '…' : 'Löschen'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             ))}
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>
+              Hinweis: Spielberichte gelten ohne Freigabe. Bei „Bearbeiten"/„Löschen" werden die betroffenen Kapitäne benachrichtigt.
+            </p>
           </div>
         )}
-
-      {/* Detail-Modal */}
-      {open && (
-        <div onClick={() => setOpen(null)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
-          <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" style={{ width: '100%', maxWidth: 640, margin: '40px 0', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', borderRadius: 16, padding: '24px 26px', boxShadow: '0 30px 70px rgba(0,0,0,0.5)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <h2 style={{ flex: 1, fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase' }}>
-                {open.home_team_name} {open.spiele_home}:{open.spiele_guest} {open.guest_team_name}
-              </h2>
-              <button onClick={() => setOpen(null)} aria-label="Schließen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint)', fontSize: 22 }}>×</button>
-            </div>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '0 0 14px' }}>
-              {open.league_label}{open.matchday ? ` · Spieltag ${open.matchday}` : ''}{open.match_date ? ` · ${new Date(open.match_date).toLocaleDateString('de-DE')}` : ''}{open.venue ? ` · ${open.venue}` : ''}
-            </p>
-
-            <div style={{ display: 'flex', gap: 14, marginBottom: 14, flexWrap: 'wrap' }}>
-              <Mini label="Spiele" v={`${open.spiele_home}:${open.spiele_guest}`} />
-              <Mini label="Legs" v={`${open.legs_home}:${open.legs_guest}`} />
-              <Mini label="Punkte" v={`${open.points_home}:${open.points_guest}`} />
-            </div>
-
-            {/* Aufstellung + Punkte */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              {(['home', 'guest'] as const).map(side => (
-                <div key={side}>
-                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 6 }}>{side === 'home' ? 'Heim' : 'Gast'}</div>
-                  {players.filter(p => p.side === side).map(p => (
-                    <div key={p.slot} style={{ display: 'flex', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', padding: '2px 0' }}>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{side === 'home' ? 'H' : 'G'}{p.slot} {p.name}</span>
-                      <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}>{p.points} P</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            {/* Spiele */}
-            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, color: 'var(--th-accent)', textTransform: 'uppercase', margin: '4px 0 8px' }}>Spiele</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 16 }}>
-              {GAME_SCHEDULE.map(s => {
-                const g = games.find(x => x.game_no === s.no);
-                return (
-                  <div key={s.no} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', padding: '3px 0', borderBottom: '1px solid var(--th-line-4)' }}>
-                    <span style={{ width: 20, color: 'var(--th-text-faint)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11 }}>{s.no}</span>
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {s.type === 'double' ? (
-                        <><strong style={{ color: 'var(--th-accent)' }}>Doppel</strong> {playerName('home', g?.home_slot ?? null)}/{playerName('home', g?.home_slot2 ?? null)} vs {playerName('guest', g?.guest_slot ?? null)}/{playerName('guest', g?.guest_slot2 ?? null)}</>
-                      ) : (
-                        <>{playerName('home', g?.home_slot ?? null)} vs {playerName('guest', g?.guest_slot ?? null)}</>
-                      )}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-strong)' }}>{g && g.legs_home != null ? `${g.legs_home}:${g.legs_guest}` : '–'}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {open.protest && <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-gold)', marginBottom: 12 }}>⚠️ Protest: {open.protest_note || '—'}</p>}
-
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', margin: 0 }}>
-              Status: <strong style={{ color: 'var(--th-text-strong)' }}>{REPORT_STATUS_LABELS[open.status]}</strong>
-              {open.status === 'changes_requested' && open.guest_change_note ? ` · Änderungswunsch: ${open.guest_change_note}` : ''}
-            </p>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 6 }}>
-              Spielberichte werden nicht von der Ligaleitung freigegeben — diese Ansicht dient der Übersicht.
-            </p>
-          </div>
-        </div>
-      )}
     </AdminGuard>
   );
 }
 
-function Mini({ label, v }: { label: string; v: string }) {
-  return (
-    <div style={{ background: 'var(--th-bg-header)', border: '1px solid var(--th-line-8)', borderRadius: 10, padding: '8px 14px', textAlign: 'center' }}>
-      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-faint)' }}>{label}</div>
-      <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: 'var(--th-text-strong)' }}>{v}</div>
-    </div>
-  );
-}
-
 const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
-const ctl: React.CSSProperties = { padding: '10px 14px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' };
+const h: React.CSSProperties = { padding: '8px 12px', fontWeight: 700, whiteSpace: 'nowrap' };
+const d: React.CSSProperties = { padding: '10px 12px', whiteSpace: 'nowrap', color: 'var(--th-text-body)' };

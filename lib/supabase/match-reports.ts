@@ -301,6 +301,19 @@ export async function submitReport(id: string): Promise<{ error: string | null }
   return { error: error?.message ?? null };
 }
 
+/** Admin: Bericht löschen (Kinder via Cascade). */
+export async function deleteReport(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { error } = await supabase.from('match_reports').delete().eq('id', id);
+  return { error: error?.message ?? null };
+}
+
+/** Admin: Kapitäne über Änderung/Löschung benachrichtigen (RPC, security definer). */
+export async function notifyReportChange(id: string, action: 'changed' | 'deleted'): Promise<void> {
+  if (!supabase) return;
+  await supabase.rpc('notify_report_change', { p_report_id: id, p_action: action });
+}
+
 /** Gast-Kapitän bestätigt den Spielbericht. */
 export async function confirmReport(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
