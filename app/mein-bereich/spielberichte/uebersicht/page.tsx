@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canUploadMatchReport } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
 import {
-  listMyReports, confirmReport, requestReportChange,
+  listMyReports, confirmReport,
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
 
@@ -22,9 +22,6 @@ export default function SpielberichteUebersichtPage() {
 
   const [rows, setRows] = useState<MatchReport[] | null>(null);
   const [busy, setBusy] = useState(false);
-  const [reviewId, setReviewId] = useState<string | null>(null);
-  const [reviewNote, setReviewNote] = useState('');
-  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => { if (allowed) listMyReports().then(setRows); }, [allowed]);
 
@@ -42,12 +39,6 @@ export default function SpielberichteUebersichtPage() {
   async function onConfirm(id: string) {
     setBusy(true); await confirmReport(id); setRows(await listMyReports()); setBusy(false);
   }
-  async function onRequestChange(id: string) {
-    if (!reviewNote.trim()) { setMsg('Bitte beschreibe die gewünschte Änderung.'); return; }
-    setBusy(true); await requestReportChange(id, reviewNote.trim());
-    setReviewId(null); setReviewNote(''); setMsg(null);
-    setRows(await listMyReports()); setBusy(false);
-  }
 
   return (
     <MemberShell title="Spielberichte">
@@ -60,8 +51,6 @@ export default function SpielberichteUebersichtPage() {
               ＋ Neuer Spielbericht
             </Link>
 
-            {msg && <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A' }}>{msg}</div>}
-
             {/* Zu prüfen (als Gegner) */}
             {toReview.length > 0 && (
               <Card title={`Zu prüfen (Gegner) · ${toReview.length}`}>
@@ -72,14 +61,8 @@ export default function SpielberichteUebersichtPage() {
                     <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                       <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ ...btn, color: 'var(--th-accent)', borderColor: 'var(--th-accent)', textDecoration: 'none' }}>Ansehen</Link>
                       <button onClick={() => onConfirm(r.id)} disabled={busy} style={{ ...btn, color: 'var(--th-win)', borderColor: 'var(--th-win)' }}>Bestätigen</button>
-                      <button onClick={() => { setReviewId(reviewId === r.id ? null : r.id); setReviewNote(''); }} disabled={busy} style={{ ...btn, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung anfordern</button>
+                      <Link href={`/mein-bereich/spielberichte?id=${r.id}&propose=1`} style={{ ...btn, color: 'var(--th-gold)', borderColor: 'var(--th-gold)', textDecoration: 'none' }}>Änderung anfordern</Link>
                     </div>
-                    {reviewId === r.id && (
-                      <div style={{ marginTop: 8 }}>
-                        <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)} rows={2} placeholder="Was stimmt nicht?" style={inp} />
-                        <button onClick={() => onRequestChange(r.id)} disabled={busy} style={{ ...btn, marginTop: 6, background: 'var(--th-accent)', color: '#fff', borderColor: 'var(--th-accent-hover)' }}>Änderung absenden</button>
-                      </div>
-                    )}
                   </div>
                 ))}
                 <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '6px 0 0' }}>Das Ergebnis ist bereits übernommen. Eine Änderungsanforderung informiert die Heimmannschaft.</p>
@@ -158,4 +141,3 @@ function shortName(teamId: string | null, name: string): string {
 const h: React.CSSProperties = { padding: '5px 8px', fontWeight: 700, whiteSpace: 'nowrap' };
 const d: React.CSSProperties = { padding: '8px 8px', whiteSpace: 'nowrap', color: 'var(--th-text-body)' };
 const btn: React.CSSProperties = { padding: '8px 16px', borderRadius: 8, cursor: 'pointer', background: 'transparent', border: '1.5px solid', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 };
-const inp: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none', resize: 'vertical' };

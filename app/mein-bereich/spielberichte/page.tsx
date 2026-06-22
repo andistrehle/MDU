@@ -85,6 +85,7 @@ function SpielberichteInner() {
   const [proposedGames, setProposedGames] = useState<ReportGame[] | null>(null); // Vorschlag des Gegners (für Heim sichtbar)
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
+  const proposeParam = searchParams.get('propose');
   const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
   // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
   const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
@@ -158,7 +159,10 @@ function SpielberichteInner() {
     setOwnerId(r.home_captain_user_id);
     setLoadedStatus(r.status);
     setChangeNote(r.guest_change_note ?? null);
-    setProposing(false); setProposalNote('');
+    // Vorschlagsmodus automatisch, wenn per ?propose=1 geöffnet und man Gast-Kapitän ist.
+    const guestViewer = r.home_captain_user_id !== user?.id && !isAdminRole;
+    setProposing(proposeParam === '1' && guestViewer);
+    setProposalNote('');
     setProposedGames(r.proposed_changes && r.proposed_changes.length
       ? GAME_SCHEDULE.map(s => r.proposed_changes!.find(g => g.game_no === s.no)
           ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null })
