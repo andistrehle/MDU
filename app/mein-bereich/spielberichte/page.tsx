@@ -429,7 +429,7 @@ function SpielberichteInner() {
                 const propStr = legStr(proposedByNo.get(s.no));
                 const baseStr = legStr(baseByNo.get(s.no));
                 const curStr = legStr(g);
-                const guestChanged = !!propStr && propStr !== baseStr;   // Gegner hat dieses Spiel anders vorgeschlagen
+                const guestChanged = !!propStr && !!baseStr && propStr !== baseStr;   // Gegner hat dieses Spiel tatsächlich anders vorgeschlagen (Basis bekannt)
                 const accepted = guestChanged && curStr === propStr;     // übernommen
                 const pending = guestChanged && curStr !== propStr;      // abweichend / noch offen
                 const proposedDiff = guestChanged;
