@@ -97,6 +97,13 @@ function SpielberichteInner() {
     () => computePlayerRanking(games, [...homePlayers, ...guestPlayers], header.home_team_name || 'Heim', header.guest_team_name || 'Gast'),
     [games, homePlayers, guestPlayers, header.home_team_name, header.guest_team_name],
   );
+  // Vorschlag des Gegners je Spiel-Nr. (zum farblichen Markieren der Abweichungen).
+  const proposedByNo = useMemo(() => {
+    const m = new Map<number, ReportGame>();
+    (proposedGames ?? []).forEach(g => m.set(g.game_no, g));
+    return m;
+  }, [proposedGames]);
+
   const homeRoster = useMemo(() => rosterOptions(header.home_team_id), [header.home_team_id]);
   const guestRoster = useMemo(() => rosterOptions(header.guest_team_id), [header.guest_team_id]);
   const isCaptainFixed = user?.role === 'team_captain' && !!user?.teamId;
@@ -400,10 +407,14 @@ function SpielberichteInner() {
               {GAME_SCHEDULE.map((s, i) => {
                 const g = games[i];
                 const showRound = i === 0 || GAME_SCHEDULE[i - 1].round !== s.round;
+                const prop = proposedByNo.get(s.no);
+                const propStr = prop && prop.legs_home != null && prop.legs_guest != null ? `${prop.legs_home}:${prop.legs_guest}` : null;
+                const curStr = g.legs_home != null && g.legs_guest != null ? `${g.legs_home}:${g.legs_guest}` : null;
+                const proposedDiff = propStr && propStr !== curStr ? propStr : null;
                 return (
                   <div key={s.no}>
                     {showRound && <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', margin: '10px 0 4px' }}>{s.round}</div>}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--th-line-4)', background: proposedDiff ? 'rgba(232,184,74,0.10)' : 'transparent', borderRadius: proposedDiff ? 6 : 0 }}>
                       <span style={{ width: 22, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-faint)' }}>{s.no}</span>
                       {s.type === 'single' ? (
                         <span className="mdu-mr-single">
@@ -424,10 +435,15 @@ function SpielberichteInner() {
                           </span>
                         </span>
                       )}
-                      <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px' }}>
+                      <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px', ...(proposedDiff ? { borderColor: 'var(--th-gold)' } : {}) }}>
                         <option value="">—</option>
                         {LEG_RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
+                      {proposedDiff && (
+                        <span title="Vorschlag des Gegners" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: '#A77A00', background: 'rgba(232,184,74,0.18)', border: '1px solid var(--th-gold)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
+                          ➜ {proposedDiff}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
