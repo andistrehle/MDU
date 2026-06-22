@@ -29,8 +29,12 @@ export default function SpielberichteUebersichtPage() {
 
   const myId = user?.id;
   const myTeamId = user?.teamId;
-  const myReports = (rows ?? []).filter(r => r.home_captain_user_id === myId);
+  // Alle Berichte, an denen mein Team beteiligt ist (Heim ODER Gast).
+  const allReports = (rows ?? [])
+    .filter(r => r.home_captain_user_id === myId || (myTeamId && r.guest_team_id === myTeamId))
+    .sort((a, b) => (b.match_date ?? '').localeCompare(a.match_date ?? ''));
   const toReview = (rows ?? []).filter(r => r.guest_team_id === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted');
+  const isOwner = (r: MatchReport) => r.home_captain_user_id === myId;
 
   async function onConfirm(id: string) {
     setBusy(true); await confirmReport(id); setRows(await listMyReports()); setBusy(false);
@@ -79,29 +83,29 @@ export default function SpielberichteUebersichtPage() {
               </Card>
             )}
 
-            {/* Übersicht */}
-            <Card title="Meine Spielberichte">
+            {/* Übersicht: alle Berichte mit Beteiligung (Heim & Gast) */}
+            <Card title="Alle Spielberichte">
               {rows === null ? <Muted>Lade …</Muted>
-                : myReports.length === 0 ? <Muted>Noch keine Spielberichte erfasst.</Muted>
+                : allReports.length === 0 ? <Muted>Noch keine Spielberichte vorhanden.</Muted>
                 : (
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 560 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 600 }}>
                       <thead>
                         <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                          <th style={h}>Liga</th><th style={h}>Jahr</th><th style={h}>Sptg.</th><th style={h}>Datum</th><th style={h}>Heim</th><th style={h}>Gast</th><th style={h}>Status</th><th style={h}></th>
+                          <th style={h}>Liga</th><th style={h}>Datum</th><th style={h}>Rolle</th><th style={h}>Heim</th><th style={h}>Gast</th><th style={h}>Erg.</th><th style={h}>Status</th><th style={h}></th>
                         </tr>
                       </thead>
                       <tbody>
-                        {myReports.map(r => (
+                        {allReports.map(r => (
                           <tr key={r.id} style={{ borderTop: '1px solid var(--th-line-4)' }}>
                             <td style={d}>{r.league_label ?? '–'}</td>
-                            <td style={d}>{r.match_date ? new Date(r.match_date).getFullYear() : '–'}</td>
-                            <td style={d}>{r.matchday ?? '–'}</td>
                             <td style={d}>{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : '–'}</td>
+                            <td style={{ ...d, fontWeight: 700, color: isOwner(r) ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{isOwner(r) ? 'Heim' : 'Gast'}</td>
                             <td style={{ ...d, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.home_team_name}</td>
                             <td style={d}>{r.guest_team_name}</td>
+                            <td style={{ ...d, fontWeight: 700 }}>{r.spiele_home}:{r.spiele_guest}</td>
                             <td style={{ ...d, fontWeight: 700, color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</td>
-                            <td style={d}><Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>{r.status === 'confirmed' ? 'Ansehen' : 'Bearbeiten'}</Link></td>
+                            <td style={d}><Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>{isOwner(r) && r.status !== 'confirmed' ? 'Bearbeiten' : 'Ansehen'}</Link></td>
                           </tr>
                         ))}
                       </tbody>
