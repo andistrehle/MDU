@@ -31,7 +31,7 @@ export default function AdminSpielberichtePage() {
     }
     return [...map.entries()]
       .sort((a, b) => a[0].localeCompare(b[0], 'de'))
-      .map(([league, list]) => [league, list.sort((x, y) => (y.match_date ?? '').localeCompare(x.match_date ?? ''))] as const);
+      .map(([league, list]) => [league, list.sort((x, y) => (y.matchday ?? -1) - (x.matchday ?? -1) || (y.match_date ?? '').localeCompare(x.match_date ?? ''))] as const);
   }, [rows]);
 
   async function onDelete(r: MatchReport) {

@@ -32,8 +32,10 @@ export default function SpielberichteUebersichtPage() {
   // Alle Berichte, an denen mein Team beteiligt ist (Heim ODER Gast).
   const allReports = (rows ?? [])
     .filter(r => r.home_captain_user_id === myId || (myTeamId && r.guest_team_id === myTeamId))
-    .sort((a, b) => (b.match_date ?? '').localeCompare(a.match_date ?? ''));
-  const toReview = (rows ?? []).filter(r => r.guest_team_id === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted');
+    .sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.match_date ?? '').localeCompare(a.match_date ?? ''));
+  const toReview = (rows ?? [])
+    .filter(r => r.guest_team_id === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted')
+    .sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.match_date ?? '').localeCompare(a.match_date ?? ''));
   const isOwner = (r: MatchReport) => r.home_captain_user_id === myId;
 
   async function onConfirm(id: string) {
