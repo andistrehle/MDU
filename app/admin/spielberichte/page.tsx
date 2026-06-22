@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveMatchReports } from '@/lib/auth/roles';
+import { findTeam } from '@/lib/data';
 import {
   listAllReports, deleteReport, notifyReportChange,
   REPORT_STATUS_LABELS, type MatchReport,
@@ -92,13 +93,14 @@ export default function AdminSpielberichtePage() {
                   {list.map(r => (
                     <div key={r.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 10, padding: '10px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, color: 'var(--th-accent)' }}>{r.matchday ?? '–'}. Sp.</span>
                         <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {r.home_team_name} <span style={{ color: 'var(--th-accent)' }}>{r.spiele_home}:{r.spiele_guest}</span> {r.guest_team_name}
+                          {shortName(r.home_team_id, r.home_team_name)} <span style={{ color: 'var(--th-accent)' }}>{r.spiele_home}:{r.spiele_guest}</span> {shortName(r.guest_team_id, r.guest_team_name)}
                         </span>
                         <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
                       </div>
                       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-muted)', marginTop: 3 }}>
-                        {r.matchday ? `Sptg ${r.matchday} · ` : ''}{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : ''}
+                        {r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : ''}
                       </div>
                       <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
                         <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>
@@ -118,6 +120,10 @@ export default function AdminSpielberichtePage() {
         )}
     </AdminGuard>
   );
+}
+
+function shortName(teamId: string | null, name: string): string {
+  return (teamId ? findTeam(teamId)?.short : null) ?? name.slice(0, 3).toUpperCase();
 }
 
 const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
