@@ -16,11 +16,11 @@ import {
 } from '@/lib/data';
 import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import {
-  GAME_SCHEDULE, LEG_RESULTS, REPORT_STATUS_LABELS, computeTotals,
-  createReport, updateReport, submitReport, listMyReports,
-  getReport, getReportPlayers, getReportGames, confirmReport, requestReportChange,
+  GAME_SCHEDULE, LEG_RESULTS, computeTotals,
+  createReport, updateReport, submitReport,
+  getReport, getReportPlayers, getReportGames,
   computePlayerRanking,
-  type ReportPlayer, type ReportGame, type ReportHeaderDraft, type MatchReport, type LegResult,
+  type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult,
 } from '@/lib/supabase/match-reports';
 
 const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
@@ -74,33 +74,10 @@ function SpielberichteInner() {
   const [homePlayers, setHomePlayers] = useState<ReportPlayer[]>(emptyPlayers('home'));
   const [guestPlayers, setGuestPlayers] = useState<ReportPlayer[]>(emptyPlayers('guest'));
   const [games, setGames] = useState<ReportGame[]>(emptyGames());
-  const [rows, setRows] = useState<MatchReport[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
-  const [reviewId, setReviewId] = useState<string | null>(null);
-  const [reviewNote, setReviewNote] = useState('');
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
-
-  const myId = user?.id;
-  const myTeamId = user?.teamId;
-  const myReports = (rows ?? []).filter(r => r.home_captain_user_id === myId);
-  const toReview = (rows ?? []).filter(r => r.guest_team_id === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted');
-
-  async function onConfirm(id: string) {
-    setBusy(true);
-    await confirmReport(id);
-    setRows(await listMyReports());
-    setBusy(false);
-  }
-  async function onRequestChange(id: string) {
-    if (!reviewNote.trim()) { setMsg({ kind: 'err', text: 'Bitte beschreibe die gewünschte Änderung.' }); return; }
-    setBusy(true);
-    await requestReportChange(id, reviewNote.trim());
-    setReviewId(null); setReviewNote('');
-    setRows(await listMyReports());
-    setBusy(false);
-  }
 
   const totals = useMemo(() => computeTotals(games), [games]);
   const ranking = useMemo(
@@ -150,8 +127,6 @@ function SpielberichteInner() {
         setGuestPlayers(emptyPlayers('guest'));
         setGames(emptyGames());
       }
-      const r = await listMyReports();
-      if (!cancelled) setRows(r);
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -219,6 +194,17 @@ function SpielberichteInner() {
     });
   }
 
+  /** Erlaubte Slots für ein Doppel: aktiv, nicht der Partner, nicht im anderen Doppel verwendet. */
+  function doublesAllowed(side: 'home' | 'guest', currentGameNo: number, partnerSlot: number | null): number[] {
+    const usedElsewhere = new Set<number>();
+    for (const g of games) {
+      if (g.game_type !== 'double' || g.game_no === currentGameNo) continue;
+      const slots = side === 'home' ? [g.home_slot, g.home_slot2] : [g.guest_slot, g.guest_slot2];
+      slots.forEach(s => { if (s != null) usedElsewhere.add(s); });
+    }
+    return activeSlots(side).filter(s => s !== partnerSlot && !usedElsewhere.has(s));
+  }
+
   function playerName(side: 'home' | 'guest', slot: number | null): string {
     if (slot == null) return '?';
     const arr = side === 'home' ? homePlayers : guestPlayers;
@@ -255,7 +241,7 @@ function SpielberichteInner() {
     setBusy(true); setMsg(null);
     const id = await persist();
     setBusy(false);
-    if (id) { setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' }); setRows(await listMyReports()); }
+    if (id) setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' });
   }
   async function onSubmit() {
     const v = validate();
@@ -349,13 +335,13 @@ function SpielberichteInner() {
                       ) : (
                         <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                           <span style={{ display: 'flex', gap: 4 }}>
-                            <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} allowedSlots={activeSlots('home').filter(x => x !== g.home_slot2)} />
-                            <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" players={homePlayers} allowedSlots={activeSlots('home').filter(x => x !== g.home_slot)} />
+                            <SlotSel value={g.home_slot} onChange={v => setGameSlot(s.no, 'home_slot', v)} prefix="H" players={homePlayers} allowedSlots={doublesAllowed('home', s.no, g.home_slot2)} />
+                            <SlotSel value={g.home_slot2} onChange={v => setGameSlot(s.no, 'home_slot2', v)} prefix="H" players={homePlayers} allowedSlots={doublesAllowed('home', s.no, g.home_slot)} />
                           </span>
                           <span style={{ alignSelf: 'center', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>vs</span>
                           <span style={{ display: 'flex', gap: 4 }}>
-                            <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} allowedSlots={activeSlots('guest').filter(x => x !== g.guest_slot2)} />
-                            <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" players={guestPlayers} allowedSlots={activeSlots('guest').filter(x => x !== g.guest_slot)} />
+                            <SlotSel value={g.guest_slot} onChange={v => setGameSlot(s.no, 'guest_slot', v)} prefix="G" players={guestPlayers} allowedSlots={doublesAllowed('guest', s.no, g.guest_slot2)} />
+                            <SlotSel value={g.guest_slot2} onChange={v => setGameSlot(s.no, 'guest_slot2', v)} prefix="G" players={guestPlayers} allowedSlots={doublesAllowed('guest', s.no, g.guest_slot)} />
                           </span>
                         </span>
                       )}
@@ -427,69 +413,8 @@ function SpielberichteInner() {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
               <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
+              <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
             </div>
-
-            {/* Zu prüfen (als Gegner) */}
-            {toReview.length > 0 && (
-              <Section title={`Zu prüfen (Gegner) · ${toReview.length}`}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {toReview.map(r => (
-                    <div key={r.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--th-line-4)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{r.home_team_name} {r.spiele_home}:{r.spiele_guest} {r.guest_team_name}</div>
-                          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{r.league_label}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''} · Spiele {r.spiele_home}:{r.spiele_guest}</div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-                        <button onClick={() => onConfirm(r.id)} disabled={busy} style={{ ...ghost, padding: '8px 16px', color: 'var(--th-win)', borderColor: 'var(--th-win)' }}>Bestätigen</button>
-                        <button onClick={() => { setReviewId(reviewId === r.id ? null : r.id); setReviewNote(''); }} disabled={busy} style={{ ...ghost, padding: '8px 16px', color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung anfordern</button>
-                      </div>
-                      {reviewId === r.id && (
-                        <div style={{ marginTop: 8 }}>
-                          <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)} rows={2} placeholder="Was stimmt nicht?" style={{ ...input, resize: 'vertical' }} />
-                          <button onClick={() => onRequestChange(r.id)} disabled={busy} style={{ ...primary, marginTop: 6, padding: '8px 16px' }}>Änderung absenden</button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Das Ergebnis ist bereits übernommen. Eine Änderungsanforderung informiert die Heimmannschaft.</p>
-              </Section>
-            )}
-
-            {/* Meine Spielberichte (Übersicht als Tabelle) */}
-            {myReports.length > 0 && (
-              <Section title="Meine Spielberichte">
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-manrope)', fontSize: 12.5, minWidth: 560 }}>
-                    <thead>
-                      <tr style={{ textAlign: 'left', color: 'var(--th-text-faint)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                        <th style={ovh}>Liga</th><th style={ovh}>Jahr</th><th style={ovh}>Sptg.</th><th style={ovh}>Datum</th><th style={ovh}>Heim</th><th style={ovh}>Gast</th><th style={ovh}>Status</th><th style={ovh}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {myReports.map(r => (
-                        <tr key={r.id} style={{ borderTop: '1px solid var(--th-line-4)' }}>
-                          <td style={ovd}>{r.league_label ?? '–'}</td>
-                          <td style={ovd}>{r.match_date ? new Date(r.match_date).getFullYear() : '–'}</td>
-                          <td style={ovd}>{r.matchday ?? '–'}</td>
-                          <td style={ovd}>{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : '–'}</td>
-                          <td style={{ ...ovd, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.home_team_name}</td>
-                          <td style={ovd}>{r.guest_team_name}</td>
-                          <td style={{ ...ovd, fontWeight: 700, color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</td>
-                          <td style={ovd}>
-                            <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                              {r.status === 'confirmed' ? 'Ansehen' : 'Bearbeiten'}
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Section>
-            )}
           </div>
         )}
     </MemberShell>
@@ -570,7 +495,5 @@ const input: React.CSSProperties = {
   width: '100%', padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
   borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
 };
-const ovh: React.CSSProperties = { padding: '5px 8px', fontWeight: 700, whiteSpace: 'nowrap' };
-const ovd: React.CSSProperties = { padding: '8px 8px', whiteSpace: 'nowrap', color: 'var(--th-text-body)' };
 const ghost: React.CSSProperties = { padding: '12px 22px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
 const primary: React.CSSProperties = { padding: '12px 28px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };

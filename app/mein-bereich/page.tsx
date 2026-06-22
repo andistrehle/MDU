@@ -44,7 +44,7 @@ function tilesFor(user: UserProfile): Tile[] {
       { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
       { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },
       { icon: 'edit',     label: 'Spielbericht erfassen', description: 'Neuen Spielberichtsbogen online ausfüllen.', href: '/mein-bereich/spielberichte', ready: true },
-      { icon: 'file',     label: 'Spielberichte ansehen/bearbeiten', description: 'Eigene Spielberichte einsehen und bearbeiten.', href: '/mein-bereich/spielberichte', ready: true },
+      { icon: 'file',     label: 'Spielberichte ansehen/bearbeiten', description: 'Übersicht eigener Spielberichte.', href: '/mein-bereich/spielberichte/uebersicht', ready: true },
     );
   }
 
