@@ -79,8 +79,11 @@ function SpielberichteInner() {
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
+  const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
   // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
-  const adminEditsForeign = (user?.role === 'league_admin' || user?.role === 'super_admin') && !!ownerId && ownerId !== user?.id;
+  const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
+  // Gegner-Kapitän (nicht Eigentümer, kein Admin) → nur Lese-Ansicht.
+  const readOnly = !!ownerId && ownerId !== user?.id && !isAdminRole;
 
   const totals = useMemo(() => computeTotals(games), [games]);
   const ranking = useMemo(
@@ -270,6 +273,13 @@ function SpielberichteInner() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 760 }}>
             {msg && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}
 
+            {readOnly && (
+              <div style={{ padding: '11px 15px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                Nur-Lese-Ansicht (du bist die Gastmannschaft). Zum Bestätigen oder Ändern zurück zur Übersicht.
+              </div>
+            )}
+
+            <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Kopf */}
             <Section title="Spielbericht – Kopfdaten">
               <Row2>
@@ -416,11 +426,17 @@ function SpielberichteInner() {
               {header.protest && <textarea value={header.protest_note ?? ''} onChange={e => setH('protest_note', e.target.value)} rows={2} placeholder="Anmerkung zum Protest" style={{ ...input, marginTop: 8, resize: 'vertical' }} />}
             </Section>
 
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
-              <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
-              <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
-            </div>
+            </fieldset>
+
+            {readOnly ? (
+              <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', alignSelf: 'flex-start' }}>Zurück zur Übersicht</Link>
+            ) : (
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
+                <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
+                <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
+              </div>
+            )}
           </div>
         )}
     </MemberShell>

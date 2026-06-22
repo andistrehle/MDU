@@ -63,6 +63,7 @@ export default function SpielberichteUebersichtPage() {
                     <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{r.home_team_name} {r.spiele_home}:{r.spiele_guest} {r.guest_team_name}</div>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{r.league_label}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''}</div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                      <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ ...btn, color: 'var(--th-accent)', borderColor: 'var(--th-accent)', textDecoration: 'none' }}>Ansehen</Link>
                       <button onClick={() => onConfirm(r.id)} disabled={busy} style={{ ...btn, color: 'var(--th-win)', borderColor: 'var(--th-win)' }}>Bestätigen</button>
                       <button onClick={() => { setReviewId(reviewId === r.id ? null : r.id); setReviewNote(''); }} disabled={busy} style={{ ...btn, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Änderung anfordern</button>
                     </div>
