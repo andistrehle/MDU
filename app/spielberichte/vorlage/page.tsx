@@ -6,12 +6,12 @@
 //
 // Druckoptimierte HTML-Ansicht des klassischen MDU-Spielberichts zum
 // Ausdrucken und handschriftlichen Ausfüllen. Zwei A4-Seiten:
-//   Seite 1  Kopf · Mannschaften · Aufstellung · 18 Spiele · Gesamtergebnis
-//   Seite 2  Auswechslungen · Einzelrangliste · Sonderleistungen ·
-//            Bemerkungen · Bestätigung/Unterschriften
+//   Seite 1  Kopf (Kästchen-Stil) · Mannschaften · Aufstellung ·
+//            Spielablauf (2 Spalten) · Gesamtergebnis
+//   Seite 2  Highlights (Heim/Gast) · Bemerkungen · Bestätigung
 //
 // Struktur 1:1 aus dem digitalen Bogen (lib/supabase/match-reports.ts):
-//   18 Spiele, Doppel Nr. 9 (Mitte) + Nr. 18 (Ende), 4 Stamm + 4 Wechsel.
+//   18 Spiele, Doppel Nr. 9 (Mitte) + Nr. 18 (Ende), 4 Stamm + 4 Ersatz.
 //
 // Bewusst eigene, druckfeste Farben (#fff/#111/#000) statt Theme-Variablen,
 // damit der Ausdruck unabhängig vom Dark/Light-Mode sauber in Schwarz-Weiß
@@ -26,6 +26,9 @@ import { GAME_SCHEDULE, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_TYPES } from '@/lib/sup
 import { TEMPLATE_VERSION, templateDocTitle, templateFooter } from '@/lib/spielbericht-template';
 
 const SEASON = getCurrentSeason();
+
+/** Ligen wie im digitalen Bogen — als Ankreuz-Kästchen im Kopf. */
+const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
 
 // Optionale Vorbelegung (nur Kopfdaten — niemals Ergebnisse, niemals
 // ungeprüfte Aufstellungen). Bleibt sichtbar, kann handschriftlich geändert
@@ -94,13 +97,18 @@ function VorlageInner() {
       <section className="mdu-sheet">
         <Header pf={pf} />
 
-        {/* Kopfdaten */}
-        <div className="vb-metagrid">
-          <FieldLine label="Liga / Staffel" value={pf.liga} grow />
-          <FieldLine label="Spieltag" value={pf.spieltag} w={90} />
-          <FieldLine label="Datum" value={pf.datum} w={120} />
-          <FieldLine label="Uhrzeit" value={pf.uhrzeit} w={90} />
-          <FieldLine label="Spielstätte" value={pf.ort} grow />
+        {/* Kopfdaten — Kästchen-Stil */}
+        <div className="vb-meta">
+          <div className="vb-meta-leagues">
+            <span className="vb-meta-label">Liga / Staffel</span>
+            {LEAGUES.map(l => <Checkbox key={l} label={l} checked={pf.liga === l} />)}
+          </div>
+          <div className="vb-meta-row">
+            <BoxField label="Spieltag" value={pf.spieltag} w={64} />
+            <BoxField label="Datum" value={pf.datum} w={120} />
+            <BoxField label="Uhrzeit" value={pf.uhrzeit} w={84} />
+          </div>
+          <BoxField label="Spielstätte" value={pf.ort} grow />
         </div>
 
         {/* Mannschaften */}
@@ -116,10 +124,19 @@ function VorlageInner() {
           <Lineup prefix="H" title="Heim" />
           <Lineup prefix="G" title="Gast" />
         </div>
+        <p className="vb-note">
+          Ersatzspieler bleiben nach ihrem ersten Einsatz fest an die jeweilige Position gebunden
+          (ein für H3 eingewechselter Spieler darf nicht später für H4 spielen). Wechsel direkt im
+          Spielablauf vermerken (neue Nummer über die alte schreiben).
+        </p>
 
-        {/* Spielablauf */}
+        {/* Spielablauf — zwei Spalten */}
         <SectionTitle>Spielablauf <span className="vb-sub">(Best of 3 Legs · Doppel Nr. 9 + Nr. 18)</span></SectionTitle>
-        <GameTable />
+        <div className="vb-twocol vb-games-2col">
+          <GameTable rows={GAME_SCHEDULE.slice(0, 9)} />
+          <GameTable rows={GAME_SCHEDULE.slice(9, 18)} />
+        </div>
+        <p className="vb-note">Punkte je Einzel: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0 · Doppel zählen nur für Spiele/Legs.</p>
 
         {/* Gesamtergebnis */}
         <div className="vb-result">
@@ -127,7 +144,6 @@ function VorlageInner() {
           <span className="vb-result-line">
             Heim&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp;:&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp;Gast
           </span>
-          <span className="vb-result-sub">Spiele · Legs <u>&nbsp;&nbsp;&nbsp;&nbsp;</u> : <u>&nbsp;&nbsp;&nbsp;&nbsp;</u></span>
         </div>
 
         <PageFooter page={1} />
@@ -135,75 +151,18 @@ function VorlageInner() {
 
       {/* ── Seite 2 ──────────────────────────────────────────── */}
       <section className="mdu-sheet">
-        <Header pf={pf} compact />
+        <Header pf={pf} tag="Highlights & Bestätigung" />
 
-        {/* Auswechslungen */}
-        <SectionTitle>Auswechslungen</SectionTitle>
+        {/* Highlights */}
+        <SectionTitle>Highlights</SectionTitle>
         <p className="vb-note">
-          Ersatzspieler bleiben nach ihrem ersten Einsatz fest an die jeweilige Position gebunden
-          (ein für H3 eingewechselter Spieler darf nicht später für H4 spielen). Ein- und Rückwechsel sind möglich.
+          {HIGHLIGHT_TYPES.map(t => HIGHLIGHT_TYPE_LABELS[t]).join(' · ')} (High Finish = Checkout-Wert, Short Leg = Anzahl Darts).
+          Spieler über Position eintragen (z. B. H3 / G2).
         </p>
-        <table className="vb-table">
-          <thead>
-            <tr>
-              <th style={{ width: '11%' }}>Mannsch.</th>
-              <th style={{ width: '10%' }}>Position</th>
-              <th>Spieler raus</th>
-              <th>Spieler rein</th>
-              <th style={{ width: '12%' }}>ab Spiel-Nr.</th>
-              <th style={{ width: '11%' }}>Rückwechsel</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i}><td>H / G</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>ja / nein</td></tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Einzelrangliste */}
-        <SectionTitle>Einzelrangliste <span className="vb-sub">(nur Einzel · Doppel zählen nicht)</span></SectionTitle>
-        <p className="vb-note">Punkte: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0</p>
-        <table className="vb-table">
-          <thead>
-            <tr>
-              <th style={{ width: '4%' }}>#</th>
-              <th>Spieler</th>
-              <th style={{ width: '20%' }}>Team</th>
-              <th style={{ width: '8%' }}>Einzel</th>
-              <th style={{ width: '7%' }}>S</th>
-              <th style={{ width: '7%' }}>N</th>
-              <th style={{ width: '12%' }}>Legs</th>
-              <th style={{ width: '9%' }}>Punkte</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <tr key={i}><td>{i + 1}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Sonderleistungen */}
-        <SectionTitle>Sonderleistungen</SectionTitle>
-        <p className="vb-note">
-          {HIGHLIGHT_TYPES.map(t => HIGHLIGHT_TYPE_LABELS[t]).join(' · ')} (High Finish = Checkout-Wert, Short Leg = Anzahl Darts)
-        </p>
-        <table className="vb-table">
-          <thead>
-            <tr>
-              <th>Spieler</th>
-              <th style={{ width: '22%' }}>Team</th>
-              <th style={{ width: '20%' }}>Leistung</th>
-              <th style={{ width: '16%' }}>Wert / Legs</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i}><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="vb-twocol">
+          <HighlightBlock side="Heim" prefix="H" />
+          <HighlightBlock side="Gast" prefix="G" />
+        </div>
 
         {/* Bemerkungen */}
         <SectionTitle>Bemerkungen / besondere Vorkommnisse</SectionTitle>
@@ -231,7 +190,7 @@ function VorlageInner() {
 }
 
 // ── Kopf ────────────────────────────────────────────────────────
-function Header({ pf, compact }: { pf: Prefill; compact?: boolean }) {
+function Header({ pf, tag }: { pf: Prefill; tag?: string }) {
   return (
     <header className="vb-header">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -243,9 +202,9 @@ function Header({ pf, compact }: { pf: Prefill; compact?: boolean }) {
       </div>
       <div className="vb-header-meta">
         <div>Vorlage v{TEMPLATE_VERSION}</div>
-        <div className="vb-id">Spielbericht-ID: <u>{pf.id || '            '}</u></div>
+        <div className="vb-id">Spielbericht-ID: <u>{pf.id || '            '}</u></div>
       </div>
-      {compact && <span className="vb-pagetag">Auswertung & Bestätigung</span>}
+      {tag && <span className="vb-pagetag">{tag}</span>}
     </header>
   );
 }
@@ -265,7 +224,7 @@ function Lineup({ prefix, title }: { prefix: string; title: string }) {
       <tbody>
         {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
           <tr key={n} className={n > 4 ? 'vb-sub-row' : undefined}>
-            <td className="vb-pos">{prefix}{n}{n > 4 ? ' E' : ''}</td>
+            <td className="vb-pos">{prefix}{n}</td>
             <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
           </tr>
         ))}
@@ -274,34 +233,57 @@ function Lineup({ prefix, title }: { prefix: string; title: string }) {
   );
 }
 
-// ── Spielablauf (18 Spiele aus GAME_SCHEDULE) ───────────────────
-function GameTable() {
+// ── Spielablauf (Teilmenge von GAME_SCHEDULE) ───────────────────
+function GameTable({ rows }: { rows: typeof GAME_SCHEDULE }) {
   return (
     <table className="vb-table vb-games">
       <thead>
         <tr>
-          <th style={{ width: '6%' }}>Nr.</th>
-          <th style={{ width: '12%' }}>Art</th>
-          <th>Heim (Position)</th>
-          <th>Gast (Position)</th>
-          <th style={{ width: '14%' }}>Legs (H:G)</th>
-          <th style={{ width: '10%' }}>Punkt H / G</th>
+          <th style={{ width: '10%' }}>Nr.</th>
+          <th style={{ width: '22%' }}>Art</th>
+          <th style={{ width: '21%' }}>Heim</th>
+          <th style={{ width: '21%' }}>Gast</th>
+          <th style={{ width: '26%' }}>Legs (H:G)</th>
         </tr>
       </thead>
       <tbody>
-        {GAME_SCHEDULE.map(s => {
+        {rows.map(s => {
           const isDouble = s.type === 'double';
           return (
             <tr key={s.no} className={isDouble ? 'vb-double-row' : undefined}>
               <td className="vb-gameno">{s.no}</td>
               <td>{isDouble ? 'Doppel' : 'Einzel'}</td>
-              <td className="vb-pair">{isDouble ? 'H__ + H__' : `H${s.homeSlot}`}</td>
-              <td className="vb-pair">{isDouble ? 'G__ + G__' : `G${s.guestSlot}`}</td>
-              <td>&nbsp;</td>
+              <td className="vb-pair">{isDouble ? 'H_ + H_' : `H${s.homeSlot}`}</td>
+              <td className="vb-pair">{isDouble ? 'G_ + G_' : `G${s.guestSlot}`}</td>
               <td>&nbsp;</td>
             </tr>
           );
         })}
+      </tbody>
+    </table>
+  );
+}
+
+// ── Highlights (Heim/Gast) ──────────────────────────────────────
+function HighlightBlock({ side, prefix }: { side: string; prefix: string }) {
+  return (
+    <table className="vb-table vb-hl">
+      <thead>
+        <tr><th colSpan={3} className="vb-hl-head">Highlights {side}</th></tr>
+        <tr>
+          <th style={{ width: '20%' }}>Spieler</th>
+          <th>Leistung</th>
+          <th style={{ width: '30%' }}>Wert / Legs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <tr key={i}>
+            <td className="vb-hl-pos">{prefix}</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );
@@ -312,11 +294,19 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="vb-section">{children}</h2>;
 }
 
-function FieldLine({ label, value, w, grow }: { label: string; value?: string; w?: number; grow?: boolean }) {
+function Checkbox({ label, checked }: { label: string; checked: boolean }) {
   return (
-    <div className="vb-field" style={{ ...(grow ? { flex: 1 } : {}), ...(w ? { width: w } : {}) }}>
-      <span className="vb-field-label">{label}</span>
-      <span className="vb-field-value">{value || ' '}</span>
+    <span className="vb-cb">
+      <span className="vb-cb-box">{checked ? '×' : ' '}</span>{label}
+    </span>
+  );
+}
+
+function BoxField({ label, value, w, grow }: { label: string; value?: string; w?: number; grow?: boolean }) {
+  return (
+    <div className={`vb-bf${grow ? ' vb-bf-grow' : ''}`}>
+      <span className="vb-bf-label">{label}</span>
+      <span className="vb-bf-box" style={w ? { width: w } : undefined}>{value || ' '}</span>
     </div>
   );
 }
@@ -325,13 +315,18 @@ function TeamBlock({ side, team, captain }: { side: string; team: string; captai
   return (
     <div className="vb-teamblock">
       <div className="vb-teamblock-head">{side}</div>
-      <FieldLine label="Teamname" value={team} grow />
-      <FieldLine label="Teamkapitän" value={captain} grow />
-      <FieldLine label="Telefon (optional)" grow />
-      <div className="vb-field vb-field-sign" style={{ flex: 1 }}>
-        <span className="vb-field-value">&nbsp;</span>
-        <span className="vb-field-caption">Unterschrift Teamkapitän</span>
-      </div>
+      <WriteLine caption="Teamname" value={team} />
+      <WriteLine caption="Teamkapitän" value={captain} />
+    </div>
+  );
+}
+
+/** Schreiblinie oben, Bezeichnung darunter (klassischer Formular-Stil). */
+function WriteLine({ caption, value }: { caption: string; value?: string }) {
+  return (
+    <div className="vb-wl">
+      <div className="vb-wl-line">{value || ' '}</div>
+      <div className="vb-wl-cap">{caption}</div>
     </div>
   );
 }
@@ -387,12 +382,22 @@ const PRINT_CSS = `
 .vb-org { font-size:8.5pt; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#333; }
 .vb-title { font-family:var(--font-saira-condensed), var(--font-manrope), sans-serif; font-weight:900; font-size:19pt; letter-spacing:.01em; text-transform:uppercase; line-height:1; }
 .vb-season { font-size:9pt; font-weight:700; color:#333; margin-top:1px; }
-.vb-header-meta { text-align:right; font-size:7.7pt; color:#444; line-height:1.4; }
+.vb-header-meta { text-align:right; font-size:7.7pt; color:#444; line-height:1.4; white-space:nowrap; }
 .vb-header-meta .vb-id u { letter-spacing:.04em; }
-.vb-pagetag { position:absolute; right:0; bottom:-16px; font-size:8pt; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.1em; }
+.vb-pagetag { position:absolute; right:0; bottom:-15px; font-size:8pt; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.1em; }
 
-/* Kopfdaten-Raster */
-.vb-metagrid { display:flex; flex-wrap:wrap; gap:7px 10px; margin-top:12px; }
+/* Kopfdaten — Kästchen-Stil */
+.vb-meta { display:flex; flex-direction:column; gap:8px; margin-top:13px; border:1.2px solid #000; padding:9px 11px; }
+.vb-meta-leagues { display:flex; align-items:center; gap:8px 16px; flex-wrap:wrap; }
+.vb-meta-label { font-size:7.8pt; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.vb-cb { display:inline-flex; align-items:center; gap:5px; font-size:9.5pt; font-weight:600; }
+.vb-cb-box { width:13px; height:13px; border:1.3px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; line-height:1; }
+.vb-meta-row { display:flex; gap:8px 18px; flex-wrap:wrap; }
+.vb-bf { display:flex; align-items:center; gap:7px; }
+.vb-bf-grow { flex:1; }
+.vb-bf-label { font-size:7.8pt; font-weight:800; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+.vb-bf-box { border:1px solid #000; min-height:17px; min-width:54px; padding:2px 6px; font-size:10pt; }
+.vb-bf-grow .vb-bf-box { flex:1; }
 
 /* Abschnittstitel */
 .vb-section { font-family:var(--font-manrope), sans-serif; font-weight:800; font-size:9.5pt; letter-spacing:.06em; text-transform:uppercase; color:#111; margin:13px 0 5px; padding-bottom:2px; border-bottom:1px solid #000; }
@@ -402,16 +407,12 @@ const PRINT_CSS = `
 .vb-twocol { display:flex; gap:12px; }
 .vb-twocol > * { flex:1; min-width:0; }
 
-/* Felder mit Beschriftung + Schreiblinie */
-.vb-field { display:flex; flex-direction:column; }
-.vb-field-label { font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#555; margin-bottom:1px; }
-.vb-field-value { border-bottom:1px solid #000; min-height:15px; padding:1px 2px; font-size:10pt; }
-.vb-field-caption, .vb-field-sign .vb-field-caption { font-size:7pt; color:#666; margin-top:1px; }
-.vb-field-sign .vb-field-value { min-height:24px; }
-
-/* Mannschaftsblock */
-.vb-teamblock { border:1px solid #000; padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
+/* Mannschaftsblock — Schreiblinie oben, Bezeichnung darunter */
+.vb-teamblock { border:1px solid #000; padding:9px 11px 11px; }
 .vb-teamblock-head { font-weight:800; font-size:9pt; text-transform:uppercase; letter-spacing:.05em; }
+.vb-wl { margin-top:12px; }
+.vb-wl-line { border-bottom:1px solid #000; min-height:21px; font-size:11pt; padding:0 2px 1px; }
+.vb-wl-cap { font-size:7.4pt; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#555; margin-top:2px; }
 
 /* Tabellen */
 .vb-table { width:100%; border-collapse:collapse; margin-top:2px; }
@@ -420,17 +421,21 @@ const PRINT_CSS = `
 .vb-table td { height:17px; font-size:9.5pt; }
 .vb-lineup .vb-pos, .vb-games .vb-gameno { font-weight:800; font-family:var(--font-jetbrains-mono), monospace; }
 .vb-lineup .vb-sub-row .vb-pos { color:#555; font-weight:700; }
+.vb-lineup .vb-sub-row td { background:#fafafa; }
 .vb-games .vb-double-row td { background:#f0f0f0; }
 .vb-games .vb-pair { font-family:var(--font-jetbrains-mono), monospace; font-weight:700; }
 
+/* Highlights */
+.vb-hl .vb-hl-head { text-align:left; font-size:8.4pt; background:#e6e6e6; }
+.vb-hl .vb-hl-pos { font-family:var(--font-jetbrains-mono), monospace; font-weight:800; }
+
 /* Gesamtergebnis */
-.vb-result { margin-top:11px; border:1.5px solid #000; padding:8px 12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.vb-result { margin-top:11px; border:1.5px solid #000; padding:9px 14px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
 .vb-result-label { font-weight:800; font-size:9.5pt; text-transform:uppercase; letter-spacing:.06em; }
-.vb-result-line { font-family:var(--font-saira-condensed), sans-serif; font-weight:900; font-size:15pt; }
-.vb-result-sub { font-size:8.5pt; color:#444; margin-left:auto; }
+.vb-result-line { font-family:var(--font-saira-condensed), sans-serif; font-weight:900; font-size:16pt; }
 
 /* Notizen / Hinweise */
-.vb-note { font-size:8pt; color:#444; margin:3px 0 4px; line-height:1.35; }
+.vb-note { font-size:8pt; color:#444; margin:4px 0 4px; line-height:1.35; }
 
 /* Bemerkungen */
 .vb-remarks { display:flex; flex-direction:column; gap:13px; margin-top:6px; }
@@ -453,6 +458,6 @@ const PRINT_CSS = `
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
   .mdu-sheet + .mdu-sheet { page-break-before:always; }
   .vb-table, .vb-teamblock, .vb-result, .vb-signrow, tr { page-break-inside:avoid; }
-  .vb-table th { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
 `;
