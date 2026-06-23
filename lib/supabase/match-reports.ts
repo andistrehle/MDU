@@ -53,8 +53,18 @@ export const HIGHLIGHT_TYPES: HighlightType[] = ['180', '171', 'high_finish', 's
 export const HIGHLIGHT_TYPE_LABELS: Record<HighlightType, string> = {
   '180': '180er', '171': '171er', high_finish: 'High Finish', short_leg: 'Short Leg',
 };
-/** Bei diesen Typen wird ein Wert erfasst (HF = Checkout-Punkte, Short Leg = Darts). */
-export const HIGHLIGHT_WITH_VALUE: HighlightType[] = ['high_finish', 'short_leg'];
+/**
+ * Wertfeld je Highlight-Typ:
+ *   180/171     → Anzahl
+ *   high_finish → Checkout (100–180), freie Eingabe
+ *   short_leg   → Darts (9–20), je Short Leg ein eigener Eintrag
+ */
+export const HIGHLIGHT_VALUE_CONFIG: Record<HighlightType, { label: string; min: number; max: number; isCount: boolean }> = {
+  '180':       { label: 'Anzahl',   min: 1,   max: 99,  isCount: true },
+  '171':       { label: 'Anzahl',   min: 1,   max: 99,  isCount: true },
+  high_finish: { label: 'Checkout', min: 100, max: 180, isCount: false },
+  short_leg:   { label: 'Darts',    min: 9,   max: 20,  isCount: false },
+};
 
 export interface HighlightEntry {
   side: 'home' | 'guest';

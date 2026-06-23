@@ -20,7 +20,7 @@ import {
   createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking,
-  HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_WITH_VALUE,
+  HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
   type HighlightEntry, type HighlightType,
 } from '@/lib/supabase/match-reports';
@@ -221,9 +221,11 @@ function SpielberichteInner() {
   function addHighlight() {
     if (!hlPick) { setMsg({ kind: 'err', text: 'Bitte einen Spieler für das Highlight wählen.' }); return; }
     const [side, slotStr] = hlPick.split(':');
-    const needsValue = HIGHLIGHT_WITH_VALUE.includes(hlType);
-    const value = needsValue ? (Number(hlValue) || null) : null;
-    if (needsValue && !value) { setMsg({ kind: 'err', text: 'Bitte einen Wert angeben (High Finish: Checkout, Short Leg: Darts).' }); return; }
+    const cfg = HIGHLIGHT_VALUE_CONFIG[hlType];
+    const value = Number(hlValue);
+    if (!value || value < cfg.min || value > cfg.max) {
+      setMsg({ kind: 'err', text: `Bitte ${cfg.label} zwischen ${cfg.min} und ${cfg.max} angeben.` }); return;
+    }
     const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value };
     setHeader(h => ({ ...h, highlights: [...(h.highlights ?? []), entry] }));
     setHlValue(''); setMsg(null);
@@ -567,13 +569,13 @@ function SpielberichteInner() {
                     </select>
                   </Field>
                 </div>
-                {HIGHLIGHT_WITH_VALUE.includes(hlType) && (
-                  <div style={{ width: 100 }}>
-                    <Field label={hlType === 'high_finish' ? 'Checkout' : 'Darts'}>
-                      <input type="number" value={hlValue} onChange={e => setHlValue(e.target.value)} style={input} />
-                    </Field>
-                  </div>
-                )}
+                <div style={{ width: 100 }}>
+                  <Field label={HIGHLIGHT_VALUE_CONFIG[hlType].label}>
+                    <input type="number" min={HIGHLIGHT_VALUE_CONFIG[hlType].min} max={HIGHLIGHT_VALUE_CONFIG[hlType].max}
+                      value={hlValue} onChange={e => setHlValue(e.target.value)}
+                      placeholder={`${HIGHLIGHT_VALUE_CONFIG[hlType].min}–${HIGHLIGHT_VALUE_CONFIG[hlType].max}`} style={input} />
+                  </Field>
+                </div>
                 <button type="button" onClick={addHighlight} style={{ ...ghost, padding: '9px 16px' }}>Hinzufügen</button>
               </div>
 
@@ -583,7 +585,7 @@ function SpielberichteInner() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {(header.highlights ?? []).map((hl, i) => (
                     <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)' }}>
-                      <strong style={{ color: 'var(--th-text-strong)' }}>{hl.side === 'home' ? 'H' : 'G'}{hl.slot}</strong> {playerName(hl.side, hl.slot)} · {HIGHLIGHT_TYPE_LABELS[hl.type]}{hl.value ? ` ${hl.value}` : ''}
+                      <strong style={{ color: 'var(--th-text-strong)' }}>{hl.side === 'home' ? 'H' : 'G'}{hl.slot}</strong> {playerName(hl.side, hl.slot)} · {HIGHLIGHT_TYPE_LABELS[hl.type]}{hl.value ? (HIGHLIGHT_VALUE_CONFIG[hl.type].isCount ? ` ×${hl.value}` : ` ${hl.value}`) : ''}
                       <button type="button" onClick={() => removeHighlight(i)} aria-label="Entfernen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
                     </span>
                   ))}
