@@ -286,9 +286,6 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
   const matches: ImportedMatch[] = [];
   const seenPairs = new Set<string>(); // prevent duplicates within one fetch
 
-  // Walk ALL <tr> elements in document order so we can detect matchday heading
-  // rows that appear between groups of data rows (e.g. "1. Spieltag").
-  let currentMatchday: number | null = null;
   const trRe = /<tr([^>]*)>([\s\S]*?)<\/tr>/gi;
   let trMatch: RegExpExecArray | null;
 
@@ -296,22 +293,17 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
     const attrs = trMatch[1];
     const body  = trMatch[2];
 
-    // ── Matchday heading detection ────────────────────────────
-    // Heading rows typically contain text like "1. Spieltag" and are NOT
-    // tagged with id="datarow". We check heading rows first and skip them.
-    if (!/id=["']datarow["']/i.test(attrs)) {
-      const mdMatch = body.match(/\b(\d+)\.\s*Spieltag\b/i);
-      if (mdMatch) {
-        currentMatchday = parseInt(mdMatch[1], 10);
-      }
-      continue;
-    }
+    // Only data rows carry a fixture; skip everything else.
+    if (!/id=["']datarow["']/i.test(attrs)) continue;
 
     const row = body;
 
-    // Selected option in home-team select
+    // Selected option in home-team select. The select name encodes the matchday
+    // as "ddSelectTeamH_<matchdayIndex>_<matchInDay>" (0-based matchdayIndex),
+    // which we capture to distinguish multiple meetings of the same pairing
+    // (La and C are multi-leg round-robins where a pair can meet up to 4×).
     const homeSel = row.match(
-      /<select[^>]+name="ddSelectTeamH[^"]*"[^>]*>[\s\S]*?<option[^>]+selected="selected"[^>]+value="([^"]+)"/i,
+      /<select[^>]+name="ddSelectTeamH_(\d+)_\d+"[^>]*>[\s\S]*?<option[^>]+selected="selected"[^>]+value="([^"]+)"/i,
     );
     // Selected option in away-team select
     const awaySel = row.match(
@@ -324,7 +316,8 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
 
     if (!homeSel || !awaySel || !dateInp || !timeInp) continue;
 
-    const homeNumId = homeSel[1];
+    const matchday  = parseInt(homeSel[1], 10) + 1; // suffix is 0-based
+    const homeNumId = homeSel[2];
     const awayNumId = awaySel[1];
     const dateRaw   = dateInp[1];
     const timeRaw   = timeInp[1];
@@ -359,15 +352,15 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
       continue;
     }
 
-    // Deduplicate within this league page
-    const pairKey = `${homeTeamId}|${awayTeamId}`;
+    // Deduplicate within this league page by (pair + matchday) so distinct
+    // meetings of the same pairing on different matchdays are all preserved.
+    const pairKey = `${homeTeamId}|${awayTeamId}|${matchday}`;
     if (seenPairs.has(pairKey)) continue;
     seenPairs.add(pairKey);
 
     const homeTeamName = TEAM_NAMES[homeTeamId] ?? homeTeamId;
     const awayTeamName = TEAM_NAMES[awayTeamId] ?? awayTeamId;
-    const id = `imp-${leagueId}-${homeTeamId}-${awayTeamId}`;
-    const matchday = currentMatchday ?? undefined;
+    const id = `imp-${leagueId}-${homeTeamId}-${awayTeamId}-md${matchday}`;
 
     if (isResult(dateRaw, timeRaw)) {
       // Completed match — scores stored as integers in date/time fields
@@ -409,35 +402,6 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
   }
 
   return matches;
-}
-
-// ── Merge ─────────────────────────────────────────────────────
-
-/**
- * Merges an existing set of imported matches with newly fetched data.
- *
- * Rules:
- *   - New match (ID not seen before): add it.
- *   - Existing "scheduled" + incoming "completed": upgrade to completed.
- *   - Existing "completed": never overwrite (preserve manual corrections).
- */
-function mergeMatches(
-  existing: ImportedMatch[],
-  incoming: ImportedMatch[],
-): ImportedMatch[] {
-  const byId = new Map<string, ImportedMatch>(existing.map(m => [m.id, m]));
-
-  for (const next of incoming) {
-    const prev = byId.get(next.id);
-    if (!prev) {
-      byId.set(next.id, next);
-    } else if (prev.status === 'scheduled' && next.status === 'completed') {
-      byId.set(next.id, next);
-    }
-    // If prev is completed → keep it as-is
-  }
-
-  return Array.from(byId.values());
 }
 
 // ── Statistics helpers ────────────────────────────────────────
@@ -831,7 +795,17 @@ async function main(): Promise<void> {
     }
   }
 
-  let merged = [...existing];
+  // Group existing matches by league so a failed fetch preserves that league's
+  // previous data while successful fetches replace it authoritatively. Because
+  // each meeting is keyed by (pair + matchday), a clean per-league replace also
+  // purges any stale rows from older imports (e.g. data artifacts).
+  const byLeague = new Map<string, ImportedMatch[]>();
+  for (const m of existing) {
+    const arr = byLeague.get(m.leagueId) ?? [];
+    arr.push(m);
+    byLeague.set(m.leagueId, arr);
+  }
+
   let totalFetched = 0;
 
   for (const ligaIdStr of Object.keys(LEAGUE_MAP)) {
@@ -843,10 +817,12 @@ async function main(): Promise<void> {
       const html = await fetchSpielplan(ligaId);
       const parsed = parseSpielplan(html, ligaId);
       console.log(`  Parsed ${parsed.length} unique match rows.`);
-      totalFetched += parsed.length;
-
-      // Merge incrementally (so a later failure doesn't lose earlier fetches)
-      merged = mergeMatches(merged, parsed);
+      if (parsed.length > 0) {
+        byLeague.set(leagueId, parsed); // authoritative replace for this league
+        totalFetched += parsed.length;
+      } else {
+        process.stderr.write(`  WARN no rows parsed — keeping existing data for ${leagueId}\n`);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`  ERROR fetching Liga ${ligaId}: ${msg}`);
@@ -856,6 +832,8 @@ async function main(): Promise<void> {
     // Polite delay between requests
     await delay(2000);
   }
+
+  const merged = Array.from(byLeague.values()).flat();
 
   // Write matches result
   writeFileSync(outputPath, JSON.stringify(merged, null, 2) + '\n', 'utf-8');

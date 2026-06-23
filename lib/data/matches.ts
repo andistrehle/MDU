@@ -331,16 +331,27 @@ const STATIC_MATCHES: Match[] = [
 // lib/data/imported-matches.json is written by:
 //   npm run import:dartunion
 //
-// Merge rules (applied at module init, zero runtime cost):
-//   • Static "scheduled" match that import shows as "completed" → upgraded.
-//   • Brand-new match (home+away+league pair not in static set) → appended.
-//   • Static "completed" results → never overwritten.
+// dartunion.de is the source of truth for the 6 imported leagues. Each imported
+// row carries a matchday, so a meeting is matched to its exact static fixture by
+// (home, away, league, matchday). This is essential for La and C, which are
+// multi-leg round-robins where a pairing meets several times — a pair-only key
+// would assign one meeting's result to all of them.
+//
+// Merge rules (applied at module init, zero runtime cost), per matched meeting:
+//   • Import "completed" → apply the imported score (overrides stale static
+//     results, since the source is authoritative for that exact meeting).
+//   • Import "scheduled" → mark open and clear any stale result; keep a future
+//     date as the fixture date, turn a past/placeholder date into null
+//     (rendered as "Termin noch nicht verfügbar").
+//   • Imported meetings with no static counterpart → appended.
+//   • Static-only fixtures (e.g. Pokal, not imported) → left untouched.
 
 type _PartialImport = {
   id: string;
   homeTeamId: string;
   awayTeamId: string;
   leagueId: string;
+  matchday?: number;
   date: string | null;
   time: string | null;
   status: string;
@@ -350,63 +361,66 @@ type _PartialImport = {
 
 function _buildMerged(): Match[] {
   const imported = importedRaw as unknown as _PartialImport[];
+  const today = new Date().toISOString().slice(0, 10);
 
-  // Index imported matches by (home, away, league) for quick lookup
+  // Index imported meetings by (home, away, league, matchday) and, as a
+  // fallback for any row without a matchday, by (home, away, league).
+  const importByKey  = new Map<string, _PartialImport>();
   const importByPair = new Map<string, _PartialImport>();
   for (const m of imported) {
+    if (m.matchday != null) {
+      importByKey.set(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday}`, m);
+    }
     importByPair.set(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`, m);
   }
 
-  const staticIds   = new Set(STATIC_MATCHES.map(m => m.id));
-  const staticPairs = new Set(
-    STATIC_MATCHES.map(m => `${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`),
-  );
-
-  // Upgrade scheduled → completed where import has a confirmed result
-  const updated: Match[] = STATIC_MATCHES.map(m => {
-    if (m.status === 'scheduled') {
-      const imp = importByPair.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`);
-      if (
-        imp?.status === 'completed' &&
-        imp.result != null &&
-        typeof imp.result.home === 'number' &&
-        typeof imp.result.away === 'number'
-      ) {
-        // Only keep the static date if it's not in the future.
-        // If the match was played before its scheduled date, the static date
-        // would be a future date — clear it to null so it doesn't surface
-        // as a recent result with a future timestamp.
-        const _today = new Date().toISOString().slice(0, 10);
-        const mergedDate =
-          m.date && m.date <= _today ? m.date :
-          imp.date && imp.date <= _today ? imp.date :
-          null;
-        return {
-          ...m,
-          status: 'completed' as const,
-          result: { home: imp.result.home, away: imp.result.away },
-          date: mergedDate,
-        };
-      }
-      // Clear stale past date when import says match is still open
-      // (dartunion.de encodes "no date yet" as 30.11.99 → parsed as null).
-      // If the static match had a scheduled date that is now in the past but
-      // the import still shows it as scheduled with no date, clear the date.
-      if (imp?.status === 'scheduled' && imp.date === null && m.date !== null) {
-        const _today = new Date().toISOString().slice(0, 10);
-        if (m.date < _today) {
-          return { ...m, date: null };
-        }
-      }
+  const lookup = (m: Match): _PartialImport | undefined => {
+    if (m.matchday != null) {
+      const hit = importByKey.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday}`);
+      if (hit) return hit;
     }
-    return m;
+    return importByPair.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`);
+  };
+
+  const matchedImportIds = new Set<string>();
+
+  const updated: Match[] = STATIC_MATCHES.map(m => {
+    const imp = lookup(m);
+    if (!imp) return m;
+    matchedImportIds.add(imp.id);
+
+    if (
+      imp.status === 'completed' &&
+      imp.result != null &&
+      typeof imp.result.home === 'number' &&
+      typeof imp.result.away === 'number'
+    ) {
+      // Keep a non-future date so a result never surfaces with a future stamp.
+      const mergedDate =
+        m.date && m.date <= today ? m.date :
+        imp.date && imp.date <= today ? imp.date :
+        null;
+      return {
+        ...m,
+        status: 'completed' as const,
+        result: { home: imp.result.home, away: imp.result.away },
+        date: mergedDate,
+      };
+    }
+
+    // Import says this exact meeting is still open.
+    const openDate = imp.date && imp.date >= today ? imp.date : null;
+    return { ...m, status: 'scheduled' as const, result: null, date: openDate };
   });
 
-  // Append brand-new matches that are not in the static set at all
+  // Append imported meetings that have no static counterpart at all.
+  const staticKeys = new Set(
+    STATIC_MATCHES.map(m => `${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday ?? ''}`),
+  );
   const extras: Match[] = (imported as unknown as Match[]).filter(
     m =>
-      !staticIds.has(m.id) &&
-      !staticPairs.has(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`),
+      !matchedImportIds.has(m.id) &&
+      !staticKeys.has(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday ?? ''}`),
   );
 
   return [...updated, ...extras];

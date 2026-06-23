@@ -1,8 +1,9 @@
 [
   {
-    "id": "imp-la-dc-null-bull-jolly-pirates-kts",
+    "id": "imp-la-dc-null-bull-jolly-pirates-kts-md1",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 1,
     "homeTeamId": "dc-null-bull",
     "awayTeamId": "jolly-pirates-kts",
     "homeTeamName": "DC Null Bull",
@@ -17,9 +18,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-ohne-jackie-les-dartagnons",
+    "id": "imp-la-ohne-jackie-les-dartagnons-md1",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 1,
     "homeTeamId": "ohne-jackie",
     "awayTeamId": "les-dartagnons",
     "homeTeamName": "Ohne Jackie",
@@ -34,9 +36,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-spartans-no-maam",
+    "id": "imp-la-spartans-no-maam-md1",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 1,
     "homeTeamId": "spartans",
     "awayTeamId": "no-maam",
     "homeTeamName": "Spartans",
@@ -51,9 +54,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-les-dartagnons-dc-null-bull",
+    "id": "imp-la-les-dartagnons-dc-null-bull-md2",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 2,
     "homeTeamId": "les-dartagnons",
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "Les Dartagnons",
@@ -68,9 +72,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-spartans-jolly-pirates-kts",
+    "id": "imp-la-spartans-jolly-pirates-kts-md2",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 2,
     "homeTeamId": "spartans",
     "awayTeamId": "jolly-pirates-kts",
     "homeTeamName": "Spartans",
@@ -85,9 +90,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-no-maam-ohne-jackie",
+    "id": "imp-la-no-maam-ohne-jackie-md2",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 2,
     "homeTeamId": "no-maam",
     "awayTeamId": "ohne-jackie",
     "homeTeamName": "No Ma'am",
@@ -102,9 +108,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-dc-null-bull-no-maam",
+    "id": "imp-la-dc-null-bull-no-maam-md3",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 3,
     "homeTeamId": "dc-null-bull",
     "awayTeamId": "no-maam",
     "homeTeamName": "DC Null Bull",
@@ -119,9 +126,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-jolly-pirates-kts-les-dartagnons",
+    "id": "imp-la-jolly-pirates-kts-les-dartagnons-md3",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 3,
     "homeTeamId": "jolly-pirates-kts",
     "awayTeamId": "les-dartagnons",
     "homeTeamName": "Jolly Pirates KT's",
@@ -136,9 +144,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-ohne-jackie-spartans",
+    "id": "imp-la-ohne-jackie-spartans-md3",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 3,
     "homeTeamId": "ohne-jackie",
     "awayTeamId": "spartans",
     "homeTeamName": "Ohne Jackie",
@@ -153,9 +162,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-ohne-jackie-dc-null-bull",
+    "id": "imp-la-ohne-jackie-dc-null-bull-md4",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 4,
     "homeTeamId": "ohne-jackie",
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "Ohne Jackie",
@@ -170,9 +180,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-no-maam-jolly-pirates-kts",
+    "id": "imp-la-no-maam-jolly-pirates-kts-md4",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 4,
     "homeTeamId": "no-maam",
     "awayTeamId": "jolly-pirates-kts",
     "homeTeamName": "No Ma'am",
@@ -187,9 +198,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-spartans-les-dartagnons",
+    "id": "imp-la-spartans-les-dartagnons-md4",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 4,
     "homeTeamId": "spartans",
     "awayTeamId": "les-dartagnons",
     "homeTeamName": "Spartans",
@@ -204,9 +216,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-dc-null-bull-spartans",
+    "id": "imp-la-dc-null-bull-spartans-md5",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 5,
     "homeTeamId": "dc-null-bull",
     "awayTeamId": "spartans",
     "homeTeamName": "DC Null Bull",
@@ -218,9 +231,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-jolly-pirates-kts-ohne-jackie",
+    "id": "imp-la-jolly-pirates-kts-ohne-jackie-md5",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 5,
     "homeTeamId": "jolly-pirates-kts",
     "awayTeamId": "ohne-jackie",
     "homeTeamName": "Jolly Pirates KT's",
@@ -235,9 +249,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-les-dartagnons-no-maam",
+    "id": "imp-la-les-dartagnons-no-maam-md5",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 5,
     "homeTeamId": "les-dartagnons",
     "awayTeamId": "no-maam",
     "homeTeamName": "Les Dartagnons",
@@ -252,9 +267,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-jolly-pirates-kts-dc-null-bull",
+    "id": "imp-la-jolly-pirates-kts-dc-null-bull-md6",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 6,
     "homeTeamId": "jolly-pirates-kts",
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "Jolly Pirates KT's",
@@ -269,9 +285,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-les-dartagnons-ohne-jackie",
+    "id": "imp-la-les-dartagnons-ohne-jackie-md6",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 6,
     "homeTeamId": "les-dartagnons",
     "awayTeamId": "ohne-jackie",
     "homeTeamName": "Les Dartagnons",
@@ -286,9 +303,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-no-maam-spartans",
+    "id": "imp-la-no-maam-spartans-md6",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 6,
     "homeTeamId": "no-maam",
     "awayTeamId": "spartans",
     "homeTeamName": "No Ma'am",
@@ -303,9 +321,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-dc-null-bull-les-dartagnons",
+    "id": "imp-la-dc-null-bull-les-dartagnons-md7",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 7,
     "homeTeamId": "dc-null-bull",
     "awayTeamId": "les-dartagnons",
     "homeTeamName": "DC Null Bull",
@@ -320,9 +339,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-jolly-pirates-kts-spartans",
+    "id": "imp-la-jolly-pirates-kts-spartans-md7",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 7,
     "homeTeamId": "jolly-pirates-kts",
     "awayTeamId": "spartans",
     "homeTeamName": "Jolly Pirates KT's",
@@ -337,9 +357,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-ohne-jackie-no-maam",
+    "id": "imp-la-ohne-jackie-no-maam-md7",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 7,
     "homeTeamId": "ohne-jackie",
     "awayTeamId": "no-maam",
     "homeTeamName": "Ohne Jackie",
@@ -354,9 +375,388 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-no-maam-dc-null-bull",
+    "id": "imp-la-dc-null-bull-jolly-pirates-kts-md11",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 11,
+    "homeTeamId": "dc-null-bull",
+    "awayTeamId": "jolly-pirates-kts",
+    "homeTeamName": "DC Null Bull",
+    "awayTeamName": "Jolly Pirates KT's",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 6,
+      "away": 12
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-ohne-jackie-les-dartagnons-md11",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 11,
+    "homeTeamId": "ohne-jackie",
+    "awayTeamId": "les-dartagnons",
+    "homeTeamName": "Ohne Jackie",
+    "awayTeamName": "Les Dartagnons",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 17,
+      "away": 1
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-spartans-no-maam-md11",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 11,
+    "homeTeamId": "spartans",
+    "awayTeamId": "no-maam",
+    "homeTeamName": "Spartans",
+    "awayTeamName": "No Ma'am",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 14,
+      "away": 4
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-les-dartagnons-dc-null-bull-md12",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 12,
+    "homeTeamId": "les-dartagnons",
+    "awayTeamId": "dc-null-bull",
+    "homeTeamName": "Les Dartagnons",
+    "awayTeamName": "DC Null Bull",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 0,
+      "away": 18
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-spartans-jolly-pirates-kts-md12",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 12,
+    "homeTeamId": "spartans",
+    "awayTeamId": "jolly-pirates-kts",
+    "homeTeamName": "Spartans",
+    "awayTeamName": "Jolly Pirates KT's",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 11,
+      "away": 7
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-no-maam-ohne-jackie-md12",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 12,
+    "homeTeamId": "no-maam",
+    "awayTeamId": "ohne-jackie",
+    "homeTeamName": "No Ma'am",
+    "awayTeamName": "Ohne Jackie",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-dc-null-bull-no-maam-md13",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 13,
+    "homeTeamId": "dc-null-bull",
+    "awayTeamId": "no-maam",
+    "homeTeamName": "DC Null Bull",
+    "awayTeamName": "No Ma'am",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-jolly-pirates-kts-les-dartagnons-md13",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 13,
+    "homeTeamId": "jolly-pirates-kts",
+    "awayTeamId": "les-dartagnons",
+    "homeTeamName": "Jolly Pirates KT's",
+    "awayTeamName": "Les Dartagnons",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 16,
+      "away": 2
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-ohne-jackie-spartans-md13",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 13,
+    "homeTeamId": "ohne-jackie",
+    "awayTeamId": "spartans",
+    "homeTeamName": "Ohne Jackie",
+    "awayTeamName": "Spartans",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 3,
+      "away": 15
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-ohne-jackie-dc-null-bull-md14",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 14,
+    "homeTeamId": "ohne-jackie",
+    "awayTeamId": "dc-null-bull",
+    "homeTeamName": "Ohne Jackie",
+    "awayTeamName": "DC Null Bull",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 15,
+      "away": 3
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-no-maam-jolly-pirates-kts-md14",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 14,
+    "homeTeamId": "no-maam",
+    "awayTeamId": "jolly-pirates-kts",
+    "homeTeamName": "No Ma'am",
+    "awayTeamName": "Jolly Pirates KT's",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 6,
+      "away": 12
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-spartans-les-dartagnons-md14",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 14,
+    "homeTeamId": "spartans",
+    "awayTeamId": "les-dartagnons",
+    "homeTeamName": "Spartans",
+    "awayTeamName": "Les Dartagnons",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 18,
+      "away": 0
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-dc-null-bull-spartans-md15",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 15,
+    "homeTeamId": "dc-null-bull",
+    "awayTeamId": "spartans",
+    "homeTeamName": "DC Null Bull",
+    "awayTeamName": "Spartans",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 3,
+      "away": 15
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-jolly-pirates-kts-ohne-jackie-md15",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 15,
+    "homeTeamId": "jolly-pirates-kts",
+    "awayTeamId": "ohne-jackie",
+    "homeTeamName": "Jolly Pirates KT's",
+    "awayTeamName": "Ohne Jackie",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 15,
+      "away": 3
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-les-dartagnons-no-maam-md15",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 15,
+    "homeTeamId": "les-dartagnons",
+    "awayTeamId": "no-maam",
+    "homeTeamName": "Les Dartagnons",
+    "awayTeamName": "No Ma'am",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 1,
+      "away": 17
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-jolly-pirates-kts-dc-null-bull-md16",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 16,
+    "homeTeamId": "jolly-pirates-kts",
+    "awayTeamId": "dc-null-bull",
+    "homeTeamName": "Jolly Pirates KT's",
+    "awayTeamName": "DC Null Bull",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 16,
+      "away": 2
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-les-dartagnons-ohne-jackie-md16",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 16,
+    "homeTeamId": "les-dartagnons",
+    "awayTeamId": "ohne-jackie",
+    "homeTeamName": "Les Dartagnons",
+    "awayTeamName": "Ohne Jackie",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 1,
+      "away": 17
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-no-maam-spartans-md16",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 16,
+    "homeTeamId": "no-maam",
+    "awayTeamId": "spartans",
+    "homeTeamName": "No Ma'am",
+    "awayTeamName": "Spartans",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 11,
+      "away": 7
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-dc-null-bull-les-dartagnons-md17",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 17,
+    "homeTeamId": "dc-null-bull",
+    "awayTeamId": "les-dartagnons",
+    "homeTeamName": "DC Null Bull",
+    "awayTeamName": "Les Dartagnons",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 15,
+      "away": 3
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-jolly-pirates-kts-spartans-md17",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 17,
+    "homeTeamId": "jolly-pirates-kts",
+    "awayTeamId": "spartans",
+    "homeTeamName": "Jolly Pirates KT's",
+    "awayTeamName": "Spartans",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-ohne-jackie-no-maam-md17",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 17,
+    "homeTeamId": "ohne-jackie",
+    "awayTeamId": "no-maam",
+    "homeTeamName": "Ohne Jackie",
+    "awayTeamName": "No Ma'am",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 18,
+      "away": 0
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-no-maam-dc-null-bull-md8",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 8,
     "homeTeamId": "no-maam",
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "No Ma'am",
@@ -371,9 +771,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-les-dartagnons-jolly-pirates-kts",
+    "id": "imp-la-les-dartagnons-jolly-pirates-kts-md8",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 8,
     "homeTeamId": "les-dartagnons",
     "awayTeamId": "jolly-pirates-kts",
     "homeTeamName": "Les Dartagnons",
@@ -388,9 +789,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-spartans-ohne-jackie",
+    "id": "imp-la-spartans-ohne-jackie-md8",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 8,
     "homeTeamId": "spartans",
     "awayTeamId": "ohne-jackie",
     "homeTeamName": "Spartans",
@@ -405,9 +807,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-dc-null-bull-ohne-jackie",
+    "id": "imp-la-dc-null-bull-ohne-jackie-md9",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 9,
     "homeTeamId": "dc-null-bull",
     "awayTeamId": "ohne-jackie",
     "homeTeamName": "DC Null Bull",
@@ -422,9 +825,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-jolly-pirates-kts-no-maam",
+    "id": "imp-la-jolly-pirates-kts-no-maam-md9",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 9,
     "homeTeamId": "jolly-pirates-kts",
     "awayTeamId": "no-maam",
     "homeTeamName": "Jolly Pirates KT's",
@@ -439,9 +843,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-les-dartagnons-spartans",
+    "id": "imp-la-les-dartagnons-spartans-md9",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 9,
     "homeTeamId": "les-dartagnons",
     "awayTeamId": "spartans",
     "homeTeamName": "Les Dartagnons",
@@ -456,9 +861,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-spartans-dc-null-bull",
+    "id": "imp-la-spartans-dc-null-bull-md10",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 10,
     "homeTeamId": "spartans",
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "Spartans",
@@ -473,9 +879,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-ohne-jackie-jolly-pirates-kts",
+    "id": "imp-la-ohne-jackie-jolly-pirates-kts-md10",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 10,
     "homeTeamId": "ohne-jackie",
     "awayTeamId": "jolly-pirates-kts",
     "homeTeamName": "Ohne Jackie",
@@ -490,9 +897,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-la-no-maam-les-dartagnons",
+    "id": "imp-la-no-maam-les-dartagnons-md10",
     "seasonId": "season-2026",
     "leagueId": "la",
+    "matchday": 10,
     "homeTeamId": "no-maam",
     "awayTeamId": "les-dartagnons",
     "homeTeamName": "No Ma'am",
@@ -507,9 +915,166 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-alptraum-gambas",
+    "id": "imp-la-no-maam-dc-null-bull-md18",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 18,
+    "homeTeamId": "no-maam",
+    "awayTeamId": "dc-null-bull",
+    "homeTeamName": "No Ma'am",
+    "awayTeamName": "DC Null Bull",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-les-dartagnons-jolly-pirates-kts-md18",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 18,
+    "homeTeamId": "les-dartagnons",
+    "awayTeamId": "jolly-pirates-kts",
+    "homeTeamName": "Les Dartagnons",
+    "awayTeamName": "Jolly Pirates KT's",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 2,
+      "away": 16
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-spartans-ohne-jackie-md18",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 18,
+    "homeTeamId": "spartans",
+    "awayTeamId": "ohne-jackie",
+    "homeTeamName": "Spartans",
+    "awayTeamName": "Ohne Jackie",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 12,
+      "away": 6
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-dc-null-bull-ohne-jackie-md19",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 19,
+    "homeTeamId": "dc-null-bull",
+    "awayTeamId": "ohne-jackie",
+    "homeTeamName": "DC Null Bull",
+    "awayTeamName": "Ohne Jackie",
+    "date": "2026-06-27",
+    "time": "20:30",
+    "status": "scheduled",
+    "result": null,
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-jolly-pirates-kts-no-maam-md19",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 19,
+    "homeTeamId": "jolly-pirates-kts",
+    "awayTeamId": "no-maam",
+    "homeTeamName": "Jolly Pirates KT's",
+    "awayTeamName": "No Ma'am",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-les-dartagnons-spartans-md19",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 19,
+    "homeTeamId": "les-dartagnons",
+    "awayTeamId": "spartans",
+    "homeTeamName": "Les Dartagnons",
+    "awayTeamName": "Spartans",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 1,
+      "away": 17
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-spartans-dc-null-bull-md20",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 20,
+    "homeTeamId": "spartans",
+    "awayTeamId": "dc-null-bull",
+    "homeTeamName": "Spartans",
+    "awayTeamName": "DC Null Bull",
+    "date": "2026-06-19",
+    "time": "20:00",
+    "status": "scheduled",
+    "result": null,
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-ohne-jackie-jolly-pirates-kts-md20",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 20,
+    "homeTeamId": "ohne-jackie",
+    "awayTeamId": "jolly-pirates-kts",
+    "homeTeamName": "Ohne Jackie",
+    "awayTeamName": "Jolly Pirates KT's",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 7,
+      "away": 11
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-la-no-maam-les-dartagnons-md20",
+    "seasonId": "season-2026",
+    "leagueId": "la",
+    "matchday": 20,
+    "homeTeamId": "no-maam",
+    "awayTeamId": "les-dartagnons",
+    "homeTeamName": "No Ma'am",
+    "awayTeamName": "Les Dartagnons",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 17,
+      "away": 1
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
+  },
+  {
+    "id": "imp-playoffs-a-aufstieg-alptraum-gambas-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 1,
     "homeTeamId": "alptraum",
     "awayTeamId": "gambas",
     "homeTeamName": "Alptraum",
@@ -524,9 +1089,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-dc-animals-ii",
+    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-dc-animals-ii-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 1,
     "homeTeamId": "jolly-pirates-v",
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Jolly Pirates V",
@@ -541,9 +1107,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-silberpfeile-ii",
+    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-silberpfeile-ii-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 1,
     "homeTeamId": "treff-nix-freimann",
     "awayTeamId": "silberpfeile-ii",
     "homeTeamName": "Treff Nix Freimann",
@@ -558,9 +1125,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-alptraum",
+    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-alptraum-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 2,
     "homeTeamId": "dc-animals-ii",
     "awayTeamId": "alptraum",
     "homeTeamName": "DC Animals II",
@@ -575,9 +1143,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-gambas",
+    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-gambas-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 2,
     "homeTeamId": "treff-nix-freimann",
     "awayTeamId": "gambas",
     "homeTeamName": "Treff Nix Freimann",
@@ -592,9 +1161,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-jolly-pirates-v",
+    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-jolly-pirates-v-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 2,
     "homeTeamId": "silberpfeile-ii",
     "awayTeamId": "jolly-pirates-v",
     "homeTeamName": "Silberpfeile II",
@@ -606,9 +1176,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-alptraum-silberpfeile-ii",
+    "id": "imp-playoffs-a-aufstieg-alptraum-silberpfeile-ii-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 3,
     "homeTeamId": "alptraum",
     "awayTeamId": "silberpfeile-ii",
     "homeTeamName": "Alptraum",
@@ -623,9 +1194,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-gambas-dc-animals-ii",
+    "id": "imp-playoffs-a-aufstieg-gambas-dc-animals-ii-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 3,
     "homeTeamId": "gambas",
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Gambas",
@@ -640,9 +1212,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-treff-nix-freimann",
+    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-treff-nix-freimann-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 3,
     "homeTeamId": "jolly-pirates-v",
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "Jolly Pirates V",
@@ -657,9 +1230,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-alptraum",
+    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-alptraum-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 4,
     "homeTeamId": "jolly-pirates-v",
     "awayTeamId": "alptraum",
     "homeTeamName": "Jolly Pirates V",
@@ -674,9 +1248,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-gambas",
+    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-gambas-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 4,
     "homeTeamId": "silberpfeile-ii",
     "awayTeamId": "gambas",
     "homeTeamName": "Silberpfeile II",
@@ -691,9 +1266,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-dc-animals-ii",
+    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-dc-animals-ii-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 4,
     "homeTeamId": "treff-nix-freimann",
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Treff Nix Freimann",
@@ -708,9 +1284,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-alptraum-treff-nix-freimann",
+    "id": "imp-playoffs-a-aufstieg-alptraum-treff-nix-freimann-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 5,
     "homeTeamId": "alptraum",
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "Alptraum",
@@ -725,9 +1302,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-gambas-jolly-pirates-v",
+    "id": "imp-playoffs-a-aufstieg-gambas-jolly-pirates-v-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 5,
     "homeTeamId": "gambas",
     "awayTeamId": "jolly-pirates-v",
     "homeTeamName": "Gambas",
@@ -742,9 +1320,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-silberpfeile-ii",
+    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-silberpfeile-ii-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 5,
     "homeTeamId": "dc-animals-ii",
     "awayTeamId": "silberpfeile-ii",
     "homeTeamName": "DC Animals II",
@@ -759,9 +1338,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-gambas-alptraum",
+    "id": "imp-playoffs-a-aufstieg-gambas-alptraum-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 6,
     "homeTeamId": "gambas",
     "awayTeamId": "alptraum",
     "homeTeamName": "Gambas",
@@ -776,9 +1356,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-jolly-pirates-v",
+    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-jolly-pirates-v-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 6,
     "homeTeamId": "dc-animals-ii",
     "awayTeamId": "jolly-pirates-v",
     "homeTeamName": "DC Animals II",
@@ -793,9 +1374,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-treff-nix-freimann",
+    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-treff-nix-freimann-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 6,
     "homeTeamId": "silberpfeile-ii",
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "Silberpfeile II",
@@ -810,9 +1392,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-alptraum-dc-animals-ii",
+    "id": "imp-playoffs-a-aufstieg-alptraum-dc-animals-ii-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 7,
     "homeTeamId": "alptraum",
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Alptraum",
@@ -824,9 +1407,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-gambas-treff-nix-freimann",
+    "id": "imp-playoffs-a-aufstieg-gambas-treff-nix-freimann-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 7,
     "homeTeamId": "gambas",
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "Gambas",
@@ -841,9 +1425,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-silberpfeile-ii",
+    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-silberpfeile-ii-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 7,
     "homeTeamId": "jolly-pirates-v",
     "awayTeamId": "silberpfeile-ii",
     "homeTeamName": "Jolly Pirates V",
@@ -858,9 +1443,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-alptraum",
+    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-alptraum-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 8,
     "homeTeamId": "silberpfeile-ii",
     "awayTeamId": "alptraum",
     "homeTeamName": "Silberpfeile II",
@@ -875,9 +1461,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-gambas",
+    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-gambas-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 8,
     "homeTeamId": "dc-animals-ii",
     "awayTeamId": "gambas",
     "homeTeamName": "DC Animals II",
@@ -892,9 +1479,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-jolly-pirates-v",
+    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-jolly-pirates-v-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 8,
     "homeTeamId": "treff-nix-freimann",
     "awayTeamId": "jolly-pirates-v",
     "homeTeamName": "Treff Nix Freimann",
@@ -909,9 +1497,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-alptraum-jolly-pirates-v",
+    "id": "imp-playoffs-a-aufstieg-alptraum-jolly-pirates-v-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 9,
     "homeTeamId": "alptraum",
     "awayTeamId": "jolly-pirates-v",
     "homeTeamName": "Alptraum",
@@ -923,9 +1512,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-gambas-silberpfeile-ii",
+    "id": "imp-playoffs-a-aufstieg-gambas-silberpfeile-ii-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 9,
     "homeTeamId": "gambas",
     "awayTeamId": "silberpfeile-ii",
     "homeTeamName": "Gambas",
@@ -940,9 +1530,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-treff-nix-freimann",
+    "id": "imp-playoffs-a-aufstieg-dc-animals-ii-treff-nix-freimann-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 9,
     "homeTeamId": "dc-animals-ii",
     "awayTeamId": "treff-nix-freimann",
     "homeTeamName": "DC Animals II",
@@ -957,9 +1548,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-alptraum",
+    "id": "imp-playoffs-a-aufstieg-treff-nix-freimann-alptraum-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 10,
     "homeTeamId": "treff-nix-freimann",
     "awayTeamId": "alptraum",
     "homeTeamName": "Treff Nix Freimann",
@@ -974,9 +1566,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-gambas",
+    "id": "imp-playoffs-a-aufstieg-jolly-pirates-v-gambas-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 10,
     "homeTeamId": "jolly-pirates-v",
     "awayTeamId": "gambas",
     "homeTeamName": "Jolly Pirates V",
@@ -991,9 +1584,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-dc-animals-ii",
+    "id": "imp-playoffs-a-aufstieg-silberpfeile-ii-dc-animals-ii-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-aufstieg",
+    "matchday": 10,
     "homeTeamId": "silberpfeile-ii",
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Silberpfeile II",
@@ -1005,9 +1599,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-seven-flying-fighters",
+    "id": "imp-playoffs-b-aufstieg-flying-seven-flying-fighters-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 1,
     "homeTeamId": "flying-seven",
     "awayTeamId": "flying-fighters",
     "homeTeamName": "Flying Seven",
@@ -1022,9 +1617,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-freibad-bazis-fiaker-deife",
+    "id": "imp-playoffs-b-aufstieg-freibad-bazis-fiaker-deife-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 1,
     "homeTeamId": "freibad-bazis",
     "awayTeamId": "fiaker-deife",
     "homeTeamName": "Freibad Bazis",
@@ -1039,9 +1635,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-master-of-desaster-belfort-evolution",
+    "id": "imp-playoffs-b-aufstieg-master-of-desaster-belfort-evolution-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 1,
     "homeTeamId": "master-of-desaster",
     "awayTeamId": "belfort-evolution",
     "homeTeamName": "Master of Desaster",
@@ -1056,9 +1653,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-fiaker-deife-flying-seven",
+    "id": "imp-playoffs-b-aufstieg-fiaker-deife-flying-seven-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 2,
     "homeTeamId": "fiaker-deife",
     "awayTeamId": "flying-seven",
     "homeTeamName": "Fiaker Deife",
@@ -1073,9 +1671,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-master-of-desaster-flying-fighters",
+    "id": "imp-playoffs-b-aufstieg-master-of-desaster-flying-fighters-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 2,
     "homeTeamId": "master-of-desaster",
     "awayTeamId": "flying-fighters",
     "homeTeamName": "Master of Desaster",
@@ -1090,9 +1689,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-belfort-evolution-freibad-bazis",
+    "id": "imp-playoffs-b-aufstieg-belfort-evolution-freibad-bazis-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 2,
     "homeTeamId": "belfort-evolution",
     "awayTeamId": "freibad-bazis",
     "homeTeamName": "Belfort Evolution",
@@ -1107,9 +1707,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-belfort-evolution-flying-seven",
+    "id": "imp-playoffs-b-aufstieg-belfort-evolution-flying-seven-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 3,
     "homeTeamId": "belfort-evolution",
     "awayTeamId": "flying-seven",
     "homeTeamName": "Belfort Evolution",
@@ -1124,9 +1725,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-fighters-fiaker-deife",
+    "id": "imp-playoffs-b-aufstieg-flying-fighters-fiaker-deife-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 3,
     "homeTeamId": "flying-fighters",
     "awayTeamId": "fiaker-deife",
     "homeTeamName": "Flying Fighters",
@@ -1141,9 +1743,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-freibad-bazis-master-of-desaster",
+    "id": "imp-playoffs-b-aufstieg-freibad-bazis-master-of-desaster-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 3,
     "homeTeamId": "freibad-bazis",
     "awayTeamId": "master-of-desaster",
     "homeTeamName": "Freibad Bazis",
@@ -1158,9 +1761,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-freibad-bazis-flying-seven",
+    "id": "imp-playoffs-b-aufstieg-freibad-bazis-flying-seven-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 4,
     "homeTeamId": "freibad-bazis",
     "awayTeamId": "flying-seven",
     "homeTeamName": "Freibad Bazis",
@@ -1175,9 +1779,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-belfort-evolution-flying-fighters",
+    "id": "imp-playoffs-b-aufstieg-belfort-evolution-flying-fighters-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 4,
     "homeTeamId": "belfort-evolution",
     "awayTeamId": "flying-fighters",
     "homeTeamName": "Belfort Evolution",
@@ -1192,9 +1797,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-master-of-desaster-fiaker-deife",
+    "id": "imp-playoffs-b-aufstieg-master-of-desaster-fiaker-deife-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 4,
     "homeTeamId": "master-of-desaster",
     "awayTeamId": "fiaker-deife",
     "homeTeamName": "Master of Desaster",
@@ -1209,9 +1815,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-seven-master-of-desaster",
+    "id": "imp-playoffs-b-aufstieg-flying-seven-master-of-desaster-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 5,
     "homeTeamId": "flying-seven",
     "awayTeamId": "master-of-desaster",
     "homeTeamName": "Flying Seven",
@@ -1226,9 +1833,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-fighters-freibad-bazis",
+    "id": "imp-playoffs-b-aufstieg-flying-fighters-freibad-bazis-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 5,
     "homeTeamId": "flying-fighters",
     "awayTeamId": "freibad-bazis",
     "homeTeamName": "Flying Fighters",
@@ -1243,9 +1851,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-fiaker-deife-belfort-evolution",
+    "id": "imp-playoffs-b-aufstieg-fiaker-deife-belfort-evolution-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 5,
     "homeTeamId": "fiaker-deife",
     "awayTeamId": "belfort-evolution",
     "homeTeamName": "Fiaker Deife",
@@ -1260,9 +1869,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-fighters-flying-seven",
+    "id": "imp-playoffs-b-aufstieg-flying-fighters-flying-seven-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 6,
     "homeTeamId": "flying-fighters",
     "awayTeamId": "flying-seven",
     "homeTeamName": "Flying Fighters",
@@ -1277,9 +1887,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-fiaker-deife-freibad-bazis",
+    "id": "imp-playoffs-b-aufstieg-fiaker-deife-freibad-bazis-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 6,
     "homeTeamId": "fiaker-deife",
     "awayTeamId": "freibad-bazis",
     "homeTeamName": "Fiaker Deife",
@@ -1294,9 +1905,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-belfort-evolution-master-of-desaster",
+    "id": "imp-playoffs-b-aufstieg-belfort-evolution-master-of-desaster-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 6,
     "homeTeamId": "belfort-evolution",
     "awayTeamId": "master-of-desaster",
     "homeTeamName": "Belfort Evolution",
@@ -1311,9 +1923,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-seven-fiaker-deife",
+    "id": "imp-playoffs-b-aufstieg-flying-seven-fiaker-deife-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 7,
     "homeTeamId": "flying-seven",
     "awayTeamId": "fiaker-deife",
     "homeTeamName": "Flying Seven",
@@ -1328,9 +1941,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-fighters-master-of-desaster",
+    "id": "imp-playoffs-b-aufstieg-flying-fighters-master-of-desaster-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 7,
     "homeTeamId": "flying-fighters",
     "awayTeamId": "master-of-desaster",
     "homeTeamName": "Flying Fighters",
@@ -1345,9 +1959,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-freibad-bazis-belfort-evolution",
+    "id": "imp-playoffs-b-aufstieg-freibad-bazis-belfort-evolution-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 7,
     "homeTeamId": "freibad-bazis",
     "awayTeamId": "belfort-evolution",
     "homeTeamName": "Freibad Bazis",
@@ -1362,9 +1977,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-seven-belfort-evolution",
+    "id": "imp-playoffs-b-aufstieg-flying-seven-belfort-evolution-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 8,
     "homeTeamId": "flying-seven",
     "awayTeamId": "belfort-evolution",
     "homeTeamName": "Flying Seven",
@@ -1379,9 +1995,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-fiaker-deife-flying-fighters",
+    "id": "imp-playoffs-b-aufstieg-fiaker-deife-flying-fighters-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 8,
     "homeTeamId": "fiaker-deife",
     "awayTeamId": "flying-fighters",
     "homeTeamName": "Fiaker Deife",
@@ -1396,9 +2013,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-master-of-desaster-freibad-bazis",
+    "id": "imp-playoffs-b-aufstieg-master-of-desaster-freibad-bazis-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 8,
     "homeTeamId": "master-of-desaster",
     "awayTeamId": "freibad-bazis",
     "homeTeamName": "Master of Desaster",
@@ -1413,9 +2031,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-seven-freibad-bazis",
+    "id": "imp-playoffs-b-aufstieg-flying-seven-freibad-bazis-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 9,
     "homeTeamId": "flying-seven",
     "awayTeamId": "freibad-bazis",
     "homeTeamName": "Flying Seven",
@@ -1430,9 +2049,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-flying-fighters-belfort-evolution",
+    "id": "imp-playoffs-b-aufstieg-flying-fighters-belfort-evolution-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 9,
     "homeTeamId": "flying-fighters",
     "awayTeamId": "belfort-evolution",
     "homeTeamName": "Flying Fighters",
@@ -1447,9 +2067,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-fiaker-deife-master-of-desaster",
+    "id": "imp-playoffs-b-aufstieg-fiaker-deife-master-of-desaster-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 9,
     "homeTeamId": "fiaker-deife",
     "awayTeamId": "master-of-desaster",
     "homeTeamName": "Fiaker Deife",
@@ -1464,9 +2085,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-master-of-desaster-flying-seven",
+    "id": "imp-playoffs-b-aufstieg-master-of-desaster-flying-seven-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 10,
     "homeTeamId": "master-of-desaster",
     "awayTeamId": "flying-seven",
     "homeTeamName": "Master of Desaster",
@@ -1481,9 +2103,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-freibad-bazis-flying-fighters",
+    "id": "imp-playoffs-b-aufstieg-freibad-bazis-flying-fighters-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 10,
     "homeTeamId": "freibad-bazis",
     "awayTeamId": "flying-fighters",
     "homeTeamName": "Freibad Bazis",
@@ -1498,9 +2121,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-b-aufstieg-belfort-evolution-fiaker-deife",
+    "id": "imp-playoffs-b-aufstieg-belfort-evolution-fiaker-deife-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-aufstieg",
+    "matchday": 10,
     "homeTeamId": "belfort-evolution",
     "awayTeamId": "fiaker-deife",
     "homeTeamName": "Belfort Evolution",
@@ -1515,9 +2139,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=90"
   },
   {
-    "id": "imp-playoffs-a-abstieg-game-over-oldies-co",
+    "id": "imp-playoffs-a-abstieg-game-over-oldies-co-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 1,
     "homeTeamId": "game-over",
     "awayTeamId": "oldies-co",
     "homeTeamName": "Game Over",
@@ -1532,9 +2157,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-game-over-sound-warriors",
+    "id": "imp-playoffs-a-abstieg-game-over-sound-warriors-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 2,
     "homeTeamId": "game-over",
     "awayTeamId": "sound-warriors",
     "homeTeamName": "Game Over",
@@ -1549,9 +2175,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-sound-warriors-spartans-vi",
+    "id": "imp-playoffs-a-abstieg-sound-warriors-spartans-vi-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 3,
     "homeTeamId": "sound-warriors",
     "awayTeamId": "spartans-vi",
     "homeTeamName": "Sound Warrior's",
@@ -1566,9 +2193,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-oldies-co-sound-warriors",
+    "id": "imp-playoffs-a-abstieg-oldies-co-sound-warriors-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 4,
     "homeTeamId": "oldies-co",
     "awayTeamId": "sound-warriors",
     "homeTeamName": "Oldies & Co",
@@ -1583,9 +2211,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-game-over-spartans-vi",
+    "id": "imp-playoffs-a-abstieg-game-over-spartans-vi-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 4,
     "homeTeamId": "game-over",
     "awayTeamId": "spartans-vi",
     "homeTeamName": "Game Over",
@@ -1600,9 +2229,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-spartans-vi-oldies-co",
+    "id": "imp-playoffs-a-abstieg-spartans-vi-oldies-co-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 5,
     "homeTeamId": "spartans-vi",
     "awayTeamId": "oldies-co",
     "homeTeamName": "Spartans VI",
@@ -1617,9 +2247,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-oldies-co-game-over",
+    "id": "imp-playoffs-a-abstieg-oldies-co-game-over-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 6,
     "homeTeamId": "oldies-co",
     "awayTeamId": "game-over",
     "homeTeamName": "Oldies & Co",
@@ -1634,9 +2265,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-sound-warriors-game-over",
+    "id": "imp-playoffs-a-abstieg-sound-warriors-game-over-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 7,
     "homeTeamId": "sound-warriors",
     "awayTeamId": "game-over",
     "homeTeamName": "Sound Warrior's",
@@ -1651,9 +2283,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-spartans-vi-sound-warriors",
+    "id": "imp-playoffs-a-abstieg-spartans-vi-sound-warriors-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 8,
     "homeTeamId": "spartans-vi",
     "awayTeamId": "sound-warriors",
     "homeTeamName": "Spartans VI",
@@ -1668,9 +2301,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-sound-warriors-oldies-co",
+    "id": "imp-playoffs-a-abstieg-sound-warriors-oldies-co-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 9,
     "homeTeamId": "sound-warriors",
     "awayTeamId": "oldies-co",
     "homeTeamName": "Sound Warrior's",
@@ -1685,9 +2319,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-spartans-vi-game-over",
+    "id": "imp-playoffs-a-abstieg-spartans-vi-game-over-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 9,
     "homeTeamId": "spartans-vi",
     "awayTeamId": "game-over",
     "homeTeamName": "Spartans VI",
@@ -1702,9 +2337,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-a-abstieg-oldies-co-spartans-vi",
+    "id": "imp-playoffs-a-abstieg-oldies-co-spartans-vi-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-a-abstieg",
+    "matchday": 10,
     "homeTeamId": "oldies-co",
     "awayTeamId": "spartans-vi",
     "homeTeamName": "Oldies & Co",
@@ -1719,9 +2355,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=91"
   },
   {
-    "id": "imp-playoffs-b-abstieg-team-desaster-lucky-darts-one",
+    "id": "imp-playoffs-b-abstieg-team-desaster-lucky-darts-one-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 1,
     "homeTeamId": "team-desaster",
     "awayTeamId": "lucky-darts-one",
     "homeTeamName": "Team Desaster",
@@ -1736,9 +2373,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-dc-dark-angels",
+    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-dc-dark-angels-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 1,
     "homeTeamId": "de-vogelwuidn",
     "awayTeamId": "dc-dark-angels",
     "homeTeamName": "De Vogelwuid'n",
@@ -1753,9 +2391,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-massl-ghabt-de-hutzeldarter",
+    "id": "imp-playoffs-b-abstieg-massl-ghabt-de-hutzeldarter-md1",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 1,
     "homeTeamId": "massl-ghabt",
     "awayTeamId": "de-hutzeldarter",
     "homeTeamName": "Massl Ghabt",
@@ -1770,9 +2409,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-dc-dark-angels-team-desaster",
+    "id": "imp-playoffs-b-abstieg-dc-dark-angels-team-desaster-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 2,
     "homeTeamId": "dc-dark-angels",
     "awayTeamId": "team-desaster",
     "homeTeamName": "DC Dark Angels",
@@ -1787,9 +2427,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-massl-ghabt-lucky-darts-one",
+    "id": "imp-playoffs-b-abstieg-massl-ghabt-lucky-darts-one-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 2,
     "homeTeamId": "massl-ghabt",
     "awayTeamId": "lucky-darts-one",
     "homeTeamName": "Massl Ghabt",
@@ -1804,9 +2445,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-de-vogelwuidn",
+    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-de-vogelwuidn-md2",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 2,
     "homeTeamId": "de-hutzeldarter",
     "awayTeamId": "de-vogelwuidn",
     "homeTeamName": "De Hutzeldarter",
@@ -1821,9 +2463,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-team-desaster-de-hutzeldarter",
+    "id": "imp-playoffs-b-abstieg-team-desaster-de-hutzeldarter-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 3,
     "homeTeamId": "team-desaster",
     "awayTeamId": "de-hutzeldarter",
     "homeTeamName": "Team Desaster",
@@ -1838,9 +2481,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-lucky-darts-one-dc-dark-angels",
+    "id": "imp-playoffs-b-abstieg-lucky-darts-one-dc-dark-angels-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 3,
     "homeTeamId": "lucky-darts-one",
     "awayTeamId": "dc-dark-angels",
     "homeTeamName": "Lucky Darts One",
@@ -1855,9 +2499,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-massl-ghabt",
+    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-massl-ghabt-md3",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 3,
     "homeTeamId": "de-vogelwuidn",
     "awayTeamId": "massl-ghabt",
     "homeTeamName": "De Vogelwuid'n",
@@ -1872,9 +2517,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-team-desaster",
+    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-team-desaster-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 4,
     "homeTeamId": "de-vogelwuidn",
     "awayTeamId": "team-desaster",
     "homeTeamName": "De Vogelwuid'n",
@@ -1889,9 +2535,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-lucky-darts-one",
+    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-lucky-darts-one-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 4,
     "homeTeamId": "de-hutzeldarter",
     "awayTeamId": "lucky-darts-one",
     "homeTeamName": "De Hutzeldarter",
@@ -1906,9 +2553,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-massl-ghabt-dc-dark-angels",
+    "id": "imp-playoffs-b-abstieg-massl-ghabt-dc-dark-angels-md4",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 4,
     "homeTeamId": "massl-ghabt",
     "awayTeamId": "dc-dark-angels",
     "homeTeamName": "Massl Ghabt",
@@ -1923,9 +2571,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-team-desaster-massl-ghabt",
+    "id": "imp-playoffs-b-abstieg-team-desaster-massl-ghabt-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 5,
     "homeTeamId": "team-desaster",
     "awayTeamId": "massl-ghabt",
     "homeTeamName": "Team Desaster",
@@ -1940,9 +2589,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-lucky-darts-one",
+    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-lucky-darts-one-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 5,
     "homeTeamId": "de-vogelwuidn",
     "awayTeamId": "lucky-darts-one",
     "homeTeamName": "De Vogelwuid'n",
@@ -1957,9 +2607,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-dc-dark-angels-de-hutzeldarter",
+    "id": "imp-playoffs-b-abstieg-dc-dark-angels-de-hutzeldarter-md5",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 5,
     "homeTeamId": "dc-dark-angels",
     "awayTeamId": "de-hutzeldarter",
     "homeTeamName": "DC Dark Angels",
@@ -1974,9 +2625,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-lucky-darts-one-team-desaster",
+    "id": "imp-playoffs-b-abstieg-lucky-darts-one-team-desaster-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 6,
     "homeTeamId": "lucky-darts-one",
     "awayTeamId": "team-desaster",
     "homeTeamName": "Lucky Darts One",
@@ -1991,9 +2643,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-dc-dark-angels-de-vogelwuidn",
+    "id": "imp-playoffs-b-abstieg-dc-dark-angels-de-vogelwuidn-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 6,
     "homeTeamId": "dc-dark-angels",
     "awayTeamId": "de-vogelwuidn",
     "homeTeamName": "DC Dark Angels",
@@ -2008,9 +2661,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-massl-ghabt",
+    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-massl-ghabt-md6",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 6,
     "homeTeamId": "de-hutzeldarter",
     "awayTeamId": "massl-ghabt",
     "homeTeamName": "De Hutzeldarter",
@@ -2025,9 +2679,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-team-desaster-dc-dark-angels",
+    "id": "imp-playoffs-b-abstieg-team-desaster-dc-dark-angels-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 7,
     "homeTeamId": "team-desaster",
     "awayTeamId": "dc-dark-angels",
     "homeTeamName": "Team Desaster",
@@ -2042,9 +2697,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-lucky-darts-one-massl-ghabt",
+    "id": "imp-playoffs-b-abstieg-lucky-darts-one-massl-ghabt-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 7,
     "homeTeamId": "lucky-darts-one",
     "awayTeamId": "massl-ghabt",
     "homeTeamName": "Lucky Darts One",
@@ -2059,9 +2715,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-de-hutzeldarter",
+    "id": "imp-playoffs-b-abstieg-de-vogelwuidn-de-hutzeldarter-md7",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 7,
     "homeTeamId": "de-vogelwuidn",
     "awayTeamId": "de-hutzeldarter",
     "homeTeamName": "De Vogelwuid'n",
@@ -2076,9 +2733,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-team-desaster",
+    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-team-desaster-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 8,
     "homeTeamId": "de-hutzeldarter",
     "awayTeamId": "team-desaster",
     "homeTeamName": "De Hutzeldarter",
@@ -2093,9 +2751,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-dc-dark-angels-lucky-darts-one",
+    "id": "imp-playoffs-b-abstieg-dc-dark-angels-lucky-darts-one-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 8,
     "homeTeamId": "dc-dark-angels",
     "awayTeamId": "lucky-darts-one",
     "homeTeamName": "DC Dark Angels",
@@ -2110,9 +2769,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-massl-ghabt-de-vogelwuidn",
+    "id": "imp-playoffs-b-abstieg-massl-ghabt-de-vogelwuidn-md8",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 8,
     "homeTeamId": "massl-ghabt",
     "awayTeamId": "de-vogelwuidn",
     "homeTeamName": "Massl Ghabt",
@@ -2127,9 +2787,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-team-desaster-de-vogelwuidn",
+    "id": "imp-playoffs-b-abstieg-team-desaster-de-vogelwuidn-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 9,
     "homeTeamId": "team-desaster",
     "awayTeamId": "de-vogelwuidn",
     "homeTeamName": "Team Desaster",
@@ -2144,9 +2805,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-lucky-darts-one-de-hutzeldarter",
+    "id": "imp-playoffs-b-abstieg-lucky-darts-one-de-hutzeldarter-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 9,
     "homeTeamId": "lucky-darts-one",
     "awayTeamId": "de-hutzeldarter",
     "homeTeamName": "Lucky Darts One",
@@ -2161,9 +2823,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-dc-dark-angels-massl-ghabt",
+    "id": "imp-playoffs-b-abstieg-dc-dark-angels-massl-ghabt-md9",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 9,
     "homeTeamId": "dc-dark-angels",
     "awayTeamId": "massl-ghabt",
     "homeTeamName": "DC Dark Angels",
@@ -2178,9 +2841,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-massl-ghabt-team-desaster",
+    "id": "imp-playoffs-b-abstieg-massl-ghabt-team-desaster-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 10,
     "homeTeamId": "massl-ghabt",
     "awayTeamId": "team-desaster",
     "homeTeamName": "Massl Ghabt",
@@ -2195,9 +2859,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-lucky-darts-one-de-vogelwuidn",
+    "id": "imp-playoffs-b-abstieg-lucky-darts-one-de-vogelwuidn-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 10,
     "homeTeamId": "lucky-darts-one",
     "awayTeamId": "de-vogelwuidn",
     "homeTeamName": "Lucky Darts One",
@@ -2212,9 +2877,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-dc-dark-angels",
+    "id": "imp-playoffs-b-abstieg-de-hutzeldarter-dc-dark-angels-md10",
     "seasonId": "season-2026",
     "leagueId": "playoffs-b-abstieg",
+    "matchday": 10,
     "homeTeamId": "de-hutzeldarter",
     "awayTeamId": "dc-dark-angels",
     "homeTeamName": "De Hutzeldarter",
@@ -2229,9 +2895,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=92"
   },
   {
-    "id": "imp-c-muenchen-0815-wild-indians",
+    "id": "imp-c-muenchen-0815-wild-indians-md1",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 1,
     "homeTeamId": "muenchen-0815",
     "awayTeamId": "wild-indians",
     "homeTeamName": "München 08/15",
@@ -2246,9 +2913,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-fuenf-sterne-boazn-funny-darters",
+    "id": "imp-c-fuenf-sterne-boazn-funny-darters-md1",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 1,
     "homeTeamId": "fuenf-sterne-boazn",
     "awayTeamId": "funny-darters",
     "homeTeamName": "5 Sterne Boazn Team",
@@ -2263,9 +2931,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-lucky-darts-two-black-devils",
+    "id": "imp-c-lucky-darts-two-black-devils-md1",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 1,
     "homeTeamId": "lucky-darts-two",
     "awayTeamId": "black-devils",
     "homeTeamName": "Lucky Darts Two",
@@ -2280,9 +2949,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-funny-darters-muenchen-0815",
+    "id": "imp-c-funny-darters-muenchen-0815-md2",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 2,
     "homeTeamId": "funny-darters",
     "awayTeamId": "muenchen-0815",
     "homeTeamName": "Funny Darters Munich",
@@ -2297,9 +2967,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-lucky-darts-two-wild-indians",
+    "id": "imp-c-lucky-darts-two-wild-indians-md2",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 2,
     "homeTeamId": "lucky-darts-two",
     "awayTeamId": "wild-indians",
     "homeTeamName": "Lucky Darts Two",
@@ -2314,9 +2985,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-fuenf-sterne-boazn",
+    "id": "imp-c-black-devils-fuenf-sterne-boazn-md2",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 2,
     "homeTeamId": "black-devils",
     "awayTeamId": "fuenf-sterne-boazn",
     "homeTeamName": "Black Devils",
@@ -2331,9 +3003,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-muenchen-0815-black-devils",
+    "id": "imp-c-muenchen-0815-black-devils-md3",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 3,
     "homeTeamId": "muenchen-0815",
     "awayTeamId": "black-devils",
     "homeTeamName": "München 08/15",
@@ -2348,9 +3021,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-wild-indians-funny-darters",
+    "id": "imp-c-wild-indians-funny-darters-md3",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 3,
     "homeTeamId": "wild-indians",
     "awayTeamId": "funny-darters",
     "homeTeamName": "Wild Indians",
@@ -2365,9 +3039,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-fuenf-sterne-boazn-lucky-darts-two",
+    "id": "imp-c-fuenf-sterne-boazn-lucky-darts-two-md3",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 3,
     "homeTeamId": "fuenf-sterne-boazn",
     "awayTeamId": "lucky-darts-two",
     "homeTeamName": "5 Sterne Boazn Team",
@@ -2379,9 +3054,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-fuenf-sterne-boazn-muenchen-0815",
+    "id": "imp-c-fuenf-sterne-boazn-muenchen-0815-md4",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 4,
     "homeTeamId": "fuenf-sterne-boazn",
     "awayTeamId": "muenchen-0815",
     "homeTeamName": "5 Sterne Boazn Team",
@@ -2396,9 +3072,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-wild-indians",
+    "id": "imp-c-black-devils-wild-indians-md4",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 4,
     "homeTeamId": "black-devils",
     "awayTeamId": "wild-indians",
     "homeTeamName": "Black Devils",
@@ -2410,9 +3087,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-lucky-darts-two-funny-darters",
+    "id": "imp-c-lucky-darts-two-funny-darters-md4",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 4,
     "homeTeamId": "lucky-darts-two",
     "awayTeamId": "funny-darters",
     "homeTeamName": "Lucky Darts Two",
@@ -2427,9 +3105,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-muenchen-0815-lucky-darts-two",
+    "id": "imp-c-muenchen-0815-lucky-darts-two-md5",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 5,
     "homeTeamId": "muenchen-0815",
     "awayTeamId": "lucky-darts-two",
     "homeTeamName": "München 08/15",
@@ -2441,9 +3120,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-wild-indians-fuenf-sterne-boazn",
+    "id": "imp-c-wild-indians-fuenf-sterne-boazn-md5",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 5,
     "homeTeamId": "wild-indians",
     "awayTeamId": "fuenf-sterne-boazn",
     "homeTeamName": "Wild Indians",
@@ -2458,9 +3138,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-funny-darters-black-devils",
+    "id": "imp-c-funny-darters-black-devils-md5",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 5,
     "homeTeamId": "funny-darters",
     "awayTeamId": "black-devils",
     "homeTeamName": "Funny Darters Munich",
@@ -2472,9 +3153,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-wild-indians-muenchen-0815",
+    "id": "imp-c-wild-indians-muenchen-0815-md6",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 6,
     "homeTeamId": "wild-indians",
     "awayTeamId": "muenchen-0815",
     "homeTeamName": "Wild Indians",
@@ -2489,9 +3171,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-funny-darters-fuenf-sterne-boazn",
+    "id": "imp-c-funny-darters-fuenf-sterne-boazn-md6",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 6,
     "homeTeamId": "funny-darters",
     "awayTeamId": "fuenf-sterne-boazn",
     "homeTeamName": "Funny Darters Munich",
@@ -2506,9 +3189,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-lucky-darts-two",
+    "id": "imp-c-black-devils-lucky-darts-two-md6",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 6,
     "homeTeamId": "black-devils",
     "awayTeamId": "lucky-darts-two",
     "homeTeamName": "Black Devils",
@@ -2523,9 +3207,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-muenchen-0815-funny-darters",
+    "id": "imp-c-muenchen-0815-funny-darters-md7",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 7,
     "homeTeamId": "muenchen-0815",
     "awayTeamId": "funny-darters",
     "homeTeamName": "München 08/15",
@@ -2540,9 +3225,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-wild-indians-lucky-darts-two",
+    "id": "imp-c-wild-indians-lucky-darts-two-md7",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 7,
     "homeTeamId": "wild-indians",
     "awayTeamId": "lucky-darts-two",
     "homeTeamName": "Wild Indians",
@@ -2557,9 +3243,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-fuenf-sterne-boazn-black-devils",
+    "id": "imp-c-fuenf-sterne-boazn-black-devils-md7",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 7,
     "homeTeamId": "fuenf-sterne-boazn",
     "awayTeamId": "black-devils",
     "homeTeamName": "5 Sterne Boazn Team",
@@ -2574,9 +3261,382 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-muenchen-0815",
+    "id": "imp-c-muenchen-0815-wild-indians-md11",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 11,
+    "homeTeamId": "muenchen-0815",
+    "awayTeamId": "wild-indians",
+    "homeTeamName": "München 08/15",
+    "awayTeamName": "Wild Indians",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 3,
+      "away": 15
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-fuenf-sterne-boazn-funny-darters-md11",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 11,
+    "homeTeamId": "fuenf-sterne-boazn",
+    "awayTeamId": "funny-darters",
+    "homeTeamName": "5 Sterne Boazn Team",
+    "awayTeamName": "Funny Darters Munich",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-lucky-darts-two-black-devils-md11",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 11,
+    "homeTeamId": "lucky-darts-two",
+    "awayTeamId": "black-devils",
+    "homeTeamName": "Lucky Darts Two",
+    "awayTeamName": "Black Devils",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 8,
+      "away": 10
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-funny-darters-muenchen-0815-md12",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 12,
+    "homeTeamId": "funny-darters",
+    "awayTeamId": "muenchen-0815",
+    "homeTeamName": "Funny Darters Munich",
+    "awayTeamName": "München 08/15",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 7,
+      "away": 11
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-lucky-darts-two-wild-indians-md12",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 12,
+    "homeTeamId": "lucky-darts-two",
+    "awayTeamId": "wild-indians",
+    "homeTeamName": "Lucky Darts Two",
+    "awayTeamName": "Wild Indians",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 4,
+      "away": 14
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-black-devils-lucky-darts-two-md12",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 12,
+    "homeTeamId": "black-devils",
+    "awayTeamId": "lucky-darts-two",
+    "homeTeamName": "Black Devils",
+    "awayTeamName": "Lucky Darts Two",
+    "date": null,
+    "time": null,
+    "status": "scheduled",
+    "result": null,
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-muenchen-0815-black-devils-md13",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 13,
+    "homeTeamId": "muenchen-0815",
+    "awayTeamId": "black-devils",
+    "homeTeamName": "München 08/15",
+    "awayTeamName": "Black Devils",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 13,
+      "away": 5
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-wild-indians-funny-darters-md13",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 13,
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "funny-darters",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "Funny Darters Munich",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 8,
+      "away": 10
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-fuenf-sterne-boazn-lucky-darts-two-md13",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 13,
+    "homeTeamId": "fuenf-sterne-boazn",
+    "awayTeamId": "lucky-darts-two",
+    "homeTeamName": "5 Sterne Boazn Team",
+    "awayTeamName": "Lucky Darts Two",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 6,
+      "away": 12
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-fuenf-sterne-boazn-muenchen-0815-md14",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 14,
+    "homeTeamId": "fuenf-sterne-boazn",
+    "awayTeamId": "muenchen-0815",
+    "homeTeamName": "5 Sterne Boazn Team",
+    "awayTeamName": "München 08/15",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 8,
+      "away": 10
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-black-devils-wild-indians-md14",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 14,
+    "homeTeamId": "black-devils",
+    "awayTeamId": "wild-indians",
+    "homeTeamName": "Black Devils",
+    "awayTeamName": "Wild Indians",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 4,
+      "away": 14
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-lucky-darts-two-funny-darters-md14",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 14,
+    "homeTeamId": "lucky-darts-two",
+    "awayTeamId": "funny-darters",
+    "homeTeamName": "Lucky Darts Two",
+    "awayTeamName": "Funny Darters Munich",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-muenchen-0815-lucky-darts-two-md15",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 15,
+    "homeTeamId": "muenchen-0815",
+    "awayTeamId": "lucky-darts-two",
+    "homeTeamName": "München 08/15",
+    "awayTeamName": "Lucky Darts Two",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 12,
+      "away": 6
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-wild-indians-fuenf-sterne-boazn-md15",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 15,
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "fuenf-sterne-boazn",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "5 Sterne Boazn Team",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 13,
+      "away": 5
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-funny-darters-black-devils-md15",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 15,
+    "homeTeamId": "funny-darters",
+    "awayTeamId": "black-devils",
+    "homeTeamName": "Funny Darters Munich",
+    "awayTeamName": "Black Devils",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-wild-indians-muenchen-0815-md16",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 16,
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "muenchen-0815",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "München 08/15",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-funny-darters-fuenf-sterne-boazn-md16",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 16,
+    "homeTeamId": "funny-darters",
+    "awayTeamId": "fuenf-sterne-boazn",
+    "homeTeamName": "Funny Darters Munich",
+    "awayTeamName": "5 Sterne Boazn Team",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-black-devils-lucky-darts-two-md16",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 16,
+    "homeTeamId": "black-devils",
+    "awayTeamId": "lucky-darts-two",
+    "homeTeamName": "Black Devils",
+    "awayTeamName": "Lucky Darts Two",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 5,
+      "away": 13
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-muenchen-0815-funny-darters-md17",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 17,
+    "homeTeamId": "muenchen-0815",
+    "awayTeamId": "funny-darters",
+    "homeTeamName": "München 08/15",
+    "awayTeamName": "Funny Darters Munich",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 11,
+      "away": 7
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-wild-indians-lucky-darts-two-md17",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 17,
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "lucky-darts-two",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "Lucky Darts Two",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-fuenf-sterne-boazn-black-devils-md17",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 17,
+    "homeTeamId": "fuenf-sterne-boazn",
+    "awayTeamId": "black-devils",
+    "homeTeamName": "5 Sterne Boazn Team",
+    "awayTeamName": "Black Devils",
+    "date": null,
+    "time": null,
+    "status": "scheduled",
+    "result": null,
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-black-devils-muenchen-0815-md8",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 8,
     "homeTeamId": "black-devils",
     "awayTeamId": "muenchen-0815",
     "homeTeamName": "Black Devils",
@@ -2591,9 +3651,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-funny-darters-wild-indians",
+    "id": "imp-c-funny-darters-wild-indians-md8",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 8,
     "homeTeamId": "funny-darters",
     "awayTeamId": "wild-indians",
     "homeTeamName": "Funny Darters Munich",
@@ -2608,9 +3669,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-lucky-darts-two-fuenf-sterne-boazn",
+    "id": "imp-c-lucky-darts-two-fuenf-sterne-boazn-md8",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 8,
     "homeTeamId": "lucky-darts-two",
     "awayTeamId": "fuenf-sterne-boazn",
     "homeTeamName": "Lucky Darts Two",
@@ -2625,9 +3687,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-muenchen-0815-fuenf-sterne-boazn",
+    "id": "imp-c-muenchen-0815-fuenf-sterne-boazn-md9",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 9,
     "homeTeamId": "muenchen-0815",
     "awayTeamId": "fuenf-sterne-boazn",
     "homeTeamName": "München 08/15",
@@ -2642,9 +3705,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-wild-indians-black-devils",
+    "id": "imp-c-wild-indians-black-devils-md9",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 9,
     "homeTeamId": "wild-indians",
     "awayTeamId": "black-devils",
     "homeTeamName": "Wild Indians",
@@ -2659,9 +3723,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-funny-darters-lucky-darts-two",
+    "id": "imp-c-funny-darters-lucky-darts-two-md9",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 9,
     "homeTeamId": "funny-darters",
     "awayTeamId": "lucky-darts-two",
     "homeTeamName": "Funny Darters Munich",
@@ -2676,9 +3741,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-lucky-darts-two-muenchen-0815",
+    "id": "imp-c-lucky-darts-two-muenchen-0815-md10",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 10,
     "homeTeamId": "lucky-darts-two",
     "awayTeamId": "muenchen-0815",
     "homeTeamName": "Lucky Darts Two",
@@ -2693,9 +3759,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-fuenf-sterne-boazn-wild-indians",
+    "id": "imp-c-fuenf-sterne-boazn-wild-indians-md10",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 10,
     "homeTeamId": "fuenf-sterne-boazn",
     "awayTeamId": "wild-indians",
     "homeTeamName": "5 Sterne Boazn Team",
@@ -2707,9 +3774,10 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-funny-darters",
+    "id": "imp-c-black-devils-funny-darters-md10",
     "seasonId": "season-2026",
     "leagueId": "c",
+    "matchday": 10,
     "homeTeamId": "black-devils",
     "awayTeamId": "funny-darters",
     "homeTeamName": "Black Devils",
@@ -2721,6 +3789,144 @@
       "home": 7,
       "away": 11
     },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-black-devils-muenchen-0815-md18",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 18,
+    "homeTeamId": "black-devils",
+    "awayTeamId": "muenchen-0815",
+    "homeTeamName": "Black Devils",
+    "awayTeamName": "München 08/15",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 8,
+      "away": 10
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-funny-darters-wild-indians-md18",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 18,
+    "homeTeamId": "funny-darters",
+    "awayTeamId": "wild-indians",
+    "homeTeamName": "Funny Darters Munich",
+    "awayTeamName": "Wild Indians",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-lucky-darts-two-fuenf-sterne-boazn-md18",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 18,
+    "homeTeamId": "lucky-darts-two",
+    "awayTeamId": "fuenf-sterne-boazn",
+    "homeTeamName": "Lucky Darts Two",
+    "awayTeamName": "5 Sterne Boazn Team",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-muenchen-0815-fuenf-sterne-boazn-md19",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 19,
+    "homeTeamId": "muenchen-0815",
+    "awayTeamId": "fuenf-sterne-boazn",
+    "homeTeamName": "München 08/15",
+    "awayTeamName": "5 Sterne Boazn Team",
+    "date": null,
+    "time": null,
+    "status": "scheduled",
+    "result": null,
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-wild-indians-black-devils-md19",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 19,
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "black-devils",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "Black Devils",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 15,
+      "away": 3
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-funny-darters-lucky-darts-two-md19",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 19,
+    "homeTeamId": "funny-darters",
+    "awayTeamId": "lucky-darts-two",
+    "homeTeamName": "Funny Darters Munich",
+    "awayTeamName": "Lucky Darts Two",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 6,
+      "away": 12
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-lucky-darts-two-muenchen-0815-md20",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 20,
+    "homeTeamId": "lucky-darts-two",
+    "awayTeamId": "muenchen-0815",
+    "homeTeamName": "Lucky Darts Two",
+    "awayTeamName": "München 08/15",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-fuenf-sterne-boazn-wild-indians-md20",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 20,
+    "homeTeamId": "fuenf-sterne-boazn",
+    "awayTeamId": "wild-indians",
+    "homeTeamName": "5 Sterne Boazn Team",
+    "awayTeamName": "Wild Indians",
+    "date": "2026-06-20",
+    "time": "20:30",
+    "status": "scheduled",
+    "result": null,
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   }
 ]
