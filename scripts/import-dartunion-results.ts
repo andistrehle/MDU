@@ -338,6 +338,16 @@ function parseSpielplan(html: string, ligaId: number): ImportedMatch[] {
     // Skip bye-week / SPIELFREI slots silently
     if (PLACEHOLDER_IDS.has(homeNum) || PLACEHOLDER_IDS.has(awayNum)) continue;
 
+    // Skip data artifacts where home == away (a team cannot play itself).
+    // dartunion.de occasionally stores such placeholder rows, e.g. the C Liga
+    // "BLACK DEVILS vs BLACK DEVILS" fixture. These are never real matches.
+    if (homeNum === awayNum) {
+      process.stderr.write(
+        `  WARN skipping self-match (home==away): id=${homeNumId} (liga=${ligaId})\n`,
+      );
+      continue;
+    }
+
     // Map numeric dartunion IDs to internal slugs
     const homeTeamId = TEAM_ID_MAP[homeNum];
     const awayTeamId = TEAM_ID_MAP[awayNum];

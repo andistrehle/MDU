@@ -2722,19 +2722,5 @@
       "away": 11
     },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
-  },
-  {
-    "id": "imp-c-black-devils-black-devils",
-    "seasonId": "season-2026",
-    "leagueId": "c",
-    "homeTeamId": "black-devils",
-    "awayTeamId": "black-devils",
-    "homeTeamName": "Black Devils",
-    "awayTeamName": "Black Devils",
-    "date": "2026-06-19",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
-    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   }
 ]
