@@ -51,9 +51,18 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
               <button onClick={() => setOpen(false)} aria-label="Schließen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-faint)', fontSize: 22 }}>×</button>
             </div>
 
+            {msg?.kind === 'ok' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div role="status" style={{ padding: '16px 18px', borderRadius: 10, fontFamily: 'var(--font-manrope)', fontSize: 14, fontWeight: 600, lineHeight: 1.5, background: 'rgba(34,197,94,0.14)', border: '1px solid rgba(34,197,94,0.45)', color: 'var(--th-win)' }}>{msg.text}</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button type="button" onClick={() => { reset(); }} style={{ ...ghost, flex: 1 }}>Weiteren nachmelden</button>
+                  <button type="button" onClick={() => setOpen(false)} style={{ ...btn, flex: 1 }}>Schließen</button>
+                </div>
+              </div>
+            ) : (
             <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {msg && (
-                <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>
+              {msg?.kind === 'err' && (
+                <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', color: '#E24B4A' }}>{msg.text}</div>
               )}
               <Field label="Vorname *"><input value={firstName} onChange={e => setFirstName(e.target.value)} style={input} autoFocus /></Field>
               <Field label="Nachname *"><input value={lastName} onChange={e => setLastName(e.target.value)} style={input} /></Field>
@@ -71,6 +80,7 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
                 <button type="submit" disabled={busy} style={{ ...btn, flex: 1, opacity: busy ? 0.7 : 1 }}>{busy ? 'Senden …' : 'Nachmelden'}</button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}
