@@ -81,9 +81,18 @@ export default function SpielplanPage() {
                     </span>
                   </div>
 
-                  {/* Match cards */}
+                  {/* Match cards — within each league sorted by matchday ascending
+                      (matches without a matchday last, date as tiebreaker) */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 800 }}>
-                    {matches.map(m => (
+                    {[...matches].sort((a, b) => {
+                      const ma = a.matchday ?? Infinity;
+                      const mb = b.matchday ?? Infinity;
+                      if (ma !== mb) return ma - mb;
+                      if (!a.date && !b.date) return 0;
+                      if (!a.date) return 1;
+                      if (!b.date) return -1;
+                      return a.date.localeCompare(b.date);
+                    }).map(m => (
                       <MatchCard
                         key={m.id}
                         league={leagueName + (m.matchday ? ` · Spieltag ${m.matchday}` : '')}
