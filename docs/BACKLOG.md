@@ -1,5 +1,21 @@
 # MDU Platform — Backlog / Roadmap
 
+## Erledigt — Spielbericht / Nachmeldung / Import-Sprint (Juni 2026, zuletzt)
+
+Reihenfolge ~chronologisch. Alles live auf `main` / Vercel.
+
+- [x] Online-Spielbericht komplett: Erfassung (18 Spiele inkl. 2 Doppel), Einzelrangliste-Livetabelle, Punktelogik
+- [x] Spielbericht-Verhandlung: Gegner kann Änderung anfordern (`?propose=1`), Heim sieht Vorschlag farblich markiert (übernommen ✓ / offen ➜), Verlauf/Historie, Eskalation an Ligaleitung nach 3 Runden
+- [x] Admin/Ligaleitung: Hoheit über alle Spielberichte (ansehen/ändern/löschen), Übersicht nach Liga gruppiert, mobil ohne Querscrollen (Kürzel + „N. Sp."), Benachrichtigung bei neuem Bericht & Änderungen
+- [x] Strukturierte Highlights im Spielbericht (eindeutig für Statistik): 180er/171 = Anzahl, High Finish = 100–180, Short Leg = Darts 9–20 (mehrere separat). Migration `0021`
+- [x] Spieler nachmelden: Button unter „Team bearbeiten" + Kader, Maske mit Feld „Letzte Liga-Erfahrung" (A/B/C/La/keine), Prüf-Workflow Ligaleitung (bestätigen/ablehnen + Begründung), Benachrichtigungen, grüne Erfolgs-Einblendung, Portal-Fix. Migrationen `0019`, `0022`
+- [x] Vollständiger dartunion-Import aller 6 Wettbewerbe (Ergebnisse, Tabellen, Einzelranglisten, Spieler-/Teamstatistik)
+- [x] Spieltaggenaues Import-Matching `(Liga|Heim|Gast|Spieltag)` statt Paar-Dedup — behebt Ergebnis-Fehlzuordnung & Dubletten in Mehrfachrunden (La/C); Parser-Guard gegen Self-Match-Artefakt; Importer pro Liga autoritativ & re-runbar
+- [x] Spielplan: innerhalb jeder Liga nach Spieltag aufsteigend sortiert
+
+### Beobachtung (kein Bug auf unserer Seite)
+- dartunion ist intern inkonsistent: Spielplan-Grid vs. offizielle Tabelle (A-Aufstieg 4 vs 1, C 9 vs 2 offene Spiele). Match-Listen spiegeln das Grid, Tabellen die Tabellenseite. Löst sich beim nächsten Import, sobald dort Scores nachgetragen sind — **nicht hardcoden**.
+
 ## Erledigt seit Super-Admin-Login (Juni 2026)
 
 Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mdudarts.de` via Cloudflare).
@@ -21,7 +37,7 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 ## Wichtig / abhängig
 
-- [ ] Supabase-Migrationen ausführen: `0004`–`0007` im SQL-Editor (zuletzt `0007_notifications_center.sql`)
+- [x] Supabase-Migrationen ausführen: bis einschließlich `0022_nomination_last_league.sql` im SQL-Editor (alle ausgeführt)
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)
@@ -32,7 +48,9 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 ## Bekannte To-dos
 
 - [ ] Datei-Uploads (Team-Logo / Mannschaftsbild) via Supabase Storage (aktuell URL-Felder)
-- [ ] Übernahme freigegebener Anmeldungen in offizielle Team-/Saisondaten (`applyApprovedTeamRegistration` ist noch Stub)
+- [ ] Übernahme freigegebener Anmeldungen in offizielle Team-/Saisondaten (RPC `apply_team_registration` vorhanden; Roster-Übernahme weiter ausbauen)
+- [ ] Bestätigte Spieler-Nachmeldungen automatisch in den Saison-Kader übernehmen
+- [ ] Strukturierte Spielbericht-Highlights (180er/171/High Finish/Short Leg) in die Spielerstatistik aggregieren und in Profilen anzeigen
 - [ ] Teamname in `team_linked`/`role_changed`-Notifications (serverseitig im Trigger nicht auflösbar — Teamnamen liegen in lib/data; ggf. clientseitig nachziehen)
 - [ ] Optionale User-Eingangsmail bei Registrierung bewusst ausgelassen (Supabase verschickt bereits Verifizierungs-Mail)
 
@@ -57,7 +75,8 @@ Hinweis: Team-Statistiken behalten ihr Unentschieden — Mannschaftsspiele
 - [ ] Mein Bereich: restliche Coming-Soon-Kacheln umsetzen (v. a. Profilbild —
       hängt an Supabase Storage; Mannschaftsanmeldung/News-Pflege erledigt)
 - [ ] Spitznamen-Speicherung im Profil an Supabase anbinden
-- [ ] Darts-Spezialwerte (180er, 171er, High Finishes, Short Legs) — Felder
-      vorbereitet, Datenquelle fehlt noch
+- [~] Darts-Spezialwerte (180er, 171er, High Finishes, Short Legs) — werden im
+      Online-Spielbericht jetzt strukturiert erfasst (Migration 0021); Aggregation
+      in die Spielerstatistik/Profile steht noch aus (siehe „Bekannte To-dos")
 - [ ] Formkurve / letzte Einzelergebnisse — Felder vorbereitet (W/L, kein
       Unentschieden), Datenquelle fehlt noch
