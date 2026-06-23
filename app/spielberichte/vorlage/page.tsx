@@ -27,8 +27,8 @@ import { TEMPLATE_VERSION, templateDocTitle, templateFooter } from '@/lib/spielb
 
 const SEASON = getCurrentSeason();
 
-/** Ligen wie im digitalen Bogen — als Ankreuz-Kästchen im Kopf. */
-const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
+/** Ligen als Ankreuz-Kästchen im Kopf (ohne D-Liga). */
+const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga'];
 
 // Optionale Vorbelegung (nur Kopfdaten — niemals Ergebnisse, niemals
 // ungeprüfte Aufstellungen). Bleibt sichtbar, kann handschriftlich geändert
@@ -106,7 +106,6 @@ function VorlageInner() {
           <div className="vb-meta-row">
             <BoxField label="Spieltag" value={pf.spieltag} w={64} />
             <BoxField label="Datum" value={pf.datum} w={120} />
-            <BoxField label="Uhrzeit" value={pf.uhrzeit} w={84} />
           </div>
           <BoxField label="Spielstätte" value={pf.ort} grow />
         </div>
