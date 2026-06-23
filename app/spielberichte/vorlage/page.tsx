@@ -148,15 +148,15 @@ function VorlageInner() {
         <PageFooter page={1} />
       </section>
 
-      {/* ── Seite 2 ──────────────────────────────────────────── */}
-      <section className="mdu-sheet">
+      {/* ── Seite 2 (füllt eine volle A4-Seite) ──────────────── */}
+      <section className="mdu-sheet mdu-sheet-fill">
         <Header pf={pf} tag="Highlights & Bestätigung" />
 
         {/* Highlights */}
         <SectionTitle>Highlights</SectionTitle>
         <p className="vb-note">
-          {HIGHLIGHT_TYPES.map(t => HIGHLIGHT_TYPE_LABELS[t]).join(' · ')} (High Finish = Checkout-Wert, Short Leg = Anzahl Darts).
-          Spieler über Position eintragen (z. B. H3 / G2).
+          {HIGHLIGHT_TYPES.map(t => HIGHLIGHT_TYPE_LABELS[t]).join(' · ')} — 180er/171er als Strichliste in „Anzahl" zählen,
+          High Finish = Checkout-Wert, Short Leg = Anzahl Darts. Spieler über Position eintragen (z. B. H3 / G2).
         </p>
         <div className="vb-twocol">
           <HighlightBlock side="Heim" prefix="H" />
@@ -167,7 +167,7 @@ function VorlageInner() {
         <SectionTitle>Bemerkungen / besondere Vorkommnisse</SectionTitle>
         <p className="vb-note">z. B. verspäteter Spielbeginn, unvollständige Mannschaft, Protest, technischer Defekt, abweichende Spielstätte.</p>
         <div className="vb-remarks" aria-hidden="true">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="vb-remarks-line" />)}
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="vb-remarks-line" />)}
         </div>
         <div className="vb-protest">
           <span className="vb-protest-label">Protest eingelegt</span>
@@ -285,11 +285,11 @@ function HighlightBlock({ side, prefix }: { side: string; prefix: string }) {
         <tr>
           <th style={{ width: '20%' }}>Spieler</th>
           <th>Leistung</th>
-          <th style={{ width: '30%' }}>Wert / Legs</th>
+          <th style={{ width: '30%' }}>Wert / Anzahl</th>
         </tr>
       </thead>
       <tbody>
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 7 }).map((_, i) => (
           <tr key={i}>
             <td className="vb-hl-pos">{prefix}</td>
             <td>&nbsp;</td>
@@ -371,6 +371,10 @@ const PRINT_CSS = `
   font-family:var(--font-manrope), system-ui, Arial, sans-serif;
   font-size:9.5pt; line-height:1.25;
 }
+/* Seite 2 füllt eine volle A4-Seite: Inhalt wird über die Höhe verteilt,
+   die Bemerkungen dehnen sich als flexibler Füller. */
+.mdu-sheet-fill { display:flex; flex-direction:column; min-height:297mm; }
+.mdu-sheet-fill .vb-remarks { flex:1 1 auto; justify-content:space-between; min-height:60px; }
 
 /* Toolbar (nur Bildschirm) */
 .mdu-vorlage-toolbar {
@@ -462,9 +466,9 @@ const PRINT_CSS = `
 .vb-hints li { font-size:8pt; color:#444; line-height:1.45; margin-bottom:4px; }
 
 /* Unterschriften */
-.vb-signrow { display:flex; gap:24px; margin-top:18px; }
+.vb-signrow { display:flex; gap:24px; margin-top:24px; }
 .vb-sign { flex:1; }
-.vb-sign-line { border-bottom:1px solid #000; min-height:26px; }
+.vb-sign-line { border-bottom:1px solid #000; min-height:36px; }
 .vb-sign-caption { font-size:7.5pt; color:#555; margin-top:3px; }
 
 /* Fußzeile */
@@ -476,6 +480,8 @@ const PRINT_CSS = `
   html, body { background:#fff !important; }
   .mdu-vorlage-wrap { background:#fff; padding:0; }
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
+  /* Im Druck entspricht die nutzbare Höhe der Seite dem A4-Satzspiegel (297 - 2×18mm). */
+  .mdu-sheet-fill { min-height:261mm; }
   .mdu-sheet + .mdu-sheet { page-break-before:always; }
   .vb-table, .vb-teamblock, .vb-result, .vb-signrow, tr { page-break-inside:avoid; }
   .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
