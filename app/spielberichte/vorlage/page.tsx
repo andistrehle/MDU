@@ -150,7 +150,7 @@ function VorlageInner() {
 
       {/* ── Seite 2 (füllt eine volle A4-Seite) ──────────────── */}
       <section className="mdu-sheet mdu-sheet-fill">
-        <Header pf={pf} tag="Highlights & Bestätigung" />
+        <Header pf={pf} />
 
         {/* Highlights */}
         <SectionTitle>Highlights</SectionTitle>
@@ -202,10 +202,11 @@ function VorlageInner() {
 }
 
 // ── Kopf ────────────────────────────────────────────────────────
-function Header({ pf, tag }: { pf: Prefill; tag?: string }) {
+function Header({ pf }: { pf: Prefill }) {
   return (
     <header className="vb-header">
       <div className="vb-header-text">
+        <div className="vb-org">Münchner Dart Union</div>
         <div className="vb-title">Offizieller Spielbericht</div>
         <div className="vb-season">{SEASON.name}</div>
       </div>
@@ -216,7 +217,6 @@ function Header({ pf, tag }: { pf: Prefill; tag?: string }) {
         <div>Vorlage v{TEMPLATE_VERSION}</div>
         <div className="vb-id">Spielbericht-ID: <u>{pf.id || '            '}</u></div>
       </div>
-      {tag && <span className="vb-pagetag">{tag}</span>}
     </header>
   );
 }
@@ -395,11 +395,11 @@ const PRINT_CSS = `
 .vb-header { display:flex; align-items:center; gap:12px; border-bottom:2.5px solid #000; padding-bottom:7px; position:relative; }
 .vb-header-text { flex:1; min-width:0; }
 .vb-logo { height:46px; width:auto; flex-shrink:0; }
+.vb-org { font-size:8.5pt; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#333; margin-bottom:2px; }
 .vb-title { font-family:var(--font-saira-condensed), var(--font-manrope), sans-serif; font-weight:900; font-size:19pt; letter-spacing:.01em; text-transform:uppercase; line-height:1; }
 .vb-season { font-size:9pt; font-weight:700; color:#333; margin-top:3px; }
 .vb-header-meta { flex:1; text-align:right; font-size:7.7pt; color:#444; line-height:1.4; white-space:nowrap; }
 .vb-header-meta .vb-id u { letter-spacing:.04em; }
-.vb-pagetag { position:absolute; right:0; bottom:-15px; font-size:8pt; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.1em; }
 
 /* Kopfdaten — Kästchen-Stil */
 .vb-meta { display:flex; flex-direction:column; gap:8px; margin-top:13px; border:1.2px solid #000; padding:9px 11px; }
