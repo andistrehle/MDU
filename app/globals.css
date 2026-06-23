@@ -677,3 +677,14 @@ body {
     min-height: 100px !important;
   }
 }
+
+/* =====================================================
+   Druck — App-Chrome ausblenden (Spielbericht-Vorlage)
+   Nur der eigentliche Inhalt soll gedruckt werden; die
+   global gerenderte BottomNav sowie als .mdu-no-print
+   markierte Bedienelemente werden weggelassen.
+   ===================================================== */
+@media print {
+  .mdu-bottom-nav,
+  .mdu-no-print { display: none !important; }
+}

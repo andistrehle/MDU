@@ -47,9 +47,14 @@ export default function SpielberichteUebersichtPage() {
         : !allowed ? <Notice title="Keine Berechtigung">Spielberichte sind für Teamkapitäne und die Ligaleitung.</Notice>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 820 }}>
-            <Link href="/mein-bereich/spielberichte" style={{ display: 'inline-block', padding: '11px 20px', borderRadius: 8, background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none', alignSelf: 'flex-start' }}>
-              ＋ Neuer Spielbericht
-            </Link>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link href="/mein-bereich/spielberichte" style={{ display: 'inline-block', padding: '11px 20px', borderRadius: 8, background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none' }}>
+                ＋ Neuer Spielbericht
+              </Link>
+              <Link href="/spielberichte/vorlage" style={{ display: 'inline-block', padding: '11px 20px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none' }}>
+                Druckvorlage (PDF)
+              </Link>
+            </div>
 
             {/* Zu prüfen (als Gegner) */}
             {toReview.length > 0 && (

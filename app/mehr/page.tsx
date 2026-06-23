@@ -22,8 +22,8 @@ const SECTIONS = [
     href: '/downloads',
     icon: 'download',
     label: 'Downloads',
-    description: 'Regelwerk, Formulare und Dokumente zum Herunterladen.',
-    ready: false,
+    description: 'Offizieller MDU-Spielbericht und weitere Dokumente zum Herunterladen.',
+    ready: true,
   },
   {
     href: '/kontakt',
