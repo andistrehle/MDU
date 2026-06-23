@@ -135,13 +135,15 @@ function VorlageInner() {
           <GameTable rows={GAME_SCHEDULE.slice(0, 9)} />
           <GameTable rows={GAME_SCHEDULE.slice(9, 18)} />
         </div>
-        <p className="vb-note">Punkte je Einzel: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0 · Doppel zählen nur für Spiele/Legs.</p>
-
         {/* Gesamtergebnis */}
         <div className="vb-result">
           <span className="vb-result-label">Gesamtergebnis</span>
           <span className="vb-result-line">
             Heim&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp;:&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp;Gast
+          </span>
+          <span className="vb-result-hint">
+            Punkte je Einzel: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0 · Doppel zählen nur für Spiele/Legs.<br />
+            Spiele, Legs und Endergebnis werden vom System automatisch berechnet.
           </span>
         </div>
 
@@ -448,6 +450,7 @@ const PRINT_CSS = `
 .vb-result { margin-top:11px; border:1.5px solid #000; padding:9px 14px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
 .vb-result-label { font-weight:800; font-size:9.5pt; text-transform:uppercase; letter-spacing:.06em; }
 .vb-result-line { font-family:var(--font-saira-condensed), sans-serif; font-weight:900; font-size:16pt; }
+.vb-result-hint { margin-left:auto; max-width:50%; font-size:7.6pt; color:#555; line-height:1.4; }
 
 /* Notizen / Hinweise */
 .vb-note { font-size:8pt; color:#444; margin:4px 0 4px; line-height:1.35; }
