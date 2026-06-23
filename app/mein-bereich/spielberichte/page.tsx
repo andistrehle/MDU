@@ -69,7 +69,7 @@ function SpielberichteInner() {
   const [header, setHeader] = useState<ReportHeaderDraft>({
     season_id: null, league_label: '', matchday: null, match_date: null, venue: '',
     home_team_id: null, guest_team_id: null, home_team_name: '', guest_team_name: '',
-    tc_home: '', tc_guest: '', protest: false, protest_note: '',
+    tc_home: '', tc_guest: '', protest: false, protest_note: '', highlights_home: '', highlights_guest: '',
   });
   const [homePlayers, setHomePlayers] = useState<ReportPlayer[]>(emptyPlayers('home'));
   const [guestPlayers, setGuestPlayers] = useState<ReportPlayer[]>(emptyPlayers('guest'));
@@ -156,7 +156,7 @@ function SpielberichteInner() {
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
           home_team_id: user?.teamId ?? null, guest_team_id: null, home_team_name: teamName, guest_team_name: '',
-          tc_home: homeCaptain, tc_guest: '', protest: false, protest_note: '',
+          tc_home: homeCaptain, tc_guest: '', protest: false, protest_note: '', highlights_home: '', highlights_guest: '',
         });
         setHomePlayers(emptyPlayers('home'));
         setGuestPlayers(emptyPlayers('guest'));
@@ -194,6 +194,7 @@ function SpielberichteInner() {
       venue: r.venue ?? '', home_team_id: r.home_team_id, guest_team_id: r.guest_team_id,
       home_team_name: r.home_team_name, guest_team_name: r.guest_team_name,
       tc_home: r.tc_home ?? '', tc_guest: r.tc_guest ?? '', protest: r.protest, protest_note: r.protest_note ?? '',
+      highlights_home: r.highlights_home ?? '', highlights_guest: r.highlights_guest ?? '',
     });
     const ps = await getReportPlayers(id);
     const gs = await getReportGames(id);
@@ -523,6 +524,17 @@ function SpielberichteInner() {
                 </table>
               )}
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Nur Einzelspiele · Punkte dem tatsächlich eingesetzten Spieler zugeordnet (inkl. Auswechslungen).</p>
+            </Section>
+
+            <Section title="Highlights (180er, 171er, High Finishes, Short Legs …)">
+              <Row2>
+                <Field label="Highlights Heim">
+                  <textarea value={header.highlights_home ?? ''} onChange={e => setH('highlights_home', e.target.value)} rows={3} placeholder="z. B. Max Mustermann: 180, HF 121; Tom: 171" style={{ ...input, resize: 'vertical' }} />
+                </Field>
+                <Field label="Highlights Gast">
+                  <textarea value={header.highlights_guest ?? ''} onChange={e => setH('highlights_guest', e.target.value)} rows={3} placeholder="z. B. Spielername: 180; High Finish 110" style={{ ...input, resize: 'vertical' }} />
+                </Field>
+              </Row2>
             </Section>
 
             <Section title="Protest">

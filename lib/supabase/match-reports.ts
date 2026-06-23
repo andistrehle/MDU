@@ -101,6 +101,8 @@ export interface MatchReport {
   points_guest: number | null;
   protest: boolean;
   protest_note: string | null;
+  highlights_home: string | null;
+  highlights_guest: string | null;
   status: ReportStatus;
   review_note: string | null;
   reviewed_at: string | null;
@@ -207,7 +209,7 @@ const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 export type ReportHeaderDraft = Pick<MatchReport,
   'season_id' | 'league_label' | 'matchday' | 'match_date' | 'venue' |
   'home_team_id' | 'guest_team_id' | 'home_team_name' | 'guest_team_name' |
-  'tc_home' | 'tc_guest' | 'protest' | 'protest_note'>;
+  'tc_home' | 'tc_guest' | 'protest' | 'protest_note' | 'highlights_home' | 'highlights_guest'>;
 
 // ── Lesen ──────────────────────────────────────────────────────
 
