@@ -121,9 +121,10 @@ function VorlageInner() {
           <Lineup prefix="G" title="Gast" />
         </div>
         <p className="vb-note">
-          Ersatzspieler bleiben nach ihrem ersten Einsatz fest an die jeweilige Position gebunden
-          (ein für H3 eingewechselter Spieler darf nicht später für H4 spielen). Wechsel direkt im
-          Spielablauf vermerken (neue Nummer über die alte schreiben).
+          Eingetragene Spielpositionen sind verbindlich. Ein ausgewechselter Spieler darf nur auf
+          derselben Position wieder eingewechselt werden (ein für H3 eingewechselter Spieler spielt
+          nicht später für H4); auf einer Position können jedoch mehrere Spieler:innen eingesetzt werden.
+          Wechsel direkt im Spielablauf vermerken (neue Nummer über die alte schreiben).
         </p>
 
         {/* Spielablauf — zwei Spalten */}
@@ -252,11 +253,10 @@ function GameTable({ rows }: { rows: typeof GAME_SCHEDULE }) {
     <table className="vb-table vb-games">
       <thead>
         <tr>
-          <th style={{ width: '10%' }}>Nr.</th>
-          <th style={{ width: '22%' }}>Art</th>
-          <th style={{ width: '21%' }}>Heim</th>
-          <th style={{ width: '21%' }}>Gast</th>
-          <th style={{ width: '26%' }}>Legs (H:G)</th>
+          <th style={{ width: '9%' }}>Nr.</th>
+          <th style={{ width: '28%' }}>Heim</th>
+          <th style={{ width: '28%' }}>Gast</th>
+          <th style={{ width: '35%' }} colSpan={2}>Legs (H : G)</th>
         </tr>
       </thead>
       <tbody>
@@ -265,10 +265,10 @@ function GameTable({ rows }: { rows: typeof GAME_SCHEDULE }) {
           return (
             <tr key={s.no} className={isDouble ? 'vb-double-row' : undefined}>
               <td className="vb-gameno">{s.no}</td>
-              <td>{isDouble ? 'Doppel' : 'Einzel'}</td>
               <td className="vb-pair">{isDouble ? 'H_ + H_' : `H${s.homeSlot}`}</td>
               <td className="vb-pair">{isDouble ? 'G_ + G_' : `G${s.guestSlot}`}</td>
-              <td>&nbsp;</td>
+              <td className="vb-leg">&nbsp;</td>
+              <td className="vb-leg">&nbsp;</td>
             </tr>
           );
         })}
@@ -440,6 +440,8 @@ const PRINT_CSS = `
 .vb-lineup .vb-sub-row td { background:#fafafa; }
 .vb-games .vb-double-row td { background:#f0f0f0; }
 .vb-games .vb-pair { font-family:var(--font-jetbrains-mono), monospace; font-weight:700; }
+/* Leg-Ergebnis: zwei gleich breite Felder, getrennt durch die Zellenlinie (H | G). */
+.vb-games .vb-leg { width:17.5%; text-align:center; }
 
 /* Highlights */
 .vb-hl .vb-hl-head { text-align:left; font-size:8.4pt; background:#e6e6e6; }
