@@ -142,7 +142,7 @@ function VorlageInner() {
           </span>
           <span className="vb-result-hint">
             Tabellenpunkte: Sieg = 3 · Unentschieden = je 1 · Niederlage = 0.<br />
-            Spiele, Legs und Endergebnis werden vom System automatisch berechnet.
+            Tabellenpunkte, Legs und Einzelranglistenpunkte werden vom System automatisch berechnet.
           </span>
         </div>
 
