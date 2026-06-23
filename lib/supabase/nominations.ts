@@ -14,6 +14,20 @@ export const NOMINATION_STATUS_LABELS: Record<NominationStatus, string> = {
   pending: 'In Prüfung', approved: 'Bestätigt', rejected: 'Abgelehnt',
 };
 
+export type LastLeague = 'la_liga' | 'a_liga' | 'b_liga' | 'c_liga' | 'none';
+
+export const LAST_LEAGUE_OPTIONS: { value: LastLeague; label: string }[] = [
+  { value: 'none', label: 'Keine' },
+  { value: 'la_liga', label: 'La Liga' },
+  { value: 'a_liga', label: 'A-Liga' },
+  { value: 'b_liga', label: 'B-Liga' },
+  { value: 'c_liga', label: 'C-Liga' },
+];
+
+export const LAST_LEAGUE_LABELS: Record<LastLeague, string> = {
+  none: 'Keine', la_liga: 'La Liga', a_liga: 'A-Liga', b_liga: 'B-Liga', c_liga: 'C-Liga',
+};
+
 export interface PlayerNomination {
   id: string;
   team_id: string;
@@ -24,16 +38,17 @@ export interface PlayerNomination {
   status: NominationStatus;
   review_note: string | null;
   reviewed_at: string | null;
+  last_league: LastLeague | null;
   created_at: string;
 }
 
 const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 
-export async function createNomination(teamId: string, teamName: string, firstName: string, lastName: string): Promise<{ error: string | null }> {
+export async function createNomination(teamId: string, teamName: string, firstName: string, lastName: string, lastLeague: LastLeague): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   if (!firstName.trim() || !lastName.trim()) return { error: 'Bitte Vor- und Nachname angeben.' };
   const { error } = await supabase.from('player_nominations').insert({
-    team_id: teamId, team_name: teamName, first_name: firstName.trim(), last_name: lastName.trim(), status: 'pending',
+    team_id: teamId, team_name: teamName, first_name: firstName.trim(), last_name: lastName.trim(), last_league: lastLeague, status: 'pending',
   });
   return { error: error?.message ?? null };
 }

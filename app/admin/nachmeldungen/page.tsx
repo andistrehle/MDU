@@ -9,7 +9,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageLeague } from '@/lib/auth/roles';
 import {
-  listAllNominations, reviewNomination, NOMINATION_STATUS_LABELS,
+  listAllNominations, reviewNomination, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
   type PlayerNomination, type NominationStatus,
 } from '@/lib/supabase/nominations';
 
@@ -70,7 +70,7 @@ export default function AdminNachmeldungenPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>{r.first_name} {r.last_name}</div>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                      {r.team_name} · {new Date(r.created_at).toLocaleDateString('de-DE')}
+                      {r.team_name} · Letzte Liga: {r.last_league ? LAST_LEAGUE_LABELS[r.last_league] : 'Keine Angabe'} · {new Date(r.created_at).toLocaleDateString('de-DE')}
                       {r.status === 'rejected' && r.review_note ? ` · Begründung: ${r.review_note}` : ''}
                     </div>
                   </div>

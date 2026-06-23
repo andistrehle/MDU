@@ -8,12 +8,13 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
-import { createNomination } from '@/lib/supabase/nominations';
+import { createNomination, LAST_LEAGUE_OPTIONS, type LastLeague } from '@/lib/supabase/nominations';
 
 export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamName: string }) {
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [lastLeague, setLastLeague] = useState<LastLeague>('none');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -25,16 +26,16 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
   }, [open]);
 
-  function reset() { setFirstName(''); setLastName(''); setMsg(null); }
+  function reset() { setFirstName(''); setLastName(''); setLastLeague('none'); setMsg(null); }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setMsg(null);
-    const { error } = await createNomination(teamId, teamName, firstName, lastName);
+    const { error } = await createNomination(teamId, teamName, firstName, lastName, lastLeague);
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
-    setMsg({ kind: 'ok', text: 'Nachmeldung eingereicht – die Ligaleitung prüft sie. Du wirst benachrichtigt.' });
-    setFirstName(''); setLastName('');
+    setMsg({ kind: 'ok', text: '✓ Nachmeldung erfolgreich an die Ligaleitung zur Prüfung gesendet. Du wirst über das Ergebnis benachrichtigt.' });
+    setFirstName(''); setLastName(''); setLastLeague('none');
   }
 
   return (
@@ -56,6 +57,11 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
               )}
               <Field label="Vorname *"><input value={firstName} onChange={e => setFirstName(e.target.value)} style={input} autoFocus /></Field>
               <Field label="Nachname *"><input value={lastName} onChange={e => setLastName(e.target.value)} style={input} /></Field>
+              <Field label="Letzte Liga-Erfahrung">
+                <select value={lastLeague} onChange={e => setLastLeague(e.target.value as LastLeague)} style={input}>
+                  {LAST_LEAGUE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
               <Field label="Team"><input value={teamName} disabled style={{ ...input, opacity: 0.7 }} /></Field>
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>
                 Die Nachmeldung geht zur Prüfung an die Ligaleitung. Du wirst über das Ergebnis benachrichtigt.
