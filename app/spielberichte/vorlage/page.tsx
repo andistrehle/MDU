@@ -169,6 +169,12 @@ function VorlageInner() {
         <div className="vb-remarks" aria-hidden="true">
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="vb-remarks-line" />)}
         </div>
+        <div className="vb-protest">
+          <span className="vb-protest-label">Protest eingelegt</span>
+          <Checkbox label="ja" checked={false} />
+          <Checkbox label="nein" checked={false} />
+          <span className="vb-protest-hint">(Grund unter Bemerkungen angeben)</span>
+        </div>
 
         {/* Bestätigung */}
         <SectionTitle>Bestätigung</SectionTitle>
@@ -182,6 +188,13 @@ function VorlageInner() {
           <SignLine label="Datum" />
         </div>
 
+        {/* Allgemeine Hinweise */}
+        <SectionTitle>Allgemeine Hinweise</SectionTitle>
+        <ul className="vb-hints">
+          <li>Den ausgefüllten Spielbericht eigenständig im Login-Bereich der MDU-Homepage hochladen. Bei Problemen alternativ per E-Mail oder WhatsApp an die Ligaleitung übermitteln.</li>
+          <li>Die mit diesem Spielbericht erhobenen personenbezogenen Daten werden ausschließlich zur Durchführung des Spielbetriebs verarbeitet. Es gelten die Datenschutzrichtlinien der Münchner Dart Union (siehe Datenschutzerklärung auf der MDU-Homepage).</li>
+        </ul>
+
         <PageFooter page={2} />
       </section>
     </div>
@@ -192,13 +205,13 @@ function VorlageInner() {
 function Header({ pf, tag }: { pf: Prefill; tag?: string }) {
   return (
     <header className="vb-header">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/mdu-logo.png" alt="MDU" className="vb-logo" />
       <div className="vb-header-text">
-        <div className="vb-org">Münchner Dart Union</div>
         <div className="vb-title">Offizieller Spielbericht</div>
         <div className="vb-season">{SEASON.name}</div>
       </div>
+      {/* Transparentes Logo (kein blauer Hintergrund) — zentriert */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/mdu-logo.webp" alt="Münchner Dart Union" className="vb-logo" />
       <div className="vb-header-meta">
         <div>Vorlage v{TEMPLATE_VERSION}</div>
         <div className="vb-id">Spielbericht-ID: <u>{pf.id || '            '}</u></div>
@@ -353,7 +366,7 @@ const PRINT_CSS = `
 .mdu-vorlage-wrap { background:#e9eaee; min-height:100vh; padding:20px 12px 60px; }
 .mdu-sheet {
   background:#fff; color:#111; box-sizing:border-box;
-  width:210mm; max-width:100%; margin:0 auto 22px; padding:13mm 12mm;
+  width:210mm; max-width:100%; margin:0 auto 22px; padding:18mm;
   box-shadow:0 2px 16px rgba(0,0,0,.22);
   font-family:var(--font-manrope), system-ui, Arial, sans-serif;
   font-size:9.5pt; line-height:1.25;
@@ -374,14 +387,13 @@ const PRINT_CSS = `
   font-family:var(--font-manrope), system-ui, sans-serif;
 }
 
-/* Kopf */
+/* Kopf — Logo zentriert zwischen Titel (links) und Meta (rechts) */
 .vb-header { display:flex; align-items:center; gap:12px; border-bottom:2.5px solid #000; padding-bottom:7px; position:relative; }
-.vb-logo { width:46px; height:46px; object-fit:contain; }
 .vb-header-text { flex:1; min-width:0; }
-.vb-org { font-size:8.5pt; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#333; }
+.vb-logo { height:46px; width:auto; flex-shrink:0; }
 .vb-title { font-family:var(--font-saira-condensed), var(--font-manrope), sans-serif; font-weight:900; font-size:19pt; letter-spacing:.01em; text-transform:uppercase; line-height:1; }
-.vb-season { font-size:9pt; font-weight:700; color:#333; margin-top:1px; }
-.vb-header-meta { text-align:right; font-size:7.7pt; color:#444; line-height:1.4; white-space:nowrap; }
+.vb-season { font-size:9pt; font-weight:700; color:#333; margin-top:3px; }
+.vb-header-meta { flex:1; text-align:right; font-size:7.7pt; color:#444; line-height:1.4; white-space:nowrap; }
 .vb-header-meta .vb-id u { letter-spacing:.04em; }
 .vb-pagetag { position:absolute; right:0; bottom:-15px; font-size:8pt; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.1em; }
 
@@ -437,8 +449,17 @@ const PRINT_CSS = `
 .vb-note { font-size:8pt; color:#444; margin:4px 0 4px; line-height:1.35; }
 
 /* Bemerkungen */
-.vb-remarks { display:flex; flex-direction:column; gap:13px; margin-top:6px; }
+.vb-remarks { display:flex; flex-direction:column; gap:22px; margin-top:10px; }
 .vb-remarks-line { border-bottom:1px solid #000; height:1px; }
+
+/* Protest */
+.vb-protest { display:flex; align-items:center; gap:16px; margin-top:11px; }
+.vb-protest-label { font-size:8.5pt; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.vb-protest-hint { font-size:7.6pt; color:#666; }
+
+/* Allgemeine Hinweise */
+.vb-hints { margin:5px 0 0; padding-left:16px; }
+.vb-hints li { font-size:8pt; color:#444; line-height:1.45; margin-bottom:4px; }
 
 /* Unterschriften */
 .vb-signrow { display:flex; gap:24px; margin-top:18px; }
@@ -451,7 +472,7 @@ const PRINT_CSS = `
 
 /* ── Druck ──────────────────────────────────────────────── */
 @media print {
-  @page { size:A4; margin:12mm; }
+  @page { size:A4; margin:18mm; }
   html, body { background:#fff !important; }
   .mdu-vorlage-wrap { background:#fff; padding:0; }
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
