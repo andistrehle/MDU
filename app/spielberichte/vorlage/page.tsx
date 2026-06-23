@@ -121,14 +121,15 @@ function VorlageInner() {
           <Lineup prefix="G" title="Gast" />
         </div>
         <p className="vb-note">
-          Eingetragene Spielpositionen sind verbindlich. Ein ausgewechselter Spieler darf nur auf
-          derselben Position wieder eingewechselt werden (ein für H3 eingewechselter Spieler spielt
-          nicht später für H4); auf einer Position können jedoch mehrere Spieler:innen eingesetzt werden.
-          Wechsel direkt im Spielablauf vermerken (neue Nummer über die alte schreiben).
+          Die eingetragenen Spielpositionen sind verbindlich. Auch Ersatzspieler bleiben fest an die
+          jeweilige Position gebunden. Wird ein Spieler ausgewechselt, darf er später – aber nur auf
+          derselben Position – wieder eingewechselt werden. Im Laufe der Begegnung können auf einer
+          Position jedoch mehrere Ersatzspieler zum Einsatz kommen. Spielerwechsel sind direkt im
+          Spielablauf zu vermerken, indem die neue Spielernummer über die bisherige geschrieben wird.
         </p>
 
         {/* Spielablauf — zwei Spalten */}
-        <SectionTitle>Spielablauf <span className="vb-sub">(Best of 3 Legs · Doppel Nr. 9 + Nr. 18)</span></SectionTitle>
+        <SectionTitle>Spielablauf <span className="vb-sub">(Best of 3 Legs · in der La-Liga Best of 5 · Doppel Nr. 9 + Nr. 18)</span></SectionTitle>
         <div className="vb-twocol vb-games-2col">
           <GameTable rows={GAME_SCHEDULE.slice(0, 9)} />
           <GameTable rows={GAME_SCHEDULE.slice(9, 18)} />
@@ -256,7 +257,13 @@ function GameTable({ rows }: { rows: typeof GAME_SCHEDULE }) {
           <th style={{ width: '9%' }}>Nr.</th>
           <th style={{ width: '28%' }}>Heim</th>
           <th style={{ width: '28%' }}>Gast</th>
-          <th style={{ width: '35%' }} colSpan={2}>Legs (H : G)</th>
+          <th style={{ width: '35%' }} colSpan={2}>
+            <span className="vb-leg-head">
+              <span className="vb-leg-head-l">Legs (H</span>
+              <span className="vb-leg-head-c">:</span>
+              <span className="vb-leg-head-r">G)</span>
+            </span>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -442,6 +449,11 @@ const PRINT_CSS = `
 .vb-games .vb-pair { font-family:var(--font-jetbrains-mono), monospace; font-weight:700; }
 /* Leg-Ergebnis: zwei gleich breite Felder, getrennt durch die Zellenlinie (H | G). */
 .vb-games .vb-leg { width:17.5%; text-align:center; }
+/* Überschrift „Legs (H : G)" — Doppelpunkt mittig über der Trennlinie. */
+.vb-leg-head { display:flex; align-items:baseline; justify-content:center; }
+.vb-leg-head-l { flex:1; text-align:right; }
+.vb-leg-head-r { flex:1; text-align:left; }
+.vb-leg-head-c { padding:0 1px; }
 
 /* Highlights */
 .vb-hl .vb-hl-head { text-align:left; font-size:8.4pt; background:#e6e6e6; }
