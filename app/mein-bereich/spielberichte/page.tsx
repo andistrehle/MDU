@@ -20,7 +20,9 @@ import {
   createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking,
+  HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_WITH_VALUE,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
+  type HighlightEntry, type HighlightType,
 } from '@/lib/supabase/match-reports';
 
 const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
@@ -69,7 +71,7 @@ function SpielberichteInner() {
   const [header, setHeader] = useState<ReportHeaderDraft>({
     season_id: null, league_label: '', matchday: null, match_date: null, venue: '',
     home_team_id: null, guest_team_id: null, home_team_name: '', guest_team_name: '',
-    tc_home: '', tc_guest: '', protest: false, protest_note: '', highlights_home: '', highlights_guest: '',
+    tc_home: '', tc_guest: '', protest: false, protest_note: '', highlights: [],
   });
   const [homePlayers, setHomePlayers] = useState<ReportPlayer[]>(emptyPlayers('home'));
   const [guestPlayers, setGuestPlayers] = useState<ReportPlayer[]>(emptyPlayers('guest'));
@@ -156,7 +158,7 @@ function SpielberichteInner() {
         setHeader({
           season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
           home_team_id: user?.teamId ?? null, guest_team_id: null, home_team_name: teamName, guest_team_name: '',
-          tc_home: homeCaptain, tc_guest: '', protest: false, protest_note: '', highlights_home: '', highlights_guest: '',
+          tc_home: homeCaptain, tc_guest: '', protest: false, protest_note: '', highlights: [],
         });
         setHomePlayers(emptyPlayers('home'));
         setGuestPlayers(emptyPlayers('guest'));
@@ -194,7 +196,7 @@ function SpielberichteInner() {
       venue: r.venue ?? '', home_team_id: r.home_team_id, guest_team_id: r.guest_team_id,
       home_team_name: r.home_team_name, guest_team_name: r.guest_team_name,
       tc_home: r.tc_home ?? '', tc_guest: r.tc_guest ?? '', protest: r.protest, protest_note: r.protest_note ?? '',
-      highlights_home: r.highlights_home ?? '', highlights_guest: r.highlights_guest ?? '',
+      highlights: r.highlights ?? [],
     });
     const ps = await getReportPlayers(id);
     const gs = await getReportGames(id);
@@ -207,6 +209,28 @@ function SpielberichteInner() {
   }
 
   function setH<K extends keyof ReportHeaderDraft>(k: K, v: ReportHeaderDraft[K]) { setHeader(h => ({ ...h, [k]: v })); }
+
+  // ── Highlights (strukturiert) ──────────────────────────────
+  const [hlPick, setHlPick] = useState('');      // "home:3"
+  const [hlType, setHlType] = useState<HighlightType>('180');
+  const [hlValue, setHlValue] = useState('');
+  const highlightPlayerOptions = [
+    ...homePlayers.filter(p => p.name.trim()).map(p => ({ key: `home:${p.slot}`, label: `H${p.slot} · ${p.name}` })),
+    ...guestPlayers.filter(p => p.name.trim()).map(p => ({ key: `guest:${p.slot}`, label: `G${p.slot} · ${p.name}` })),
+  ];
+  function addHighlight() {
+    if (!hlPick) { setMsg({ kind: 'err', text: 'Bitte einen Spieler für das Highlight wählen.' }); return; }
+    const [side, slotStr] = hlPick.split(':');
+    const needsValue = HIGHLIGHT_WITH_VALUE.includes(hlType);
+    const value = needsValue ? (Number(hlValue) || null) : null;
+    if (needsValue && !value) { setMsg({ kind: 'err', text: 'Bitte einen Wert angeben (High Finish: Checkout, Short Leg: Darts).' }); return; }
+    const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value };
+    setHeader(h => ({ ...h, highlights: [...(h.highlights ?? []), entry] }));
+    setHlValue(''); setMsg(null);
+  }
+  function removeHighlight(i: number) {
+    setHeader(h => ({ ...h, highlights: (h.highlights ?? []).filter((_, j) => j !== i) }));
+  }
   function setGameLegs(no: number, res: string) {
     setGames(arr => arr.map(g => {
       if (g.game_no !== no) return g;
@@ -526,15 +550,45 @@ function SpielberichteInner() {
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Nur Einzelspiele · Punkte dem tatsächlich eingesetzten Spieler zugeordnet (inkl. Auswechslungen).</p>
             </Section>
 
-            <Section title="Highlights (180er, 171er, High Finishes, Short Legs …)">
-              <Row2>
-                <Field label="Highlights Heim">
-                  <textarea value={header.highlights_home ?? ''} onChange={e => setH('highlights_home', e.target.value)} rows={3} placeholder="z. B. Max Mustermann: 180, HF 121; Tom: 171" style={{ ...input, resize: 'vertical' }} />
-                </Field>
-                <Field label="Highlights Gast">
-                  <textarea value={header.highlights_guest ?? ''} onChange={e => setH('highlights_guest', e.target.value)} rows={3} placeholder="z. B. Spielername: 180; High Finish 110" style={{ ...input, resize: 'vertical' }} />
-                </Field>
-              </Row2>
+            <Section title="Highlights (für die Spielerstatistik)">
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div style={{ flex: 2, minWidth: 160 }}>
+                  <Field label="Spieler">
+                    <select value={hlPick} onChange={e => setHlPick(e.target.value)} style={input}>
+                      <option value="">— wählen —</option>
+                      {highlightPlayerOptions.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                  </Field>
+                </div>
+                <div style={{ flex: 1, minWidth: 110 }}>
+                  <Field label="Typ">
+                    <select value={hlType} onChange={e => setHlType(e.target.value as HighlightType)} style={input}>
+                      {HIGHLIGHT_TYPES.map(t => <option key={t} value={t}>{HIGHLIGHT_TYPE_LABELS[t]}</option>)}
+                    </select>
+                  </Field>
+                </div>
+                {HIGHLIGHT_WITH_VALUE.includes(hlType) && (
+                  <div style={{ width: 100 }}>
+                    <Field label={hlType === 'high_finish' ? 'Checkout' : 'Darts'}>
+                      <input type="number" value={hlValue} onChange={e => setHlValue(e.target.value)} style={input} />
+                    </Field>
+                  </div>
+                )}
+                <button type="button" onClick={addHighlight} style={{ ...ghost, padding: '9px 16px' }}>Hinzufügen</button>
+              </div>
+
+              {(header.highlights ?? []).length === 0 ? (
+                <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Noch keine Highlights erfasst (180er, 171, High Finish, Short Leg).</p>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(header.highlights ?? []).map((hl, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)' }}>
+                      <strong style={{ color: 'var(--th-text-strong)' }}>{hl.side === 'home' ? 'H' : 'G'}{hl.slot}</strong> {playerName(hl.side, hl.slot)} · {HIGHLIGHT_TYPE_LABELS[hl.type]}{hl.value ? ` ${hl.value}` : ''}
+                      <button type="button" onClick={() => removeHighlight(i)} aria-label="Entfernen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </Section>
 
             <Section title="Protest">

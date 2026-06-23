@@ -47,6 +47,22 @@ export const GAME_SCHEDULE: ScheduleEntry[] = [
   { no: 18, type: 'double', round: 'Doppel (Ende)' },
 ];
 
+/** Highlight-Typen für die Einzelstatistik. */
+export type HighlightType = '180' | '171' | 'high_finish' | 'short_leg';
+export const HIGHLIGHT_TYPES: HighlightType[] = ['180', '171', 'high_finish', 'short_leg'];
+export const HIGHLIGHT_TYPE_LABELS: Record<HighlightType, string> = {
+  '180': '180er', '171': '171er', high_finish: 'High Finish', short_leg: 'Short Leg',
+};
+/** Bei diesen Typen wird ein Wert erfasst (HF = Checkout-Punkte, Short Leg = Darts). */
+export const HIGHLIGHT_WITH_VALUE: HighlightType[] = ['high_finish', 'short_leg'];
+
+export interface HighlightEntry {
+  side: 'home' | 'guest';
+  slot: number;
+  type: HighlightType;
+  value: number | null;
+}
+
 /** Erlaubte Leg-Ergebnisse (Best of 3). */
 export const LEG_RESULTS = ['2:0', '2:1', '1:2', '0:2'] as const;
 export type LegResult = typeof LEG_RESULTS[number];
@@ -103,6 +119,7 @@ export interface MatchReport {
   protest_note: string | null;
   highlights_home: string | null;
   highlights_guest: string | null;
+  highlights: HighlightEntry[] | null;
   status: ReportStatus;
   review_note: string | null;
   reviewed_at: string | null;
@@ -209,7 +226,7 @@ const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 export type ReportHeaderDraft = Pick<MatchReport,
   'season_id' | 'league_label' | 'matchday' | 'match_date' | 'venue' |
   'home_team_id' | 'guest_team_id' | 'home_team_name' | 'guest_team_name' |
-  'tc_home' | 'tc_guest' | 'protest' | 'protest_note' | 'highlights_home' | 'highlights_guest'>;
+  'tc_home' | 'tc_guest' | 'protest' | 'protest_note' | 'highlights'>;
 
 // ── Lesen ──────────────────────────────────────────────────────
 
