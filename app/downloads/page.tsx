@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
-import { getCurrentSeason } from '@/lib/data';
 import {
-  TEMPLATE_ROUTE, TEMPLATE_PRINT_ROUTE, TEMPLATE_VERSION,
+  TEMPLATE_ROUTE, TEMPLATE_PRINT_ROUTE, TEMPLATE_VERSION, TEMPLATE_SEASON_NAME,
   templateFileName,
 } from '@/lib/spielbericht-template';
 
@@ -13,8 +12,6 @@ export const metadata = {
 };
 
 export default function DownloadsPage() {
-  const season = getCurrentSeason();
-
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader activeHref="/downloads" />
@@ -49,9 +46,9 @@ export default function DownloadsPage() {
                 handschriftlich ausfüllbar und auch in Schwarz-Weiß gut druckbar.
               </p>
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
-                <span>{season.name}</span>
+                <span>{TEMPLATE_SEASON_NAME}</span>
                 <span>Version {TEMPLATE_VERSION}</span>
-                <span>{templateFileName(season.year)}</span>
+                <span>{templateFileName()}</span>
               </div>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>

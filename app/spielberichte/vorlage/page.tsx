@@ -21,11 +21,8 @@
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { getCurrentSeason } from '@/lib/data';
 import { GAME_SCHEDULE, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_TYPES } from '@/lib/supabase/match-reports';
-import { TEMPLATE_VERSION, templateDocTitle, templateFooter } from '@/lib/spielbericht-template';
-
-const SEASON = getCurrentSeason();
+import { TEMPLATE_VERSION, TEMPLATE_SEASON_NAME, templateDocTitle, templateFooter } from '@/lib/spielbericht-template';
 
 /** Ligen als Ankreuz-Kästchen im Kopf (ohne D-Liga). */
 const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga'];
@@ -64,17 +61,17 @@ function VorlageInner() {
   const pf = readPrefill(new URLSearchParams(sp.toString()));
   const autoPrint = sp.get('print') === '1';
 
-  // Default-Dateiname für „Als PDF speichern".
-  useEffect(() => {
-    const prev = document.title;
-    document.title = templateDocTitle(SEASON.year);
-    return () => { document.title = prev; };
-  }, []);
+  // Drucken: Default-Dateiname direkt vor dem Druck setzen (Next.js setzt den
+  // Metadaten-Titel nach der Hydration zurück, daher hier statt im useEffect).
+  const printSheet = () => {
+    document.title = templateDocTitle();
+    window.print();
+  };
 
   // Optionales Direkt-Drucken (?print=1) — nach dem ersten Paint.
   useEffect(() => {
     if (!autoPrint) return;
-    const t = setTimeout(() => window.print(), 350);
+    const t = setTimeout(() => { document.title = templateDocTitle(); window.print(); }, 350);
     return () => clearTimeout(t);
   }, [autoPrint]);
 
@@ -87,7 +84,7 @@ function VorlageInner() {
         <Link href="/downloads" className="mdu-vorlage-back">← Downloads</Link>
         <div className="mdu-vorlage-toolbar-actions">
           <span className="mdu-vorlage-hint">Tipp: im Druckdialog „Als PDF speichern" wählen · Format A4</span>
-          <button type="button" onClick={() => window.print()} className="mdu-vorlage-print">
+          <button type="button" onClick={printSheet} className="mdu-vorlage-print">
             Als PDF speichern / drucken
           </button>
         </div>
@@ -135,6 +132,8 @@ function VorlageInner() {
           <GameTable rows={GAME_SCHEDULE.slice(0, 9)} />
           <GameTable rows={GAME_SCHEDULE.slice(9, 18)} />
         </div>
+        <p className="vb-note">Punkte je Einzel: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0 · Doppel zählen nur für Spiele/Legs.</p>
+
         {/* Gesamtergebnis */}
         <div className="vb-result">
           <span className="vb-result-label">Gesamtergebnis</span>
@@ -142,7 +141,7 @@ function VorlageInner() {
             Heim&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp;:&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp;Gast
           </span>
           <span className="vb-result-hint">
-            Punkte je Einzel: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0 · Doppel zählen nur für Spiele/Legs.<br />
+            Tabellenpunkte: Sieg = 3 · Unentschieden = je 1 · Niederlage = 0.<br />
             Spiele, Legs und Endergebnis werden vom System automatisch berechnet.
           </span>
         </div>
@@ -210,7 +209,7 @@ function Header({ pf }: { pf: Prefill }) {
       <div className="vb-header-text">
         <div className="vb-org">Münchner Dart Union</div>
         <div className="vb-title">Offizieller Spielbericht</div>
-        <div className="vb-season">{SEASON.name}</div>
+        <div className="vb-season">{TEMPLATE_SEASON_NAME}</div>
       </div>
       {/* Transparentes Logo (kein blauer Hintergrund) — zentriert */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -357,7 +356,7 @@ function SignLine({ label }: { label: string }) {
 function PageFooter({ page }: { page: number }) {
   return (
     <footer className="vb-footer">
-      <span>{templateFooter(SEASON.name)}</span>
+      <span>{templateFooter()}</span>
       <span>Seite {page} / 2</span>
     </footer>
   );
