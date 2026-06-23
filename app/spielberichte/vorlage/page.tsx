@@ -381,7 +381,7 @@ const PRINT_CSS = `
 }
 /* Seite 2 füllt eine volle A4-Seite: Inhalt wird über die Höhe verteilt,
    die Bemerkungen dehnen sich als flexibler Füller. */
-.mdu-sheet-fill { display:flex; flex-direction:column; min-height:297mm; }
+.mdu-sheet-fill { display:flex; flex-direction:column; min-height:285mm; }
 .mdu-sheet-fill .vb-remarks { flex:1 1 auto; justify-content:space-between; min-height:60px; }
 
 /* Toolbar (nur Bildschirm) */
@@ -496,8 +496,9 @@ const PRINT_CSS = `
   html, body { background:#fff !important; }
   .mdu-vorlage-wrap { background:#fff; padding:0; }
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
-  /* Im Druck entspricht die nutzbare Höhe der Seite dem A4-Satzspiegel (297 - 2×15mm). */
-  .mdu-sheet-fill { min-height:267mm; }
+  /* Satzspiegel = 297 - 2×15mm = 267mm. Bewusst etwas darunter (255mm), damit
+     Seite 2 sicher auf einer Druckseite bleibt und keine Leerseite anhängt. */
+  .mdu-sheet-fill { min-height:255mm; }
   .mdu-sheet + .mdu-sheet { page-break-before:always; }
   .vb-table, .vb-teamblock, .vb-result, .vb-signrow, tr { page-break-inside:avoid; }
   .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
