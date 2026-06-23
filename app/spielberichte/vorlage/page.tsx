@@ -152,7 +152,7 @@ function VorlageInner() {
       </section>
 
       {/* ── Seite 2 (füllt eine volle A4-Seite) ──────────────── */}
-      <section className="mdu-sheet mdu-sheet-fill">
+      <section className="mdu-sheet">
         <Header pf={pf} />
 
         {/* Highlights */}
@@ -170,7 +170,7 @@ function VorlageInner() {
         <SectionTitle>Bemerkungen / besondere Vorkommnisse</SectionTitle>
         <p className="vb-note">z. B. verspäteter Spielbeginn, unvollständige Mannschaft, Protest, technischer Defekt, abweichende Spielstätte.</p>
         <div className="vb-remarks" aria-hidden="true">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="vb-remarks-line" />)}
+          {Array.from({ length: 9 }).map((_, i) => <div key={i} className="vb-remarks-line" />)}
         </div>
         <div className="vb-protest">
           <span className="vb-protest-label">Protest eingelegt</span>
@@ -379,10 +379,6 @@ const PRINT_CSS = `
   font-family:var(--font-manrope), system-ui, Arial, sans-serif;
   font-size:9.5pt; line-height:1.25;
 }
-/* Seite 2 füllt eine volle A4-Seite: Inhalt wird über die Höhe verteilt,
-   die Bemerkungen dehnen sich als flexibler Füller. */
-.mdu-sheet-fill { display:flex; flex-direction:column; min-height:285mm; }
-.mdu-sheet-fill .vb-remarks { flex:1 1 auto; justify-content:space-between; min-height:60px; }
 
 /* Toolbar (nur Bildschirm) */
 .mdu-vorlage-toolbar {
@@ -469,7 +465,7 @@ const PRINT_CSS = `
 .vb-note { font-size:8pt; color:#444; margin:4px 0 4px; line-height:1.35; }
 
 /* Bemerkungen */
-.vb-remarks { display:flex; flex-direction:column; gap:22px; margin-top:10px; }
+.vb-remarks { display:flex; flex-direction:column; gap:24px; margin-top:10px; }
 .vb-remarks-line { border-bottom:1px solid #000; height:1px; }
 
 /* Protest */
@@ -496,9 +492,6 @@ const PRINT_CSS = `
   html, body { background:#fff !important; }
   .mdu-vorlage-wrap { background:#fff; padding:0; }
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
-  /* Satzspiegel = 297 - 2×15mm = 267mm. Bewusst etwas darunter (255mm), damit
-     Seite 2 sicher auf einer Druckseite bleibt und keine Leerseite anhängt. */
-  .mdu-sheet-fill { min-height:255mm; }
   .mdu-sheet + .mdu-sheet { page-break-before:always; }
   .vb-table, .vb-teamblock, .vb-result, .vb-signrow, tr { page-break-inside:avoid; }
   .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
