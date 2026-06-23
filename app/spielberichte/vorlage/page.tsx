@@ -157,7 +157,7 @@ function VorlageInner() {
         <SectionTitle>Highlights</SectionTitle>
         <p className="vb-note">
           {HIGHLIGHT_TYPES.map(t => HIGHLIGHT_TYPE_LABELS[t]).join(' · ')} — 180er/171er als Strichliste in „Anzahl" zählen,
-          High Finish = Checkout-Wert, Short Leg = Anzahl Darts. Spieler über Position eintragen (z. B. H3 / G2).
+          High Finish = Checkout-Wert (≥ 100), Short Leg = Anzahl Darts (max. 20). Spieler über Position eintragen (z. B. H3 / G2).
         </p>
         <div className="vb-twocol">
           <HighlightBlock side="Heim" prefix="H" />
@@ -394,7 +394,7 @@ const PRINT_CSS = `
 
 /* Kopf — Logo zentriert zwischen Titel (links) und Meta (rechts) */
 .vb-header { display:flex; align-items:center; gap:12px; border-bottom:2.5px solid #000; padding-bottom:7px; position:relative; }
-.vb-header-text { flex:1; min-width:0; }
+.vb-header-text { flex:1.45; min-width:0; }
 .vb-logo { height:46px; width:auto; flex-shrink:0; }
 .vb-org { font-size:8.5pt; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#333; margin-bottom:2px; }
 .vb-title { font-family:var(--font-saira-condensed), var(--font-manrope), sans-serif; font-weight:900; font-size:19pt; letter-spacing:.01em; text-transform:uppercase; line-height:1; }
