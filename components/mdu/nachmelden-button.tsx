@@ -8,6 +8,7 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { createNomination, LAST_LEAGUE_OPTIONS, type LastLeague } from '@/lib/supabase/nominations';
 
 export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamName: string }) {
@@ -17,6 +18,9 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
   const [lastLeague, setLastLeague] = useState<LastLeague>('none');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -42,7 +46,7 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
     <>
       <button type="button" onClick={() => { reset(); setOpen(true); }} style={btn}>＋ Spieler nachmelden</button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Spieler nachmelden"
             style={{ width: '100%', maxWidth: 440, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', borderRadius: 16, padding: '24px 26px', boxShadow: '0 30px 70px rgba(0,0,0,0.5)' }}>
@@ -82,7 +86,8 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
             </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
