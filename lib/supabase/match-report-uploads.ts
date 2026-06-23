@@ -112,3 +112,62 @@ export async function correctOcrField(id: string, value: string): Promise<{ erro
     .eq('id', id);
   return { error: error?.message ?? null };
 }
+
+// ── Server-API (OCR-Pipeline) ────────────────────────────────
+// Aufrufe an die Route Handler mit dem Supabase-Access-Token (Bearer).
+
+async function authHeader(): Promise<Record<string, string>> {
+  if (!supabase) return {};
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export interface OcrAvailability {
+  enabled: boolean;
+  provider: string | null;
+  maxFileMb: number;
+}
+
+export async function getOcrAvailability(): Promise<OcrAvailability> {
+  try {
+    const res = await fetch('/api/match-reports/ocr/config', { headers: await authHeader() });
+    if (!res.ok) return { enabled: false, provider: null, maxFileMb: 12 };
+    return (await res.json()) as OcrAvailability;
+  } catch {
+    return { enabled: false, provider: null, maxFileMb: 12 };
+  }
+}
+
+export async function uploadReportFile(matchId: string, file: File, page: number): Promise<{ uploadId?: string; error?: string }> {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('matchId', matchId);
+  fd.append('page', String(page));
+  const res = await fetch('/api/match-reports/upload', { method: 'POST', headers: await authHeader(), body: fd });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) return { error: json.error ?? 'Upload fehlgeschlagen.' };
+  return { uploadId: json.uploadId };
+}
+
+export interface StartOcrResult {
+  status?: string;
+  matchReportId?: string;
+  ocrResultId?: string;
+  reused?: boolean;
+  error?: string;
+}
+
+export async function startOcr(uploadId: string): Promise<StartOcrResult> {
+  const res = await fetch(`/api/match-reports/ocr/${uploadId}`, { method: 'POST', headers: await authHeader() });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) return { error: json.error ?? 'Erkennung fehlgeschlagen.' };
+  return json as StartOcrResult;
+}
+
+export async function getUploadSignedUrl(uploadId: string): Promise<string | null> {
+  const res = await fetch(`/api/match-reports/uploads/${uploadId}/signed-url`, { headers: await authHeader() });
+  if (!res.ok) return null;
+  const json = await res.json().catch(() => ({}));
+  return json.url ?? null;
+}

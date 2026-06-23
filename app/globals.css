@@ -688,3 +688,8 @@ body {
   .mdu-bottom-nav,
   .mdu-no-print { display: none !important; }
 }
+
+/* OCR-Prüfansicht: Vorschau/Felder auf schmalen Screens stapeln */
+@media (max-width: 768px) {
+  .mdu-ocr-grid { grid-template-columns: 1fr !important; }
+}

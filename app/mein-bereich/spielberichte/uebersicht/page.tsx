@@ -14,6 +14,7 @@ import {
   listMyReports, confirmReport,
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
+import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 
 export default function SpielberichteUebersichtPage() {
   const { user, loading } = useAuth();
@@ -22,8 +23,10 @@ export default function SpielberichteUebersichtPage() {
 
   const [rows, setRows] = useState<MatchReport[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ocrAvail, setOcrAvail] = useState(false);
 
   useEffect(() => { if (allowed) listMyReports().then(setRows); }, [allowed]);
+  useEffect(() => { if (allowed) getOcrAvailability().then(a => setOcrAvail(a.enabled)); }, [allowed]);
 
   const myId = user?.id;
   const myTeamId = user?.teamId;
@@ -54,6 +57,11 @@ export default function SpielberichteUebersichtPage() {
               <Link href="/spielberichte/vorlage" style={{ display: 'inline-block', padding: '11px 20px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none' }}>
                 Druckvorlage (PDF)
               </Link>
+              {ocrAvail && (
+                <Link href="/mein-bereich/spielberichte/ocr" style={{ display: 'inline-block', padding: '11px 20px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none' }}>
+                  Foto/PDF hochladen
+                </Link>
+              )}
             </div>
 
             {/* Zu prüfen (als Gegner) */}
