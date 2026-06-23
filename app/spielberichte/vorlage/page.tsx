@@ -367,7 +367,7 @@ const PRINT_CSS = `
 .mdu-vorlage-wrap { background:#e9eaee; min-height:100vh; padding:20px 12px 60px; }
 .mdu-sheet {
   background:#fff; color:#111; box-sizing:border-box;
-  width:210mm; max-width:100%; margin:0 auto 22px; padding:18mm;
+  width:210mm; max-width:100%; margin:0 auto 22px; padding:15mm;
   box-shadow:0 2px 16px rgba(0,0,0,.22);
   font-family:var(--font-manrope), system-ui, Arial, sans-serif;
   font-size:9.5pt; line-height:1.25;
@@ -416,7 +416,7 @@ const PRINT_CSS = `
 .vb-bf-grow .vb-bf-box { flex:1; }
 
 /* Abschnittstitel */
-.vb-section { font-family:var(--font-manrope), sans-serif; font-weight:800; font-size:9.5pt; letter-spacing:.06em; text-transform:uppercase; color:#111; margin:13px 0 5px; padding-bottom:2px; border-bottom:1px solid #000; }
+.vb-section { font-family:var(--font-manrope), sans-serif; font-weight:800; font-size:9.5pt; letter-spacing:.06em; text-transform:uppercase; color:#111; margin:9px 0 4px; padding-bottom:2px; border-bottom:1px solid #000; }
 .vb-section .vb-sub { font-weight:600; text-transform:none; letter-spacing:0; color:#555; font-size:8.5pt; }
 
 /* Zwei-Spalten */
@@ -426,15 +426,15 @@ const PRINT_CSS = `
 /* Mannschaftsblock — Schreiblinie oben, Bezeichnung darunter */
 .vb-teamblock { border:1px solid #000; padding:9px 11px 11px; }
 .vb-teamblock-head { font-weight:800; font-size:9pt; text-transform:uppercase; letter-spacing:.05em; }
-.vb-wl { margin-top:12px; }
-.vb-wl-line { border-bottom:1px solid #000; min-height:21px; font-size:11pt; padding:0 2px 1px; }
+.vb-wl { margin-top:9px; }
+.vb-wl-line { border-bottom:1px solid #000; min-height:19px; font-size:11pt; padding:0 2px 1px; }
 .vb-wl-cap { font-size:7.4pt; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#555; margin-top:2px; }
 
 /* Tabellen */
 .vb-table { width:100%; border-collapse:collapse; margin-top:2px; }
-.vb-table th, .vb-table td { border:1px solid #000; padding:3px 5px; text-align:left; vertical-align:middle; }
+.vb-table th, .vb-table td { border:1px solid #000; padding:2px 5px; text-align:left; vertical-align:middle; }
 .vb-table th { font-size:7.6pt; font-weight:800; text-transform:uppercase; letter-spacing:.03em; background:#f0f0f0; }
-.vb-table td { height:17px; font-size:9.5pt; }
+.vb-table td { height:15px; font-size:9.5pt; }
 .vb-lineup .vb-pos, .vb-games .vb-gameno { font-weight:800; font-family:var(--font-jetbrains-mono), monospace; }
 .vb-lineup .vb-sub-row .vb-pos { color:#555; font-weight:700; }
 .vb-lineup .vb-sub-row td { background:#fafafa; }
@@ -446,7 +446,7 @@ const PRINT_CSS = `
 .vb-hl .vb-hl-pos { font-family:var(--font-jetbrains-mono), monospace; font-weight:800; }
 
 /* Gesamtergebnis */
-.vb-result { margin-top:11px; border:1.5px solid #000; padding:9px 14px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+.vb-result { margin-top:9px; border:1.5px solid #000; padding:7px 14px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
 .vb-result-label { font-weight:800; font-size:9.5pt; text-transform:uppercase; letter-spacing:.06em; }
 .vb-result-line { font-family:var(--font-saira-condensed), sans-serif; font-weight:900; font-size:16pt; }
 .vb-result-hint { margin-left:auto; max-width:50%; font-size:7.6pt; color:#555; line-height:1.4; }
@@ -478,12 +478,12 @@ const PRINT_CSS = `
 
 /* ── Druck ──────────────────────────────────────────────── */
 @media print {
-  @page { size:A4; margin:18mm; }
+  @page { size:A4; margin:15mm; }
   html, body { background:#fff !important; }
   .mdu-vorlage-wrap { background:#fff; padding:0; }
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
-  /* Im Druck entspricht die nutzbare Höhe der Seite dem A4-Satzspiegel (297 - 2×18mm). */
-  .mdu-sheet-fill { min-height:261mm; }
+  /* Im Druck entspricht die nutzbare Höhe der Seite dem A4-Satzspiegel (297 - 2×15mm). */
+  .mdu-sheet-fill { min-height:267mm; }
   .mdu-sheet + .mdu-sheet { page-break-before:always; }
   .vb-table, .vb-teamblock, .vb-result, .vb-signrow, tr { page-break-inside:avoid; }
   .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
