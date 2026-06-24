@@ -1,55 +1,50 @@
-# Rechtliche Angaben für die MDU-Online-Plattform
+# Rechtliche Angaben für die MDU-Online-Plattform — Klärungsstand
 
-*Stand der Klärung. Die meisten Punkte beantwortet andi selbst; vom Vereins-Chef wird nur die
-offizielle Anschrift + Register-/USt-Angabe benötigt.*
+*Die meisten Punkte sind von andi beantwortet (siehe unten). Offen sind nur noch wenige
+Fakten vom Vereins-Chef und zwei Kleinigkeiten von andi.*
 
 ---
 
-## TEIL 1 — Nur vom Vereins-Chef benötigt
+## ❗ OFFEN — vom Vereins-Chef
 1. **Ladungsfähige Anschrift** des Vereins (Straße, Hausnr., PLZ, Ort): __________________
-2. **Eingetragener Verein (e. V.)?**  ☐ ja  ☐ nein
-   - Falls ja: Registergericht (z. B. Amtsgericht München): __________ · Vereinsregister-Nr. (VR …): __________
+2. **Eingetragener Verein (e. V.)?**  ☐ ja → Registergericht: __________ · VR-Nr.: __________  ☐ nein
 3. **USt-IdNr.**, falls vorhanden: __________________
 
+## ❗ OFFEN — von andi (Freitext)
+4. Offizieller Vereinsname exakt (z. B. „Münchner Dart Union e. V."): __________________
+5. Kontakt-E-Mail fürs Impressum (kein no-reply, eine echte Adresse): __________________
+
 ---
 
-## TEIL 2 — Von andi auszufüllen (Entwurf, bitte ergänzen/bestätigen)
+## ✅ BEANTWORTET (fließt in die Texte ein)
 
 ### Impressum / Vertretung
-- Offizieller Vereinsname (z. B. „Münchner Dart Union e. V."): __________________
-- Vertretungsberechtigt: **andi (voller Name: __________________)**
-- Weitere genannte Person: **Ehrenpräsident Dimo (voller Name: __________________)**
-  - Ist Dimo ebenfalls vertretungsberechtigt, oder rein repräsentativ (Ehrenamt)? __________
-- Inhaltlich verantwortlich für die Website: ☐ andi ☐ andere Person: __________
-- Öffentliche Kontakt-E-Mail fürs Impressum: __________________
-- Telefon (optional): __________________
+- Vertretungsberechtigt + inhaltlich verantwortlich (§18 MStV): **Andreas Strehle**
+- Ehrenpräsident **Dimo**: nur Ehrenamt/repräsentativ → **nicht** im Impressum als Vertreter
+- DSGVO-Verantwortlicher: **der Verein, vertreten durch Andreas Strehle**
+- Datenschutzbeauftragter: **nicht erforderlich / keiner benannt**
 
-### Datenschutz
-- DSGVO-Verantwortlicher = Vertreter (andi)?  ☐ ja  ☐ nein: __________
-- Separate Datenschutz-E-Mail?  __________________ (sonst Kontakt-E-Mail von oben)
-- Datenschutzbeauftragter erforderlich/benannt?  ☐ nein  ☐ ja: __________
-
-### Auftragsverarbeiter / Dienste
-- AVV abschließbar mit Vercel / Supabase / Resend / Cloudflare?  ☐ ok  ☐ klären: __________
-- **OCR via Anthropic (USA):** Foto/PDF der Spielberichte (mit Namen + Pass-Nummern) geht zur
-  Texterkennung an Anthropic (Server USA). Freigabe?  ☐ ja  ☐ nein  ☐ Rücksprache Chef
-- Löschfrist der hochgeladenen Original-Fotos: __________ (Vorschlag: X Monate / nach Bestätigung)
+### Dienste / Auftragsverarbeitung
+- AVV mit **Vercel, Supabase, Resend, Cloudflare**: **ok / dürfen abgeschlossen werden**
+- **OCR via Anthropic (USA): freigegeben** → wird als Auftragsverarbeiter + EU-US-Transfer benannt
+- **Löschfrist Original-Fotos: nach Bestätigung des Spielberichts löschen**
+  → ⚙️ Umsetzungs-To-do: Upload + Storage-Objekt automatisch löschen, sobald Bericht bestätigt
 
 ### Bildrechte
-- Profil-/Spielerfotos hochladen dürfen:  ☐ nur Spieler selbst  ☐ auch Kapitän/Admin
-- Löschen/Entfernen auf Wunsch dürfen: __________
-- Mannschaftsbilder nur mit Zustimmung der Abgebildeten (Kapitäne sichern das zu)?  ☐ ja  ☐ andere Regelung: __________
+- Profil-/Spielerfotos hochladen: **nur der Spieler selbst**
+- Bilder löschen/entfernen: **Spieler selbst + Admin/Ligaleitung**
+- Mannschaftsbilder: **nur mit Zustimmung aller Abgebildeten** (Kapitän/Admin sichert zu)
 
 ### Urheberrecht
-- MDU-Logo & Vereinsname dürfen verwendet werden?  ☐ ja  ☐ mit Auflagen: __________
-- Liga-Daten von dartunion.de: öffentliche Daten / Freigabe vorhanden?  __________
+- MDU-Logo & Vereinsname: **dürfen verwendet werden**
+- Liga-Daten von dartunion.de: öffentliche Daten (Quelle wird genannt)
+
+### Registrierung / Einwilligungen (Plattform-Entscheidung)
+- **Pflicht-Häkchen** zu Datenschutz + Nutzungsbedingungen
+- Eigene **Nutzungsbedingungen-Seite**
+- Freiwillige Einwilligungen: **Profilbild veröffentlichen**, **Spitzname veröffentlichen**
 
 ---
-
-## Bereits entschieden (Plattform-seitig)
-- Registrierung mit **Pflicht-Häkchen** zu Datenschutz + Nutzungsbedingungen.
-- Eigene **Nutzungsbedingungen-Seite** wird erstellt.
-- Freiwillige Einwilligungen: **Profilbild veröffentlichen**, **Spitzname veröffentlichen**.
 
 **Hinweis:** Finaler juristischer Check durch fachkundige Person (Anwalt/DSB) — die Plattform
 liefert übliche Vorlagen, keine Rechtsberatung.
