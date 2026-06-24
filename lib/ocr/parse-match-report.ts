@@ -13,6 +13,7 @@ import { GAME_SCHEDULE,
   type ReportHeaderDraft, type ReportPlayer, type ReportGame, type HighlightEntry } from '@/lib/supabase/match-reports';
 import type { MatchReportExtraction } from './schemas';
 import { matchPlayer, type RosterCandidate, type NameMatch } from './match-players';
+import { normalizeHighlightValue } from './highlights';
 import { validateExtraction, type ValidationIssue } from './validate-match-report';
 
 export type FieldLevel = 'ok' | 'review' | 'missing';
@@ -121,7 +122,7 @@ export function parseMatchReport(data: MatchReportExtraction, ctx: ParseContext)
   const highlights: HighlightEntry[] = data.highlights.flatMap(h => {
     const slot = positionToSlot(h.position);
     if (slot == null) return [];
-    return [{ side: h.side, slot, type: h.type, value: h.value }];
+    return [{ side: h.side, slot, type: h.type, value: normalizeHighlightValue(h.type, h.value) }];
   });
 
   const header: ReportHeaderDraft = {

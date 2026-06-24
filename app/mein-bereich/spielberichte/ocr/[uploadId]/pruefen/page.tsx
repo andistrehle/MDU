@@ -24,6 +24,7 @@ import {
 import { validateExtraction, type ValidationIssue } from '@/lib/ocr/validate-match-report';
 import { resolveMatchFromExtraction, matchLabel } from '@/lib/ocr/resolve-match';
 import { matchPlayer, type RosterCandidate, type NameMatch } from '@/lib/ocr/match-players';
+import { normalizeHighlightValue } from '@/lib/ocr/highlights';
 import { MATCHES, getMatchesForTeam, getPlayersForTeamInSeason, getPlayerDisplayName, type GameMatch } from '@/lib/data';
 import type { MatchReportExtraction } from '@/lib/ocr/schemas';
 
@@ -264,7 +265,7 @@ export default function OcrReviewPage() {
                               <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--th-accent)', border: '1px solid var(--th-accent-a25)', borderRadius: 4, padding: '1px 6px' }}>{h.side === 'home' ? 'Heim' : 'Gast'}</span>
                               <span style={{ width: 32, flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-faint)' }}>{h.position ?? '—'}</span>
                               <span style={{ flex: 1, minWidth: 0, color: 'var(--th-text-body)' }}>{HIGHLIGHT_LABEL[h.type]}</span>
-                              {h.value != null && <span style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{h.value}</span>}
+                              {normalizeHighlightValue(h.type, h.value) != null && <span style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{normalizeHighlightValue(h.type, h.value)}{(h.type === '180' || h.type === '171') ? '×' : ''}</span>}
                             </div>
                           ))}
                       </div>
