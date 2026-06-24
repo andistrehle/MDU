@@ -1,8 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 // Basis-URL der Live-Seite. Über NEXT_PUBLIC_SITE_URL überschreibbar.
-// TODO: nach finalem Domain-Wechsel den Fallback anpassen.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mdu-three.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
 
 /**
  * robots.txt — öffentliche Seiten dürfen indexiert werden,
