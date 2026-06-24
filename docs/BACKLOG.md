@@ -74,6 +74,17 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 - [ ] Eindeutigkeits-/Dubletten-Regeln: 1 Spielerprofil = 1 Konto (DB-Constraint), jedes Team nur 1× pro Saison freigegeben; Namensgleichheit nur zur Admin-Prüfung markieren, nicht hart blockieren
 - [ ] Alle Testuser löschen (sauberer Start), u. a. julia.andi@web.de
+- [ ] **Rechtliches:** Anschrift/Vertretung in Impressum + Datenschutz sind eingetragen (Zenettistr. 30, 80337 München; vertreten durch Anton Bauer i. V. Andreas Strehle). Finaler **juristischer Check** (Anwalt/DSB) ausstehend → danach Hinweis-Banner aus `LegalPage` entfernen.
+
+### Domain-Umzug auf www.mdudarts.de (Checkliste Livegang)
+Code-seitig erledigt: robots.txt, sitemap.xml und Canonical nutzen `www.mdudarts.de` (Fallback);
+per `NEXT_PUBLIC_SITE_URL` überschreibbar. Rest = Konfiguration, kein Code:
+
+- [ ] **Vercel → Settings → Domains:** `www.mdudarts.de` + `mdudarts.de` hinzufügen, `www` als primär (Apex → www Redirect)
+- [ ] **DNS (bei Cloudflare):** die von Vercel angezeigten Records setzen — `www` CNAME → `cname.vercel-dns.com`, Apex A-Record/CNAME-Flattening; für diese zwei Einträge Cloudflare-Proxy auf „DNS only" (graue Wolke). MX/E-Mail (Resend) unangetastet lassen
+- [ ] **Vercel-ENV:** `NEXT_PUBLIC_SITE_URL=https://www.mdudarts.de` (Production) setzen, dann redeployen
+- [ ] **⚠️ Supabase → Auth → URL Configuration:** Site URL = `https://www.mdudarts.de`, Redirect URLs um `https://www.mdudarts.de/**` ergänzen (sonst zeigen Bestätigungs-/Reset-Mail-Links auf die alte Domain)
+- [ ] Erst scharf schalten, wenn DNS + SSL grün; `mdu-three.vercel.app` bleibt während des Umzugs erreichbar
 
 ## Bekannte To-dos
 
