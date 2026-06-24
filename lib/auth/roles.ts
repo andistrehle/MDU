@@ -145,6 +145,16 @@ export function canEditUserAccount(actor: UserProfile | null, targetRole: UserRo
 }
 
 /**
+ * Darf ein konkretes Konto gelöscht werden?
+ * Super Admin: alle. Ligaleitung: nur Spieler/Teamkapitäne — keine anderen
+ * Admin-/Super-Admin-Konten. (Sich selbst löschen wird separat verhindert.)
+ */
+export function canDeleteUserAccount(actor: UserProfile | null, targetRole: UserRole): boolean {
+  if (isSuperAdmin(actor)) return true;
+  return hasMinRole(actor, 'league_admin') && (targetRole === 'player' || targetRole === 'team_captain');
+}
+
+/**
  * Darf eine bestimmte Rolle vergeben?
  * Super Admin: alle. Ligaleitung: alle außer 'super_admin' (keine Eskalation).
  */

@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canViewUsers, canEditUsers, canEditUserAccount, canAssignRole, ROLE_LABELS, type UserRole, type UserProfile } from '@/lib/auth/roles';
+import { canViewUsers, canEditUsers, canEditUserAccount, canDeleteUserAccount, canAssignRole, ROLE_LABELS, type UserRole, type UserProfile } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 
@@ -95,6 +95,25 @@ export default function AdminUsersPage() {
     if (allowed) queueMicrotask(() => load());
   }, [allowed, load]);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function onDelete(p: ProfileRow) {
+    if (!supabase) return;
+    if (!confirm(`Benutzer „${p.display_name}" (${p.email}) endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+    setDeletingId(p.id);
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    const res = await fetch(`/api/admin/users/${p.id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const json = await res.json().catch(() => ({}));
+    setDeletingId(null);
+    if (!res.ok) { alert(json.error ?? 'Löschen fehlgeschlagen.'); return; }
+    setProfiles(prev => prev.filter(x => x.id !== p.id));
+    setNotice(`Benutzer „${p.display_name}" wurde gelöscht.`);
+  }
+
   // ── Zugriffsschutz ──────────────────────────────────────────
   if (authLoading) {
     return <Shell><p style={muted}>Lade …</p></Shell>;
@@ -146,7 +165,7 @@ export default function AdminUsersPage() {
           <div className="mdu-desktop-only mdu-table-scroll">
             <div style={{ minWidth: 820, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden' }}>
               <div style={{
-                display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 70px',
+                display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 150px',
                 padding: '12px 18px', borderBottom: '1px solid var(--th-line-8)',
                 fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
                 letterSpacing: '0.1em', color: 'var(--th-text-dim)', textTransform: 'uppercase', gap: 12,
@@ -155,7 +174,7 @@ export default function AdminUsersPage() {
               </div>
               {profiles.map((p, i) => (
                 <div key={p.id} style={{
-                  display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 70px',
+                  display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 150px',
                   padding: '12px 18px', gap: 12, alignItems: 'center',
                   borderBottom: i < profiles.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)',
@@ -168,9 +187,15 @@ export default function AdminUsersPage() {
                   <span><RoleBadge role={p.role} /></span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName(p.player_id)}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(p.team_id)}</span>
-                  {canEdit && canEditUserAccount(user, p.role)
-                    ? <button onClick={() => setEditing(p)} style={editBtn}>Bearb.</button>
-                    : <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }} title={p.role === 'super_admin' ? 'Super-Admin-Konten kann nur ein Super Admin bearbeiten.' : undefined}>—</span>}
+                  <span style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+                    {canEdit && canEditUserAccount(user, p.role) && <button onClick={() => setEditing(p)} style={editBtn}>Bearb.</button>}
+                    {canDeleteUserAccount(user, p.role) && p.id !== user.id && (
+                      <button onClick={() => onDelete(p)} disabled={deletingId === p.id} style={delBtn}>{deletingId === p.id ? '…' : 'Löschen'}</button>
+                    )}
+                    {!(canEdit && canEditUserAccount(user, p.role)) && !(canDeleteUserAccount(user, p.role) && p.id !== user.id) && (
+                      <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }} title={p.role === 'super_admin' ? 'Super-Admin-Konten kann nur ein Super Admin verwalten.' : undefined}>—</span>
+                    )}
+                  </span>
                 </div>
               ))}
               {profiles.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>Noch keine Benutzer registriert.</div>}
@@ -191,7 +216,12 @@ export default function AdminUsersPage() {
                   <span>Spieler: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(p.player_id)}</strong></span>
                   <span>Team: <strong style={{ color: 'var(--th-text-strong)' }}>{teamName(p.team_id)}</strong></span>
                 </div>
-                {canEdit && canEditUserAccount(user, p.role) && <button onClick={() => setEditing(p)} style={{ ...editBtn, width: '100%', padding: '9px' }}>Bearbeiten</button>}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {canEdit && canEditUserAccount(user, p.role) && <button onClick={() => setEditing(p)} style={{ ...editBtn, flex: 1, padding: '9px' }}>Bearbeiten</button>}
+                  {canDeleteUserAccount(user, p.role) && p.id !== user.id && (
+                    <button onClick={() => onDelete(p)} disabled={deletingId === p.id} style={{ ...delBtn, flex: 1, padding: '9px' }}>{deletingId === p.id ? 'Löschen …' : 'Löschen'}</button>
+                  )}
+                </div>
               </div>
             ))}
             {profiles.length === 0 && <p style={muted}>Noch keine Benutzer registriert.</p>}
@@ -446,6 +476,12 @@ const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize
 const editBtn: React.CSSProperties = {
   padding: '7px 12px', borderRadius: 7, cursor: 'pointer',
   background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)',
+  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap',
+};
+
+const delBtn: React.CSSProperties = {
+  padding: '7px 12px', borderRadius: 7, cursor: 'pointer',
+  background: 'transparent', color: 'var(--th-loss)', border: '1.5px solid var(--th-loss)',
   fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap',
 };
 
