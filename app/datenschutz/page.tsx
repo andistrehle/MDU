@@ -60,9 +60,13 @@ export default function DatenschutzPage() {
         Eingeloggte Nutzer können Spitzname, einen „Über mich“-Text und ein Profilbild
         hinterlegen. Diese Angaben sind – soweit veröffentlicht – auf dem öffentlichen
         Spielerprofil sichtbar und können jederzeit durch den Nutzer selbst geändert oder
-        gelöscht werden. Die Veröffentlichung von Profilbild und Spitzname erfolgt nur auf
-        Grundlage einer gesonderten, freiwilligen Einwilligung (Art. 6 Abs. 1 lit. a DSGVO),
-        die jederzeit mit Wirkung für die Zukunft widerrufen werden kann. Liga-Stammdaten
+        gelöscht werden. Das <strong>Profilbild</strong> wird im Rahmen der Darstellung des
+        Spielbetriebs standardmäßig auf dem öffentlichen Spielerprofil angezeigt
+        (Rechtsgrundlage: berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO). Jeder Nutzer kann
+        der Anzeige seines Profilbilds jederzeit mit Wirkung für die Zukunft widersprechen,
+        indem er das entsprechende Häkchen in seinem Profil entfernt. Die Veröffentlichung des
+        <strong> Spitznamens</strong> erfolgt dagegen nur nach aktiver, freiwilliger Einwilligung
+        (Art. 6 Abs. 1 lit. a DSGVO), die ebenfalls jederzeit widerrufbar ist. Liga-Stammdaten
         (Mannschaften, Spieler, Ergebnisse, Tabellen, Ranglisten) stammen teils aus öffentlich
         verfügbaren Quellen (u. a. dartunion.de) und werden zunehmend im Rahmen des
         Spielbetriebs auf dieser Plattform selbst erhoben und berechnet – insbesondere durch
