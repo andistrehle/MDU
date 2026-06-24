@@ -54,7 +54,6 @@ export default function OcrUploadPage() {
   }
 
   async function onStart() {
-    if (!matchId) { setMsg({ kind: 'err', text: 'Bitte zuerst die Begegnung wählen.' }); return; }
     if (files.length === 0) { setMsg({ kind: 'err', text: 'Bitte mindestens ein Foto/PDF auswählen.' }); return; }
     setBusy(true); setMsg({ kind: 'info', text: 'Lade hoch …' });
     let firstUploadId: string | null = null;
@@ -87,12 +86,12 @@ export default function OcrUploadPage() {
               <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'var(--th-accent-a07)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'var(--th-accent-a25)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-text-body)' }}>{msg.text}</div>
             )}
 
-            <Card title="1 · Begegnung wählen">
+            <Card title="1 · Begegnung (optional)">
               <select value={matchId} onChange={e => setMatchId(e.target.value)} style={input}>
-                <option value="">— Begegnung wählen —</option>
+                <option value="">— ohne Auswahl (wird nach der Erkennung zugeordnet) —</option>
                 {matches.map(m => <option key={m.id} value={m.id}>{matchLabel(m)}</option>)}
               </select>
-              {matches.length === 0 && <Muted>Keine Begegnungen gefunden.</Muted>}
+              <Muted>Du kannst die Begegnung gleich wählen (beste Erkennung) oder ohne Auswahl hochladen — das System schlägt sie danach anhand der erkannten Teams vor.</Muted>
             </Card>
 
             <Card title="2 · Foto oder PDF (max. 2 Seiten)">

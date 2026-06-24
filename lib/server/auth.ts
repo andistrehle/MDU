@@ -61,6 +61,11 @@ export function canUploadForTeam(user: ServerUser, teamId: string): boolean {
   return hasRole(toProfile(user), 'team_captain') && user.teamId === teamId;
 }
 
+/** Ligaleitung/Super-Admin? */
+export function isAdminUser(user: ServerUser): boolean {
+  return hasMinRole(toProfile(user), 'league_admin');
+}
+
 /** Minimaler UserProfile-Shim für die roles-Helper. */
 function toProfile(user: ServerUser) {
   return { id: user.id, email: user.email, displayName: '', role: user.role, teamId: user.teamId ?? undefined, createdAt: '', updatedAt: '' };

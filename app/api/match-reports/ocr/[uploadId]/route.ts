@@ -3,25 +3,31 @@
 // ============================================================
 //
 // POST /api/match-reports/ocr/[uploadId]
-// Idempotent: pro Upload nur ein aktiver Job; bereits erkannte Uploads werden
-// nicht erneut (kostenpflichtig) verarbeitet. Ruft den Vision-Provider
-// serverseitig auf, speichert Roh-/Strukturergebnis + Felder und legt einen
-// digitalen Spielbericht-ENTWURF an. Tabellen/Statistik bleiben unverändert.
+// Idempotent. Ruft den Vision-Provider serverseitig auf und speichert das
+// Ergebnis. Die Begegnung kann vorab gewählt sein ODER wird aus den erkannten
+// Teams (+Datum) automatisch zugeordnet. Ist sie eindeutig und gehört dem
+// Nutzer, wird direkt ein digitaler Entwurf angelegt; sonst „needs_review" mit
+// Begegnungsvorschlägen (Zuordnung über die assign-Route).
 // ============================================================
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest, canUploadForTeam } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { findMatch, buildOcrContext, createOcrDraft } from '@/lib/server/ocr-draft';
+import { findMatch, buildOcrContext, finalizeDraftFromStructured } from '@/lib/server/ocr-draft';
+import { resolveMatchFromExtraction, matchLabel } from '@/lib/ocr/resolve-match';
 import { getOcrConfig, isOcrAvailable, isRoleAllowed } from '@/lib/ocr/config';
-import { getOcrProvider, type OcrInputPage } from '@/lib/ocr/provider';
-import { parseMatchReport } from '@/lib/ocr/parse-match-report';
+import { getOcrProvider, type OcrInputPage, type OcrMatchContext } from '@/lib/ocr/provider';
 import { isOcrReadyMime, fileToInputPage } from '@/lib/ocr/preprocess';
+import type { GameMatch } from '@/lib/data';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const BUCKET = 'match-report-uploads';
+const EMPTY_CTX: OcrMatchContext = {
+  season: null, league: null, matchday: null, date: null, venue: null,
+  homeTeam: null, guestTeam: null, homeRoster: [], guestRoster: [],
+};
 
 export async function POST(request: Request, ctx: { params: Promise<{ uploadId: string }> }) {
   const { uploadId } = await ctx.params;
@@ -33,23 +39,22 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
   if (!isRoleAllowed(auth.user.role, cfg)) return NextResponse.json({ error: 'Keine Berechtigung.' }, { status: 403 });
   if (!supabaseAdmin) return NextResponse.json({ error: 'Server-Service ist nicht konfiguriert.' }, { status: 503 });
 
-  // ── Upload laden + Berechtigung ─────────────────────────────
   const { data: upload } = await supabaseAdmin.from('match_report_uploads').select('*').eq('id', uploadId).maybeSingle();
   if (!upload) return NextResponse.json({ error: 'Upload nicht gefunden.' }, { status: 404 });
 
-  const match = upload.match_id ? findMatch(upload.match_id) : null;
-  if (!match) return NextResponse.json({ error: 'Begegnung nicht gefunden.' }, { status: 400 });
+  // Basis-Berechtigung: eigener Upload, oder (falls Begegnung vorgewählt) eigenes Team / Admin.
+  let preMatch: GameMatch | null = upload.match_id ? findMatch(upload.match_id) : null;
+  const ownsUpload = upload.uploaded_by === auth.user.id
+    || (preMatch && (canUploadForTeam(auth.user, preMatch.homeTeamId) || canUploadForTeam(auth.user, preMatch.awayTeamId)));
+  if (!ownsUpload) return NextResponse.json({ error: 'Keine Berechtigung für diesen Upload.' }, { status: 403 });
 
-  const owns = upload.uploaded_by === auth.user.id
-    || canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId);
-  if (!owns) return NextResponse.json({ error: 'Keine Berechtigung für diesen Upload.' }, { status: 403 });
-
-  // ── Idempotenz ──────────────────────────────────────────────
-  if (upload.ocr_status === 'processing') {
-    return NextResponse.json({ error: 'Erkennung läuft bereits.' }, { status: 409 });
-  }
-  if ((upload.ocr_status === 'completed' || upload.ocr_status === 'needs_review') && upload.match_report_id) {
-    return NextResponse.json({ matchReportId: upload.match_report_id, reused: true, status: upload.ocr_status }, { status: 200 });
+  // Idempotenz: laufend/abgeschlossen nicht erneut (kostenpflichtig) ausführen.
+  if (upload.ocr_status === 'processing') return NextResponse.json({ error: 'Erkennung läuft bereits.' }, { status: 409 });
+  if (upload.ocr_completed_at && upload.ocr_status !== 'failed') {
+    return NextResponse.json({
+      status: upload.ocr_status, matchReportId: upload.match_report_id ?? null,
+      needsMatch: !upload.match_report_id, reused: true,
+    }, { status: 200 });
   }
 
   const provider = await getOcrProvider(cfg);
@@ -65,32 +70,30 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
   }).eq('id', uploadId);
 
   try {
-    // ── Alle Seiten (Vorder-/Rückseite) dieser Begegnung sammeln ──
     const { data: pages } = await supabaseAdmin.from('match_report_uploads')
       .select('storage_path, mime_type, page_number')
       .eq('match_id', upload.match_id).eq('uploaded_by', upload.uploaded_by)
       .neq('upload_status', 'deleted').order('page_number');
 
     const inputPages: OcrInputPage[] = [];
-    for (const p of (pages ?? []).slice(0, 3)) {
-      if (!isOcrReadyMime(p.mime_type)) continue; // HEIC etc. (Konvertierung später)
+    // Bei Pre-Auswahl alle Seiten der Begegnung; ohne Auswahl nur diese eine Datei.
+    const pageRows = upload.match_id ? (pages ?? []) : [{ storage_path: upload.storage_path, mime_type: upload.mime_type }];
+    for (const p of pageRows.slice(0, 3)) {
+      if (!isOcrReadyMime(p.mime_type)) continue;
       const { data: blob } = await supabaseAdmin.storage.from(BUCKET).download(p.storage_path);
       if (!blob) continue;
       inputPages.push(await fileToInputPage(await blob.arrayBuffer(), p.mime_type));
     }
-    if (inputPages.length === 0) {
-      throw new Error('Keine verarbeitbare Bilddatei gefunden (HEIC bitte als JPG/PNG hochladen).');
-    }
+    if (inputPages.length === 0) throw new Error('Keine verarbeitbare Bilddatei gefunden (HEIC bitte als JPG/PNG hochladen).');
 
-    const { providerCtx, parseCtx } = buildOcrContext(match);
+    const providerCtx = preMatch ? buildOcrContext(preMatch).providerCtx : EMPTY_CTX;
     const result = await provider.extract(inputPages, providerCtx);
-
     const structured = result.structuredData;
+
     if (!structured || structured.documentType !== 'mdu_match_report') {
       const { data: resRow } = await supabaseAdmin.from('match_report_ocr_results').insert({
         upload_id: uploadId, raw_text: result.rawText, raw_result: structured ?? null,
-        overall_confidence: result.confidence, provider: result.provider,
-        model_version: result.modelVersion, warnings: result.warnings,
+        overall_confidence: result.confidence, provider: result.provider, model_version: result.modelVersion, warnings: result.warnings,
       }).select('id').maybeSingle();
       await supabaseAdmin.from('match_report_uploads').update({
         ocr_status: 'failed', ocr_completed_at: new Date().toISOString(),
@@ -100,47 +103,39 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
         error: 'Dokument wurde nicht als MDU-Spielbericht erkannt. Du kannst es erneut hochladen oder manuell erfassen.' }, { status: 200 });
     }
 
-    const parsed = parseMatchReport(structured, parseCtx);
-
     // OCR-Ergebnis speichern (Original nicht überschreiben).
     const { data: resRow, error: resErr } = await supabaseAdmin.from('match_report_ocr_results').insert({
-      upload_id: uploadId, raw_text: result.rawText, raw_result: structured,
-      structured_result: structured, overall_confidence: result.confidence,
-      provider: result.provider, model_version: result.modelVersion,
+      upload_id: uploadId, raw_text: result.rawText, raw_result: structured, structured_result: structured,
+      overall_confidence: result.confidence, provider: result.provider, model_version: result.modelVersion,
       parser_version: '1', warnings: result.warnings,
     }).select('id').maybeSingle();
     if (resErr || !resRow) throw new Error(resErr?.message ?? 'OCR-Ergebnis konnte nicht gespeichert werden.');
     const ocrResultId = (resRow as { id: string }).id;
 
-    // Felder (für Prüfansicht/Audit).
-    if (parsed.fields.length) {
-      await supabaseAdmin.from('match_report_ocr_fields').insert(parsed.fields.map(f => ({
-        ocr_result_id: ocrResultId, field_key: f.fieldKey, detected_value: f.detectedValue,
-        normalized_value: f.detectedValue, confidence: f.confidence,
-        status: f.level === 'missing' ? 'unresolved' : 'detected',
-      })));
+    // Begegnung bestimmen: vorgewählt ODER aus dem Ergebnis ableiten.
+    let match = preMatch;
+    let candidates: GameMatch[] = [];
+    if (!match) {
+      const res = resolveMatchFromExtraction(structured);
+      candidates = res.candidates;
+      match = res.match;
     }
 
-    // Digitalen Entwurf anlegen.
-    const draft = await createOcrDraft({
-      header: parsed.header, homePlayers: parsed.homePlayers, guestPlayers: parsed.guestPlayers,
-      games: parsed.games, uploaderId: upload.uploaded_by, uploadId, ocrResultId,
-    });
-    if (draft.error || !draft.id) throw new Error(draft.error ?? 'Entwurf konnte nicht angelegt werden.');
+    // Nur automatisch übernehmen, wenn die Begegnung dem Nutzer gehört (Kapitän) bzw. Admin.
+    const ownsMatch = !!match && (canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId));
+    if (match && ownsMatch) {
+      const fin = await finalizeDraftFromStructured({ uploadId, ocrResultId, uploaderId: upload.uploaded_by, match, structured });
+      if (fin.error) throw new Error(fin.error);
+      return NextResponse.json({ status: fin.status, matchReportId: fin.reportId, ocrResultId, issues: fin.issues }, { status: 200 });
+    }
 
-    await supabaseAdmin.from('match_report_ocr_results').update({ match_report_id: draft.id }).eq('id', ocrResultId);
-
-    const hasErrors = parsed.issues.some(i => i.level === 'error');
+    // Keine (eindeutige/eigene) Begegnung → Zuordnung durch den Nutzer nötig.
     await supabaseAdmin.from('match_report_uploads').update({
-      ocr_status: hasErrors ? 'needs_review' : 'completed',
-      ocr_completed_at: new Date().toISOString(),
-      match_report_id: draft.id,
+      ocr_status: 'needs_review', ocr_completed_at: new Date().toISOString(),
     }).eq('id', uploadId);
-
     return NextResponse.json({
-      status: hasErrors ? 'needs_review' : 'completed',
-      matchReportId: draft.id, ocrResultId,
-      issues: parsed.issues, warnings: result.warnings,
+      status: 'needs_review', needsMatch: true, ocrResultId,
+      candidates: candidates.map(m => ({ id: m.id, label: matchLabel(m) })),
     }, { status: 200 });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unbekannter Fehler bei der Erkennung.';

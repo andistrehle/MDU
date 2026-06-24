@@ -150,11 +150,15 @@ export async function uploadReportFile(matchId: string, file: File, page: number
   return { uploadId: json.uploadId };
 }
 
+export interface MatchCandidate { id: string; label: string }
+
 export interface StartOcrResult {
   status?: string;
-  matchReportId?: string;
+  matchReportId?: string | null;
   ocrResultId?: string;
   reused?: boolean;
+  needsMatch?: boolean;
+  candidates?: MatchCandidate[];
   error?: string;
 }
 
@@ -163,6 +167,24 @@ export async function startOcr(uploadId: string): Promise<StartOcrResult> {
   const json = await res.json().catch(() => ({}));
   if (!res.ok) return { error: json.error ?? 'Erkennung fehlgeschlagen.' };
   return json as StartOcrResult;
+}
+
+export interface AssignMatchResult {
+  status?: string;
+  matchReportId?: string;
+  reused?: boolean;
+  error?: string;
+}
+
+export async function assignMatch(uploadId: string, matchId: string): Promise<AssignMatchResult> {
+  const res = await fetch(`/api/match-reports/ocr/${uploadId}/assign`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+    body: JSON.stringify({ matchId }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) return { error: json.error ?? 'Zuordnung fehlgeschlagen.' };
+  return json as AssignMatchResult;
 }
 
 export async function getUploadSignedUrl(uploadId: string): Promise<string | null> {

@@ -14,6 +14,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { findMatch } from '@/lib/server/ocr-draft';
 import { getOcrConfig, isOcrAvailable, isRoleAllowed } from '@/lib/ocr/config';
 import { isAcceptedMime, extForMime } from '@/lib/ocr/preprocess';
+import { getCurrentSeason, type GameMatch } from '@/lib/data';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -45,15 +46,17 @@ export async function POST(request: Request) {
   const pageNumber = Math.max(1, Math.min(3, Number(form.get('page') ?? 1) || 1));
 
   if (!(file instanceof File)) return NextResponse.json({ error: 'Keine Datei übergeben.' }, { status: 400 });
-  if (!matchId) return NextResponse.json({ error: 'Keine Begegnung gewählt.' }, { status: 400 });
 
-  const match = findMatch(matchId);
-  if (!match) return NextResponse.json({ error: 'Begegnung nicht gefunden.' }, { status: 400 });
-
-  // Team-Berechtigung: Kapitän eines beteiligten Teams oder Ligaleitung/Admin.
-  const allowed = canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId);
-  if (!allowed) {
-    return NextResponse.json({ error: 'Du darfst nur Spiele der eigenen Mannschaft hochladen.' }, { status: 403 });
+  // Begegnung ist OPTIONAL. Ist sie vorgewählt, gleich die Team-Berechtigung
+  // prüfen; ohne Auswahl wird sie nach dem OCR zugeordnet.
+  let match: GameMatch | null = null;
+  if (matchId) {
+    match = findMatch(matchId);
+    if (!match) return NextResponse.json({ error: 'Begegnung nicht gefunden.' }, { status: 400 });
+    const allowed = canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Du darfst nur Spiele der eigenen Mannschaft hochladen.' }, { status: 403 });
+    }
   }
 
   if (!isAcceptedMime(file.type)) {
@@ -65,7 +68,9 @@ export async function POST(request: Request) {
 
   const uploadId = crypto.randomUUID();
   const ext = extForMime(file.type);
-  const path = `match-reports/${match.seasonId}/${matchId}/${uploadId}/page-${pageNumber}.${ext}`;
+  const seasonId = match?.seasonId ?? getCurrentSeason().id;
+  const pathBase = match ? `${match.seasonId}/${matchId}` : `unassigned/${auth.user.id}`;
+  const path = `match-reports/${pathBase}/${uploadId}/page-${pageNumber}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: upErr } = await supabaseAdmin.storage.from(BUCKET).upload(path, buffer, {
@@ -77,8 +82,8 @@ export async function POST(request: Request) {
 
   const { error: rowErr } = await supabaseAdmin.from('match_report_uploads').insert({
     id: uploadId,
-    match_id: matchId,
-    season_id: match.seasonId,
+    match_id: matchId || null,
+    season_id: seasonId,
     uploaded_by: auth.user.id,
     storage_path: path,
     file_name: file.name || `page-${pageNumber}.${ext}`,

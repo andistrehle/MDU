@@ -5,22 +5,26 @@
 // Mein Bereich — OCR-Prüfansicht
 // ============================================================
 //
-// Zeigt das hochgeladene Original + das erkannte Ergebnis mit Konfidenz/Status
-// (Farbe + Icon + Text), Validierungshinweisen und übergibt zur finalen
-// Prüfung/Einreichung an den bestehenden digitalen Editor. OCR erkennt und
-// befüllt — der Mensch prüft und bestätigt.
+// Zeigt das hochgeladene Original + das erkannte Ergebnis (Kopfdaten,
+// Aufstellung mit Pass-Nr. + Kader-Zuordnung, 18 Ergebnisse) mit Konfidenz/
+// Status (Farbe + Icon + Text) und Validierungshinweisen. Ist noch keine
+// Begegnung zugeordnet, schlägt das System sie vor (aus den erkannten Teams);
+// danach Übergabe an den bestehenden Editor zum Prüfen/Einreichen.
 // ============================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
-  getUpload, getOcrResult, getUploadSignedUrl, OCR_STATUS_LABELS,
+  getUpload, getOcrResult, getUploadSignedUrl, assignMatch, OCR_STATUS_LABELS,
   type MatchReportUpload, type OcrResultRow,
 } from '@/lib/supabase/match-report-uploads';
 import { validateExtraction, type ValidationIssue } from '@/lib/ocr/validate-match-report';
+import { resolveMatchFromExtraction, matchLabel } from '@/lib/ocr/resolve-match';
+import { matchPlayer, type RosterCandidate, type NameMatch } from '@/lib/ocr/match-players';
+import { MATCHES, getMatchesForTeam, getPlayersForTeamInSeason, getPlayerDisplayName, type GameMatch } from '@/lib/data';
 import type { MatchReportExtraction } from '@/lib/ocr/schemas';
 
 type Level = 'ok' | 'review' | 'missing';
@@ -37,8 +41,12 @@ const LEVEL_META: Record<Level, { icon: string; text: string; color: string; bg:
   missing: { icon: '✕', text: 'Nicht erkannt', color: '#E24B4A', bg: 'rgba(212,0,0,0.10)' },
 };
 
-interface FieldRow { label: string; value: string | null; level: Level }
+function slotOf(pos: string | null | undefined): number {
+  const m = /^[HG](\d)$/i.exec((pos ?? '').trim());
+  return m ? Number(m[1]) : 99;
+}
 
+interface FieldRow { label: string; value: string | null; level: Level }
 function buildRows(d: MatchReportExtraction): FieldRow[] {
   const rows: FieldRow[] = [
     { label: 'Heimmannschaft', value: d.match.homeTeam, level: levelOf(null, !!d.match.homeTeam) },
@@ -58,6 +66,32 @@ function buildRows(d: MatchReportExtraction): FieldRow[] {
   return rows;
 }
 
+interface LineupRow { position: string; detected: string | null; passNo: string | null; match: NameMatch | null }
+function rosterFor(teamId: string, seasonId: string): RosterCandidate[] {
+  return getPlayersForTeamInSeason(teamId, seasonId).map(({ player }) => ({
+    id: player.id, name: getPlayerDisplayName(player), passNo: player.licenseNumber ?? null,
+  }));
+}
+function lineupRows(side: 'home' | 'guest', d: MatchReportExtraction, match: GameMatch | null): LineupRow[] {
+  const detLine = side === 'home' ? d.homeLineup : d.guestLineup;
+  const teamId = match ? (side === 'home' ? match.homeTeamId : match.awayTeamId) : null;
+  const roster = teamId && match ? rosterFor(teamId, match.seasonId) : [];
+  return [...detLine]
+    .filter(p => p.detectedName || p.passNo)
+    .sort((a, b) => slotOf(a.position) - slotOf(b.position))
+    .map(p => ({
+      position: p.position,
+      detected: p.detectedName,
+      passNo: p.passNo,
+      match: roster.length ? matchPlayer({ name: p.detectedName, passNo: p.passNo }, roster) : null,
+    }));
+}
+const METHOD_META: Record<NameMatch['method'], { label: string; color: string }> = {
+  pass: { label: 'Pass-Nr.', color: 'var(--th-win)' },
+  name: { label: 'Name', color: '#A77A00' },
+  none: { label: 'offen', color: '#E24B4A' },
+};
+
 export default function OcrReviewPage() {
   const { user, loading } = useAuth();
   const params = useParams();
@@ -67,22 +101,47 @@ export default function OcrReviewPage() {
   const [result, setResult] = useState<OcrResultRow | null>(null);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [matchSel, setMatchSel] = useState('');
+  const [assigning, setAssigning] = useState(false);
+  const [assignMsg, setAssignMsg] = useState<string | null>(null);
 
+  async function reload() {
+    const [u, r, url] = await Promise.all([getUpload(uploadId), getOcrResult(uploadId), getUploadSignedUrl(uploadId)]);
+    setUpload(u); setResult(r); setSignedUrl(url); setLoaded(true);
+  }
   useEffect(() => {
     if (!user || !uploadId) return;
     let cancelled = false;
-    (async () => {
-      const [u, r, url] = await Promise.all([getUpload(uploadId), getOcrResult(uploadId), getUploadSignedUrl(uploadId)]);
-      if (cancelled) return;
-      setUpload(u); setResult(r); setSignedUrl(url); setLoaded(true);
-    })();
+    (async () => { const data = await Promise.all([getUpload(uploadId), getOcrResult(uploadId), getUploadSignedUrl(uploadId)]); if (!cancelled) { setUpload(data[0]); setResult(data[1]); setSignedUrl(data[2]); setLoaded(true); } })();
     return () => { cancelled = true; };
   }, [user, uploadId]);
 
   const structured = result?.structured_result ?? null;
+  const hasDraft = !!upload?.match_report_id;
+  const knownMatch = upload?.match_id ? (MATCHES.find(m => m.id === upload.match_id) ?? null) : null;
+
+  const resolution = useMemo(() => structured ? resolveMatchFromExtraction(structured) : { match: null, candidates: [] }, [structured]);
+  const candidateOptions = useMemo<GameMatch[]>(() => {
+    if (resolution.candidates.length) return resolution.candidates;
+    return user?.teamId ? getMatchesForTeam(user.teamId) : [...MATCHES];
+  }, [resolution, user?.teamId]);
+  useEffect(() => {
+    if (!matchSel && structured && !hasDraft) setMatchSel(resolution.match?.id ?? resolution.candidates[0]?.id ?? '');
+  }, [structured, hasDraft, resolution, matchSel]);
+
   const issues: ValidationIssue[] = structured ? validateExtraction(structured) : [];
   const rows = structured ? buildRows(structured) : [];
   const isImage = upload?.mime_type?.startsWith('image/') && upload.mime_type !== 'image/heic' && upload.mime_type !== 'image/heif';
+  const needsMatch = !!structured && !hasDraft;
+
+  async function onAssign() {
+    if (!matchSel) { setAssignMsg('Bitte eine Begegnung wählen.'); return; }
+    setAssigning(true); setAssignMsg(null);
+    const r = await assignMatch(uploadId, matchSel);
+    setAssigning(false);
+    if (r.error) { setAssignMsg(r.error); return; }
+    await reload();
+  }
 
   return (
     <MemberShell title="Spielbericht prüfen">
@@ -90,7 +149,7 @@ export default function OcrReviewPage() {
         : !user ? <Notice title="Bitte einloggen">Nur mit Konto verfügbar.{' '}<LoginLink /></Notice>
         : !upload ? <Notice title="Nicht gefunden">Dieser Upload ist nicht verfügbar.</Notice>
         : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 860 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 920 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '4px 10px', borderRadius: 999, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', color: 'var(--th-text-body)' }}>
                 Status: {OCR_STATUS_LABELS[upload.ocr_status] ?? upload.ocr_status}
@@ -106,19 +165,16 @@ export default function OcrReviewPage() {
               </Notice>
             )}
 
-            {(upload.ocr_status === 'completed' || upload.ocr_status === 'needs_review') && (
+            {structured && (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr)', gap: 16, alignItems: 'start' }} className="mdu-ocr-grid">
-                  {/* Vorschau */}
+                <div className="mdu-ocr-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr)', gap: 16, alignItems: 'start' }}>
                   <Card title="Original">
                     {isImage && signedUrl
                       ? <a href={signedUrl} target="_blank" rel="noreferrer"><img src={signedUrl} alt="Spielbericht-Upload" style={{ width: '100%', borderRadius: 8, border: '1px solid var(--th-line-6)' }} /></a>
-                      : signedUrl
-                        ? <a href={signedUrl} target="_blank" rel="noreferrer" style={linkS}>Original öffnen ({upload.mime_type})</a>
+                      : signedUrl ? <a href={signedUrl} target="_blank" rel="noreferrer" style={linkS}>Original öffnen ({upload.mime_type})</a>
                         : <Muted>Vorschau nicht verfügbar.</Muted>}
                   </Card>
 
-                  {/* Erkannte Felder */}
                   <Card title="Erkannte Angaben">
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {rows.map((r, i) => {
@@ -135,6 +191,32 @@ export default function OcrReviewPage() {
                   </Card>
                 </div>
 
+                {/* Aufstellung mit Pass-Nr. + Kader-Zuordnung */}
+                <Card title={`Erkannte Aufstellung${knownMatch ? '' : ' (Zuordnung nach Begegnungswahl)'}`}>
+                  <div className="mdu-ocr-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    {(['home', 'guest'] as const).map(side => (
+                      <div key={side}>
+                        <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, color: 'var(--th-accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{side === 'home' ? 'Heim' : 'Gast'}</div>
+                        {lineupRows(side, structured, knownMatch).length === 0 && <Muted>Keine Spieler erkannt.</Muted>}
+                        {lineupRows(side, structured, knownMatch).map((p, i) => {
+                          const mm = p.match ? METHOD_META[p.match.method] : null;
+                          const matchedName = p.match && p.match.status !== 'unresolved' ? p.match.matchedName : null;
+                          return (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12 }}>
+                              <span style={{ width: 26, flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-faint)' }}>{p.position}</span>
+                              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--th-text-body)' }}>
+                                {matchedName ?? p.detected ?? '—'}
+                                {p.passNo && <span style={{ color: 'var(--th-text-faint)', fontFamily: 'var(--font-jetbrains-mono)' }}> · {p.passNo}</span>}
+                              </span>
+                              {mm && <span title={`zugeordnet über ${mm.label}`} style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: mm.color, border: `1px solid ${mm.color}`, borderRadius: 4, padding: '1px 5px' }}>{mm.label}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
                 {(issues.length > 0 || (result?.warnings?.length ?? 0) > 0) && (
                   <Card title="Hinweise">
                     {issues.map((iss, i) => (
@@ -148,15 +230,27 @@ export default function OcrReviewPage() {
                   </Card>
                 )}
 
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {upload.match_report_id ? (
-                    <Link href={`/mein-bereich/spielberichte?id=${upload.match_report_id}`} style={primary}>
-                      Im Editor prüfen & einreichen →
-                    </Link>
-                  ) : <Muted>Kein Entwurf verknüpft.</Muted>}
-                  <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
-                </div>
-                <Muted>Im Editor sind alle Felder vorausgefüllt — bitte gegen das Foto prüfen, Unsicheres korrigieren und anschließend wie gewohnt absenden. Tabelle und Einzelrangliste werden erst nach der Bestätigung durch den Gegner aktualisiert.</Muted>
+                {needsMatch ? (
+                  <Card title="Begegnung zuordnen">
+                    <Muted>{resolution.match ? 'Vorschlag aus den erkannten Teams — bitte bestätigen.' : 'Keine eindeutige Begegnung erkannt — bitte wählen.'}</Muted>
+                    <select value={matchSel} onChange={e => setMatchSel(e.target.value)} style={input}>
+                      <option value="">— Begegnung wählen —</option>
+                      {candidateOptions.map(m => <option key={m.id} value={m.id}>{matchLabel(m)}</option>)}
+                    </select>
+                    {assignMsg && <div style={{ color: '#E24B4A', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>{assignMsg}</div>}
+                    <div>
+                      <button type="button" onClick={onAssign} disabled={assigning} style={primary}>{assigning ? 'Wird zugeordnet …' : 'Begegnung übernehmen'}</button>
+                    </div>
+                  </Card>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <Link href={`/mein-bereich/spielberichte?id=${upload.match_report_id}`} style={primary}>Im Editor prüfen & einreichen →</Link>
+                      <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
+                    </div>
+                    <Muted>Im Editor sind alle Felder vorausgefüllt — bitte gegen das Foto prüfen, Unsicheres korrigieren und anschließend wie gewohnt absenden. Tabelle und Einzelrangliste werden erst nach der Bestätigung durch den Gegner aktualisiert.</Muted>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -175,5 +269,6 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 }
 
 const linkS: React.CSSProperties = { color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' };
+const input: React.CSSProperties = { width: '100%', padding: '10px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' };
 const primary: React.CSSProperties = { padding: '12px 22px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' };
 const btnGhost: React.CSSProperties = { padding: '12px 20px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };

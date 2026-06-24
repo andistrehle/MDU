@@ -19,8 +19,10 @@ import {
   computeTotals, type ReportHeaderDraft, type ReportPlayer, type ReportGame,
 } from '@/lib/supabase/match-reports';
 import type { OcrMatchContext } from '@/lib/ocr/provider';
-import type { ParseContext } from '@/lib/ocr/parse-match-report';
+import { parseMatchReport, type ParseContext } from '@/lib/ocr/parse-match-report';
 import type { RosterCandidate } from '@/lib/ocr/match-players';
+import type { ValidationIssue } from '@/lib/ocr/validate-match-report';
+import type { MatchReportExtraction } from '@/lib/ocr/schemas';
 
 export function findMatch(id: string): GameMatch | null {
   return MATCHES.find(m => m.id === id) ?? null;
@@ -136,4 +138,46 @@ export async function createOcrDraft(input: CreateDraftInput): Promise<{ id: str
   }));
   const { error: gerr } = await supabaseAdmin.from('match_report_games').insert(gameRows);
   return { id: reportId, error: gerr?.message ?? null };
+}
+
+/**
+ * Parst ein gespeichertes OCR-Strukturergebnis gegen eine (jetzt bekannte)
+ * Begegnung, schreibt die Felder, legt den Entwurf an und verknüpft alles.
+ * Genutzt von der OCR-Route (Begegnung vorab/auto erkannt) und der assign-Route
+ * (Begegnung nachträglich zugeordnet).
+ */
+export async function finalizeDraftFromStructured(params: {
+  uploadId: string;
+  ocrResultId: string;
+  uploaderId: string;
+  match: GameMatch;
+  structured: MatchReportExtraction;
+}): Promise<{ reportId: string | null; issues: ValidationIssue[]; status: 'completed' | 'needs_review'; error: string | null }> {
+  if (!supabaseAdmin) return { reportId: null, issues: [], status: 'needs_review', error: 'Server-Service ist nicht konfiguriert.' };
+  const { parseCtx } = buildOcrContext(params.match);
+  const parsed = parseMatchReport(params.structured, parseCtx);
+
+  if (parsed.fields.length) {
+    await supabaseAdmin.from('match_report_ocr_fields').insert(parsed.fields.map(f => ({
+      ocr_result_id: params.ocrResultId, field_key: f.fieldKey, detected_value: f.detectedValue,
+      normalized_value: f.detectedValue, confidence: f.confidence,
+      status: f.level === 'missing' ? 'unresolved' : 'detected',
+    })));
+  }
+
+  const draft = await createOcrDraft({
+    header: parsed.header, homePlayers: parsed.homePlayers, guestPlayers: parsed.guestPlayers,
+    games: parsed.games, uploaderId: params.uploaderId, uploadId: params.uploadId, ocrResultId: params.ocrResultId,
+  });
+  if (draft.error || !draft.id) return { reportId: null, issues: parsed.issues, status: 'needs_review', error: draft.error ?? 'Entwurf konnte nicht angelegt werden.' };
+
+  await supabaseAdmin.from('match_report_ocr_results').update({ match_report_id: draft.id }).eq('id', params.ocrResultId);
+
+  const status: 'completed' | 'needs_review' = parsed.issues.some(i => i.level === 'error') ? 'needs_review' : 'completed';
+  await supabaseAdmin.from('match_report_uploads').update({
+    ocr_status: status, ocr_completed_at: new Date().toISOString(),
+    match_id: params.match.id, match_report_id: draft.id,
+  }).eq('id', params.uploadId);
+
+  return { reportId: draft.id, issues: parsed.issues, status, error: null };
 }
