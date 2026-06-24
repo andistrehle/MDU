@@ -16,9 +16,12 @@ export interface ValidationIssue {
   message: string;
 }
 
-/** Best-of-Wert anhand der Liga (La-Liga = Best of 5, sonst Best of 3). */
+/** Best-of-Wert anhand der Liga (La-Liga = Best of 5, sonst Best of 3).
+ *  Wichtig: gezielt nur die La-Liga matchen — NICHT das „la" in „Liga". */
 export function bestOfForLeague(league: string | null | undefined): 3 | 5 {
-  return (league ?? '').toLowerCase().includes('la') ? 5 : 3;
+  const s = (league ?? '').toLowerCase().trim();
+  const isLaLiga = s === 'la' || /\bla[\s-]?liga\b/.test(s);
+  return isLaLiga ? 5 : 3;
 }
 
 function targetLegs(bestOf: 3 | 5): number {
