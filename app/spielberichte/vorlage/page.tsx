@@ -126,7 +126,15 @@ function VorlageInner() {
           derselben Position – wieder eingewechselt werden. Im Laufe der Begegnung können auf einer
           Position jedoch mehrere Ersatzspieler zum Einsatz kommen. Spielerwechsel sind direkt im
           Spielablauf zu vermerken, indem die Spielernummer durchgestrichen und die neue daneben
-          geschrieben wird (Beispiel H<s>1</s>&thinsp;5).
+          geschrieben wird (Beispiel H
+          <span style={{ position: 'relative', display: 'inline-block' }}>
+            1
+            <svg viewBox="0 0 10 14" preserveAspectRatio="none" aria-hidden="true"
+              style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+              <line x1="0.5" y1="13.5" x2="9.5" y2="0.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+          </span>
+          &thinsp;5).
         </p>
 
         {/* Spielablauf — zwei Spalten */}
