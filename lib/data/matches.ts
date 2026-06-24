@@ -350,6 +350,8 @@ type _PartialImport = {
   id: string;
   homeTeamId: string;
   awayTeamId: string;
+  homeTeamName?: string;
+  awayTeamName?: string;
   leagueId: string;
   matchday?: number;
   date: string | null;
@@ -374,12 +376,21 @@ function _buildMerged(): Match[] {
     importByPair.set(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`, m);
   }
 
+  // Orientierungs-tolerantes Nachschlagen: An EINEM Spieltag trifft eine
+  // Paarung genau einmal aufeinander, daher ist Heim/Gast hier vertauschbar.
+  // So wird ein Importergebnis auch dann übernommen, wenn die statische
+  // Begegnung Heim/Gast andersherum hatte (dartunion = Quelle der Wahrheit).
   const lookup = (m: Match): _PartialImport | undefined => {
     if (m.matchday != null) {
-      const hit = importByKey.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday}`);
+      const hit =
+        importByKey.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday}`) ??
+        importByKey.get(`${m.awayTeamId}|${m.homeTeamId}|${m.leagueId}|${m.matchday}`);
       if (hit) return hit;
     }
-    return importByPair.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`);
+    return (
+      importByPair.get(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}`) ??
+      importByPair.get(`${m.awayTeamId}|${m.homeTeamId}|${m.leagueId}`)
+    );
   };
 
   const matchedImportIds = new Set<string>();
@@ -388,6 +399,15 @@ function _buildMerged(): Match[] {
     const imp = lookup(m);
     if (!imp) return m;
     matchedImportIds.add(imp.id);
+
+    // Quell-Orientierung übernehmen (Heim/Gast + Namen aus dem Import).
+    const base = {
+      ...m,
+      homeTeamId:   imp.homeTeamId,
+      awayTeamId:   imp.awayTeamId,
+      homeTeamName: imp.homeTeamName ?? m.homeTeamName,
+      awayTeamName: imp.awayTeamName ?? m.awayTeamName,
+    };
 
     if (
       imp.status === 'completed' &&
@@ -401,7 +421,7 @@ function _buildMerged(): Match[] {
         imp.date && imp.date <= today ? imp.date :
         null;
       return {
-        ...m,
+        ...base,
         status: 'completed' as const,
         result: { home: imp.result.home, away: imp.result.away },
         date: mergedDate,
@@ -410,17 +430,21 @@ function _buildMerged(): Match[] {
 
     // Import says this exact meeting is still open.
     const openDate = imp.date && imp.date >= today ? imp.date : null;
-    return { ...m, status: 'scheduled' as const, result: null, date: openDate };
+    return { ...base, status: 'scheduled' as const, result: null, date: openDate };
   });
 
   // Append imported meetings that have no static counterpart at all.
-  const staticKeys = new Set(
-    STATIC_MATCHES.map(m => `${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday ?? ''}`),
+  // Dedupe orientierungs-unabhängig (sortierte Paarung), damit ein Import mit
+  // vertauschtem Heim/Gast NICHT zusätzlich als „offenes" Phantom auftaucht.
+  const unordKey = (h: string, a: string, lg: string, md: number | null | undefined) =>
+    `${[h, a].sort().join('~')}|${lg}|${md ?? ''}`;
+  const staticUnordKeys = new Set(
+    STATIC_MATCHES.map(m => unordKey(m.homeTeamId, m.awayTeamId, m.leagueId, m.matchday)),
   );
   const extras: Match[] = (imported as unknown as Match[]).filter(
     m =>
       !matchedImportIds.has(m.id) &&
-      !staticKeys.has(`${m.homeTeamId}|${m.awayTeamId}|${m.leagueId}|${m.matchday ?? ''}`),
+      !staticUnordKeys.has(unordKey(m.homeTeamId, m.awayTeamId, m.leagueId, m.matchday)),
   );
 
   return [...updated, ...extras];
