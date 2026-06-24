@@ -15,6 +15,7 @@ import {
   getRankedRosterForTeam, getPlayerDisplayName, getCaptainForTeamInSeason,
 } from '@/lib/data';
 import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
+import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
@@ -78,6 +79,7 @@ function SpielberichteInner() {
   const [guestPlayers, setGuestPlayers] = useState<ReportPlayer[]>(emptyPlayers('guest'));
   const [games, setGames] = useState<ReportGame[]>(emptyGames());
   const [busy, setBusy] = useState(false);
+  const [ocrAvail, setOcrAvail] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [loadedStatus, setLoadedStatus] = useState<string | null>(null);
@@ -131,6 +133,9 @@ function SpielberichteInner() {
     setHeader(h => ({ ...h, guest_team_id: id || null, guest_team_name: t?.name ?? '', tc_guest: captain }));
     setGuestPlayers(emptyPlayers('guest'));
   }
+
+  // OCR-Verfügbarkeit (für den optionalen „Foto/PDF hochladen"-Einstieg).
+  useEffect(() => { if (allowed) getOcrAvailability().then(a => setOcrAvail(a.enabled)); }, [allowed]);
 
   // Laden: bestehenden Bericht (?id=…) ODER neues Formular mit Defaults.
   // Reagiert auf id-Wechsel (auch bei In-Page-Navigation aus der Liste).
@@ -366,6 +371,16 @@ function SpielberichteInner() {
         : !allowed ? <Notice title="Keine Berechtigung">Spielberichte erfassen dürfen Teamkapitäne und die Ligaleitung.</Notice>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 760 }}>
+            {!idParam && ocrAvail && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)' }}>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                  Lieber per Foto? Lade den ausgefüllten Papier-Bogen hoch — die Daten werden automatisch erkannt.
+                </span>
+                <Link href="/mein-bereich/spielberichte/ocr" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                  📷 Foto/PDF hochladen
+                </Link>
+              </div>
+            )}
             {msg && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}
 
             {loadedStatus === 'changes_requested' && changeNote && (
