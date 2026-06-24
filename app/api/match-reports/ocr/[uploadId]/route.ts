@@ -78,6 +78,15 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
     if (Array.isArray(body?.pageUploadIds)) extraPageIds = body.pageUploadIds.filter((x: unknown): x is string => typeof x === 'string');
   } catch { /* kein/Leerer Body — ok */ }
 
+  // Seiten-Gruppe markieren (Hauptseite = Gruppen-Id), damit die Prüfansicht
+  // alle zusammengehörigen Seiten findet — auch ohne gewählte Begegnung.
+  if (extraPageIds.length) {
+    const groupIds = [uploadId, ...extraPageIds].filter((v, i, a) => a.indexOf(v) === i);
+    await supabaseAdmin.from('match_report_uploads')
+      .update({ page_group_id: uploadId })
+      .in('id', groupIds).eq('uploaded_by', upload.uploaded_by);
+  }
+
   try {
     let pageRows: { storage_path: string; mime_type: string }[];
     if (upload.match_id) {

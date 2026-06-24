@@ -18,7 +18,7 @@ import { useParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
-  getUpload, getOcrResult, getUploadSignedUrl, assignMatch, OCR_STATUS_LABELS,
+  getUpload, getUploadPages, getOcrResult, getUploadSignedUrl, assignMatch, OCR_STATUS_LABELS,
   type MatchReportUpload, type OcrResultRow,
 } from '@/lib/supabase/match-report-uploads';
 import { validateExtraction, type ValidationIssue } from '@/lib/ocr/validate-match-report';
@@ -86,6 +86,12 @@ function lineupRows(side: 'home' | 'guest', d: MatchReportExtraction, match: Gam
       match: roster.length ? matchPlayer({ name: p.detectedName, passNo: p.passNo }, roster) : null,
     }));
 }
+const HIGHLIGHT_LABEL: Record<'180' | '171' | 'high_finish' | 'short_leg', string> = {
+  '180': '180er',
+  '171': '171er',
+  high_finish: 'High Finish (Checkout ≥ 100)',
+  short_leg: 'Kürzestes Leg (Darts)',
+};
 const METHOD_META: Record<NameMatch['method'], { label: string; color: string }> = {
   pass: { label: 'Pass-Nr.', color: 'var(--th-win)' },
   name: { label: 'Name', color: '#A77A00' },
@@ -97,22 +103,37 @@ export default function OcrReviewPage() {
   const params = useParams();
   const uploadId = String(params?.uploadId ?? '');
 
+  interface PagePreview { id: string; pageNumber: number; mimeType: string; url: string | null }
+
   const [upload, setUpload] = useState<MatchReportUpload | null>(null);
   const [result, setResult] = useState<OcrResultRow | null>(null);
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [pages, setPages] = useState<PagePreview[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [matchSel, setMatchSel] = useState('');
   const [assigning, setAssigning] = useState(false);
   const [assignMsg, setAssignMsg] = useState<string | null>(null);
 
+  async function loadPagePreviews(u: MatchReportUpload): Promise<PagePreview[]> {
+    const rows = await getUploadPages(u);
+    return Promise.all(rows.map(async r => ({
+      id: r.id, pageNumber: r.page_number, mimeType: r.mime_type, url: await getUploadSignedUrl(r.id),
+    })));
+  }
+
   async function reload() {
-    const [u, r, url] = await Promise.all([getUpload(uploadId), getOcrResult(uploadId), getUploadSignedUrl(uploadId)]);
-    setUpload(u); setResult(r); setSignedUrl(url); setLoaded(true);
+    const [u, r] = await Promise.all([getUpload(uploadId), getOcrResult(uploadId)]);
+    setUpload(u); setResult(r);
+    setPages(u ? await loadPagePreviews(u) : []);
+    setLoaded(true);
   }
   useEffect(() => {
     if (!user || !uploadId) return;
     let cancelled = false;
-    (async () => { const data = await Promise.all([getUpload(uploadId), getOcrResult(uploadId), getUploadSignedUrl(uploadId)]); if (!cancelled) { setUpload(data[0]); setResult(data[1]); setSignedUrl(data[2]); setLoaded(true); } })();
+    (async () => {
+      const [u, r] = await Promise.all([getUpload(uploadId), getOcrResult(uploadId)]);
+      const pv = u ? await loadPagePreviews(u) : [];
+      if (!cancelled) { setUpload(u); setResult(r); setPages(pv); setLoaded(true); }
+    })();
     return () => { cancelled = true; };
   }, [user, uploadId]);
 
@@ -131,7 +152,6 @@ export default function OcrReviewPage() {
 
   const issues: ValidationIssue[] = structured ? validateExtraction(structured) : [];
   const rows = structured ? buildRows(structured) : [];
-  const isImage = upload?.mime_type?.startsWith('image/') && upload.mime_type !== 'image/heic' && upload.mime_type !== 'image/heif';
   const needsMatch = !!structured && !hasDraft;
 
   async function onAssign() {
@@ -168,11 +188,25 @@ export default function OcrReviewPage() {
             {structured && (
               <>
                 <div className="mdu-ocr-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr)', gap: 16, alignItems: 'start' }}>
-                  <Card title="Original">
-                    {isImage && signedUrl
-                      ? <a href={signedUrl} target="_blank" rel="noreferrer"><img src={signedUrl} alt="Spielbericht-Upload" style={{ width: '100%', borderRadius: 8, border: '1px solid var(--th-line-6)' }} /></a>
-                      : signedUrl ? <a href={signedUrl} target="_blank" rel="noreferrer" style={linkS}>Original öffnen ({upload.mime_type})</a>
-                        : <Muted>Vorschau nicht verfügbar.</Muted>}
+                  <Card title={pages.length > 1 ? 'Original (Seiten)' : 'Original'}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {pages.map(pg => {
+                        const isImg = pg.mimeType.startsWith('image/') && pg.mimeType !== 'image/heic' && pg.mimeType !== 'image/heif';
+                        return (
+                          <div key={pg.id}>
+                            {pages.length > 1 && (
+                              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--th-text-faint)', marginBottom: 4 }}>
+                                Seite {pg.pageNumber}{pg.pageNumber === 2 ? ' · Highlights' : ''}
+                              </div>
+                            )}
+                            {isImg && pg.url
+                              ? <a href={pg.url} target="_blank" rel="noreferrer"><img src={pg.url} alt={`Spielbericht-Seite ${pg.pageNumber}`} style={{ width: '100%', borderRadius: 8, border: '1px solid var(--th-line-6)' }} /></a>
+                              : pg.url ? <a href={pg.url} target="_blank" rel="noreferrer" style={linkS}>Seite öffnen ({pg.mimeType})</a>
+                                : <Muted>Vorschau nicht verfügbar.</Muted>}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </Card>
 
                   <Card title="Erkannte Angaben">
@@ -215,6 +249,27 @@ export default function OcrReviewPage() {
                       </div>
                     ))}
                   </div>
+                </Card>
+
+                {/* Erkannte Highlights (meist von Seite 2) */}
+                <Card title="Erkannte Highlights">
+                  {structured.highlights.length === 0
+                    ? <Muted>Keine Highlights erkannt{pages.length < 2 ? ' (keine zweite Seite hochgeladen).' : '.'}</Muted>
+                    : (
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {[...structured.highlights]
+                          .sort((a, b) => slotOf(a.position) - slotOf(b.position))
+                          .map((h, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
+                              <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--th-accent)', border: '1px solid var(--th-accent-a25)', borderRadius: 4, padding: '1px 6px' }}>{h.side === 'home' ? 'Heim' : 'Gast'}</span>
+                              <span style={{ width: 32, flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-faint)' }}>{h.position ?? '—'}</span>
+                              <span style={{ flex: 1, minWidth: 0, color: 'var(--th-text-body)' }}>{HIGHLIGHT_LABEL[h.type]}</span>
+                              {h.value != null && <span style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{h.value}</span>}
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  <Muted>Werden im Editor übernommen — dort bitte gegen die Seite prüfen.</Muted>
                 </Card>
 
                 {(issues.length > 0 || (result?.warnings?.length ?? 0) > 0) && (

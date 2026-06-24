@@ -29,6 +29,7 @@ export interface MatchReportUpload {
   mime_type: string;
   file_size: number | null;
   page_number: number;
+  page_group_id: string | null;
   upload_status: string;
   ocr_status: OcrStatus;
   ocr_provider: string | null;
@@ -79,6 +80,22 @@ export async function getUpload(id: string): Promise<MatchReportUpload | null> {
   if (!supabase) return null;
   const { data } = await supabase.from('match_report_uploads').select('*').eq('id', id).maybeSingle();
   return (data as MatchReportUpload) ?? null;
+}
+
+/**
+ * Alle Seiten, die zu diesem Upload gehören (Seite 1 + optionale Highlight-Seite):
+ * gruppiert über die gewählte Begegnung (match_id) oder die Seiten-Gruppe
+ * (page_group_id). Liefert mind. den Upload selbst, sortiert nach Seitenzahl.
+ */
+export async function getUploadPages(primary: MatchReportUpload): Promise<MatchReportUpload[]> {
+  if (!supabase) return [primary];
+  let query = supabase.from('match_report_uploads').select('*').neq('upload_status', 'deleted');
+  if (primary.match_id) query = query.eq('match_id', primary.match_id).eq('uploaded_by', primary.uploaded_by);
+  else if (primary.page_group_id) query = query.eq('page_group_id', primary.page_group_id);
+  else return [primary];
+  const { data } = await query.order('page_number', { ascending: true });
+  const rows = (data ?? []) as MatchReportUpload[];
+  return rows.length ? rows : [primary];
 }
 
 export async function getOcrResult(uploadId: string): Promise<OcrResultRow | null> {
