@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, canEditPlayerProfile } from '@/lib/auth/roles';
 import { findTeam, findPlayer, getPlayerDisplayName } from '@/lib/data';
 import { loadPlayerProfile, savePlayerProfile, type PlayerProfileExtras } from '@/lib/supabase/profiles';
+import { ImageUpload } from '@/components/mdu/image-upload';
 
 export default function MeinProfilPage() {
   const { user, loading } = useAuth();
@@ -100,9 +101,17 @@ export default function MeinProfilPage() {
                     <textarea value={extras.aboutMe ?? ''} onChange={e => set('aboutMe', e.target.value)}
                       rows={4} placeholder="Erzähl etwas über dich und dein Dart-Spiel …" style={{ ...inputStyle, resize: 'vertical' }} />
                   </Field>
-                  <Field label="Profilbild (Bild-URL)">
-                    <input value={extras.profileImageUrl ?? ''} onChange={e => set('profileImageUrl', e.target.value)}
-                      placeholder="https://…" style={inputStyle} />
+                  <Field label="Profilbild">
+                    {playerId && (
+                      <ImageUpload
+                        value={extras.profileImageUrl}
+                        onChange={url => setExtras(prev => prev ? { ...prev, profileImageUrl: url } : prev)}
+                        folder={`players/${playerId}`}
+                        fileBase="avatar"
+                        maxDim={512}
+                        shape="circle"
+                      />
+                    )}
                     <ConsentCheck
                       checked={extras.showPhoto}
                       onChange={v => setBool('showPhoto', v)}
@@ -110,11 +119,11 @@ export default function MeinProfilPage() {
                     />
                   </Field>
                   <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '2px 0 0', lineHeight: 1.55 }}>
-                    Direkter Foto-Upload folgt mit Supabase Storage. Bis dahin kann eine Bild-URL hinterlegt werden.
-                    Bitte nur Bilder verwenden, für die du die nötigen Rechte hast. „Über mich“ und deine Eingaben
-                    kannst du jederzeit hier ändern oder leeren. <strong>Spitzname und Profilbild werden öffentlich
-                    nur angezeigt, wenn du es oben aktiv erlaubst</strong> — diese Einwilligung kannst du jederzeit
-                    durch Entfernen des Häkchens widerrufen.
+                    Bitte nur Bilder verwenden, für die du die nötigen Rechte hast. Das Bild wird beim Hochladen
+                    automatisch verkleinert. „Über mich“ und deine Eingaben kannst du jederzeit hier ändern oder
+                    leeren. <strong>Spitzname und Profilbild werden öffentlich nur angezeigt, wenn du es oben aktiv
+                    erlaubst</strong> — diese Einwilligung kannst du jederzeit durch Entfernen des Häkchens widerrufen.
+                    Vergiss nicht, anschließend zu speichern.
                   </p>
 
                   <button type="submit" disabled={busy} style={{
