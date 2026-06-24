@@ -29,7 +29,9 @@ export interface TeamProfileExtras {
   websiteUrl: string | null;
 }
 
-const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: false };
+// Hinweis: showPhoto ist standardmäßig AN (der Verein zeigt Profilbilder per
+// Default öffentlich; jederzeit per Häkchen widerrufbar = Opt-out).
+const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: true };
 const EMPTY_TEAM: TeamProfileExtras = {
   description: null, logoUrl: null, teamImageUrl: null,
   instagramUrl: null, facebookUrl: null, websiteUrl: null,
