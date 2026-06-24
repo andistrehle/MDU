@@ -30,8 +30,7 @@ function tilesFor(user: UserProfile): Tile[] {
   // Spieler aufwärts — eigenes Profil
   if (hasMinRole(user, 'player')) {
     tiles.push(
-      { icon: 'user',  label: 'Mein Profil',       description: 'Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile' },
-      { icon: 'image', label: 'Profilbild ändern', description: 'Eigenes Spielerfoto hochladen (folgt mit Storage).', ready: false },
+      { icon: 'user',  label: 'Mein Profil',       description: 'Profilbild hochladen, Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile' },
     );
   }
 

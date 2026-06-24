@@ -7,7 +7,7 @@ import { ROLE_LABELS, type UserRole } from '@/lib/auth/roles';
 const ROLE_RIGHTS: { role: UserRole; rights: string[] }[] = [
   { role: 'player', rights: [
     'Eigenes Profil bearbeiten',
-    'Profilbild ändern (folgt mit Storage)',
+    'Profilbild hochladen / ändern',
     'Spitzname pflegen',
     '„Über mich" bearbeiten',
   ]},
