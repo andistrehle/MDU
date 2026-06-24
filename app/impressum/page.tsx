@@ -11,17 +11,16 @@ export default function ImpressumPage() {
     <LegalPage
       title="Impressum"
       updated="Juni 2026"
-      notice={<>Hinweis: Anschrift und Registerangaben (mit <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>[…]</code> markiert)
-        werden noch ergänzt; der Text wird vor dem offiziellen Livegang rechtlich geprüft.</>}
+      notice={<>Hinweis: Dieser Text wird vor dem offiziellen Livegang rechtlich geprüft.</>}
     >
       <LegalSection title="Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)">
         Münchner Dart Union<br />
-        [Straße und Hausnummer]<br />
-        [PLZ und Ort]
+        Zenettistraße 30 · 80337 München
       </LegalSection>
 
       <LegalSection title="Vertreten durch">
-        Andreas Strehle
+        Anton Bauer<br />
+        i. V. Andreas Strehle
       </LegalSection>
 
       <LegalSection title="Kontakt">
@@ -33,21 +32,12 @@ export default function ImpressumPage() {
         (Anschrift wie oben)
       </LegalSection>
 
-      <LegalSection title="Vereinsregister">
-        [Falls eingetragener Verein:]<br />
-        Registergericht: [z. B. Amtsgericht München]<br />
-        Registernummer: [VR …]
-      </LegalSection>
-
-      <LegalSection title="Umsatzsteuer-ID">
-        [Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG, falls vorhanden]
-      </LegalSection>
-
       <LegalSection title="Haftung für Inhalte">
         Die Inhalte dieser Seiten wurden mit größtmöglicher Sorgfalt erstellt. Für die
         Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann jedoch keine Gewähr
-        übernommen werden. Liga-Daten (Tabellen, Spielpläne, Ergebnisse, Ranglisten)
-        stammen aus öffentlich verfügbaren Quellen (u. a. dartunion.de).
+        übernommen werden. Liga-Daten (Tabellen, Spielpläne, Ergebnisse, Ranglisten) stammen
+        aus öffentlich verfügbaren Quellen (u. a. dartunion.de) sowie aus den von den Spielern
+        hochgeladenen Informationen, die diese gemäß DSV freigeben.
       </LegalSection>
 
       <LegalSection title="Haftung für Links">
