@@ -51,9 +51,13 @@ export default function NutzungsbedingungenPage() {
       </LegalSection>
 
       <LegalSection title="6. Liga-Daten">
-        Liga-Daten (Tabellen, Spielpläne, Ergebnisse, Ranglisten) stammen aus öffentlich
-        verfügbaren Quellen (u. a. dartunion.de) und dienen der Information. Für deren
-        Richtigkeit und Vollständigkeit wird keine Gewähr übernommen.
+        Liga-Daten (Mannschaften, Spielpläne, Ergebnisse, Tabellen, Ranglisten) werden
+        zunehmend im Rahmen des Spielbetriebs auf dieser Plattform selbst erstellt und gepflegt
+        – insbesondere durch Mannschaftsanmeldungen, eingereichte bzw. hochgeladene Spielberichte
+        und die daraus automatisch berechneten Tabellen und Ranglisten. Teilweise stammen sie
+        (insbesondere für zurückliegende Spielzeiten) aus öffentlich verfügbaren Quellen
+        (u. a. dartunion.de). Die Daten dienen der Information; für ihre Richtigkeit und
+        Vollständigkeit wird keine Gewähr übernommen.
       </LegalSection>
 
       <LegalSection title="7. Verfügbarkeit">

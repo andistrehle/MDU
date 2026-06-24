@@ -35,9 +35,12 @@ export default function ImpressumPage() {
       <LegalSection title="Haftung für Inhalte">
         Die Inhalte dieser Seiten wurden mit größtmöglicher Sorgfalt erstellt. Für die
         Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann jedoch keine Gewähr
-        übernommen werden. Liga-Daten (Tabellen, Spielpläne, Ergebnisse, Ranglisten) stammen
-        aus öffentlich verfügbaren Quellen (u. a. dartunion.de) sowie aus den von den Spielern
-        hochgeladenen Informationen, die diese gemäß DSV freigeben.
+        übernommen werden. Liga-Daten (Mannschaften, Spielpläne, Ergebnisse, Tabellen,
+        Ranglisten) werden zunehmend im Rahmen des Spielbetriebs auf dieser Plattform selbst
+        erstellt (u. a. Mannschaftsanmeldungen, eingereichte Spielberichte, daraus berechnete
+        Tabellen und Ranglisten) sowie aus den von den Spielern hochgeladenen Informationen, die
+        diese gemäß DSV freigeben; teilweise stammen sie aus öffentlich verfügbaren Quellen
+        (u. a. dartunion.de).
       </LegalSection>
 
       <LegalSection title="Haftung für Links">
