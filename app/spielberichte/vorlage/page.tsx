@@ -126,7 +126,7 @@ function VorlageInner() {
           derselben Position – wieder eingewechselt werden. Im Laufe der Begegnung können auf einer
           Position jedoch mehrere Ersatzspieler zum Einsatz kommen. Spielerwechsel sind direkt im
           Spielablauf zu vermerken, indem die Spielernummer durchgestrichen und die neue daneben
-          geschrieben wird (Beispiel H<s>1</s> 5).
+          geschrieben wird (Beispiel H<s>1</s>&thinsp;5).
         </p>
 
         {/* Spielablauf — zwei Spalten */}
