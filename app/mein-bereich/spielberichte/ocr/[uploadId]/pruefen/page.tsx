@@ -273,6 +273,24 @@ export default function OcrReviewPage() {
                   <Muted>Werden im Editor übernommen — dort bitte gegen die Seite prüfen.</Muted>
                 </Card>
 
+                {/* Erkannte Auswechslungen (durchgestrichene Nummer → neue Position) */}
+                {structured.substitutions.length > 0 && (
+                  <Card title="Erkannte Auswechslungen">
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {[...structured.substitutions]
+                        .sort((a, b) => (a.fromGameNo ?? 99) - (b.fromGameNo ?? 99))
+                        .map((s, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
+                            <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--th-accent)', border: '1px solid var(--th-accent-a25)', borderRadius: 4, padding: '1px 6px' }}>{s.side === 'home' ? 'Heim' : 'Gast'}</span>
+                            <span style={{ width: 54, flexShrink: 0, fontFamily: 'var(--font-manrope)', color: 'var(--th-text-faint)' }}>{s.fromGameNo != null ? `Spiel ${s.fromGameNo}` : '—'}</span>
+                            <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-body)' }}>{s.position ?? '—'} → {s.playerIn ?? '—'}</span>
+                          </div>
+                        ))}
+                    </div>
+                    <Muted>Die tatsächlich gespielte Position ist bereits in den Spielen berücksichtigt — im Editor gegen den Bogen prüfen.</Muted>
+                  </Card>
+                )}
+
                 {(issues.length > 0 || (result?.warnings?.length ?? 0) > 0) && (
                   <Card title="Hinweise">
                     {issues.map((iss, i) => (
