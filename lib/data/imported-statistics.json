@@ -2806,6 +2806,17 @@
     },
     {
       "rank": 7,
+      "name": "Marcus Kampmann",
+      "teamId": "funny-darters",
+      "teamName": "Funny Darters Munich",
+      "pts": 102,
+      "wins": 37,
+      "losses": 20,
+      "legsWon": 82,
+      "legsLost": 57
+    },
+    {
+      "rank": 8,
       "name": "Johanna Attenberger",
       "teamId": "lucky-darts-two",
       "teamName": "Lucky Darts Two",
@@ -2816,18 +2827,29 @@
       "legsLost": 89
     },
     {
-      "rank": 8,
-      "name": "Marcus Kampmann",
-      "teamId": "funny-darters",
-      "teamName": "Funny Darters Munich",
-      "pts": 98,
-      "wins": 36,
-      "losses": 19,
-      "legsWon": 79,
-      "legsLost": 55
+      "rank": 9,
+      "name": "Mita Burdulea",
+      "teamId": "black-devils",
+      "teamName": "Black Devils",
+      "pts": 94,
+      "wins": 32,
+      "losses": 25,
+      "legsWon": 77,
+      "legsLost": 65
     },
     {
-      "rank": 9,
+      "rank": 10,
+      "name": "Athanasios Karagkiozdis",
+      "teamId": "funny-darters",
+      "teamName": "Funny Darters Munich",
+      "pts": 94,
+      "wins": 28,
+      "losses": 39,
+      "legsWon": 81,
+      "legsLost": 93
+    },
+    {
+      "rank": 11,
       "name": "Markus Steyer",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
@@ -2838,37 +2860,15 @@
       "legsLost": 48
     },
     {
-      "rank": 10,
-      "name": "Athanasios Karagkiozdis",
-      "teamId": "funny-darters",
-      "teamName": "Funny Darters Munich",
-      "pts": 87,
-      "wins": 26,
-      "losses": 37,
-      "legsWon": 76,
-      "legsLost": 89
-    },
-    {
-      "rank": 11,
-      "name": "Mita Burdulea",
-      "teamId": "black-devils",
-      "teamName": "Black Devils",
-      "pts": 84,
-      "wins": 28,
-      "losses": 25,
-      "legsWon": 69,
-      "legsLost": 63
-    },
-    {
       "rank": 12,
       "name": "Jörg Hirschfeld",
       "teamId": "funny-darters",
       "teamName": "Funny Darters Munich",
-      "pts": 81,
-      "wins": 27,
-      "losses": 13,
-      "legsWon": 63,
-      "legsLost": 35
+      "pts": 85,
+      "wins": 28,
+      "losses": 14,
+      "legsWon": 66,
+      "legsLost": 37
     },
     {
       "rank": 13,
@@ -2894,6 +2894,17 @@
     },
     {
       "rank": 15,
+      "name": "Despina Assimenidu",
+      "teamId": "funny-darters",
+      "teamName": "Funny Darters Munich",
+      "pts": 65,
+      "wins": 19,
+      "losses": 31,
+      "legsWon": 54,
+      "legsLost": 70
+    },
+    {
+      "rank": 16,
       "name": "Susanne Bauer",
       "teamId": "lucky-darts-two",
       "teamName": "Lucky Darts Two",
@@ -2904,7 +2915,7 @@
       "legsLost": 90
     },
     {
-      "rank": 16,
+      "rank": 17,
       "name": "Georgi Ketiashvili",
       "teamId": "fuenf-sterne-boazn",
       "teamName": "5 Sterne Boazn Team",
@@ -2915,7 +2926,7 @@
       "legsLost": 57
     },
     {
-      "rank": 17,
+      "rank": 18,
       "name": "Daniel Förster",
       "teamId": "black-devils",
       "teamName": "Black Devils",
@@ -2926,7 +2937,7 @@
       "legsLost": 51
     },
     {
-      "rank": 18,
+      "rank": 19,
       "name": "Michael Gross",
       "teamId": "muenchen-0815",
       "teamName": "München 08/15",
@@ -2935,17 +2946,6 @@
       "losses": 23,
       "legsWon": 48,
       "legsLost": 57
-    },
-    {
-      "rank": 19,
-      "name": "Despina Assimenidu",
-      "teamId": "funny-darters",
-      "teamName": "Funny Darters Munich",
-      "pts": 57,
-      "wins": 16,
-      "losses": 30,
-      "legsWon": 48,
-      "legsLost": 67
     },
     {
       "rank": 20,
@@ -2982,6 +2982,17 @@
     },
     {
       "rank": 23,
+      "name": "Alexandra Brunner",
+      "teamId": "black-devils",
+      "teamName": "Black Devils",
+      "pts": 53,
+      "wins": 17,
+      "losses": 25,
+      "legsWon": 44,
+      "legsLost": 58
+    },
+    {
+      "rank": 24,
       "name": "Christian Schmidt",
       "teamId": "fuenf-sterne-boazn",
       "teamName": "5 Sterne Boazn Team",
@@ -2992,18 +3003,18 @@
       "legsLost": 68
     },
     {
-      "rank": 24,
-      "name": "Alexandra Brunner",
+      "rank": 25,
+      "name": "Petra Rödl",
       "teamId": "black-devils",
       "teamName": "Black Devils",
-      "pts": 48,
-      "wins": 15,
-      "losses": 23,
-      "legsWon": 40,
-      "legsLost": 53
+      "pts": 45,
+      "wins": 12,
+      "losses": 18,
+      "legsWon": 36,
+      "legsLost": 39
     },
     {
-      "rank": 25,
+      "rank": 26,
       "name": "Wolfgang Rettke",
       "teamId": "fuenf-sterne-boazn",
       "teamName": "5 Sterne Boazn Team",
@@ -3014,7 +3025,7 @@
       "legsLost": 59
     },
     {
-      "rank": 26,
+      "rank": 27,
       "name": "Herbert Kranabetter",
       "teamId": "muenchen-0815",
       "teamName": "München 08/15",
@@ -3025,18 +3036,18 @@
       "legsLost": 56
     },
     {
-      "rank": 27,
+      "rank": 28,
       "name": "Dimitrios Papadopoulos",
       "teamId": "funny-darters",
       "teamName": "Funny Darters Munich",
       "pts": 39,
       "wins": 14,
-      "losses": 13,
+      "losses": 15,
       "legsWon": 36,
-      "legsLost": 37
+      "legsLost": 41
     },
     {
-      "rank": 28,
+      "rank": 29,
       "name": "Waltraud Kranabetter",
       "teamId": "muenchen-0815",
       "teamName": "München 08/15",
@@ -3045,17 +3056,6 @@
       "losses": 14,
       "legsWon": 30,
       "legsLost": 31
-    },
-    {
-      "rank": 29,
-      "name": "Petra Rödl",
-      "teamId": "black-devils",
-      "teamName": "Black Devils",
-      "pts": 39,
-      "wins": 10,
-      "losses": 16,
-      "legsWon": 32,
-      "legsLost": 35
     },
     {
       "rank": 30,
@@ -3163,9 +3163,9 @@
       "teamName": "Funny Darters Munich",
       "pts": 23,
       "wins": 6,
-      "losses": 14,
+      "losses": 16,
       "legsWon": 18,
-      "legsLost": 29
+      "legsLost": 33
     },
     {
       "rank": 40,
@@ -3202,6 +3202,17 @@
     },
     {
       "rank": 43,
+      "name": "Torsten Gruner",
+      "teamId": "black-devils",
+      "teamName": "Black Devils",
+      "pts": 14,
+      "wins": 4,
+      "losses": 22,
+      "legsWon": 12,
+      "legsLost": 46
+    },
+    {
+      "rank": 44,
       "name": "Jürgen Baumstark",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
@@ -3212,7 +3223,7 @@
       "legsLost": 10
     },
     {
-      "rank": 44,
+      "rank": 45,
       "name": "Andreas Kirschbauer",
       "teamId": "muenchen-0815",
       "teamName": "München 08/15",
@@ -3223,7 +3234,7 @@
       "legsLost": 9
     },
     {
-      "rank": 45,
+      "rank": 46,
       "name": "Lea Bauer",
       "teamId": "lucky-darts-two",
       "teamName": "Lucky Darts Two",
@@ -3234,7 +3245,7 @@
       "legsLost": 23
     },
     {
-      "rank": 46,
+      "rank": 47,
       "name": "Vassilios Papadopoulos",
       "teamId": "funny-darters",
       "teamName": "Funny Darters Munich",
@@ -3245,7 +3256,7 @@
       "legsLost": 46
     },
     {
-      "rank": 47,
+      "rank": 48,
       "name": "Fabian Mahr",
       "teamId": "lucky-darts-two",
       "teamName": "Lucky Darts Two",
@@ -3254,17 +3265,6 @@
       "losses": 3,
       "legsWon": 10,
       "legsLost": 9
-    },
-    {
-      "rank": 48,
-      "name": "Torsten Gruner",
-      "teamId": "black-devils",
-      "teamName": "Black Devils",
-      "pts": 11,
-      "wins": 3,
-      "losses": 21,
-      "legsWon": 10,
-      "legsLost": 44
     },
     {
       "rank": 49,
@@ -3326,11 +3326,11 @@
       "name": "Michael Berger",
       "teamId": "black-devils",
       "teamName": "Black Devils",
-      "pts": 4,
+      "pts": 5,
       "wins": 1,
-      "losses": 5,
-      "legsWon": 3,
-      "legsLost": 10
+      "losses": 7,
+      "legsWon": 4,
+      "legsLost": 14
     },
     {
       "rank": 55,

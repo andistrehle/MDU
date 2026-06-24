@@ -1400,10 +1400,13 @@
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Alptraum",
     "awayTeamName": "DC Animals II",
-    "date": "2026-05-08",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -1505,10 +1508,13 @@
     "awayTeamId": "jolly-pirates-v",
     "homeTeamName": "Alptraum",
     "awayTeamName": "Jolly Pirates V",
-    "date": "2026-06-12",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 11,
+      "away": 7
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -1592,10 +1598,13 @@
     "awayTeamId": "dc-animals-ii",
     "homeTeamName": "Silberpfeile II",
     "awayTeamName": "DC Animals II",
-    "date": "2026-06-19",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=89"
   },
   {
@@ -3049,8 +3058,11 @@
     "awayTeamName": "Lucky Darts Two",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 6,
+      "away": 12
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3072,18 +3084,21 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-wild-indians-md4",
+    "id": "imp-c-wild-indians-black-devils-md4",
     "seasonId": "season-2026",
     "leagueId": "c",
     "matchday": 4,
-    "homeTeamId": "black-devils",
-    "awayTeamId": "wild-indians",
-    "homeTeamName": "Black Devils",
-    "awayTeamName": "Wild Indians",
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "black-devils",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "Black Devils",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 13,
+      "away": 5
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3115,8 +3130,11 @@
     "awayTeamName": "Lucky Darts Two",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3148,8 +3166,11 @@
     "awayTeamName": "Black Devils",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 12,
+      "away": 6
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3351,18 +3372,21 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-black-devils-lucky-darts-two-md12",
+    "id": "imp-c-black-devils-fuenf-sterne-boazn-md12",
     "seasonId": "season-2026",
     "leagueId": "c",
     "matchday": 12,
     "homeTeamId": "black-devils",
-    "awayTeamId": "lucky-darts-two",
+    "awayTeamId": "fuenf-sterne-boazn",
     "homeTeamName": "Black Devils",
-    "awayTeamName": "Lucky Darts Two",
+    "awayTeamName": "5 Sterne Boazn Team",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 7,
+      "away": 11
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3628,8 +3652,11 @@
     "awayTeamName": "Black Devils",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 9,
+      "away": 9
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3759,18 +3786,21 @@
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
-    "id": "imp-c-fuenf-sterne-boazn-wild-indians-md10",
+    "id": "imp-c-wild-indians-fuenf-sterne-boazn-md10",
     "seasonId": "season-2026",
     "leagueId": "c",
     "matchday": 10,
-    "homeTeamId": "fuenf-sterne-boazn",
-    "awayTeamId": "wild-indians",
-    "homeTeamName": "5 Sterne Boazn Team",
-    "awayTeamName": "Wild Indians",
+    "homeTeamId": "wild-indians",
+    "awayTeamId": "fuenf-sterne-boazn",
+    "homeTeamName": "Wild Indians",
+    "awayTeamName": "5 Sterne Boazn Team",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 12,
+      "away": 6
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3856,8 +3886,11 @@
     "awayTeamName": "5 Sterne Boazn Team",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 18,
+      "away": 0
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   },
   {
@@ -3927,6 +3960,24 @@
     "time": "20:30",
     "status": "scheduled",
     "result": null,
+    "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
+  },
+  {
+    "id": "imp-c-black-devils-funny-darters-md20",
+    "seasonId": "season-2026",
+    "leagueId": "c",
+    "matchday": 20,
+    "homeTeamId": "black-devils",
+    "awayTeamId": "funny-darters",
+    "homeTeamName": "Black Devils",
+    "awayTeamName": "Funny Darters Munich",
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 10,
+      "away": 8
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=94"
   }
 ]
