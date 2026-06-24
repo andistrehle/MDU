@@ -1,6 +1,33 @@
 # MDU Platform — Backlog / Roadmap
 
-## Erledigt — Spielbericht / Nachmeldung / Import-Sprint (Juni 2026, zuletzt)
+## Erledigt — OCR-Foto-Upload + Druckvorlage (Juni 2026, zuletzt)
+
+Papier-Spielbericht per Foto/PDF hochladen → automatisch per Vision auslesen →
+prüfen → in den bestehenden digitalen Bericht übernehmen. Grundsatz: **OCR
+erkennt und befüllt, der Mensch prüft und bestätigt** — Tabelle/Einzelrangliste
+ändern sich erst über den bestehenden Gegner-/Ligaleitungs-Workflow. Live auf
+`main` / Vercel.
+
+- [x] Druckbare A4-Spielbericht-Vorlage (`/spielberichte/vorlage`): Kopf/Logo, Liga-Ankreuzfelder, Aufstellung, 18 Spiele, Highlights, Unterschriften; Druck-Pagination gefixt (kein 3. Leerblatt)
+- [x] OCR-Pipeline mit abstrahiertem, per Server-Env einsteckbarem Provider; **Default Claude Vision** (server-only Key), Stub-Provider zum kostenlosen Testen; Feature per `OCR_FEATURE_ENABLED` schaltbar, Rollen über `OCR_ALLOWED_ROLES`
+- [x] Upload-UI (Desktop + **mobile Kamera** `capture`): Begegnung **optional** (wird nach Erkennung vorgeschlagen), **Seite 2 (Highlights) optional** mit Nachfrage
+- [x] Claude-Vision-Provider: ein Aufruf für Erkennung + Strukturierung ins MDU-Schema; robustes JSON-Parsing (kein Union-Structured-Output-Limit), tolerante Zahlen (`z.coerce`), Diagnose-Ausschnitt bei Parsefehler
+- [x] Pass-/Lizenznummer als **eindeutiger Schlüssel** beim Spieler-Matching (Pass-Nr. vor Name, Dice-Fallback); Pass-Nr. überall im Kader in „Mein Bereich" angezeigt + suchbar
+- [x] Begegnung: exakte Auflösung → Auto-Zuordnung; sonst **Fuzzy-Vorschlag** (Teamnamen + Spieltag/Datum), wahrscheinlichste vorausgewählt
+- [x] Prüfansicht: Original-Vorschau **aller Seiten** (Signed URL), erkannte Felder mit Konfidenz/Status, Aufstellung mit Pass-Nr. + Zuordnungs-Methode, **Highlights-Block**, Begegnungs-Zuordnung, dann Übergabe an den bestehenden Editor/Submit-Workflow
+- [x] Teamkapitän aus den Stammdaten **auto-befüllt**, wenn OCR die Handschrift nicht liest
+- [x] Liga aus geschlossener Ankreuz-Liste (verhindert „B"→„8"); **180er/171er als Strichliste** gezählt (`||`=2, nie 11), High Finish/Short Leg als echte Werte
+- [x] Sicherheit: privater Storage-Bucket, Signed URLs, RLS; kein service_role/Key im Frontend; Rechte serverseitig geprüft; Idempotenz (kein Doppel-/Reload-Job)
+- [x] Migrationen `0023` (OCR-Tabellen + Bucket + RLS + Notification) und `0024` (`page_group_id` für Mehrseiten); Vercel-ENV `OCR_FEATURE_ENABLED/PROVIDER/MODEL/API_KEY`
+
+### Offene OCR-Folgepunkte (Phase 1d / Phase 2)
+- [ ] Inline-Feldkorrektur direkt in der Prüfansicht (statt nur im Editor) inkl. Audit der Korrekturen (`match_report_ocr_fields`)
+- [ ] Admin → Spielberichte: OCR-Statusspalte/Filter + Direktlink zur Prüfung + Original (Signed URL)
+- [ ] HEIC-Konvertierung serverseitig (aktuell Hinweis „bitte als JPG/PNG"); Bildvorverarbeitung/Deskew
+- [ ] Bounding-Box-Overlay zum Klicken/Gegenprüfen; QR-Code/Spielbericht-ID zum direkten Begegnungs-Match
+- [ ] Highlights aus OCR in die Spielerstatistik aggregieren (siehe „Bekannte To-dos")
+
+## Erledigt — Spielbericht / Nachmeldung / Import-Sprint (Juni 2026)
 
 Reihenfolge ~chronologisch. Alles live auf `main` / Vercel.
 
@@ -37,7 +64,8 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 ## Wichtig / abhängig
 
-- [x] Supabase-Migrationen ausführen: bis einschließlich `0022_nomination_last_league.sql` im SQL-Editor (alle ausgeführt)
+- [x] Supabase-Migrationen ausführen: bis einschließlich `0023_match_report_ocr.sql` im SQL-Editor
+- [ ] **Migration `0024_match_report_upload_page_group.sql` im SQL-Editor ausführen** (additive Spalte `page_group_id`; nötig für die Mehrseiten-Anzeige in der OCR-Prüfansicht)
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)
