@@ -12,8 +12,8 @@
 
 import { z } from 'zod';
 
-/** 0..1 — Konfidenz der Erkennung. */
-const Confidence = z.number().nullable();
+/** 0..1 — Konfidenz der Erkennung. Tolerant (akzeptiert auch String-Zahlen). */
+const Confidence = z.coerce.number().nullable();
 
 /** Erkannter Spieler einer Aufstellung. */
 export const OcrPlayerSchema = z.object({
@@ -27,13 +27,13 @@ export type OcrPlayer = z.infer<typeof OcrPlayerSchema>;
 
 /** Eine der 18 Begegnungen (16 Einzel + Doppel Nr. 9 und 18). */
 export const OcrGameSchema = z.object({
-  gameNo: z.number(),
+  gameNo: z.coerce.number(),
   type: z.enum(['single', 'double']),
   /** Eingesetzte Heim-Positionen (Einzel: 1, Doppel: 2). */
-  homePositions: z.array(z.string()),
-  guestPositions: z.array(z.string()),
-  legsHome: z.number().nullable(),
-  legsGuest: z.number().nullable(),
+  homePositions: z.array(z.string()).default([]),
+  guestPositions: z.array(z.string()).default([]),
+  legsHome: z.coerce.number().nullable(),
+  legsGuest: z.coerce.number().nullable(),
   confidence: Confidence,
 });
 export type OcrGame = z.infer<typeof OcrGameSchema>;
@@ -44,7 +44,7 @@ export const OcrSubstitutionSchema = z.object({
   position: z.string().nullable(),
   playerOut: z.string().nullable(),
   playerIn: z.string().nullable(),
-  fromGameNo: z.number().nullable(),
+  fromGameNo: z.coerce.number().nullable(),
   confidence: Confidence,
 });
 export type OcrSubstitution = z.infer<typeof OcrSubstitutionSchema>;
@@ -54,7 +54,7 @@ export const OcrHighlightSchema = z.object({
   side: z.enum(['home', 'guest']),
   position: z.string().nullable(),
   type: z.enum(['180', '171', 'high_finish', 'short_leg']),
-  value: z.number().nullable(),
+  value: z.coerce.number().nullable(),
   confidence: Confidence,
 });
 export type OcrHighlight = z.infer<typeof OcrHighlightSchema>;
@@ -62,7 +62,7 @@ export type OcrHighlight = z.infer<typeof OcrHighlightSchema>;
 export const OcrMatchHeaderSchema = z.object({
   season: z.string().nullable(),
   league: z.string().nullable(),
-  matchday: z.number().nullable(),
+  matchday: z.coerce.number().nullable(),
   date: z.string().nullable(),
   venue: z.string().nullable(),
   homeTeam: z.string().nullable(),
@@ -83,8 +83,8 @@ export const MatchReportExtractionSchema = z.object({
   substitutions: z.array(OcrSubstitutionSchema).default([]),
   highlights: z.array(OcrHighlightSchema).default([]),
   finalScore: z.object({
-    home: z.number().nullable(),
-    guest: z.number().nullable(),
+    home: z.coerce.number().nullable(),
+    guest: z.coerce.number().nullable(),
     confidence: Confidence,
   }).default({ home: null, guest: null, confidence: null }),
   signatures: z.object({

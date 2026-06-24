@@ -95,12 +95,15 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
         upload_id: uploadId, raw_text: result.rawText, raw_result: structured ?? null,
         overall_confidence: result.confidence, provider: result.provider, model_version: result.modelVersion, warnings: result.warnings,
       }).select('id').maybeSingle();
+      const jsonFailed = !structured;
+      const snippet = (result.rawText ?? '').replace(/\s+/g, ' ').trim().slice(0, 300);
+      const ocrError = jsonFailed
+        ? `Antwort konnte nicht als JSON gelesen werden.${snippet ? ' Modellantwort (Anfang): ' + snippet : ' (leere Antwort)'}`
+        : 'Dokument wurde nicht als MDU-Spielbericht erkannt.';
       await supabaseAdmin.from('match_report_uploads').update({
-        ocr_status: 'failed', ocr_completed_at: new Date().toISOString(),
-        ocr_error: 'Dokument wurde nicht als MDU-Spielbericht erkannt.',
+        ocr_status: 'failed', ocr_completed_at: new Date().toISOString(), ocr_error: ocrError,
       }).eq('id', uploadId);
-      return NextResponse.json({ status: 'failed', ocrResultId: resRow?.id ?? null,
-        error: 'Dokument wurde nicht als MDU-Spielbericht erkannt. Du kannst es erneut hochladen oder manuell erfassen.' }, { status: 200 });
+      return NextResponse.json({ status: 'failed', ocrResultId: resRow?.id ?? null, error: ocrError }, { status: 200 });
     }
 
     // OCR-Ergebnis speichern (Original nicht überschreiben).

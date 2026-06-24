@@ -100,8 +100,7 @@ export class ClaudeProvider implements OcrProvider {
 
     const response = await this.client.messages.create({
       model: this.model,
-      max_tokens: 12000,
-      thinking: { type: 'adaptive' },
+      max_tokens: 8000,
       messages: [{ role: 'user', content }],
     });
 
