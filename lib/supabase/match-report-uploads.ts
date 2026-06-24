@@ -208,6 +208,22 @@ export async function assignMatch(uploadId: string, matchId: string): Promise<As
   return json as AssignMatchResult;
 }
 
+/**
+ * Löscht die hochgeladenen Original-Fotos eines bestätigten Spielberichts
+ * (Datenschutz-Zusage). Serverseitig (service_role); idempotent. Wird nach der
+ * Bestätigung aufgerufen; Fehler sind unkritisch (kann später erneut laufen).
+ */
+export async function cleanupReportUploads(reportId: string): Promise<{ deleted?: number; error?: string }> {
+  try {
+    const res = await fetch(`/api/match-reports/${reportId}/cleanup-uploads`, { method: 'POST', headers: await authHeader() });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: json.error ?? 'Aufräumen fehlgeschlagen.' };
+    return { deleted: json.deleted ?? 0 };
+  } catch {
+    return { error: 'Aufräumen fehlgeschlagen.' };
+  }
+}
+
 export async function getUploadSignedUrl(uploadId: string): Promise<string | null> {
   const res = await fetch(`/api/match-reports/uploads/${uploadId}/signed-url`, { headers: await authHeader() });
   if (!res.ok) return null;

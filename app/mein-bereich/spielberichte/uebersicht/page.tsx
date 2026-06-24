@@ -14,6 +14,7 @@ import {
   listMyReports, confirmReport,
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
+import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
 import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 
 export default function SpielberichteUebersichtPage() {
@@ -40,7 +41,13 @@ export default function SpielberichteUebersichtPage() {
   const isOwner = (r: MatchReport) => r.home_captain_user_id === myId;
 
   async function onConfirm(id: string) {
-    setBusy(true); await confirmReport(id); setRows(await listMyReports()); setBusy(false);
+    setBusy(true);
+    const res = await confirmReport(id);
+    // Nach Bestätigung die hochgeladenen Original-Fotos löschen (Datenschutz);
+    // best effort, Fehler blockieren die Bestätigung nicht.
+    if (!res.error) await cleanupReportUploads(id);
+    setRows(await listMyReports());
+    setBusy(false);
   }
 
   return (
