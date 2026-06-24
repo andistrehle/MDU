@@ -52,7 +52,8 @@ export default function KontaktPage() {
           </ContactRow>
 
           <ContactRow icon="user" label="Ansprechpartner">
-            Andreas Strehle
+            Andreas Strehle<br />
+            Anton Bauer
           </ContactRow>
         </div>
 

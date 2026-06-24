@@ -81,8 +81,7 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 ## Wichtig / abhängig
 
-- [x] Supabase-Migrationen ausführen: bis einschließlich `0024_match_report_upload_page_group.sql` im SQL-Editor
-- [ ] **Migration `0025_player_profile_consent.sql` im SQL-Editor ausführen** (additive Spalten `show_nickname`/`show_photo`; nötig fürs Speichern der Profil-Einwilligungen)
+- [x] Supabase-Migrationen ausführen: bis einschließlich `0025_player_profile_consent.sql` im SQL-Editor
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)
