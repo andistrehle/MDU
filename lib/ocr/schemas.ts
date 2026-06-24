@@ -75,23 +75,23 @@ export type OcrMatchHeader = z.infer<typeof OcrMatchHeaderSchema>;
 /** Gesamtschema des erkannten Spielberichts. */
 export const MatchReportExtractionSchema = z.object({
   documentType: z.enum(['mdu_match_report', 'unknown']),
-  templateVersion: z.string().nullable(),
+  templateVersion: z.string().nullish().default(null),
   match: OcrMatchHeaderSchema,
-  homeLineup: z.array(OcrPlayerSchema),
-  guestLineup: z.array(OcrPlayerSchema),
-  games: z.array(OcrGameSchema),
-  substitutions: z.array(OcrSubstitutionSchema),
-  highlights: z.array(OcrHighlightSchema),
+  homeLineup: z.array(OcrPlayerSchema).default([]),
+  guestLineup: z.array(OcrPlayerSchema).default([]),
+  games: z.array(OcrGameSchema).default([]),
+  substitutions: z.array(OcrSubstitutionSchema).default([]),
+  highlights: z.array(OcrHighlightSchema).default([]),
   finalScore: z.object({
     home: z.number().nullable(),
     guest: z.number().nullable(),
     confidence: Confidence,
-  }),
+  }).default({ home: null, guest: null, confidence: null }),
   signatures: z.object({
     homePresent: z.boolean().nullable(),
     guestPresent: z.boolean().nullable(),
-  }),
+  }).default({ homePresent: null, guestPresent: null }),
   /** Hinweise des Modells (z. B. „Bild unscharf", „Feld abgeschnitten"). */
-  warnings: z.array(z.string()),
+  warnings: z.array(z.string()).default([]),
 });
 export type MatchReportExtraction = z.infer<typeof MatchReportExtractionSchema>;
