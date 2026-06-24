@@ -42,6 +42,9 @@ export interface ParseContext {
   matchday: number | null;
   matchDate: string | null;
   venue: string | null;
+  /** Gemeldete Teamkapitäne aus den Stammdaten (Fallback, falls OCR sie nicht liest). */
+  homeCaptain: string | null;
+  guestCaptain: string | null;
   homeRoster: RosterCandidate[];
   guestRoster: RosterCandidate[];
 }
@@ -131,8 +134,8 @@ export function parseMatchReport(data: MatchReportExtraction, ctx: ParseContext)
     guest_team_id: ctx.guestTeamId,
     home_team_name: ctx.homeTeamName,
     guest_team_name: ctx.guestTeamName,
-    tc_home: data.match.captainHome ?? '',
-    tc_guest: data.match.captainGuest ?? '',
+    tc_home: (data.match.captainHome?.trim() || ctx.homeCaptain) ?? '',
+    tc_guest: (data.match.captainGuest?.trim() || ctx.guestCaptain) ?? '',
     protest: false,
     protest_note: '',
     highlights,

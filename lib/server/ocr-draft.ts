@@ -66,6 +66,8 @@ export function buildOcrContext(match: GameMatch): { providerCtx: OcrMatchContex
     matchday: match.matchday ?? null,
     matchDate: match.date,
     venue,
+    homeCaptain: getCaptainForTeamInSeason(match.homeTeamId, seasonId),
+    guestCaptain: getCaptainForTeamInSeason(match.awayTeamId, seasonId),
     homeRoster,
     guestRoster,
   };
