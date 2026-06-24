@@ -12,7 +12,7 @@
 import { GAME_SCHEDULE,
   type ReportHeaderDraft, type ReportPlayer, type ReportGame, type HighlightEntry } from '@/lib/supabase/match-reports';
 import type { MatchReportExtraction } from './schemas';
-import { matchPlayerName, type RosterCandidate, type NameMatch } from './match-players';
+import { matchPlayer, type RosterCandidate, type NameMatch } from './match-players';
 import { validateExtraction, type ValidationIssue } from './validate-match-report';
 
 export type FieldLevel = 'ok' | 'review' | 'missing';
@@ -84,8 +84,8 @@ export function parseMatchReport(data: MatchReportExtraction, ctx: ParseContext)
     return SLOTS.map(slot => {
       const det = lineup.find(p => positionToSlot(p.position) === slot);
       const name = det?.detectedName ?? '';
-      const m = matchPlayerName(name || null, roster);
-      if (name) playerMatches.push({ side, slot, detected: name, match: m });
+      const m = matchPlayer({ name: name || null, passNo: det?.passNo ?? null }, roster);
+      if (name || det?.passNo) playerMatches.push({ side, slot, detected: name, match: m });
       return {
         side, slot,
         pass_no: det?.passNo ?? '',

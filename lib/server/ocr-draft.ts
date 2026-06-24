@@ -30,6 +30,7 @@ function roster(teamId: string, seasonId: string): RosterCandidate[] {
   return getPlayersForTeamInSeason(teamId, seasonId).map(({ player }) => ({
     id: player.id,
     name: getPlayerDisplayName(player),
+    passNo: player.licenseNumber ?? null,
   }));
 }
 

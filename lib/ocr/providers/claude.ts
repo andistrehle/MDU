@@ -33,6 +33,7 @@ function buildPrompt(ctx: OcrMatchContext): string {
     order,
     '',
     'Aufstellung: H1–H4 / G1–G4 sind Stammspieler, H5–H8 / G5–G8 Ersatz. Positionen exakt als "H1".."H8" bzw. "G1".."G8" zurückgeben.',
+    'Für jeden Spieler die Pass-/Lizenznummer (passNo) so genau wie möglich auslesen — sie ist der eindeutige Schlüssel (z. B. "MDU 26 5707" oder nur die Ziffern). Namen können unvollständig sein (nur Vorname o. ä.); die Pass-Nr. hat Vorrang.',
     'Einzel-Leg-Ergebnisse sind i. d. R. 2:0/2:1/1:2/0:2 (in der La-Liga Best of 5: bis 3 Legs). legsHome/legsGuest als Zahlen.',
     'Highlights: Typen 180, 171, high_finish (Checkout ≥100), short_leg (Anzahl Darts).',
     'Unterschriften: nur erkennen, ob vorhanden (true/false) — KEINE biometrische Analyse.',
