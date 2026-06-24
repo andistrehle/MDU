@@ -30,11 +30,12 @@ const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8]; // 4 Starter + bis zu 4 Wechsel
 const SEASON = getCurrentSeason();
 const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
-interface RosterOption { id: string; name: string; isCaptain: boolean }
+interface RosterOption { id: string; name: string; isCaptain: boolean; passNo: string | null }
 function rosterOptions(teamId: string | null | undefined): RosterOption[] {
   if (!teamId) return [];
   return getRankedRosterForTeam(teamId, SEASON.id).map(e => ({
     id: e.player.id, name: getPlayerDisplayName(e.player), isCaptain: e.isCaptain,
+    passNo: e.player.licenseNumber ?? null,
   }));
 }
 
@@ -687,7 +688,7 @@ function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
             <span style={{ width: 26, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: p.slot <= 4 ? 'var(--th-text-body)' : 'var(--th-text-faint)' }}>{prefix}{p.slot}</span>
             <select value={p.player_id ?? ''} onChange={e => pick(p.slot, e.target.value)} disabled={!teamChosen} style={{ ...input, flex: 1, padding: '7px 9px', opacity: teamChosen ? 1 : 0.6 }}>
               <option value="">{p.slot <= 4 ? '— Spieler wählen * —' : '— Wechsel (optional) —'}</option>
-              {options.map(o => <option key={o.id} value={o.id} disabled={usedByOthers.has(o.id)}>{o.name}{o.isCaptain ? ' (C)' : ''}{usedByOthers.has(o.id) ? ' — bereits gewählt' : ''}</option>)}
+              {options.map(o => <option key={o.id} value={o.id} disabled={usedByOthers.has(o.id)}>{o.name}{o.passNo ? ` · ${o.passNo}` : ''}{o.isCaptain ? ' (C)' : ''}{usedByOthers.has(o.id) ? ' — bereits gewählt' : ''}</option>)}
             </select>
           </div>
         );
