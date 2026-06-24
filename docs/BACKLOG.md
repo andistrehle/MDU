@@ -1,6 +1,21 @@
 # MDU Platform — Backlog / Roadmap
 
-## Erledigt — OCR-Foto-Upload + Druckvorlage (Juni 2026, zuletzt)
+## Erledigt — Rechtliches & Compliance (Juni 2026, zuletzt)
+
+Impressum, Datenschutz, Nutzungsbedingungen, Einwilligungen, Bildrechte. Live auf `main` / Vercel.
+Offene Vereinsangaben (Anschrift/Vertretung) sind eingetragen; finaler juristischer Check ausstehend.
+
+- [x] **Impressum** gefüllt: Münchner Dart Union, Zenettistr. 30, 80337 München; vertreten durch Anton Bauer (i. V. Andreas Strehle); §18 MStV Andreas Strehle; kontakt@mdudarts.de; §5 DDG; Urheberrecht (Vereinsregister/USt entfallen)
+- [x] **Datenschutz** vollständig: Verantwortlicher; Domain/Strato + Hosting Vercel; Cloudflare; Resend; Supabase; Datei-Uploads/Storage; **OCR/Anthropic (US-Transfer, kein Training)**; Speicherdauer; Bildrechte; Liga-Datenquelle (zunehmend selbst erstellt)
+- [x] **Nutzungsbedingungen**-Seite (Konten, Inhalte, Uploads, Missbrauch, Verfügbarkeit, Haftung)
+- [x] **Einwilligungen**: Pflicht-Checkboxen (Datenschutz + Nutzungsbedingungen) in der Registrierung; freiwillige Einwilligungen Profilbild/Spitzname im Profil mit Speicherung + öffentlicher Anzeige-Gating (Migration `0025`)
+- [x] **Bildrechte**: Upload nur Spieler selbst, Löschen Spieler + Admin, Mannschaftsbilder nur mit Zustimmung
+- [x] **Foto-Löschung**: OCR-Upload-Originale werden nach Bestätigung des Berichts automatisch gelöscht; ebenso beim Löschen eines Berichts durch die Ligaleitung (Storage miträumen)
+- [x] **Kontakt**-Seite befüllt (E-Mail, Anschrift, Ansprechpartner); „Mehr"/Footer verlinkt
+- [x] Domain-Vorbereitung: robots/sitemap/Canonical auf `www.mdudarts.de` (Umzug-Checkliste siehe „Vor Go-live")
+- [ ] **Offen (nicht Code):** finaler juristischer Check (Anwalt/DSB) → danach Hinweis-Banner aus `LegalPage` entfernen; AVV mit Vercel/Supabase/Resend/Cloudflare/Anthropic abschließen
+
+## Erledigt — OCR-Foto-Upload + Druckvorlage (Juni 2026)
 
 Papier-Spielbericht per Foto/PDF hochladen → automatisch per Vision auslesen →
 prüfen → in den bestehenden digitalen Bericht übernehmen. Grundsatz: **OCR
@@ -66,8 +81,8 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 ## Wichtig / abhängig
 
-- [x] Supabase-Migrationen ausführen: bis einschließlich `0023_match_report_ocr.sql` im SQL-Editor
-- [ ] **Migration `0024_match_report_upload_page_group.sql` im SQL-Editor ausführen** (additive Spalte `page_group_id`; nötig für die Mehrseiten-Anzeige in der OCR-Prüfansicht)
+- [x] Supabase-Migrationen ausführen: bis einschließlich `0024_match_report_upload_page_group.sql` im SQL-Editor
+- [ ] **Migration `0025_player_profile_consent.sql` im SQL-Editor ausführen** (additive Spalten `show_nickname`/`show_photo`; nötig fürs Speichern der Profil-Einwilligungen)
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)

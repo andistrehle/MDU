@@ -10,7 +10,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/server/auth';
+import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
@@ -25,11 +25,12 @@ export async function POST(request: Request, ctx: { params: Promise<{ reportId: 
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
   if (!supabaseAdmin) return NextResponse.json({ error: 'Server-Service ist nicht konfiguriert.' }, { status: 503 });
 
-  // Nur löschen, wenn der Bericht tatsächlich bestätigt ist.
+  // Aufräumen erlaubt, wenn der Bericht bestätigt ist (regulärer Fall) ODER der
+  // Aufrufer Admin/Ligaleitung ist (z. B. vor dem Löschen eines Berichts).
   const { data: report } = await supabaseAdmin
     .from('match_reports').select('id, status').eq('id', reportId).maybeSingle();
   if (!report) return NextResponse.json({ error: 'Spielbericht nicht gefunden.' }, { status: 404 });
-  if (report.status !== 'confirmed') {
+  if (report.status !== 'confirmed' && !isAdminUser(auth.user)) {
     return NextResponse.json({ status: 'skipped', reason: 'not_confirmed' }, { status: 200 });
   }
 

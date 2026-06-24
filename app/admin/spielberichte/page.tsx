@@ -14,6 +14,7 @@ import {
   listAllReports, deleteReport, notifyReportChange,
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
+import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
 
 export default function AdminSpielberichtePage() {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ export default function AdminSpielberichtePage() {
     if (!confirm(`Spielbericht ${r.home_team_name} – ${r.guest_team_name} wirklich löschen? Die Kapitäne werden benachrichtigt.`)) return;
     setBusy(r.id);
     await notifyReportChange(r.id, 'deleted'); // vor dem Löschen (Team-Infos noch lesbar)
+    await cleanupReportUploads(r.id); // hochgeladene Original-Fotos mitlöschen (Verknüpfung besteht noch)
     const { error } = await deleteReport(r.id);
     setBusy(null);
     if (error) { alert(error); return; }
