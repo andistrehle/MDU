@@ -7,6 +7,7 @@ import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/auth/roles';
+import { getCurrentSeason, getCurrentCompetitionForTeam } from '@/lib/data';
 import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 import { useNotifications, type NotificationArea } from '@/lib/supabase/user-notifications';
 
@@ -27,18 +28,34 @@ interface Tile {
 function tilesFor(user: UserProfile): Tile[] {
   const tiles: Tile[] = [];
 
-  // Spieler aufwärts — eigenes Profil
+  // Spieler aufwärts — eigenes Profil + eigene Statistik
   if (hasMinRole(user, 'player')) {
     tiles.push(
-      { icon: 'user',  label: 'Mein Profil',       description: 'Profilbild hochladen, Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile' },
+      { icon: 'user', label: 'Mein Profil', description: 'Profilbild hochladen, Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile' },
     );
+    if (user.playerId) {
+      tiles.push(
+        { icon: 'bar', label: 'Meine Statistik', description: 'Deine Einzelstatistik, Form und letzte Ergebnisse.', href: `/spieler/${user.playerId}`, ready: true },
+      );
+    }
   }
 
-  // Teamkapitän — eigenes Team
+  // Mit einem Team verknüpft (Spieler ODER Kapitän) — Team & Liga ansehen
+  if (user.teamId) {
+    tiles.push(
+      { icon: 'users', label: 'Mein Team', description: 'Übersicht deines Teams.', href: '/mein-team', ready: true, notifKey: 'team' },
+    );
+    const leagueId = getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;
+    if (leagueId) {
+      tiles.push(
+        { icon: 'trophy', label: 'Meine Liga', description: 'Direkt zu deiner Liga – Tabelle und Spiele.', href: `/ligen/${leagueId}`, ready: true },
+      );
+    }
+  }
+
+  // Teamkapitän — Team-Verwaltung
   if (hasRole(user, 'team_captain')) {
     tiles.push(
-      { icon: 'users',    label: 'Mein Team',         description: 'Übersicht deines Teams.', href: '/mein-team', ready: true, notifKey: 'team' },
-      { icon: 'edit',     label: 'Team bearbeiten',   description: 'Beschreibung, Logo, Social Media.', href: '/mein-team/bearbeiten', ready: true },
       { icon: 'list',     label: 'Kader',             description: 'Spieler deines Teams ansehen.', href: '/mein-team/kader', ready: true },
       { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
       { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },

@@ -10,7 +10,7 @@ import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam } from '@/lib/
 export default function MeinTeamPage() {
   const { user, loading } = useAuth();
   const teamId = user?.teamId ?? null;
-  const allowed = !!teamId && canEditTeam(user, teamId);
+  const canEdit = !!teamId && canEditTeam(user, teamId);
   const team = teamId ? findTeam(teamId) : undefined;
   const season = getCurrentSeason();
   const leagueName = team ? (getCurrentCompetitionForTeam(team.id, season.id)?.league?.name ?? '–') : '–';
@@ -20,14 +20,12 @@ export default function MeinTeamPage() {
       {loading ? (
         <Muted>Lade …</Muted>
       ) : !user ? (
-        <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Teamkapitäne.{' '}<LoginLink /></Notice>
+        <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
       ) : !teamId ? (
         <Notice title="Kein Team verknüpft">
           Deinem Konto ist noch kein Team zugeordnet. Die Ligaleitung kann das in der
           Benutzerverwaltung verknüpfen.
         </Notice>
-      ) : !allowed ? (
-        <Notice title="Keine Berechtigung">Du kannst nur dein eigenes Team verwalten.</Notice>
       ) : (
         <>
           {/* Team-Kopf */}
@@ -55,13 +53,17 @@ export default function MeinTeamPage() {
             <Link href={`/teams/${teamId}`} style={ghostBtn}>Öffentliches Profil ansehen</Link>
           </div>
 
-          {/* Aktionen */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
-            <ActionTile href="/mein-team/bearbeiten" icon="edit" title="Team bearbeiten"
-              desc="Beschreibung, Logo, Mannschaftsbild und Social Media." />
-            <ActionTile href="/mein-team/kader" icon="list" title="Kader"
-              desc="Spieler deines Teams ansehen." />
-          </div>
+          {/* Aktionen — nur für Teamkapitäne/Ligaleitung */}
+          {canEdit ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+              <ActionTile href="/mein-team/bearbeiten" icon="edit" title="Team bearbeiten"
+                desc="Beschreibung, Logo, Mannschaftsbild und Social Media." />
+              <ActionTile href="/mein-team/kader" icon="list" title="Kader"
+                desc="Spieler deines Teams ansehen." />
+            </div>
+          ) : (
+            <Muted>Du bist diesem Team zugeordnet. Bearbeiten kann nur der Teamkapitän bzw. die Ligaleitung. Den vollständigen Kader und alle Statistiken findest du auf dem öffentlichen Teamprofil.</Muted>
+          )}
         </>
       )}
     </MemberShell>
