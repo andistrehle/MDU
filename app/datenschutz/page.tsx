@@ -20,10 +20,11 @@ export default function DatenschutzPage() {
         E-Mail (Datenschutzkontakt): kontakt@mdudarts.de
       </LegalSection>
 
-      <LegalSection title="2. Hosting (Vercel)">
-        Diese Website wird bei der Vercel Inc. gehostet. Beim Aufruf werden technisch
-        notwendige Daten (z. B. IP-Adresse, Datum/Uhrzeit, abgerufene Seite, Browsertyp) in
-        Server-Logs verarbeitet, um die Auslieferung und Sicherheit zu gewährleisten.
+      <LegalSection title="2. Domain & Hosting (Strato, Vercel)">
+        Die Website ist unter der Domain mdudarts.de erreichbar; die Domain ist über die
+        Strato AG registriert. Gehostet wird die Website bei der Vercel Inc. Beim Aufruf werden
+        technisch notwendige Daten (z. B. IP-Adresse, Datum/Uhrzeit, abgerufene Seite,
+        Browsertyp) in Server-Logs verarbeitet, um die Auslieferung und Sicherheit zu gewährleisten.
         Rechtsgrundlage: berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO). Mit dem Anbieter
         besteht bzw. wird ein Auftragsverarbeitungsvertrag (Art. 28 DSGVO) geschlossen. Soweit
         Daten in ein Drittland (USA) übermittelt werden, erfolgt dies auf Grundlage geeigneter
@@ -62,8 +63,11 @@ export default function DatenschutzPage() {
         gelöscht werden. Die Veröffentlichung von Profilbild und Spitzname erfolgt nur auf
         Grundlage einer gesonderten, freiwilligen Einwilligung (Art. 6 Abs. 1 lit. a DSGVO),
         die jederzeit mit Wirkung für die Zukunft widerrufen werden kann. Liga-Stammdaten
-        (Namen, Ergebnisse, Ranglisten) stammen aus öffentlich verfügbaren Quellen
-        (u. a. dartunion.de).
+        (Mannschaften, Spieler, Ergebnisse, Tabellen, Ranglisten) stammen teils aus öffentlich
+        verfügbaren Quellen (u. a. dartunion.de) und werden zunehmend im Rahmen des
+        Spielbetriebs auf dieser Plattform selbst erhoben und berechnet – insbesondere durch
+        Mannschaftsanmeldungen, eingereichte bzw. hochgeladene Spielberichte und die daraus
+        automatisch berechneten Tabellen und Ranglisten.
       </LegalSection>
 
       <LegalSection title="7. Datei-Uploads (Spielbericht-Fotos)">
