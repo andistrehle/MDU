@@ -232,7 +232,11 @@ export default function OcrReviewPage() {
 
                 {needsMatch ? (
                   <Card title="Begegnung zuordnen">
-                    <Muted>{resolution.match ? 'Vorschlag aus den erkannten Teams — bitte bestätigen.' : 'Keine eindeutige Begegnung erkannt — bitte wählen.'}</Muted>
+                    <Muted>{resolution.match
+                      ? 'Eindeutige Begegnung aus den erkannten Teams — bitte bestätigen.'
+                      : resolution.candidates.length
+                        ? 'Wahrscheinlichste Begegnung vorausgewählt (aus Teams, Spieltag & Datum) — bitte prüfen und bestätigen.'
+                        : 'Keine Begegnung sicher erkannt — bitte wählen.'}</Muted>
                     <select value={matchSel} onChange={e => setMatchSel(e.target.value)} style={input}>
                       <option value="">— Begegnung wählen —</option>
                       {candidateOptions.map(m => <option key={m.id} value={m.id}>{matchLabel(m)}</option>)}

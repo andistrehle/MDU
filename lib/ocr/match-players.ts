@@ -56,7 +56,7 @@ function bigrams(s: string): string[] {
 }
 
 /** Sørensen-Dice-Koeffizient (0..1) zweier Strings. */
-function dice(a: string, b: string): number {
+export function dice(a: string, b: string): number {
   if (a === b) return 1;
   if (a.length < 2 || b.length < 2) return a === b ? 1 : 0;
   const A = bigrams(a);

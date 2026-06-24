@@ -11,8 +11,12 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { GAME_SCHEDULE } from '@/lib/supabase/match-reports';
+import { LEAGUES } from '@/lib/data';
 import { MatchReportExtractionSchema, type MatchReportExtraction } from '../schemas';
 import type { OcrProvider, OcrInputPage, OcrMatchContext, OcrExtractionResult } from '../provider';
+
+/** Gültige reguläre Liganamen (zum Ankreuzen auf dem Bogen). */
+const LEAGUE_NAMES = LEAGUES.filter(l => l.type !== 'playoff').map(l => l.name);
 
 const SUPPORTED_IMAGE = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
@@ -47,6 +51,7 @@ function buildPrompt(ctx: OcrMatchContext): string {
     'Feste Spielreihenfolge (18 Begegnungen, Doppel Nr. 9 in der Mitte und Nr. 18 am Ende):',
     order,
     '',
+    `Die Liga ist auf dem Bogen ANGEKREUZT (Kästchen), nicht handschriftlich. Gib bei "league" exakt einen dieser Namen zurück (das angekreuzte Kästchen): ${LEAGUE_NAMES.join(', ')}. Achtung: "B" wird leicht als "8" fehlgelesen — es gibt keine Zahlen-Liga.`,
     'Aufstellung: H1–H4 / G1–G4 sind Stammspieler, H5–H8 / G5–G8 Ersatz. Positionen exakt als "H1".."H8" bzw. "G1".."G8".',
     'Für jeden Spieler die Pass-/Lizenznummer (passNo) so genau wie möglich auslesen — sie ist der eindeutige Schlüssel (z. B. "MDU 26 5707" oder nur die Ziffern). Namen können unvollständig sein; die Pass-Nr. hat Vorrang.',
     'Einzel-Leg-Ergebnisse sind i. d. R. 2:0/2:1/1:2/0:2 (in der La-Liga Best of 5: bis 3 Legs).',
