@@ -7,6 +7,7 @@ import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
 import { loadTeamProfile, saveTeamProfile, type TeamProfileExtras } from '@/lib/supabase/profiles';
 import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
+import { ImageUpload } from '@/components/mdu/image-upload';
 
 export default function TeamBearbeitenPage() {
   const { user, loading } = useAuth();
@@ -70,16 +71,33 @@ export default function TeamBearbeitenPage() {
             </Section>
 
             <Section title="Bilder">
-              <Field label="Teamlogo (Bild-URL)">
-                <input value={extras.logoUrl ?? ''} onChange={e => set('logoUrl', e.target.value)}
-                  placeholder="https://…" style={inputStyle} />
+              <Field label="Teamlogo">
+                {teamId && (
+                  <ImageUpload
+                    value={extras.logoUrl}
+                    onChange={url => setExtras(prev => prev ? { ...prev, logoUrl: url } : prev)}
+                    folder={`teams/${teamId}`}
+                    fileBase="logo"
+                    maxDim={400}
+                    shape="square"
+                  />
+                )}
               </Field>
-              <Field label="Mannschaftsbild (Bild-URL)">
-                <input value={extras.teamImageUrl ?? ''} onChange={e => set('teamImageUrl', e.target.value)}
-                  placeholder="https://…" style={inputStyle} />
+              <Field label="Mannschaftsbild">
+                {teamId && (
+                  <ImageUpload
+                    value={extras.teamImageUrl}
+                    onChange={url => setExtras(prev => prev ? { ...prev, teamImageUrl: url } : prev)}
+                    folder={`teams/${teamId}`}
+                    fileBase="photo"
+                    maxDim={1000}
+                    shape="square"
+                  />
+                )}
               </Field>
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>
-                Direkter Datei-Upload folgt mit Supabase Storage. Bis dahin kann eine Bild-URL hinterlegt werden.
+                Bilder werden beim Hochladen automatisch verkleinert. Mannschaftsbilder bitte nur mit Zustimmung
+                aller abgebildeten Personen. Vergiss nicht, anschließend zu speichern.
               </p>
             </Section>
 

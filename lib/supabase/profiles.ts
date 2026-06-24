@@ -97,6 +97,26 @@ export async function loadPublicPlayerProfile(playerId: string): Promise<{ nickn
 
 // ── Teamprofil ────────────────────────────────────────────────
 
+/**
+ * Öffentlich anzeigbare Team-Medien (Logo + Mannschaftsbild). Serverseitig
+ * nutzbar (eigener anon-Client, RLS erlaubt öffentliches Lesen). Logos sind
+ * keine personenbezogenen Daten; Mannschaftsbilder lädt der Kapitän nur mit
+ * Zustimmung der Abgebildeten hoch (siehe Nutzungsbedingungen/Bildrechte).
+ */
+export async function loadPublicTeamProfile(teamId: string): Promise<{ logoUrl: string | null; teamImageUrl: string | null }> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) return { logoUrl: null, teamImageUrl: null };
+  const client = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data } = await client
+    .from('team_profiles')
+    .select('logo_url, team_image_url')
+    .eq('team_id', teamId)
+    .maybeSingle();
+  if (!data) return { logoUrl: null, teamImageUrl: null };
+  return { logoUrl: data.logo_url ?? null, teamImageUrl: data.team_image_url ?? null };
+}
+
 export async function loadTeamProfile(teamId: string): Promise<TeamProfileExtras> {
   if (!supabase) return EMPTY_TEAM;
   const { data, error } = await supabase

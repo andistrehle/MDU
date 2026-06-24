@@ -14,11 +14,16 @@ import {
   getStatisticsForLeague,
 } from '@/lib/data';
 import { shade } from '@/lib/utils';
+import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
   const searchParams = await props.searchParams;
   const team = findTeam(id) ?? TEAMS[0];
+
+  // Hochgeladene Team-Medien (Logo/Mannschaftsbild) — Fallback auf Stammdaten.
+  const teamMedia = await loadPublicTeamProfile(team.id);
+  const shownLogo = teamMedia.logoUrl ?? team.logoUrl ?? null;
 
   // ── Season ───────────────────────────────────────────────────
   const season = getCurrentSeason();
@@ -132,16 +137,16 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>
             <div className="mdu-team-logo" style={{
               width: 144, height: 144, borderRadius: '24%', flexShrink: 0,
-              background: team.logoUrl ? 'var(--th-text-strong)' : `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
+              background: shownLogo ? 'var(--th-text-strong)' : `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
               border: '2px solid var(--th-gold)',
               boxShadow: `0 24px 60px ${team.color}50, inset 0 2px 0 rgba(255,255,255,0.2)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden',
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, color: 'var(--th-text-strong)',
             }}>
-              {team.logoUrl ? (
+              {shownLogo ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={team.logoUrl} alt={team.name}
+                <img src={shownLogo} alt={team.name}
                   style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
               ) : (
                 team.short
@@ -212,6 +217,15 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           </div>
         </div>
       </div>
+
+      {/* Mannschaftsbild (nur wenn hochgeladen) */}
+      {teamMedia.teamImageUrl && (
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 32px 0' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={teamMedia.teamImageUrl} alt={`Mannschaftsbild ${team.name}`}
+            style={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 16, border: '1px solid var(--th-line-6)', display: 'block' }} />
+        </div>
+      )}
 
       {/* Interactive tabs + content */}
       <TeamDetailClient
