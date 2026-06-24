@@ -56,7 +56,7 @@ function buildPrompt(ctx: OcrMatchContext): string {
     'Für jeden Spieler die Pass-/Lizenznummer (passNo) so genau wie möglich auslesen — sie ist der eindeutige Schlüssel (z. B. "MDU 26 5707" oder nur die Ziffern). Namen können unvollständig sein; die Pass-Nr. hat Vorrang.',
     'Einzel-Leg-Ergebnisse sind i. d. R. 2:0/2:1/1:2/0:2 (in der La-Liga Best of 5: bis 3 Legs).',
     'Highlights: 180, 171, high_finish (Checkout ≥100), short_leg (Anzahl Darts). Liegen mehrere Bilder/Seiten vor, stehen die Highlights meist auf der zweiten Seite — werte sie von dort aus.',
-    'WICHTIG bei 180 und 171: Die Spalte „Anzahl" ist eine STRICHLISTE. Zähle die Striche und gib die ANZAHL als Zahl zurück: ein Strich „|" = 1, „||" = 2, „|||" = 3. Lies „||" NICHT als die Zahl 11 — 11/111 reale 180er gibt es nicht. Eine ausgeschriebene Ziffer (z. B. „2") bedeutet ebenfalls die Anzahl 2. Bei high_finish (Checkout-Wert wie 141) und short_leg (Dart-Anzahl wie 18) ist es dagegen der echte Zahlenwert.',
+    'WICHTIG bei 180 und 171: Die Spalte „Anzahl" ist eine STRICHLISTE. Gib NICHT die zusammengezählte Anzahl zurück, sondern transkribiere die Striche so, wie du sie siehst — jeder Strich ist eine „1": „|" → 1, „||" → 11, „|||" → 111, „||||" → 1111. (Die Umrechnung in die Anzahl übernimmt das System.) Ist stattdessen eine Ziffer ausgeschrieben (z. B. „2"), gib genau diese Ziffer. Bei high_finish (Checkout-Wert wie 141) und short_leg (Dart-Anzahl wie 18) ist es dagegen der echte Zahlenwert.',
     'Unterschriften: nur ob vorhanden (true/false) — KEINE biometrische Analyse.',
     'Ist das Dokument offensichtlich KEIN MDU-Spielbericht: documentType = "unknown".',
     '',
