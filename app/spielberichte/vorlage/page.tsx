@@ -125,7 +125,8 @@ function VorlageInner() {
           jeweilige Position gebunden. Wird ein Spieler ausgewechselt, darf er später – aber nur auf
           derselben Position – wieder eingewechselt werden. Im Laufe der Begegnung können auf einer
           Position jedoch mehrere Ersatzspieler zum Einsatz kommen. Spielerwechsel sind direkt im
-          Spielablauf zu vermerken, indem die neue Spielernummer über die bisherige geschrieben wird.
+          Spielablauf zu vermerken, indem die Spielernummer durchgestrichen und die neue daneben
+          geschrieben wird (Beispiel H<s>1</s> 5).
         </p>
 
         {/* Spielablauf — zwei Spalten */}
