@@ -8,12 +8,16 @@
 // diese Helper sind nur die Client-Schicht.
 // ============================================================
 
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from './client';
 
 export interface PlayerProfileExtras {
   nickname: string | null;
   aboutMe: string | null;
   profileImageUrl: string | null;
+  /** Freiwillige Einwilligung zur öffentlichen Anzeige (DSGVO Art. 6 I a). */
+  showNickname: boolean;
+  showPhoto: boolean;
 }
 
 export interface TeamProfileExtras {
@@ -25,7 +29,7 @@ export interface TeamProfileExtras {
   websiteUrl: string | null;
 }
 
-const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null };
+const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: false };
 const EMPTY_TEAM: TeamProfileExtras = {
   description: null, logoUrl: null, teamImageUrl: null,
   instagramUrl: null, facebookUrl: null, websiteUrl: null,
@@ -37,7 +41,7 @@ export async function loadPlayerProfile(playerId: string): Promise<PlayerProfile
   if (!supabase) return EMPTY_PLAYER;
   const { data, error } = await supabase
     .from('player_profiles')
-    .select('nickname, about_me, profile_image_url')
+    .select('nickname, about_me, profile_image_url, show_nickname, show_photo')
     .eq('player_id', playerId)
     .maybeSingle();
   if (error || !data) return EMPTY_PLAYER;
@@ -45,6 +49,8 @@ export async function loadPlayerProfile(playerId: string): Promise<PlayerProfile
     nickname: data.nickname ?? null,
     aboutMe: data.about_me ?? null,
     profileImageUrl: data.profile_image_url ?? null,
+    showNickname: data.show_nickname ?? false,
+    showPhoto: data.show_photo ?? false,
   };
 }
 
@@ -59,9 +65,34 @@ export async function savePlayerProfile(
     nickname: extras.nickname,
     about_me: extras.aboutMe,
     profile_image_url: extras.profileImageUrl,
+    show_nickname: extras.showNickname,
+    show_photo: extras.showPhoto,
+    consent_updated_at: new Date().toISOString(),
     updated_by: auth.user?.id ?? null,
   });
   return { error: error?.message ?? null };
+}
+
+/**
+ * Öffentlich anzeigbare Profil-Zusatzdaten — gibt Spitzname/Bild NUR zurück,
+ * wenn der Spieler der Veröffentlichung zugestimmt hat. Serverseitig nutzbar
+ * (eigener anon-Client, RLS erlaubt öffentliches Lesen).
+ */
+export async function loadPublicPlayerProfile(playerId: string): Promise<{ nickname: string | null; photoUrl: string | null }> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) return { nickname: null, photoUrl: null };
+  const client = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data } = await client
+    .from('player_profiles')
+    .select('nickname, profile_image_url, show_nickname, show_photo')
+    .eq('player_id', playerId)
+    .maybeSingle();
+  if (!data) return { nickname: null, photoUrl: null };
+  return {
+    nickname: data.show_nickname ? (data.nickname ?? null) : null,
+    photoUrl: data.show_photo ? (data.profile_image_url ?? null) : null,
+  };
 }
 
 // ── Teamprofil ────────────────────────────────────────────────

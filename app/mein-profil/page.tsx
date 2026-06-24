@@ -37,6 +37,10 @@ export default function MeinProfilPage() {
     setExtras(prev => prev ? { ...prev, [key]: value || null } : prev);
   }
 
+  function setBool(key: 'showNickname' | 'showPhoto', value: boolean) {
+    setExtras(prev => prev ? { ...prev, [key]: value } : prev);
+  }
+
   return (
     <MemberShell title="Mein Profil">
       {loading ? <Muted>Lade …</Muted>
@@ -86,6 +90,11 @@ export default function MeinProfilPage() {
                   <Field label="Spitzname">
                     <input value={extras.nickname ?? ''} onChange={e => set('nickname', e.target.value)}
                       placeholder={'z. B. „The Machine"'} style={inputStyle} />
+                    <ConsentCheck
+                      checked={extras.showNickname}
+                      onChange={v => setBool('showNickname', v)}
+                      label="Spitzname öffentlich auf meinem Spielerprofil anzeigen"
+                    />
                   </Field>
                   <Field label="Über mich">
                     <textarea value={extras.aboutMe ?? ''} onChange={e => set('aboutMe', e.target.value)}
@@ -94,12 +103,18 @@ export default function MeinProfilPage() {
                   <Field label="Profilbild (Bild-URL)">
                     <input value={extras.profileImageUrl ?? ''} onChange={e => set('profileImageUrl', e.target.value)}
                       placeholder="https://…" style={inputStyle} />
+                    <ConsentCheck
+                      checked={extras.showPhoto}
+                      onChange={v => setBool('showPhoto', v)}
+                      label="Profilbild öffentlich auf meinem Spielerprofil anzeigen"
+                    />
                   </Field>
                   <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '2px 0 0', lineHeight: 1.55 }}>
                     Direkter Foto-Upload folgt mit Supabase Storage. Bis dahin kann eine Bild-URL hinterlegt werden.
-                    Bitte nur Bilder verwenden, für die du die nötigen Rechte hast. Spitzname, „Über mich“ und
-                    Profilbild sind auf deinem öffentlichen Spielerprofil sichtbar und können jederzeit hier geändert
-                    oder geleert (gelöscht) werden.
+                    Bitte nur Bilder verwenden, für die du die nötigen Rechte hast. „Über mich“ und deine Eingaben
+                    kannst du jederzeit hier ändern oder leeren. <strong>Spitzname und Profilbild werden öffentlich
+                    nur angezeigt, wenn du es oben aktiv erlaubst</strong> — diese Einwilligung kannst du jederzeit
+                    durch Entfernen des Häkchens widerrufen.
                   </p>
 
                   <button type="submit" disabled={busy} style={{
@@ -123,6 +138,16 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
       <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 14 }}>{title}</div>
       {children}
     </div>
+  );
+}
+
+function ConsentCheck({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8, cursor: 'pointer' }}>
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)}
+        style={{ marginTop: 1, width: 15, height: 15, accentColor: 'var(--th-accent)', flexShrink: 0, cursor: 'pointer' }} />
+      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.45 }}>{label}</span>
+    </label>
   );
 }
 

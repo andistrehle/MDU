@@ -12,6 +12,7 @@ import {
   formatWinRate,
 } from '@/lib/data';
 import { shade } from '@/lib/utils';
+import { loadPublicPlayerProfile } from '@/lib/supabase/profiles';
 
 export default async function PlayerProfilePage(
   props: { params: Promise<{ playerId: string }> },
@@ -23,6 +24,12 @@ export default async function PlayerProfilePage(
   const season = getCurrentSeason();
   const displayName = getPlayerDisplayName(player);
   const stats = getPlayerSeasonStats(player.id, season.id);
+
+  // Vom Spieler selbst gepflegte Angaben — nur mit erteilter Einwilligung
+  // öffentlich zeigen; sonst Fallback auf die (kuratierten) Stammdaten.
+  const publicExtras = await loadPublicPlayerProfile(player.id);
+  const shownNickname = publicExtras.nickname ?? player.nickname ?? null;
+  const shownPhotoUrl = publicExtras.photoUrl ?? player.photoUrl;
 
   // Current team / competition context
   const team        = stats?.teamId ? findTeam(stats.teamId) : undefined;
@@ -84,7 +91,7 @@ export default async function PlayerProfilePage(
 
           {/* Identity */}
           <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 28 }}>
-            <PlayerPhoto name={displayName} initials={getPlayerInitials(player)} color={teamColor} photoUrl={player.photoUrl} />
+            <PlayerPhoto name={displayName} initials={getPlayerInitials(player)} color={teamColor} photoUrl={shownPhotoUrl} />
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -99,9 +106,9 @@ export default async function PlayerProfilePage(
               }}>
                 {displayName}
               </h1>
-              {player.nickname && (
+              {shownNickname && (
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, color: 'var(--th-text-muted)', marginTop: 8 }}>
-                  „{player.nickname}“
+                  „{shownNickname}“
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-body)', flexWrap: 'wrap' }}>
