@@ -162,8 +162,12 @@ export interface StartOcrResult {
   error?: string;
 }
 
-export async function startOcr(uploadId: string): Promise<StartOcrResult> {
-  const res = await fetch(`/api/match-reports/ocr/${uploadId}`, { method: 'POST', headers: await authHeader() });
+export async function startOcr(uploadId: string, extraPageIds: string[] = []): Promise<StartOcrResult> {
+  const res = await fetch(`/api/match-reports/ocr/${uploadId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+    body: JSON.stringify({ pageUploadIds: extraPageIds }),
+  });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) return { error: json.error ?? 'Erkennung fehlgeschlagen.' };
   return json as StartOcrResult;

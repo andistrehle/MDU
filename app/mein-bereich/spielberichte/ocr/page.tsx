@@ -33,7 +33,9 @@ export default function OcrUploadPage() {
   const [available, setAvailable] = useState<boolean | null>(null);
   const [maxMb, setMaxMb] = useState(12);
   const [matchId, setMatchId] = useState('');
-  const [files, setFiles] = useState<File[]>([]);
+  const [page1, setPage1] = useState<File | null>(null);
+  const [page2, setPage2] = useState<File | null>(null);
+  const [wantPage2, setWantPage2] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'err' | 'info'; text: string } | null>(null);
 
@@ -47,26 +49,25 @@ export default function OcrUploadPage() {
     return [...list].sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.date ?? '').localeCompare(a.date ?? ''));
   }, [isAdmin, user?.teamId]);
 
-  function addFiles(list: FileList | null) {
-    if (!list) return;
-    const next = [...files, ...Array.from(list)].slice(0, 2); // max 2 Seiten
-    setFiles(next);
-  }
-
   async function onStart() {
-    if (files.length === 0) { setMsg({ kind: 'err', text: 'Bitte mindestens ein Foto/PDF auswählen.' }); return; }
+    if (!page1) { setMsg({ kind: 'err', text: 'Bitte Seite 1 (Spielbericht) als Foto/PDF auswählen.' }); return; }
     setBusy(true); setMsg({ kind: 'info', text: 'Lade hoch …' });
-    let firstUploadId: string | null = null;
-    for (let i = 0; i < files.length; i++) {
-      const r = await uploadReportFile(matchId, files[i], i + 1);
-      if (r.error || !r.uploadId) { setBusy(false); setMsg({ kind: 'err', text: r.error ?? 'Upload fehlgeschlagen.' }); return; }
-      if (!firstUploadId) firstUploadId = r.uploadId;
+
+    const r1 = await uploadReportFile(matchId, page1, 1);
+    if (r1.error || !r1.uploadId) { setBusy(false); setMsg({ kind: 'err', text: r1.error ?? 'Upload fehlgeschlagen.' }); return; }
+
+    const extraIds: string[] = [];
+    if (wantPage2 && page2) {
+      const r2 = await uploadReportFile(matchId, page2, 2);
+      if (r2.error || !r2.uploadId) { setBusy(false); setMsg({ kind: 'err', text: r2.error ?? 'Upload von Seite 2 fehlgeschlagen.' }); return; }
+      extraIds.push(r2.uploadId);
     }
+
     setMsg({ kind: 'info', text: 'Erkennung läuft … das kann einen Moment dauern.' });
-    const ocr = await startOcr(firstUploadId!);
+    const ocr = await startOcr(r1.uploadId, extraIds);
     setBusy(false);
     if (ocr.error && !ocr.status) { setMsg({ kind: 'err', text: ocr.error }); return; }
-    router.push(`/mein-bereich/spielberichte/ocr/${firstUploadId}/pruefen`);
+    router.push(`/mein-bereich/spielberichte/ocr/${r1.uploadId}/pruefen`);
   }
 
   return (
@@ -94,28 +95,46 @@ export default function OcrUploadPage() {
               <Muted>Du kannst die Begegnung gleich wählen (beste Erkennung) oder ohne Auswahl hochladen — das System schlägt sie danach anhand der erkannten Teams vor.</Muted>
             </Card>
 
-            <Card title="2 · Foto oder PDF (max. 2 Seiten)">
+            <Card title="2 · Seite 1 — Spielbericht (Pflicht)">
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <label style={btn}>
                   📷 Foto aufnehmen
-                  <input type="file" accept="image/*" capture="environment" hidden onChange={e => addFiles(e.target.files)} />
+                  <input type="file" accept="image/*" capture="environment" hidden onChange={e => setPage1(e.target.files?.[0] ?? null)} />
                 </label>
                 <label style={btn}>
                   📄 Datei wählen
-                  <input type="file" accept="image/*,application/pdf" hidden onChange={e => addFiles(e.target.files)} />
+                  <input type="file" accept="image/*,application/pdf" hidden onChange={e => setPage1(e.target.files?.[0] ?? null)} />
                 </label>
               </div>
-              {files.length > 0 && (
-                <ul style={{ margin: '10px 0 0', paddingLeft: 18, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                  {files.map((f, i) => (
-                    <li key={i} style={{ marginBottom: 4 }}>
-                      Seite {i + 1}: {f.name} ({Math.round(f.size / 1024)} KB)
-                      <button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'var(--th-loss)', cursor: 'pointer' }}>entfernen</button>
-                    </li>
-                  ))}
-                </ul>
+              {page1 && <FilePill file={page1} onRemove={() => setPage1(null)} />}
+              <Muted>Die Vorderseite mit Aufstellung und Ergebnissen. JPG/PNG/PDF · max. {maxMb} MB · bei gutem Licht und gerade fotografieren.</Muted>
+            </Card>
+
+            <Card title="3 · Seite 2 — Highlights (optional)">
+              {!wantPage2 ? (
+                <>
+                  <Muted>Gibt es eine zweite Seite mit Highlights (180er, 171er, High-Finishes, kürzestes Leg)? Wenn der Bogen nur eine Seite hat oder es keine Highlights gab, kannst du das überspringen.</Muted>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => setWantPage2(true)} style={btn}>+ Seite 2 hinzufügen</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Muted>Foto/PDF der zweiten Seite. Daraus werden die Highlights ausgelesen.</Muted>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <label style={btn}>
+                      📷 Foto aufnehmen
+                      <input type="file" accept="image/*" capture="environment" hidden onChange={e => setPage2(e.target.files?.[0] ?? null)} />
+                    </label>
+                    <label style={btn}>
+                      📄 Datei wählen
+                      <input type="file" accept="image/*,application/pdf" hidden onChange={e => setPage2(e.target.files?.[0] ?? null)} />
+                    </label>
+                    <button type="button" onClick={() => { setWantPage2(false); setPage2(null); }} style={{ ...btn, color: 'var(--th-text-muted)', borderColor: 'var(--th-line-10)' }}>Doch keine 2. Seite</button>
+                  </div>
+                  {page2 && <FilePill file={page2} onRemove={() => setPage2(null)} />}
+                </>
               )}
-              <Muted>JPG/PNG/PDF · max. {maxMb} MB je Datei · bei gutem Licht und gerade fotografieren.</Muted>
             </Card>
 
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -126,6 +145,15 @@ export default function OcrUploadPage() {
           </div>
         )}
     </MemberShell>
+  );
+}
+
+function FilePill({ file, onRemove }: { file: File; onRemove: () => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>✓ {file.name} ({Math.round(file.size / 1024)} KB)</span>
+      <button type="button" onClick={onRemove} style={{ background: 'none', border: 'none', color: 'var(--th-loss)', cursor: 'pointer', flexShrink: 0 }}>entfernen</button>
+    </div>
   );
 }
 

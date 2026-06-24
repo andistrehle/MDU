@@ -69,15 +69,38 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
     ocr_started_at: new Date().toISOString(), ocr_error: null,
   }).eq('id', uploadId);
 
+  // Optional vom Client: weitere Seiten (z. B. Seite 2 mit Highlights), die
+  // zusammen mit dieser hochgeladen wurden, aber (mangels Begegnung) nicht über
+  // match_id gruppiert sind.
+  let extraPageIds: string[] = [];
   try {
-    const { data: pages } = await supabaseAdmin.from('match_report_uploads')
-      .select('storage_path, mime_type, page_number')
-      .eq('match_id', upload.match_id).eq('uploaded_by', upload.uploaded_by)
-      .neq('upload_status', 'deleted').order('page_number');
+    const body = await request.json();
+    if (Array.isArray(body?.pageUploadIds)) extraPageIds = body.pageUploadIds.filter((x: unknown): x is string => typeof x === 'string');
+  } catch { /* kein/Leerer Body — ok */ }
+
+  try {
+    let pageRows: { storage_path: string; mime_type: string }[];
+    if (upload.match_id) {
+      // Pre-Auswahl: alle Seiten dieser Begegnung.
+      const { data: pages } = await supabaseAdmin.from('match_report_uploads')
+        .select('storage_path, mime_type, page_number')
+        .eq('match_id', upload.match_id).eq('uploaded_by', upload.uploaded_by)
+        .neq('upload_status', 'deleted').order('page_number');
+      pageRows = pages ?? [];
+    } else if (extraPageIds.length) {
+      // Ohne Begegnung: diese Datei + die explizit mitgegebenen Zusatzseiten
+      // (nur eigene Uploads), nach Seitenzahl sortiert.
+      const ids = [uploadId, ...extraPageIds].filter((v, i, a) => a.indexOf(v) === i);
+      const { data: pages } = await supabaseAdmin.from('match_report_uploads')
+        .select('storage_path, mime_type, page_number')
+        .in('id', ids).eq('uploaded_by', upload.uploaded_by)
+        .neq('upload_status', 'deleted').order('page_number');
+      pageRows = pages ?? [{ storage_path: upload.storage_path, mime_type: upload.mime_type }];
+    } else {
+      pageRows = [{ storage_path: upload.storage_path, mime_type: upload.mime_type }];
+    }
 
     const inputPages: OcrInputPage[] = [];
-    // Bei Pre-Auswahl alle Seiten der Begegnung; ohne Auswahl nur diese eine Datei.
-    const pageRows = upload.match_id ? (pages ?? []) : [{ storage_path: upload.storage_path, mime_type: upload.mime_type }];
     for (const p of pageRows.slice(0, 3)) {
       if (!isOcrReadyMime(p.mime_type)) continue;
       const { data: blob } = await supabaseAdmin.storage.from(BUCKET).download(p.storage_path);

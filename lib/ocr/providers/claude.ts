@@ -55,7 +55,7 @@ function buildPrompt(ctx: OcrMatchContext): string {
     'Aufstellung: H1–H4 / G1–G4 sind Stammspieler, H5–H8 / G5–G8 Ersatz. Positionen exakt als "H1".."H8" bzw. "G1".."G8".',
     'Für jeden Spieler die Pass-/Lizenznummer (passNo) so genau wie möglich auslesen — sie ist der eindeutige Schlüssel (z. B. "MDU 26 5707" oder nur die Ziffern). Namen können unvollständig sein; die Pass-Nr. hat Vorrang.',
     'Einzel-Leg-Ergebnisse sind i. d. R. 2:0/2:1/1:2/0:2 (in der La-Liga Best of 5: bis 3 Legs).',
-    'Highlights: 180, 171, high_finish (Checkout ≥100), short_leg (Anzahl Darts). Unterschriften: nur ob vorhanden (true/false) — KEINE biometrische Analyse.',
+    'Highlights: 180, 171, high_finish (Checkout ≥100), short_leg (Anzahl Darts). Liegen mehrere Bilder/Seiten vor, stehen die Highlights meist auf der zweiten Seite — werte sie von dort aus. Unterschriften: nur ob vorhanden (true/false) — KEINE biometrische Analyse.',
     'Ist das Dokument offensichtlich KEIN MDU-Spielbericht: documentType = "unknown".',
     '',
     'Bekannter Kontext der Begegnung (zur Plausibilisierung; nicht blind übernehmen):',
