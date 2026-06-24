@@ -36,15 +36,22 @@ const SECTIONS = [
     href: '/impressum',
     icon: 'file',
     label: 'Impressum',
-    description: 'Angaben gemäß § 5 TMG und rechtliche Hinweise.',
-    ready: false,
+    description: 'Angaben gemäß § 5 DDG und rechtliche Hinweise.',
+    ready: true,
   },
   {
     href: '/datenschutz',
     icon: 'list',
     label: 'Datenschutz',
     description: 'Datenschutzerklärung und Informationen zur Datenverarbeitung.',
-    ready: false,
+    ready: true,
+  },
+  {
+    href: '/nutzungsbedingungen',
+    icon: 'file',
+    label: 'Nutzungsbedingungen',
+    description: 'Bedingungen für die Nutzung der MDU-Plattform.',
+    ready: true,
   },
 ] as const;
 

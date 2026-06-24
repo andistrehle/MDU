@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit } from '@/components/mdu/auth-shell';
+import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit, AuthCheckbox } from '@/components/mdu/auth-shell';
 
 export default function RegisterPage() {
   const { signUp } = useAuth();
@@ -15,6 +15,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmEmailSent, setConfirmEmailSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -24,6 +26,10 @@ export default function RegisterPage() {
     setError(null);
     if (password !== confirm) {
       setError('Die Passwörter stimmen nicht überein.');
+      return;
+    }
+    if (!acceptPrivacy || !acceptTerms) {
+      setError('Bitte bestätige Datenschutzerklärung und Nutzungsbedingungen.');
       return;
     }
     setBusy(true);
@@ -132,15 +138,26 @@ export default function RegisterPage() {
         }}>
           Das Konto wird erstellt, um interne Funktionen (eigenes Profil, Team-Bereich)
           nutzen zu können. Dein Konto wird ggf. durch die Ligaleitung freigegeben und mit
-          deinem Spielerprofil bzw. Team verknüpft. Mit der Registrierung bestätigst du,
-          die{' '}
-          <Link href="/datenschutz" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
-            Datenschutzerklärung
-          </Link>{' '}
-          zur Kenntnis genommen zu haben.
+          deinem Spielerprofil bzw. Team verknüpft.
         </p>
 
-        <AuthSubmit busy={busy}>Registrieren</AuthSubmit>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <AuthCheckbox checked={acceptPrivacy} onChange={setAcceptPrivacy}>
+            Ich habe die{' '}
+            <Link href="/datenschutz" target="_blank" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
+              Datenschutzerklärung
+            </Link>{' '}
+            gelesen und stimme der Verarbeitung meiner Daten zu.
+          </AuthCheckbox>
+          <AuthCheckbox checked={acceptTerms} onChange={setAcceptTerms}>
+            Ich akzeptiere die{' '}
+            <Link href="/nutzungsbedingungen" target="_blank" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
+              Nutzungsbedingungen
+            </Link>.
+          </AuthCheckbox>
+        </div>
+
+        <AuthSubmit busy={busy} disabled={!acceptPrivacy || !acceptTerms}>Registrieren</AuthSubmit>
       </form>
 
       <p style={{

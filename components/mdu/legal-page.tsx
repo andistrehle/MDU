@@ -2,11 +2,17 @@ import { DesktopHeader } from './desktop-header';
 import { Footer } from './footer';
 
 /** Gemeinsames Layout für Rechtstexte (Impressum, Datenschutz). */
-export function LegalPage({ title, updated, children }: {
+export function LegalPage({ title, updated, children, notice }: {
   title: string;
   updated: string;
   children: React.ReactNode;
+  /** Optionaler Hinweis-Text über dem Inhalt. `null` blendet den Hinweis aus. */
+  notice?: React.ReactNode | null;
 }) {
+  const noticeContent = notice === undefined ? (
+    <>Hinweis: Mit <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>[…]</code>{' '}
+    markierte Felder werden noch ergänzt; der Text wird vor dem offiziellen Livegang rechtlich geprüft.</>
+  ) : notice;
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader />
@@ -21,15 +27,15 @@ export function LegalPage({ title, updated, children }: {
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '0 0 8px' }}>
           Stand: {updated}
         </p>
-        <div style={{
-          background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
-          padding: '12px 16px', margin: '0 0 28px',
-          fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.6,
-        }}>
-          Hinweis: Diese Seite ist eine <strong>Vorlage</strong>. Mit <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>[…]</code>
-          {' '}markierte Felder müssen von den MDU-Verantwortlichen ausgefüllt und der Text vor dem
-          offiziellen Livegang rechtlich geprüft werden.
-        </div>
+        {noticeContent && (
+          <div style={{
+            background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
+            padding: '12px 16px', margin: '0 0 28px',
+            fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.6,
+          }}>
+            {noticeContent}
+          </div>
+        )}
         <div className="mdu-legal-body">{children}</div>
       </main>
       <Footer />

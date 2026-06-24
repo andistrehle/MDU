@@ -94,23 +94,44 @@ export function AuthSuccess({ message }: { message: string }) {
   );
 }
 
-export function AuthSubmit({ children, busy }: { children: React.ReactNode; busy?: boolean }) {
+export function AuthSubmit({ children, busy, disabled }: { children: React.ReactNode; busy?: boolean; disabled?: boolean }) {
+  const off = busy || disabled;
   return (
     <button
       type="submit"
-      disabled={busy}
+      disabled={off}
       style={{
         width: '100%', padding: 14,
         background: 'var(--th-accent)', color: '#fff',
         border: '1px solid var(--th-accent-hover)', borderRadius: 8,
         fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14,
-        letterSpacing: '0.08em', cursor: busy ? 'wait' : 'pointer',
+        letterSpacing: '0.08em', cursor: busy ? 'wait' : disabled ? 'not-allowed' : 'pointer',
         textTransform: 'uppercase', marginTop: 8,
         boxShadow: '0 8px 22px var(--th-accent-a40)',
-        opacity: busy ? 0.7 : 1,
+        opacity: off ? 0.6 : 1,
       }}
     >
       {busy ? 'Bitte warten …' : children}
     </button>
+  );
+}
+
+export function AuthCheckbox({ checked, onChange, children }: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--th-accent)', flexShrink: 0, cursor: 'pointer' }}
+      />
+      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.5 }}>
+        {children}
+      </span>
+    </label>
   );
 }
