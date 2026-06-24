@@ -104,12 +104,13 @@ export default function MeinProfilPage() {
                   <Field label="Profilbild">
                     {playerId && (
                       <ImageUpload
-                        value={extras.profileImageUrl}
+                        value={extras.profileImageUrl ?? player?.photoUrl ?? null}
                         onChange={url => setExtras(prev => prev ? { ...prev, profileImageUrl: url } : prev)}
                         folder={`players/${playerId}`}
                         fileBase="avatar"
                         maxDim={512}
                         shape="circle"
+                        removable={!!extras.profileImageUrl}
                       />
                     )}
                     <ConsentCheck

@@ -42,7 +42,7 @@ async function compressToWebp(file: File, maxDim: number, quality = 0.85): Promi
   );
 }
 
-export function ImageUpload({ value, onChange, folder, fileBase, maxDim = 512, shape = 'circle', disabled }: {
+export function ImageUpload({ value, onChange, folder, fileBase, maxDim = 512, shape = 'circle', disabled, removable = true }: {
   value: string | null;
   onChange: (url: string | null) => void;
   /** Zielordner im Bucket, z. B. `players/{playerId}`. */
@@ -52,6 +52,8 @@ export function ImageUpload({ value, onChange, folder, fileBase, maxDim = 512, s
   maxDim?: number;
   shape?: 'circle' | 'square';
   disabled?: boolean;
+  /** „Entfernen" anzeigen? (z. B. nur bei eigenem Upload, nicht beim Default-Bild). */
+  removable?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -109,7 +111,7 @@ export function ImageUpload({ value, onChange, folder, fileBase, maxDim = 512, s
             <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden
               disabled={disabled || busy} onChange={e => onPick(e.target.files?.[0])} />
           </label>
-          {value && !busy && (
+          {value && !busy && removable && (
             <button type="button" onClick={onRemove} disabled={disabled} style={{
               padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
               background: 'transparent', color: 'var(--th-loss)', border: '1.5px solid var(--th-loss)',

@@ -74,12 +74,13 @@ export default function TeamBearbeitenPage() {
               <Field label="Teamlogo">
                 {teamId && (
                   <ImageUpload
-                    value={extras.logoUrl}
+                    value={extras.logoUrl ?? team?.logoUrl ?? null}
                     onChange={url => setExtras(prev => prev ? { ...prev, logoUrl: url } : prev)}
                     folder={`teams/${teamId}`}
                     fileBase="logo"
                     maxDim={400}
                     shape="square"
+                    removable={!!extras.logoUrl}
                   />
                 )}
               </Field>
