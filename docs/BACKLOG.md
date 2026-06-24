@@ -16,7 +16,9 @@ erkennt und befüllt, der Mensch prüft und bestätigt** — Tabelle/Einzelrangl
 - [x] Begegnung: exakte Auflösung → Auto-Zuordnung; sonst **Fuzzy-Vorschlag** (Teamnamen + Spieltag/Datum), wahrscheinlichste vorausgewählt
 - [x] Prüfansicht: Original-Vorschau **aller Seiten** (Signed URL), erkannte Felder mit Konfidenz/Status, Aufstellung mit Pass-Nr. + Zuordnungs-Methode, **Highlights-Block**, Begegnungs-Zuordnung, dann Übergabe an den bestehenden Editor/Submit-Workflow
 - [x] Teamkapitän aus den Stammdaten **auto-befüllt**, wenn OCR die Handschrift nicht liest
-- [x] Liga aus geschlossener Ankreuz-Liste (verhindert „B"→„8"); **180er/171er als Strichliste** gezählt (`||`=2, nie 11), High Finish/Short Leg als echte Werte
+- [x] Liga aus geschlossener Ankreuz-Liste (verhindert „B"→„8"); **180er/171er als Strichliste**: Modell transkribiert Striche (`||`→11), Code rechnet deterministisch in die Anzahl um (`||`=2, nie 11); High Finish/Short Leg als echte Werte
+- [x] **Auswechslungen** im Spielablauf: durchgestrichene Positionsnummer + neue daneben (`H1`→`H5`) wird erkannt; tatsächlich gespielte Position landet in den Spielen (Editor), Wechsel-Block in der Prüfansicht
+- [x] Vorlage: Auswechslungs-Hinweis präzisiert („Spielernummer durchstreichen und neue daneben", Beispiel `H1 5` mit schräg durchgestrichener „1")
 - [x] Sicherheit: privater Storage-Bucket, Signed URLs, RLS; kein service_role/Key im Frontend; Rechte serverseitig geprüft; Idempotenz (kein Doppel-/Reload-Job)
 - [x] Migrationen `0023` (OCR-Tabellen + Bucket + RLS + Notification) und `0024` (`page_group_id` für Mehrseiten); Vercel-ENV `OCR_FEATURE_ENABLED/PROVIDER/MODEL/API_KEY`
 
