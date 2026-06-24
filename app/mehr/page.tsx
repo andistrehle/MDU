@@ -29,8 +29,8 @@ const SECTIONS = [
     href: '/kontakt',
     icon: 'globe',
     label: 'Kontakt',
-    description: 'Kontakt und Informationen zur Münchner Dart Union.',
-    ready: false,
+    description: 'Kontakt und Ansprechpartner der Münchner Dart Union.',
+    ready: true,
   },
   {
     href: '/impressum',

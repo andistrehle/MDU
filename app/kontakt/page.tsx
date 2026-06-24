@@ -1,70 +1,99 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
+import { Icon } from '@/components/mdu/icon';
+
+export const metadata: Metadata = {
+  title: 'Kontakt · Münchner Dart Union',
+  description: 'Kontakt und Ansprechpartner der Münchner Dart Union.',
+};
 
 export default function KontaktPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/kontakt" />
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
-        <div style={{
-          background: 'linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%)',
-          border: '1px solid var(--th-line-6)',
-          borderRadius: 14,
-          boxShadow: '0 1px 0 var(--th-line-4) inset, 0 8px 28px var(--th-shadow)',
-          padding: '48px 40px',
-          maxWidth: 520,
-          width: '100%',
-          textAlign: 'center',
-        }}>
+      <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '40px 20px 80px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
           <div style={{
-            width: 56, height: 56, borderRadius: '50%',
-            background: 'var(--th-accent-a12)',
-            border: '1px solid var(--th-accent-a25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 24px',
+            fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
+            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--th-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            Münchner Dart Union
           </div>
-
           <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,
-            letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: '0 0 12px',
+            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
+            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
           }}>
-            Seite befindet sich noch im Aufbau
+            Kontakt
           </h1>
-
-          <p style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)',
-            lineHeight: 1.6, margin: '0 0 32px',
-          }}>
-            Diese Funktion wird aktuell vorbereitet und steht bald zur Verfügung.
-          </p>
-
-          <Link
-            href="/"
-            style={{
-              display: 'inline-block',
-              padding: '12px 28px',
-              background: 'var(--th-accent)',
-              color: '#fff',
-              borderRadius: 6,
-              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
-              letterSpacing: '0.16em', textTransform: 'uppercase',
-              textDecoration: 'none',
-              boxShadow: '0 6px 14px var(--th-accent-a32)',
-            }}
-          >
-            Zurück zur Startseite
-          </Link>
         </div>
-      </main>
+
+        <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>
+          Fragen zur Liga, zur Plattform oder zu deinem Konto? Schreib uns einfach – wir helfen
+          gerne weiter.
+        </p>
+
+        {/* Kontaktkarte */}
+        <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <ContactRow icon="mail" label="E-Mail">
+            <a href="mailto:kontakt@mdudarts.de" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>
+              kontakt@mdudarts.de
+            </a>
+          </ContactRow>
+
+          <ContactRow icon="pin" label="Anschrift">
+            Münchner Dart Union<br />
+            Zenettistraße 30<br />
+            80337 München
+          </ContactRow>
+
+          <ContactRow icon="user" label="Ansprechpartner">
+            Andreas Strehle
+          </ContactRow>
+        </div>
+
+        {/* Weitere Infos */}
+        <div style={{
+          marginTop: 20, padding: '14px 16px',
+          background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
+          fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.6,
+        }}>
+          Rechtliche Angaben findest du im{' '}
+          <Link href="/impressum" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Impressum</Link>
+          {' '}und in der{' '}
+          <Link href="/datenschutz" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Datenschutzerklärung</Link>.
+          {' '}Weitere Informationen rund um den Dartsport in München unter{' '}
+          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-body)', textDecoration: 'underline' }}>dartunion.de</a>.
+        </div>
+      </div>
 
       <Footer />
+    </div>
+  );
+}
+
+function ContactRow({ icon, label, children }: { icon: string; label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+        background: 'var(--th-accent-a12)', border: '1px solid var(--th-accent-a25)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-accent)',
+      }}>
+        <Icon name={icon} size={18} stroke={2} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--th-text-faint)', marginBottom: 4 }}>
+          {label}
+        </div>
+        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-strong)', lineHeight: 1.55 }}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
