@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit, AuthCheckbox } from '@/components/mdu/auth-shell';
+import { notifyNewUserToAdmins } from '@/lib/supabase/notifications';
 
 export default function RegisterPage() {
   const { signUp } = useAuth();
@@ -37,11 +38,15 @@ export default function RegisterPage() {
     setBusy(false);
     if (res.error) {
       setError(res.error);
-    } else if (res.needsEmailConfirmation) {
-      // Supabase verlangt E-Mail-Bestätigung → Hinweis statt Redirect
-      setConfirmEmailSent(true);
     } else {
-      router.push('/mein-bereich');
+      // Super-Admins über die neue Registrierung informieren (best-effort).
+      void notifyNewUserToAdmins(email);
+      if (res.needsEmailConfirmation) {
+        // Supabase verlangt E-Mail-Bestätigung → Hinweis statt Redirect
+        setConfirmEmailSent(true);
+      } else {
+        router.push('/mein-bereich');
+      }
     }
   }
 

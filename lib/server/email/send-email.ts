@@ -31,7 +31,8 @@ export type EmailType =
   | 'registration_approved'
   | 'registration_rejected'
   | 'registration_changes_requested'
-  | 'account_activated';
+  | 'account_activated'
+  | 'new_user_admin';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
@@ -48,6 +49,11 @@ export interface RegistrationEmailInput {
   role?: string;
   playerName?: string;
   relatedEntityId?: string | null;
+  /** Nur für new_user_admin: Angaben zum neu registrierten Benutzer. */
+  newUserName?: string;
+  newUserEmail?: string;
+  intent?: string;
+  actionUrl?: string;
 }
 
 interface RenderedEmail {
@@ -117,6 +123,24 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `${rights}\n` +
           linkBlock +
           `\nDu kannst dich jetzt im Mitgliederbereich anmelden und deinen persönlichen Bereich nutzen.` + SIGNATURE,
+      };
+    }
+    case 'new_user_admin': {
+      const intentLabel = input.intent === 'team_captain' ? 'Teamkapitän / TC' : input.intent === 'player' ? 'Spieler' : null;
+      const lines = [
+        `Name: ${input.newUserName?.trim() || '—'}`,
+        `E-Mail: ${input.newUserEmail?.trim() || '—'}`,
+        intentLabel ? `Wunsch bei Registrierung: ${intentLabel}` : null,
+        input.playerName ? `Automatisch erkannt: ${input.playerName}` : null,
+      ].filter(Boolean).join('\n');
+      return {
+        subject: 'Neue MDU-Registrierung – Rolle/Spieler zuordnen',
+        text:
+          `Hallo ${name},\n\n` +
+          `ein neuer Benutzer hat sich auf der MDU-Plattform registriert und wartet auf die ` +
+          `Zuordnung von Rolle und Spielerprofil:\n\n` +
+          `${lines}\n\n` +
+          `Bitte in der Benutzerverwaltung prüfen und zuordnen:\n${input.actionUrl ?? ''}` + SIGNATURE,
       };
     }
   }
