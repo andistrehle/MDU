@@ -48,6 +48,13 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
   return (data ?? []) as unknown as SeasonTeamRow[];
 }
 
+/** Schaltet die aktive Saison um (Admin-only RPC). Ziel → active, bisher aktive → archived. */
+export async function setActiveSeason(seasonId: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const { error } = await supabase.rpc('set_active_season', { p_season_id: seasonId });
+  return { error: error?.message ?? null };
+}
+
 /** Gesamter Saisonkader einer Saison (zum Gruppieren je Team). */
 export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRow[]> {
   if (!supabase || !seasonId) return [];

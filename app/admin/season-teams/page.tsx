@@ -13,7 +13,8 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { canManageUsers } from '@/lib/auth/roles';
 
 export default function AdminSeasonTeamsPage() {
   const { user } = useAuth();
@@ -49,6 +50,26 @@ export default function AdminSeasonTeamsPage() {
 
   const rosterFor = (teamId: string) => roster.filter(p => p.team_id === teamId);
   const season = seasons.find(s => s.id === seasonId) ?? null;
+  const activeSeason = seasons.find(s => s.status === 'active') ?? null;
+  const canSwitch = canManageUsers(user); // Saison aktivieren: nur Super Admin
+
+  const [switching, setSwitching] = useState(false);
+  const [switchMsg, setSwitchMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  async function onActivate() {
+    if (!season) return;
+    if (!confirm(
+      `„${season.name}" als AKTIVE Saison schalten?\n\n` +
+      `Die bisher aktive Saison (${activeSeason?.name ?? '—'}) wird archiviert (bleibt vollständig erhalten). ` +
+      `Die öffentliche Seite zeigt danach die neue Saison.`,
+    )) return;
+    setSwitching(true); setSwitchMsg(null);
+    const { error } = await setActiveSeason(season.id);
+    if (error) { setSwitching(false); setSwitchMsg({ kind: 'err', text: error }); return; }
+    setSeasons(await listSeasons());
+    setSwitching(false);
+    setSwitchMsg({ kind: 'ok', text: `„${season.name}" ist jetzt die aktive Saison.` });
+  }
 
   return (
     <AdminGuard title="Saison-Teams" subtitle="Freigegebene Mannschaften je Saison (aus den Anmeldungen übernommen).">
@@ -65,6 +86,36 @@ export default function AdminSeasonTeamsPage() {
           </span>
         )}
       </div>
+
+      {/* Saison verwalten — aktive Saison + Umschalten (nur Super Admin) */}
+      {canSwitch && (
+        <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 18px', marginBottom: 18, maxWidth: 900, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 220, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+            Aktive Saison: <strong style={{ color: 'var(--th-text-strong)' }}>{activeSeason?.name ?? '—'}</strong>
+            <div style={{ fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 3 }}>
+              Beim Go-live die neue Saison aktivieren — die alte wird archiviert (bleibt als Historie erhalten).
+            </div>
+          </div>
+          {season && season.id !== activeSeason?.id && (
+            <button type="button" onClick={onActivate} disabled={switching} style={{
+              padding: '10px 16px', borderRadius: 8, cursor: switching ? 'wait' : 'pointer',
+              background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)',
+              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, opacity: switching ? 0.7 : 1,
+            }}>{switching ? 'Schalte …' : `„${season.name}" aktivieren`}</button>
+          )}
+          {season && season.id === activeSeason?.id && (
+            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-win)' }}>● aktiv</span>
+          )}
+        </div>
+      )}
+      {switchMsg && (
+        <div role={switchMsg.kind === 'err' ? 'alert' : 'status'} style={{
+          maxWidth: 900, marginBottom: 16, padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13,
+          background: switchMsg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)',
+          border: `1px solid ${switchMsg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`,
+          color: switchMsg.kind === 'err' ? '#E24B4A' : 'var(--th-win)',
+        }}>{switchMsg.text}</div>
+      )}
 
       {teams === null ? (
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' }}>Lade …</p>
