@@ -6,20 +6,39 @@ import { Pill } from '@/components/mdu/pill';
 import { Icon } from '@/components/mdu/icon';
 import { TeamDetailClient, type RosterEntry } from '@/components/mdu/team-detail-client';
 import {
-  TEAMS, findTeam, findLeague, findVenue,
+  findTeam, findLeague, findVenue,
   getTeamAssignment, getRankedRosterForTeam,
   getCurrentSeason, getStandings, getVenueFullAddress,
   getScheduledMatchesForTeam, getCompletedMatchesForTeam,
   getPlayerDisplayName, getCurrentCompetitionForTeam,
   getStatisticsForLeague,
 } from '@/lib/data';
+import { notFound } from 'next/navigation';
 import { shade } from '@/lib/utils';
 import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
+import { getActiveSeason, getSeasonTeam, getSeasonRoster } from '@/lib/server/season-data';
+import { SeasonTeamView } from '@/components/mdu/season-team-view';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
   const searchParams = await props.searchParams;
-  const team = findTeam(id) ?? TEAMS[0];
+
+  const staticTeam = findTeam(id);
+  // Kein statisches Team → evtl. ein Team der aktiven, selbstverwalteten Saison
+  // (aus Supabase, ohne statische Stammdaten). Archivierte Saisons nutzen die
+  // reiche statische Teamseite unten.
+  if (!staticTeam) {
+    const active = await getActiveSeason();
+    if (active.selfManaged) {
+      const st = await getSeasonTeam(active.id, id);
+      if (st) {
+        const roster = await getSeasonRoster(active.id, id);
+        return <SeasonTeamView seasonName={active.name} team={st} roster={roster} />;
+      }
+    }
+    notFound();
+  }
+  const team = staticTeam;
 
   // Hochgeladene Team-Medien (Logo/Mannschaftsbild) — Fallback auf Stammdaten.
   const teamMedia = await loadPublicTeamProfile(team.id);
