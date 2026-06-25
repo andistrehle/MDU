@@ -1,6 +1,22 @@
 # MDU Platform — Backlog / Roadmap
 
-## Erledigt — Rechtliches & Compliance (Juni 2026, zuletzt)
+## Erledigt — Medien, Mein Bereich, Datenpflege (Juni 2026, zuletzt)
+
+Live auf `main` / Vercel.
+
+- [x] **Medienverwaltung** (Supabase Storage, öffentlicher `media`-Bucket, CDN, ~0 Kosten):
+  - Wiederverwendbare `<ImageUpload>`-Komponente: Auswahl → **Browser-Komprimierung (WebP)** → Upload → öffentliche URL
+  - **Profilbild** (Profil), **Teamlogo + Mannschaftsbild** (Team bearbeiten) mit Upload/Ersetzen/Entfernen
+  - Öffentliche Anzeige: Spielerseite (Foto), Teamseite (Logo + Mannschaftsbild-Banner)
+  - **Vorhandene Fotos/Logos als Default** vorbelegt (statische `player.photoUrl` / `team.logoUrl`); Upload überschreibt nur individuell
+  - RLS: Spieler nur eigener Pfad, Kapitän nur eigenes Team, Admin alles (Migrationen `0026`, `0027`)
+- [x] **Profilbild-Veröffentlichung standardmäßig an** (Opt-out, berechtigtes Interesse); Spitzname bleibt Opt-in. Datenschutz §6 entsprechend umformuliert
+- [x] **Mein Bereich aufgeräumt/erweitert**: „Mein Team" + neue „Meine Liga" für alle team-verknüpften Nutzer (Spieler lesen, Kapitän bearbeitet); neue „Meine Statistik" (→ eigenes Spielerprofil); redundante Kacheln „Team bearbeiten"/„Kader"/„Profilbild ändern" entfernt
+- [x] **Benutzerverwaltung**: Benutzer löschen (Super Admin alle, Ligaleitung nur Spieler/Kapitäne; Server-Route mit Schutzregeln, FK-sichere Meldung)
+- [x] **Datenimport dartunion.de** erneut ausgeführt (alle 6 Wettbewerbe; 12 neue Ergebnisse, Tabellen/Ranglisten aktualisiert, 0 Dubletten)
+- [x] **Merge-Fix**: Begegnung wird je Spieltag **orientierungs-tolerant** zusammengeführt (Heim/Gast egal herum, Quelle = dartunion) → keine vertauschten Phantom-/Doppel-Spiele mehr
+
+## Erledigt — Rechtliches & Compliance (Juni 2026)
 
 Impressum, Datenschutz, Nutzungsbedingungen, Einwilligungen, Bildrechte. Live auf `main` / Vercel.
 Offene Vereinsangaben (Anschrift/Vertretung) sind eingetragen; finaler juristischer Check ausstehend.
@@ -81,7 +97,8 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 ## Wichtig / abhängig
 
-- [x] Supabase-Migrationen ausführen: bis einschließlich `0025_player_profile_consent.sql` im SQL-Editor
+- [x] Supabase-Migrationen ausführen: bis einschließlich `0026_media_bucket.sql` im SQL-Editor
+- [ ] **Migration `0027_media_team_policies.sql` im SQL-Editor ausführen** (Storage-Policies für Teamlogo/Mannschaftsbild; nötig, damit Kapitäne in den `teams/`-Pfad hochladen dürfen)
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)
