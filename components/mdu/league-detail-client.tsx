@@ -661,7 +661,7 @@ function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntr
 
           {/* Header */}
           <div style={{
-            display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
+            display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 72px 80px',
             padding: '10px 8px', borderBottom: '1px solid var(--th-line-8)',
             fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
             letterSpacing: '0.1em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
@@ -671,6 +671,7 @@ function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntr
             <span>Spieler</span>
             <span>Team</span>
             <span style={{ textAlign: 'center' }}>W · N</span>
+            <span style={{ textAlign: 'center' }}>Legs</span>
             <span style={{ textAlign: 'right' }}>Pkt.</span>
           </div>
 
@@ -678,7 +679,7 @@ function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntr
             const td = getExtendedTeam(p.teamId);
             return (
               <div key={i} style={{
-                display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
+                display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 72px 80px',
                 padding: '11px 8px',
                 borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                 fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
@@ -720,6 +721,12 @@ function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntr
                   textAlign: 'center',
                 }}>
                   {p.wins}·{p.losses}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
+                  textAlign: 'center',
+                }}>
+                  {p.legsWon != null && p.legsLost != null ? `${p.legsWon}:${p.legsLost}` : '–'}
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
@@ -804,6 +811,12 @@ function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntr
                     {p.wins} G
                     <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
                     {p.losses} V
+                    {p.legsWon != null && p.legsLost != null && (
+                      <>
+                        <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
+                        {p.legsWon}:{p.legsLost} Legs
+                      </>
+                    )}
                   </div>
                 </button>
               );
