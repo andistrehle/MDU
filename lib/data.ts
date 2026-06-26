@@ -258,7 +258,7 @@ const LA_LIGA_STANDINGS: StandingRow[] = [
 ];
 
 const A1_LIGA_STANDINGS: StandingRow[] = [
-  { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 15, s: 12, u: 1, n: 2, legs: '396:258', diff: '+138', pts: 37, status: 'promo' },
+  { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 14, s: 11, u: 1, n: 2, legs: '368:241', diff: '+127', pts: 34, status: 'promo' },
   { pos: 2, team: 'dc-animals-ii',      name: 'DC Animals II',      sp: 11, s: 7,  u: 0, n: 4, legs: '260:230', diff: '+30',  pts: 21, status: 'promo' },
   { pos: 3, team: 'gambas',             name: 'Gambas',             sp: 10, s: 5,  u: 1, n: 4, legs: '217:232', diff: '-15',  pts: 16, status: 'promo' },
   { pos: 4, team: 'spartans-vi',        name: 'Spartans VI',        sp: 12, s: 4,  u: 3, n: 5, legs: '277:258', diff: '+19',  pts: 15, status: null },
