@@ -9,6 +9,15 @@ import {
   listAllRegistrations, REGISTRATION_STATUS_LABELS,
   type TeamRegistration, type RegistrationStatus,
 } from '@/lib/supabase/registrations';
+import { getPredeterminedLeagueForTeam, isLeagueDowngrade, type MainLeague } from '@/lib/data';
+
+/** Vorbestimmte Liga, wenn die Meldung nach unten abweicht — sonst null. */
+function downgradeHint(r: TeamRegistration): string | null {
+  if (r.is_new_team || !r.source_team_id || !r.requested_league) return null;
+  const predet = getPredeterminedLeagueForTeam(r.source_team_id);
+  if (!predet || !isLeagueDowngrade(r.requested_league as MainLeague, predet.league)) return null;
+  return predet.label;
+}
 
 const STATUSES: RegistrationStatus[] = ['draft','submitted','in_review','approved','rejected','changes_requested'];
 
@@ -105,6 +114,16 @@ export default function AdminRegistrationsPage() {
                     {r.contact_name}{r.submitted_at ? ` · ${new Date(r.submitted_at).toLocaleDateString('de-DE')}` : ''}
                   </div>
                 </div>
+                {(() => {
+                  const hint = downgradeHint(r);
+                  return hint ? (
+                    <span title={`Eigentlich eine ${hint} Mannschaft`} style={{
+                      flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
+                      letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-gold)',
+                      border: '1px solid rgba(232,184,74,0.5)', borderRadius: 6, padding: '2px 7px',
+                    }}>↓ {hint}</span>
+                  ) : null;
+                })()}
                 <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: statusColor(r.status), flexShrink: 0 }}>
                   {REGISTRATION_STATUS_LABELS[r.status]}
                 </span>

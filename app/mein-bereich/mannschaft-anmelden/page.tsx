@@ -9,7 +9,9 @@ import { canStartRegistration } from '@/lib/auth/roles';
 import {
   TEAMS, findTeam, getCurrentSeason, getVenueForTeamInSeason,
   getRankedRosterForTeam, getPlayerDisplayName,
-  getTeamAssignment, MAIN_LEAGUES, mainLeagueForSubCode,
+  getTeamAssignment, MAIN_LEAGUES, MAIN_LEAGUE_LABELS, mainLeagueForSubCode,
+  getPredeterminedLeagueForTeam, isLeagueDowngrade,
+  type MainLeague, type PredeterminedLeague,
 } from '@/lib/data';
 import { loadTeamProfile } from '@/lib/supabase/profiles';
 import {
@@ -48,6 +50,8 @@ export default function MannschaftAnmeldenPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [matchHint, setMatchHint] = useState<string | null>(null);
+  // Aus den Ergebnissen der abgeschlossenen Saison vorbestimmte Liga (für Default + Abwärts-Warnung).
+  const [predetermined, setPredetermined] = useState<PredeterminedLeague | null>(null);
   const didPreselect = useRef(false);
 
   // Bestehenden Entwurf laden (?id=…)
@@ -68,6 +72,7 @@ export default function MannschaftAnmeldenPage() {
         instagram_url: reg.instagram_url ?? '', facebook_url: reg.facebook_url ?? '', website_url: reg.website_url ?? '', notes: reg.notes ?? '',
         requested_league: reg.requested_league ?? null,
       });
+      if (reg.source_team_id) setPredetermined(getPredeterminedLeagueForTeam(reg.source_team_id));
       setPlayers(await getRegistrationPlayers(id));
     })();
   }, [allowed]);
@@ -116,18 +121,22 @@ export default function MannschaftAnmeldenPage() {
     setMsg(null);
     if (value === 'NEW') {
       setDraft(d => ({ ...emptyDraft(), contact_name: d.contact_name, contact_email: d.contact_email, is_new_team: true, source_team_id: null }));
+      setPredetermined(null);
       setPlayers([]);
       return;
     }
-    if (!value) return;
+    if (!value) { setPredetermined(null); return; }
     // Bestehende Mannschaft → vorausfüllen
     const team = findTeam(value);
     const venue = getVenueForTeamInSeason(value, SEASON.id) as { name?: string; address?: string } | null;
     const extras = await loadTeamProfile(value);
     const roster = getRankedRosterForTeam(value, SEASON.id);
-    // Hauptliga aus aktueller Saison als Vorschlag (Unterstaffel NICHT übernehmen).
+    // Liga-Default: aus den Abschlussergebnissen vorbestimmte Liga der kommenden Saison;
+    // Fallback auf die aktuelle Hauptliga (Unterstaffel NICHT übernehmen).
+    const predet = getPredeterminedLeagueForTeam(value);
+    setPredetermined(predet);
     const assignment = getTeamAssignment(value, SEASON.id);
-    const suggestedLeague = assignment ? (mainLeagueForSubCode(assignment.leagueId) ?? null) : null;
+    const suggestedLeague = predet?.league ?? (assignment ? (mainLeagueForSubCode(assignment.leagueId) ?? null) : null);
     setDraft(d => ({
       ...emptyDraft(),
       source_team_id: value, is_new_team: false,
@@ -282,6 +291,27 @@ export default function MannschaftAnmeldenPage() {
                         );
                       })}
                     </div>
+                    {predetermined && (
+                      <p style={{ ...hintStyle, marginTop: 8 }}>
+                        Vorausgewählt anhand der {SEASON.name}: <strong style={{ color: 'var(--th-text-body)' }}>{predetermined.label}</strong>.
+                      </p>
+                    )}
+                    {(() => {
+                      const chosen = draft.requested_league as MainLeague | null;
+                      if (!predetermined || !chosen || !isLeagueDowngrade(chosen, predetermined.league)) return null;
+                      return (
+                        <div role="alert" style={{
+                          marginTop: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)',
+                          borderRadius: 8, padding: '10px 14px',
+                          fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.55,
+                        }}>
+                          ⚠️ Gemäß den Ergebnissen der {SEASON.name} sollte die Mannschaft{draft.team_name ? ` „${draft.team_name}"` : ''} eigentlich
+                          in der <strong>{predetermined.label}</strong> spielen. Du kannst die Anmeldung in der{' '}
+                          <strong>{MAIN_LEAGUE_LABELS[chosen]}</strong> trotzdem absenden, musst aber mit einer Ablehnung
+                          durch die Ligaleitung rechnen.
+                        </div>
+                      );
+                    })()}
                     <p style={{ ...hintStyle, marginTop: 8 }}>Die endgültige Staffelzuordnung, z. B. B1 oder B2, erfolgt später durch die Ligaleitung.</p>
                   </Field>
                 </Section>

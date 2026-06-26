@@ -48,6 +48,10 @@ import {
   getPlayerByName as _getPlayerByName,
   type SeasonPlayerStats,
 } from './data/player-stats';
+// Vorbestimmte-Liga-Ableitung (Auf-/Abstieg → Liga der kommenden Saison).
+import { getCurrentSeason as _getCurrentSeason } from './data/seasons';
+import { getRowOutcome as _getRowOutcome } from './data/competition-outcomes';
+import { MAIN_LEAGUE_LABELS as _MAIN_LEAGUE_LABELS, type MainLeague as _MainLeague } from './data/leagues';
 
 // ── Re-exports ────────────────────────────────────────────────
 export type { SeasonStatus, Season }          from './data/seasons';
@@ -683,6 +687,71 @@ export function getCurrentCompetitionForTeam(
 
   // 3. No competition found
   return { leagueId: '', league: undefined, standing: null, isPlayoff: false };
+}
+
+// ── Vorbestimmte Liga der kommenden Saison ────────────────────
+//
+// Aus den Abschlussergebnissen der Basis-Saison (Default: aktuelle =
+// abgeschlossene Saison) ergibt sich für jede bestehende Mannschaft die
+// Liga der kommenden Saison. Entscheidend ist der
+// getCurrentCompetitionForTeam-Wettbewerb: für A/B die Playoff-Gruppe
+// (Auf-/Abstieg), für La/C die Liga selbst. Gruppentabellen (a1/a2/b1/b2)
+// entscheiden nur die Playoff-Qualifikation → ohne Playoff-Ergebnis
+// (z. B. zurückgezogen) bleibt die Mannschaft in ihrer Hauptliga.
+
+const MAIN_LEAGUE_RANK: Record<_MainLeague, number> = {
+  la_liga: 0, a_liga: 1, b_liga: 2, c_liga: 3,
+};
+
+const PREDETERMINED_TARGET: Record<string, { base: _MainLeague; up?: _MainLeague; down?: _MainLeague }> = {
+  la: { base: 'la_liga', down: 'a_liga' },
+  c:  { base: 'c_liga',  up: 'b_liga' },
+  'playoffs-a-aufstieg': { base: 'a_liga', up: 'la_liga' },
+  'playoffs-a-abstieg':  { base: 'a_liga', down: 'b_liga' },
+  'playoffs-b-aufstieg': { base: 'b_liga', up: 'a_liga' },
+  'playoffs-b-abstieg':  { base: 'b_liga', down: 'c_liga' },
+  a1: { base: 'a_liga' }, a2: { base: 'a_liga' },
+  b1: { base: 'b_liga' }, b2: { base: 'b_liga' },
+};
+
+export interface PredeterminedLeague {
+  league: _MainLeague;
+  label: string;
+  /** Wettbewerb, aus dem die Zuordnung abgeleitet wurde (z. B. 'playoffs-a-abstieg'). */
+  basisCompetitionId: string;
+  /** Team hat sich zurückgezogen — bleibt formal in seiner Hauptliga. */
+  withdrawn: boolean;
+}
+
+/**
+ * Liga, in der eine bestehende Mannschaft in der kommenden Saison antreten
+ * sollte — abgeleitet aus den Ergebnissen der Basis-Saison (Default: aktuelle,
+ * abgeschlossene Saison). Gibt null zurück für neue/unbekannte Teams oder
+ * fehlende Standings.
+ */
+export function getPredeterminedLeagueForTeam(
+  teamId: string,
+  basisSeasonId: string = _getCurrentSeason().id,
+): PredeterminedLeague | null {
+  const comp = getCurrentCompetitionForTeam(teamId, basisSeasonId);
+  const cfg = PREDETERMINED_TARGET[comp.leagueId];
+  if (!cfg || !comp.standing) return null;
+  const total = getStandings(comp.leagueId).length;
+  const outcome = _getRowOutcome(basisSeasonId, comp.leagueId, comp.standing.pos, total, teamId);
+  let league = cfg.base;
+  if (outcome?.type === 'promotion' && cfg.up) league = cfg.up;
+  else if (outcome?.type === 'relegation' && cfg.down) league = cfg.down;
+  return {
+    league,
+    label: _MAIN_LEAGUE_LABELS[league],
+    basisCompetitionId: comp.leagueId,
+    withdrawn: outcome?.type === 'withdrawn',
+  };
+}
+
+/** True, wenn die gewählte Hauptliga niedriger ist als die vorbestimmte (Abweichung nach unten). */
+export function isLeagueDowngrade(chosen: _MainLeague, predetermined: _MainLeague): boolean {
+  return MAIN_LEAGUE_RANK[chosen] > MAIN_LEAGUE_RANK[predetermined];
 }
 
 /**

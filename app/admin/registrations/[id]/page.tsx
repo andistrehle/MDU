@@ -11,7 +11,10 @@ import {
   updateRegistrationSeason, updateRegistrationAssignedCompetition,
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
-import { MAIN_LEAGUE_LABELS, subLeaguesForMain, type MainLeague } from '@/lib/data';
+import {
+  MAIN_LEAGUE_LABELS, subLeaguesForMain, type MainLeague,
+  getPredeterminedLeagueForTeam, isLeagueDowngrade,
+} from '@/lib/data';
 import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
 import {
   getActiveSeason, listSeasons, canRegisterTeamsForSeason, SEASON_STATUS_LABELS, type DbSeason,
@@ -45,6 +48,12 @@ export default function RegistrationDetailPage() {
 
   // Aktuell gewählte Ziel-Saison (für Anzeige + Validierung).
   const targetSeason = seasons.find(s => s.id === targetSeasonId) ?? null;
+
+  // Aus den Abschlussergebnissen vorbestimmte Liga (nur bestehende Teams).
+  const predetermined = reg && !reg.is_new_team && reg.source_team_id
+    ? getPredeterminedLeagueForTeam(reg.source_team_id) : null;
+  const requestedDowngrade = predetermined && reg?.requested_league
+    ? isLeagueDowngrade(reg.requested_league as MainLeague, predetermined.league) : false;
 
   useEffect(() => {
     if (!canReview || !id) return;
@@ -241,6 +250,19 @@ export default function RegistrationDetailPage() {
           {/* Liga: Wunsch + endgültige Staffel */}
           <Card title="Liga">
             <Row k="Gewünschte Liga (Team)" v={reg.requested_league ? (MAIN_LEAGUE_LABELS[reg.requested_league as MainLeague] ?? reg.requested_league) : 'Keine Angabe'} />
+            {predetermined && (
+              <Row k="Vorbestimmte Liga" v={`Eigentlich eine ${predetermined.label} Mannschaft${predetermined.withdrawn ? ' (in der Vorsaison zurückgezogen)' : ''}`} />
+            )}
+            {requestedDowngrade && predetermined && (
+              <div role="alert" style={{
+                marginTop: 6, marginBottom: 2, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)',
+                borderRadius: 8, padding: '10px 14px',
+                fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.55,
+              }}>
+                ⚠️ Abweichung nach unten: Die Mannschaft hat sich für eine niedrigere Liga gemeldet als
+                vorgesehen (eigentlich <strong>{predetermined.label}</strong>).
+              </div>
+            )}
             {reg.applied_at ? (
               <Row k="Endgültige Staffel" v={reg.assigned_competition_id ? reg.assigned_competition_id.toUpperCase() : 'noch nicht zugewiesen'} />
             ) : (
