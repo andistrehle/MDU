@@ -920,7 +920,7 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
           className="mdu-tabs-row"
           style={{
             maxWidth: 1280, margin: '0 auto', padding: '0 28px',
-            display: 'flex', alignItems: 'center', gap: 36, overflowX: 'auto',
+            display: 'flex', alignItems: 'center', gap: 36, overflowX: 'auto', overflowY: 'hidden',
           }}
         >
           {TABS.map((tab, i) => (
