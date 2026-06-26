@@ -8,7 +8,8 @@ import { TeamLink } from './team-link';
 import { FormDots } from './form-dots';
 import { Icon } from './icon';
 import { statusColor, diffColor } from '@/lib/utils';
-import { getExtendedTeam } from '@/lib/data';
+import { getExtendedTeam, getCurrentSeason } from '@/lib/data';
+import { getRowOutcome, outcomeColor, getLegendForRows } from '@/lib/data/competition-outcomes';
 import { getTeamUrl } from '@/lib/links';
 
 interface StandingRow {
@@ -42,13 +43,24 @@ interface StandingsTableProps {
   activeTeamId?: string;
   /** Optional competition context carried into team-profile links. */
   competitionId?: string;
+  /** Saison-Kontext für die Abschlussregeln (Default: aktuelle Saison). */
+  seasonId?: string;
 }
 
-const LEGEND = [
+const LEGEND_FALLBACK = [
   { c: '#22C55E', t: 'Aufstiegsplatz' },
   { c: '#3B82F6', t: 'Playoff Platz' },
   { c: '#D40000', t: 'Abstiegsplatz' },
 ];
+
+/** Kompaktes Status-Label (Mobile) — „Verbleib" wird bewusst nicht beschriftet. */
+const SHORT_OUTCOME_LABEL: Record<string, string> = {
+  promotion: 'Aufstieg',
+  playoff_promotion: 'Aufstiegs-Playoff',
+  playoff_relegation: 'Abstiegs-Playoff',
+  relegation: 'Abstieg',
+  withdrawn: 'Zurückgezogen',
+};
 
 export function StandingsTable({
   rows,
@@ -58,9 +70,21 @@ export function StandingsTable({
   onRowClick,
   activeTeamId,
   competitionId,
+  seasonId,
 }: StandingsTableProps) {
   const router = useRouter();
   const [expandedPos, setExpandedPos] = useState<number | null>(null);
+
+  const season = seasonId ?? getCurrentSeason().id;
+  const total = rows.length;
+  // Outcome je Zeile aus der zentralen Config (positionsbasiert); null → Fallback.
+  const outcomeOf = (r: { pos: number; team: string }) =>
+    getRowOutcome(season, competitionId, r.pos, total, r.team);
+  // Legende passend zur konkreten Tabelle; leer → Fallback-Legende.
+  const legendItems = (() => {
+    const dyn = getLegendForRows(season, competitionId, rows);
+    return dyn.length ? dyn.map(l => ({ c: l.color, t: l.label })) : LEGEND_FALLBACK;
+  })();
 
   // Grid columns: Pl. | Team | Sp. | Pkt. | S | [U] | N | Spiele | Legs | Diff. | [Form]
   const colTemplate = showForm
@@ -148,6 +172,8 @@ export function StandingsTable({
             const sp    = r.sp ?? r.p ?? 0;
             const wins  = r.s ?? r.w ?? 0;
             const losses = r.n ?? r.l ?? 0;
+            const outcome = outcomeOf(r);
+            const barColor = outcome ? outcomeColor(outcome.type) : statusColor(r.status);
             return (
               <div
                 key={r.pos}
@@ -172,6 +198,7 @@ export function StandingsTable({
               >
                 {/* Status colour bar */}
                 <span
+                  title={outcome?.label}
                   style={{
                     position: 'absolute',
                     left: -8,
@@ -179,10 +206,9 @@ export function StandingsTable({
                     bottom: 8,
                     width: 3,
                     borderRadius: 2,
-                    background:
-                      activeTeamId && r.team === activeTeamId
-                        ? 'var(--th-text-strong)'
-                        : statusColor(r.status),
+                    // Outcome-Farbe immer zeigen (auch für das ausgewählte Team –
+                    // die Auswahl wird bereits über den Zeilen-Hintergrund markiert).
+                    background: barColor,
                   }}
                 />
                 <span
@@ -321,7 +347,7 @@ export function StandingsTable({
               flexWrap: 'wrap',
             }}
           >
-            {LEGEND.map(x => (
+            {legendItems.map(x => (
               <div
                 key={x.t}
                 style={{
@@ -393,7 +419,9 @@ export function StandingsTable({
               const losses = r.n ?? r.l ?? 0;
               const isExpanded = expandedPos === r.pos;
               const displayName = (r.name ?? teamData.name).replace(' *', '');
-              const barColor = statusColor(r.status);
+              const mOutcome = outcomeOf(r);
+              const barColor = mOutcome ? outcomeColor(mOutcome.type) : statusColor(r.status);
+              const shortLabel = mOutcome ? SHORT_OUTCOME_LABEL[mOutcome.type] : undefined;
 
               return (
                 <div
@@ -445,20 +473,31 @@ export function StandingsTable({
                           logoUrl={teamData.logoUrl}
                         />
                       </span>
-                      <span
-                        className="mdu-link-name"
-                        style={{
-                          fontFamily: 'var(--font-manrope)',
-                          fontWeight: 700,
-                          fontSize: 12,
-                          color: 'var(--th-text-strong)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          minWidth: 0,
-                        }}
-                      >
-                        {displayName}
+                      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
+                        <span
+                          className="mdu-link-name"
+                          style={{
+                            fontFamily: 'var(--font-manrope)',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            color: 'var(--th-text-strong)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                          }}
+                        >
+                          {displayName}
+                        </span>
+                        {shortLabel && (
+                          <span style={{
+                            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 8.5,
+                            letterSpacing: '0.04em', textTransform: 'uppercase', color: barColor,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                            {shortLabel}
+                          </span>
+                        )}
                       </span>
                     </TeamLink>
 
@@ -622,7 +661,7 @@ export function StandingsTable({
               flexWrap: 'wrap',
             }}
           >
-            {LEGEND.map(x => (
+            {legendItems.map(x => (
               <div
                 key={x.t}
                 style={{

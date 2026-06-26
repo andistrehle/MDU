@@ -18,6 +18,7 @@ import { shade } from '@/lib/utils';
 import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
 import { getActiveSeason, getSeasonTeam, getSeasonRoster } from '@/lib/server/season-data';
 import { SeasonTeamView } from '@/components/mdu/season-team-view';
+import { getRowOutcome } from '@/lib/data/competition-outcomes';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
@@ -72,6 +73,19 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   }
 
   const { leagueId: currentLeagueId, league: teamLeague, standing: teamStanding } = competition;
+
+  // Abschluss-/Playoff-Markierung des Teams (zentrale Config) für die Pills.
+  const teamOutcome = teamStanding && currentLeagueId
+    ? getRowOutcome(season.id, currentLeagueId, teamStanding.pos, getStandings(currentLeagueId).length, team.id)
+    : null;
+  const outcomePill: Record<string, { tone: 'green' | 'red' | 'gold' | 'neutral'; label: string }> = {
+    promotion:          { tone: 'green',   label: 'Aufstieg' },
+    playoff_promotion:  { tone: 'green',   label: 'Aufstiegs-Playoff' },
+    relegation:         { tone: 'red',     label: 'Abstieg' },
+    playoff_relegation: { tone: 'gold',    label: 'Abstiegs-Playoff' },
+    withdrawn:          { tone: 'neutral', label: 'Zurückgezogen' },
+  };
+  const teamPill = teamOutcome ? outcomePill[teamOutcome.type] : undefined;
 
   // ── Regular-season assignment (for venue + captain data) ─────
   const assignment   = getTeamAssignment(team.id, season.id);
@@ -176,8 +190,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                 {teamLeague && <Pill tone="red">{leagueLabel}</Pill>}
                 {teamStanding?.pos === 1 && <Pill tone="gold">Tabellenführer</Pill>}
-                {teamStanding && teamStanding.status === 'promo' && teamStanding.pos > 1 && <Pill tone="blue">Aufstiegsplatz</Pill>}
-                {teamStanding?.status === 'releg' && <Pill tone="neutral">Abstiegsplatz</Pill>}
+                {teamPill && <Pill tone={teamPill.tone}>{teamPill.label}</Pill>}
                 {team.status === 'inactive' && <Pill tone="neutral">Zurückgezogen</Pill>}
               </div>
               <h1 className="mdu-team-name" style={{

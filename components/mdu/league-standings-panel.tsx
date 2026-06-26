@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { StandingsTable } from './standings-table';
 import { Icon } from './icon';
-import { getExtendedTeam } from '@/lib/data';
+import { getExtendedTeam, getCurrentSeason } from '@/lib/data';
+import { getCompetitionNote } from '@/lib/data/competition-outcomes';
 
 // ── Types passed from the Server Component ────────────────────
 
@@ -135,6 +136,18 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
           </div>
         ) : (
           <>
+            {(() => {
+              const note = getCompetitionNote(getCurrentSeason().id, league.id);
+              return note ? (
+                <div style={{
+                  marginBottom: 12, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)',
+                  borderRadius: 8, padding: '10px 14px',
+                  fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.55,
+                }}>
+                  {note}
+                </div>
+              ) : null;
+            })()}
             <StandingsTable
               rows={rows}
               showU={true}

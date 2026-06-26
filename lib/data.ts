@@ -237,8 +237,9 @@ export interface RosterPlayer {
 // Legs column = actual legs won:lost from dartunion.de "Legs" field.
 // Diff = Legs-For minus Legs-Against.
 // Scoring: 3 pts win · 1 pt draw · 0 pts loss (official dartunion.de Punkte used as-is).
-// Note on treff-nix-freimann: appears in both A1 (withdrawn after 4 games)
-// and A2 (transferred mid-season, 8 games). Current assignment → A2.
+// Note on treff-nix-freimann: belongs to A2 only (its A1 standings entry was a
+// misassignment and has been removed). It qualified for the A-Aufstiegs-Playoff
+// via A2.
 
 const LA_LIGA_STANDINGS: StandingRow[] = [
   // Source: https://dartunion.de/ranking01.php?LigaId=88 (2026-05-27)
@@ -259,7 +260,9 @@ const A1_LIGA_STANDINGS: StandingRow[] = [
   { pos: 4, team: 'spartans-vi',        name: 'Spartans VI',        sp: 12, s: 4,  u: 3, n: 5, legs: '277:258', diff: '+19',  pts: 15, status: null },
   { pos: 5, team: 'sound-warriors',     name: "Sound Warrior's",    sp: 12, s: 4,  u: 0, n: 8, legs: '219:306', diff: '-87',  pts: 9,  status: null },
   { pos: 6, team: 'game-over',          name: 'Game Over',          sp: 10, s: 2,  u: 1, n: 7, legs: '205:246', diff: '-41',  pts: 7,  status: 'releg' },
-  { pos: 7, team: 'treff-nix-freimann', name: 'Treff Nix Freimann', sp: 4,  s: 0,  u: 0, n: 4, legs: '68:112',  diff: '-44',  pts: 0,  status: 'releg' },
+  // Hinweis: „Treff Nix Freimann" gehört NICHT in die A1-Liga (Fehlzuordnung
+  // entfernt). Das Team spielte regulär in A2 und qualifizierte sich über A2
+  // für den A-Aufstiegs-Playoff (siehe A2_LIGA_STANDINGS / PLAYOFFS_A_AUFSTIEG).
 ];
 
 const A2_LIGA_STANDINGS: StandingRow[] = [
