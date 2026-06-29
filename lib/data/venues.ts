@@ -156,8 +156,8 @@ export const VENUES: Venue[] = [
   {
     id: 'heuboden-bar',
     name: 'Heuboden Bar',
-    address: 'Kapuziener Str. 2',
-    city: '85377 München',
+    address: 'Kapuzinerstr. 2',
+    city: '80337 München',
     phone: '0178 8808157',
   },
   {
