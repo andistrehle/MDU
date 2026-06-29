@@ -7,7 +7,8 @@ import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/auth/roles';
-import { getCurrentSeason, getCurrentCompetitionForTeam } from '@/lib/data';
+import { useCaptainMode } from '@/lib/auth/use-captain-mode';
+import { getCurrentSeason, getCurrentCompetitionForTeam, findTeam } from '@/lib/data';
 import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 import { useNotifications, type NotificationArea } from '@/lib/supabase/user-notifications';
 
@@ -24,9 +25,16 @@ interface Tile {
   notifKey?: NotificationArea;
 }
 
+/** Darf der Nutzer den Kapitäns-Modus nutzen? (Admin mit verknüpftem eigenem Team.) */
+function canUseCaptainMode(user: UserProfile): boolean {
+  return canManageLeague(user) && !!user.teamId;
+}
+
 /** Rollenbasierte Kacheln — zentral definiert, Rechte via roles.ts. */
-function tilesFor(user: UserProfile): Tile[] {
+function tilesFor(user: UserProfile, captainMode: boolean): Tile[] {
   const tiles: Tile[] = [];
+  // Kapitäns-Einstiege: echte Kapitäne immer; Admins nur im aktivierten Kapitäns-Modus.
+  const showCaptainTiles = hasRole(user, 'team_captain') || (captainMode && canUseCaptainMode(user));
 
   // Spieler aufwärts — eigenes Profil + eigene Statistik
   if (hasMinRole(user, 'player')) {
@@ -53,8 +61,8 @@ function tilesFor(user: UserProfile): Tile[] {
     }
   }
 
-  // Teamkapitän — Team-Verwaltung
-  if (hasRole(user, 'team_captain')) {
+  // Teamkapitän (oder Admin im Kapitäns-Modus) — Team-Verwaltung
+  if (showCaptainTiles) {
     tiles.push(
       { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
       { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },
@@ -91,6 +99,7 @@ export default function MeinBereichPage() {
   const { user, loading, signOut } = useAuth();
   const { counts } = useAdminNotificationCounts();
   const { byArea } = useNotifications();
+  const [captainMode, setCaptainMode] = useCaptainMode();
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -180,6 +189,40 @@ export default function MeinBereichPage() {
               </button>
             </div>
 
+            {/* Kapitäns-Modus — nur für Ligaleitung/Super-Admin mit eigenem Team */}
+            {canUseCaptainMode(user) && (
+              <div style={{
+                background: captainMode ? 'var(--th-accent-a07)' : 'var(--th-bg-card)',
+                border: `1px solid ${captainMode ? 'var(--th-accent-a25)' : 'var(--th-line-6)'}`,
+                borderRadius: 12, padding: '12px 16px', marginBottom: 18,
+                display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+              }}>
+                <Icon name="users" size={18} stroke={2} style={{ color: 'var(--th-accent)', flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>
+                    Kapitäns-Modus{user.teamId ? ` · ${findTeam(user.teamId)?.name ?? user.teamId}` : ''}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2, lineHeight: 1.5 }}>
+                    Blendet die Kapitäns-Funktionen für dein eigenes Team ein (Mannschaft anmelden, Spielberichte …).
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCaptainMode(!captainMode)}
+                  aria-pressed={captainMode}
+                  style={{
+                    padding: '9px 18px', borderRadius: 8, cursor: 'pointer', flexShrink: 0,
+                    background: captainMode ? 'var(--th-accent)' : 'transparent',
+                    color: captainMode ? '#fff' : 'var(--th-accent)',
+                    border: `1.5px solid ${captainMode ? 'var(--th-accent-hover)' : 'var(--th-accent)'}`,
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+                  }}
+                >
+                  {captainMode ? 'Aktiv – ausschalten' : 'Einschalten'}
+                </button>
+              </div>
+            )}
+
             {/* Hinweise: erkanntes Spielerprofil / Teamkapitän-Wunsch */}
             {(() => {
               const hints: string[] = [];
@@ -204,7 +247,7 @@ export default function MeinBereichPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,
             }}>
-              {tilesFor(user).map(tile => {
+              {tilesFor(user, captainMode).map(tile => {
                 const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : tile.notifKey ? byArea[tile.notifKey] : 0;
                 const inner = (
                   <div style={{
