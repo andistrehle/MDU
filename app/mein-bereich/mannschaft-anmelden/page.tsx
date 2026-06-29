@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
+import { ImageUpload } from '@/components/mdu/image-upload';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canStartRegistration } from '@/lib/auth/roles';
 import {
@@ -53,6 +54,8 @@ export default function MannschaftAnmeldenPage() {
   // Aus den Ergebnissen der abgeschlossenen Saison vorbestimmte Liga (für Default + Abwärts-Warnung).
   const [predetermined, setPredetermined] = useState<PredeterminedLeague | null>(null);
   const didPreselect = useRef(false);
+  // Fallback-Upload-Ordner (nur für Admins ohne Team/Spieler relevant).
+  const uploadIdRef = useRef(Math.random().toString(36).slice(2, 10));
 
   // Bestehenden Entwurf laden (?id=…)
   useEffect(() => {
@@ -224,6 +227,13 @@ export default function MannschaftAnmeldenPage() {
     router.push('/mein-bereich/anmeldungen');
   }
 
+  // Upload-Zielordner: eigenes Team → teams/{id}; sonst → players/{playerId}
+  // (Storage-RLS erlaubt Nicht-Admins nur diese Pfade). reg-* nur als Admin-Fallback.
+  const uploadFolder =
+    user?.teamId && user.teamId === choice ? `teams/${choice}`
+    : user?.playerId ? `players/${user.playerId}`
+    : `teams/reg-${uploadIdRef.current}`;
+
   return (
     <MemberShell title="Mannschaft anmelden">
       {loading ? <Muted>Lade …</Muted>
@@ -268,9 +278,28 @@ export default function MannschaftAnmeldenPage() {
                   <Field label="Teamname *"><input value={draft.team_name} onChange={e => set('team_name', e.target.value)} style={inputStyle} /></Field>
                   <Field label="Kurzname (optional)"><input value={draft.short_name ?? ''} onChange={e => set('short_name', e.target.value)} maxLength={4} style={inputStyle} /></Field>
                   <Field label="Beschreibung (optional)"><textarea value={draft.description ?? ''} onChange={e => set('description', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
-                  <Field label="Teamlogo (Bild-URL)"><input value={draft.logo_url ?? ''} onChange={e => set('logo_url', e.target.value)} placeholder="https://…" style={inputStyle} /></Field>
-                  <Field label="Mannschaftsbild (Bild-URL)"><input value={draft.team_image_url ?? ''} onChange={e => set('team_image_url', e.target.value)} placeholder="https://…" style={inputStyle} /></Field>
-                  <p style={hintStyle}>Direkter Datei-Upload (Logo/Mannschaftsbild) folgt mit Supabase Storage. Bis dahin bitte Bild-URL angeben. Nur Bilder verwenden, für die die nötigen Rechte vorliegen.</p>
+                  <Field label="Teamlogo">
+                    <ImageUpload
+                      value={draft.logo_url || null}
+                      onChange={url => setDraft(d => ({ ...d, logo_url: url ?? '' }))}
+                      folder={uploadFolder}
+                      fileBase="reg-logo"
+                      maxDim={400}
+                      shape="square"
+                      removable={!!draft.logo_url}
+                    />
+                  </Field>
+                  <Field label="Mannschaftsbild (optional)">
+                    <ImageUpload
+                      value={draft.team_image_url || null}
+                      onChange={url => setDraft(d => ({ ...d, team_image_url: url ?? '' }))}
+                      folder={uploadFolder}
+                      fileBase="reg-photo"
+                      maxDim={1000}
+                      shape="square"
+                    />
+                  </Field>
+                  <p style={hintStyle}>Bilder werden beim Hochladen automatisch verkleinert. Bei einer bestehenden Mannschaft ist das bekannte Logo voreingestellt. Mannschaftsbilder bitte nur mit Zustimmung aller abgebildeten Personen.</p>
 
                   <Field label="Für welche Liga möchtet ihr eure Mannschaft anmelden? *">
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
