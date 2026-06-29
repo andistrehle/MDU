@@ -48,6 +48,7 @@ export default function MannschaftAnmeldenPage() {
   const [draft, setDraft] = useState<RegistrationDraft>(emptyDraft());
   const [players, setPlayers] = useState<RegistrationPlayer[]>([]);
   const [confirmed, setConfirmed] = useState(false);
+  const [acceptedRules, setAcceptedRules] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [matchHint, setMatchHint] = useState<string | null>(null);
@@ -263,6 +264,7 @@ export default function MannschaftAnmeldenPage() {
     const v = validate();
     if (v) { setMsg({ kind: 'err', text: v }); return; }
     if (!confirmed) { setMsg({ kind: 'err', text: 'Bitte die Bestätigung der Rechte/Angaben ankreuzen.' }); return; }
+    if (!acceptedRules) { setMsg({ kind: 'err', text: 'Bitte die Spielbedingungen der MDU bestätigen.' }); return; }
     setBusy(true); setMsg(null);
     const id = await persist();
     if (!id) { setBusy(false); return; }
@@ -481,6 +483,15 @@ export default function MannschaftAnmeldenPage() {
                       für die Mannschaftsanmeldung zu verwenden und dass für hochgeladene Mannschaftsbilder/Logos
                       die notwendigen Rechte bzw. Zustimmungen vorliegen.{' '}
                       <Link href="/datenschutz" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>Datenschutz</Link>
+                    </span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.55 }}>
+                    <input type="checkbox" checked={acceptedRules} onChange={e => setAcceptedRules(e.target.checked)} style={{ marginTop: 3, flexShrink: 0 }} />
+                    <span>
+                      Ich habe die{' '}
+                      <Link href="/spielbedingungen" target="_blank" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>Spielbedingungen der MDU</Link>{' '}
+                      gelesen und erkenne sie für die Mannschaft verbindlich an.
                     </span>
                   </label>
 
