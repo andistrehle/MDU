@@ -33,8 +33,10 @@ function canUseCaptainMode(user: UserProfile): boolean {
 /** Rollenbasierte Kacheln — zentral definiert, Rechte via roles.ts. */
 function tilesFor(user: UserProfile, captainMode: boolean): Tile[] {
   const tiles: Tile[] = [];
-  // Kapitäns-Einstiege: echte Kapitäne immer; Admins nur im aktivierten Kapitäns-Modus.
-  const showCaptainTiles = hasRole(user, 'team_captain') || (captainMode && canUseCaptainMode(user));
+  // Kapitäns-Modus nur wirksam für Admins mit eigenem Team. Dann: Admin-Kacheln
+  // ausblenden, Kapitäns-Einstiege zeigen (echte Kapitäne sehen sie immer).
+  const inCaptainMode = captainMode && canUseCaptainMode(user);
+  const showCaptainTiles = hasRole(user, 'team_captain') || inCaptainMode;
 
   // Spieler aufwärts — eigenes Profil + eigene Statistik
   if (hasMinRole(user, 'player')) {
@@ -71,8 +73,8 @@ function tilesFor(user: UserProfile, captainMode: boolean): Tile[] {
     );
   }
 
-  // Ligaleitung / Vorstand aufwärts — Verwaltung
-  if (canManageLeague(user)) {
+  // Ligaleitung / Vorstand aufwärts — Verwaltung (im Kapitäns-Modus ausgeblendet)
+  if (canManageLeague(user) && !inCaptainMode) {
     tiles.push(
       { icon: 'check',  label: 'Teams freigeben',         description: 'Teams für die Saison verwalten.', href: '/admin/teams', ready: true },
       { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true, badgeKey: 'users' },
@@ -84,8 +86,8 @@ function tilesFor(user: UserProfile, captainMode: boolean): Tile[] {
     );
   }
 
-  // Super Admin — exklusiv
-  if (canManageUsers(user)) {
+  // Super Admin — exklusiv (im Kapitäns-Modus ausgeblendet)
+  if (canManageUsers(user) && !inCaptainMode) {
     tiles.push(
       { icon: 'edit',     label: 'Rollenverwaltung',    description: 'Rollen vergeben (in der Benutzerverwaltung).', href: '/admin/users', ready: true },
       { icon: 'settings', label: 'Systemeinstellungen', description: 'Plattform-Einstellungen (folgt).', ready: false },
@@ -200,10 +202,14 @@ export default function MeinBereichPage() {
                 <Icon name="users" size={18} stroke={2} style={{ color: 'var(--th-accent)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>
-                    Kapitäns-Modus{user.teamId ? ` · ${findTeam(user.teamId)?.name ?? user.teamId}` : ''}
+                    {captainMode
+                      ? `Kapitäns-Modus aktiv${user.teamId ? ` · ${findTeam(user.teamId)?.name ?? user.teamId}` : ''}`
+                      : 'Admin-Modus'}
                   </div>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2, lineHeight: 1.5 }}>
-                    Blendet die Kapitäns-Funktionen für dein eigenes Team ein (Mannschaft anmelden, Spielberichte …).
+                    {captainMode
+                      ? 'Du siehst aktuell nur die Kapitäns-Funktionen deines Teams. Die Admin-Funktionen sind ausgeblendet.'
+                      : 'In den Kapitäns-Modus wechseln, um nur die Funktionen deines eigenen Teams zu sehen (Admin-Funktionen ausgeblendet).'}
                   </div>
                 </div>
                 <button
@@ -212,13 +218,13 @@ export default function MeinBereichPage() {
                   aria-pressed={captainMode}
                   style={{
                     padding: '9px 18px', borderRadius: 8, cursor: 'pointer', flexShrink: 0,
-                    background: captainMode ? 'var(--th-accent)' : 'transparent',
-                    color: captainMode ? '#fff' : 'var(--th-accent)',
-                    border: `1.5px solid ${captainMode ? 'var(--th-accent-hover)' : 'var(--th-accent)'}`,
+                    background: captainMode ? 'transparent' : 'var(--th-accent)',
+                    color: captainMode ? 'var(--th-accent)' : '#fff',
+                    border: `1.5px solid ${captainMode ? 'var(--th-accent)' : 'var(--th-accent-hover)'}`,
                     fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
                   }}
                 >
-                  {captainMode ? 'Aktiv – ausschalten' : 'Einschalten'}
+                  {captainMode ? 'In den Admin-Modus wechseln' : 'In den Kapitäns-Modus wechseln'}
                 </button>
               </div>
             )}
