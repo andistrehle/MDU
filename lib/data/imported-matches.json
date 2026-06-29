@@ -226,8 +226,11 @@
     "awayTeamName": "Spartans",
     "date": null,
     "time": null,
-    "status": "scheduled",
-    "result": null,
+    "status": "completed",
+    "result": {
+      "home": 7,
+      "away": 11
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
@@ -977,10 +980,13 @@
     "awayTeamId": "ohne-jackie",
     "homeTeamName": "DC Null Bull",
     "awayTeamName": "Ohne Jackie",
-    "date": "2026-06-27",
-    "time": "20:30",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 8,
+      "away": 10
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
@@ -1028,10 +1034,13 @@
     "awayTeamId": "dc-null-bull",
     "homeTeamName": "Spartans",
     "awayTeamName": "DC Null Bull",
-    "date": "2026-06-19",
-    "time": "20:00",
-    "status": "scheduled",
-    "result": null,
+    "date": null,
+    "time": null,
+    "status": "completed",
+    "result": {
+      "home": 14,
+      "away": 4
+    },
     "sourceUrl": "https://dartunion.de/playplantableExtern_display.php?ddSelectLiga=88"
   },
   {
