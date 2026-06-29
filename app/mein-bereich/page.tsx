@@ -5,7 +5,7 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers } from '@/lib/auth/roles';
+import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers, canEditTeam } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/auth/roles';
 import { useCaptainMode } from '@/lib/auth/use-captain-mode';
 import { getCurrentSeason, getCurrentCompetitionForTeam, findTeam } from '@/lib/data';
@@ -27,6 +27,8 @@ interface Tile {
   notifKey?: NotificationArea;
   /** Badge-Text für inaktive Kacheln (Default „Folgt"). */
   inactiveLabel?: string;
+  /** Statt Icon: Team-Kürzel-Badge (z. B. „FDF") in Teamfarbe. */
+  teamBadge?: { text: string; color: string };
 }
 
 /** Darf der Nutzer den Kapitäns-Modus nutzen? (Admin mit verknüpftem eigenem Team.) */
@@ -56,9 +58,19 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
 
   // Mit einem Team verknüpft (Spieler ODER Kapitän) — Team & Liga ansehen
   if (user.teamId) {
-    tiles.push(
-      { icon: 'users', label: 'Mein Team', description: 'Übersicht deines Teams.', href: '/mein-team', ready: true, notifKey: 'team' },
-    );
+    const myTeam = findTeam(user.teamId);
+    // Kapitäne/Admins → Verwaltungs-Untermenü; reine Spieler → direkt zum öffentlichen Profil.
+    const teamEditable = canEditTeam(user, user.teamId);
+    tiles.push({
+      icon: 'users',
+      teamBadge: myTeam ? { text: myTeam.short, color: myTeam.color } : undefined,
+      label: myTeam ? `Mein Team – ${myTeam.name}` : 'Mein Team',
+      description: teamEditable
+        ? 'Team verwalten: bearbeiten und Kader.'
+        : 'Direkt zum öffentlichen Teamprofil.',
+      href: teamEditable ? '/mein-team' : `/teams/${user.teamId}`,
+      ready: true, notifKey: 'team',
+    });
     const leagueId = getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;
     if (leagueId) {
       tiles.push(
@@ -315,12 +327,14 @@ export default function MeinBereichPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{
                         width: 38, height: 38, borderRadius: 9, flexShrink: 0,
-                        background: tile.ready ? 'var(--th-accent-a12)' : 'var(--th-line-4)',
-                        border: tile.ready ? '1px solid var(--th-accent-a25)' : '1px solid var(--th-line-8)',
+                        background: tile.teamBadge ? `${tile.teamBadge.color}22` : tile.ready ? 'var(--th-accent-a12)' : 'var(--th-line-4)',
+                        border: tile.teamBadge ? `1px solid ${tile.teamBadge.color}55` : tile.ready ? '1px solid var(--th-accent-a25)' : '1px solid var(--th-line-8)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: tile.ready ? 'var(--th-accent)' : 'var(--th-text-faint2)',
+                        color: tile.teamBadge ? tile.teamBadge.color : tile.ready ? 'var(--th-accent)' : 'var(--th-text-faint2)',
                       }}>
-                        <Icon name={tile.icon as 'user'} size={18} stroke={2} />
+                        {tile.teamBadge
+                          ? <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, letterSpacing: '0.02em' }}>{tile.teamBadge.text}</span>
+                          : <Icon name={tile.icon as 'user'} size={18} stroke={2} />}
                       </div>
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>
                         {tile.label}

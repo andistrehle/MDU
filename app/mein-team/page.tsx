@@ -16,7 +16,7 @@ export default function MeinTeamPage() {
   const leagueName = team ? (getCurrentCompetitionForTeam(team.id, season.id)?.league?.name ?? '–') : '–';
 
   return (
-    <MemberShell title="Mein Team">
+    <MemberShell title={team ? `Mein Team – ${team.name}` : 'Mein Team'}>
       {loading ? (
         <Muted>Lade …</Muted>
       ) : !user ? (
