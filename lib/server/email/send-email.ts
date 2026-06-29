@@ -32,7 +32,8 @@ export type EmailType =
   | 'registration_rejected'
   | 'registration_changes_requested'
   | 'account_activated'
-  | 'new_user_admin';
+  | 'new_user_admin'
+  | 'link_reset_request';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
@@ -57,6 +58,9 @@ export interface RegistrationEmailInput {
   newUserEmail?: string;
   intent?: string;
   actionUrl?: string;
+  /** Nur für link_reset_request: anfragende Person (Spieler bereits verknüpft). */
+  requesterName?: string;
+  requesterEmail?: string;
 }
 
 interface RenderedEmail {
@@ -136,6 +140,18 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `\nDu kannst dich jetzt im Mitgliederbereich anmelden und deinen persönlichen Bereich nutzen.` + SIGNATURE,
       };
     }
+    case 'link_reset_request':
+      return {
+        subject: 'MDU: Anfrage zum Zurücksetzen einer Spieler-Verknüpfung',
+        text:
+          `Hallo ${name},\n\n` +
+          `bei einer Registrierung wurde erkannt, dass ein Spieler bereits mit einem Konto verknüpft ist. ` +
+          `Die anfragende Person bittet darum, das bestehende Konto bzw. die Verknüpfung zu löschen oder zurückzusetzen, ` +
+          `damit sie sich (neu) anmelden kann.\n\n` +
+          `Betroffener Spieler: ${input.playerName?.trim() || '—'}\n` +
+          `Anfrage von: ${input.requesterName?.trim() || '—'}${input.requesterEmail ? ` (${input.requesterEmail})` : ''}\n\n` +
+          `Bitte in der Benutzerverwaltung prüfen und das betroffene Konto bzw. die Verknüpfung entfernen oder zurücksetzen.` + SIGNATURE,
+      };
     case 'new_user_admin': {
       const intentLabel = input.intent === 'team_captain' ? 'Teamkapitän / TC' : input.intent === 'player' ? 'Spieler' : null;
       const lines = [

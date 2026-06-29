@@ -53,6 +53,8 @@ export default function MannschaftAnmeldenPage() {
   const [matchHint, setMatchHint] = useState<string | null>(null);
   // Aus den Ergebnissen der abgeschlossenen Saison vorbestimmte Liga (für Default + Abwärts-Warnung).
   const [predetermined, setPredetermined] = useState<PredeterminedLeague | null>(null);
+  // Team bereits für die Ziel-Saison gemeldet/freigegeben? (server-seitig geprüft)
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const didPreselect = useRef(false);
   // Fallback-Upload-Ordner (nur für Admins ohne Team/Spieler relevant).
   const uploadIdRef = useRef(Math.random().toString(36).slice(2, 10));
@@ -118,6 +120,23 @@ export default function MannschaftAnmeldenPage() {
       }));
     });
   }, [user, regId]);
+
+  // Prüfen, ob das gewählte (bestehende) Team für die Ziel-Saison schon gemeldet ist.
+  useEffect(() => {
+    if (!choice || choice === 'NEW' || !draft.season_id) { setAlreadyRegistered(false); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/registration-checks', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'team-registration', teamId: choice, seasonId: draft.season_id }),
+        });
+        const data = await res.json();
+        if (!cancelled) setAlreadyRegistered(!!data.teamAlreadyRegistered);
+      } catch { if (!cancelled) setAlreadyRegistered(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [choice, draft.season_id]);
 
   async function onChoice(value: string) {
     setChoice(value);
@@ -207,6 +226,7 @@ export default function MannschaftAnmeldenPage() {
 
   async function onSubmit() {
     if (!choice) { setMsg({ kind: 'err', text: 'Bitte zuerst eine Mannschaft wählen.' }); return; }
+    if (alreadyRegistered) { setMsg({ kind: 'err', text: 'Diese Mannschaft ist für die kommende Saison bereits gemeldet.' }); return; }
     const v = validate();
     if (v) { setMsg({ kind: 'err', text: v }); return; }
     if (!confirmed) { setMsg({ kind: 'err', text: 'Bitte die Bestätigung der Rechte/Angaben ankreuzen.' }); return; }
@@ -255,6 +275,19 @@ export default function MannschaftAnmeldenPage() {
                 background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10,
                 padding: '10px 14px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.55,
               }}>{matchHint}</div>
+            )}
+
+            {alreadyRegistered && (
+              <div role="alert" style={{
+                background: 'rgba(212,0,0,0.10)', border: '1px solid rgba(212,0,0,0.35)', borderRadius: 10,
+                padding: '12px 16px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.6,
+              }}>
+                <strong style={{ color: '#E24B4A' }}>Mannschaft ist bereits gemeldet.</strong> Diese Mannschaft wurde für die
+                kommende Saison bereits angemeldet und freigegeben. Eine erneute Anmeldung ist nicht möglich.
+                <br />
+                Das waren nicht Sie? Dann kontaktieren Sie bitte die Ligaleitung unter{' '}
+                <a href="mailto:kontakt@mdudarts.de" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>kontakt@mdudarts.de</a>.
+              </div>
             )}
 
             {/* 1. Auswahl */}
@@ -405,8 +438,8 @@ export default function MannschaftAnmeldenPage() {
                       style={{ padding: '12px 22px', borderRadius: 8, cursor: busy ? 'wait' : 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 }}>
                       Als Entwurf speichern
                     </button>
-                    <button type="button" onClick={onSubmit} disabled={busy}
-                      style={{ padding: '12px 28px', borderRadius: 8, cursor: busy ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', opacity: busy ? 0.7 : 1 }}>
+                    <button type="button" onClick={onSubmit} disabled={busy || alreadyRegistered}
+                      style={{ padding: '12px 28px', borderRadius: 8, cursor: (busy || alreadyRegistered) ? 'not-allowed' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em', opacity: (busy || alreadyRegistered) ? 0.6 : 1 }}>
                       {busy ? 'Bitte warten …' : 'Anmeldung absenden'}
                     </button>
                   </div>
