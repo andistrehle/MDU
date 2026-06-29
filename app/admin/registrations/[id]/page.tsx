@@ -106,8 +106,21 @@ export default function RegistrationDetailPage() {
     const { error } = await reviewRegistration(id, status, reason || undefined);
     if (error) { setMsg(error); setBusy(false); return; }
     const fresh = await getRegistration(id);
-    setReg(fresh);
     const hint = fresh ? await sendStatusEmail(fresh, status, reason) : '';
+
+    // Ablehnung/Nachbesserung: Fenster schließen → zur Übersicht, Meldung als Flash.
+    if (status === 'rejected' || status === 'changes_requested') {
+      const teamName = fresh?.team_name ?? reg?.team_name ?? 'Die Mannschaft';
+      const label = status === 'rejected'
+        ? `${teamName} wurde abgelehnt.`
+        : `Für ${teamName} wurde eine Nachbesserung angefordert.`;
+      try { sessionStorage.setItem('mdu_admin_flash', `${label} ${hint}`.trim()); } catch { /* optional */ }
+      router.push('/admin/registrations');
+      return;
+    }
+
+    // In Prüfung: bleibt auf der Detailseite.
+    setReg(fresh);
     setOkMsg(`Status gespeichert. ${hint}`);
     setBusy(false);
     setNote('');
