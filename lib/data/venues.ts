@@ -208,3 +208,13 @@ export function getVenueFullAddress(venue: Venue): string {
   const parts = [venue.address, venue.city].filter(Boolean);
   return parts.length > 0 ? parts.join(', ') : 'Noch nicht verfügbar';
 }
+
+/**
+ * Google-Maps-Suchlink zur Spielstätte (Name + Adresse). Gibt null zurück,
+ * wenn weder Adresse noch Stadt hinterlegt sind.
+ */
+export function getVenueMapsUrl(venue: Venue): string | null {
+  const query = [venue.name, venue.address, venue.city].filter(Boolean).join(', ');
+  if (!venue.address && !venue.city) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}

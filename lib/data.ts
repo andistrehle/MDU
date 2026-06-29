@@ -67,7 +67,7 @@ export type { TeamStatus, Team }              from './data/teams';
 export { TEAMS, findTeam }                    from './data/teams';
 
 export type { Venue }                         from './data/venues';
-export { VENUES, findVenue, getVenueById, getVenueFullAddress } from './data/venues';
+export { VENUES, findVenue, getVenueById, getVenueFullAddress, getVenueMapsUrl } from './data/venues';
 
 export type { PlayerStatEntry, LeagueStatistics } from './data/statistics';
 export { STATISTICS_BY_LEAGUE, getStatisticsForLeague } from './data/statistics';

@@ -116,9 +116,13 @@ function ÜbersichtTab({
               <div>
                 <div>{venueName}</div>
                 {venueAddress && (
-                  <div style={{ fontSize: 11, color: 'var(--th-text-dim)', marginTop: 3, lineHeight: 1.5 }}>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venueName}, ${venueAddress}`)}`}
+                    target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen"
+                    style={{ display: 'inline-block', fontSize: 11, color: 'var(--th-accent)', marginTop: 3, lineHeight: 1.5, textDecoration: 'none' }}
+                  >
                     {venueAddress}
-                  </div>
+                  </a>
                 )}
               </div>
             </div>

@@ -3,7 +3,7 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { getPlayoffAwareVenueGroupings, getCurrentSeason, getVenueFullAddress } from '@/lib/data';
+import { getPlayoffAwareVenueGroupings, getCurrentSeason, getVenueFullAddress, getVenueMapsUrl } from '@/lib/data';
 
 export default function SpielstaettenPage() {
   const season  = getCurrentSeason();
@@ -91,6 +91,7 @@ export default function SpielstaettenPage() {
                   {venues.map(({ venue, teams }) => {
                     const venueName    = venue?.name    ?? null;
                     const fullAddress  = venue ? getVenueFullAddress(venue) : null;
+                    const mapsUrl      = venue ? getVenueMapsUrl(venue) : null;
 
                     return (
                       <div
@@ -119,12 +120,21 @@ export default function SpielstaettenPage() {
                               {venueName ?? 'Spielstätte noch nicht verfügbar'}
                             </div>
                             {fullAddress && (
-                              <div style={{
-                                fontFamily: 'var(--font-manrope)', fontSize: 12,
-                                color: 'var(--th-text-muted)', marginTop: 3, lineHeight: 1.5,
-                              }}>
-                                {fullAddress}
-                              </div>
+                              mapsUrl ? (
+                                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen" style={{
+                                  display: 'inline-block', fontFamily: 'var(--font-manrope)', fontSize: 12,
+                                  color: 'var(--th-accent)', marginTop: 3, lineHeight: 1.5, textDecoration: 'none',
+                                }}>
+                                  {fullAddress}
+                                </a>
+                              ) : (
+                                <div style={{
+                                  fontFamily: 'var(--font-manrope)', fontSize: 12,
+                                  color: 'var(--th-text-muted)', marginTop: 3, lineHeight: 1.5,
+                                }}>
+                                  {fullAddress}
+                                </div>
+                              )
                             )}
                             {venue?.phone && (
                               <a href={`tel:${venue.phone.replace(/\s+/g, '')}`} style={{
