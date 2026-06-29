@@ -55,6 +55,8 @@ export default function MannschaftAnmeldenPage() {
   const [predetermined, setPredetermined] = useState<PredeterminedLeague | null>(null);
   // Team bereits für die Ziel-Saison gemeldet/freigegeben? (server-seitig geprüft)
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  // Anmelde-Saison (registration_open) — Ziel-Saison; getrennt von draft.season_id gehalten.
+  const [regSeasonId, setRegSeasonId] = useState<string | null>(null);
   const didPreselect = useRef(false);
   // Fallback-Upload-Ordner (nur für Admins ohne Team/Spieler relevant).
   const uploadIdRef = useRef(Math.random().toString(36).slice(2, 10));
@@ -100,13 +102,21 @@ export default function MannschaftAnmeldenPage() {
   }, [user, regId]);
 
   // Ziel-Saison = Anmelde-Saison (registration_open / upcoming), nicht die laufende.
-  // Nur bei NEUEM Formular setzen (bestehender Entwurf behält seine season_id).
+  // Nur bei NEUEM Formular relevant (bestehender Entwurf behält seine season_id).
   useEffect(() => {
     if (regId) return;
     getRegistrationSeason().then(s => {
-      if (s) queueMicrotask(() => setDraft(d => ({ ...d, season_id: s.id })));
+      if (s) queueMicrotask(() => setRegSeasonId(s.id));
     });
   }, [regId]);
+
+  // draft.season_id konsistent auf die Anmelde-Saison halten — auch nachdem onChoice
+  // den Draft (inkl. season_id) zurückgesetzt hat. Verhindert, dass eine neue Anmeldung
+  // versehentlich gegen die laufende Saison läuft (und die Dubletten-Prüfung fehlschlägt).
+  useEffect(() => {
+    if (regId || !regSeasonId) return;
+    queueMicrotask(() => setDraft(d => d.season_id === regSeasonId ? d : { ...d, season_id: regSeasonId }));
+  }, [regId, regSeasonId, choice]);
 
   // Kontakt aus dem Konto vorbelegen (nur bei leerem neuem Formular).
   // setState außerhalb des Effect-Bodys (react-hooks/set-state-in-effect).
@@ -123,20 +133,22 @@ export default function MannschaftAnmeldenPage() {
 
   // Prüfen, ob das gewählte (bestehende) Team für die Ziel-Saison schon gemeldet ist.
   useEffect(() => {
-    if (!choice || choice === 'NEW' || !draft.season_id) { setAlreadyRegistered(false); return; }
+    // Ziel-Saison: bei geladenem Entwurf dessen Saison, sonst die Anmelde-Saison.
+    const seasonId = regId ? draft.season_id : regSeasonId;
+    if (!choice || choice === 'NEW' || !seasonId) { setAlreadyRegistered(false); return; }
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/registration-checks', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'team-registration', teamId: choice, seasonId: draft.season_id }),
+          body: JSON.stringify({ action: 'team-registration', teamId: choice, seasonId }),
         });
         const data = await res.json();
         if (!cancelled) setAlreadyRegistered(!!data.teamAlreadyRegistered);
       } catch { if (!cancelled) setAlreadyRegistered(false); }
     })();
     return () => { cancelled = true; };
-  }, [choice, draft.season_id]);
+  }, [choice, regId, regSeasonId, draft.season_id]);
 
   async function onChoice(value: string) {
     setChoice(value);
