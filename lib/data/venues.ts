@@ -59,6 +59,7 @@ export const VENUES: Venue[] = [
     name: 'Fiaker Stüberl',
     address: 'Zenettistr. 30',
     city: '80337 München',
+    phone: '089 77 65 66',
   },
 
   // ── Shared by 4 teams ─────────────────────────────────────
@@ -67,6 +68,7 @@ export const VENUES: Venue[] = [
     name: 'Spartans Dart Pub',
     address: 'Korbinianstr. 61',
     city: '80807 München',
+    phone: '089 354 56 25',
   },
 
   // ── Shared by 3 teams ─────────────────────────────────────
@@ -75,12 +77,14 @@ export const VENUES: Venue[] = [
     name: 'Wirtshaus zum Lustigen Bauer',
     address: 'Kantstr. 29',
     city: '80809 München',
+    phone: '089 350 85 71',
   },
   {
     id: 'jolly-roger',
     name: 'Jolly Roger',
     address: 'Poststr. 2',
     city: '85586 Poing',
+    phone: '0176 577 19 752',
   },
 
   // ── Shared by 2 teams ─────────────────────────────────────
@@ -89,24 +93,28 @@ export const VENUES: Venue[] = [
     name: 'DC Moosach',
     address: 'Weitlstr. 140',
     city: '80995 München',
+    phone: '0172 7805760',
   },
   {
     id: 'dis-stueberl',
     name: "Di's Stüberl",
     address: 'Wundstr. 15',
     city: '80939 München',
+    phone: '0160 970 36 996',
   },
   {
     id: 'wirtshaus-bei-toni',
     name: 'Wirtshaus bei Toni',
     address: 'Arnulfstr. 130',
     city: '80634 München',
+    phone: '089 16 53 41',
   },
   {
     id: 'players',
     name: 'Players',
     address: 'Schleissheimer Str. 335',
     city: '80809 München',
+    phone: '0176 70 55 46 13',
   },
   {
     id: 'bistro-118',
@@ -121,24 +129,28 @@ export const VENUES: Venue[] = [
     name: 'Jimmys Restaurant',
     address: 'Am Stadion 12',
     city: '85435 Erding',
+    phone: '08122 90 97 78',
   },
   {
     id: 'gaststaette-esv-freimann',
     name: 'Gaststätte ESV Freimann',
     address: 'Frankplatz 15',
     city: '80939 München',
+    phone: '089 323 76 868',
   },
   {
     id: 'kegelkeller',
     name: 'Kegelkeller',
     address: 'Ledergasse 6',
     city: '85567 Grafing',
+    phone: '08092 862 21 90',
   },
   {
     id: 'belfort-seven',
     name: 'Belfort Seven',
     address: 'Belfortstr. 7',
     city: '81667 München',
+    phone: '089 614 68 444',
   },
   {
     id: 'heuboden-bar',
@@ -157,12 +169,14 @@ export const VENUES: Venue[] = [
     name: "Sportsbar 'Live'",
     address: 'Oberhofer Platz 4',
     city: '80807 München',
+    phone: '089 209 74 174',
   },
   {
     id: 'trappentreu-stueberl',
     name: 'Trappentreu Stüberl',
     address: 'Trappentreustr. 31',
     city: '80339 München',
+    phone: '0174 444 46 42',
   },
   {
     id: 'machete-1',
