@@ -44,7 +44,7 @@ export default function SpielbedingungenPage() {
         <ol style={ol}>
           <li>Die Mannschaftsmeldung erfolgt über den Mitgliederbereich der MDU-Plattform
             („Mein&nbsp;Bereich → Mannschaft anmelden"). Eine Mannschaft muss generell aus <strong>mindestens
-            vier Spielern</strong> bestehen. Die Aufstellung an den Spieltagen ist davon unabhängig und in
+            vier Spielern</strong>{' '}bestehen. Die Aufstellung an den Spieltagen ist davon unabhängig und in
             Abschnitt&nbsp;8 geregelt.</li>
           <li>Der Teamkapitän benötigt ein Konto auf der MDU-Plattform. Die übrigen Spieler müssen sich
             <strong> nicht zwingend</strong> registrieren; ihre Profile können auf der Plattform gepflegt
@@ -77,17 +77,20 @@ export default function SpielbedingungenPage() {
       </LegalSection>
 
       <LegalSection title="5. Nachmeldungen">
-        Nachmeldungen sind unter Angabe von Name, Datum, Adresse und Unterschrift möglich (Antrag auf
-        Spielerpass über die Plattform bzw. bei der Ligaleitung).
+        Nachmeldungen erfolgen ausschließlich online über die MDU-Plattform – in wenigen Schritten:
+        <ol style={ol}>
+          <li>Der Teamkapitän öffnet seinen Kader (&bdquo;Mein Team&ldquo; bzw. &bdquo;Team bearbeiten&ldquo;)
+            und klickt auf <strong>&bdquo;Spieler nachmelden&ldquo;</strong>.</li>
+          <li>Im Formular trägt er Vor- und Nachname des Spielers sowie dessen letzte Liga-Erfahrung ein und
+            sendet die Nachmeldung ab.</li>
+          <li>Die Nachmeldung geht automatisch zur Prüfung an die Ligaleitung. Der Kapitän wird über die
+            Freigabe oder Ablehnung benachrichtigt; erst nach Freigabe ist der Spieler spielberechtigt.</li>
+        </ol>
         <ul style={ul}>
-          <li>Der Antrag muss innerhalb von <strong>7&nbsp;Tagen</strong> bei der Ligaleitung / beim Sportwart
-            eingegangen sein.</li>
-          <li>Gleichzeitig ist der Unkostenbeitrag auf das Konto der MDU zu überweisen.</li>
-          <li>Ein nachgemeldeter Spieler darf <strong>ein</strong> Ligaspiel ohne Ligaausweis bestreiten, muss
-            sich dabei aber mit einem amtlichen Lichtbildausweis ausweisen.</li>
-          <li>Ab dem zweiten Spieltag ist der Spieler nur mit gültigem Ligaausweis spielberechtigt.</li>
-          <li>Geht der Unkostenbeitrag nicht innerhalb von 7&nbsp;Tagen ein bzw. wird nicht bezahlt, werden die
-            betroffenen Spiele rückwirkend als verloren gewertet.</li>
+          <li>Mit der Freigabe ist der Unkostenbeitrag innerhalb von <strong>7&nbsp;Tagen</strong> auf das
+            Konto der MDU zu überweisen. Geht er nicht ein, werden die betroffenen Spiele rückwirkend als
+            verloren gewertet.</li>
+          <li>Ein nachgemeldeter Spieler weist sich auf Verlangen mit einem amtlichen Lichtbildausweis aus.</li>
           <li>Für die <strong>letzten zwei Spieltage</strong> der laufenden Saison ist keine Nachmeldung mehr
             möglich.</li>
         </ul>
@@ -98,9 +101,9 @@ export default function SpielbedingungenPage() {
           <li>Gespielt wird ausschließlich an den für den Ligabetrieb zugelassenen Sportgeräten.
             Bull-Shooter-Automaten sind nicht zugelassen.</li>
           <li>Eigene Darts sind erlaubt, sofern sie elastische Kunststoffspitzen (Soft-Tip) haben und ein
-            Gesamtgewicht von <strong>22&nbsp;Gramm pro Pfeil</strong> (inkl. Schaft &amp; Spitze) nicht
-            überschreiten.</li>
-          <li>Die Abwurflinie ist mit ihrer dem Spieler zugewandten Kante in <strong>2,37&nbsp;m</strong>
+            Gesamtgewicht von <strong>22&nbsp;Gramm pro Pfeil</strong>{' '}
+            (inkl. Schaft &amp; Spitze) nicht überschreiten.</li>
+          <li>Die Abwurflinie ist mit ihrer dem Spieler zugewandten Kante in <strong>2,37&nbsp;m</strong>{' '}
             (parallel zum Board) anzubringen; zwischen Gerät und Boden muss ein Winkel von 90°&nbsp;bestehen.
             Maßgeblich ist im Zweifel (z.&nbsp;B. unebener Boden) das Diagonalmaß: Bei einer Höhe des Bull&apos;s
             Eye von <strong>1,73&nbsp;m</strong> ergibt sich ein Diagonalmaß von <strong>2,93&nbsp;m</strong>.</li>
@@ -115,7 +118,7 @@ export default function SpielbedingungenPage() {
           <li>Spieltermine sind verbindlich. Verlegungen sind nur im beiderseitigen Einvernehmen und nur
             schriftlich durch beide Teamkapitäne möglich.</li>
           <li>Die Ligaleitung / der Sportwart ist über Verlegungen und Absagen <strong>mindestens
-            24&nbsp;Stunden vor Spielbeginn</strong> von beiden TCs schriftlich (z.&nbsp;B. per E-Mail oder
+            48&nbsp;Stunden vor Spielbeginn</strong>{' '}von beiden TCs schriftlich (z.&nbsp;B. per E-Mail oder
             Nachricht) zu informieren. Ein abgesagtes Spiel ist in der darauffolgenden Woche nachzuholen.</li>
           <li>Bei Unstimmigkeiten gilt der Fixtermin aus dem Masterplan.</li>
           <li>Spiele dürfen vorverlegt werden – auch die der letzten beiden Spieltage.</li>
@@ -126,9 +129,9 @@ export default function SpielbedingungenPage() {
       <LegalSection title="8. Aufstellung & Spielsystem">
         <ol style={ol}>
           <li>Je Mannschaft werden vier Stammspieler auf den Einzelpositionen 1–4 sowie bis zu vier
-            Ersatzspieler auf den Positionen 5–8 eingetragen. Jeder Spieler darf nur auf <strong>einer</strong>
+            Ersatzspieler auf den Positionen 5–8 eingetragen. Jeder Spieler darf nur auf <strong>einer</strong>{' '}
             Einzelposition eingetragen werden.</li>
-          <li>Eine Begegnung umfasst <strong>18 Spiele</strong> in folgender Reihenfolge: acht Einzel
+          <li>Eine Begegnung umfasst <strong>18 Spiele</strong>{' '}in folgender Reihenfolge: acht Einzel
             (Spiele&nbsp;1–8), ein Doppel (Spiel&nbsp;9), acht Einzel (Spiele&nbsp;10–17) und ein
             abschließendes Doppel (Spiel&nbsp;18).</li>
           <li>Die eingetragenen Spielpositionen sind verbindlich – auch für die Doppel und die Reihenfolge der
@@ -175,7 +178,7 @@ export default function SpielbedingungenPage() {
 
       <LegalSection title="12. Spielbeginn">
         <ol style={ol}>
-          <li>15&nbsp;Minuten vor dem offiziellen Spielbeginn sind die Sportgeräte für die Gastmannschaft
+          <li>30&nbsp;Minuten vor dem offiziellen Spielbeginn sind die Sportgeräte für die Gastmannschaft
             reserviert.</li>
           <li>Sind bis spätestens 30&nbsp;Minuten nach der offiziellen Startzeit nicht mindestens drei Spieler
             einer Mannschaft angetreten, ist das Spiel mit <strong>0:3 Punkten / 0:18 Sätzen</strong> verloren
@@ -231,7 +234,7 @@ export default function SpielbedingungenPage() {
           <li>Der Spielbericht wird anschließend eigenständig im Login-Bereich der MDU-Plattform
             hochgeladen (Foto/PDF des unterschriebenen Bogens). Bei Problemen kann er ersatzweise per E-Mail
             oder WhatsApp an die Ligaleitung übermittelt werden.</li>
-          <li>Geht der Spielbericht nicht binnen <strong>zwei Werktagen</strong> nach beendeter Spielwoche
+          <li>Geht der Spielbericht nicht binnen <strong>zwei Werktagen</strong>{' '}nach beendeter Spielwoche
             (spätestens Dienstag, 24:00&nbsp;Uhr) ein, erhält das Heimteam automatisch eine Niederlage
             (0:3 Punkte / 0:18 Sätze).</li>
         </ol>
