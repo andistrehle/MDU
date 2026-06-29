@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
@@ -30,6 +30,7 @@ const EMAIL_TYPE_FOR_STATUS: Partial<Record<'approved' | 'rejected' | 'changes_r
 export default function RegistrationDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const router = useRouter();
   const { user } = useAuth();
   const canReview = canApproveRegistrations(user);
 
@@ -145,10 +146,14 @@ export default function RegistrationDetailPage() {
     }
 
     const fresh = await getRegistration(id);
-    setReg(fresh);
     const hint = fresh ? await sendStatusEmail(fresh, 'approved', reason) : '';
-    setOkMsg(`Mannschaft freigegeben und für ${targetSeason?.name ?? 'die Ziel-Saison'} übernommen. ${hint}`);
-    setBusy(false); setConfirmApprove(false); setConfirmActiveSeason(false); setNote('');
+    // Fenster schließen → zur Übersicht springen; Erfolgsmeldung dort via Flash anzeigen.
+    const teamName = fresh?.team_name ?? reg?.team_name ?? 'Die Mannschaft';
+    try {
+      sessionStorage.setItem('mdu_admin_flash',
+        `${teamName} freigegeben und für ${targetSeason?.name ?? 'die Ziel-Saison'} übernommen. ${hint}`.trim());
+    } catch { /* sessionStorage optional */ }
+    router.push('/admin/registrations');
   }
 
   return (

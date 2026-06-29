@@ -36,10 +36,19 @@ export default function AdminRegistrationsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [q, setQ] = useState('');
+  const [flash, setFlash] = useState<string | null>(null);
 
   useEffect(() => {
     if (canReview) listAllRegistrations().then(setRows);
   }, [canReview]);
+
+  // Erfolgsmeldung nach Freigabe (von der Detailseite via sessionStorage übergeben).
+  useEffect(() => {
+    try {
+      const f = sessionStorage.getItem('mdu_admin_flash');
+      if (f) { setFlash(f); sessionStorage.removeItem('mdu_admin_flash'); }
+    } catch { /* sessionStorage optional */ }
+  }, []);
 
   const filtered = useMemo(() => {
     if (!rows) return [];
@@ -57,6 +66,20 @@ export default function AdminRegistrationsPage() {
 
   return (
     <AdminGuard title="Saisonanmeldungen" subtitle="Mannschaftsanmeldungen prüfen und freigeben.">
+      {flash && (
+        <div role="status" style={{
+          display: 'flex', alignItems: 'flex-start', gap: 10, width: '100%', maxWidth: 820, marginBottom: 14,
+          padding: '12px 16px', borderRadius: 12,
+          background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.35)',
+          fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-win)', lineHeight: 1.5,
+        }}>
+          <span style={{ flex: 1 }}>{flash}</span>
+          <button type="button" onClick={() => setFlash(null)} aria-label="Schließen" style={{
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-win)',
+            fontFamily: 'var(--font-manrope)', fontSize: 16, lineHeight: 1, flexShrink: 0,
+          }}>×</button>
+        </div>
+      )}
       {pendingCount > 0 && (
         <button
           type="button"
