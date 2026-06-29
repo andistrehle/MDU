@@ -11,6 +11,8 @@ import { useCaptainMode } from '@/lib/auth/use-captain-mode';
 import { getCurrentSeason, getCurrentCompetitionForTeam, findTeam } from '@/lib/data';
 import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 import { useNotifications, type NotificationArea } from '@/lib/supabase/user-notifications';
+import { getRegistrationSeason } from '@/lib/supabase/seasons';
+import { useEffect, useState } from 'react';
 
 interface Tile {
   icon: string;
@@ -23,6 +25,8 @@ interface Tile {
   badgeKey?: keyof AdminNotificationCounts;
   /** Welcher Notification-Bereich (ungelesene) als Badge erscheint. */
   notifKey?: NotificationArea;
+  /** Badge-Text für inaktive Kacheln (Default „Folgt"). */
+  inactiveLabel?: string;
 }
 
 /** Darf der Nutzer den Kapitäns-Modus nutzen? (Admin mit verknüpftem eigenem Team.) */
@@ -31,7 +35,7 @@ function canUseCaptainMode(user: UserProfile): boolean {
 }
 
 /** Rollenbasierte Kacheln — zentral definiert, Rechte via roles.ts. */
-function tilesFor(user: UserProfile, captainMode: boolean): Tile[] {
+function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean; registeredTeamName: string | null }): Tile[] {
   const tiles: Tile[] = [];
   // Kapitäns-Modus nur wirksam für Admins mit eigenem Team. Dann: Admin-Kacheln
   // ausblenden, Kapitäns-Einstiege zeigen (echte Kapitäne sehen sie immer).
@@ -65,8 +69,21 @@ function tilesFor(user: UserProfile, captainMode: boolean): Tile[] {
 
   // Teamkapitän (oder Admin im Kapitäns-Modus) — Team-Verwaltung
   if (showCaptainTiles) {
+    // „Mannschaft anmelden" wird inaktiv, wenn die Anmeldung geschlossen ist oder
+    // das eigene Team bereits (erfolgreich) gemeldet wurde.
+    const regBlocked = !reg.open || !!reg.registeredTeamName;
     tiles.push(
-      { icon: 'calendar', label: 'Mannschaft anmelden', description: 'Team zur neuen Saison anmelden.', href: '/mein-bereich/mannschaft-anmelden', ready: true },
+      {
+        icon: 'calendar', label: 'Mannschaft anmelden',
+        description: reg.registeredTeamName
+          ? `${reg.registeredTeamName} wurde bereits für die neue Saison gemeldet.`
+          : reg.open
+            ? 'Team zur neuen Saison anmelden.'
+            : 'Die Anmeldung für die neue Saison ist aktuell geschlossen.',
+        href: regBlocked ? undefined : '/mein-bereich/mannschaft-anmelden',
+        ready: !regBlocked,
+        inactiveLabel: reg.registeredTeamName ? 'Gemeldet' : 'Geschlossen',
+      },
       { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },
       { icon: 'edit',     label: 'Spielbericht erfassen', description: 'Neuen Spielberichtsbogen online ausfüllen.', href: '/mein-bereich/spielberichte', ready: true },
       { icon: 'file',     label: 'Spielberichte ansehen/bearbeiten', description: 'Übersicht eigener Spielberichte.', href: '/mein-bereich/spielberichte/uebersicht', ready: true, notifKey: 'spielberichte' },
@@ -102,6 +119,31 @@ export default function MeinBereichPage() {
   const { counts } = useAdminNotificationCounts();
   const { byArea } = useNotifications();
   const [captainMode, setCaptainMode] = useCaptainMode();
+  // Anmelde-Status: ist die Anmeldung offen? Ist das eigene Team schon gemeldet?
+  const [regOpen, setRegOpen] = useState(true);
+  const [regTeamName, setRegTeamName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const s = await getRegistrationSeason();
+      if (cancelled) return;
+      setRegOpen(s?.status === 'registration_open');
+      if (user?.teamId && s) {
+        try {
+          const res = await fetch('/api/registration-checks', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'team-registration', teamId: user.teamId, seasonId: s.id }),
+          });
+          const d = await res.json();
+          if (!cancelled) setRegTeamName(d.teamAlreadyRegistered ? (findTeam(user.teamId)?.name ?? user.teamId) : null);
+        } catch { if (!cancelled) setRegTeamName(null); }
+      } else if (!cancelled) {
+        setRegTeamName(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.teamId]);
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -253,7 +295,7 @@ export default function MeinBereichPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,
             }}>
-              {tilesFor(user, captainMode).map(tile => {
+              {tilesFor(user, captainMode, { open: regOpen, registeredTeamName: regTeamName }).map(tile => {
                 const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : tile.notifKey ? byArea[tile.notifKey] : 0;
                 const inner = (
                   <div style={{
@@ -289,7 +331,7 @@ export default function MeinBereichPage() {
                           letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)',
                           border: '1px solid var(--th-line-8)', borderRadius: 4, padding: '2px 6px', flexShrink: 0,
                         }}>
-                          Folgt
+                          {tile.inactiveLabel ?? 'Folgt'}
                         </span>
                       )}
                     </div>
