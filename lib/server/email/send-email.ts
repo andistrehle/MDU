@@ -33,7 +33,8 @@ export type EmailType =
   | 'registration_changes_requested'
   | 'account_activated'
   | 'new_user_admin'
-  | 'link_reset_request';
+  | 'link_reset_request'
+  | 'login_help_request';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
@@ -58,9 +59,11 @@ export interface RegistrationEmailInput {
   newUserEmail?: string;
   intent?: string;
   actionUrl?: string;
-  /** Nur für link_reset_request: anfragende Person (Spieler bereits verknüpft). */
+  /** Nur für link_reset_request / login_help_request: anfragende Person. */
   requesterName?: string;
   requesterEmail?: string;
+  /** Optionale Freitext-Nachricht (login_help_request). */
+  note?: string;
 }
 
 interface RenderedEmail {
@@ -151,6 +154,18 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `Betroffener Spieler: ${input.playerName?.trim() || '—'}\n` +
           `Anfrage von: ${input.requesterName?.trim() || '—'}${input.requesterEmail ? ` (${input.requesterEmail})` : ''}\n\n` +
           `Bitte in der Benutzerverwaltung prüfen und das betroffene Konto bzw. die Verknüpfung entfernen oder zurücksetzen.` + SIGNATURE,
+      };
+    case 'login_help_request':
+      return {
+        subject: 'MDU: Hilfe beim Login (E-Mail-Adresse vergessen)',
+        text:
+          `Hallo ${name},\n\n` +
+          `eine Person kann sich nicht anmelden und kennt ihre Login-E-Mail-Adresse nicht mehr. ` +
+          `Sie bittet die Ligaleitung um Hilfe bei der Zuordnung ihres Kontos.\n\n` +
+          `Name: ${input.requesterName?.trim() || '—'}\n` +
+          (input.note?.trim() ? `Nachricht: ${input.note.trim()}\n` : '') +
+          `\nBitte das Konto in der Benutzerverwaltung heraussuchen und der Person die hinterlegte ` +
+          `E-Mail-Adresse mitteilen bzw. das Konto zurücksetzen.` + SIGNATURE,
       };
     case 'new_user_admin': {
       const intentLabel = input.intent === 'team_captain' ? 'Teamkapitän / TC' : input.intent === 'player' ? 'Spieler' : null;
