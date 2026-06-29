@@ -170,9 +170,11 @@ export default function SpielbedingungenPage() {
         <ol style={ol}>
           <li>Es besteht Trikotpflicht: Die Mannschaft spielt in einem einheitlichen Oberteil. Der Aufdruck
             soll die Zusammengehörigkeit widerspiegeln und darf nicht diffamierend sein.</li>
-          <li>Vor Spielbeginn ist der Spielbericht spielfertig auszufüllen. Es dürfen nur Spieler mit gültigem
-            Spielerpass für das jeweilige Team antreten (Ausnahme: Nachmeldung). Die Pässe sind zu Beginn von
-            beiden TCs zu kontrollieren.</li>
+          <li>Vor Spielbeginn ist der Spielbericht spielfertig auszufüllen. Es dürfen nur Spieler mit gültiger
+            Spielberechtigung für das jeweilige Team antreten – also gemeldete Spieler des Kaders bzw. von der
+            Ligaleitung freigegebene Nachmeldungen.</li>
+          <li>Im Zweifel ist die Spielberechtigung über das Plattform-Profil abzugleichen; auf Verlangen weist
+            sich ein Spieler mit einem amtlichen Lichtbildausweis aus.</li>
         </ol>
       </LegalSection>
 
