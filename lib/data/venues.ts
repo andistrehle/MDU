@@ -121,6 +121,7 @@ export const VENUES: Venue[] = [
     name: 'Bistro 118',
     address: 'Drygalski-Allee 118',
     city: '81477 München',
+    phone: '0176 62875782',
   },
 
   // ── Single-team venues ─────────────────────────────────────
@@ -157,12 +158,14 @@ export const VENUES: Venue[] = [
     name: 'Heuboden Bar',
     address: 'Kapuziener Str. 2',
     city: '85377 München',
+    phone: '0178 8808157',
   },
   {
     id: 'bistro-48',
     name: 'Bistro 48',
     address: 'Sudetenlandstr. 48',
     city: '85221 Dachau',
+    phone: '08131 9993360',
   },
   {
     id: 'sportsbar-live',
