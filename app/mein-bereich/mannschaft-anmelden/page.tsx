@@ -345,6 +345,7 @@ export default function MannschaftAnmeldenPage() {
                     />
                   </Field>
                   <p style={hintStyle}>Bilder werden beim Hochladen automatisch verkleinert. Bei einer bestehenden Mannschaft ist das bekannte Logo voreingestellt. Mannschaftsbilder bitte nur mit Zustimmung aller abgebildeten Personen.</p>
+                  <p style={hintStyle}>* Mannschaftsbild und Team-Logo können auch später unter „Mein Team" bearbeitet/geändert werden.</p>
 
                   <Field label="Für welche Liga möchtet ihr eure Mannschaft anmelden? *">
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
