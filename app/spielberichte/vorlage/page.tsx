@@ -83,9 +83,12 @@ function VorlageInner() {
       <div className="mdu-no-print mdu-vorlage-toolbar">
         <Link href="/downloads" className="mdu-vorlage-back">← Downloads</Link>
         <div className="mdu-vorlage-toolbar-actions">
-          <span className="mdu-vorlage-hint">Tipp: im Druckdialog „Als PDF speichern" wählen · Format A4</span>
-          <button type="button" onClick={printSheet} className="mdu-vorlage-print">
-            Als PDF speichern / drucken
+          <span className="mdu-vorlage-hint">Fertige A4-PDF (passt auf jedem Gerät):</span>
+          <a href="/downloads/MDU-Spielbericht-Vorlage.pdf" download className="mdu-vorlage-print">
+            PDF herunterladen
+          </a>
+          <button type="button" onClick={printSheet} className="mdu-vorlage-print-ghost">
+            Drucken
           </button>
         </div>
       </div>
@@ -400,7 +403,12 @@ const PRINT_CSS = `
 .mdu-vorlage-hint { color:#444; font-size:12px; }
 .mdu-vorlage-print {
   padding:10px 18px; border-radius:8px; cursor:pointer; border:1px solid #b00000;
-  background:#d40000; color:#fff; font-weight:800; font-size:13px;
+  background:#d40000; color:#fff; font-weight:800; font-size:13px; text-decoration:none; display:inline-block;
+  font-family:var(--font-manrope), system-ui, sans-serif;
+}
+.mdu-vorlage-print-ghost {
+  padding:10px 18px; border-radius:8px; cursor:pointer; border:1.5px solid #d40000;
+  background:transparent; color:#d40000; font-weight:700; font-size:13px;
   font-family:var(--font-manrope), system-ui, sans-serif;
 }
 
@@ -474,7 +482,7 @@ const PRINT_CSS = `
 .vb-note { font-size:8pt; color:#444; margin:4px 0 4px; line-height:1.35; }
 
 /* Bemerkungen */
-.vb-remarks { display:flex; flex-direction:column; gap:24px; margin-top:10px; }
+.vb-remarks { display:flex; flex-direction:column; gap:17px; margin-top:9px; }
 .vb-remarks-line { border-bottom:1px solid #000; height:1px; }
 
 /* Protest */
@@ -487,9 +495,9 @@ const PRINT_CSS = `
 .vb-hints li { font-size:8pt; color:#444; line-height:1.45; margin-bottom:4px; }
 
 /* Unterschriften */
-.vb-signrow { display:flex; gap:24px; margin-top:24px; }
+.vb-signrow { display:flex; gap:24px; margin-top:16px; }
 .vb-sign { flex:1; }
-.vb-sign-line { border-bottom:1px solid #000; min-height:36px; }
+.vb-sign-line { border-bottom:1px solid #000; min-height:28px; }
 .vb-sign-caption { font-size:7.5pt; color:#555; margin-top:3px; }
 
 /* Fußzeile */
@@ -499,10 +507,20 @@ const PRINT_CSS = `
 @media print {
   @page { size:A4; margin:15mm; }
   html, body { background:#fff !important; }
-  .mdu-vorlage-wrap { background:#fff; padding:0; }
+  .mdu-vorlage-wrap { background:#fff; padding:0; min-height:0; overflow:visible; }
   .mdu-sheet { width:auto; max-width:none; margin:0; padding:0; box-shadow:none; }
-  .mdu-sheet + .mdu-sheet { page-break-before:always; }
+  /* Genau zwei Seiten: Umbruch VOR der zweiten Seite, KEINE Folgeseite danach
+     (verhindert die leere dritte Seite durch minimalen Überlauf). */
+  .mdu-sheet + .mdu-sheet { page-break-before:always; break-before:page; }
+  .mdu-sheet:last-child { page-break-after:avoid; break-after:avoid; overflow:hidden; }
   .vb-table, .vb-teamblock, .vb-result, .vb-signrow, tr { page-break-inside:avoid; }
   .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+
+/* ── Mobile: Bogen nicht zerquetschen — horizontal scrollbar lassen ── */
+@media screen and (max-width:760px) {
+  .mdu-vorlage-wrap { overflow-x:auto; padding:12px 0 40px; }
+  .mdu-sheet { max-width:none; }
+  .mdu-vorlage-toolbar { padding:0 12px; }
 }
 `;
