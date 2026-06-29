@@ -20,6 +20,9 @@ export interface RegistrationEmailRequest {
   role?: string;
   playerName?: string;
   registrationId?: string | null;
+  /** Nur registration_approved: zugewiesene Liga + Ligawunsch (Labels) für den Hinweis bei Abweichung. */
+  assignedLeague?: string | null;
+  requestedLeague?: string | null;
 }
 
 /**

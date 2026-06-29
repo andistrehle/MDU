@@ -48,6 +48,9 @@ export interface RegistrationEmailInput {
   /** Nur für account_activated: zugewiesene Rolle + verknüpfter Spieler. */
   role?: string;
   playerName?: string;
+  /** Nur für registration_approved: zugewiesene Liga + Ligawunsch (Labels). */
+  assignedLeague?: string | null;
+  requestedLeague?: string | null;
   relatedEntityId?: string | null;
   /** Nur für new_user_admin: Angaben zum neu registrierten Benutzer. */
   newUserName?: string;
@@ -80,14 +83,22 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `sobald die Anmeldung freigegeben wurde oder Rückfragen bestehen.\n\n` +
           `Status: Eingereicht` + SIGNATURE,
       };
-    case 'registration_approved':
+    case 'registration_approved': {
+      const assigned = (input.assignedLeague ?? '').trim();
+      const requested = (input.requestedLeague ?? '').trim();
+      const ligaLine = assigned ? `\n\nZugewiesene Liga: ${assigned}` : '';
+      const divergence = assigned && requested && assigned !== requested
+        ? `\n\nHinweis: Die zugewiesene Liga weicht von eurer Anmeldung (${requested}) ab.`
+        : '';
       return {
         subject: 'MDU Mannschaftsanmeldung freigegeben',
         text:
           `Hallo ${name},\n\n` +
-          `deine Mannschaftsanmeldung für ${team} wurde erfolgreich freigegeben.\n\n` +
-          `Die Mannschaft ist damit für die weitere Saisonplanung berücksichtigt.` + SIGNATURE,
+          `deine Mannschaftsanmeldung für ${team} wurde erfolgreich freigegeben.` +
+          ligaLine + divergence +
+          `\n\nDie Mannschaft ist damit für die weitere Saisonplanung berücksichtigt.` + SIGNATURE,
       };
+    }
     case 'registration_rejected':
       return {
         subject: 'MDU Mannschaftsanmeldung abgelehnt',

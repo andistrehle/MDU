@@ -12,7 +12,7 @@ import {
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
 import {
-  MAIN_LEAGUE_LABELS, subLeaguesForMain, type MainLeague,
+  MAIN_LEAGUE_LABELS, MAIN_LEAGUES, type MainLeague,
   getPredeterminedLeagueForTeam, isLeagueDowngrade,
 } from '@/lib/data';
 import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
@@ -60,7 +60,8 @@ export default function RegistrationDetailPage() {
     (async () => {
       const r = await getRegistration(id);
       setReg(r);
-      if (r?.assigned_competition_id) setAssignedCompetition(r.assigned_competition_id);
+      // Zugewiesene Liga vorbelegen: gespeicherte Zuweisung, sonst der Ligawunsch des Teams.
+      setAssignedCompetition(r?.assigned_competition_id ?? r?.requested_league ?? '');
       setPlayers(await getRegistrationPlayers(id));
       const all = await listSeasons();
       setSeasons(all);
@@ -80,9 +81,15 @@ export default function RegistrationDetailPage() {
   async function sendStatusEmail(fresh: TeamRegistration, status: 'in_review' | 'approved' | 'rejected' | 'changes_requested', reason: string): Promise<string> {
     const emailType = EMAIL_TYPE_FOR_STATUS[status as 'approved' | 'rejected' | 'changes_requested'];
     if (!emailType) return '';
+    // Bei Freigabe: zugewiesene Liga + ggf. Abweichung vom Ligawunsch mitschicken.
+    const assignedLeague = fresh.assigned_competition_id
+      ? (MAIN_LEAGUE_LABELS[fresh.assigned_competition_id as MainLeague] ?? fresh.assigned_competition_id) : null;
+    const requestedLeague = fresh.requested_league
+      ? (MAIN_LEAGUE_LABELS[fresh.requested_league as MainLeague] ?? fresh.requested_league) : null;
     const result = await triggerRegistrationEmail({
       type: emailType, to: fresh.contact_email, name: fresh.contact_name,
       teamName: fresh.team_name, reason: reason || null, registrationId: id,
+      assignedLeague, requestedLeague,
     });
     return EMAIL_STATUS_HINT[result.status];
   }
@@ -247,7 +254,7 @@ export default function RegistrationDetailPage() {
             </p>
           </Card>
 
-          {/* Liga: Wunsch + endgültige Staffel */}
+          {/* Liga: Wunsch + tatsächliche Zuweisung */}
           <Card title="Liga">
             <Row k="Gewünschte Liga (Team)" v={reg.requested_league ? (MAIN_LEAGUE_LABELS[reg.requested_league as MainLeague] ?? reg.requested_league) : 'Keine Angabe'} />
             {predetermined && (
@@ -264,29 +271,37 @@ export default function RegistrationDetailPage() {
               </div>
             )}
             {reg.applied_at ? (
-              <Row k="Endgültige Staffel" v={reg.assigned_competition_id ? reg.assigned_competition_id.toUpperCase() : 'noch nicht zugewiesen'} />
+              <Row k="Zugewiesene Liga" v={reg.assigned_competition_id ? (MAIN_LEAGUE_LABELS[reg.assigned_competition_id as MainLeague] ?? reg.assigned_competition_id) : 'noch nicht zugewiesen'} />
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: '5px 0', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Endgültige Staffel</span>
-                {reg.requested_league ? (
-                  <select
-                    value={assignedCompetition}
-                    onChange={e => setAssignedCompetition(e.target.value)}
-                    style={{ width: '100%', maxWidth: 320, padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }}
-                  >
-                    <option value="">— noch nicht zuweisen —</option>
-                    {subLeaguesForMain(reg.requested_league as MainLeague).map(l => (
-                      <option key={l.id} value={l.id}>{l.name}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint2)' }}>Kein Ligawunsch angegeben.</span>
-                )}
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Zugewiesene Liga</span>
+                <select
+                  value={assignedCompetition}
+                  onChange={e => setAssignedCompetition(e.target.value)}
+                  style={{ width: '100%', maxWidth: 320, padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }}
+                >
+                  <option value="">— noch nicht zuweisen —</option>
+                  {MAIN_LEAGUES.map(l => (
+                    <option key={l.value} value={l.value}>{l.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {assignedCompetition && reg.requested_league && assignedCompetition !== reg.requested_league && (
+              <div role="alert" style={{
+                marginTop: 8, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)',
+                borderRadius: 8, padding: '10px 14px',
+                fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.55,
+              }}>
+                ⚠️ Weicht vom Ligawunsch ab: gemeldet für{' '}
+                <strong>{MAIN_LEAGUE_LABELS[reg.requested_league as MainLeague] ?? reg.requested_league}</strong>, zugewiesen wird{' '}
+                <strong>{MAIN_LEAGUE_LABELS[assignedCompetition as MainLeague] ?? assignedCompetition}</strong>.
+                Der Anmelder wird darüber in der Freigabe-E-Mail und der Benachrichtigung ausdrücklich informiert.
               </div>
             )}
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8, lineHeight: 1.55 }}>
-              Der Ligawunsch des Teams bleibt erhalten. Die endgültige Staffel kann auch später noch vergeben werden;
-              eine Freigabe ist auch ohne Staffel möglich.
+              Der Ligawunsch des Teams bleibt erhalten. Die Liga-Zuweisung kann auch später noch erfolgen;
+              eine Freigabe ist auch ohne Zuweisung möglich. Die endgültige Staffel (z. B. B1/B2) wird separat vergeben.
             </p>
           </Card>
 
