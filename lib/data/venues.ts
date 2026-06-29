@@ -4,10 +4,13 @@
 //
 // Source: dartunion.de · "TC's und Lokale" pages · scraped May 2026
 //
-// IMPORTANT — PRIVACY:
-//   Phone numbers from the official site are NOT stored here.
-//   Do NOT add phone numbers. Do NOT render phone numbers
-//   anywhere in the public UI (team pages, venue pages, etc.).
+// PHONE NUMBERS:
+//   Lokal-/Venue-Telefonnummern DÜRFEN hier gespeichert und öffentlich
+//   angezeigt werden (öffentlich zugängliche Lokalnummern — bewusste
+//   Entscheidung). Trage sie ins optionale Feld `phone` ein.
+//   PERSÖNLICHE Nummern (Spieler/Kapitän) gehören NIEMALS hierher — die
+//   liegen zugriffsgeschützt in `player_contacts` (Migration 0030) und sind
+//   nur für eingeloggte Teamkapitäne sichtbar.
 //
 // DEDUPLICATION:
 //   Several venues are shared by multiple teams across different leagues.
@@ -42,6 +45,8 @@ export interface Venue {
   address?: string;
   /** Postal code + city (e.g. '80807 München') */
   city?: string;
+  /** Öffentliche Lokal-Telefonnummer (optional). Darf öffentlich angezeigt werden. */
+  phone?: string;
   /** Internal notes — NOT rendered in UI */
   notes?: string;
 }

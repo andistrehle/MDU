@@ -126,6 +126,15 @@ export default function SpielstaettenPage() {
                                 {fullAddress}
                               </div>
                             )}
+                            {venue?.phone && (
+                              <a href={`tel:${venue.phone.replace(/\s+/g, '')}`} style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 4,
+                                fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
+                                color: 'var(--th-accent)', textDecoration: 'none',
+                              }}>
+                                <Icon name="phone" size={12} stroke={2} /> {venue.phone}
+                              </a>
+                            )}
                           </div>
                         </div>
 
