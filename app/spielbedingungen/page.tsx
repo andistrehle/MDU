@@ -43,12 +43,15 @@ export default function SpielbedingungenPage() {
       <LegalSection title="3. Mannschaftsmeldung">
         <ol style={ol}>
           <li>Die Mannschaftsmeldung erfolgt über den Mitgliederbereich der MDU-Plattform
-            („Mein&nbsp;Bereich → Mannschaft anmelden"). Eine Mannschaft besteht aus <strong>mindestens vier
-            Stammspielern</strong> (Positionen 1–4) und kann bis zu <strong>vier Ersatzspieler</strong>
-            (Positionen 5–8) melden.</li>
-          <li>Eine Meldung gilt erst als vollständig, wenn Startgeld, Lichtbilder sowie der Unkostenbeitrag
-            der Spieler vorliegen bzw. nachgewiesen sind. Unvollständige Meldungen werden für die laufende
-            Saison nicht zugelassen.</li>
+            („Mein&nbsp;Bereich → Mannschaft anmelden"). Eine Mannschaft muss generell aus <strong>mindestens
+            vier Spielern</strong> bestehen. Die Aufstellung an den Spieltagen ist davon unabhängig und in
+            Abschnitt&nbsp;8 geregelt.</li>
+          <li>Der Teamkapitän benötigt ein Konto auf der MDU-Plattform. Die übrigen Spieler müssen sich
+            <strong> nicht zwingend</strong> registrieren; ihre Profile können auf der Plattform gepflegt
+            werden.</li>
+          <li>Eine Meldung gilt erst als vollständig, wenn Startgeld und Unkostenbeitrag der Spieler vorliegen
+            bzw. nachgewiesen sind. Lichtbilder werden nicht eingesammelt – Spielerprofile werden auf der
+            Plattform gepflegt. Unvollständige Meldungen werden für die laufende Saison nicht zugelassen.</li>
           <li>Die Einstufung in die Spielklasse richtet sich nach der Spielstärke der gemeldeten Spieler.
             Bestehende Mannschaften werden anhand der Ergebnisse der Vorsaison (Auf-/Abstieg) vorbestimmt;
             meldet eine Mannschaft sich für eine niedrigere Klasse als vorgesehen, kann die Ligaleitung die
@@ -77,14 +80,14 @@ export default function SpielbedingungenPage() {
         Nachmeldungen sind unter Angabe von Name, Datum, Adresse und Unterschrift möglich (Antrag auf
         Spielerpass über die Plattform bzw. bei der Ligaleitung).
         <ul style={ul}>
-          <li>Passbild und Antrag müssen innerhalb von <strong>7&nbsp;Tagen</strong> bei der Ligaleitung /
-            beim Sportwart eingegangen sein.</li>
+          <li>Der Antrag muss innerhalb von <strong>7&nbsp;Tagen</strong> bei der Ligaleitung / beim Sportwart
+            eingegangen sein.</li>
           <li>Gleichzeitig ist der Unkostenbeitrag auf das Konto der MDU zu überweisen.</li>
           <li>Ein nachgemeldeter Spieler darf <strong>ein</strong> Ligaspiel ohne Ligaausweis bestreiten, muss
             sich dabei aber mit einem amtlichen Lichtbildausweis ausweisen.</li>
           <li>Ab dem zweiten Spieltag ist der Spieler nur mit gültigem Ligaausweis spielberechtigt.</li>
-          <li>Gehen Unkostenbeitrag oder Passbild nicht innerhalb von 7&nbsp;Tagen ein bzw. werden nicht
-            bezahlt, werden die betroffenen Spiele rückwirkend als verloren gewertet.</li>
+          <li>Geht der Unkostenbeitrag nicht innerhalb von 7&nbsp;Tagen ein bzw. wird nicht bezahlt, werden die
+            betroffenen Spiele rückwirkend als verloren gewertet.</li>
           <li>Für die <strong>letzten zwei Spieltage</strong> der laufenden Saison ist keine Nachmeldung mehr
             möglich.</li>
         </ul>
