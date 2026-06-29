@@ -5,11 +5,11 @@
       "name": "Zlatko Lozancic",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
-      "pts": 130,
-      "wins": 42,
-      "losses": 24,
-      "legsWon": 96,
-      "legsLost": 56
+      "pts": 136,
+      "wins": 44,
+      "losses": 26,
+      "legsWon": 101,
+      "legsLost": 61
     },
     {
       "rank": 2,
@@ -68,6 +68,17 @@
     },
     {
       "rank": 7,
+      "name": "Avni Loshi",
+      "teamId": "dc-null-bull",
+      "teamName": "DC Null Bull",
+      "pts": 102,
+      "wins": 35,
+      "losses": 21,
+      "legsWon": 75,
+      "legsLost": 50
+    },
+    {
+      "rank": 8,
       "name": "Claus Ziebuhr",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -78,7 +89,7 @@
       "legsLost": 52
     },
     {
-      "rank": 8,
+      "rank": 9,
       "name": "Patrick Ruhland",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -89,7 +100,18 @@
       "legsLost": 12
     },
     {
-      "rank": 9,
+      "rank": 10,
+      "name": "Markus Schneider",
+      "teamId": "spartans",
+      "teamName": "Spartans",
+      "pts": 92,
+      "wins": 32,
+      "losses": 10,
+      "legsWon": 70,
+      "legsLost": 30
+    },
+    {
+      "rank": 11,
       "name": "Thomas Fraundorfer",
       "teamId": "spartans",
       "teamName": "Spartans",
@@ -100,29 +122,29 @@
       "legsLost": 36
     },
     {
-      "rank": 10,
-      "name": "Markus Schneider",
+      "rank": 12,
+      "name": "Richi Pankratz",
+      "teamId": "ohne-jackie",
+      "teamName": "Ohne Jackie",
+      "pts": 66,
+      "wins": 23,
+      "losses": 18,
+      "legsWon": 53,
+      "legsLost": 46
+    },
+    {
+      "rank": 13,
+      "name": "Silvi Lindner",
       "teamId": "spartans",
       "teamName": "Spartans",
-      "pts": 81,
-      "wins": 28,
+      "pts": 63,
+      "wins": 21,
       "losses": 10,
-      "legsWon": 62,
-      "legsLost": 29
+      "legsWon": 49,
+      "legsLost": 27
     },
     {
-      "rank": 11,
-      "name": "Avni Loshi",
-      "teamId": "dc-null-bull",
-      "teamName": "DC Null Bull",
-      "pts": 77,
-      "wins": 27,
-      "losses": 17,
-      "legsWon": 57,
-      "legsLost": 41
-    },
-    {
-      "rank": 12,
+      "rank": 14,
       "name": "Zlatko Juric",
       "teamId": "no-maam",
       "teamName": "No Ma'am",
@@ -133,18 +155,18 @@
       "legsLost": 56
     },
     {
-      "rank": 13,
-      "name": "Richi Pankratz",
-      "teamId": "ohne-jackie",
-      "teamName": "Ohne Jackie",
-      "pts": 59,
-      "wins": 20,
-      "losses": 17,
-      "legsWon": 47,
-      "legsLost": 42
+      "rank": 15,
+      "name": "Fatmir Hasanaj",
+      "teamId": "dc-null-bull",
+      "teamName": "DC Null Bull",
+      "pts": 62,
+      "wins": 19,
+      "losses": 28,
+      "legsWon": 49,
+      "legsLost": 62
     },
     {
-      "rank": 14,
+      "rank": 16,
       "name": "Geli Galatovic",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -155,7 +177,7 @@
       "legsLost": 45
     },
     {
-      "rank": 15,
+      "rank": 17,
       "name": "Nico Vasiliadis",
       "teamId": "spartans",
       "teamName": "Spartans",
@@ -166,7 +188,18 @@
       "legsLost": 8
     },
     {
-      "rank": 16,
+      "rank": 18,
+      "name": "Zoran Subotic",
+      "teamId": "dc-null-bull",
+      "teamName": "DC Null Bull",
+      "pts": 56,
+      "wins": 19,
+      "losses": 13,
+      "legsWon": 41,
+      "legsLost": 30
+    },
+    {
+      "rank": 19,
       "name": "Stjepan Feljan",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -177,62 +210,62 @@
       "legsLost": 34
     },
     {
-      "rank": 17,
-      "name": "Silvi Lindner",
-      "teamId": "spartans",
-      "teamName": "Spartans",
-      "pts": 55,
-      "wins": 18,
-      "losses": 9,
-      "legsWon": 42,
-      "legsLost": 23
-    },
-    {
-      "rank": 18,
-      "name": "Fatmir Hasanaj",
-      "teamId": "dc-null-bull",
-      "teamName": "DC Null Bull",
-      "pts": 52,
-      "wins": 17,
-      "losses": 22,
-      "legsWon": 40,
-      "legsLost": 49
-    },
-    {
-      "rank": 19,
-      "name": "Zoran Subotic",
-      "teamId": "dc-null-bull",
-      "teamName": "DC Null Bull",
-      "pts": 50,
-      "wins": 17,
-      "losses": 11,
-      "legsWon": 37,
-      "legsLost": 26
-    },
-    {
       "rank": 20,
       "name": "Efraim Idrizi",
       "teamId": "dc-null-bull",
       "teamName": "DC Null Bull",
-      "pts": 50,
-      "wins": 15,
-      "losses": 31,
-      "legsWon": 41,
-      "legsLost": 68
+      "pts": 54,
+      "wins": 17,
+      "losses": 33,
+      "legsWon": 45,
+      "legsLost": 74
     },
     {
       "rank": 21,
       "name": "Andrej Tereschenko",
       "teamId": "spartans",
       "teamName": "Spartans",
-      "pts": 47,
-      "wins": 18,
-      "losses": 6,
-      "legsWon": 37,
-      "legsLost": 20
+      "pts": 52,
+      "wins": 20,
+      "losses": 8,
+      "legsWon": 42,
+      "legsLost": 26
     },
     {
       "rank": 22,
+      "name": "Florian Steckermeier",
+      "teamId": "spartans",
+      "teamName": "Spartans",
+      "pts": 52,
+      "wins": 18,
+      "losses": 3,
+      "legsWon": 36,
+      "legsLost": 8
+    },
+    {
+      "rank": 23,
+      "name": "Hansi Sliwanski",
+      "teamId": "spartans",
+      "teamName": "Spartans",
+      "pts": 52,
+      "wins": 16,
+      "losses": 12,
+      "legsWon": 38,
+      "legsLost": 26
+    },
+    {
+      "rank": 24,
+      "name": "Dejan Kovrilja",
+      "teamId": "spartans",
+      "teamName": "Spartans",
+      "pts": 51,
+      "wins": 18,
+      "losses": 10,
+      "legsWon": 40,
+      "legsLost": 27
+    },
+    {
+      "rank": 25,
       "name": "Toni Bauer",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -243,7 +276,7 @@
       "legsLost": 32
     },
     {
-      "rank": 23,
+      "rank": 26,
       "name": "Bene Wolf",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -254,7 +287,7 @@
       "legsLost": 26
     },
     {
-      "rank": 24,
+      "rank": 27,
       "name": "Florian Preis",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -265,7 +298,7 @@
       "legsLost": 3
     },
     {
-      "rank": 25,
+      "rank": 28,
       "name": "Manfred Eischer",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -276,29 +309,18 @@
       "legsLost": 18
     },
     {
-      "rank": 26,
-      "name": "Hansi Sliwanski",
-      "teamId": "spartans",
-      "teamName": "Spartans",
-      "pts": 43,
-      "wins": 14,
-      "losses": 6,
-      "legsWon": 31,
-      "legsLost": 14
+      "rank": 29,
+      "name": "Dado Pajdakovic",
+      "teamId": "dc-null-bull",
+      "teamName": "DC Null Bull",
+      "pts": 42,
+      "wins": 12,
+      "losses": 18,
+      "legsWon": 34,
+      "legsLost": 40
     },
     {
-      "rank": 27,
-      "name": "Dejan Kovrilja",
-      "teamId": "spartans",
-      "teamName": "Spartans",
-      "pts": 40,
-      "wins": 14,
-      "losses": 10,
-      "legsWon": 32,
-      "legsLost": 26
-    },
-    {
-      "rank": 28,
+      "rank": 30,
       "name": "Alexander Resch",
       "teamId": "les-dartagnons",
       "teamName": "Les Dartagnons",
@@ -309,18 +331,7 @@
       "legsLost": 15
     },
     {
-      "rank": 29,
-      "name": "Florian Steckermeier",
-      "teamId": "spartans",
-      "teamName": "Spartans",
-      "pts": 40,
-      "wins": 14,
-      "losses": 3,
-      "legsWon": 28,
-      "legsLost": 8
-    },
-    {
-      "rank": 30,
+      "rank": 31,
       "name": "Christian Reiter",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -331,7 +342,7 @@
       "legsLost": 8
     },
     {
-      "rank": 31,
+      "rank": 32,
       "name": "Florian Wimmer",
       "teamId": "no-maam",
       "teamName": "No Ma'am",
@@ -342,7 +353,7 @@
       "legsLost": 31
     },
     {
-      "rank": 32,
+      "rank": 33,
       "name": "Sascha Bernardi",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -353,7 +364,7 @@
       "legsLost": 27
     },
     {
-      "rank": 33,
+      "rank": 34,
       "name": "Andreas Knoblauch",
       "teamId": "les-dartagnons",
       "teamName": "Les Dartagnons",
@@ -364,29 +375,29 @@
       "legsLost": 126
     },
     {
-      "rank": 34,
-      "name": "Dado Pajdakovic",
+      "rank": 35,
+      "name": "Arben Halitjaha",
       "teamId": "dc-null-bull",
       "teamName": "DC Null Bull",
-      "pts": 38,
+      "pts": 36,
       "wins": 11,
-      "losses": 15,
-      "legsWon": 30,
-      "legsLost": 33
+      "losses": 13,
+      "legsWon": 27,
+      "legsLost": 28
     },
     {
-      "rank": 35,
+      "rank": 36,
       "name": "Oorri Arsen",
       "teamId": "dc-null-bull",
       "teamName": "DC Null Bull",
       "pts": 35,
       "wins": 9,
-      "losses": 25,
+      "losses": 29,
       "legsWon": 29,
-      "legsLost": 53
+      "legsLost": 61
     },
     {
-      "rank": 36,
+      "rank": 37,
       "name": "Chriss Lwowski",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -395,17 +406,6 @@
       "losses": 10,
       "legsWon": 24,
       "legsLost": 21
-    },
-    {
-      "rank": 37,
-      "name": "Arben Halitjaha",
-      "teamId": "dc-null-bull",
-      "teamName": "DC Null Bull",
-      "pts": 30,
-      "wins": 9,
-      "losses": 11,
-      "legsWon": 23,
-      "legsLost": 24
     },
     {
       "rank": 38,
@@ -431,6 +431,17 @@
     },
     {
       "rank": 40,
+      "name": "Bobby Vayrynen",
+      "teamId": "dc-null-bull",
+      "teamName": "DC Null Bull",
+      "pts": 26,
+      "wins": 8,
+      "losses": 24,
+      "legsWon": 24,
+      "legsLost": 54
+    },
+    {
+      "rank": 41,
       "name": "Philipp Steinbrück",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -441,7 +452,7 @@
       "legsLost": 24
     },
     {
-      "rank": 41,
+      "rank": 42,
       "name": "Dieter Rauschmeier",
       "teamId": "les-dartagnons",
       "teamName": "Les Dartagnons",
@@ -452,7 +463,7 @@
       "legsLost": 89
     },
     {
-      "rank": 42,
+      "rank": 43,
       "name": "Jason Jedlicka",
       "teamId": "spartans",
       "teamName": "Spartans",
@@ -463,7 +474,18 @@
       "legsLost": 15
     },
     {
-      "rank": 43,
+      "rank": 44,
+      "name": "Jimmy Pogremno",
+      "teamId": "ohne-jackie",
+      "teamName": "Ohne Jackie",
+      "pts": 23,
+      "wins": 8,
+      "losses": 17,
+      "legsWon": 19,
+      "legsLost": 38
+    },
+    {
+      "rank": 45,
       "name": "Chris Schaeffer",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -474,18 +496,7 @@
       "legsLost": 8
     },
     {
-      "rank": 44,
-      "name": "Bobby Vayrynen",
-      "teamId": "dc-null-bull",
-      "teamName": "DC Null Bull",
-      "pts": 22,
-      "wins": 7,
-      "losses": 21,
-      "legsWon": 20,
-      "legsLost": 47
-    },
-    {
-      "rank": 45,
+      "rank": 46,
       "name": "Martin Degel",
       "teamId": "no-maam",
       "teamName": "No Ma'am",
@@ -494,17 +505,6 @@
       "losses": 9,
       "legsWon": 19,
       "legsLost": 22
-    },
-    {
-      "rank": 46,
-      "name": "Jimmy Pogremno",
-      "teamId": "ohne-jackie",
-      "teamName": "Ohne Jackie",
-      "pts": 18,
-      "wins": 6,
-      "losses": 15,
-      "legsWon": 15,
-      "legsLost": 33
     },
     {
       "rank": 47,
@@ -552,6 +552,17 @@
     },
     {
       "rank": 51,
+      "name": "Dirk Wegner",
+      "teamId": "spartans",
+      "teamName": "Spartans",
+      "pts": 15,
+      "wins": 5,
+      "losses": 7,
+      "legsWon": 12,
+      "legsLost": 16
+    },
+    {
+      "rank": 52,
       "name": "Dirk Steinbrück",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -562,7 +573,7 @@
       "legsLost": 8
     },
     {
-      "rank": 52,
+      "rank": 53,
       "name": "Regina Ziegltrum",
       "teamId": "les-dartagnons",
       "teamName": "Les Dartagnons",
@@ -573,7 +584,7 @@
       "legsLost": 87
     },
     {
-      "rank": 53,
+      "rank": 54,
       "name": "Stjpan Holetic",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -584,7 +595,18 @@
       "legsLost": 7
     },
     {
-      "rank": 54,
+      "rank": 55,
+      "name": "Alex Rall",
+      "teamId": "ohne-jackie",
+      "teamName": "Ohne Jackie",
+      "pts": 11,
+      "wins": 4,
+      "losses": 2,
+      "legsWon": 8,
+      "legsLost": 5
+    },
+    {
+      "rank": 56,
       "name": "Steven Eisenhofer",
       "teamId": "jolly-pirates-kts",
       "teamName": "Jolly Pirates KT's",
@@ -595,18 +617,7 @@
       "legsLost": 8
     },
     {
-      "rank": 55,
-      "name": "Dirk Wegner",
-      "teamId": "spartans",
-      "teamName": "Spartans",
-      "pts": 9,
-      "wins": 3,
-      "losses": 5,
-      "legsWon": 8,
-      "legsLost": 12
-    },
-    {
-      "rank": 56,
+      "rank": 57,
       "name": "Nicklas Bernhardt",
       "teamId": "ohne-jackie",
       "teamName": "Ohne Jackie",
@@ -617,7 +628,7 @@
       "legsLost": 13
     },
     {
-      "rank": 57,
+      "rank": 58,
       "name": "Antun Madaros",
       "teamId": "spartans",
       "teamName": "Spartans",
@@ -628,7 +639,7 @@
       "legsLost": 9
     },
     {
-      "rank": 58,
+      "rank": 59,
       "name": "Patrick Müller",
       "teamId": "no-maam",
       "teamName": "No Ma'am",
@@ -637,17 +648,6 @@
       "losses": 1,
       "legsWon": 6,
       "legsLost": 5
-    },
-    {
-      "rank": 59,
-      "name": "Alex Rall",
-      "teamId": "ohne-jackie",
-      "teamName": "Ohne Jackie",
-      "pts": 6,
-      "wins": 2,
-      "losses": 0,
-      "legsWon": 4,
-      "legsLost": 0
     },
     {
       "rank": 60,
@@ -678,9 +678,9 @@
       "teamName": "DC Null Bull",
       "pts": 4,
       "wins": 1,
-      "losses": 6,
+      "losses": 10,
       "legsWon": 4,
-      "legsLost": 13
+      "legsLost": 21
     },
     {
       "rank": 63,
@@ -790,12 +790,23 @@
       "teamName": "Jolly Pirates V",
       "pts": 66,
       "wins": 26,
-      "losses": 10,
+      "losses": 14,
       "legsWon": 53,
-      "legsLost": 33
+      "legsLost": 41
     },
     {
       "rank": 5,
+      "name": "Michael Daxenberger",
+      "teamId": "silberpfeile-ii",
+      "teamName": "Silberpfeile II",
+      "pts": 66,
+      "wins": 24,
+      "losses": 8,
+      "legsWon": 50,
+      "legsLost": 24
+    },
+    {
+      "rank": 6,
       "name": "Zoltan Toth",
       "teamId": "treff-nix-freimann",
       "teamName": "Treff Nix Freimann",
@@ -806,7 +817,7 @@
       "legsLost": 27
     },
     {
-      "rank": 6,
+      "rank": 7,
       "name": "Alex Mückstein",
       "teamId": "dc-animals-ii",
       "teamName": "DC Animals II",
@@ -815,17 +826,6 @@
       "losses": 19,
       "legsWon": 44,
       "legsLost": 41
-    },
-    {
-      "rank": 7,
-      "name": "Michael Daxenberger",
-      "teamId": "silberpfeile-ii",
-      "teamName": "Silberpfeile II",
-      "pts": 54,
-      "wins": 20,
-      "losses": 8,
-      "legsWon": 42,
-      "legsLost": 24
     },
     {
       "rank": 8,
@@ -840,6 +840,17 @@
     },
     {
       "rank": 9,
+      "name": "Max Holzhäuser",
+      "teamId": "silberpfeile-ii",
+      "teamName": "Silberpfeile II",
+      "pts": 47,
+      "wins": 16,
+      "losses": 7,
+      "legsWon": 35,
+      "legsLost": 18
+    },
+    {
+      "rank": 10,
       "name": "Manuel Buchholz",
       "teamId": "treff-nix-freimann",
       "teamName": "Treff Nix Freimann",
@@ -850,18 +861,18 @@
       "legsLost": 40
     },
     {
-      "rank": 10,
+      "rank": 11,
       "name": "Andree Sonntag",
       "teamId": "jolly-pirates-v",
       "teamName": "Jolly Pirates V",
       "pts": 46,
       "wins": 15,
-      "losses": 13,
+      "losses": 17,
       "legsWon": 36,
-      "legsLost": 31
+      "legsLost": 39
     },
     {
-      "rank": 11,
+      "rank": 12,
       "name": "Thomas Küblböck",
       "teamId": "treff-nix-freimann",
       "teamName": "Treff Nix Freimann",
@@ -872,7 +883,7 @@
       "legsLost": 29
     },
     {
-      "rank": 12,
+      "rank": 13,
       "name": "Axel Heider",
       "teamId": "gambas",
       "teamName": "Gambas",
@@ -883,7 +894,7 @@
       "legsLost": 49
     },
     {
-      "rank": 13,
+      "rank": 14,
       "name": "Markus Grötsch",
       "teamId": "treff-nix-freimann",
       "teamName": "Treff Nix Freimann",
@@ -894,7 +905,7 @@
       "legsLost": 49
     },
     {
-      "rank": 14,
+      "rank": 15,
       "name": "Michael Klos",
       "teamId": "gambas",
       "teamName": "Gambas",
@@ -905,7 +916,7 @@
       "legsLost": 9
     },
     {
-      "rank": 15,
+      "rank": 16,
       "name": "Gerhart Romboy",
       "teamId": "gambas",
       "teamName": "Gambas",
@@ -916,7 +927,18 @@
       "legsLost": 36
     },
     {
-      "rank": 16,
+      "rank": 17,
+      "name": "Hans Ziegler",
+      "teamId": "silberpfeile-ii",
+      "teamName": "Silberpfeile II",
+      "pts": 36,
+      "wins": 12,
+      "losses": 5,
+      "legsWon": 26,
+      "legsLost": 12
+    },
+    {
+      "rank": 18,
       "name": "Martin Steiner",
       "teamId": "alptraum",
       "teamName": "Alptraum",
@@ -927,7 +949,7 @@
       "legsLost": 33
     },
     {
-      "rank": 17,
+      "rank": 19,
       "name": "Michael Plesa",
       "teamId": "silberpfeile-ii",
       "teamName": "Silberpfeile II",
@@ -938,18 +960,7 @@
       "legsLost": 18
     },
     {
-      "rank": 18,
-      "name": "Max Holzhäuser",
-      "teamId": "silberpfeile-ii",
-      "teamName": "Silberpfeile II",
-      "pts": 35,
-      "wins": 12,
-      "losses": 7,
-      "legsWon": 27,
-      "legsLost": 18
-    },
-    {
-      "rank": 19,
+      "rank": 20,
       "name": "Sanel Tokalic",
       "teamId": "alptraum",
       "teamName": "Alptraum",
@@ -960,7 +971,18 @@
       "legsLost": 34
     },
     {
-      "rank": 20,
+      "rank": 21,
+      "name": "Christian Cohnen",
+      "teamId": "silberpfeile-ii",
+      "teamName": "Silberpfeile II",
+      "pts": 34,
+      "wins": 10,
+      "losses": 10,
+      "legsWon": 27,
+      "legsLost": 23
+    },
+    {
+      "rank": 22,
       "name": "Douglas Kelterborn",
       "teamId": "gambas",
       "teamName": "Gambas",
@@ -971,7 +993,7 @@
       "legsLost": 12
     },
     {
-      "rank": 21,
+      "rank": 23,
       "name": "Lutz Stockner",
       "teamId": "dc-animals-ii",
       "teamName": "DC Animals II",
@@ -982,7 +1004,7 @@
       "legsLost": 15
     },
     {
-      "rank": 22,
+      "rank": 24,
       "name": "Harald Rathgeb",
       "teamId": "gambas",
       "teamName": "Gambas",
@@ -993,7 +1015,7 @@
       "legsLost": 21
     },
     {
-      "rank": 23,
+      "rank": 25,
       "name": "Thomas Hackl",
       "teamId": "gambas",
       "teamName": "Gambas",
@@ -1004,7 +1026,7 @@
       "legsLost": 45
     },
     {
-      "rank": 24,
+      "rank": 26,
       "name": "Patrick Späth",
       "teamId": "dc-animals-ii",
       "teamName": "DC Animals II",
@@ -1015,29 +1037,18 @@
       "legsLost": 27
     },
     {
-      "rank": 25,
+      "rank": 27,
       "name": "Sven Armbruster",
       "teamId": "jolly-pirates-v",
       "teamName": "Jolly Pirates V",
       "pts": 24,
       "wins": 9,
-      "losses": 3,
+      "losses": 7,
       "legsWon": 19,
-      "legsLost": 10
+      "legsLost": 18
     },
     {
-      "rank": 26,
-      "name": "Hans Ziegler",
-      "teamId": "silberpfeile-ii",
-      "teamName": "Silberpfeile II",
-      "pts": 24,
-      "wins": 8,
-      "losses": 5,
-      "legsWon": 18,
-      "legsLost": 12
-    },
-    {
-      "rank": 27,
+      "rank": 28,
       "name": "Markus Attenberger",
       "teamId": "treff-nix-freimann",
       "teamName": "Treff Nix Freimann",
@@ -1046,17 +1057,6 @@
       "losses": 10,
       "legsWon": 19,
       "legsLost": 24
-    },
-    {
-      "rank": 28,
-      "name": "Christian Cohnen",
-      "teamId": "silberpfeile-ii",
-      "teamName": "Silberpfeile II",
-      "pts": 22,
-      "wins": 6,
-      "losses": 10,
-      "legsWon": 19,
-      "legsLost": 23
     },
     {
       "rank": 29,
@@ -1142,9 +1142,9 @@
       "teamName": "Jolly Pirates V",
       "pts": 11,
       "wins": 3,
-      "losses": 21,
+      "losses": 25,
       "legsWon": 10,
-      "legsLost": 44
+      "legsLost": 52
     },
     {
       "rank": 37,
