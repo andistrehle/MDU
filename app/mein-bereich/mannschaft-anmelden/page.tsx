@@ -14,7 +14,7 @@ import {
   getPredeterminedLeagueForTeam, isLeagueDowngrade,
   type MainLeague, type PredeterminedLeague,
 } from '@/lib/data';
-import { loadTeamProfile } from '@/lib/supabase/profiles';
+import { loadTeamProfile, loadPlayerContact, savePlayerContact } from '@/lib/supabase/profiles';
 import {
   createRegistration, updateRegistration, submitRegistration,
   getRegistration, getRegistrationPlayers,
@@ -57,6 +57,9 @@ export default function MannschaftAnmeldenPage() {
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   // Anmelde-Saison (registration_open) — Ziel-Saison; getrennt von draft.season_id gehalten.
   const [regSeasonId, setRegSeasonId] = useState<string | null>(null);
+  // Verknüpfte Telefonnummer des angemeldeten Nutzers (analog Mein Profil) + Freigabe.
+  const [linkedPhone, setLinkedPhone] = useState('');
+  const [phonePublic, setPhonePublic] = useState(true);
   const didPreselect = useRef(false);
   // Fallback-Upload-Ordner (nur für Admins ohne Team/Spieler relevant).
   const uploadIdRef = useRef(Math.random().toString(36).slice(2, 10));
@@ -130,6 +133,24 @@ export default function MannschaftAnmeldenPage() {
       }));
     });
   }, [user, regId]);
+
+  // Verknüpfte Telefonnummer (player_contacts) laden — analog Mein Profil.
+  useEffect(() => {
+    if (!user?.playerId) return;
+    let cancelled = false;
+    loadPlayerContact(user.playerId).then(c => {
+      if (cancelled) return;
+      setPhonePublic(c?.phonePublic ?? (user.role === 'team_captain'));
+      if (c?.phone) setLinkedPhone(c.phone);
+    });
+    return () => { cancelled = true; };
+  }, [user?.playerId, user?.role]);
+
+  // Telefon vorbelegen (auch nachdem onChoice den Draft zurückgesetzt hat), wenn leer.
+  useEffect(() => {
+    if (!linkedPhone) return;
+    queueMicrotask(() => setDraft(d => d.contact_phone ? d : { ...d, contact_phone: linkedPhone }));
+  }, [linkedPhone, choice]);
 
   // Prüfen, ob das gewählte (bestehende) Team für die Ziel-Saison schon gemeldet ist.
   useEffect(() => {
@@ -247,6 +268,10 @@ export default function MannschaftAnmeldenPage() {
     if (!id) { setBusy(false); return; }
     const { error } = await submitRegistration(id);
     if (error) { setBusy(false); setMsg({ kind: 'err', text: error }); return; }
+    // Telefonnummer + Freigabe in das verknüpfte Spielerprofil übernehmen (analog Mein Profil).
+    if (user?.playerId) {
+      await savePlayerContact(user.playerId, { phone: draft.contact_phone ?? null, phonePublic });
+    }
     // Eingangsbestätigung an den Team Captain (best-effort, blockiert nicht).
     await triggerRegistrationEmail({
       type: 'registration_submitted',
@@ -402,7 +427,20 @@ export default function MannschaftAnmeldenPage() {
                 <Section title="4 · Kontakt">
                   <Field label="Ansprechpartner *"><input value={draft.contact_name} onChange={e => set('contact_name', e.target.value)} style={inputStyle} /></Field>
                   <Field label="E-Mail *"><input type="email" value={draft.contact_email} onChange={e => set('contact_email', e.target.value)} style={inputStyle} /></Field>
-                  <Field label="Telefon (optional)"><input value={draft.contact_phone ?? ''} onChange={e => set('contact_phone', e.target.value)} style={inputStyle} /></Field>
+                  <Field label="Telefon (optional)">
+                    <input type="tel" value={draft.contact_phone ?? ''} onChange={e => set('contact_phone', e.target.value)} placeholder="z. B. 0170 1234567" style={inputStyle} />
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={phonePublic} onChange={e => setPhonePublic(e.target.checked)}
+                        style={{ marginTop: 1, width: 15, height: 15, accentColor: 'var(--th-accent)', flexShrink: 0, cursor: 'pointer' }} />
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.45 }}>
+                        Telefonnummer für eingeloggte Teamkapitäne sichtbar machen
+                      </span>
+                    </label>
+                    <p style={{ ...hintStyle, marginTop: 6 }}>
+                      Telefonnummern können nur eingeloggte Teamkapitäne sehen — zur direkten Absprache (z. B. Spielabsage/-verschiebung).
+                      Voreingestellt ist deine bereits hinterlegte Nummer; Änderungen hier werden auch in deinem Profil übernommen.
+                    </p>
+                  </Field>
                 </Section>
 
                 {/* 5. Social Media */}
