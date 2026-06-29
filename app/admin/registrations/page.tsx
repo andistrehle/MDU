@@ -9,7 +9,10 @@ import {
   listAllRegistrations, REGISTRATION_STATUS_LABELS,
   type TeamRegistration, type RegistrationStatus,
 } from '@/lib/supabase/registrations';
-import { getPredeterminedLeagueForTeam, isLeagueDowngrade, type MainLeague } from '@/lib/data';
+import {
+  getPredeterminedLeagueForTeam, isLeagueDowngrade,
+  MAIN_LEAGUE_LABELS, MAIN_LEAGUES, type MainLeague,
+} from '@/lib/data';
 
 /** Vorbestimmte Liga, wenn die Meldung nach unten abweicht — sonst null. */
 function downgradeHint(r: TeamRegistration): string | null {
@@ -18,6 +21,21 @@ function downgradeHint(r: TeamRegistration): string | null {
   if (!predet || !isLeagueDowngrade(r.requested_league as MainLeague, predet.league)) return null;
   return predet.label;
 }
+
+/** Hauptliga-Label (gewünschte bzw. zugewiesene Liga). */
+function leagueLabel(code: string | null | undefined): string | null {
+  return code ? (MAIN_LEAGUE_LABELS[code as MainLeague] ?? code) : null;
+}
+
+const LEAGUE_RANK: Record<string, number> = { la_liga: 0, a_liga: 1, b_liga: 2, c_liga: 3 };
+
+type SortKey = 'date_desc' | 'date_asc' | 'league' | 'name';
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'date_desc', label: 'Datum (neueste zuerst)' },
+  { value: 'date_asc',  label: 'Datum (älteste zuerst)' },
+  { value: 'league',    label: 'Liga' },
+  { value: 'name',      label: 'Name' },
+];
 
 const STATUSES: RegistrationStatus[] = ['draft','submitted','in_review','approved','rejected','changes_requested'];
 
@@ -35,6 +53,8 @@ export default function AdminRegistrationsPage() {
   const [rows, setRows] = useState<TeamRegistration[] | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [leagueFilter, setLeagueFilter] = useState('');
+  const [sort, setSort] = useState<SortKey>('date_desc');
   const [q, setQ] = useState('');
   const [flash, setFlash] = useState<string | null>(null);
 
@@ -53,11 +73,24 @@ export default function AdminRegistrationsPage() {
   const filtered = useMemo(() => {
     if (!rows) return [];
     const needle = q.trim().toLowerCase();
-    return rows
+    const out = rows
       .filter(r => !statusFilter || r.status === statusFilter)
       .filter(r => !typeFilter || (typeFilter === 'new' ? r.is_new_team : !r.is_new_team))
+      .filter(r => !leagueFilter || r.requested_league === leagueFilter)
       .filter(r => !needle || r.team_name.toLowerCase().includes(needle) || r.contact_name.toLowerCase().includes(needle));
-  }, [rows, statusFilter, typeFilter, q]);
+    const dateVal = (r: TeamRegistration) => new Date(r.submitted_at ?? r.created_at).getTime();
+    out.sort((a, b) => {
+      if (sort === 'name')   return a.team_name.localeCompare(b.team_name, 'de');
+      if (sort === 'league') {
+        const ra = LEAGUE_RANK[a.requested_league ?? ''] ?? 99;
+        const rb = LEAGUE_RANK[b.requested_league ?? ''] ?? 99;
+        return ra - rb || a.team_name.localeCompare(b.team_name, 'de');
+      }
+      if (sort === 'date_asc') return dateVal(a) - dateVal(b);
+      return dateVal(b) - dateVal(a); // date_desc
+    });
+    return out;
+  }, [rows, statusFilter, typeFilter, leagueFilter, q, sort]);
 
   const pendingCount = useMemo(
     () => (rows ?? []).filter(r => r.status === 'submitted' || r.status === 'in_review').length,
@@ -101,18 +134,35 @@ export default function AdminRegistrationsPage() {
         </button>
       )}
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, maxWidth: 820 }}>
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Team oder Kontakt suchen …"
-          style={{ flex: 1, minWidth: 180, ...ctl }} />
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={ctl}>
-          <option value="">Alle Status</option>
-          {STATUSES.map(s => <option key={s} value={s}>{REGISTRATION_STATUS_LABELS[s]}</option>)}
-        </select>
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={ctl}>
-          <option value="">Alle</option>
-          <option value="existing">Bestehende</option>
-          <option value="new">Neue Mannschaft</option>
-        </select>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16, maxWidth: 980, alignItems: 'flex-end' }}>
+        <FilterField label="Suche" grow>
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Team oder Kontakt suchen …"
+            style={{ width: '100%', ...ctl }} />
+        </FilterField>
+        <FilterField label="Status">
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={ctl}>
+            <option value="">Alle Status</option>
+            {STATUSES.map(s => <option key={s} value={s}>{REGISTRATION_STATUS_LABELS[s]}</option>)}
+          </select>
+        </FilterField>
+        <FilterField label="Liga">
+          <select value={leagueFilter} onChange={e => setLeagueFilter(e.target.value)} style={ctl}>
+            <option value="">Alle Ligen</option>
+            {MAIN_LEAGUES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+          </select>
+        </FilterField>
+        <FilterField label="Typ">
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={ctl}>
+            <option value="">Alle</option>
+            <option value="existing">Bestehende</option>
+            <option value="new">Neue Mannschaft</option>
+          </select>
+        </FilterField>
+        <FilterField label="Sortierung">
+          <select value={sort} onChange={e => setSort(e.target.value as SortKey)} style={ctl}>
+            {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </FilterField>
       </div>
 
       {rows === null ? (
@@ -138,6 +188,19 @@ export default function AdminRegistrationsPage() {
                   </div>
                 </div>
                 {(() => {
+                  const reqLabel = leagueLabel(r.requested_league);
+                  const asgLabel = leagueLabel(r.assigned_competition_id);
+                  if (!reqLabel && !asgLabel) return null;
+                  const text = asgLabel && asgLabel !== reqLabel ? `${reqLabel ?? '—'} → ${asgLabel}` : (reqLabel ?? asgLabel);
+                  return (
+                    <span title="Gemeldete Liga (ggf. → zugewiesene Liga)" style={{
+                      flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10.5,
+                      letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-muted)',
+                      border: '1px solid var(--th-line-10)', borderRadius: 6, padding: '2px 8px',
+                    }}>{text}</span>
+                  );
+                })()}
+                {(() => {
                   const hint = downgradeHint(r);
                   return hint ? (
                     <span title={`Eigentlich eine ${hint} Mannschaft`} style={{
@@ -156,6 +219,15 @@ export default function AdminRegistrationsPage() {
         </div>
       )}
     </AdminGuard>
+  );
+}
+
+function FilterField({ label, grow, children }: { label: string; grow?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: grow ? 1 : undefined, minWidth: grow ? 180 : undefined }}>
+      <label style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--th-text-muted)' }}>{label}</label>
+      {children}
+    </div>
   );
 }
 
