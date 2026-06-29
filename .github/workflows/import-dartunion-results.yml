@@ -1,10 +1,11 @@
 name: Import dartunion.de match data
 
-# Runs every Monday at 06:00 UTC so the data is fresh for the week.
+# Runs daily at 11:10 UTC (= 13:10 MESZ/Sommerzeit, 12:10 MEZ/Winterzeit).
+# GitHub-Cron laeuft in UTC und kennt keine Sommer-/Winterzeit-Umstellung.
 # Can also be triggered manually from the Actions tab.
 on:
   schedule:
-    - cron: '0 6 * * 1'
+    - cron: '10 11 * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,13 +28,15 @@ jobs:
       - name: Run import script
         run: npm run import:dartunion
 
-      - name: Commit updated match data (if changed)
+      - name: Commit updated data (if changed)
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name  "github-actions[bot]"
-          git add lib/data/imported-matches.json
+          git add lib/data/imported-matches.json \
+                  lib/data/imported-standings.json \
+                  lib/data/imported-statistics.json
           git diff --staged --quiet && echo "No changes." || \
-            git commit -m "chore: update imported match data from dartunion.de [skip ci]"
+            git commit -m "chore: update imported match/standings/statistics data from dartunion.de [skip ci]"
 
       - name: Push
         run: git push
