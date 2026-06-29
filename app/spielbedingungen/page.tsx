@@ -23,7 +23,7 @@ export default function SpielbedingungenPage() {
         Wir wollen faire, gut organisierte und für alle nachvollziehbare Ligaspiele. Diese Spielbedingungen
         regeln Teilnahme, Ablauf und Auswertung im Spielbetrieb der MDU. Sie gelten für alle Spielklassen
         (La&nbsp;Liga, A&nbsp;Liga, B&nbsp;Liga, C&nbsp;Liga) und sind, ergänzt um die jeweils aktuellen
-        Aushänge und Mitteilungen der Ligaleitung, maßgeblich. Im Zweifel entscheidet die Ligaleitung.
+        Mitteilungen der Ligaleitung, maßgeblich. Im Zweifel entscheidet die Ligaleitung.
       </LegalSection>
 
       <LegalSection title="2. Spielklassen & Spielvarianten">
@@ -34,17 +34,18 @@ export default function SpielbedingungenPage() {
           <li><strong>A&nbsp;Liga:</strong> 501 Double Out</li>
           <li><strong>La&nbsp;Liga:</strong> 501 Double Out</li>
         </ul>
-        Jede Einzelpartie wird auf zwei Gewinn-Legs (Best of Three) gespielt; in der La&nbsp;Liga auf drei
-        Gewinn-Legs (Best of Five). Vor jedem Leg ist sicherzustellen, dass das Sportgerät mit der korrekten
-        Variante und Option gestartet wurde. Wird eine falsche Einstellung bemerkt, wird sofort abgebrochen
-        und wiederholt.
+        Jede Partie wird auf zwei Gewinn-Legs gespielt (Best of Three); in der La&nbsp;Liga auf drei
+        Gewinn-Legs (Best of Five) – das gilt für Einzel und Doppel. Vor jedem Spiel ist sicherzustellen,
+        dass das Sportgerät mit der korrekten Variante und Option gestartet wurde. Wird eine falsche
+        Einstellung bemerkt, wird sofort abgebrochen und wiederholt.
       </LegalSection>
 
       <LegalSection title="3. Mannschaftsmeldung">
         <ol style={ol}>
           <li>Die Mannschaftsmeldung erfolgt über den Mitgliederbereich der MDU-Plattform
             („Mein&nbsp;Bereich → Mannschaft anmelden"). Eine Mannschaft besteht aus <strong>mindestens vier
-            Spielern</strong>.</li>
+            Stammspielern</strong> (Positionen 1–4) und kann bis zu <strong>vier Ersatzspieler</strong>
+            (Positionen 5–8) melden.</li>
           <li>Eine Meldung gilt erst als vollständig, wenn Startgeld, Lichtbilder sowie der Unkostenbeitrag
             der Spieler vorliegen bzw. nachgewiesen sind. Unvollständige Meldungen werden für die laufende
             Saison nicht zugelassen.</li>
@@ -62,7 +63,8 @@ export default function SpielbedingungenPage() {
       <LegalSection title="4. Spielerqualifikation">
         <ol style={ol}>
           <li>Grundvoraussetzung für die Teilnahme am Spielbetrieb ist die Mitgliedschaft in der MDU.</li>
-          <li>Ein Spieler darf in einer Saison nur für die Mannschaft spielen, für die er gemeldet ist.</li>
+          <li>Ein Spieler darf in einer Saison nur für die Mannschaft spielen, für die er gemeldet ist. Die
+            Zugehörigkeit wird mit der Mannschaftsmeldung über die Plattform bestätigt.</li>
           <li>Ein Wechsel der Mannschaft während der laufenden Saison ist nicht möglich, sondern erst zur
             darauffolgenden Saison.</li>
           <li>Werden während der Saison so viele höherklassige Spieler nachgemeldet, dass die Mannschaft in
@@ -118,56 +120,87 @@ export default function SpielbedingungenPage() {
         </ol>
       </LegalSection>
 
-      <LegalSection title="8. Spielvoraussetzungen">
+      <LegalSection title="8. Aufstellung & Spielsystem">
+        <ol style={ol}>
+          <li>Je Mannschaft werden vier Stammspieler auf den Einzelpositionen 1–4 sowie bis zu vier
+            Ersatzspieler auf den Positionen 5–8 eingetragen. Jeder Spieler darf nur auf <strong>einer</strong>
+            Einzelposition eingetragen werden.</li>
+          <li>Eine Begegnung umfasst <strong>18 Spiele</strong> in folgender Reihenfolge: acht Einzel
+            (Spiele&nbsp;1–8), ein Doppel (Spiel&nbsp;9), acht Einzel (Spiele&nbsp;10–17) und ein
+            abschließendes Doppel (Spiel&nbsp;18).</li>
+          <li>Die eingetragenen Spielpositionen sind verbindlich – auch für die Doppel und die Reihenfolge der
+            Paarungen, die sich aus dem Spielbericht ergibt.</li>
+        </ol>
+      </LegalSection>
+
+      <LegalSection title="9. Ein- & Auswechslungen">
+        <ol style={ol}>
+          <li>Pro Mannschaft stehen bis zu <strong>vier Ersatzspieler</strong> (Positionen 5–8) zur Verfügung.
+            Auch Ersatzspieler bleiben fest an ihre jeweilige Position gebunden.</li>
+          <li>Ein Auswechseln ist jederzeit möglich, jedoch <strong>nicht im Verlauf einer laufenden
+            Paarung</strong>.</li>
+          <li>Ein ausgewechselter Spieler darf später wieder eingewechselt werden – aber nur auf
+            <strong> derselben Position</strong>. Im Laufe der Begegnung können auf einer Position auch mehrere
+            Ersatzspieler zum Einsatz kommen.</li>
+          <li>Jeder Spielerwechsel ist direkt im Spielablauf des Spielberichts zu vermerken: die bisherige
+            Spielernummer durchstreichen und die neue daneben schreiben (z.&nbsp;B. H1 → H5).</li>
+        </ol>
+      </LegalSection>
+
+      <LegalSection title="10. Wertung & Tabelle">
+        <ol style={ol}>
+          <li>Einzelpartien zählen für die Einzelrangliste: <strong>2:0 = 3 Punkte · 2:1 = 2 · 1:2 = 1 ·
+            0:2 = 0</strong>.</li>
+          <li>Doppel zählen nur für das Mannschaftsergebnis und die Legs, nicht für die
+            Einzelranglistenpunkte.</li>
+          <li>Tabellenpunkte je Begegnung: <strong>Sieg = 3 · Unentschieden = je 1 · Niederlage = 0</strong>.</li>
+          <li>Highlights (180er, 171er, High Finish ab 100, Short Leg = Anzahl Darts, max.&nbsp;20) werden im
+            Spielbericht erfasst und fließen in die Statistik und Einzelwertung ein.</li>
+          <li>Tabellen, Legs und Ranglisten werden vom System automatisch berechnet.</li>
+        </ol>
+      </LegalSection>
+
+      <LegalSection title="11. Trikot & Spielvoraussetzungen">
         <ol style={ol}>
           <li>Es besteht Trikotpflicht: Die Mannschaft spielt in einem einheitlichen Oberteil. Der Aufdruck
             soll die Zusammengehörigkeit widerspiegeln und darf nicht diffamierend sein.</li>
-          <li>Gespielt wird gemäß Spielplan in der Reihenfolge <strong>8 Einzel · 2 Doppel · 8 Einzel</strong>
-            (Doppel auf Position&nbsp;9 und&nbsp;18). Jeder Spieler darf nur einmal auf einer Einzelposition
-            stehen.</li>
           <li>Vor Spielbeginn ist der Spielbericht spielfertig auszufüllen. Es dürfen nur Spieler mit gültigem
             Spielerpass für das jeweilige Team antreten (Ausnahme: Nachmeldung). Die Pässe sind zu Beginn von
             beiden TCs zu kontrollieren.</li>
         </ol>
       </LegalSection>
 
-      <LegalSection title="9. Auf- & Auswechslungen">
-        Es können bis zu zwei Ersatzspieler gegen zwei eingetragene Spieler ausgewechselt werden. Das
-        Auswechseln ist jederzeit möglich, jedoch nicht im Verlauf einer laufenden Paarung. Eingetragene
-        Spielpositionen sind verbindlich; auch Ersatzspieler bleiben fest an ihre Position gebunden. Ein
-        ausgewechselter Spieler darf später – aber nur auf derselben Position – wieder eingewechselt werden;
-        ein Spielerwechsel ist direkt im Spielbericht zu vermerken.
-      </LegalSection>
-
-      <LegalSection title="10. Spielaufruf & Verhalten am Board">
-        <ol style={ol}>
-          <li>Jede Paarung wird einzeln aufgerufen; der aufgerufene Spieler hat sich unverzüglich an der
-            Abwurflinie einzufinden. Beide TCs prüfen anhand des Spielberichts die korrekte Paarung.</li>
-          <li>Erscheint ein Spieler nach einem letztmaligen Aufruf durch beide TCs nicht an der Wurflinie, ist
-            das Spiel mit <strong>0:2</strong> verloren. Während einer laufenden Partie darf der Bereich der
-            Abwurflinie nicht verlassen werden.</li>
-          <li>Anwurf: Der Spieler des Gastteams beginnt; das zweite Leg beginnt das Heimteam. Ist ein
-            Entscheidungsleg nötig, wird der Anwurf per Wurf auf das Bull&apos;s Eye ermittelt (Darts müssen
-            stecken bleiben); es beginnt, wer näher am Bull&apos;s Eye liegt. Bei Gleichstand wird wiederholt.</li>
-          <li>Am Board gilt absolutes Rauchverbot. Mobiltelefone sind während des Spiels möglichst lautlos zu
-            schalten oder auszuschalten; am Board besteht Handyverbot.</li>
-        </ol>
-      </LegalSection>
-
-      <LegalSection title="11. Spielbeginn">
+      <LegalSection title="12. Spielbeginn">
         <ol style={ol}>
           <li>15&nbsp;Minuten vor dem offiziellen Spielbeginn sind die Sportgeräte für die Gastmannschaft
             reserviert.</li>
           <li>Sind bis spätestens 30&nbsp;Minuten nach der offiziellen Startzeit nicht mindestens drei Spieler
             einer Mannschaft angetreten, ist das Spiel mit <strong>0:3 Punkten / 0:18 Sätzen</strong> verloren
             (siehe Nichtantritt). Nur höhere Gewalt rechtfertigt eine Ausnahme.</li>
-          <li>Sind drei Spieler anwesend, dürfen dennoch bis zu sechs Spieler eingetragen werden. Jedem
-            eingetragenen, bei Spielbeginn noch nicht anwesenden Spieler ist das Bestreiten seiner noch nicht
-            aufgerufenen Partie zu ermöglichen.</li>
+          <li>Sind mindestens drei Spieler anwesend, dürfen dennoch bis zu acht Spieler (vier Stamm- und vier
+            Ersatzspieler) auf dem Spielbericht eingetragen werden. Jedem eingetragenen, bei Spielbeginn noch
+            nicht anwesenden Spieler ist das Bestreiten seiner noch nicht aufgerufenen Partie zu
+            ermöglichen.</li>
         </ol>
       </LegalSection>
 
-      <LegalSection title="12. Spielablauf">
+      <LegalSection title="13. Spielaufruf & Verhalten am Board">
+        <ol style={ol}>
+          <li>Jede Paarung wird einzeln aufgerufen; der aufgerufene Spieler hat sich unverzüglich an der
+            Abwurflinie einzufinden. Beide TCs prüfen anhand des Spielberichts die korrekte Paarung.</li>
+          <li>Erscheint ein Spieler nach einem letztmaligen Aufruf durch beide TCs nicht an der Wurflinie, ist
+            das Spiel mit <strong>0:2</strong> verloren. Während einer laufenden Partie darf der Bereich der
+            Abwurflinie nicht verlassen werden.</li>
+          <li>Anwurf: Der Spieler des Gastteams beginnt das erste Leg, das zweite Leg beginnt das Heimteam;
+            danach wechselt der Anwurf. Ist ein Entscheidungsleg nötig, wird der Anwurf per Wurf auf das
+            Bull&apos;s Eye ermittelt (Darts müssen stecken bleiben); es beginnt, wer näher am Bull&apos;s Eye
+            liegt. Bei Gleichstand wird wiederholt.</li>
+          <li>Am Board gilt absolutes Rauchverbot. Mobiltelefone sind während des Spiels möglichst lautlos zu
+            schalten oder auszuschalten; am Board besteht Handyverbot.</li>
+        </ol>
+      </LegalSection>
+
+      <LegalSection title="14. Spielablauf">
         <ol style={ol}>
           <li>Die Abwurflinie darf während des Wurfes nicht überschritten werden; ein Beugen darüber sowie ein
             Abwurf seitlich in gedachter Verlängerung der Linie sind erlaubt.</li>
@@ -187,15 +220,14 @@ export default function SpielbedingungenPage() {
         </ol>
       </LegalSection>
 
-      <LegalSection title="13. Spielende, Spielbericht & Ergebnismeldung">
+      <LegalSection title="15. Spielende, Spielbericht & Ergebnismeldung">
         <ol style={ol}>
           <li>Nach der letzten Paarung kontrollieren beide TCs den korrekten Eintrag aller Ergebnisse und
             bestätigen ihn mit ihrer Unterschrift. Ein von beiden TCs unterschriebener Spielbericht ist gültig;
             nachträglicher Protest ist dann nicht mehr möglich.</li>
           <li>Der Spielbericht wird anschließend eigenständig im Login-Bereich der MDU-Plattform
             hochgeladen (Foto/PDF des unterschriebenen Bogens). Bei Problemen kann er ersatzweise per E-Mail
-            oder WhatsApp an die Ligaleitung übermittelt werden. Tabellenpunkte, Legs und
-            Einzelranglistenpunkte werden vom System automatisch berechnet.</li>
+            oder WhatsApp an die Ligaleitung übermittelt werden.</li>
           <li>Geht der Spielbericht nicht binnen <strong>zwei Werktagen</strong> nach beendeter Spielwoche
             (spätestens Dienstag, 24:00&nbsp;Uhr) ein, erhält das Heimteam automatisch eine Niederlage
             (0:3 Punkte / 0:18 Sätze).</li>
@@ -205,7 +237,7 @@ export default function SpielbedingungenPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="14. Nichtantritt">
+      <LegalSection title="16. Nichtantritt">
         <ol style={ol}>
           <li>Tritt eine Mannschaft unentschuldigt nicht an, ist das Spiel mit 0:3 Punkten / 0:18 Sätzen
             verloren.</li>
@@ -217,7 +249,7 @@ export default function SpielbedingungenPage() {
         </ol>
       </LegalSection>
 
-      <LegalSection title="15. Proteste & Streitfragen">
+      <LegalSection title="17. Proteste & Streitfragen">
         <ol style={ol}>
           <li>Proteste sind auf dem Spielbericht mit Datum und Unterschrift beider TCs zu vermerken und
             müssen innerhalb von <strong>zwei Werktagen</strong> schriftlich bei der Ligaleitung vorliegen;
@@ -228,7 +260,7 @@ export default function SpielbedingungenPage() {
         </ol>
       </LegalSection>
 
-      <LegalSection title="16. Veröffentlichung & Datenschutz">
+      <LegalSection title="18. Veröffentlichung & Datenschutz">
         <ol style={ol}>
           <li>Zur Durchführung des Spielbetriebs werden Namen der Spieler in Verbindung mit Mannschaft,
             Ergebnissen, Tabellen und Einzelranglisten veröffentlicht.</li>
@@ -244,22 +276,22 @@ export default function SpielbedingungenPage() {
         </ol>
       </LegalSection>
 
-      <LegalSection title="17. Haftung & Schadenersatz">
+      <LegalSection title="19. Haftung & Schadenersatz">
         Die MDU übernimmt keine Haftung oder Schadenersatzansprüche gegenüber Spielern oder Dritten, denen im
         Zusammenhang mit dem Spielbetrieb ein Schaden entsteht.
       </LegalSection>
 
-      <LegalSection title="18. Salvatorische Klausel">
+      <LegalSection title="20. Salvatorische Klausel">
         Sollten einzelne Regelungen dieser Spielbedingungen ganz oder teilweise unwirksam sein oder werden,
         bleibt die Wirksamkeit der übrigen Regelungen unberührt.
       </LegalSection>
 
-      <LegalSection title="19. Ehrenkodex">
+      <LegalSection title="21. Ehrenkodex">
         Fair Play und Respekt gegenüber Gegnern und Mitmenschen sind für die MDU eine Grundvoraussetzung – im
         Sport wie im Leben. Wir bitten alle Teams und Spieler, in diesem Sinne zu spielen und aufzutreten.
       </LegalSection>
 
-      <LegalSection title="20. Abkürzungen">
+      <LegalSection title="22. Abkürzungen">
         <ul style={ul}>
           <li><strong>MDU</strong> – Münchner Dart Union</li>
           <li><strong>TC</strong> – Teamkapitän (Team Captain)</li>
