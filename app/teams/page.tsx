@@ -3,12 +3,20 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { getPlayoffAwareLeagueGroupings, getCurrentSeason, findLeague } from '@/lib/data';
+import { getPlayoffAwareLeagueGroupings, getCurrentSeason, findLeague, findPlayer, getPlayerDisplayName } from '@/lib/data';
 import { getActiveSeason, getSeasonTeams, type SeasonTeam } from '@/lib/server/season-data';
+import { CaptainContact } from '@/components/mdu/captain-contact';
 
 // Aktive Saison wird zur Laufzeit aus Supabase gelesen → nicht statisch
 // vorrendern, damit der Admin-Saison-Switch ohne Redeploy greift.
 export const dynamic = 'force-dynamic';
+
+/** Kapitänsname aus einem Spieler-Slug (für die selbstverwaltete Saison). */
+function captainNameFor(playerId: string | null): string | null {
+  if (!playerId) return null;
+  const p = findPlayer(playerId);
+  return p ? getPlayerDisplayName(p) : null;
+}
 
 export default async function TeamsPage() {
   const active = await getActiveSeason();
@@ -122,12 +130,7 @@ export default async function TeamsPage() {
                               {venueName ?? 'Noch nicht verfügbar'}
                             </span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
-                            <Icon name="user" size={12} stroke={2} />
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {captainName ? `TC: ${captainName}` : 'Noch nicht verfügbar'}
-                            </span>
-                          </div>
+                          <CaptainContact teamId={team.id} captainName={captainName} />
                         </div>
 
                         {/* Arrow hint */}
@@ -200,9 +203,12 @@ function SelfManagedTeams({ seasonName, teams }: { seasonName: string; teams: Se
                             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2, color: typeof color === 'string' ? color : 'var(--th-accent)' }}>{name}</div>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
-                          <Icon name="pin" size={12} stroke={2} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.venueName ?? 'Noch nicht verfügbar'}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
+                            <Icon name="pin" size={12} stroke={2} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.venueName ?? 'Noch nicht verfügbar'}</span>
+                          </div>
+                          <CaptainContact teamId={t.teamId} captainName={captainNameFor(t.captainPlayerId)} />
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
                           <Icon name="arrow-right" size={14} stroke={2} style={{ color: 'var(--th-text-faint)' }} />
