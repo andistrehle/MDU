@@ -6,7 +6,10 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, canEditPlayerProfile } from '@/lib/auth/roles';
 import { findTeam, findPlayer, getPlayerDisplayName } from '@/lib/data';
-import { loadPlayerProfile, savePlayerProfile, type PlayerProfileExtras } from '@/lib/supabase/profiles';
+import {
+  loadPlayerProfile, savePlayerProfile, type PlayerProfileExtras,
+  loadPlayerContact, savePlayerContact, type PlayerContact,
+} from '@/lib/supabase/profiles';
 import { ImageUpload } from '@/components/mdu/image-upload';
 
 export default function MeinProfilPage() {
@@ -17,6 +20,7 @@ export default function MeinProfilPage() {
   const canEdit = !!playerId && canEditPlayerProfile(user, playerId);
 
   const [extras, setExtras] = useState<PlayerProfileExtras | null>(null);
+  const [contact, setContact] = useState<PlayerContact | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -24,14 +28,24 @@ export default function MeinProfilPage() {
     if (canEdit && playerId) loadPlayerProfile(playerId).then(setExtras);
   }, [canEdit, playerId]);
 
+  useEffect(() => {
+    if (!canEdit || !playerId) return;
+    loadPlayerContact(playerId).then(c =>
+      // Default-Freigabe: bei Teamkapitänen an, sonst aus.
+      setContact(c ?? { phone: '', phonePublic: user?.role === 'team_captain' }),
+    );
+  }, [canEdit, playerId, user?.role]);
+
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     if (!playerId || !extras) return;
     setBusy(true);
     setMsg(null);
     const { error } = await savePlayerProfile(playerId, extras);
+    const cErr = contact ? (await savePlayerContact(playerId, contact)).error : null;
     setBusy(false);
-    setMsg(error ? { kind: 'err', text: error } : { kind: 'ok', text: 'Gespeichert.' });
+    const err = error ?? cErr;
+    setMsg(err ? { kind: 'err', text: err } : { kind: 'ok', text: 'Gespeichert.' });
   }
 
   function set<K extends keyof PlayerProfileExtras>(key: K, value: string) {
@@ -100,6 +114,20 @@ export default function MeinProfilPage() {
                   <Field label="Über mich">
                     <textarea value={extras.aboutMe ?? ''} onChange={e => set('aboutMe', e.target.value)}
                       rows={4} placeholder="Erzähl etwas über dich und dein Dart-Spiel …" style={{ ...inputStyle, resize: 'vertical' }} />
+                  </Field>
+                  <Field label="Telefon (optional)">
+                    <input type="tel" value={contact?.phone ?? ''}
+                      onChange={e => setContact(c => ({ phone: e.target.value, phonePublic: c?.phonePublic ?? false }))}
+                      placeholder="z. B. 0170 1234567" style={inputStyle} />
+                    <ConsentCheck
+                      checked={contact?.phonePublic ?? false}
+                      onChange={v => setContact(c => ({ phone: c?.phone ?? '', phonePublic: v }))}
+                      label="Telefonnummer für eingeloggte Teamkapitäne sichtbar machen"
+                    />
+                    <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', margin: '6px 0 0', lineHeight: 1.5 }}>
+                      Telefonnummern können nur eingeloggte Teamkapitäne sehen — gedacht zur direkten Absprache
+                      zwischen Kapitänen (z. B. Spielabsage/-verschiebung).
+                    </p>
                   </Field>
                   <Field label="Profilbild">
                     {playerId && (

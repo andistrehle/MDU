@@ -75,6 +75,38 @@ export async function savePlayerProfile(
   return { error: error?.message ?? null };
 }
 
+// ── Telefonnummer (zugriffsgeschützt, eigene Tabelle) ────────
+
+export interface PlayerContact {
+  phone: string | null;
+  /** Vom Nutzer freigegeben (für eingeloggte Teamkapitäne sichtbar). */
+  phonePublic: boolean;
+}
+
+/** Lädt die eigene Telefonnummer + Freigabe (RLS: nur eigene/Admin). null = keine Zeile. */
+export async function loadPlayerContact(playerId: string): Promise<PlayerContact | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('player_contacts')
+    .select('phone, phone_public')
+    .eq('player_id', playerId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return { phone: data.phone ?? null, phonePublic: data.phone_public ?? false };
+}
+
+export async function savePlayerContact(playerId: string, c: PlayerContact): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from('player_contacts').upsert({
+    player_id: playerId,
+    phone: (c.phone ?? '').trim() || null,
+    phone_public: c.phonePublic,
+    updated_by: auth.user?.id ?? null,
+  });
+  return { error: error?.message ?? null };
+}
+
 /**
  * Öffentlich anzeigbare Profil-Zusatzdaten — gibt Spitzname/Bild NUR zurück,
  * wenn der Spieler der Veröffentlichung zugestimmt hat. Serverseitig nutzbar
