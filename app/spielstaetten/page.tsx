@@ -119,31 +119,40 @@ export default function SpielstaettenPage() {
                             }}>
                               {venueName ?? 'Spielstätte noch nicht verfügbar'}
                             </div>
-                            {fullAddress && (
-                              mapsUrl ? (
-                                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen" style={{
-                                  display: 'inline-block', fontFamily: 'var(--font-manrope)', fontSize: 12,
-                                  color: 'var(--th-accent)', marginTop: 3, lineHeight: 1.5, textDecoration: 'none',
-                                }}>
-                                  {fullAddress}
-                                </a>
-                              ) : (
-                                <div style={{
-                                  fontFamily: 'var(--font-manrope)', fontSize: 12,
-                                  color: 'var(--th-text-muted)', marginTop: 3, lineHeight: 1.5,
-                                }}>
-                                  {fullAddress}
-                                </div>
-                              )
-                            )}
-                            {venue?.phone && (
-                              <a href={`tel:${venue.phone.replace(/\s+/g, '')}`} style={{
-                                display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 4,
-                                fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-                                color: 'var(--th-accent)', textDecoration: 'none',
-                              }}>
-                                <Icon name="phone" size={12} stroke={2} /> {venue.phone}
-                              </a>
+                            {(fullAddress || venue?.phone) && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, marginTop: 7 }}>
+                                {fullAddress && (
+                                  mapsUrl ? (
+                                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen" style={{
+                                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                                      fontFamily: 'var(--font-manrope)', fontSize: 12, lineHeight: 1.5,
+                                      color: 'var(--th-text-body)', textDecoration: 'none',
+                                      background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
+                                      borderRadius: 7, padding: '4px 10px',
+                                    }}>
+                                      <Icon name="pin" size={11} stroke={2} style={{ color: 'var(--th-text-faint)' }} />
+                                      {fullAddress}
+                                    </a>
+                                  ) : (
+                                    <span style={{
+                                      fontFamily: 'var(--font-manrope)', fontSize: 12, lineHeight: 1.5,
+                                      color: 'var(--th-text-muted)', background: 'var(--th-line-4)',
+                                      border: '1px solid var(--th-line-8)', borderRadius: 7, padding: '4px 10px',
+                                    }}>
+                                      {fullAddress}
+                                    </span>
+                                  )
+                                )}
+                                {venue?.phone && (
+                                  <a href={`tel:${venue.phone.replace(/\s+/g, '')}`} style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                                    fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
+                                    color: 'var(--th-accent)', textDecoration: 'none',
+                                  }}>
+                                    <Icon name="phone" size={12} stroke={2} /> {venue.phone}
+                                  </a>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
