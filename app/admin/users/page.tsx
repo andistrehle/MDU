@@ -358,7 +358,14 @@ function EditModal({ actor, profile, onClose, onSaved }: {
                   <div>Erkannt: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(profile.matched_player_id)}</strong>
                     {profile.matched_team_id ? ` · ${teamName(profile.matched_team_id)}` : ''}
                     {profile.match_confidence ? ` (${profile.match_confidence})` : ''}</div>
-                  <button type="button" onClick={() => { setPlayerId(profile.matched_player_id ?? ''); if (profile.matched_team_id) setTeamId(profile.matched_team_id); }}
+                  <button type="button" onClick={() => {
+                    setPlayerId(profile.matched_player_id ?? '');
+                    if (profile.matched_team_id) setTeamId(profile.matched_team_id);
+                    // Auch die gewünschte Rolle übernehmen (sofern der Admin sie vergeben darf).
+                    const wished: UserRole | null = profile.registration_intent === 'team_captain' ? 'team_captain'
+                      : profile.registration_intent === 'player' ? 'player' : null;
+                    if (wished && roleOptions.includes(wished)) setRole(wished);
+                  }}
                     style={{ marginTop: 8, padding: '7px 12px', borderRadius: 7, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
                     Vorschlag übernehmen
                   </button>
