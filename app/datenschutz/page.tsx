@@ -124,7 +124,35 @@ export default function DatenschutzPage() {
         (siehe Ziffer 7).
       </LegalSection>
 
-      <LegalSection title="13. Rechte der betroffenen Personen">
+      <LegalSection title="13. Telefonnummern (Spieler/Kapitäne & Spielstätten)">
+        Telefonnummern dienen ausschließlich der direkten Absprache im Spielbetrieb
+        (z. B. Spielabsagen oder -verschiebungen).<br /><br />
+        <strong>Kapitäns-/Spieler-Telefonnummern</strong> werden zugriffsgeschützt gespeichert und
+        sind – nach Freigabe – ausschließlich für eingeloggte Teamkapitäne (sowie die Ligaleitung)
+        sichtbar, <strong>nicht öffentlich</strong>. Bei Teamkapitänen ist die Freigabe standardmäßig
+        aktiviert. Jede betroffene Person kann ihre Nummer jederzeit im eigenen Profil ändern, die
+        Freigabe widerrufen oder die Nummer vollständig entfernen (Art. 6 Abs. 1 lit. a/f DSGVO).
+        Ein Teil dieser Nummern wurde anfänglich aus der <strong>öffentlich zugänglichen
+        Mannschafts- und Kontaktübersicht („TC’s und Lokale“) auf dartunion.de</strong> übernommen,
+        auf der diese Nummern derzeit öffentlich angezeigt werden; Betroffene können sie hier – wie
+        beschrieben – jederzeit ändern oder löschen.<br /><br />
+        <strong>Telefonnummern der Spielstätten/Lokale</strong> werden – wie bereits öffentlich auf
+        dartunion.de bzw. in allgemein zugänglichen Verzeichnissen – öffentlich angezeigt, um die
+        Kontaktaufnahme zu den Spielorten zu ermöglichen. Es handelt sich um geschäftliche
+        Kontaktdaten der Lokale, nicht um private Daten der Spieler (Art. 6 Abs. 1 lit. f DSGVO).
+      </LegalSection>
+
+      <LegalSection title="14. Eindeutigkeitsprüfungen & Hilfe-Anfragen">
+        Bei der Registrierung und der Mannschaftsanmeldung prüft das System, ob ein Spieler bereits
+        mit einem Konto verknüpft ist, ob eine Mannschaft bereits einen Kapitän hat oder bereits für
+        die Saison gemeldet wurde, um versehentliche Doppelanlagen zu vermeiden. Forderst du das
+        Zurücksetzen einer bestehenden Verknüpfung oder Hilfe bei vergessenen Zugangsdaten
+        (z. B. unbekannte E-Mail-Adresse) an, werden dein Name und – sofern angegeben – deine
+        E-Mail-Adresse zu diesem Zweck per E-Mail an die Ligaleitung übermittelt. Rechtsgrundlage:
+        Vertrag/Nutzung bzw. berechtigtes Interesse (Art. 6 Abs. 1 lit. b/f DSGVO).
+      </LegalSection>
+
+      <LegalSection title="15. Rechte der betroffenen Personen">
         Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
         Verarbeitung, Datenübertragbarkeit und Widerspruch. Erteilte Einwilligungen können Sie
         jederzeit mit Wirkung für die Zukunft widerrufen. Zudem besteht ein Beschwerderecht bei
@@ -132,7 +160,7 @@ export default function DatenschutzPage() {
         kontakt@mdudarts.de.
       </LegalSection>
 
-      <LegalSection title="14. Server-Logs">
+      <LegalSection title="16. Server-Logs">
         Zur Sicherstellung des Betriebs werden Server-Logfiles automatisch erfasst und nach den
         Vorgaben der eingesetzten Anbieter (Vercel, Cloudflare, Supabase) gespeichert.
       </LegalSection>
