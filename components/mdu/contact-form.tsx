@@ -16,15 +16,16 @@ export function ContactForm() {
   const [status, setStatus] = useState<Status>('idle');
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  const canSubmit = !!name.trim()
-    && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
-    && message.trim().length >= 10
-    && accepted
-    && status !== 'sending';
+  const canSubmit = status !== 'sending';
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (status === 'sending') return;
+    // Klare Validierung mit verständlichen Meldungen (statt nur deaktiviertem Button).
+    if (!name.trim()) { setStatus('error'); setErrorText('Bitte gib deinen Namen ein.'); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setStatus('error'); setErrorText('Bitte gib eine gültige E-Mail-Adresse an.'); return; }
+    if (message.trim().length < 10) { setStatus('error'); setErrorText('Bitte gib eine etwas längere Nachricht ein (mindestens 10 Zeichen).'); return; }
+    if (!accepted) { setStatus('error'); setErrorText('Bitte bestätige die Datenschutzerklärung.'); return; }
     setStatus('sending');
     setErrorText(null);
     try {
@@ -84,7 +85,8 @@ export function ContactForm() {
         <input value={subject} onChange={e => setSubject(e.target.value)} maxLength={200} style={inputStyle} />
       </Field>
       <Field label="Nachricht" required>
-        <textarea value={message} onChange={e => setMessage(e.target.value)} required rows={6} maxLength={5000} style={{ ...inputStyle, resize: 'vertical' }} />
+        <textarea value={message} onChange={e => setMessage(e.target.value)} required rows={6} minLength={10} maxLength={5000} style={{ ...inputStyle, resize: 'vertical' }} />
+        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>Mindestens 10 Zeichen.</span>
       </Field>
 
       {/* Honeypot – für echte Nutzer unsichtbar */}
