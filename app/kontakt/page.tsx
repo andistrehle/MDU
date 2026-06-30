@@ -68,8 +68,6 @@ export default function KontaktPage() {
           <Link href="/impressum" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Impressum</Link>
           {' '}und in der{' '}
           <Link href="/datenschutz" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Datenschutzerklärung</Link>.
-          {' '}Weitere Informationen rund um den Dartsport in München unter{' '}
-          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-body)', textDecoration: 'underline' }}>dartunion.de</a>.
         </div>
 
         {/* Kontaktformular – zweiter unmittelbarer Kontaktweg (§ 5 DDG) */}
