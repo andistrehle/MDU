@@ -75,13 +75,18 @@ noch nicht gibt.
 - **Administratoren** – Benutzer-/Saisonverwaltung, Benachrichtigungen
 
 **Kernbotschaften (max. 7):**
-1. Modern und **mobil** nutzbar
-2. Alles zum Spielbetrieb **schnell erreichbar**
+1. ⭐ **Voll mobil nutzbar** – alles läuft direkt am Smartphone (**einer der größten Fortschritte** der neuen Seite)
+2. Modern und **schnell** – alles zum Spielbetrieb auf einen Blick
 3. **Eigene Profile** für Spieler und Teams
 4. Eingeloggt: **rollenabhängige** Zusatzfunktionen
 5. **Mannschaftsanmeldung online**
 6. **Spielbericht digital** – Ergebnisse & Punkte automatisch
 7. **Papierbogen per OCR** – immer mit menschlicher Prüfung
+
+> **Durchgängiges Thema „Mobile":** Die mobile Nutzbarkeit ist ein zentrales Verkaufsargument und wird
+> **wiederholt** gezeigt – nicht nur in der OCR-Szene. Plan: Startseite, Mein Bereich, Benachrichtigungen,
+> Spielbericht und OCR jeweils zusätzlich als kurzer **Smartphone-Insert** (Hochformat, Phone-Mockup),
+> inklusive der **mobilen Bottom-Navigation**. Im Sprechertext mehrfach „auch am Smartphone" erwähnen.
 
 ---
 
@@ -134,8 +139,9 @@ ableiten (gleiche Avatar-/Voice-Assets, kürzerer Bildschirmpfad). Beide teilen 
 - **Route:** `/`
 - **Klicks/Scroll:** langsamer Scroll über Hero → Quick-Bar (Spielplan/Tabellen) → „Aktuelles" (News) → „Nächste Spiele" → „Letzte Spiele". Danach **Theme-Switch im Header 1× klicken** (Old School ↔ New Design) und zurück.
 - **Avatar:** klein unten rechts
-- **Voice-over:** „Auf der neuen Startseite finden Spieler und Mannschaften alle wichtigen Informationen zum aktuellen Spielbetrieb auf einen Blick – aktuelle News, die nächsten Begegnungen und die letzten Ergebnisse. Und wer es lieber klassisch mag: Mit einem Klick wechselst du zwischen dem modernen Design und der vertrauten Old-School-Ansicht."
-- **Einblendung:** „Alles auf einen Blick" → beim Switch: „Zwei Designs – ein Klick"
+- **Voice-over:** „Auf der neuen Startseite finden Spieler und Mannschaften alle wichtigen Informationen zum aktuellen Spielbetrieb auf einen Blick – aktuelle News, die nächsten Begegnungen und die letzten Ergebnisse. Und das Beste: Die ganze Seite läuft genauso flüssig am Smartphone. Wer es lieber klassisch mag, wechselt mit einem Klick zwischen dem modernen Design und der vertrauten Old-School-Ansicht."
+- **Mobile-Insert:** kurz die **Startseite im Hochformat** (Phone-Mockup) mit der **mobilen Bottom-Navigation** einblenden.
+- **Einblendung:** „Alles auf einen Blick" → „Voll mobil nutzbar" → beim Switch: „Zwei Designs – ein Klick"
 - **Demo-Daten:** echte öffentliche Daten genügen (News, Spiele)
 - **Übergang:** Klick auf „Ligen" im Header
 
@@ -382,6 +388,7 @@ Im Video dürfen **nicht** sichtbar sein:
 
 Kurze Text-Overlays (max. wenige Wörter, **nicht** gleichzeitig mit dichtem Voice-over):
 - „Modern & mobil"
+- „Voll mobil – direkt am Smartphone" ⭐
 - „Zwei Designs – ein Klick"
 - „Alle Ligen auf einen Blick"
 - „Teams & Spieler mit eigenem Profil"
@@ -450,8 +457,9 @@ Anmeldung/Spielbericht, **ohne Schreibzugriffe** auf echte Produktivdaten.
    produzieren; **Kurzversion (A, ~90 Sek.)** als trimmed Cut daraus ableiten.
 2. **Avatar nur Intro/Outro im Vollbild**, dazwischen **Voice-over + Avatar klein** unten rechts –
    die Bildschirmaufnahme steht klar im Vordergrund.
-3. **Aufnahme:** primär **Desktop 1920×1080** + **eine kurze echte Mobile-Sequenz** (OCR-Kamera /
-   responsive Startseite), als Phone-Mockup eingebaut. **Keine** getrennten Voll-Videos.
+3. **Aufnahme:** **Desktop 1920×1080** als Basis + **mehrere kurze echte Mobile-Inserts** (Startseite,
+   Mein Bereich, Benachrichtigungen, Spielbericht, OCR-Kamera) als Phone-Mockups – **Mobile ist ein
+   Kern-Highlight** und wird bewusst mehrfach gezeigt. **Keine** getrennten Voll-Videos.
 4. **Demo-Konten + vorbereitete Daten + Stub-OCR** statt eigenem Demo-Modus.
 5. **Reihenfolge:** erst die **komplette öffentliche Tour** (Startseite → Ligen → Teams → Spieler),
    **dann der Login-Bereich** (Mein Bereich → Benachrichtigungen → Mannschaftsanmeldung →

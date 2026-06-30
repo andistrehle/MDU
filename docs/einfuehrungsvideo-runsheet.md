@@ -12,10 +12,11 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
    node scripts/seed-demo-video.mjs
    ```
    Legt an: Demo-Kapitän, 4 ungelesene Benachrichtigungen, 1 eingereichte Demo-Anmeldung „DC Demo München".
-2. **Demo-Login** (für die Login-Szenen):
+2. **Demo-Login** (für die Login-Szenen) – *angelegt & verifiziert*:
    - E-Mail: `demo.kapitaen@example.com`
    - Passwort: `MduDemo2026!`
    - Team des Demo-Kapitäns: **Silberpfeile II** (für „Mein Team")
+   - Erwartung nach Login: **Glocke zeigt 5 ungelesene** Meldungen; „Meine Anmeldungen" zeigt **„DC Demo München – eingereicht"**
 3. **Browser:** 1920×1080, Vollbild (F11), Zoom 100 %, keine Lesezeichenleiste, keine DevTools.
 4. **OCR-Szene separat** auf `localhost:3000` aufnehmen (mit `OCR_PROVIDER=stub` in `.env.local`) –
    Stub liefert feste Demo-Daten, jedes beliebige Foto genügt. Auf `www.mdudarts.de` **nicht** auf Stub umstellen.
@@ -64,6 +65,17 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
 | 15 | Verarbeitung → **Prüfansicht**: erkannte Felder, unsichere markiert, 1 Korrektur → **Bestätigen** | „Geprüft wird immer selbst" |
 
 ---
+
+## Mobile-Inserts (Kern-Highlight – bewusst mehrfach zeigen)
+
+> Kurze Hochformat-Clips (echtes Gerät oder Responsive-Modus 1080×1920), später als Phone-Mockup einbauen.
+> Mobile Nutzbarkeit ist eines der größten Plus der Seite – nicht nur bei OCR zeigen.
+
+- **Startseite mobil** – scrollen + **mobile Bottom-Navigation** antippen
+- **Mein Bereich mobil** – Kacheln + Glocke (5 Meldungen)
+- **Spielbericht mobil** – durch die Erfassung scrollen
+- **OCR mobil** – Kamera-Upload (siehe Teil 3)
+- ggf. **Liga-Tabelle mobil** – kompakte Darstellung (Kürzel) ohne Querscrollen
 
 ## Abschluss
 - Zurück zu `/` für die Avatar-Outro-Überblendung.

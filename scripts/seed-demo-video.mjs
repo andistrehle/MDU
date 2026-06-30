@@ -59,7 +59,7 @@ if (!userId) { console.error('Keine userId'); process.exit(1); }
     description:'Demo-Mannschaft für die Plattform-Vorstellung.',
     venue_name:'Demo-Sportsbar', venue_address:'Musterstraße 1, 80331 München',
     contact_name:'Demo Kapitän', contact_email:EMAIL,
-    requested_league:'B Liga', requested_competition_id:'b_liga',
+    requested_league:'b_liga', requested_competition_id:'b_liga',
     status:'submitted', submitted_by:userId, submitted_at:new Date().toISOString(),
   });
   console.log('Demo-Anmeldung:', error ? 'FEHLER ' + error.message : 'ok (DC Demo München, eingereicht, season-2027)');
