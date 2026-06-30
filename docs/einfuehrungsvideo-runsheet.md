@@ -12,11 +12,9 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
    node scripts/seed-demo-video.mjs
    ```
    Legt an: Demo-Kapitän, 4 ungelesene Benachrichtigungen, 1 eingereichte Demo-Anmeldung „DC Demo München".
-2. **Demo-Login** (für die Login-Szenen) – *angelegt & verifiziert*:
-   - E-Mail: `demo.kapitaen@example.com`
-   - Passwort: `MduDemo2026!`
-   - Team des Demo-Kapitäns: **Freibad Bazis** (für „Mein Team")
-   - Erwartung nach Login: **Glocke zeigt 5 ungelesene** Meldungen; „Meine Anmeldungen" zeigt **„DC Demo München – eingereicht"**
+2. **Demo-Logins** (für die Login-Szenen) – *angelegt & verifiziert*, Passwort jeweils `MduDemo2026!`:
+   - **Demo-Spieler:** `demo.spieler@example.com` · Rolle Spieler · Profil **Andreas Strehle** (mit Foto) · Glocke **3**
+   - **Demo-Kapitän:** `demo.kapitaen@example.com` · Rolle Teamkapitän @ **Freibad Bazis** · Glocke **5** · „Meine Anmeldungen" → **„DC Demo München – eingereicht"**
 3. **Browser:** 1920×1080, Vollbild (F11), Zoom 100 %, keine Lesezeichenleiste, keine DevTools.
 4. **OCR-Szene separat** auf `localhost:3000` aufnehmen (mit `OCR_PROVIDER=stub` in `.env.local`) –
    Stub liefert feste Demo-Daten, jedes beliebige Foto genügt. Auf `www.mdudarts.de` **nicht** auf Stub umstellen.
@@ -43,17 +41,33 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
 
 ---
 
-## TEIL 2 – Login-Bereich (als Demo-Kapitän)
+## TEIL 2a – Login als Demo-SPIELER (die Sicht der meisten Nutzer)
+
+> Login: `demo.spieler@example.com` / `MduDemo2026!` · Rolle **Spieler**, verknüpftes Profil **Andreas Strehle** (mit Foto)
 
 | # | Aktion | Worauf achten |
 |---|---|---|
-| 7 | `/login` → mit Demo-Login anmelden | **Passwort-Tippen nicht filmen** |
-| 8 | `/mein-bereich` – Kacheln zeigen | Mein Profil, Meine Liga, Mein Team, Mannschaft anmelden, Meine Anmeldungen, Spielbericht erfassen … |
-| 9 | **Glocke** oben rechts: roten Badge zeigen → klicken → Dropdown | 4 Demo-Meldungen sichtbar |
-| 10 | Kachel **„Mannschaft anmelden"** → Formular durchscrollen | Ligawunsch (La/A/B/C), Spielstätte, Logo, Kader – **NICHT absenden** |
-| 11 | Kachel **„Meine Anmeldungen"** → Status „DC Demo München – eingereicht" | zeigt den Rückmeldungs-Status |
-| 12 | Kachel **„Spielbericht erfassen"** → einen Bericht **ansehen** | 18 Spiele, 2 Doppel, Auto-Wertung, Einzelranglistenpunkte |
-| 13 | Header **„Downloads"** → PDF-Spielbericht öffnen | 2-seitige A4-Vorlage |
+| 7 | `/login` → als **Demo-Spieler** anmelden | **Passwort-Tippen nicht filmen** |
+| 8 | `/mein-bereich` – **Spieler-Kacheln** zeigen | Mein Profil, **Meine Statistik**, Mein Team, Meine Liga (bewusst **weniger** Kacheln als Kapitän) |
+| 9 | **Glocke** → roten Badge **(3)** → Dropdown | unverfängliche Demo-Meldungen |
+| 10 | Kachel **„Meine Statistik"** → eigenes Spielerprofil | Foto, Spitzname, Platz, Punkte, Leg-/Spiele-Bilanz |
+|    | Danach **abmelden** für den Kapitäns-Take | ⚠️ Formkurve/180er nur, wenn gefüllt |
+
+---
+
+## TEIL 2b – Login als Demo-KAPITÄN (Zusatzfunktionen je Rolle)
+
+> Login: `demo.kapitaen@example.com` / `MduDemo2026!` · Rolle **Teamkapitän @ Freibad Bazis**
+
+| # | Aktion | Worauf achten |
+|---|---|---|
+| 11 | `/login` → als **Demo-Kapitän** anmelden | direkt zeigen: **mehr Kacheln** als beim Spieler |
+| 12 | `/mein-bereich` – zusätzliche Kacheln | zusätzlich **Mannschaft anmelden, Meine Anmeldungen, Spielbericht erfassen** |
+| 13 | **Glocke** → roten Badge **(5)** → Dropdown | 5 Demo-Meldungen |
+| 14 | Kachel **„Mannschaft anmelden"** → Formular durchscrollen | Ligawunsch (La/A/B/C), Spielstätte, Logo, Kader – **NICHT absenden** |
+| 15 | Kachel **„Meine Anmeldungen"** → „DC Demo München – eingereicht" | Rückmeldungs-Status |
+| 16 | Kachel **„Spielbericht erfassen"** → einen Bericht **ansehen** | 18 Spiele, 2 Doppel, Auto-Wertung, Einzelranglistenpunkte |
+| 17 | Header **„Downloads"** → PDF-Spielbericht öffnen | 2-seitige A4-Vorlage |
 
 ---
 
@@ -61,8 +75,8 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
 
 | # | Aktion | Worauf achten |
 |---|---|---|
-| 14 | `/mein-bereich/spielberichte/ocr` → Foto/Datei hochladen | Smartphone-Optik / Hochformat |
-| 15 | Verarbeitung → **Prüfansicht**: erkannte Felder, unsichere markiert, 1 Korrektur → **Bestätigen** | „Geprüft wird immer selbst" |
+| 18 | `/mein-bereich/spielberichte/ocr` → Foto/Datei hochladen | Smartphone-Optik / Hochformat |
+| 19 | Verarbeitung → **Prüfansicht**: erkannte Felder, unsichere markiert, 1 Korrektur → **Bestätigen** | „Geprüft wird immer selbst" |
 
 ---
 
