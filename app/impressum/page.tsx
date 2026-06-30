@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { LegalPage, LegalSection } from '@/components/mdu/legal-page';
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function ImpressumPage() {
     >
       <LegalSection title="Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)">
         Münchner Dart Union<br />
+        nicht eingetragener Verein<br />
         Zenettistraße 30 · 80337 München
       </LegalSection>
 
@@ -24,7 +26,11 @@ export default function ImpressumPage() {
       </LegalSection>
 
       <LegalSection title="Kontakt">
-        E-Mail: kontakt@mdudarts.de
+        E-Mail: kontakt@mdudarts.de<br />
+        Kontaktformular:{' '}
+        <Link href="/kontakt" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
+          mdudarts.de/kontakt
+        </Link>
       </LegalSection>
 
       <LegalSection title="Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV">

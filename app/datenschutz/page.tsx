@@ -15,7 +15,7 @@ export default function DatenschutzPage() {
     >
       <LegalSection title="1. Verantwortlicher">
         Verantwortlich für die Datenverarbeitung auf dieser Website ist die Münchner Dart
-        Union, vertreten durch Anton Bauer (i. V. Andreas Strehle).<br />
+        Union (nicht eingetragener Verein), vertreten durch Anton Bauer (i. V. Andreas Strehle).<br />
         Zenettistraße 30 · 80337 München<br />
         E-Mail (Datenschutzkontakt): kontakt@mdudarts.de
       </LegalSection>
@@ -105,9 +105,15 @@ export default function DatenschutzPage() {
         zudem eine Nachricht an den Datenschutzkontakt (Ziffer 1).
       </LegalSection>
 
-      <LegalSection title="10. Kontaktaufnahme">
-        Bei Kontaktaufnahme (z. B. per E-Mail) werden die übermittelten Angaben zur
-        Bearbeitung der Anfrage verarbeitet und nicht ohne Einwilligung weitergegeben.
+      <LegalSection title="10. Kontaktaufnahme & Kontaktformular">
+        Bei Kontaktaufnahme (per E-Mail oder über das Kontaktformular) werden die übermittelten
+        Angaben zur Bearbeitung der Anfrage verarbeitet und nicht ohne Einwilligung weitergegeben.
+        Über das Kontaktformular werden Name, E-Mail-Adresse und der Nachrichtentext erhoben und
+        per E-Mail an die Ligaleitung übermittelt (technischer Versand über Resend, siehe
+        Ziffer 5; die E-Mail-Adresse dient zugleich als Antwortadresse). Rechtsgrundlage:
+        Bearbeitung der Anfrage bzw. berechtigtes Interesse an einer effektiven Kommunikation
+        (Art. 6 Abs. 1 lit. b/f DSGVO). Die Daten werden gelöscht, sobald die Anfrage erledigt
+        ist und keine Aufbewahrungspflichten entgegenstehen.
       </LegalSection>
 
       <LegalSection title="11. Cookies / lokale Speicherung">

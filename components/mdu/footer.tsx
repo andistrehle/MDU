@@ -37,7 +37,7 @@ export function Footer() {
         {[
           { title: 'Schnellzugriff', links: [{ l: 'Ligen', h: '/ligen' }, { l: 'Spielplan', h: '/spielplan' }, { l: 'Ergebnisse', h: '/ergebnisse' }, { l: 'Teams', h: '/teams' }, { l: 'Downloads', h: '/downloads' }] },
           { title: 'Rechtliches',   links: [{ l: 'Impressum', h: '/impressum' }, { l: 'Datenschutz', h: '/datenschutz' }, { l: 'Nutzungsbedingungen', h: '/nutzungsbedingungen' }] },
-          { title: 'Kontakt',       links: [{ l: 'Münchner Dart Union', h: '/impressum' }, { l: 'kontakt@mdudarts.de', h: 'mailto:kontakt@mdudarts.de' }] },
+          { title: 'Kontakt',       links: [{ l: 'Kontaktformular', h: '/kontakt' }, { l: 'kontakt@mdudarts.de', h: 'mailto:kontakt@mdudarts.de' }, { l: 'Impressum', h: '/impressum' }] },
         ].map(group => (
           <div key={group.title}>
             <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, letterSpacing: '0.08em', color: 'var(--th-text-strong)', marginBottom: 14 }}>

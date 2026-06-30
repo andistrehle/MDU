@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
+import { ContactForm } from '@/components/mdu/contact-form';
 
 export const metadata: Metadata = {
   title: 'Kontakt · Münchner Dart Union',
@@ -70,6 +71,9 @@ export default function KontaktPage() {
           {' '}Weitere Informationen rund um den Dartsport in München unter{' '}
           <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-body)', textDecoration: 'underline' }}>dartunion.de</a>.
         </div>
+
+        {/* Kontaktformular – zweiter unmittelbarer Kontaktweg (§ 5 DDG) */}
+        <ContactForm />
       </div>
 
       <Footer />
