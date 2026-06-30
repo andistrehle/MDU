@@ -99,6 +99,24 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
 - **OCR mobil** – Kamera-Upload (siehe Teil 3)
 - ggf. **Liga-Tabelle mobil** – kompakte Darstellung (Kürzel) ohne Querscrollen
 
+## Finaler Sprechertext (in Aufnahme-Reihenfolge, ~1:45–2:00)
+
+> Eine durchgehende Stimme für Avatar **und** Voice-over. In HeyGen einfügen; Pausen an die Clips anpassen.
+
+- **Avatar-Intro:** „Servus und herzlich willkommen bei der neuen Plattform der Münchner Dart Union – modern, übersichtlich und komplett aufs Smartphone ausgelegt."
+- **Startseite:** „Auf der Startseite findest du alle Infos zum Spielbetrieb auf einen Blick – News, die nächsten und die letzten Spiele. Und mit einem Klick wechselst du zwischen modernem und klassischem Design."
+- **Ligen:** „Für jede Liga – und jede Playoff-Runde – gibt es aktuelle Tabellen, Spielpläne, Ergebnisse und Einzelranglisten. Die Farben zeigen sofort, wer auf Aufstiegskurs ist."
+- **Team:** „Jede Mannschaft hat ein eigenes Profil – mit Kader, Spielstätte, Ergebnissen und Statistiken."
+- **Spieler:** „Und jeder Spieler ein eigenes – mit Foto, Platzierung und den wichtigsten Saisonwerten."
+- **Registrierung:** „Neu dabei? Die Registrierung geht in wenigen Schritten – als Spieler oder als Teamkapitän."
+- **Login Spieler:** „Nach dem Login sieht jeder genau das, was zu seiner Rolle passt – Profil, Statistik, Team und Liga, mit eigenem Benachrichtigungscenter."
+- **Login Kapitän:** „Ein Teamkapitän hat zusätzlich die komplette Mannschaftsverwaltung."
+- **Mannschaft anmelden:** „Die Mannschaft meldet man komplett online an – mit Wunschliga, Spielstätte, Logo und Kader, egal ob bestehendes oder ganz neues Team. Den Status sieht man jederzeit im eigenen Bereich."
+- **Spielbericht:** „Der Spielbericht wird digital erfasst – 18 Spiele mit zwei Doppeln. Ergebnisse und Ranglistenpunkte berechnet das System automatisch."
+- **PDF:** „Wer lieber auf Papier arbeitet, lädt den offiziellen Spielbericht einfach herunter."
+- **OCR:** „Oder fotografiert den ausgefüllten Bogen mit dem Handy – die Erkennung überträgt die Daten, geprüft und bestätigt wird aber immer von dir."
+- **Avatar-Outro:** „Das war die neue MDU-Plattform. Schau vorbei auf mdudarts.de und probier's aus. Gut Pfeil!"
+
 ## Abschluss
 - Zurück zu `/` für die Avatar-Outro-Überblendung.
 - **Datenschutz-Sichtung** (siehe Konzept Abschnitt 10) vor dem Teilen.
