@@ -50,6 +50,7 @@ Geprüft anhand der vorhandenen Routen (`app/**/page.tsx`) und Komponenten.
 - **Spielerprofil → Spezialwerte „180er / High Finishes / Short Legs"**: Kacheln sind umgesetzt, aber die **Aggregation aus Spielberichten in die Spielerstatistik ist noch nicht abgeschlossen**. Werte stammen aktuell aus dem dartunion-Import und können „–" sein. → Nur an einem Spieler mit gefüllten Werten zeigen, **nicht** als Kernversprechen framen.
 - **OCR-Folgepunkte** (Inline-Korrektur in der Prüfansicht, HEIC-Konvertierung) noch offen → im Video nur den **bestätigten Kernablauf** zeigen.
 - **Hinweis-Banner** auf den Rechtstexten („wird vor Livegang rechtlich geprüft") → im Video nicht heranzoomen.
+- **Ligaleitungs-/Admin-Funktionen werden im Video bewusst NICHT gezeigt** (interne Prüf-/Freigabe-Bereiche – „geht die Öffentlichkeit nichts an", Entscheidung des Betreibers). Im Sprechertext darf die Freigabe durch die Ligaleitung erwähnt werden, aber **kein Admin-Bildschirm**.
 
 ### Wichtiger technischer Hinweis für die Aufnahme
 Die Plattform nutzt **eine gemeinsame Supabase-Produktivdatenbank** (lokal + live). Schreibaktionen
@@ -190,13 +191,13 @@ ableiten (gleiche Avatar-/Voice-Assets, kürzerer Bildschirmpfad). Beide teilen 
 - **Übergang:** Klick auf Kachel „Mannschaft anmelden"
 
 ### Szene 8 – Mannschaftsanmeldung
-- **Dauer:** 2:30–2:56
-- **Route:** `/mein-bereich/mannschaft-anmelden` (+ optional kurz `/admin/registrations`)
-- **Klicks/Scroll:** Formular durchgehen: neue/bestehende Mannschaft → **Ligawunsch (La/A/B/C)** → Mannschaftsdaten, Spielstätte, Logo, Kader, Kapitän. **Nicht real absenden** – bis zum „Absenden"-Button zeigen, Status danach in „Meine Anmeldungen". Optional 2–3 Sek. Admin-Sicht: prüfen / freigeben / ablehnen / Nachbesserung.
+- **Dauer:** 2:30–2:54
+- **Route:** `/mein-bereich/mannschaft-anmelden` → `/mein-bereich/anmeldungen`
+- **Klicks/Scroll:** Formular durchgehen: neue/bestehende Mannschaft → **Ligawunsch (La/A/B/C)** → Mannschaftsdaten, Spielstätte, Logo, Kader, Kapitän. **Nicht real absenden** – bis zum „Absenden"-Button zeigen. Danach kurz „Meine Anmeldungen" mit dem **Status** der vorbereiteten Demo-Anmeldung. **Keine Admin-/Ligaleitungssicht.**
 - **Avatar:** klein
-- **Voice-over:** „Teamkapitäne melden ihre Mannschaft komplett online für die neue Saison an – mit Ligawunsch, Spielstätte, Logo und Kader. Die Ligaleitung prüft die Angaben und meldet den Status direkt zurück."
+- **Voice-over:** „Teamkapitäne melden ihre Mannschaft komplett online für die neue Saison an – mit Ligawunsch, Spielstätte, Logo und Kader. Die Ligaleitung prüft die Angaben und meldet den Status direkt zurück – sichtbar im eigenen Bereich."
 - **Einblendung:** „Mannschaft online anmelden"
-- **Demo-Daten:** vorbereitete (Entwurfs-)Anmeldung; Admin-Sicht mit Demo-Ligaleitung
+- **Demo-Daten:** eine vorbereitete **eingereichte Demo-Anmeldung** des Demo-Kapitäns (Status sichtbar)
 - **Übergang:** Klick auf Kachel „Spielbericht erfassen"
 
 ### Szene 9 – Digitaler Spielbericht
@@ -227,21 +228,11 @@ ableiten (gleiche Avatar-/Voice-Assets, kürzerer Bildschirmpfad). Beide teilen 
 - **Avatar:** klein
 - **Voice-over:** „Der ausgefüllte Papierbogen lässt sich auch einfach abfotografieren und hochladen. Die automatische Erkennung überträgt die Daten in den digitalen Spielbericht – geprüft und bestätigt wird aber immer von dir. Offizielle Ergebnisse übernimmt das System nie ungeprüft."
 - **Einblendung:** „Papierbogen fotografieren → prüfen → fertig"
-- **Demo-Daten:** vorbereitetes Testfoto eines ausgefüllten Vorlagen-Bogens
-- **Übergang:** zurück zur Desktop-Ansicht / kurze Admin-Sicht
+- **Demo-Daten:** vorbereitetes Testfoto eines ausgefüllten Vorlagen-Bogens (oder beliebiges Foto, da Stub feste Demo-Daten liefert)
+- **Übergang:** zurück zur Startseite, weiche Überblendung zum Avatar
 
-### Szene 12 – Admin- & Ligaleitungsfunktionen (kurz)
-- **Dauer:** 3:46–3:56
-- **Route:** `/admin` (Übersicht) → kurz `/admin/registrations` **oder** `/admin/spielberichte`
-- **Klicks/Scroll:** Admin-Übersicht 2–3 Sek. → einen **Prüf-/Freigabe-Workflow** andeuten. **Keine** Sicherheit/Einstellungen/Import, **keine** E-Mails, Telefonnummern, IDs, privaten Uploads.
-- **Avatar:** klein
-- **Voice-over:** „Auch die Ligaleitung wird entlastet: Mannschaftsanmeldungen, Spielberichte und Nachmeldungen werden zentral geprüft und freigegeben."
-- **Einblendung:** „Weniger Verwaltungsaufwand"
-- **Demo-Daten:** Demo-Ligaleitung; nur Listen/Status, keine Details
-- **Übergang:** weiche Überblendung zum Avatar
-
-### Szene 13 – Avatar-Abschluss
-- **Dauer:** 3:56–4:08 (Voll) / passend kürzen
+### Szene 12 – Avatar-Abschluss
+- **Dauer:** 3:46–4:00 (Voll) / passend kürzen
 - **Bild:** Avatar Vollbild, MDU-gebrandet
 - **Avatar:** Vollbild
 - **Voice-over (Avatar):** „Das war ein erster Überblick über die neue MDU-Plattform. Probier sie selbst aus – unter mdudarts.de. Bei Fragen erreichst du uns direkt über das Kontaktformular. Wir freuen uns auf dich. Gut Pfeil!"
@@ -270,7 +261,6 @@ ableiten (gleiche Avatar-/Voice-Assets, kürzerer Bildschirmpfad). Beide teilen 
 8. „Der digitale Spielbericht führt Schritt für Schritt durch die Begegnung und berechnet Ergebnisse und Einzelranglistenpunkte automatisch."
 9. „Wer lieber auf Papier arbeitet, lädt den offiziellen Spielbericht einfach herunter und druckt ihn aus."
 10. „Der ausgefüllte Papierbogen lässt sich auch abfotografieren und hochladen. Die automatische Erkennung überträgt die Daten in den digitalen Spielbericht – geprüft und bestätigt wird aber immer von dir."
-11. „Auch die Ligaleitung wird entlastet: Mannschaftsanmeldungen, Spielberichte und Nachmeldungen werden zentral geprüft und freigegeben."
 
 ### 5c. Voice-over Kurzversion (am Stück)
 „Willkommen bei der neuen Plattform der Münchner Dart Union – der digitale Treffpunkt für unseren Spielbetrieb. Alle Infos auf einen Blick, in modernem oder klassischem Design. Für jede Liga: Tabellen, Spielpläne, Ergebnisse und Einzelranglisten. Jedes Team und jeder Spieler hat ein eigenes Profil. Nach dem Login gibt es passende Funktionen je Rolle – mit persönlichem Benachrichtigungscenter. Mannschaften meldet man online an, Spielberichte erfasst man digital, und der Papierbogen lässt sich einfach fotografieren und per Erkennung übernehmen – geprüft wird immer selbst. Schau vorbei auf mdudarts.de und probier's aus. Gut Pfeil!"
@@ -279,8 +269,9 @@ ableiten (gleiche Avatar-/Voice-Assets, kürzerer Bildschirmpfad). Beide teilen 
 
 ## 6. Genaue Klickroute (für die Bildschirmaufnahme, Vollversion)
 
-> Vorab eingeloggt als **Demo-Teamkapitän**; zweiter Take als **Demo-Ligaleitung** für Szene 12.
-> Aufnahme idealerweise auf `www.mdudarts.de` (professionelle Adresszeile) ODER `localhost:3000`.
+> Vorab eingeloggt als **Demo-Teamkapitän**. Aufnahme der öffentlichen + Login-Szenen auf
+> `www.mdudarts.de` (professionelle Adresszeile); **nur die OCR-Szene** separat auf `localhost:3000`
+> mit Stub-OCR. **Erst die komplette öffentliche Tour, dann der Login-Bereich.**
 
 1. `/` öffnen → 4–5 Sek. Hero, langsam scrollen zu „Nächste/Letzte Spiele"
 2. **Theme-Switch** im Header 1× klicken (New Design → Old School), 2 Sek., zurückschalten
@@ -295,9 +286,8 @@ ableiten (gleiche Avatar-/Voice-Assets, kürzerer Bildschirmpfad). Beide teilen 
 11. Kachel **„Mannschaft anmelden"** → Formular durchscrollen (Ligawunsch, Spielstätte, Logo, Kader) – **nicht absenden**
 12. Zurück → Kachel **„Spielbericht erfassen"** → vorbereiteten Bericht ansehen (18 Spiele, Auto-Wertung)
 13. Header → **„Downloads"** → PDF-Spielbericht öffnen
-14. (Mobile-Take) `/mein-bereich/spielberichte/ocr` → Upload + Prüfansicht mit Testbild
-15. (Ligaleitungs-Take) `/admin` → kurz `/admin/registrations` Freigabe-Workflow
-16. Zurück zu `/` → Übergang Avatar-Abschluss
+14. (Mobile-Take, separat auf localhost mit Stub-OCR) `/mein-bereich/spielberichte/ocr` → Upload + Prüfansicht
+15. Zurück zu `/` → Übergang Avatar-Abschluss
 
 **Regeln:** logischer Fluss, keine langen Ladezeiten, **keine Formulare real absenden**, Highlights statt
 jeder Menüpunkt, möglichst in zusammenhängenden Takes (pro Kapitel ein Take erleichtert den Schnitt).
@@ -308,7 +298,7 @@ jeder Menüpunkt, möglichst in zusammenhängenden Takes (pro Kapitel ein Take e
 
 **Kurz (A):** A1 0:00–0:12 · A2 0:12–0:26 · A3 0:26–0:40 · A4 0:40–0:52 · A5 0:52–1:05 · A6 1:05–1:20 · A7 1:20–1:30 · A8 1:30–1:40
 
-**Voll (B):** S1 0:00–0:15 · S2 0:15–0:42 · S3 0:42–1:08 · S4 1:08–1:30 · S5 1:30–1:52 · S6 1:52–2:14 · S7 2:14–2:30 · S8 2:30–2:56 · S9 2:56–3:16 · S10 3:16–3:26 · S11 3:26–3:46 · S12 3:46–3:56 · S13 3:56–4:08
+**Voll (B):** S1 0:00–0:15 · S2 0:15–0:42 · S3 0:42–1:08 · S4 1:08–1:30 · S5 1:30–1:52 · S6 1:52–2:14 · S7 2:14–2:30 · S8 2:30–2:54 · S9 2:54–3:14 · S10 3:14–3:26 · S11 3:26–3:46 · S12 (Avatar-Abschluss) 3:46–4:00
 
 ---
 
@@ -317,9 +307,7 @@ jeder Menüpunkt, möglichst in zusammenhängenden Takes (pro Kapitel ein Take e
 > Ziel: alles vorzeigbar **ohne echte personenbezogene Daten** und **ohne** echte Produktivvorgänge zu verändern.
 
 - **Demo-Spieler** – Name unverfänglich (z. B. „Max Demo"), **Profilbild** (lizenzfrei/eigenes), **Spitzname** freigegeben, mit gefüllter Einzel-/Leg-Bilanz; idealerweise ein Spieler mit vorhandenen 180er-/Finish-Werten für Szene 5.
-- **Demo-Teamkapitän** – Konto mit Rolle `team_captain`, verknüpft mit einem **Demo-Team**.
-- **Demo-Ligaleitung** – Konto mit Rolle `league_admin` für Admin-Szene.
-- **Demo-Team** – **Logo + Mannschaftsbild** hochgeladen, gepflegter **Kader**, zugeordnete **Spielstätte**, ein paar Ergebnisse.
+- **Demo-Teamkapitän** – Konto mit Rolle `team_captain`, verknüpft mit einem vorhandenen, gut gefüllten Team (öffentliche Liga-Daten). *(Keine Demo-Ligaleitung nötig – Admin wird nicht gezeigt.)*
 - **Benachrichtigungen** – 3–5 vorbereitete, unverfängliche Beispielmeldungen in der Glocke (z. B. „Mannschaftsanmeldung freigegeben", „Spielbericht wartet auf Prüfung", „Spielerprofil zugeordnet"). Roter Badge sichtbar.
 - **Mannschaftsanmeldung** – eine **Entwurfs-Anmeldung** (nicht freigegeben), um Formular + Status zu zeigen.
 - **Digitaler Spielbericht** – ein **vorbereiteter Test-Bericht** (vollständig befüllt) nur zum Ansehen.
@@ -465,8 +453,9 @@ Anmeldung/Spielbericht, **ohne Schreibzugriffe** auf echte Produktivdaten.
 3. **Aufnahme:** primär **Desktop 1920×1080** + **eine kurze echte Mobile-Sequenz** (OCR-Kamera /
    responsive Startseite), als Phone-Mockup eingebaut. **Keine** getrennten Voll-Videos.
 4. **Demo-Konten + vorbereitete Daten + Stub-OCR** statt eigenem Demo-Modus.
-5. **Reihenfolge der Highlights:** Startseite → Ligen → Teams → Spieler → Login/Mein Bereich →
-   Benachrichtigungen → Mannschaftsanmeldung → Digitaler Spielbericht → PDF → OCR → Admin kurz.
+5. **Reihenfolge:** erst die **komplette öffentliche Tour** (Startseite → Ligen → Teams → Spieler),
+   **dann der Login-Bereich** (Mein Bereich → Benachrichtigungen → Mannschaftsanmeldung →
+   Digitaler Spielbericht → PDF → OCR). **Keine Ligaleitungs-/Admin-Funktionen** im Video.
 6. **Tonalität:** freundlich, nahbar, sportlich; keine Werbefloskeln; „Münchner Dart Union" immer
    ausgeschrieben; nichts versprechen, das (noch) nicht live ist.
 
