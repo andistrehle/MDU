@@ -1,6 +1,21 @@
 # MDU Platform — Backlog / Roadmap
 
-## Erledigt — Medien, Mein Bereich, Datenpflege (Juni 2026, zuletzt)
+## Erledigt — Kontaktformular, Spielbedingungen, Rechts-Tiefenprüfung, Domain/Go-live (30. Juni 2026, zuletzt)
+
+Live auf `main` / Vercel. `www.mdudarts.de` ist technisch live, bleibt aber bis zum Go-live **noindex** (nicht beworben).
+
+- [x] **Kontaktformular** als zweiter unmittelbarer Kontaktweg (§ 5 DDG): `/kontakt` mit echtem Formular (Name/E-Mail/Betreff/Nachricht, Pflicht-Datenschutz-Einwilligung, Honeypot-Spamschutz, klare Validierung + Button-UX). Versand via Resend: **To = `kontakt@mdudarts.de`**, **Liga-Admins als verdecktes BCC**, Reply-To = Absender. Route `app/api/kontakt`, Helper `lib/server/email/send-contact.ts`, Footer-Link
+- [x] **E-Mail-Empfang `kontakt@mdudarts.de`** eingerichtet (Strato-Postfach; MX `smtpin.rzone.de` zeigt korrekt auf Strato). **Root-SPF für Strato** in Cloudflare ergänzt (`v=spf1 include:_spf.strato.com ~all`) → Strato-Ausgang DMARC-konform (`p=reject`); Resend war bereits verifiziert (DKIM/MAIL-FROM `send.mdudarts.de`/DMARC). ⚠️ Bei Resend-Status „Suppressed" Adresse aus der Sperrliste entfernen (entsteht, wenn früher an noch nicht existierendes Postfach gesendet wurde)
+- [x] **Spielbedingungen** veröffentlicht (`/spielbedingungen`, 22 §§): an die neuen Online-Regeln angepasst (Ein-&-Auswechslungen mit 4 Ersatzspielern, **Nachmeldung online**, **48 h** Verlegungsfrist, **30 min** Gerätereservierung, „Spielberechtigung" statt physischem Spielerpass); im Download-Bereich + als Pflicht-Checkbox bei der Mannschaftsanmeldung verlinkt; durchgängige JSX-Leerzeichen-Bugs nach `</strong>` gefixt
+- [x] **Spielbericht-Druckvorlage als PDF** (`/downloads/MDU-Spielbericht-Vorlage.pdf`, 2 Seiten A4, via Chrome-Headless erzeugt); mobile Ansicht mit horizontalem Scroll, 3.-Leerseite-Bug behoben
+- [x] **Telefonnummern**: `player_contacts` (Migration `0030`, zugriffsgeschützt, **nicht** öffentlich); Kapitäns-Telefon nur für eingeloggte Kapitäne via gated Route `/api/captain-phones`; Anruf/WhatsApp/SMS-Menü; Spielstätten mit Lokal-Telefon (`tel:`) + Google-Maps-Adresslink; Datenschutz §13/§14 ergänzt
+- [x] **Rechts-Tiefenprüfung (DSB + anwaltlich)** der drei Rechtstexte:
+  - **Impressum**: „nicht eingetragener Verein"; zweiter Kontaktweg (Kontaktformular, § 5 DDG); Verbraucherstreitbeilegung (§ 36 VSBG, bewusst **ohne** die 2025 abgeschaltete EU-OS-Plattform); unklare „DSV"-Formulierung bereinigt
+  - **Datenschutz**: zuständige Aufsichtsbehörde (BayLDA); Art. 22 (keine ausschließlich automatisierte Entscheidung); §10 Kontaktformular-Daten; §18 Minderjährige (Art. 8 DSGVO). Profilbild bleibt **Default-AN** (Art. 6 I f, Opt-out) — bewusste Betreiber-Entscheidung
+  - **Nutzungsbedingungen**: AGB-feste Haftung (3-Stufen-Modell mit Kardinalpflichten); Änderungsklausel § 308 Nr. 4 BGB (Widerspruch/Kündigung); Schlussbestimmungen (Recht + Salvatorische Klausel); Minderjährige
+- [x] **Pre-Go-live noindex-Schalter**: `lib/site-config.ts → SITE_INDEXABLE=false` steuert zentral noindex-Meta (alle Seiten) **und** `robots.txt = Disallow: /`. Go-live = Flag auf `true`
+
+## Erledigt — Medien, Mein Bereich, Datenpflege (Juni 2026)
 
 Live auf `main` / Vercel.
 
@@ -105,17 +120,19 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 
 - [ ] Eindeutigkeits-/Dubletten-Regeln: 1 Spielerprofil = 1 Konto (DB-Constraint), jedes Team nur 1× pro Saison freigegeben; Namensgleichheit nur zur Admin-Prüfung markieren, nicht hart blockieren
 - [ ] Alle Testuser löschen (sauberer Start), u. a. julia.andi@web.de
-- [ ] **Rechtliches:** Anschrift/Vertretung in Impressum + Datenschutz sind eingetragen (Zenettistr. 30, 80337 München; vertreten durch Anton Bauer i. V. Andreas Strehle). Finaler **juristischer Check** (Anwalt/DSB) ausstehend → danach Hinweis-Banner aus `LegalPage` entfernen.
+- [ ] **Rechtliches:** Anschrift/Vertretung eingetragen; Rechtsform „nicht eingetragener Verein" ergänzt. Interne **DSB- + anwaltliche Tiefenprüfung** der drei Rechtstexte durchgeführt (AGB-feste Haftung, Änderungsklausel, Minderjährige, Aufsichtsbehörde, Art. 22, zweiter Kontaktweg). **Externe anwaltliche Freigabe** weiterhin empfohlen → danach Hinweis-Banner aus `LegalPage` entfernen. Außerdem offen: AVV mit Vercel/Supabase/Resend/Cloudflare/Anthropic abschließen.
 
 ### Domain-Umzug auf www.mdudarts.de (Checkliste Livegang)
 Code-seitig erledigt: robots.txt, sitemap.xml und Canonical nutzen `www.mdudarts.de` (Fallback);
-per `NEXT_PUBLIC_SITE_URL` überschreibbar. Rest = Konfiguration, kein Code:
+per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch live (`www` HTTP 200, Apex 308 → www), aber `noindex` bis Go-live.**
 
-- [ ] **Vercel → Settings → Domains:** `www.mdudarts.de` + `mdudarts.de` hinzufügen, `www` als primär (Apex → www Redirect)
-- [ ] **DNS (bei Cloudflare):** die von Vercel angezeigten Records setzen — `www` CNAME → `cname.vercel-dns.com`, Apex A-Record/CNAME-Flattening; für diese zwei Einträge Cloudflare-Proxy auf „DNS only" (graue Wolke). MX/E-Mail (Resend) unangetastet lassen
+- [x] **Vercel → Domains:** `www.mdudarts.de` (primär, Production) + `mdudarts.de` (308 → www) hinzugefügt
+- [x] **DNS (Cloudflare):** `www` CNAME → `cname.vercel-dns.com`, Apex A → `76.76.21.21`, beide „DNS only" (grau); alte Strato-A/AAAA ersetzt/gelöscht; MX/Resend unangetastet
 - [ ] **Vercel-ENV:** `NEXT_PUBLIC_SITE_URL=https://www.mdudarts.de` (Production) setzen, dann redeployen
 - [ ] **⚠️ Supabase → Auth → URL Configuration:** Site URL = `https://www.mdudarts.de`, Redirect URLs um `https://www.mdudarts.de/**` ergänzen (sonst zeigen Bestätigungs-/Reset-Mail-Links auf die alte Domain)
-- [ ] Erst scharf schalten, wenn DNS + SSL grün; `mdu-three.vercel.app` bleibt während des Umzugs erreichbar
+- [ ] **Scharf schalten:** `SITE_INDEXABLE=true` in `lib/site-config.ts` (entfernt noindex + robots-`Disallow: /`), committen, deployen
+- [ ] Optional: Cloudflare-Proxy für `www`/Apex wieder „orange" — nur zusammen mit SSL/TLS-Modus „Full"
+- [x] `mdu-three.vercel.app` bleibt während des Umzugs erreichbar (Testen ohne Domain)
 
 ## Bekannte To-dos
 
