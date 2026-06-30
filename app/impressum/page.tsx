@@ -25,17 +25,25 @@ export default function ImpressumPage() {
         i. V. Andreas Strehle
       </LegalSection>
 
+      <LegalSection title="Ehrenpräsident">
+        Dimos Katsikas
+      </LegalSection>
+
       <LegalSection title="Kontakt">
         E-Mail: kontakt@mdudarts.de<br />
         Kontaktformular:{' '}
         <Link href="/kontakt" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
           mdudarts.de/kontakt
-        </Link>
+        </Link><br /><br />
+        <strong>Ansprechpartner</strong><br />
+        Anton Bauer<br />
+        (i. V. Andreas Strehle)
       </LegalSection>
 
       <LegalSection title="Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV">
-        Andreas Strehle<br />
-        (Anschrift wie oben)
+        Anton Bauer<br />
+        (i. V. Andreas Strehle)<br />
+        Anschrift wie oben
       </LegalSection>
 
       <LegalSection title="Haftung für Inhalte">
