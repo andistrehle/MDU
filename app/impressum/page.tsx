@@ -34,10 +34,7 @@ export default function ImpressumPage() {
         Kontaktformular:{' '}
         <Link href="/kontakt" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>
           mdudarts.de/kontakt
-        </Link><br /><br />
-        <strong>Ansprechpartner</strong><br />
-        Anton Bauer<br />
-        (i. V. Andreas Strehle)
+        </Link>
       </LegalSection>
 
       <LegalSection title="Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV">
