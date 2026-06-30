@@ -23,16 +23,21 @@ export interface ContactMessage {
 
 export type ContactSendStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
 export async function sendContactEmail(
   msg: ContactMessage,
-  recipients: string[],
+  toRecipients: string[],
+  bccRecipients: string[] = [],
 ): Promise<{ status: ContactSendStatus; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
 
-  const to = Array.from(new Set(
-    recipients.map(e => e.trim()).filter(e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)),
-  ));
+  const dedupe = (arr: string[]) =>
+    Array.from(new Set(arr.map(e => e.trim()).filter(e => EMAIL_RE.test(e))));
+  const to = dedupe(toRecipients);
+  // BCC = verdeckte Empfänger (Liga-Admins); Dubletten zum To entfernen.
+  const bcc = dedupe(bccRecipients).filter(e => !to.includes(e));
   if (to.length === 0) return { status: 'failed', error: 'no_recipient' };
 
   const subject = `MDU Kontaktformular: ${msg.subject?.trim() || 'Neue Nachricht'}`;
@@ -56,7 +61,7 @@ export async function sendContactEmail(
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to, subject, text, reply_to: msg.email.trim() }),
+      body: JSON.stringify({ from, to, ...(bcc.length ? { bcc } : {}), subject, text, reply_to: msg.email.trim() }),
     });
     if (!res.ok) {
       const body = await res.text();

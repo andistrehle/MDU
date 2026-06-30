@@ -41,17 +41,17 @@ export async function POST(request: Request) {
   if (message.length < 10 || message.length > 5000) return NextResponse.json({ ok: false, error: 'message' }, { status: 422 });
   if (subject.length > 200) return NextResponse.json({ ok: false, error: 'subject' }, { status: 422 });
 
-  // Empfänger: feste Kontaktadresse + Liga-Admins (falls Server-Key vorhanden).
-  const recipients = [KONTAKT_EMAIL];
+  // Empfänger: dediziertes Postfach im To; Liga-Admins als verdecktes BCC.
+  const adminBcc: string[] = [];
   if (supabaseAdmin) {
     const { data: admins } = await supabaseAdmin
       .from('profiles').select('email').in('role', ['league_admin', 'super_admin']);
     for (const a of (admins ?? []) as { email?: string }[]) {
-      if (a.email) recipients.push(a.email);
+      if (a.email) adminBcc.push(a.email);
     }
   }
 
-  const { status, error } = await sendContactEmail({ name, email, subject, message }, recipients);
+  const { status, error } = await sendContactEmail({ name, email, subject, message }, [KONTAKT_EMAIL], adminBcc);
 
   if (status === 'sent') return NextResponse.json({ ok: true, status });
   // Ehrlich bleiben: kein Provider oder Fehler → Client zeigt Fallback (Direkt-E-Mail).
