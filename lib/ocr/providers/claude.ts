@@ -81,15 +81,32 @@ function toContentBlock(page: OcrInputPage): Anthropic.ContentBlockParam {
   throw new Error(`Nicht unterstütztes Format für OCR: ${page.mimeType} (bitte JPG, PNG oder PDF).`);
 }
 
-/** Extrahiert das erste JSON-Objekt aus der Modellantwort (toleriert Code-Fences). */
+/**
+ * Extrahiert das erste vollständige JSON-Objekt aus der Modellantwort.
+ * Toleriert führende/abschließende ```-Code-Fences (auch ohne schließenden Fence,
+ * z. B. bei Truncation) und Zusatztext; matcht die Klammern korrekt (Strings/Escapes
+ * berücksichtigt), statt bei lastIndexOf('}') über Fremdtext zu stolpern.
+ */
 function extractJson(text: string): unknown | null {
-  let t = text.trim();
-  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fence) t = fence[1].trim();
+  let t = text.trim()
+    .replace(/^```(?:json)?\s*/i, '')   // führenden Fence entfernen
+    .replace(/\s*```$/i, '')            // schließenden Fence entfernen (falls vorhanden)
+    .trim();
   const start = t.indexOf('{');
-  const end = t.lastIndexOf('}');
-  if (start === -1 || end === -1 || end <= start) return null;
-  try { return JSON.parse(t.slice(start, end + 1)); } catch { return null; }
+  if (start === -1) return null;
+  let depth = 0, inStr = false, esc = false, end = -1;
+  for (let i = start; i < t.length; i++) {
+    const ch = t[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === '"') inStr = false;
+    } else if (ch === '"') inStr = true;
+    else if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+  }
+  const slice = end !== -1 ? t.slice(start, end + 1) : t.slice(start);
+  try { return JSON.parse(slice); } catch { return null; }
 }
 
 export class ClaudeProvider implements OcrProvider {
@@ -109,19 +126,14 @@ export class ClaudeProvider implements OcrProvider {
     const response = await this.client.messages.create({
       model: this.model,
       max_tokens: 16000,
-      messages: [
-        { role: 'user', content },
-        // Assistant-Prefill „{" erzwingt reines JSON (kein ```-Codeblock, kein Vortext),
-        // das wir unten wieder voranstellen. Verhindert Parse-Fehler durch Markdown-Wrapper.
-        { role: 'assistant', content: '{' },
-      ],
+      system: 'Antworte ausschließlich mit einem einzigen, gültigen JSON-Objekt nach dem vorgegebenen Schema. Kein Markdown, keine Code-Blöcke mit ```, kein erklärender Text davor oder danach.',
+      messages: [{ role: 'user', content }],
     });
 
-    const body = response.content
+    const rawText = response.content
       .filter((b): b is Anthropic.TextBlock => b.type === 'text')
       .map(b => b.text)
-      .join('\n');
-    const rawText = body ? '{' + body : null;
+      .join('\n') || null;
 
     let structured: MatchReportExtraction | null = null;
     if (rawText) {
