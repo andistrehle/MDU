@@ -4,6 +4,7 @@ import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { SITE_INDEXABLE } from '@/lib/site-config';
 
 const sairaCondensed = Saira_Condensed({
   variable: '--font-saira-condensed',
@@ -29,6 +30,8 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Münchner Dart Union',
   description: 'Die offizielle Liga-Seite für den organisierten Dartsport in München.',
+  // Pre-Go-live: Seite erreichbar, aber nicht für Suchmaschinen. Schalter: lib/site-config.ts
+  robots: SITE_INDEXABLE ? undefined : { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
