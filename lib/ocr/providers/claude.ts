@@ -108,14 +108,20 @@ export class ClaudeProvider implements OcrProvider {
 
     const response = await this.client.messages.create({
       model: this.model,
-      max_tokens: 8000,
-      messages: [{ role: 'user', content }],
+      max_tokens: 16000,
+      messages: [
+        { role: 'user', content },
+        // Assistant-Prefill „{" erzwingt reines JSON (kein ```-Codeblock, kein Vortext),
+        // das wir unten wieder voranstellen. Verhindert Parse-Fehler durch Markdown-Wrapper.
+        { role: 'assistant', content: '{' },
+      ],
     });
 
-    const rawText = response.content
+    const body = response.content
       .filter((b): b is Anthropic.TextBlock => b.type === 'text')
       .map(b => b.text)
-      .join('\n') || null;
+      .join('\n');
+    const rawText = body ? '{' + body : null;
 
     let structured: MatchReportExtraction | null = null;
     if (rawText) {

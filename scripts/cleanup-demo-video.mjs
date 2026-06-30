@@ -13,6 +13,7 @@ for (const EMAIL of EMAILS) {
   const userId = list.users.find(u => u.email === EMAIL)?.id;
   if (!userId) { console.log(`${EMAIL}: kein Demo-User — übersprungen.`); continue; }
   console.log(`--- ${EMAIL} (${userId}) ---`);
+  console.log('  match_reports:', (await admin.from('match_reports').delete().eq('home_captain_user_id', userId).select('id')).data?.length ?? 0, 'gelöscht');
   console.log('  team_registrations:', (await admin.from('team_registrations').delete().eq('submitted_by', userId).select('id')).data?.length ?? 0, 'gelöscht');
   console.log('  notifications:', (await admin.from('notifications').delete().eq('recipient_user_id', userId).select('id')).data?.length ?? 0, 'gelöscht');
   console.log('  profiles:', (await admin.from('profiles').delete().eq('id', userId).select('id')).data?.length ?? 0, 'gelöscht');
