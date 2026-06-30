@@ -10,7 +10,7 @@ const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_RO
 
 const EMAIL = 'demo.kapitaen@example.com';
 const PASSWORD = 'MduDemo2026!';
-const TEAM = 'silberpfeile-ii';
+const TEAM = 'freibad-bazis';
 
 let userId;
 {
