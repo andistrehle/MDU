@@ -41,6 +41,14 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
 
 ---
 
+## TEIL 1b – Registrierung (kurz zeigen, NICHT absenden)
+
+| # | Aktion | Worauf achten |
+|---|---|---|
+| R | `/registrieren` → Formular mit **Dummy-Daten** (Max Mustermann, `max@example.com`) zeigen; Auswahl **Spieler/Teamkapitän** + **Pflicht-Häkchen** (Datenschutz/Nutzungsbedingungen) | **NICHT absenden** (sonst echtes Konto + Bestätigungsmail); kein echter Name/Passwort |
+
+---
+
 ## TEIL 2a – Login als Demo-SPIELER (die Sicht der meisten Nutzer)
 
 > Login: `demo.spieler@example.com` / `MduDemo2026!` · Rolle **Spieler**, verknüpftes Profil **Andreas Strehle** (mit Foto)
