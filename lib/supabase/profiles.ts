@@ -29,11 +29,11 @@ export interface TeamProfileExtras {
   websiteUrl: string | null;
 }
 
-// Hinweis: Veröffentlichung von Spitzname UND Profilbild erfolgt nur per aktiver,
-// freiwilliger Einwilligung (DSGVO Art. 6 I a) — Default AUS, keine vorausgewählte
-// Checkbox (vorangekreuzte Einwilligung wäre unwirksam). Deckt sich mit Migration 0025
-// (show_photo/show_nickname default false) und loadPublicPlayerProfile.
-const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: false };
+// Profilbild: standardmäßig öffentlich sichtbar (Default AN, Häkchen vorausgewählt)
+// auf Grundlage des berechtigten Interesses am Vereins-Spielbetrieb (DSGVO Art. 6 I f);
+// der Nutzer kann der Anzeige jederzeit per Häkchen widersprechen (Opt-out).
+// Spitzname: nur per aktiver, freiwilliger Einwilligung (Art. 6 I a) — Default AUS.
+const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: true };
 const EMPTY_TEAM: TeamProfileExtras = {
   description: null, logoUrl: null, teamImageUrl: null,
   instagramUrl: null, facebookUrl: null, websiteUrl: null,

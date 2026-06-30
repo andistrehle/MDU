@@ -150,10 +150,9 @@ export default function MeinProfilPage() {
                   <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: '2px 0 0', lineHeight: 1.55 }}>
                     Bitte nur Bilder verwenden, für die du die nötigen Rechte hast. Das Bild wird beim Hochladen
                     automatisch verkleinert. „Über mich“ und deine Eingaben kannst du jederzeit hier ändern oder
-                    leeren. <strong>Profilbild und Spitzname werden nur dann öffentlich auf deinem
-                    Spielerprofil angezeigt, wenn du das jeweilige Häkchen aktiv setzt</strong> — ohne deine
-                    Zustimmung bleiben sie nicht öffentlich. Du kannst die Zustimmung jederzeit wieder entziehen.
-                    Vergiss nicht, anschließend zu speichern.
+                    leeren. <strong>Dein Profilbild wird standardmäßig auf deinem öffentlichen Spielerprofil
+                    angezeigt</strong> — entferne das Häkchen, wenn du das nicht möchtest. Der <strong>Spitzname</strong>
+                    wird nur angezeigt, wenn du es aktiv erlaubst. Vergiss nicht, anschließend zu speichern.
                   </p>
 
                   <button type="submit" disabled={busy} style={{

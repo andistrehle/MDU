@@ -60,13 +60,13 @@ export default function DatenschutzPage() {
         Eingeloggte Nutzer können Spitzname, einen „Über mich“-Text und ein Profilbild
         hinterlegen. Diese Angaben sind – soweit veröffentlicht – auf dem öffentlichen
         Spielerprofil sichtbar und können jederzeit durch den Nutzer selbst geändert oder
-        gelöscht werden. Die Veröffentlichung von <strong>Profilbild</strong> und
-        <strong> Spitzname</strong> erfolgt ausschließlich nach aktiver, freiwilliger Einwilligung
-        (Art. 6 Abs. 1 lit. a DSGVO): Beide werden auf dem öffentlichen Spielerprofil nur
-        angezeigt, wenn der Nutzer das jeweilige Häkchen in seinen Profil-Einstellungen selbst
-        setzt. Ohne diese Zustimmung bleiben Bild und Spitzname nicht öffentlich. Die Einwilligung
-        ist jederzeit mit Wirkung für die Zukunft widerrufbar, indem das Häkchen wieder entfernt
-        wird. Der „Über mich“-Text ist nur für eingeloggte Nutzer im Spielerprofil sichtbar.
+        gelöscht werden. Das <strong>Profilbild</strong> wird im Rahmen der Darstellung des
+        Spielbetriebs standardmäßig auf dem öffentlichen Spielerprofil angezeigt (Rechtsgrundlage:
+        berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO). Jeder Nutzer kann der Anzeige seines
+        Profilbilds jederzeit mit Wirkung für die Zukunft widersprechen, indem er das entsprechende
+        Häkchen in seinen Profil-Einstellungen entfernt. Die Veröffentlichung des
+        <strong> Spitznamens</strong> erfolgt dagegen nur nach aktiver, freiwilliger Einwilligung
+        (Art. 6 Abs. 1 lit. a DSGVO), die ebenfalls jederzeit widerrufbar ist. Der „Über mich“-Text ist nur für eingeloggte Nutzer im Spielerprofil sichtbar.
         Liga-Stammdaten
         (Mannschaften, Spieler, Ergebnisse, Tabellen, Ranglisten) stammen teils aus öffentlich
         verfügbaren Quellen (u. a. dartunion.de) und werden zunehmend im Rahmen des
@@ -185,10 +185,12 @@ export default function DatenschutzPage() {
       <LegalSection title="18. Minderjährige">
         Personen unter 16 Jahren dürfen ein Benutzerkonto nur mit Einwilligung der
         Erziehungsberechtigten anlegen. Beruht eine Verarbeitung auf einer Einwilligung
-        (insb. die Veröffentlichung von Profilbild oder Spitzname nach Ziffer 6), ist diese bei
-        Minderjährigen unter 16 Jahren durch die Erziehungsberechtigten zu erteilen bzw. zu
-        bestätigen (Art. 8 DSGVO). Erlangen wir Kenntnis, dass Daten einer minderjährigen Person
-        ohne die erforderliche Einwilligung verarbeitet werden, löschen wir diese auf Hinweis
+        (insb. die Veröffentlichung des Spitznamens nach Ziffer 6), ist diese bei Minderjährigen
+        unter 16 Jahren durch die Erziehungsberechtigten zu erteilen bzw. zu bestätigen
+        (Art. 8 DSGVO). Das standardmäßig angezeigte Profilbild (Ziffer 6) können die
+        Erziehungsberechtigten jederzeit durch Entfernen des Häkchens aus der öffentlichen Anzeige
+        nehmen. Erlangen wir Kenntnis, dass Daten einer minderjährigen Person ohne die
+        erforderliche Rechtsgrundlage verarbeitet werden, löschen wir diese auf Hinweis
         unverzüglich.
       </LegalSection>
     </LegalPage>
