@@ -38,9 +38,9 @@ export default function ImpressumPage() {
         übernommen werden. Liga-Daten (Mannschaften, Spielpläne, Ergebnisse, Tabellen,
         Ranglisten) werden zunehmend im Rahmen des Spielbetriebs auf dieser Plattform selbst
         erstellt (u. a. Mannschaftsanmeldungen, eingereichte Spielberichte, daraus berechnete
-        Tabellen und Ranglisten) sowie aus den von den Spielern hochgeladenen Informationen, die
-        diese gemäß DSV freigeben; teilweise stammen sie aus öffentlich verfügbaren Quellen
-        (u. a. dartunion.de).
+        Tabellen und Ranglisten) sowie aus von den Spielern selbst eingestellten Angaben, die
+        diese in ihren Profil-Einstellungen zur Veröffentlichung freigeben; teilweise stammen sie
+        aus öffentlich verfügbaren Quellen (u. a. dartunion.de).
       </LegalSection>
 
       <LegalSection title="Haftung für Links">
@@ -53,6 +53,13 @@ export default function ImpressumPage() {
         Die durch den Betreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen
         dem deutschen Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet. MDU-Logo
         und Vereinsname werden mit Zustimmung der Münchner Dart Union verwendet.
+      </LegalSection>
+
+      <LegalSection title="Verbraucherstreitbeilegung">
+        Wir sind nicht verpflichtet und nicht bereit, an einem Streitbeilegungsverfahren vor
+        einer Verbraucherschlichtungsstelle (§ 36 VSBG) teilzunehmen. Bei der Münchner Dart Union
+        handelt es sich um einen nicht kommerziellen Zusammenschluss zur Organisation des
+        Dartsport-Spielbetriebs; ein Online-Verkauf an Verbraucher findet nicht statt.
       </LegalSection>
     </LegalPage>
   );

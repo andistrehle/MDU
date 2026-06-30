@@ -81,6 +81,14 @@ export default function NutzungsbedingungenPage() {
         Informationen zur Verarbeitung personenbezogener Daten finden sich in der
         Datenschutzerklärung.
       </LegalSection>
+
+      <LegalSection title="11. Schlussbestimmungen">
+        Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts;
+        zwingende Verbraucherschutzvorschriften des Staates, in dem die nutzende Person ihren
+        gewöhnlichen Aufenthalt hat, bleiben unberührt. Sollten einzelne Bestimmungen dieser
+        Nutzungsbedingungen unwirksam sein oder werden, bleibt die Wirksamkeit der übrigen
+        Bestimmungen davon unberührt.
+      </LegalSection>
     </LegalPage>
   );
 }

@@ -29,9 +29,11 @@ export interface TeamProfileExtras {
   websiteUrl: string | null;
 }
 
-// Hinweis: showPhoto ist standardmäßig AN (der Verein zeigt Profilbilder per
-// Default öffentlich; jederzeit per Häkchen widerrufbar = Opt-out).
-const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: true };
+// Hinweis: Veröffentlichung von Spitzname UND Profilbild erfolgt nur per aktiver,
+// freiwilliger Einwilligung (DSGVO Art. 6 I a) — Default AUS, keine vorausgewählte
+// Checkbox (vorangekreuzte Einwilligung wäre unwirksam). Deckt sich mit Migration 0025
+// (show_photo/show_nickname default false) und loadPublicPlayerProfile.
+const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: false };
 const EMPTY_TEAM: TeamProfileExtras = {
   description: null, logoUrl: null, teamImageUrl: null,
   instagramUrl: null, facebookUrl: null, websiteUrl: null,

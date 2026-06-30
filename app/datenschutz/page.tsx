@@ -60,13 +60,14 @@ export default function DatenschutzPage() {
         Eingeloggte Nutzer können Spitzname, einen „Über mich“-Text und ein Profilbild
         hinterlegen. Diese Angaben sind – soweit veröffentlicht – auf dem öffentlichen
         Spielerprofil sichtbar und können jederzeit durch den Nutzer selbst geändert oder
-        gelöscht werden. Das <strong>Profilbild</strong> wird im Rahmen der Darstellung des
-        Spielbetriebs standardmäßig auf dem öffentlichen Spielerprofil angezeigt
-        (Rechtsgrundlage: berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO). Jeder Nutzer kann
-        der Anzeige seines Profilbilds jederzeit mit Wirkung für die Zukunft widersprechen,
-        indem er das entsprechende Häkchen in seinem Profil entfernt. Die Veröffentlichung des
-        <strong> Spitznamens</strong> erfolgt dagegen nur nach aktiver, freiwilliger Einwilligung
-        (Art. 6 Abs. 1 lit. a DSGVO), die ebenfalls jederzeit widerrufbar ist. Liga-Stammdaten
+        gelöscht werden. Die Veröffentlichung von <strong>Profilbild</strong> und
+        <strong> Spitzname</strong> erfolgt ausschließlich nach aktiver, freiwilliger Einwilligung
+        (Art. 6 Abs. 1 lit. a DSGVO): Beide werden auf dem öffentlichen Spielerprofil nur
+        angezeigt, wenn der Nutzer das jeweilige Häkchen in seinen Profil-Einstellungen selbst
+        setzt. Ohne diese Zustimmung bleiben Bild und Spitzname nicht öffentlich. Die Einwilligung
+        ist jederzeit mit Wirkung für die Zukunft widerrufbar, indem das Häkchen wieder entfernt
+        wird. Der „Über mich“-Text ist nur für eingeloggte Nutzer im Spielerprofil sichtbar.
+        Liga-Stammdaten
         (Mannschaften, Spieler, Ergebnisse, Tabellen, Ranglisten) stammen teils aus öffentlich
         verfügbaren Quellen (u. a. dartunion.de) und werden zunehmend im Rahmen des
         Spielbetriebs auf dieser Plattform selbst erhoben und berechnet – insbesondere durch
@@ -155,14 +156,24 @@ export default function DatenschutzPage() {
       <LegalSection title="15. Rechte der betroffenen Personen">
         Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
         Verarbeitung, Datenübertragbarkeit und Widerspruch. Erteilte Einwilligungen können Sie
-        jederzeit mit Wirkung für die Zukunft widerrufen. Zudem besteht ein Beschwerderecht bei
-        einer Aufsichtsbehörde. Zur Wahrnehmung Ihrer Rechte wenden Sie sich an:
-        kontakt@mdudarts.de.
+        jederzeit mit Wirkung für die Zukunft widerrufen. Zur Wahrnehmung Ihrer Rechte wenden Sie
+        sich an: kontakt@mdudarts.de.<br /><br />
+        Zudem besteht ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde. Die für uns
+        zuständige Behörde ist das <strong>Bayerische Landesamt für Datenschutzaufsicht (BayLDA)</strong>,
+        Promenade 27, 91522 Ansbach (www.lda.bayern.de). Sie können sich aber auch an die
+        Aufsichtsbehörde Ihres üblichen Aufenthaltsorts wenden.
       </LegalSection>
 
       <LegalSection title="16. Server-Logs">
         Zur Sicherstellung des Betriebs werden Server-Logfiles automatisch erfasst und nach den
         Vorgaben der eingesetzten Anbieter (Vercel, Cloudflare, Supabase) gespeichert.
+      </LegalSection>
+
+      <LegalSection title="17. Keine automatisierte Entscheidungsfindung">
+        Eine ausschließlich automatisierte Entscheidungsfindung mit rechtlicher Wirkung oder
+        vergleichbar erheblicher Beeinträchtigung im Sinne des Art. 22 DSGVO findet nicht statt.
+        Die automatische Texterkennung der Spielberichte (Ziffer 8) dient lediglich der
+        Vorerfassung; das Ergebnis wird stets von einer berechtigten Person geprüft und bestätigt.
       </LegalSection>
     </LegalPage>
   );
