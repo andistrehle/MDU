@@ -22,9 +22,10 @@ export default function NutzungsbedingungenPage() {
       <LegalSection title="2. Benutzerkonten">
         Für bestimmte Funktionen ist ein Benutzerkonto erforderlich. Die angegebenen Daten
         müssen wahrheitsgemäß und vollständig sein. Zugangsdaten sind vertraulich zu behandeln
-        und nicht an Dritte weiterzugeben. Rollen und Team-Rechte (z. B. Teamkapitän,
+        und nicht an Dritte weiterzugeben. Minderjährige dürfen ein Benutzerkonto nur mit
+        Einwilligung der Erziehungsberechtigten anlegen. Rollen und Team-Rechte (z. B. Teamkapitän,
         Ligaleitung) werden erst nach Prüfung durch die Ligaleitung vergeben. Die Ligaleitung
-        kann Konten bei Verstößen sperren oder löschen.
+        kann Konten bei Verstößen – unter Beachtung der Verhältnismäßigkeit – sperren oder löschen.
       </LegalSection>
 
       <LegalSection title="3. Inhalte der Nutzer">
@@ -66,15 +67,33 @@ export default function NutzungsbedingungenPage() {
       </LegalSection>
 
       <LegalSection title="8. Haftung">
-        Die Plattform wird mit größtmöglicher Sorgfalt betrieben. Eine Haftung für Schäden, die
-        aus der Nutzung oder Nichtverfügbarkeit entstehen, ist – soweit gesetzlich zulässig –
-        ausgeschlossen. Unberührt bleibt die Haftung für Vorsatz und grobe Fahrlässigkeit sowie
-        bei Verletzung von Leben, Körper oder Gesundheit.
+        Die Plattform wird mit größtmöglicher Sorgfalt betrieben; ein Anspruch auf Richtigkeit,
+        Vollständigkeit oder ständige Verfügbarkeit der Inhalte besteht jedoch nicht. Für Schäden
+        haftet die Münchner Dart Union nach folgenden Grundsätzen:<br /><br />
+        <strong>(1)</strong> Unbeschränkt haftet sie bei Vorsatz und grober Fahrlässigkeit, bei
+        der Verletzung von Leben, Körper oder Gesundheit, im Umfang einer übernommenen Garantie
+        sowie nach zwingenden gesetzlichen Vorschriften.<br /><br />
+        <strong>(2)</strong> Bei leicht fahrlässiger Verletzung einer wesentlichen Vertragspflicht
+        (Kardinalpflicht – eine Pflicht, deren Erfüllung die ordnungsgemäße Nutzung überhaupt erst
+        ermöglicht und auf deren Einhaltung die Nutzer regelmäßig vertrauen dürfen) ist die Haftung
+        auf den vertragstypischen, vorhersehbaren Schaden begrenzt.<br /><br />
+        <strong>(3)</strong> Im Übrigen – insbesondere bei leichter Fahrlässigkeit ohne Verletzung
+        einer wesentlichen Vertragspflicht – ist die Haftung ausgeschlossen. Da die Plattform
+        unentgeltlich bereitgestellt wird, bleiben weitergehende gesetzliche
+        Haftungserleichterungen unberührt. Die vorstehenden Beschränkungen gelten auch zugunsten
+        der gesetzlichen Vertreter und Erfüllungsgehilfen der Münchner Dart Union.
       </LegalSection>
 
       <LegalSection title="9. Änderungen">
-        Diese Nutzungsbedingungen können bei Bedarf angepasst werden. Über wesentliche
-        Änderungen werden die Nutzer in geeigneter Form informiert.
+        Die Münchner Dart Union kann diese Nutzungsbedingungen mit Wirkung für die Zukunft ändern,
+        soweit dies zur Anpassung an geänderte rechtliche oder technische Rahmenbedingungen oder
+        zur Erweiterung des Angebots erforderlich ist und die nutzende Person dadurch nicht
+        unangemessen benachteiligt wird. Über wesentliche Änderungen werden die Nutzer rechtzeitig
+        vorab in geeigneter Form (z. B. per E-Mail oder Hinweis auf der Plattform) informiert.
+        Widerspricht die nutzende Person nicht innerhalb von sechs Wochen nach Zugang der
+        Mitteilung oder nutzt sie die Plattform danach weiter, gelten die Änderungen als
+        angenommen; auf diese Folge wird in der Mitteilung gesondert hingewiesen. Andernfalls kann
+        jede Seite das Nutzungsverhältnis beenden (Löschung des Kontos).
       </LegalSection>
 
       <LegalSection title="10. Datenschutz">

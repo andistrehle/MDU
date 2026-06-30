@@ -175,6 +175,16 @@ export default function DatenschutzPage() {
         Die automatische Texterkennung der Spielberichte (Ziffer 8) dient lediglich der
         Vorerfassung; das Ergebnis wird stets von einer berechtigten Person geprüft und bestätigt.
       </LegalSection>
+
+      <LegalSection title="18. Minderjährige">
+        Personen unter 16 Jahren dürfen ein Benutzerkonto nur mit Einwilligung der
+        Erziehungsberechtigten anlegen. Beruht eine Verarbeitung auf einer Einwilligung
+        (insb. die Veröffentlichung von Profilbild oder Spitzname nach Ziffer 6), ist diese bei
+        Minderjährigen unter 16 Jahren durch die Erziehungsberechtigten zu erteilen bzw. zu
+        bestätigen (Art. 8 DSGVO). Erlangen wir Kenntnis, dass Daten einer minderjährigen Person
+        ohne die erforderliche Einwilligung verarbeitet werden, löschen wir diese auf Hinweis
+        unverzüglich.
+      </LegalSection>
     </LegalPage>
   );
 }
