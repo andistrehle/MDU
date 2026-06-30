@@ -50,7 +50,7 @@ Begleitblatt zum [Konzept](einfuehrungsvideo-konzept.md). Zum Mitlesen während 
 | 7 | `/login` → mit Demo-Login anmelden | **Passwort-Tippen nicht filmen** |
 | 8 | `/mein-bereich` – Kacheln zeigen | Mein Profil, Meine Liga, Mein Team, Mannschaft anmelden, Meine Anmeldungen, Spielbericht erfassen … |
 | 9 | **Glocke** oben rechts: roten Badge zeigen → klicken → Dropdown | 4 Demo-Meldungen sichtbar |
-| 10 | Kachel **„Mannschaft anmelden"** → Formular durchscrollen | Ligawunsch (La/A/B/C), Spielstätte, Logo, Kader – **NICHT absenden**. Hinweis: bei der Auswahl **„neue Mannschaft"** wählen (Freibad Bazis ist für 2026/27 schon gemeldet → sonst „bereits gemeldet"-Hinweis) |
+| 10 | Kachel **„Mannschaft anmelden"** → Formular durchscrollen | Ligawunsch (La/A/B/C), Spielstätte, Logo, Kader – **NICHT absenden** |
 | 11 | Kachel **„Meine Anmeldungen"** → Status „DC Demo München – eingereicht" | zeigt den Rückmeldungs-Status |
 | 12 | Kachel **„Spielbericht erfassen"** → einen Bericht **ansehen** | 18 Spiele, 2 Doppel, Auto-Wertung, Einzelranglistenpunkte |
 | 13 | Header **„Downloads"** → PDF-Spielbericht öffnen | 2-seitige A4-Vorlage |
