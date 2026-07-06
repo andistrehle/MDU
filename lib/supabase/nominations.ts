@@ -8,6 +8,7 @@
 
 import { supabase } from './client';
 import { generateNextPassNumber, nominationPlayerSlug, parseLicenseNumber } from '@/lib/data/pass-numbers';
+import { getCurrentSeason } from '@/lib/data';
 
 export type NominationStatus = 'pending' | 'approved' | 'rejected';
 
@@ -93,9 +94,24 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
         .map(o => parseLicenseNumber(o.license_number))
         .filter((x): x is number => x != null);
       const gen = generateNextPassNumber(n.team_id, { extraUsed });
+      const slug = n.player_id ?? nominationPlayerSlug(n.first_name, n.last_name, gen.number);
       patch.license_number = gen.license;
       patch.license_provisional = true;
-      patch.player_id = n.player_id ?? nominationPlayerSlug(n.first_name, n.last_name, gen.number);
+      patch.player_id = slug;
+
+      // Neuen Spieler + Kaderzuordnung in die DB übernehmen (Tabellen aus 0025).
+      // Best-effort: schlägt nicht durch, falls die Migration noch nicht lief.
+      const seasonId = getCurrentSeason().id;
+      const { error: pe } = await supabase.from('players').upsert({
+        id: slug, first_name: n.first_name, last_name: n.last_name,
+        license_number: gen.license, status: 'active', source: 'nomination',
+      }, { onConflict: 'id' });
+      if (pe) console.warn('players upsert (Migration 0025 nötig?):', pe.message);
+      const { error: ae } = await supabase.from('player_assignments').upsert({
+        id: `pa-nom-${id}`, season_id: seasonId, team_id: n.team_id, player_id: slug,
+        status: 'active', is_captain: false, source: 'nomination',
+      }, { onConflict: 'id' });
+      if (ae) console.warn('player_assignments upsert (Migration 0025 nötig?):', ae.message);
     }
   }
 
