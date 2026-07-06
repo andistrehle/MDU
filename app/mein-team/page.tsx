@@ -42,7 +42,7 @@ export default function MeinTeamPage() {
             }}>
               {team?.short ?? '?'}
             </div>
-            <div style={{ flex: '1 1 180px', minWidth: 160 }}>
+            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, color: 'var(--th-text-strong)', textTransform: 'uppercase', lineHeight: 1.1 }}>
                 {team?.name ?? teamId}
               </div>
@@ -91,7 +91,7 @@ function ActionTile({ href, icon, title, desc }: { href: string; icon: string; t
 }
 
 const ghostBtn: React.CSSProperties = {
-  padding: '9px 16px', borderRadius: 8, flexShrink: 0,
+  flex: '1 1 100%', padding: '10px 16px', borderRadius: 8, textAlign: 'center',
   background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)',
   fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, textDecoration: 'none',
 };
