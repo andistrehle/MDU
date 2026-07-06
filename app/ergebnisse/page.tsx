@@ -1,3 +1,6 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
@@ -16,7 +19,7 @@ const LEAGUE_ORDER = [
 export default function ErgebnissePage() {
   const rawGroups = getCompletedMatchesByLeague();
 
-  const groups = [...rawGroups].sort((a, b) => {
+  const allGroups = [...rawGroups].sort((a, b) => {
     const ia = LEAGUE_ORDER.indexOf(a.leagueId);
     const ib = LEAGUE_ORDER.indexOf(b.leagueId);
     if (ia === -1 && ib === -1) return a.leagueId.localeCompare(b.leagueId);
@@ -25,7 +28,14 @@ export default function ErgebnissePage() {
     return ia - ib;
   });
 
-  const totalCount = groups.reduce((s, g) => s + g.matches.length, 0);
+  // Liga-Filter: null = „Alle Ligen" (Standard).
+  const [selected, setSelected] = useState<string | null>(null);
+  const groups = useMemo(
+    () => (selected ? allGroups.filter(g => g.leagueId === selected) : allGroups),
+    [allGroups, selected],
+  );
+
+  const totalCount = allGroups.reduce((s, g) => s + g.matches.length, 0);
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -48,6 +58,25 @@ export default function ErgebnissePage() {
             Ergebnisse
           </h1>
         </div>
+
+        {/* Liga-Filter — Standard „Alle Ligen" */}
+        {totalCount > 0 && (
+          <div role="tablist" aria-label="Nach Liga filtern" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
+            <FilterChip label="Alle Ligen" active={selected === null} onClick={() => setSelected(null)} />
+            {allGroups.map(g => {
+              const league = findLeague(g.leagueId);
+              return (
+                <FilterChip
+                  key={g.leagueId}
+                  label={league?.name ?? g.leagueId.toUpperCase()}
+                  color={league?.color}
+                  active={selected === g.leagueId}
+                  onClick={() => setSelected(g.leagueId)}
+                />
+              );
+            })}
+          </div>
+        )}
 
         {totalCount === 0 ? (
           <div style={{
@@ -212,5 +241,33 @@ export default function ErgebnissePage() {
 
       <Footer />
     </div>
+  );
+}
+
+function FilterChip({ label, color, active, onClick }: { label: string; color?: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
+        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+        background: active ? 'var(--th-accent)' : 'var(--th-bg-card)',
+        color: active ? '#fff' : 'var(--th-text-body)',
+        border: `1.5px solid ${active ? 'var(--th-accent-hover)' : 'var(--th-line-10)'}`,
+        transition: 'all 120ms', whiteSpace: 'nowrap',
+      }}
+    >
+      {color && (
+        <span style={{
+          width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0,
+          boxShadow: active ? '0 0 0 2px rgba(255,255,255,0.35)' : 'none',
+        }} />
+      )}
+      {label}
+    </button>
   );
 }
