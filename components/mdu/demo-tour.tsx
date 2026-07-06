@@ -311,17 +311,15 @@ export function DemoTour() {
         width: Math.min(document.documentElement.clientWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
-      // Mobil (ohne Sticky-Ziel): Andockseite live an die Zielposition anpassen –
-      // mit Hysterese, damit es nicht flackert. So sitzt die Karte immer auf der
-      // dem Ziel abgewandten Seite, egal wohin iOS tatsächlich gescrollt hat.
-      if (isMobile && !sticky) {
-        const cy = r.top + r.height / 2;
-        const vh = vpH();
-        if (curDock !== 'top' && cy > vh * 0.60) { curDock = 'top'; setDock('top'); }
-        else if (curDock !== 'bottom' && cy < vh * 0.40) { curDock = 'bottom'; setDock('bottom'); }
+      // Mobil (ohne Sticky-Ziel): Andockseite live anhand ECHTER Überlappung mit
+      // der Karte wählen – überlappt das Ziel die untere Karte, wandert die Karte
+      // nach oben (und umgekehrt). Robust auch für die unterste Kachel.
+      const cardRect = cardRef.current?.getBoundingClientRect();
+      if (isMobile && !sticky && cardRect && cardRect.height > 0) {
+        if (curDock === 'bottom' && r.bottom > cardRect.top - 2) { curDock = 'top'; setDock('top'); }
+        else if (curDock === 'top' && r.top < cardRect.bottom + 2) { curDock = 'bottom'; setDock('bottom'); }
       }
       // Spot nie hinter die Karte reichen lassen — Kartenlage in Dokument-Koords.
-      const cardRect = cardRef.current?.getBoundingClientRect();
       if (cardRect && cardRect.height > 0) {
         const cardTopDoc = cardRect.top + sy, cardBottomDoc = cardRect.bottom + sy;
         if (curDock === 'bottom' && sp.top + sp.height > cardTopDoc - gap) {
@@ -358,7 +356,11 @@ export function DemoTour() {
       sticky = isStickyish(el);
       curDock = 'bottom';
       setDock('bottom');
-      if (!sticky) {
+      if (sticky) {
+        // Header-Ziel (Glocke/Design/Login): nach ganz oben scrollen, damit der
+        // Header wirklich sichtbar ist (sonst „springt er nicht zur Glocke").
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      } else {
         const ch = cardRef.current?.offsetHeight ?? Math.round(vpH() * 0.42);
         el.style.scrollMarginTop = '92px';
         el.style.scrollMarginBottom = `${ch + 92}px`; // Karte + Bottom-Nav + Abstand
@@ -467,7 +469,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v5</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v6</div>
         </div>
       </div>
     </>
