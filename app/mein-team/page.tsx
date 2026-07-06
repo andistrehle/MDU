@@ -32,23 +32,23 @@ export default function MeinTeamPage() {
           <div style={{
             background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, padding: '20px 22px', marginBottom: 18,
-            display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+            display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 14,
           }}>
-            <div style={{
-              width: 54, height: 54, borderRadius: 12, flexShrink: 0,
-              background: `${team?.color ?? '#888'}22`, border: `1px solid ${team?.color ?? '#888'}55`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: team?.color ?? 'var(--th-text-muted)',
-            }}>
-              {team?.short ?? '?'}
-            </div>
-            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, color: 'var(--th-text-strong)', textTransform: 'uppercase', lineHeight: 1.1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+              <div style={{
+                width: 54, height: 54, borderRadius: 12, flexShrink: 0,
+                background: `${team?.color ?? '#888'}22`, border: `1px solid ${team?.color ?? '#888'}55`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: team?.color ?? 'var(--th-text-muted)',
+              }}>
+                {team?.short ?? '?'}
+              </div>
+              <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, color: 'var(--th-text-strong)', textTransform: 'uppercase', lineHeight: 1.1, minWidth: 0 }}>
                 {team?.name ?? teamId}
               </div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 4 }}>
-                {leagueName} · {season.name}
-              </div>
+            </div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+              {leagueName} · {season.name}
             </div>
             <Link href={`/teams/${teamId}`} style={ghostBtn}>Öffentliches Profil ansehen</Link>
           </div>
@@ -91,7 +91,7 @@ function ActionTile({ href, icon, title, desc }: { href: string; icon: string; t
 }
 
 const ghostBtn: React.CSSProperties = {
-  flex: '1 1 100%', padding: '10px 16px', borderRadius: 8, textAlign: 'center',
+  display: 'inline-block', padding: '9px 16px', borderRadius: 8,
   background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)',
   fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, textDecoration: 'none',
 };
