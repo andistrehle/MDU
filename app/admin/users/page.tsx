@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canViewUsers, canEditUsers, canEditUserAccount, canDeleteUserAccount, canAssignRole, ROLE_LABELS, type UserRole, type UserProfile } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
+import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
 
 interface ProfileRow {
   id: string;
@@ -43,6 +44,13 @@ const PLAYER_OPTIONS = [...PLAYERS]
   .map(p => ({ id: p.id, name: getPlayerDisplayName(p) }))
   .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
+// Zusätzlich zuordenbare Spieler aus freigegebenen Nachmeldungen (zur Laufzeit
+// aus der DB geladen). Modul-Registry, damit playerName()/Dropdown sie sehen.
+let NOMINATED_OPTIONS: { id: string; name: string }[] = [];
+function combinedPlayerOptions(): { id: string; name: string }[] {
+  return [...PLAYER_OPTIONS, ...NOMINATED_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+
 const TEAM_OPTIONS = [...TEAMS]
   .map(t => ({ id: t.id, name: t.name }))
   .sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -55,7 +63,9 @@ function fmtDate(iso: string): string {
 
 function playerName(id: string | null): string {
   if (!id) return '–';
-  return PLAYER_OPTIONS.find(p => p.id === id)?.name ?? id;
+  return PLAYER_OPTIONS.find(p => p.id === id)?.name
+    ?? NOMINATED_OPTIONS.find(p => p.id === id)?.name
+    ?? id;
 }
 function teamName(id: string | null): string {
   if (!id) return '–';
@@ -76,15 +86,17 @@ export default function AdminUsersPage() {
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
     setStatus('loading');
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: true });
+    const [{ data, error }, nominated] = await Promise.all([
+      supabase.from('profiles').select('*').order('created_at', { ascending: true }),
+      listApprovedNominatedPlayers().catch(() => []),
+    ]);
     if (error) {
       setStatus('error');
       setErrorMsg(error.message);
       return;
     }
+    // Freigegebene Nachmeldungs-Spieler zusätzlich zuordenbar machen.
+    NOMINATED_OPTIONS = (nominated ?? []).map(n => ({ id: n.id, name: n.license ? `${n.name} · ${n.license}` : n.name }));
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
   }, []);
@@ -389,7 +401,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           <Field label="Verknüpfter Spieler">
             <select value={playerId} onChange={e => setPlayerId(e.target.value)} style={inputStyle}>
               <option value="">— keine Verknüpfung —</option>
-              {PLAYER_OPTIONS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {combinedPlayerOptions().map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </Field>
 

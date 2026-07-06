@@ -9,7 +9,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageLeague } from '@/lib/auth/roles';
 import {
-  listAllNominations, reviewNomination, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
+  listAllNominations, reviewNomination, updateNominationLicense, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
   type PlayerNomination, type NominationStatus,
 } from '@/lib/supabase/nominations';
 
@@ -22,6 +22,8 @@ export default function AdminNachmeldungenPage() {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [licenseEditId, setLicenseEditId] = useState<string | null>(null);
+  const [licenseVal, setLicenseVal] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -43,6 +45,14 @@ export default function AdminNachmeldungenPage() {
     setBusy(false);
     if (error) { setMsg(error); return; }
     setRejectId(null); setNote('');
+    setRows(await listAllNominations());
+  }
+  async function saveLicense(id: string) {
+    setBusy(true); setMsg(null);
+    const { error } = await updateNominationLicense(id, licenseVal);
+    setBusy(false);
+    if (error) { setMsg(error); return; }
+    setLicenseEditId(null);
     setRows(await listAllNominations());
   }
 
@@ -92,6 +102,27 @@ export default function AdminNachmeldungenPage() {
                         <button onClick={() => approve(r.id)} disabled={busy} style={btnGreen}>Bestätigen</button>
                         <button onClick={() => { setRejectId(r.id); setNote(''); setMsg(null); }} disabled={busy} style={btnRed}>Ablehnen</button>
                       </div>
+                    )}
+                  </div>
+                )}
+
+                {r.status === 'approved' && (
+                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>Passnummer:</span>
+                    {licenseEditId === r.id ? (
+                      <>
+                        <input value={licenseVal} onChange={e => setLicenseVal(e.target.value)} style={{ ...ctl, padding: '7px 10px', fontSize: 13, fontFamily: 'var(--font-jetbrains-mono)', width: 150 }} />
+                        <button onClick={() => saveLicense(r.id)} disabled={busy} style={btnGreen}>Speichern</button>
+                        <button onClick={() => { setLicenseEditId(null); setMsg(null); }} disabled={busy} style={ghost}>Abbrechen</button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.license_number ?? '—'}</span>
+                        {r.license_provisional && r.license_number && (
+                          <span title="Automatisch generiert – offizielle Nummer der dartunion später eintragen." style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--th-accent)', border: '1px solid var(--th-accent-a25)', borderRadius: 4, padding: '2px 6px' }}>vorläufig</span>
+                        )}
+                        <button onClick={() => { setLicenseEditId(r.id); setLicenseVal(r.license_number ?? ''); setMsg(null); }} disabled={busy} style={{ ...ghost, padding: '6px 12px' }}>Nummer ändern</button>
+                      </>
                     )}
                   </div>
                 )}
