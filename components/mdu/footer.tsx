@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from './icon';
-import { TourRestartLink } from './tour-restart-link';
 
 export function Footer() {
   return (
@@ -53,9 +52,8 @@ export function Footer() {
         ))}
       </div>
 
-      <div style={{ maxWidth: 1280, margin: '28px auto 0', paddingTop: 20, borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint2)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <TourRestartLink />
-        <span>© {new Date().getFullYear()} Münchner Dart Union. Alle Rechte vorbehalten.</span>
+      <div style={{ maxWidth: 1280, margin: '28px auto 0', paddingTop: 20, borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint2)', textAlign: 'center' }}>
+        © {new Date().getFullYear()} Münchner Dart Union. Alle Rechte vorbehalten.
       </div>
     </footer>
   );

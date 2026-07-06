@@ -4,6 +4,7 @@ import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
 import { DemoTour } from '@/components/mdu/demo-tour';
+import { DemoTourButton } from '@/components/mdu/tour-restart-link';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { SITE_INDEXABLE } from '@/lib/site-config';
 
@@ -50,13 +51,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         {/* Restore the persisted theme before first paint (no flash).
-            Dark is the default; only "light" sets the data attribute. */}
+            Default (Erstbesuch / keine Auswahl) = „Old School" (light);
+            nur eine ausdrückliche „dark"-Wahl (New Design) bleibt dunkel. */}
         <Script id="mdu-theme-init" strategy="beforeInteractive">
-          {"try{if(localStorage.getItem('mdu-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}"}
+          {"try{if(localStorage.getItem('mdu-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}"}
         </Script>
         <AuthProvider>
           {children}
           <BottomNav />
+          <DemoTourButton />
           <DemoTour />
         </AuthProvider>
       </body>

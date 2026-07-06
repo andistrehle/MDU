@@ -171,6 +171,7 @@ export function DemoTour() {
   const [steps, setSteps] = useState<TourStep[]>([]);
   const [tourId, setTourId] = useState<TourId | null>(null);
   const [spot, setSpot] = useState<SpotRect | null>(null);
+  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const startTour = useCallback((id: TourId, built: TourStep[]) => {
@@ -241,17 +242,39 @@ export function DemoTour() {
     const name = steps[step]?.target;
     let ticking = false;
 
+    const placeCard = (sp: SpotRect | null) => {
+      const card = cardRef.current;
+      if (!card) return;
+      const cw = card.offsetWidth, ch = card.offsetHeight;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      if (!sp) { // zentriert
+        setCardPos({ top: Math.max(12, (vh - ch) / 2), left: Math.max(12, (vw - cw) / 2) });
+        return;
+      }
+      // Karte direkt an den Spotlight andocken: bevorzugt darunter, sonst darüber.
+      const gap = 12;
+      let top: number;
+      if (sp.top + sp.height + gap + ch <= vh - 12) top = sp.top + sp.height + gap;
+      else if (sp.top - gap - ch >= 12) top = sp.top - gap - ch;
+      else top = Math.max(12, Math.min(vh - ch - 12, sp.top + sp.height + gap));
+      let left = sp.left + sp.width / 2 - cw / 2;
+      left = Math.max(12, Math.min(vw - cw - 12, left));
+      setCardPos({ top, left });
+    };
+
     const measure = () => {
       const el = findTarget(name);
-      if (!el) { setSpot(null); return; }
+      if (!el) { setSpot(null); placeCard(null); return; }
       const r = el.getBoundingClientRect();
       const pad = 8;
-      setSpot({
+      const sp: SpotRect = {
         top: Math.max(8, r.top - pad),
         left: Math.max(8, r.left - pad),
         width: Math.min(window.innerWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
-      });
+      };
+      setSpot(sp);
+      placeCard(sp);
     };
 
     const el = findTarget(name);
@@ -294,15 +317,6 @@ export function DemoTour() {
   const s = steps[step];
   const isLast = step === steps.length - 1;
 
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const dock: 'center' | 'top' | 'bottom' =
-    !spot ? 'center' : (spot.top + spot.height / 2 < vh / 2 ? 'bottom' : 'top');
-
-  const anchorStyle: React.CSSProperties =
-    dock === 'center'
-      ? { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, pointerEvents: 'none' }
-      : { position: 'fixed', left: 0, right: 0, [dock]: 0, display: 'flex', justifyContent: 'center', padding: 20, pointerEvents: 'none' };
-
   return (
     <div
       className="mdu-tour-overlay"
@@ -322,14 +336,19 @@ export function DemoTour() {
         />
       )}
 
-      <div style={anchorStyle}>
-        <div
-          className="mdu-tour-card"
-          ref={cardRef}
-          tabIndex={-1}
-          style={{ pointerEvents: 'auto' }}
-          onClick={e => e.stopPropagation()}
-        >
+      <div
+        className="mdu-tour-card"
+        ref={cardRef}
+        tabIndex={-1}
+        style={{
+          position: 'fixed',
+          top: cardPos?.top ?? 0,
+          left: cardPos?.left ?? 0,
+          visibility: cardPos ? 'visible' : 'hidden',
+          pointerEvents: 'auto',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
           <button type="button" className="mdu-tour-x" onClick={skip} aria-label="Tour schließen">×</button>
 
           <div className="mdu-tour-icon" aria-hidden="true">{s.icon}</div>
@@ -364,7 +383,6 @@ export function DemoTour() {
           </div>
 
           <div className="mdu-tour-count">{step + 1} / {steps.length}</div>
-        </div>
       </div>
     </div>
   );
@@ -382,13 +400,15 @@ const TOUR_CSS = `
   transition:top .25s ease, left .25s ease, width .25s ease, height .25s ease;
 }
 .mdu-tour-card {
-  position:relative; z-index:1002; width:100%; max-width:420px; max-height:calc(100dvh - 40px);
+  z-index:1002; width:min(380px, calc(100vw - 24px)); max-height:calc(100dvh - 24px);
   overflow-y:auto; box-sizing:border-box;
   background:var(--th-bg-card); color:var(--th-text-strong);
-  border:1px solid var(--th-line-10); border-radius:18px;
-  padding:24px 24px 18px; box-shadow:0 24px 60px rgba(0,0,0,0.45);
+  border:1.5px solid var(--th-accent); border-radius:16px;
+  padding:22px 22px 16px;
+  box-shadow:0 20px 55px rgba(0,0,0,0.5), 0 0 0 4px var(--th-accent-a12);
   font-family:var(--font-manrope), system-ui, sans-serif;
   animation:mdu-tour-pop .24s cubic-bezier(.2,.9,.3,1.2); outline:none;
+  transition:top .28s cubic-bezier(.3,.8,.3,1), left .28s cubic-bezier(.3,.8,.3,1);
 }
 .mdu-tour-x {
   position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:8px;
@@ -430,13 +450,22 @@ const TOUR_CSS = `
   font-weight:800; font-size:13px;
 }
 .mdu-tour-btn.ghost { background:transparent; color:var(--th-text-strong); border:1.5px solid var(--th-line-10); }
-.mdu-tour-btn.primary { background:var(--th-accent); color:#fff; border:1px solid var(--th-accent-hover); }
-.mdu-tour-btn.primary:hover { background:var(--th-accent-hover); }
+.mdu-tour-btn.primary {
+  background:var(--th-accent); color:#fff; border:1px solid var(--th-accent-hover);
+  animation:mdu-tour-pulse 2.2s ease-in-out infinite;
+}
+.mdu-tour-btn.primary:hover { background:var(--th-accent-hover); animation:none; }
 .mdu-tour-count { text-align:center; font-size:11px; color:var(--th-text-muted); margin-top:10px; opacity:.7; }
 @keyframes mdu-tour-fade { from { opacity:0; } to { opacity:1; } }
-@keyframes mdu-tour-pop { from { opacity:0; transform:translateY(12px) scale(.98); } to { opacity:1; transform:none; } }
+@keyframes mdu-tour-pop { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:none; } }
+@keyframes mdu-tour-pulse {
+  0% { box-shadow:0 0 0 0 var(--th-accent-a40); }
+  70% { box-shadow:0 0 0 9px rgba(0,0,0,0); }
+  100% { box-shadow:0 0 0 0 rgba(0,0,0,0); }
+}
 @media (prefers-reduced-motion: reduce) {
   .mdu-tour-overlay, .mdu-tour-card { animation:none; }
-  .mdu-tour-spot { transition:none; }
+  .mdu-tour-spot, .mdu-tour-card { transition:none; }
+  .mdu-tour-btn.primary { animation:none; }
 }
 `;
