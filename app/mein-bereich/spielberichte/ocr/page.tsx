@@ -33,8 +33,12 @@ export default function OcrUploadPage() {
   const [available, setAvailable] = useState<boolean | null>(null);
   const [maxMb, setMaxMb] = useState(12);
   const [matchId, setMatchId] = useState('');
-  // Nur relevant für Admins/Ligaleitung: Filter, um in der langen Liste
-  // aller Begegnungen schneller die richtige zu finden.
+  // Ansicht der Begegnungsliste (nur für Admins umschaltbar):
+  //   'mine' = nur die eigene Mannschaft (Standard, wie bei Kapitänen –
+  //            der wöchentliche Normalfall)
+  //   'all'  = alle Begegnungen der Liga (Ligaleitung trägt für andere ein)
+  const [scope, setScope] = useState<'mine' | 'all'>('mine');
+  // Filter innerhalb der „Alle Begegnungen"-Ansicht (Admin).
   const [leagueFilter, setLeagueFilter] = useState('');
   const [search, setSearch] = useState('');
   const [page1, setPage1] = useState<File | null>(null);
@@ -43,19 +47,31 @@ export default function OcrUploadPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'err' | 'info'; text: string } | null>(null);
 
+  const hasOwnTeam = !!user?.teamId;
+  // Admin schaut die volle Liga-Liste an? Nur dann greifen Umschalter-Filter.
+  const adminAll = isAdmin && scope === 'all';
+
   useEffect(() => {
     if (!user) return;
     getOcrAvailability().then(a => { setAvailable(a.enabled); setMaxMb(a.maxFileMb); });
   }, [user]);
 
+  // Admin ohne eigene Mannschaft kann nur die „Alle Begegnungen"-Ansicht nutzen.
+  useEffect(() => {
+    if (isAdmin && !hasOwnTeam) setScope('all');
+  }, [isAdmin, hasOwnTeam]);
+
   const matches = useMemo(() => {
-    const list = isAdmin ? [...MATCHES] : (user?.teamId ? getMatchesForTeam(user.teamId) : []);
+    // Kapitäne sowie Admins im „Meine Mannschaft"-Modus: nur eigene Begegnungen.
+    const list = adminAll
+      ? [...MATCHES]
+      : (user?.teamId ? getMatchesForTeam(user.teamId) : (isAdmin ? [...MATCHES] : []));
     return [...list].sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.date ?? '').localeCompare(a.date ?? ''));
-  }, [isAdmin, user?.teamId]);
+  }, [adminAll, isAdmin, user?.teamId]);
 
   // Ligen, die in der Liste tatsächlich vorkommen — für das Admin-Filter-Dropdown.
   const leagueOptions = useMemo(() => {
-    if (!isAdmin) return [] as { id: string; name: string }[];
+    if (!adminAll) return [] as { id: string; name: string }[];
     const seen = new Map<string, string>();
     for (const m of matches) {
       if (!seen.has(m.leagueId)) seen.set(m.leagueId, findLeague(m.leagueId)?.name ?? m.leagueId);
@@ -63,17 +79,17 @@ export default function OcrUploadPage() {
     return [...seen.entries()]
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  }, [isAdmin, matches]);
+  }, [adminAll, matches]);
 
-  // Gefilterte Liste (nur für Admins wirksam): nach Liga und Freitextsuche.
+  // Gefilterte Liste (nur in der Admin-„Alle Begegnungen"-Ansicht wirksam).
   const visibleMatches = useMemo(() => {
-    if (!isAdmin) return matches;
+    if (!adminAll) return matches;
     const q = search.trim().toLowerCase();
     return matches.filter(m =>
       (!leagueFilter || m.leagueId === leagueFilter) &&
       (!q || matchLabel(m).toLowerCase().includes(q))
     );
-  }, [matches, isAdmin, leagueFilter, search]);
+  }, [matches, adminAll, leagueFilter, search]);
 
   // Fällt die aktuell gewählte Begegnung durch einen Filter raus, Auswahl leeren.
   useEffect(() => {
@@ -119,7 +135,13 @@ export default function OcrUploadPage() {
             )}
 
             <Card title="1 · Begegnung (optional)">
-              {isAdmin && (
+              {isAdmin && hasOwnTeam && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => setScope('mine')} style={segBtn(scope === 'mine')}>Meine Mannschaft</button>
+                  <button type="button" onClick={() => setScope('all')} style={segBtn(scope === 'all')}>Alle Begegnungen</button>
+                </div>
+              )}
+              {adminAll && (
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <select value={leagueFilter} onChange={e => setLeagueFilter(e.target.value)} style={{ ...input, flex: '1 1 180px', width: 'auto' }} aria-label="Nach Liga filtern">
                     <option value="">Alle Ligen</option>
@@ -136,7 +158,7 @@ export default function OcrUploadPage() {
                 <option value="">— ohne Auswahl (wird nach der Erkennung zugeordnet) —</option>
                 {visibleMatches.map(m => <option key={m.id} value={m.id}>{matchLabel(m)}</option>)}
               </select>
-              {isAdmin && (leagueFilter || search.trim()) && (
+              {adminAll && (leagueFilter || search.trim()) && (
                 <Muted>{visibleMatches.length} Begegnung{visibleMatches.length === 1 ? '' : 'en'} gefiltert{visibleMatches.length === 0 ? ' – Filter anpassen.' : '.'}</Muted>
               )}
               <Muted>Du kannst die Begegnung gleich wählen (beste Erkennung) oder ohne Auswahl hochladen — das System schlägt sie danach anhand der erkannten Teams vor.</Muted>
@@ -216,3 +238,14 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 const input: React.CSSProperties = { width: '100%', padding: '10px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14 };
 const btn: React.CSSProperties = { padding: '10px 18px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
 const primary: React.CSSProperties = { padding: '12px 24px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
+
+/** Segment-Button für den Ansicht-Umschalter (Meine Mannschaft / Alle Begegnungen). */
+function segBtn(active: boolean): React.CSSProperties {
+  return {
+    flex: 1, padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
+    background: active ? 'var(--th-accent-a12)' : 'transparent',
+    border: `1.5px solid ${active ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
+    color: active ? 'var(--th-accent)' : 'var(--th-text-muted)',
+    fontFamily: 'var(--font-manrope)', fontWeight: active ? 800 : 600, fontSize: 12.5,
+  };
+}
