@@ -1,5 +1,46 @@
 # MDU Platform — Backlog / Roadmap
 
+## Phase 2 — Plattform ist alleinige Datenquelle (DB statt dartunion.de)
+
+Betreiber-Entscheidung (Juli 2026): „Es läuft ab jetzt nichts mehr über dartunion.de."
+Spieler + Kader-/Team-Zusammensetzung wurden in die DB übernommen. Leitplanke bei
+jedem Schritt: **alles muss aussehen wie vorher** (DB-first, statischer Fallback).
+
+- [x] **Migration `0031`** — Passnummern-/Zuordnungsfelder an `player_nominations`
+  (`player_id`, `license_number`, `license_provisional`, `assigned_profile_id`)
+- [x] **Migration `0032`** — Tabellen `players` + `player_assignments` (RLS: öffentlich
+  lesbar, Schreiben nur `is_admin()`); Übernahme per `scripts/seed-players-roster.mts`
+  (368 Spieler + 368 Zuordnungen, idempotent) — **ausgeführt**
+- [x] **Passnummern-Generierung** bei Nachmeldung: Regel „höchste Teamkollegen-Nummer + 1,
+  nächste global freie" (`lib/data/pass-numbers.ts`); bei Freigabe durch die Ligaleitung
+  wird ein zuordenbarer Spieler + vorläufige Passnummer (`*`) angelegt und in
+  `players`/`player_assignments` übernommen (`reviewNomination`) — **getestet (Hans Dampf → MDU 26 5914)**
+- [x] **Stufe 1** — Team-Seite `/teams/[id]` liest die Kader-Basis aus der DB
+  (`getDbRosterForTeam`), Reihenfolge/Format identisch zur statischen Basis,
+  Nachmelde-Spieler hinten angehängt, statischer Fallback bei fehlenden DB-Daten
+- [x] **Stufe 2** — Spielerprofil `/spieler/[id]` mit DB-Fallback (`getDbPlayer`):
+  per Nachmeldung angelegte Spieler (nur in der DB) bekommen eine echte Profilseite
+  statt 404; bestehende Spieler laufen unverändert über den statischen Stamm
+- [x] **Cleanup-Skript** `scripts/delete-nominated-player.mts` — Test-/Fehl-Nachmeldung
+  vollständig entfernen (nur `source='nomination'`, dartunion-Stamm bleibt unberührt)
+
+### ⏳ Offen — Stufe 3: Team-Seite saison-aware machen (für den Saisonwechsel 26/27)
+
+**Merker (bewusst auf später gelegt):** Die Team-Seite einer *bestehenden* Mannschaft
+(`app/teams/[id]/page.tsx`) ist aktuell fest auf die statische Saison 25/26 verdrahtet
+(`getCurrentSeason()` + `getDbRosterForTeam(season-2026, …)`). Der selbstverwaltete
+DB-Saison-Pfad (`SeasonTeamView` via `getSeasonTeams`/`getSeasonRoster`) greift nur für
+**neue** Teams (`!staticTeam`). Folge: Eine **freigegebene Mannschaftsanmeldung für 26/27**
+legt Team + Kader (inkl. neuer Spieler) korrekt in der DB an (`season_team_assignments` /
+`season_roster_assignments`), erscheint aber **nirgends öffentlich**, solange 26/27 nicht die
+*aktive* Saison ist — und selbst nach dem Umschalten würde die Seite einer bestehenden
+Mannschaft weiter den 25/26-Kader zeigen. **Beim Saisonwechsel 26/27** deshalb:
+- Team-Seite (und `/mein-team/kader`, Statistik, Sitemap …) an der **aktiven DB-Saison**
+  ausrichten, nicht an `getCurrentSeason()` (statisch)
+- Für bestehende Teams die statischen Stammdaten (Farbe/Logo/Historie) mit dem
+  **DB-Kader der aktiven Saison** kombinieren, statt den `SeasonTeamView`-Pfad nur für neue Teams
+- Erst sinnvoll, wenn 26/27 wirklich live geht (dann existieren auch Tabellen/Spielplan 26/27)
+
 ## Erledigt — Kontaktformular, Spielbedingungen, Rechts-Tiefenprüfung, Domain/Go-live (30. Juni 2026, zuletzt)
 
 Live auf `main` / Vercel. `www.mdudarts.de` ist technisch live, bleibt aber bis zum Go-live **noindex** (nicht beworben).
