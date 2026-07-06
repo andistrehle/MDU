@@ -14,6 +14,12 @@
 import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getCurrentSeason, findLeague } from '@/lib/data';
+import type { Player, PlayerStatus } from '@/lib/data/players';
+import {
+  TEAM_PLAYER_ASSIGNMENTS,
+  type TeamPlayerAssignment,
+  type PlayerWithAssignment,
+} from '@/lib/data/assignments';
 
 function anon(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -120,4 +126,75 @@ export async function getSeasonRoster(seasonId: string, teamId: string): Promise
 export async function getSeasonTeam(seasonId: string, teamId: string): Promise<SeasonTeam | null> {
   const teams = await getSeasonTeams(seasonId);
   return teams.find(t => t.teamId === teamId) ?? null;
+}
+
+// ── Phase 2, Stufe 1: Kader aus der DB (Tabellen `players` + ────
+//    `player_assignments`, Migration 0032) ──────────────────────
+//
+// Liefert die Team-Kader-Basis (PlayerWithAssignment[]) aus der DB — Format
+// identisch zur statischen Basis (lib/data/assignments), damit getRankedRoster-
+// ForTeam exakt dieselbe Ausgabe erzeugt. Reihenfolge folgt der statischen
+// Basis (No-Stat-Spieler behalten ihre Reihenfolge); nachgemeldete Spieler
+// (nicht in der statischen Liste) werden hinten deterministisch angehängt.
+//
+// Rückgabe `null` = keine DB-Daten / Fehler → Aufrufer nutzt statischen Fallback,
+// damit garantiert nie etwas kaputtgeht.
+export async function getDbRosterForTeam(
+  seasonId: string,
+  teamId: string,
+): Promise<PlayerWithAssignment[] | null> {
+  const c = anon();
+  if (!c || !seasonId || !teamId) return null;
+
+  const { data, error } = await c
+    .from('player_assignments')
+    .select('id, player_id, status, is_captain, players:player_id(id, first_name, last_name, display_name, nickname, license_number, status, photo_url)')
+    .eq('season_id', seasonId)
+    .eq('team_id', teamId);
+
+  if (error || !data || data.length === 0) return null;
+
+  type PlayerRow = {
+    id: string; first_name: string; last_name: string;
+    display_name: string | null; nickname: string | null;
+    license_number: string | null; status: string; photo_url: string | null;
+  };
+  type Row = { id: string; player_id: string; status: string; is_captain: boolean; players: PlayerRow | null };
+
+  const mapped: PlayerWithAssignment[] = (data as unknown as Row[]).flatMap(r => {
+    const p = r.players;
+    if (!p) return [];
+    const player: Player = {
+      id: p.id,
+      firstName: p.first_name,
+      lastName: p.last_name,
+      displayName: p.display_name ?? undefined,
+      nickname: p.nickname ?? undefined,
+      licenseNumber: p.license_number ?? undefined,
+      status: (p.status as PlayerStatus) ?? 'active',
+      photoUrl: p.photo_url ?? undefined,
+    };
+    const assignment: TeamPlayerAssignment = {
+      id: r.id,
+      seasonId,
+      teamId,
+      playerId: r.player_id,
+      status: (r.status as TeamPlayerAssignment['status']) ?? 'active',
+      isCaptain: r.is_captain,
+    };
+    return [{ player, assignment }];
+  });
+
+  if (mapped.length === 0) return null;
+
+  // Reihenfolge exakt wie in der statischen Basis; Unbekannte (Nachmeldungen)
+  // hinten, stabil nach ID sortiert.
+  const order = new Map<string, number>();
+  TEAM_PLAYER_ASSIGNMENTS.forEach((a, i) => order.set(a.id, i));
+  const known = mapped.filter(m => order.has(m.assignment.id))
+    .sort((a, b) => order.get(a.assignment.id)! - order.get(b.assignment.id)!);
+  const extra = mapped.filter(m => !order.has(m.assignment.id))
+    .sort((a, b) => a.assignment.id.localeCompare(b.assignment.id));
+
+  return [...known, ...extra];
 }

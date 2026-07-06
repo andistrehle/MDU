@@ -16,7 +16,7 @@ import {
 import { notFound } from 'next/navigation';
 import { shade } from '@/lib/utils';
 import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
-import { getActiveSeason, getSeasonTeam, getSeasonRoster } from '@/lib/server/season-data';
+import { getActiveSeason, getSeasonTeam, getSeasonRoster, getDbRosterForTeam } from '@/lib/server/season-data';
 import { SeasonTeamView } from '@/components/mdu/season-team-view';
 import { getRowOutcome } from '@/lib/data/competition-outcomes';
 
@@ -100,7 +100,10 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const stats = getStatisticsForLeague(currentLeagueId);
 
   // ── Roster — ranked by performance, enriched with season stats ─
-  const rankedRoster = getRankedRosterForTeam(team.id, season.id);
+  // Phase 2, Stufe 1: Kader-Basis aus der DB (Migration 0032); bei fehlenden
+  // DB-Daten transparenter Fallback auf die statische Basis (identische Ausgabe).
+  const dbBase = await getDbRosterForTeam(season.id, team.id);
+  const rankedRoster = getRankedRosterForTeam(team.id, season.id, dbBase ?? undefined);
   const roster: RosterEntry[] = rankedRoster.map(({ player, isCaptain, teamName, stats: playerStats }) => ({
     playerId:      player.id,
     displayName:   getPlayerDisplayName(player),

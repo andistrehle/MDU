@@ -40,6 +40,7 @@ import {
   TEAM_PLAYER_ASSIGNMENTS as _TPA,
   getPlayersForTeamInSeason as _getPlayersForTeamInSeason,
   type TeamPlayerAssignment as _TeamPlayerAssignment,
+  type PlayerWithAssignment as _PlayerWithAssignment,
 } from './data/assignments';
 import {
   buildSeasonPlayerStats as _buildSeasonPlayerStats,
@@ -787,13 +788,18 @@ export interface RankedRosterEntry {
  * on top. Players without official stats keep the existing roster order
  * below them (captain still flagged via isCaptain).
  */
-export function getRankedRosterForTeam(teamId: string, seasonId: string): RankedRosterEntry[] {
+export function getRankedRosterForTeam(
+  teamId: string,
+  seasonId: string,
+  baseRoster?: _PlayerWithAssignment[],
+): RankedRosterEntry[] {
   const team     = _TEAMS.find(t => t.id === teamId);
   const teamName = team?.name ?? teamId;
   const comp     = getCurrentCompetitionForTeam(teamId, seasonId);
   const stats    = _getStatisticsForLeague(comp.leagueId);
 
-  const entries: RankedRosterEntry[] = _getPlayersForTeamInSeason(teamId, seasonId).map(
+  const roster = baseRoster ?? _getPlayersForTeamInSeason(teamId, seasonId);
+  const entries: RankedRosterEntry[] = roster.map(
     ({ player, assignment }) => {
       const entry = _findStatEntryForPlayer(player, teamId, stats);
       return {
