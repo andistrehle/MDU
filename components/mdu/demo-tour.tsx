@@ -311,13 +311,10 @@ export function DemoTour() {
         width: Math.min(document.documentElement.clientWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
-      // Mobil (ohne Sticky-Ziel): Überlappt das Ziel die untere Karte, wandert die
-      // Karte EINMALIG nach oben. Kein Zurück-Flip → keine Oszillation/Stroboskop.
-      const cardRect = cardRef.current?.getBoundingClientRect();
-      if (isMobile && !sticky && curDock === 'bottom' && cardRect && cardRect.height > 0) {
-        if (r.bottom > cardRect.top - 2) { curDock = 'top'; setDock('top'); }
-      }
+      // Andockseite wird deterministisch beim Schrittwechsel entschieden (unten),
+      // NICHT live – das verhindert Oszillation/Stroboskop und Fehl-Flips.
       // Spot nie hinter die Karte reichen lassen — Kartenlage in Dokument-Koords.
+      const cardRect = cardRef.current?.getBoundingClientRect();
       if (cardRect && cardRect.height > 0) {
         const cardTopDoc = cardRect.top + sy, cardBottomDoc = cardRect.bottom + sy;
         if (curDock === 'bottom' && sp.top + sp.height > cardTopDoc - gap) {
@@ -352,17 +349,36 @@ export function DemoTour() {
       // vollständig umrahmt (kein Beschneiden). Die endgültige Andockseite
       // richtet sich danach live an der Zielposition aus (measure()).
       sticky = isStickyish(el);
-      curDock = 'bottom';
-      setDock('bottom');
       if (sticky) {
         // Header-Ziel (Glocke/Design/Login): nach ganz oben scrollen, damit der
         // Header wirklich sichtbar ist (sonst „springt er nicht zur Glocke").
+        curDock = 'bottom';
+        setDock('bottom');
         window.scrollTo({ top: 0, behavior: 'auto' });
       } else {
+        // Deterministische Andockseite anhand DOKUMENT-Geometrie (zoom-stabil:
+        // scrollY/innerHeight/scrollHeight sind unabhängig vom Pinch-Zoom).
+        // Passt das Ziel über eine untere Karte (auch am maximalen Scroll)?
         const ch = cardRef.current?.offsetHeight ?? Math.round(vpH() * 0.42);
-        el.style.scrollMarginTop = '92px';
-        el.style.scrollMarginBottom = `${ch + 92}px`; // Karte + Bottom-Nav + Abstand
-        el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+        const vh = window.innerHeight;
+        const NAV_SAFE = 80, HEADER_SAFE = 92;
+        const absBottom = el.getBoundingClientRect().bottom + window.scrollY;
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
+        const bottomCardTop = vh - NAV_SAFE - ch - gap;
+        const canDockBottom = absBottom - maxScroll <= bottomCardTop;
+        if (canDockBottom) {
+          // Karte unten → Ziel oben ausrichten (block:'start' scrollt deterministisch).
+          curDock = 'bottom';
+          setDock('bottom');
+          el.style.scrollMarginTop = `${HEADER_SAFE}px`;
+          el.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'auto' });
+        } else {
+          // Karte oben → Ziel unten ausrichten (block:'end').
+          curDock = 'top';
+          setDock('top');
+          el.style.scrollMarginBottom = `${NAV_SAFE}px`;
+          el.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'auto' });
+        }
       }
     }
 
@@ -467,7 +483,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v7</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v8</div>
         </div>
       </div>
     </>
