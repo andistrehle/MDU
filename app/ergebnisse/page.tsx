@@ -61,7 +61,7 @@ export default function ErgebnissePage() {
 
         {/* Liga-Filter — Standard „Alle Ligen" */}
         {totalCount > 0 && (
-          <div role="tablist" aria-label="Nach Liga filtern" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
+          <div role="tablist" aria-label="Nach Liga filtern" className="mdu-filter-scroll" style={{ display: 'flex', gap: 8, marginBottom: 28, overflowX: 'auto', overflowY: 'hidden', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
             <FilterChip label="Alle Ligen" active={selected === null} onClick={() => setSelected(null)} />
             {allGroups.map(g => {
               const league = findLeague(g.leagueId);
@@ -252,7 +252,7 @@ function FilterChip({ label, color, active, onClick }: { label: string; color?: 
       aria-selected={active}
       onClick={onClick}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7,
+        display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0,
         padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
         fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
         background: active ? 'var(--th-accent)' : 'var(--th-bg-card)',

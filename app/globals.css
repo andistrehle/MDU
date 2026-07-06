@@ -408,6 +408,12 @@ body {
 .mdu-table-scroll::-webkit-scrollbar-track { background: var(--th-line-3); }
 .mdu-table-scroll::-webkit-scrollbar-thumb { background: var(--th-line-10); border-radius: 2px; }
 
+/* --- Filter chip row: dezenter horizontaler Scroll --- */
+.mdu-filter-scroll { scrollbar-width: thin; scrollbar-color: var(--th-line-10) transparent; }
+.mdu-filter-scroll::-webkit-scrollbar { height: 4px; }
+.mdu-filter-scroll::-webkit-scrollbar-track { background: transparent; }
+.mdu-filter-scroll::-webkit-scrollbar-thumb { background: var(--th-line-10); border-radius: 2px; }
+
 /* =====================================================
    @media (max-width: 1100px) — narrow desktop / tablet
    ===================================================== */
