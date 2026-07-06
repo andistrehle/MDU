@@ -18,7 +18,7 @@
 // funktioniert. Optionaler Header-Prefill über Query-Params (siehe PREFILL).
 // ============================================================
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { GAME_SCHEDULE, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_TYPES } from '@/lib/supabase/match-reports';
@@ -58,8 +58,60 @@ export default function SpielberichtVorlagePage() {
 
 function VorlageInner() {
   const sp = useSearchParams();
-  const pf = readPrefill(new URLSearchParams(sp.toString()));
+  const spStr = sp.toString();
+  const pf = readPrefill(new URLSearchParams(spStr));
   const autoPrint = sp.get('print') === '1';
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Mobil: den A4-Bogen exakt auf die Bildschirmbreite herunterskalieren
+  // (kein horizontales Scrollen, Layout bleibt 1:1 wie im PDF – nur „rausgezoomt").
+  // Die Skalierung greift ausschließlich über den Screen-Media-Query (<=760px);
+  // der Druck/das PDF bleibt dadurch unverändert. Per JS wird nur der Faktor gesetzt,
+  // die negativen Ränder holen den durch transform:scale entstehenden Leerraum zurück.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const MOBILE = 760;
+
+    const compute = () => {
+      const sheets = Array.from(wrap.querySelectorAll<HTMLElement>('.mdu-sheet'));
+      if (!sheets.length) return;
+
+      // Auf großen Screens: keine Skalierung – Variablen entfernen.
+      if (window.innerWidth > MOBILE) {
+        wrap.style.removeProperty('--vb-scale');
+        wrap.style.removeProperty('--vb-natw');
+        sheets.forEach(s => s.style.removeProperty('--vb-h'));
+        return;
+      }
+
+      // Natürliche Maße messen (Skalierung neutralisieren).
+      wrap.style.setProperty('--vb-scale', '1');
+      const natW = sheets[0].offsetWidth;
+      if (!natW) return;
+      const avail = wrap.clientWidth - 16; // 8px Rand je Seite
+      const scale = Math.min(1, avail / natW);
+
+      sheets.forEach(s => s.style.setProperty('--vb-h', `${s.offsetHeight}px`));
+      wrap.style.setProperty('--vb-natw', `${natW}px`);
+      wrap.style.setProperty('--vb-scale', String(scale));
+    };
+
+    compute();
+    const raf = requestAnimationFrame(compute);
+    const onResize = () => compute();
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    // Schriften können die Höhe nachträglich ändern → erneut messen.
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(compute).catch(() => {});
+    }
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, [spStr]);
 
   // Drucken: Default-Dateiname direkt vor dem Druck setzen (Next.js setzt den
   // Metadaten-Titel nach der Hydration zurück, daher hier statt im useEffect).
@@ -76,7 +128,7 @@ function VorlageInner() {
   }, [autoPrint]);
 
   return (
-    <div className="mdu-vorlage-wrap">
+    <div className="mdu-vorlage-wrap" ref={wrapRef}>
       <style>{PRINT_CSS}</style>
 
       {/* Bildschirm-Toolbar (wird nicht mitgedruckt) */}
@@ -517,10 +569,20 @@ const PRINT_CSS = `
   .vb-table th, .vb-cb-box, .vb-double-row td, .vb-hl-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
 
-/* ── Mobile: Bogen nicht zerquetschen — horizontal scrollbar lassen ── */
+/* ── Mobile: Bogen 1:1 wie im PDF, aber auf Bildschirmbreite herunterskaliert ──
+   Kein horizontales Scrollen. transform:scale() zoomt den kompletten A4-Bogen
+   heraus; die negativen Ränder (via JS gesetzte --vb-natw / --vb-h / --vb-scale)
+   holen den dadurch entstehenden Leerraum rechts und unten zurück, damit die
+   Seite exakt passt. Greift nur am Bildschirm — der Druck bleibt unberührt. */
 @media screen and (max-width:760px) {
-  .mdu-vorlage-wrap { overflow-x:auto; padding:12px 0 40px; }
-  .mdu-sheet { max-width:none; }
-  .mdu-vorlage-toolbar { padding:0 12px; }
+  .mdu-vorlage-wrap { overflow-x:hidden; padding:12px 8px 40px; }
+  .mdu-sheet {
+    max-width:none;
+    transform:scale(var(--vb-scale, 1));
+    transform-origin:top left;
+    margin:0 calc(-1 * var(--vb-natw, 794px) * (1 - var(--vb-scale, 1)))
+             calc(22px - var(--vb-h, 0px) * (1 - var(--vb-scale, 1))) 0;
+  }
+  .mdu-vorlage-toolbar { padding:0 8px; }
 }
 `;
