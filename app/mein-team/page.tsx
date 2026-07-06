@@ -42,12 +42,12 @@ export default function MeinTeamPage() {
             }}>
               {team?.short ?? '?'}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ flex: '1 1 180px', minWidth: 160 }}>
               <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, color: 'var(--th-text-strong)', textTransform: 'uppercase', lineHeight: 1.1 }}>
                 {team?.name ?? teamId}
               </div>
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 4 }}>
-                {leagueName} · Saison {season.name}
+                {leagueName} · {season.name}
               </div>
             </div>
             <Link href={`/teams/${teamId}`} style={ghostBtn}>Öffentliches Profil ansehen</Link>
