@@ -26,6 +26,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
+import type { UserProfile } from '@/lib/auth/roles';
 
 type TourId = 'public' | 'member';
 
@@ -166,6 +167,21 @@ function buildMemberSteps(): TourStep[] {
   return MEMBER_CANDIDATES.filter(c => !c.target || document.querySelector(`[data-tour="${c.target}"]`));
 }
 
+/**
+ * Ist der Nutzer für die „Mein Bereich"-Tour bereit? Erst wenn die Ligaleitung
+ * den Account zugewiesen hat (Spieler verknüpft / Kapitänsrolle vergeben) —
+ * nicht, solange eine Freigabe noch aussteht. Sonst würde die Tour vorzeitig
+ * mit der (noch unvollständigen) Spieler-Ansicht laufen und danach nicht mehr.
+ */
+function memberTourReady(user: UserProfile | null): boolean {
+  if (!user) return false;
+  // Spieler-Verknüpfung erkannt, aber noch nicht zugewiesen → warten.
+  if (user.matchedPlayerId && !user.playerId) return false;
+  // Teamkapitän angefragt, aber noch nicht freigegeben (weiterhin Rolle „player") → warten.
+  if (user.registrationIntent === 'team_captain' && user.role === 'player') return false;
+  return true;
+}
+
 function eligible(id: TourId): boolean {
   try {
     const done = localStorage.getItem(KEYS[id].done) === '1';
@@ -227,9 +243,10 @@ export function DemoTour() {
       return;
     }
 
-    // MEMBER — „Mein Bereich" nach erstem Login
+    // MEMBER — „Mein Bereich", aber erst nach Zuweisung durch die Ligaleitung.
     if (pathname === '/mein-bereich') {
-      if (loading || !user) return;   // noch nicht entscheidbar → später erneut
+      if (loading || !user) return;              // noch nicht entscheidbar → später erneut
+      if (!memberTourReady(user)) return;        // Freigabe steht aus → NICHT markieren, startet nach Zuweisung
       autoHandledRef.current = '/mein-bereich';
       if (eligible('member')) autoTimerRef.current = setTimeout(() => startTour('member', buildMemberSteps()), 800);
       return;
@@ -483,7 +500,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v8</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v9</div>
         </div>
       </div>
     </>
