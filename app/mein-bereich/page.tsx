@@ -29,6 +29,8 @@ interface Tile {
   inactiveLabel?: string;
   /** Statt Icon: Team-Kürzel-Badge (z. B. „FDF") in Teamfarbe. */
   teamBadge?: { text: string; color: string };
+  /** Anker für die „Mein Bereich"-Tour (data-tour), rollenabhängig sichtbar. */
+  tourKey?: string;
 }
 
 /** Darf der Nutzer den Kapitäns-Modus nutzen? (Admin mit verknüpftem eigenem Team.) */
@@ -47,11 +49,11 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
   // Spieler aufwärts — eigenes Profil + eigene Statistik
   if (hasMinRole(user, 'player')) {
     tiles.push(
-      { icon: 'user', label: 'Mein Profil', description: 'Profilbild hochladen, Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile' },
+      { icon: 'user', label: 'Mein Profil', description: 'Profilbild hochladen, Spitzname und „Über mich" pflegen.', href: '/mein-profil', ready: true, notifKey: 'profile', tourKey: 'm-profile' },
     );
     if (user.playerId) {
       tiles.push(
-        { icon: 'bar', label: 'Meine Statistik', description: 'Deine Einzelstatistik, Form und letzte Ergebnisse.', href: `/spieler/${user.playerId}`, ready: true },
+        { icon: 'bar', label: 'Meine Statistik', description: 'Deine Einzelstatistik, Form und letzte Ergebnisse.', href: `/spieler/${user.playerId}`, ready: true, tourKey: 'm-stats' },
       );
     }
   }
@@ -69,12 +71,12 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
         ? 'Team verwalten: bearbeiten und Kader.'
         : 'Direkt zum öffentlichen Teamprofil.',
       href: teamEditable ? '/mein-team' : `/teams/${user.teamId}`,
-      ready: true, notifKey: 'team',
+      ready: true, notifKey: 'team', tourKey: 'm-team',
     });
     const leagueId = getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;
     if (leagueId) {
       tiles.push(
-        { icon: 'trophy', label: 'Meine Liga', description: 'Direkt zu deiner Liga – Tabelle und Spiele.', href: `/ligen/${leagueId}`, ready: true },
+        { icon: 'trophy', label: 'Meine Liga', description: 'Direkt zu deiner Liga – Tabelle und Spiele.', href: `/ligen/${leagueId}`, ready: true, tourKey: 'm-league' },
       );
     }
   }
@@ -95,9 +97,10 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
         href: regBlocked ? undefined : '/mein-bereich/mannschaft-anmelden',
         ready: !regBlocked,
         inactiveLabel: reg.registeredTeamName ? 'Gemeldet' : 'Geschlossen',
+        tourKey: 'm-register',
       },
-      { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen' },
-      { icon: 'edit',     label: 'Spielbericht erfassen', description: 'Neuen Spielberichtsbogen online ausfüllen.', href: '/mein-bereich/spielberichte', ready: true },
+      { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen', tourKey: 'm-registrations' },
+      { icon: 'edit',     label: 'Spielbericht erfassen', description: 'Neuen Spielberichtsbogen online ausfüllen.', href: '/mein-bereich/spielberichte', ready: true, tourKey: 'm-report' },
       { icon: 'file',     label: 'Spielberichte ansehen/bearbeiten', description: 'Übersicht eigener Spielberichte.', href: '/mein-bereich/spielberichte/uebersicht', ready: true, notifKey: 'spielberichte' },
     );
   }
@@ -310,7 +313,7 @@ export default function MeinBereichPage() {
               {tilesFor(user, captainMode, { open: regOpen, registeredTeamName: regTeamName }).map(tile => {
                 const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : tile.notifKey ? byArea[tile.notifKey] : 0;
                 const inner = (
-                  <div style={{
+                  <div data-tour={tile.tourKey} style={{
                     background: 'var(--th-bg-card)',
                     border: '1px solid var(--th-line-6)',
                     borderRadius: 12, padding: '18px 18px', height: '100%',

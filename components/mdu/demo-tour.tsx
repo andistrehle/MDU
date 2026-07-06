@@ -1,29 +1,39 @@
 'use client';
 
 // ============================================================
-// Demo-Tour — geführte Willkommens-Tour beim ersten Besuch
+// Demo-Tour — geführte Touren (öffentlich + „Mein Bereich")
 // ============================================================
 //
-// Kurze, klickbare Schritt-für-Schritt-Tour (passend zum HeyGen-
-// Einführungsvideo, siehe docs/einfuehrungsvideo-runsheet.md).
-// Erscheint einmalig auf der Startseite und hebt echte Elemente der
-// Seite per „Spotlight" hervor (data-tour-Anker). Schritte ohne Anker
-// werden als zentrierte Karte gezeigt.
+// Zwei Teile (passend zum HeyGen-Einführungsvideo,
+// siehe docs/einfuehrungsvideo-runsheet.md):
 //
-// Anzeige-Regeln (localStorage, ehrlich & sparsam):
+//  1) PUBLIC  — beim ersten Besuch der Startseite. Erklärt die
+//     öffentliche Seite bis inkl. Registrierung. Hebt echte Elemente
+//     per Spotlight hervor (data-tour-Anker).
+//  2) MEMBER  — beim ersten Öffnen von „/mein-bereich" (eingeloggt).
+//     Führt durch die eigenen Kacheln und passt sich automatisch der
+//     Rolle an: Es werden nur Schritte gezeigt, deren Kachel wirklich
+//     sichtbar ist (Spieler sehen weniger, Kapitän mehr).
+//
+// Anzeige-Regeln je Tour (localStorage):
 //   - Einmal komplett durchgeklickt  → nie wieder.
 //   - 3× weggeklickt/übersprungen    → nie wieder.
-// Neustart jederzeit über den Footer-Link „Tour ansehen" (Custom-Event
-// 'mdu:start-tour') oder Aufruf von „/?tour=1".
-// Versioniertes Storage-Präfix (v1) für spätere bewusste Neu-Ausspielung.
+// Neustart: Footer-Link „Tour ansehen" (Event 'mdu:start-tour') bzw.
+// „/?tour=1" für die öffentliche Tour.
 // ============================================================
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
 
-const DONE_KEY = 'mdu.tour.v1.done';
-const SKIP_KEY = 'mdu.tour.v1.skips';
+type TourId = 'public' | 'member';
+
+const KEYS: Record<TourId, { done: string; skips: string }> = {
+  // PUBLIC behält die bestehenden Schlüssel (bereits gesehene Nutzer nicht erneut nerven).
+  public: { done: 'mdu.tour.v1.done', skips: 'mdu.tour.v1.skips' },
+  member: { done: 'mdu.tour.v1.member.done', skips: 'mdu.tour.v1.member.skips' },
+};
 const MAX_SKIPS = 3;
 
 interface TourStep {
@@ -36,70 +46,91 @@ interface TourStep {
   cta?: { label: string; href: string };
 }
 
-// Inhalte sinngemäß aus dem finalen Sprechertext des Einführungsvideos.
-const STEPS: TourStep[] = [
+// ── Öffentliche Tour (Startseite → Registrierung) ───────────────────
+const PUBLIC_STEPS: TourStep[] = [
   {
-    icon: '👋',
-    tag: 'Willkommen',
-    title: 'Die neue MDU-Plattform',
+    icon: '👋', tag: 'Willkommen', title: 'Die neue MDU-Plattform',
     body: 'Servus! Modern, übersichtlich und komplett aufs Smartphone ausgelegt. In ein paar kurzen Schritten zeigen wir dir die wichtigsten Bereiche.',
   },
   {
-    icon: '🌗',
-    tag: 'Design',
-    title: 'Zwei Looks, ein Klick',
+    icon: '🌗', tag: 'Design', title: 'Zwei Looks, ein Klick',
     body: 'Mit diesem Schalter wechselst du jederzeit zwischen modernem („New Design") und klassischem Look („Old School").',
     target: 'theme',
   },
   {
-    icon: '🏆',
-    tag: 'Ligen & Tabellen',
-    title: 'Direkt zum Spielbetrieb',
+    icon: '🏆', tag: 'Ligen & Tabellen', title: 'Direkt zum Spielbetrieb',
     body: 'Über die Schnellzugriffe kommst du zu Spielplan und Tabellen. Für jede Liga und Playoff-Runde gibt es Tabellen, Ergebnisse und Einzelranglisten – die Farben zeigen sofort Auf- und Abstieg.',
-    target: 'quickbar',
-    cta: { label: 'Ligen ansehen', href: '/ligen' },
+    target: 'quickbar', cta: { label: 'Ligen ansehen', href: '/ligen' },
   },
   {
-    icon: '📰',
-    tag: 'Aktuelles',
-    title: 'Immer auf dem Laufenden',
+    icon: '📰', tag: 'Aktuelles', title: 'Immer auf dem Laufenden',
     body: 'News rund um den Spielbetrieb findest du direkt hier auf der Startseite.',
     target: 'news',
   },
   {
-    icon: '📅',
-    tag: 'Spiele',
-    title: 'Nächste & letzte Spiele',
+    icon: '📅', tag: 'Spiele', title: 'Nächste & letzte Spiele',
     body: 'Kommende Begegnungen und die letzten Ergebnisse auf einen Blick.',
     target: 'matches',
   },
   {
-    icon: '🎯',
-    tag: 'Teams & Spieler',
-    title: 'Ein Profil für jeden',
+    icon: '🎯', tag: 'Teams & Spieler', title: 'Ein Profil für jeden',
     body: 'Jede Mannschaft hat ein eigenes Profil – mit Kader, Spielstätte, Ergebnissen und Statistik. Und jeder Spieler eins, mit Foto, Platzierung und Saisonwerten.',
     cta: { label: 'Teams ansehen', href: '/teams' },
   },
   {
-    icon: '🔐',
-    tag: 'Dein Bereich',
-    title: 'Anmelden & loslegen',
-    body: 'Nach dem Login siehst du genau das, was zu deiner Rolle passt – mit eigenem Benachrichtigungscenter. Neu dabei? Die Registrierung geht in wenigen Schritten.',
-    target: 'account',
-    cta: { label: 'Registrieren', href: '/registrieren' },
+    icon: '📝', tag: 'Registrierung', title: 'Neu dabei? So geht’s',
+    body: 'Die Registrierung dauert nur wenige Schritte: Name & E-Mail eingeben, Rolle wählen (Spieler oder Teamkapitän) und Datenschutz bestätigen – fertig. Danach hast du deinen eigenen Bereich.',
+    target: 'account', cta: { label: 'Zur Registrierung', href: '/registrieren' },
   },
   {
-    icon: '📋',
-    tag: 'Für Kapitäne',
-    title: 'Mannschaft & Spielbericht',
-    body: 'Teamkapitäne melden ihre Mannschaft online an und erfassen Spielberichte digital – 18 Spiele, zwei Doppel, Auswertung automatisch. Als PDF oder per Foto-Erkennung geht’s auch.',
-    cta: { label: 'Zu den Downloads', href: '/downloads' },
+    icon: '🚀', tag: 'Los geht’s', title: 'Viel Spaß auf der Plattform',
+    body: 'Schau dich in Ruhe um. Nach dem Login führen wir dich noch kurz durch deinen persönlichen Bereich – und gut Pfeil! 🎯',
+  },
+];
+
+// ── „Mein Bereich"-Tour (rollenadaptiv über sichtbare Kacheln) ──────
+// Reihenfolge = Anzeigereihenfolge. Schritte mit target werden nur
+// gezeigt, wenn das Element (die Kachel) tatsächlich vorhanden ist.
+const MEMBER_CANDIDATES: TourStep[] = [
+  {
+    icon: '🙌', tag: 'Mein Bereich', title: 'Dein persönlicher Bereich',
+    body: 'Hier läuft alles zusammen, was zu dir gehört. Wir zeigen dir kurz die wichtigsten Kacheln.',
   },
   {
-    icon: '🚀',
-    tag: 'Los geht’s',
-    title: 'Viel Spaß auf der Plattform',
-    body: 'Das war die Kurztour. Schau dich in Ruhe um – und gut Pfeil! 🎯',
+    icon: '🧑', tag: 'Profil', title: 'Mein Profil', target: 'm-profile',
+    body: 'Profilbild, Spitzname und „Über mich" pflegst du hier.',
+  },
+  {
+    icon: '📊', tag: 'Statistik', title: 'Meine Statistik', target: 'm-stats',
+    body: 'Deine Einzelstatistik, Form und die letzten Ergebnisse – dein eigenes Spielerprofil.',
+  },
+  {
+    icon: '👥', tag: 'Team', title: 'Mein Team', target: 'm-team',
+    body: 'Direkt zu deinem Team – Kader, Spielstätte und Ergebnisse.',
+  },
+  {
+    icon: '🏆', tag: 'Liga', title: 'Meine Liga', target: 'm-league',
+    body: 'Tabelle und Spiele deiner Liga auf einen Klick.',
+  },
+  {
+    icon: '📝', tag: 'Kapitän', title: 'Mannschaft anmelden', target: 'm-register',
+    body: 'Als Kapitän meldest du dein Team komplett online zur neuen Saison an – Wunschliga, Spielstätte, Logo und Kader.',
+  },
+  {
+    icon: '📄', tag: 'Kapitän', title: 'Meine Anmeldungen', target: 'm-registrations',
+    body: 'Den Status deiner Anmeldungen siehst du jederzeit hier.',
+  },
+  {
+    icon: '✏️', tag: 'Kapitän', title: 'Spielbericht erfassen', target: 'm-report',
+    body: 'Spielberichte füllst du digital aus – 18 Spiele mit zwei Doppeln, die Auswertung übernimmt das System. Papier geht auch: als PDF oder per Foto-Erkennung.',
+  },
+  {
+    icon: '🔔', tag: 'Benachrichtigungen', title: 'Dein Benachrichtigungscenter', target: 'm-bell',
+    body: 'Über die Glocke bekommst du Hinweise – zum Beispiel zu Anmeldungen oder Spielberichten.',
+  },
+  {
+    icon: '🚀', tag: 'Los geht’s', title: 'Alles startklar',
+    body: 'Das war dein Bereich. Viel Erfolg – und gut Pfeil! 🎯',
   },
 ];
 
@@ -118,65 +149,96 @@ function findTarget(name?: string): HTMLElement | null {
   return null;
 }
 
+/** „Mein Bereich"-Schritte auf die tatsächlich sichtbaren Kacheln reduzieren. */
+function buildMemberSteps(): TourStep[] {
+  if (typeof document === 'undefined') return MEMBER_CANDIDATES;
+  return MEMBER_CANDIDATES.filter(c => !c.target || document.querySelector(`[data-tour="${c.target}"]`));
+}
+
+function eligible(id: TourId): boolean {
+  try {
+    const done = localStorage.getItem(KEYS[id].done) === '1';
+    const skips = parseInt(localStorage.getItem(KEYS[id].skips) ?? '0', 10) || 0;
+    return !done && skips < MAX_SKIPS;
+  } catch { return false; }
+}
+
 export function DemoTour() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
+  const [steps, setSteps] = useState<TourStep[]>([]);
+  const [tourId, setTourId] = useState<TourId | null>(null);
   const [spot, setSpot] = useState<SpotRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const start = useCallback(() => { setStep(0); setSpot(null); setVisible(true); }, []);
+  const startTour = useCallback((id: TourId, built: TourStep[]) => {
+    if (built.length === 0) return;
+    setTourId(id); setSteps(built); setStep(0); setSpot(null); setVisible(true);
+  }, []);
 
-  // Erst-Anzeige auf der Startseite + Neustart via ?tour=1.
+  // Automatische Erst-Anzeige je nach Seite.
   useEffect(() => {
-    if (pathname !== '/') return;
-    let forced = false;
-    try { forced = new URLSearchParams(window.location.search).get('tour') === '1'; } catch { /* ignore */ }
-    if (forced) {
-      try { window.history.replaceState({}, '', '/'); } catch { /* ignore */ }
-      const t = setTimeout(start, 250);
+    if (visible) return;
+
+    // PUBLIC — Startseite (inkl. Neustart via ?tour=1)
+    if (pathname === '/') {
+      let forced = false;
+      try { forced = new URLSearchParams(window.location.search).get('tour') === '1'; } catch { /* ignore */ }
+      if (forced) {
+        try { window.history.replaceState({}, '', '/'); } catch { /* ignore */ }
+        const t = setTimeout(() => startTour('public', PUBLIC_STEPS), 250);
+        return () => clearTimeout(t);
+      }
+      if (!eligible('public')) return;
+      const t = setTimeout(() => startTour('public', PUBLIC_STEPS), 700);
       return () => clearTimeout(t);
     }
-    let show = false;
-    try {
-      const done = localStorage.getItem(DONE_KEY) === '1';
-      const skips = parseInt(localStorage.getItem(SKIP_KEY) ?? '0', 10) || 0;
-      show = !done && skips < MAX_SKIPS;
-    } catch { /* localStorage nicht verfügbar → Tour einfach nicht zeigen */ }
-    if (!show) return;
-    const t = setTimeout(() => setVisible(true), 700);
-    return () => clearTimeout(t);
-  }, [pathname, start]);
 
-  // Neustart von außen (Footer-Link „Tour ansehen").
+    // MEMBER — „Mein Bereich" nach erstem Login
+    if (pathname === '/mein-bereich' && !loading && user) {
+      if (!eligible('member')) return;
+      const t = setTimeout(() => startTour('member', buildMemberSteps()), 800);
+      return () => clearTimeout(t);
+    }
+  }, [pathname, user, loading, visible, startTour]);
+
+  // Neustart von außen (Footer-Link „Tour ansehen") — passend zur aktuellen Seite.
   useEffect(() => {
-    window.addEventListener('mdu:start-tour', start);
-    return () => window.removeEventListener('mdu:start-tour', start);
-  }, [start]);
+    const onStart = () => {
+      if (pathname === '/mein-bereich' && user) startTour('member', buildMemberSteps());
+      else startTour('public', PUBLIC_STEPS);
+    };
+    window.addEventListener('mdu:start-tour', onStart);
+    return () => window.removeEventListener('mdu:start-tour', onStart);
+  }, [pathname, user, startTour]);
 
   const finish = useCallback(() => {
-    try { localStorage.setItem(DONE_KEY, '1'); } catch { /* ignore */ }
+    if (tourId) { try { localStorage.setItem(KEYS[tourId].done, '1'); } catch { /* ignore */ } }
     setVisible(false);
-  }, []);
+  }, [tourId]);
 
   const skip = useCallback(() => {
-    try {
-      const n = (parseInt(localStorage.getItem(SKIP_KEY) ?? '0', 10) || 0) + 1;
-      localStorage.setItem(SKIP_KEY, String(n));
-    } catch { /* ignore */ }
+    if (tourId) {
+      try {
+        const n = (parseInt(localStorage.getItem(KEYS[tourId].skips) ?? '0', 10) || 0) + 1;
+        localStorage.setItem(KEYS[tourId].skips, String(n));
+      } catch { /* ignore */ }
+    }
     setVisible(false);
-  }, []);
+  }, [tourId]);
 
   const next = useCallback(() => {
-    setStep(s => { if (s >= STEPS.length - 1) { finish(); return s; } return s + 1; });
-  }, [finish]);
+    setStep(s => { if (s >= steps.length - 1) { finish(); return s; } return s + 1; });
+  }, [finish, steps.length]);
 
   const prev = useCallback(() => setStep(s => Math.max(0, s - 1)), []);
 
   // Spotlight berechnen: Ziel finden, in den Blick scrollen, Rechteck messen.
   useEffect(() => {
     if (!visible) return;
-    const name = STEPS[step]?.target;
+    const name = steps[step]?.target;
     let ticking = false;
 
     const measure = () => {
@@ -197,7 +259,7 @@ export function DemoTour() {
     else setSpot(null);
 
     const raf = requestAnimationFrame(measure);
-    const settle = setTimeout(measure, 420); // nach Smooth-Scroll erneut messen
+    const settle = setTimeout(measure, 420);
 
     const onWin = () => {
       if (ticking) return;
@@ -212,7 +274,7 @@ export function DemoTour() {
       window.removeEventListener('resize', onWin);
       window.removeEventListener('scroll', onWin, true);
     };
-  }, [visible, step]);
+  }, [visible, step, steps]);
 
   // Fokus + Tastatur.
   useEffect(() => {
@@ -227,12 +289,11 @@ export function DemoTour() {
     return () => window.removeEventListener('keydown', onKey);
   }, [visible, skip, next, prev]);
 
-  if (!visible) return null;
+  if (!visible || steps.length === 0) return null;
 
-  const s = STEPS[step];
-  const isLast = step === STEPS.length - 1;
+  const s = steps[step];
+  const isLast = step === steps.length - 1;
 
-  // Karte andocken: Ziel oben → Karte unten, Ziel unten → Karte oben, sonst zentriert.
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
   const dock: 'center' | 'top' | 'bottom' =
     !spot ? 'center' : (spot.top + spot.height / 2 < vh / 2 ? 'bottom' : 'top');
@@ -283,7 +344,7 @@ export function DemoTour() {
           )}
 
           <div className="mdu-tour-dots" aria-hidden="true">
-            {STEPS.map((_, i) => (
+            {steps.map((_, i) => (
               <span key={i} className={`mdu-tour-dot${i === step ? ' is-active' : ''}`} />
             ))}
           </div>
@@ -302,7 +363,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {STEPS.length}</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length}</div>
         </div>
       </div>
     </div>
@@ -354,7 +415,7 @@ const TOUR_CSS = `
   color:var(--th-accent); text-decoration:none;
 }
 .mdu-tour-cta:hover { text-decoration:underline; }
-.mdu-tour-dots { display:flex; gap:7px; margin:18px 0 14px; }
+.mdu-tour-dots { display:flex; gap:6px; margin:18px 0 14px; flex-wrap:wrap; }
 .mdu-tour-dot { width:7px; height:7px; border-radius:50%; background:var(--th-line-10); transition:all .2s ease; }
 .mdu-tour-dot.is-active { background:var(--th-accent); width:20px; border-radius:4px; }
 .mdu-tour-nav { display:flex; align-items:center; justify-content:space-between; gap:12px; }

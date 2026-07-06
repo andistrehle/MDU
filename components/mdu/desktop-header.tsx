@@ -249,7 +249,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
 
         {/* Glocke (Desktop) — nur für eingeloggte Nutzer, rechts neben „Mein Bereich" */}
         {user && (
-          <span className="mdu-header-login" style={{ display: 'inline-flex', flexShrink: 0 }}>
+          <span className="mdu-header-login" data-tour="m-bell" style={{ display: 'inline-flex', flexShrink: 0 }}>
             <NotificationBell />
           </span>
         )}
@@ -259,7 +259,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
           <span data-tour="theme" style={{ display: 'inline-flex' }}>
             <ThemeToggle mini />
           </span>
-          {user && <NotificationBell />}
+          {user && <span data-tour="m-bell" style={{ display: 'inline-flex' }}><NotificationBell /></span>}
           <Link
             href={accountHref}
             data-tour="account"
