@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hasMinRole } from '@/lib/auth/roles';
-import { MATCHES, getMatchesForTeam, type GameMatch } from '@/lib/data';
+import { MATCHES, getMatchesForTeam, findLeague, type GameMatch } from '@/lib/data';
 import { getOcrAvailability, uploadReportFile, startOcr } from '@/lib/supabase/match-report-uploads';
 
 function matchLabel(m: GameMatch): string {
@@ -33,6 +33,10 @@ export default function OcrUploadPage() {
   const [available, setAvailable] = useState<boolean | null>(null);
   const [maxMb, setMaxMb] = useState(12);
   const [matchId, setMatchId] = useState('');
+  // Nur relevant für Admins/Ligaleitung: Filter, um in der langen Liste
+  // aller Begegnungen schneller die richtige zu finden.
+  const [leagueFilter, setLeagueFilter] = useState('');
+  const [search, setSearch] = useState('');
   const [page1, setPage1] = useState<File | null>(null);
   const [page2, setPage2] = useState<File | null>(null);
   const [wantPage2, setWantPage2] = useState(false);
@@ -48,6 +52,33 @@ export default function OcrUploadPage() {
     const list = isAdmin ? [...MATCHES] : (user?.teamId ? getMatchesForTeam(user.teamId) : []);
     return [...list].sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.date ?? '').localeCompare(a.date ?? ''));
   }, [isAdmin, user?.teamId]);
+
+  // Ligen, die in der Liste tatsächlich vorkommen — für das Admin-Filter-Dropdown.
+  const leagueOptions = useMemo(() => {
+    if (!isAdmin) return [] as { id: string; name: string }[];
+    const seen = new Map<string, string>();
+    for (const m of matches) {
+      if (!seen.has(m.leagueId)) seen.set(m.leagueId, findLeague(m.leagueId)?.name ?? m.leagueId);
+    }
+    return [...seen.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  }, [isAdmin, matches]);
+
+  // Gefilterte Liste (nur für Admins wirksam): nach Liga und Freitextsuche.
+  const visibleMatches = useMemo(() => {
+    if (!isAdmin) return matches;
+    const q = search.trim().toLowerCase();
+    return matches.filter(m =>
+      (!leagueFilter || m.leagueId === leagueFilter) &&
+      (!q || matchLabel(m).toLowerCase().includes(q))
+    );
+  }, [matches, isAdmin, leagueFilter, search]);
+
+  // Fällt die aktuell gewählte Begegnung durch einen Filter raus, Auswahl leeren.
+  useEffect(() => {
+    if (matchId && !visibleMatches.some(m => m.id === matchId)) setMatchId('');
+  }, [visibleMatches, matchId]);
 
   async function onStart() {
     if (!page1) { setMsg({ kind: 'err', text: 'Bitte Seite 1 (Spielbericht) als Foto/PDF auswählen.' }); return; }
@@ -88,10 +119,26 @@ export default function OcrUploadPage() {
             )}
 
             <Card title="1 · Begegnung (optional)">
+              {isAdmin && (
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <select value={leagueFilter} onChange={e => setLeagueFilter(e.target.value)} style={{ ...input, flex: '1 1 180px', width: 'auto' }} aria-label="Nach Liga filtern">
+                    <option value="">Alle Ligen</option>
+                    {leagueOptions.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  </select>
+                  <input
+                    type="search" value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Team suchen …" aria-label="Begegnung nach Team suchen"
+                    style={{ ...input, flex: '2 1 200px', width: 'auto' }}
+                  />
+                </div>
+              )}
               <select value={matchId} onChange={e => setMatchId(e.target.value)} style={input}>
                 <option value="">— ohne Auswahl (wird nach der Erkennung zugeordnet) —</option>
-                {matches.map(m => <option key={m.id} value={m.id}>{matchLabel(m)}</option>)}
+                {visibleMatches.map(m => <option key={m.id} value={m.id}>{matchLabel(m)}</option>)}
               </select>
+              {isAdmin && (leagueFilter || search.trim()) && (
+                <Muted>{visibleMatches.length} Begegnung{visibleMatches.length === 1 ? '' : 'en'} gefiltert{visibleMatches.length === 0 ? ' – Filter anpassen.' : '.'}</Muted>
+              )}
               <Muted>Du kannst die Begegnung gleich wählen (beste Erkennung) oder ohne Auswahl hochladen — das System schlägt sie danach anhand der erkannten Teams vor.</Muted>
             </Card>
 
