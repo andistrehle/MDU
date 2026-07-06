@@ -45,21 +45,6 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     ],
   },
   {
-    id: 'sensation-perfekt-freibad-bazis-steigen-in-die-a-liga-auf',
-    title: 'Sensation perfekt: Freibad Bazis steigen in die A-Liga auf! 🎯',
-    teaser:
-      'Dank Schützenhilfe von Master of Desaster ist der Aufstieg perfekt – nach zehn Jahren geht es für die Freibad Bazis hoch in die A-Liga.',
-    source: 'Münchner Dart Union',
-    date: '21.06.2026',
-    category: 'MDU News',
-    content: [
-      'Was nach dem dramatischen 9:9 am vergangenen Spieltag kaum noch jemand für möglich gehalten hätte, ist tatsächlich eingetreten: **Die Freibad Bazis steigen in die A-Liga der Münchner Dart Union auf!**',
-      'Nach dem verpassten Sieg und zwei Punkten Rückstand waren die Bazis auf Schützenhilfe angewiesen. Diese kam von **Master of Desaster**, die mit ihrem Ergebnis den entscheidenden Beitrag zum Aufstieg leisteten.',
-      'Nach **zehn Jahren** harter Arbeit, unzähligen Ligaabenden und einer starken Saison ist der Traum endlich Wirklichkeit geworden.',
-      '**Willkommen in der A-Liga, Freibad Bazis!** 🏆🍻',
-    ],
-  },
-  {
     id: 'dimo-uebergibt-an-toni-bauer-2026',
     title: 'Dimo übergibt nach 19 Jahren an Toni Bauer',
     teaser:
