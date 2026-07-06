@@ -346,14 +346,20 @@ export function DemoTour() {
       setDock('desktop');
       el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
     } else {
-      // Mobil: Ziel per nativem scrollIntoView in den Blick holen (zuverlässig
-      // auf iOS). Startseite: Karte unten; die endgültige Seite (oben/unten)
-      // richtet sich danach live an der tatsächlichen Zielposition aus (siehe
-      // measure()), sodass iOS-Scroll-Verschiebungen egal sind.
+      // Mobil: Ziel per nativem scrollIntoView zuverlässig in den freien Bereich
+      // holen (iOS-fest). scroll-margin sorgt dafür, dass die GANZE Kachel über
+      // dem Sticky-Header UND über der unteren Karte liegt – dann wird sie
+      // vollständig umrahmt (kein Beschneiden). Die endgültige Andockseite
+      // richtet sich danach live an der Zielposition aus (measure()).
       sticky = isStickyish(el);
       curDock = 'bottom';
       setDock('bottom');
-      if (!sticky) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+      if (!sticky) {
+        const ch = cardRef.current?.offsetHeight ?? Math.round(vpH() * 0.42);
+        el.style.scrollMarginTop = '92px';
+        el.style.scrollMarginBottom = `${ch + 92}px`; // Karte + Bottom-Nav + Abstand
+        el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+      }
     }
 
     // Kontinuierliches Tracking: hält den Spot jede Frame an der Live-Position
@@ -363,7 +369,10 @@ export function DemoTour() {
       measure();
       rafId = requestAnimationFrame(tick);
     });
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (el) { el.style.scrollMarginTop = ''; el.style.scrollMarginBottom = ''; }
+    };
   }, [visible, step, steps]);
 
   // Fokus + Tastatur.
@@ -449,7 +458,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length}</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v4</div>
       </div>
     </div>
   );
