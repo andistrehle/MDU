@@ -3,6 +3,7 @@ import Script from 'next/script';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
+import { DemoTour } from '@/components/mdu/demo-tour';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { SITE_INDEXABLE } from '@/lib/site-config';
 
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           {children}
           <BottomNav />
+          <DemoTour />
         </AuthProvider>
       </body>
     </html>
