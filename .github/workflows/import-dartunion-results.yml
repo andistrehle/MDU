@@ -1,11 +1,14 @@
 name: Import dartunion.de match data
 
-# Runs daily at 11:10 UTC (= 13:10 MESZ/Sommerzeit, 12:10 MEZ/Winterzeit).
-# GitHub-Cron laeuft in UTC und kennt keine Sommer-/Winterzeit-Umstellung.
-# Can also be triggered manually from the Actions tab.
+# PAUSIERT (Saison 2025/2026 beendet, finaler Stand manuell eingefroren am 2026-07-06):
+# Der taegliche Cron ist deaktiviert, damit die manuell gesetzten Endergebnisse
+# (Silberpfeile II 18:0 Jolly Pirates V / Fuenf-Sterne-Boazn 8:10 Wild Indians C-MD20)
+# + C-Liga-Tabelle/Einzelrangliste nicht ueberschrieben werden.
+# Zum Reaktivieren fuer die naechste Saison: schedule-Block wieder einkommentieren.
+# Manuell ausloesbar bleibt der Import jederzeit ueber "workflow_dispatch" (Actions-Tab).
 on:
-  schedule:
-    - cron: '10 11 * * *'
+  # schedule:
+  #   - cron: '10 11 * * *'
   workflow_dispatch:
 
 jobs:

@@ -378,14 +378,14 @@
       "pos": 1,
       "team": "wild-indians",
       "name": "Wild Indians",
-      "sp": 19,
-      "s": 13,
+      "sp": 20,
+      "s": 14,
       "u": 4,
       "n": 2,
-      "spiele": "214:128",
-      "legs": "499:351",
-      "diff": "+86",
-      "pts": 43
+      "spiele": "224:136",
+      "legs": "521:370",
+      "diff": "+88",
+      "pts": 46
     },
     {
       "pos": 2,
@@ -443,13 +443,13 @@
       "pos": 6,
       "team": "fuenf-sterne-boazn",
       "name": "5 Sterne Boazn Team",
-      "sp": 19,
+      "sp": 20,
       "s": 2,
       "u": 5,
-      "n": 12,
-      "spiele": "130:212",
-      "legs": "341:490",
-      "diff": "-82",
+      "n": 13,
+      "spiele": "138:222",
+      "legs": "360:512",
+      "diff": "-84",
       "pts": 11
     }
   ]

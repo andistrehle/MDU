@@ -2765,7 +2765,7 @@
       "name": "Linda Maier",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
-      "pts": 148,
+      "pts": 157,
       "wins": 53,
       "losses": 15,
       "legsWon": 118,
@@ -2787,7 +2787,7 @@
       "name": "Peter Keil",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
-      "pts": 141,
+      "pts": 147,
       "wins": 51,
       "losses": 18,
       "legsWon": 114,
@@ -2875,7 +2875,7 @@
       "name": "Stephan Brunner",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
-      "pts": 69,
+      "pts": 72,
       "wins": 23,
       "losses": 26,
       "legsWon": 58,
@@ -2905,6 +2905,28 @@
     },
     {
       "rank": 16,
+      "name": "Alexander Lachner",
+      "teamId": "fuenf-sterne-boazn",
+      "teamName": "5 Sterne Boazn Team",
+      "pts": 65,
+      "wins": 21,
+      "losses": 11,
+      "legsWon": 45,
+      "legsLost": 33
+    },
+    {
+      "rank": 17,
+      "name": "Georgi Ketiashvili",
+      "teamId": "fuenf-sterne-boazn",
+      "teamName": "5 Sterne Boazn Team",
+      "pts": 64,
+      "wins": 21,
+      "losses": 23,
+      "legsWon": 50,
+      "legsLost": 57
+    },
+    {
+      "rank": 18,
       "name": "Susanne Bauer",
       "teamId": "lucky-darts-two",
       "teamName": "Lucky Darts Two",
@@ -2915,18 +2937,7 @@
       "legsLost": 90
     },
     {
-      "rank": 17,
-      "name": "Georgi Ketiashvili",
-      "teamId": "fuenf-sterne-boazn",
-      "teamName": "5 Sterne Boazn Team",
-      "pts": 60,
-      "wins": 21,
-      "losses": 23,
-      "legsWon": 50,
-      "legsLost": 57
-    },
-    {
-      "rank": 18,
+      "rank": 19,
       "name": "Daniel Förster",
       "teamId": "black-devils",
       "teamName": "Black Devils",
@@ -2937,7 +2948,7 @@
       "legsLost": 51
     },
     {
-      "rank": 19,
+      "rank": 20,
       "name": "Michael Gross",
       "teamId": "muenchen-0815",
       "teamName": "München 08/15",
@@ -2948,18 +2959,18 @@
       "legsLost": 57
     },
     {
-      "rank": 20,
-      "name": "Alexander Lachner",
+      "rank": 21,
+      "name": "Christian Schmidt",
       "teamId": "fuenf-sterne-boazn",
       "teamName": "5 Sterne Boazn Team",
-      "pts": 55,
-      "wins": 21,
-      "losses": 11,
-      "legsWon": 45,
-      "legsLost": 33
+      "pts": 56,
+      "wins": 14,
+      "losses": 32,
+      "legsWon": 41,
+      "legsLost": 68
     },
     {
-      "rank": 21,
+      "rank": 22,
       "name": "Iordanis Tertioglou",
       "teamId": "funny-darters",
       "teamName": "Funny Darters Munich",
@@ -2970,7 +2981,7 @@
       "legsLost": 25
     },
     {
-      "rank": 22,
+      "rank": 23,
       "name": "Erwin Kammergruber",
       "teamId": "fuenf-sterne-boazn",
       "teamName": "5 Sterne Boazn Team",
@@ -2981,7 +2992,7 @@
       "legsLost": 38
     },
     {
-      "rank": 23,
+      "rank": 24,
       "name": "Alexandra Brunner",
       "teamId": "black-devils",
       "teamName": "Black Devils",
@@ -2990,17 +3001,6 @@
       "losses": 25,
       "legsWon": 44,
       "legsLost": 58
-    },
-    {
-      "rank": 24,
-      "name": "Christian Schmidt",
-      "teamId": "fuenf-sterne-boazn",
-      "teamName": "5 Sterne Boazn Team",
-      "pts": 51,
-      "wins": 14,
-      "losses": 32,
-      "legsWon": 41,
-      "legsLost": 68
     },
     {
       "rank": 25,
@@ -3106,7 +3106,7 @@
       "name": "Jutta Lachner",
       "teamId": "fuenf-sterne-boazn",
       "teamName": "5 Sterne Boazn Team",
-      "pts": 29,
+      "pts": 30,
       "wins": 9,
       "losses": 20,
       "legsWon": 26,
@@ -3128,7 +3128,7 @@
       "name": "Monika Maier",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
-      "pts": 24,
+      "pts": 26,
       "wins": 7,
       "losses": 11,
       "legsWon": 20,
@@ -3194,7 +3194,7 @@
       "name": "Reinhold Behrend",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
-      "pts": 16,
+      "pts": 20,
       "wins": 6,
       "losses": 6,
       "legsWon": 13,
@@ -3271,7 +3271,7 @@
       "name": "Roman Treichel",
       "teamId": "wild-indians",
       "teamName": "Wild Indians",
-      "pts": 9,
+      "pts": 10,
       "wins": 3,
       "losses": 5,
       "legsWon": 8,
