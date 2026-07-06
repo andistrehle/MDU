@@ -13,15 +13,22 @@ import {
 } from '@/lib/data';
 import { shade } from '@/lib/utils';
 import { loadPublicPlayerProfile } from '@/lib/supabase/profiles';
+import { getDbPlayer } from '@/lib/server/season-data';
 
 export default async function PlayerProfilePage(
   props: { params: Promise<{ playerId: string }> },
 ) {
   const { playerId } = await props.params;
-  const player = findPlayer(playerId);
+  const season = getCurrentSeason();
+
+  // Bestehende Spieler laufen unverändert über den statischen Stamm. Spieler,
+  // die es dort nicht gibt (per Nachmeldung angelegt), werden aus der DB geholt
+  // (Phase 2, Stufe 2) — sonst 404 wie bisher.
+  const staticPlayer = findPlayer(playerId);
+  const dbProfile = staticPlayer ? null : await getDbPlayer(playerId);
+  const player = staticPlayer ?? dbProfile?.player;
   if (!player) notFound();
 
-  const season = getCurrentSeason();
   const displayName = getPlayerDisplayName(player);
   const stats = getPlayerSeasonStats(player.id, season.id);
 
@@ -31,14 +38,23 @@ export default async function PlayerProfilePage(
   const shownNickname = publicExtras.nickname ?? player.nickname ?? null;
   const shownPhotoUrl = publicExtras.photoUrl ?? player.photoUrl;
 
-  // Current team / competition context
-  const team        = stats?.teamId ? findTeam(stats.teamId) : undefined;
+  // Current team / competition context. Für DB-Spieler kommt das aktuelle Team
+  // aus den DB-Zuordnungen (der Spieler hat keine offiziellen Stats).
+  const dbCurrentTeamId = dbProfile
+    ? (dbProfile.assignments.find(a => a.seasonId === season.id)?.teamId
+        ?? dbProfile.assignments[0]?.teamId ?? null)
+    : null;
+  const team        = stats?.teamId ? findTeam(stats.teamId)
+                    : dbCurrentTeamId ? findTeam(dbCurrentTeamId) : undefined;
   const teamColor   = team?.color ?? '#9AA4B2';
   const competition = team ? getCurrentCompetitionForTeam(team.id, season.id) : null;
   const leagueName  = competition?.league?.name ?? 'Noch nicht verfügbar';
 
-  // Team history (all seasons this player has an assignment)
-  const history = getTeamAssignmentsForPlayer(player.id)
+  // Team history (all seasons this player has an assignment). Statisch aus den
+  // Stamm-Zuordnungen, für DB-Spieler aus den DB-Zuordnungen.
+  const rawHistory: { seasonId: string; teamId: string; isCaptain?: boolean }[] =
+    dbProfile ? dbProfile.assignments : getTeamAssignmentsForPlayer(player.id);
+  const history = rawHistory
     .map(a => {
       const histTeam   = findTeam(a.teamId);
       const seasonName = SEASONS.find(s => s.id === a.seasonId)?.name ?? a.seasonId;

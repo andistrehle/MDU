@@ -198,3 +198,52 @@ export async function getDbRosterForTeam(
 
   return [...known, ...extra];
 }
+
+// ── Phase 2, Stufe 2: Spielerprofil aus der DB ─────────────────
+//
+// Liefert einen Spieler samt seiner Kaderzuordnungen (alle Saisons) aus den
+// DB-Tabellen. Wird als Fallback genutzt, wenn der Spieler NICHT im statischen
+// Stamm (lib/data/players) liegt — also für per Nachmeldung angelegte Spieler.
+// Bestehende (statische) Spieler laufen unverändert über die statische Seite.
+export interface DbPlayerProfile {
+  player: Player;
+  assignments: { seasonId: string; teamId: string; isCaptain: boolean }[];
+}
+
+export async function getDbPlayer(playerId: string): Promise<DbPlayerProfile | null> {
+  const c = anon();
+  if (!c || !playerId) return null;
+
+  const { data: prow, error } = await c
+    .from('players')
+    .select('id, first_name, last_name, display_name, nickname, license_number, status, photo_url')
+    .eq('id', playerId)
+    .maybeSingle();
+  if (error || !prow) return null;
+
+  const p = prow as {
+    id: string; first_name: string; last_name: string;
+    display_name: string | null; nickname: string | null;
+    license_number: string | null; status: string; photo_url: string | null;
+  };
+  const player: Player = {
+    id: p.id,
+    firstName: p.first_name,
+    lastName: p.last_name,
+    displayName: p.display_name ?? undefined,
+    nickname: p.nickname ?? undefined,
+    licenseNumber: p.license_number ?? undefined,
+    status: (p.status as PlayerStatus) ?? 'active',
+    photoUrl: p.photo_url ?? undefined,
+  };
+
+  const { data: arows } = await c
+    .from('player_assignments')
+    .select('season_id, team_id, is_captain')
+    .eq('player_id', playerId);
+
+  const assignments = ((arows ?? []) as { season_id: string; team_id: string; is_captain: boolean }[])
+    .map(a => ({ seasonId: a.season_id, teamId: a.team_id, isCaptain: a.is_captain }));
+
+  return { player, assignments };
+}
