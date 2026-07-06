@@ -226,13 +226,14 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         </nav>
 
         {/* Old School / New Design switch — desktop top right, next to Login */}
-        <span className="mdu-header-login" style={{ display: 'inline-flex', flexShrink: 0 }}>
+        <span className="mdu-header-login" data-tour="theme" style={{ display: 'inline-flex', flexShrink: 0 }}>
           <ThemeToggle compact />
         </span>
 
         {/* Desktop account button — Login (Gast) / Mein Bereich (eingeloggt) */}
         <Link
           href={accountHref}
+          data-tour="account"
           className="mdu-header-login"
           style={{
             padding: '9px 22px', borderRadius: 6,
@@ -255,10 +256,13 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
 
         {/* Mobile actions — compact theme toggle + account button (mobile only) */}
         <span className="mdu-mobile-actions" style={{ alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <ThemeToggle mini />
+          <span data-tour="theme" style={{ display: 'inline-flex' }}>
+            <ThemeToggle mini />
+          </span>
           {user && <NotificationBell />}
           <Link
             href={accountHref}
+            data-tour="account"
             className="mdu-mobile-login"
             aria-label={accountLabel}
             style={{

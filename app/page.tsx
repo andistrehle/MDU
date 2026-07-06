@@ -96,7 +96,7 @@ export default function HomePage() {
       </section>
 
       {/* Quick Access — Spielplan + Tabellen */}
-      <div className="mdu-quickbar-outer" style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
+      <div className="mdu-quickbar-outer" data-tour="quickbar" style={{ maxWidth: 1280, margin: '-46px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
         <div className="mdu-quick-bar" style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr',
           background: 'linear-gradient(180deg, var(--th-bg-card), var(--th-bg-header))',
@@ -135,7 +135,7 @@ export default function HomePage() {
 
       {/* Aktuelles + Nächste Spiele */}
       <section className="mdu-two-col mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '56px 28px 70px', display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 36 }}>
-        <div>
+        <div data-tour="news">
           <div style={{ marginBottom: 18 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Aktuelles</h2>
           </div>
@@ -153,7 +153,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div>
+        <div data-tour="matches">
           {/* ── Nächste Spiele ─────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Nächste Spiele</h2>
