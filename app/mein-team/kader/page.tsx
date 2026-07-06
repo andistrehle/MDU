@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageTeamPlayers } from '@/lib/auth/roles';
 import { getRankedRosterForTeam, getCurrentSeason, getPlayerDisplayName, findTeam } from '@/lib/data';
 import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
+import { listMyNominations, NOMINATION_STATUS_LABELS, type PlayerNomination } from '@/lib/supabase/nominations';
 
 export default function KaderPage() {
   const { user, loading } = useAuth();
@@ -14,6 +15,13 @@ export default function KaderPage() {
   const team = teamId ? findTeam(teamId) : undefined;
   const season = getCurrentSeason();
   const roster = allowed && teamId ? getRankedRosterForTeam(teamId, season.id) : [];
+
+  // Nachgemeldete Spieler dieses Teams (in Prüfung + freigegeben, mit Passnummer).
+  const [noms, setNoms] = useState<PlayerNomination[] | null>(null);
+  useEffect(() => {
+    if (!allowed || !teamId) return;
+    listMyNominations().then(all => setNoms(all.filter(n => n.team_id === teamId && n.status !== 'rejected')));
+  }, [allowed, teamId]);
 
   const [query, setQuery] = useState('');
   const filtered = useMemo(() => {
@@ -74,6 +82,39 @@ export default function KaderPage() {
               {roster.length === 0 && <div style={{ padding: '22px 16px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Noch keine Spieler im Kader.</div>}
               {roster.length > 0 && filtered.length === 0 && <div style={{ padding: '22px 16px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Kein Spieler passt zu „{query}".</div>}
             </div>
+
+            {noms && noms.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', marginBottom: 8 }}>
+                  Nachgemeldete Spieler
+                </div>
+                <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden' }}>
+                  {noms.map((n, i) => (
+                    <div key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < noms.length - 1 ? '1px solid var(--th-line-4)' : 'none' }}>
+                      <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {n.first_name} {n.last_name}
+                      </span>
+                      {n.status === 'approved' && (
+                        <span title="Pass-/Lizenznummer" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: n.license_number ? 'var(--th-text-muted)' : 'var(--th-text-faint)' }}>
+                          {n.license_number ?? '—'}{n.license_provisional && n.license_number ? ' *' : ''}
+                        </span>
+                      )}
+                      <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 4, padding: '2px 6px',
+                        color: n.status === 'approved' ? 'var(--th-win)' : 'var(--th-accent)',
+                        background: n.status === 'approved' ? 'rgba(30,158,90,0.12)' : 'var(--th-accent-a07)',
+                        border: `1px solid ${n.status === 'approved' ? 'rgba(30,158,90,0.3)' : 'var(--th-accent-a25)'}` }}>
+                        {NOMINATION_STATUS_LABELS[n.status]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {noms.some(n => n.status === 'approved' && n.license_provisional && n.license_number) && (
+                  <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginTop: 6 }}>
+                    * vorläufige Passnummer — wird durch die offizielle Nummer ersetzt, sobald sie vorliegt.
+                  </p>
+                )}
+              </div>
+            )}
 
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 14 }}>
               Neue Spieler über „＋ Spieler nachmelden" einreichen — die Ligaleitung prüft die Nachmeldung.
