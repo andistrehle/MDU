@@ -59,22 +59,32 @@ export default function ErgebnissePage() {
           </h1>
         </div>
 
-        {/* Liga-Filter — Standard „Alle Ligen" */}
+        {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}
         {totalCount > 0 && (
-          <div role="tablist" aria-label="Nach Liga filtern" className="mdu-filter-scroll" style={{ display: 'flex', gap: 8, marginBottom: 28, overflowX: 'auto', overflowY: 'hidden', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
-            <FilterChip label="Alle Ligen" active={selected === null} onClick={() => setSelected(null)} />
-            {allGroups.map(g => {
-              const league = findLeague(g.leagueId);
-              return (
-                <FilterChip
-                  key={g.leagueId}
-                  label={league?.name ?? g.leagueId.toUpperCase()}
-                  color={league?.color}
-                  active={selected === g.leagueId}
-                  onClick={() => setSelected(g.leagueId)}
-                />
-              );
-            })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
+            <label htmlFor="liga-filter" style={{
+              fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
+              letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)',
+            }}>
+              Liga
+            </label>
+            <select
+              id="liga-filter"
+              value={selected ?? ''}
+              onChange={e => setSelected(e.target.value || null)}
+              style={{
+                padding: '10px 14px', background: 'var(--th-bg-card)',
+                border: '1.5px solid var(--th-line-10)', borderRadius: 8,
+                color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)',
+                fontSize: 14, fontWeight: 600, outline: 'none', cursor: 'pointer', minWidth: 220,
+              }}
+            >
+              <option value="">Alle Ligen</option>
+              {allGroups.map(g => {
+                const league = findLeague(g.leagueId);
+                return <option key={g.leagueId} value={g.leagueId}>{league?.name ?? g.leagueId.toUpperCase()}</option>;
+              })}
+            </select>
           </div>
         )}
 
@@ -241,33 +251,5 @@ export default function ErgebnissePage() {
 
       <Footer />
     </div>
-  );
-}
-
-function FilterChip({ label, color, active, onClick }: { label: string; color?: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0,
-        padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
-        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-        background: active ? 'var(--th-accent)' : 'var(--th-bg-card)',
-        color: active ? '#fff' : 'var(--th-text-body)',
-        border: `1.5px solid ${active ? 'var(--th-accent-hover)' : 'var(--th-line-10)'}`,
-        transition: 'all 120ms', whiteSpace: 'nowrap',
-      }}
-    >
-      {color && (
-        <span style={{
-          width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0,
-          boxShadow: active ? '0 0 0 2px rgba(255,255,255,0.35)' : 'none',
-        }} />
-      )}
-      {label}
-    </button>
   );
 }
