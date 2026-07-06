@@ -79,7 +79,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         </Link>
 
         {/* Desktop nav — hidden on mobile via .mdu-header-nav */}
-        <nav className="mdu-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 26, flex: 1, justifyContent: 'center' }}>
+        <nav className="mdu-header-nav" data-tour="nav-menu" style={{ display: 'flex', alignItems: 'center', gap: 26, flex: 1, justifyContent: 'center' }}>
           {NAV_ITEMS.map(item => {
             const active = activeHref ? item.href === activeHref : pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
 

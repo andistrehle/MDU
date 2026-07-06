@@ -61,7 +61,7 @@ const PUBLIC_STEPS: TourStep[] = [
   {
     icon: '🧭', tag: 'Navigation', title: 'Dein Menü',
     body: 'Über das Menü kommst du überallhin – am Desktop oben, am Handy unten in der Leiste: Ligen, Spielplan, Ergebnisse, Teams und mehr. Fangen wir bei den Ligen an.',
-    target: 'nav-ligen',
+    target: 'nav-menu',
   },
   {
     icon: '🏆', tag: 'Ligen & Tabellen', title: 'Zu allen Ligen',
@@ -318,16 +318,25 @@ export function DemoTour() {
     // Entschiedene Andockrichtung dieses Schritts (synchron, ohne Effekt-Neustart).
     let curDock: 'center' | 'bottom' | 'top' | 'desktop' = 'center';
 
-    // Desktop: Karte frei am Element positionieren.
+    // Desktop: Karte frei am Element positionieren. `sp` liegt in DOKUMENT-
+    // Koordinaten, die Karte ist aber `fixed` → zuerst in Viewport-Koordinaten
+    // umrechnen, sonst sitzt sie (bei gescrollter Seite) auf dem Element und
+    // überdeckt genau das eingekreiste Ziel.
     const placeDesktop = (sp: SpotRect) => {
       const card = cardRef.current; if (!card) return;
       const cw = card.offsetWidth, ch = card.offsetHeight;
       const vw = window.innerWidth, vh = window.innerHeight;
+      const tTop = sp.top - window.scrollY;        // Ziel-Oberkante im Viewport
+      const tBottom = tTop + sp.height;            // Ziel-Unterkante im Viewport
       let top: number;
-      if (sp.top + sp.height + gap + ch <= vh - 12) top = sp.top + sp.height + gap;
-      else if (sp.top - gap - ch >= 12) top = sp.top - gap - ch;
-      else top = Math.max(12, Math.min(vh - ch - 12, sp.top + sp.height + gap));
-      let left = sp.left + sp.width / 2 - cw / 2;
+      if (tBottom + gap + ch <= vh - 12) top = tBottom + gap;          // darunter
+      else if (tTop - gap - ch >= 12) top = tTop - gap - ch;           // darüber
+      else {
+        // Kein überschneidungsfreier Platz: in die größere Lücke, bündig am Rand.
+        const below = vh - tBottom, above = tTop;
+        top = below >= above ? Math.min(vh - ch - 12, tBottom + gap) : Math.max(12, tTop - gap - ch);
+      }
+      let left = (sp.left - window.scrollX) + sp.width / 2 - cw / 2;
       left = Math.max(12, Math.min(vw - cw - 12, left));
       const key = `${Math.round(top)}|${Math.round(left)}`;
       if (key !== lastCardKey) { lastCardKey = key; setCardPos({ top, left }); }
@@ -386,11 +395,21 @@ export function DemoTour() {
       // richtet sich danach live an der Zielposition aus (measure()).
       sticky = isStickyish(el);
       if (sticky) {
-        // Header-Ziel (Glocke/Design/Login): nach ganz oben scrollen, damit der
-        // Header wirklich sichtbar ist (sonst „springt er nicht zur Glocke").
-        curDock = 'bottom';
-        setDock('bottom');
-        window.scrollTo({ top: 0, behavior: 'auto' });
+        // Fixiertes/sticky Element: liegt es im OBEREN oder UNTEREN Bildschirmdrittel?
+        const rc = el.getBoundingClientRect();
+        const atBottom = rc.top + rc.height / 2 > window.innerHeight / 2;
+        if (atBottom) {
+          // Untere Menüleiste (Bottom-Nav): Karte OBEN andocken, damit die Leiste
+          // unten frei umrahmt wird. Kein Scroll nötig – fixed ist immer sichtbar.
+          curDock = 'top';
+          setDock('top');
+        } else {
+          // Sticky Header oben (Glocke/Design/Login): nach ganz oben scrollen,
+          // damit der Header sichtbar ist; Karte unten andocken.
+          curDock = 'bottom';
+          setDock('bottom');
+          window.scrollTo({ top: 0, behavior: 'auto' });
+        }
       } else {
         // Deterministische Andockseite anhand DOKUMENT-Geometrie (zoom-stabil:
         // scrollY/innerHeight/scrollHeight sind unabhängig vom Pinch-Zoom).
@@ -519,7 +538,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v10</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v11</div>
         </div>
       </div>
     </>

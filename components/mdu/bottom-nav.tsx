@@ -23,7 +23,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="mdu-bottom-nav" style={{
+    <div className="mdu-bottom-nav" data-tour="nav-menu" style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
       background: 'var(--th-bg-header)', borderTop: '1px solid var(--th-line-6)',
       padding: '10px 6px 26px',
