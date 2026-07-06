@@ -254,11 +254,11 @@ export function DemoTour() {
   useEffect(() => {
     if (!visible) return;
     const name = steps[step]?.target;
-    let ticking = false;
+    let lastSpotKey = '';   // Re-Render nur bei echter Änderung
+    let lastCardKey = '';   // dito für die Desktop-Kartenposition
+    let sticky = false;     // Ziel im Sticky-Header (scrollt nicht mit)?
 
     const isMobile = window.innerWidth <= 760;
-    const NAV_SAFE = isMobile ? 80 : 16;   // Platz für die mobile Bottom-Nav
-    const HEADER_SAFE = 78;                 // Platz für den Sticky-Header
     const gap = 12;
     // Sichtbare Viewport-Höhe (iOS: ohne Adressleiste) für die Scroll-Rechnung.
     const vpH = () => window.visualViewport?.height ?? window.innerHeight;
@@ -276,12 +276,13 @@ export function DemoTour() {
       else top = Math.max(12, Math.min(vh - ch - 12, sp.top + sp.height + gap));
       let left = sp.left + sp.width / 2 - cw / 2;
       left = Math.max(12, Math.min(vw - cw - 12, left));
-      setCardPos({ top, left });
+      const key = `${Math.round(top)}|${Math.round(left)}`;
+      if (key !== lastCardKey) { lastCardKey = key; setCardPos({ top, left }); }
     };
 
     const measure = () => {
       const el = findTarget(name);
-      if (!el) { setSpot(null); return; }
+      if (!el) { if (lastSpotKey !== 'null') { lastSpotKey = 'null'; setSpot(null); } return; }
       const r = el.getBoundingClientRect();
       const pad = 8;
       const sp: SpotRect = {
@@ -290,6 +291,15 @@ export function DemoTour() {
         width: Math.min(window.innerWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
+      // Mobil (ohne Sticky-Ziel): Andockseite live an die Zielposition anpassen –
+      // mit Hysterese, damit es nicht flackert. So sitzt die Karte immer auf der
+      // dem Ziel abgewandten Seite, egal wohin iOS tatsächlich gescrollt hat.
+      if (isMobile && !sticky) {
+        const cy = r.top + r.height / 2;
+        const vh = vpH();
+        if (curDock !== 'top' && cy > vh * 0.60) { curDock = 'top'; setDock('top'); }
+        else if (curDock !== 'bottom' && cy < vh * 0.40) { curDock = 'bottom'; setDock('bottom'); }
+      }
       // Spot nie hinter die Karte reichen lassen — anhand der echten Kartenlage.
       const cardRect = cardRef.current?.getBoundingClientRect();
       if (cardRect && cardRect.height > 0) {
@@ -300,7 +310,9 @@ export function DemoTour() {
           sp.top += d; sp.height = Math.max(28, sp.height - d);
         }
       }
-      setSpot(sp);
+      // Nur bei echter Änderung neu rendern (rAF läuft jede Frame).
+      const key = `${Math.round(sp.top)}|${Math.round(sp.left)}|${Math.round(sp.width)}|${Math.round(sp.height)}`;
+      if (key !== lastSpotKey) { lastSpotKey = key; setSpot(sp); }
       if (curDock === 'desktop') placeDesktop(sp);
     };
 
@@ -316,56 +328,25 @@ export function DemoTour() {
       curDock = 'desktop';
       setDock('desktop');
       el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
-    } else if (isStickyish(el)) {
-      // Sticky-Header-Ziel (Design/Glocke/Login): bleibt oben → Karte unten, kein Scroll.
+    } else {
+      // Mobil: Ziel per nativem scrollIntoView in den Blick holen (zuverlässig
+      // auf iOS). Startseite: Karte unten; die endgültige Seite (oben/unten)
+      // richtet sich danach live an der tatsächlichen Zielposition aus (siehe
+      // measure()), sodass iOS-Scroll-Verschiebungen egal sind.
+      sticky = isStickyish(el);
       curDock = 'bottom';
       setDock('bottom');
-    } else {
-      // Mobil, scrollbares Ziel: Karte unten, wenn das Ziel über die Karte passt,
-      // sonst Karte oben und Ziel darunter.
-      const ch = cardRef.current?.offsetHeight ?? Math.round(vpH() * 0.5);
-      const vh = vpH();
-      const doc = document.scrollingElement ?? document.documentElement;
-      const maxScroll = Math.max(0, doc.scrollHeight - window.innerHeight);
-      const cur = window.scrollY;
-      const r0 = el.getBoundingClientRect();
-      const clamp = (v: number) => Math.max(0, Math.min(maxScroll, v));
-      // Kandidat A: Karte UNTEN, Ziel in [HEADER_SAFE, vh - NAV_SAFE - ch - gap]
-      const regABot = vh - NAV_SAFE - ch - gap;
-      const scrollA = clamp(cur + (r0.top + r0.height / 2) - (HEADER_SAFE + regABot) / 2);
-      const tTopA = r0.top - (scrollA - cur);
-      if (tTopA + r0.height <= regABot + 6 && tTopA >= HEADER_SAFE - 6) {
-        curDock = 'bottom';
-        setDock('bottom');
-        window.scrollTo({ top: scrollA, behavior: 'auto' });
-      } else {
-        // Karte OBEN, Ziel in [gap+ch+gap, vh - NAV_SAFE]
-        const regBTop = gap + ch + gap;
-        const scrollB = clamp(cur + (r0.top + r0.height / 2) - (regBTop + (vh - NAV_SAFE)) / 2);
-        curDock = 'top';
-        setDock('top');
-        window.scrollTo({ top: scrollB, behavior: 'auto' });
-      }
+      if (!sticky) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
     }
 
-    const raf = requestAnimationFrame(measure);
-    const settle = setTimeout(measure, 240);
-
-    const onWin = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => { ticking = false; measure(); });
-    };
-    window.addEventListener('resize', onWin);
-    window.addEventListener('scroll', onWin, true);
-    window.visualViewport?.addEventListener('resize', onWin);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(settle);
-      window.removeEventListener('resize', onWin);
-      window.removeEventListener('scroll', onWin, true);
-      window.visualViewport?.removeEventListener('resize', onWin);
-    };
+    // Kontinuierliches Tracking: hält den Spot jede Frame an der Live-Position
+    // des Ziels – robust gegen iOS-Scroll-/Adressleisten-Verschiebungen, die
+    // sonst einen einmal gesetzten Spot „einfrieren" würden.
+    let rafId = requestAnimationFrame(function tick() {
+      measure();
+      rafId = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [visible, step, steps]);
 
   // Fokus + Tastatur.
