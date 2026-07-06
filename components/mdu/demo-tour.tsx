@@ -59,9 +59,28 @@ const PUBLIC_STEPS: TourStep[] = [
     target: 'theme',
   },
   {
-    icon: '🏆', tag: 'Ligen & Tabellen', title: 'Direkt zum Spielbetrieb',
-    body: 'Über die Schnellzugriffe kommst du zu Spielplan und Tabellen. Für jede Liga und Playoff-Runde gibt es Tabellen, Ergebnisse und Einzelranglisten – die Farben zeigen sofort Auf- und Abstieg.',
-    target: 'quickbar', cta: { label: 'Ligen ansehen', href: '/ligen' },
+    icon: '🧭', tag: 'Navigation', title: 'Dein Menü',
+    body: 'Über das Menü kommst du überallhin – am Desktop oben, am Handy unten in der Leiste: Ligen, Spielplan, Ergebnisse, Teams und mehr. Fangen wir bei den Ligen an.',
+    target: 'nav-ligen',
+  },
+  {
+    icon: '🏆', tag: 'Ligen & Tabellen', title: 'Zu allen Ligen',
+    body: 'Über „Ligen" erreichst du jede Liga und Playoff-Runde – mit Tabellen, Ergebnissen und Einzelranglisten; die Farben zeigen sofort Auf- und Abstieg. Auf der Startseite geht’s auch über den grünen Button „Ligen Übersicht".',
+    target: 'ligen-btn', cta: { label: 'Ligen ansehen', href: '/ligen' },
+  },
+  {
+    icon: '📅', tag: 'Spielplan', title: 'Alle Begegnungen',
+    body: 'Der Spielplan listet alle kommenden Spiele – nach Liga und Spieltag sortiert.',
+    target: 'nav-spielplan', cta: { label: 'Spielplan öffnen', href: '/spielplan' },
+  },
+  {
+    icon: '🎯', tag: 'Ergebnisse', title: 'Letzte Resultate',
+    body: 'Unter „Ergebnisse" findest du die aktuellen Resultate aller Ligen.',
+    target: 'nav-ergebnisse', cta: { label: 'Ergebnisse ansehen', href: '/ergebnisse' },
+  },
+  {
+    icon: '⚡', tag: 'Startseite', title: 'Schnellzugriff', target: 'quickbar',
+    body: 'Direkt auf der Startseite hast du Spielplan und aktuelle Tabellen zusätzlich als Schnellzugriff.',
   },
   {
     icon: '📰', tag: 'Aktuelles', title: 'Immer auf dem Laufenden',
@@ -69,14 +88,14 @@ const PUBLIC_STEPS: TourStep[] = [
     target: 'news',
   },
   {
-    icon: '📅', tag: 'Spiele', title: 'Nächste & letzte Spiele',
+    icon: '📊', tag: 'Spiele', title: 'Nächste & letzte Spiele',
     body: 'Kommende Begegnungen und die letzten Ergebnisse auf einen Blick.',
     target: 'matches',
   },
   {
-    icon: '🎯', tag: 'Teams & Spieler', title: 'Ein Profil für jeden',
+    icon: '👥', tag: 'Teams & Spieler', title: 'Ein Profil für jeden',
     body: 'Jede Mannschaft hat ein eigenes Profil – mit Kader, Spielstätte, Ergebnissen und Statistik. Und jeder Spieler eins, mit Foto, Platzierung und Saisonwerten.',
-    cta: { label: 'Teams ansehen', href: '/teams' },
+    target: 'nav-teams', cta: { label: 'Teams ansehen', href: '/teams' },
   },
   {
     icon: '📝', tag: 'Registrierung', title: 'Neu dabei? So geht’s',
@@ -500,7 +519,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v9</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v10</div>
         </div>
       </div>
     </>

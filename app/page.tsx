@@ -73,7 +73,7 @@ export default function HomePage() {
               Die offizielle Liga-Seite für den organisierten Dartsport in München.
             </p>
             <div className="mdu-hero-cta" style={{ display: 'flex', gap: 14, marginTop: 34 }}>
-              <Link href="/ligen" style={{
+              <Link href="/ligen" data-tour="ligen-btn" style={{
                 padding: '14px 28px', background: 'var(--th-accent)', color: '#fff',
                 borderRadius: 6, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
                 letterSpacing: '0.1em', textTransform: 'uppercase',

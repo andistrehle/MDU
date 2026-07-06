@@ -12,6 +12,13 @@ const ITEMS = [
   { label: 'Mehr',       href: '/mehr',       icon: 'menu' },
 ];
 
+// Anker für die Demo-Tour (gleiche Werte wie im Desktop-Header).
+const NAV_TOUR: Record<string, string> = {
+  '/ligen':      'nav-ligen',
+  '/spielplan':  'nav-spielplan',
+  '/ergebnisse': 'nav-ergebnisse',
+};
+
 export function BottomNav() {
   const pathname = usePathname();
 
@@ -28,6 +35,7 @@ export function BottomNav() {
           <Link
             key={item.label}
             href={item.href}
+            data-tour={NAV_TOUR[item.href]}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
               position: 'relative', color: active ? 'var(--th-accent)' : 'var(--th-text-muted)',

@@ -21,6 +21,15 @@ const NAV_ITEMS = [
   { label: 'Kontakt',    href: '/kontakt' },
 ];
 
+// Anker für die Demo-Tour (gleiche Werte wie in der Bottom-Nav, damit die Tour
+// je nach Ansicht das sichtbare Menü hervorhebt: Desktop oben, Mobile unten).
+const NAV_TOUR: Record<string, string> = {
+  '/ligen':      'nav-ligen',
+  '/spielplan':  'nav-spielplan',
+  '/ergebnisse': 'nav-ergebnisse',
+  '/teams':      'nav-teams',
+};
+
 // Sorted league lists for the dropdown — computed once at module level
 const SORTED = [...LEAGUES].sort((a, b) => a.sortOrder - b.sortOrder);
 const DROPDOWN_PLAYOFFS = SORTED.filter(l => l.type === 'playoff');
@@ -86,6 +95,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                   <Link
                     href={item.href}
                     className="mdu-nav-link"
+                    data-tour={NAV_TOUR[item.href]}
                     style={{
                       fontFamily: 'var(--font-manrope)',
                       fontWeight: active ? 700 : 500,
@@ -197,6 +207,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
               <Link
                 key={item.label}
                 href={item.href}
+                data-tour={NAV_TOUR[item.href]}
                 style={{
                   fontFamily: 'var(--font-manrope)',
                   fontWeight: active ? 700 : 500,
