@@ -26,6 +26,25 @@ export interface NewsArticle {
 
 export const NEWS_ARTICLES: NewsArticle[] = [
   {
+    id: 'saison-2025-2026-abgeschlossen',
+    title: 'Saison 2025/2026 ist beendet – alle Entscheidungen im Überblick 🏁',
+    teaser:
+      'Alle Spiele sind absolviert, alle Tabellen final. Wer aufsteigt, wer bleibt und wer runtermuss – die komplette Übersicht.',
+    source: 'Münchner Dart Union',
+    date: '06.07.2026',
+    category: 'MDU News',
+    content: [
+      'Die Saison 2025/2026 der Münchner Dart Union ist **offiziell abgeschlossen**. Alle Begegnungen sind gespielt, die Tabellen und Einzelranglisten sind final. Ein großes Dankeschön an alle Mannschaften, Kapitäne und Spielstätten für eine tolle Saison!',
+      '**🏆 La Liga:** Meister werden die **Spartans** – Glückwunsch zu einer überragenden Saison! Ebenfalls in der La Liga bleiben **Jolly Pirates KT\'s**, **Ohne Jackie** und **No Ma\'am**. Den Gang in die A-Liga antreten müssen **DC Null Bull** und **Les Dartagnons**.',
+      '**⬆️ Aufstieg in die La Liga:** Über die Aufstiegs-Playoffs der A-Liga setzen sich **Silberpfeile II**, **Alptraum** und **Gambas** durch – willkommen im Oberhaus! **Treff Nix Freimann**, **DC Animals II** und **Jolly Pirates V** bleiben in der A-Liga.',
+      '**A-Liga Abstiegs-Playoffs:** **Spartans VI** und **Oldies & Co** sichern den Klassenerhalt in der A-Liga. **Sound Warrior\'s** und **Game Over** steigen in die B-Liga ab.',
+      '**⬆️ Aufstieg in die A-Liga:** In den Aufstiegs-Playoffs der B-Liga schaffen es **Fiaker Deife**, **Belfort Evolution** und die **Freibad Bazis** nach oben. **Flying Seven**, **Master of Desaster** und **Flying Fighters** bleiben in der B-Liga.',
+      '**B-Liga Abstiegs-Playoffs:** **De Vogelwuid\'n**, **Lucky Darts One** und **Team Desaster** halten die Klasse. **De Hutzeldarter**, **Massl Ghabt** und **DC Dark Angels** geht es in die C-Liga hinunter.',
+      '**🏆 C-Liga:** Meister werden die **Wild Indians** – und steigen gemeinsam mit **Lucky Darts Two** und **München 08/15** direkt in die B-Liga auf. **Funny Darters Munich**, **Black Devils** und das **5 Sterne Boazn Team** treten auch nächste Saison in der C-Liga an.',
+      'Alle finalen Tabellen, Ergebnisse und Einzelranglisten findet ihr wie immer unter **Ligen**. Die Anmeldung zur **Saison 2026/2027** läuft bereits – Teamkapitäne können ihre Mannschaft direkt hier auf der Plattform anmelden. Wir sehen uns am Board! 🎯',
+    ],
+  },
+  {
     id: 'sensation-perfekt-freibad-bazis-steigen-in-die-a-liga-auf',
     title: 'Sensation perfekt: Freibad Bazis steigen in die A-Liga auf! 🎯',
     teaser:
