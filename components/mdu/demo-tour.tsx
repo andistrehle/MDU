@@ -302,10 +302,13 @@ export function DemoTour() {
       if (!el) { if (lastSpotKey !== 'null') { lastSpotKey = 'null'; setSpot(null); } return; }
       const r = el.getBoundingClientRect();
       const pad = 8;
+      // Dokument-Koordinaten (scrollY/scrollX): der absolut positionierte Spot
+      // liegt so im selben Koordinatensystem wie der Inhalt (iOS-Zoom-fest).
+      const sx = window.scrollX, sy = window.scrollY;
       const sp: SpotRect = {
-        top: Math.max(8, r.top - pad),
-        left: Math.max(8, r.left - pad),
-        width: Math.min(window.innerWidth - 16, r.width + pad * 2),
+        top: Math.max(0, r.top + sy - pad),
+        left: Math.max(0, r.left + sx - pad),
+        width: Math.min(document.documentElement.clientWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
       // Mobil (ohne Sticky-Ziel): Andockseite live an die Zielposition anpassen –
@@ -317,13 +320,14 @@ export function DemoTour() {
         if (curDock !== 'top' && cy > vh * 0.60) { curDock = 'top'; setDock('top'); }
         else if (curDock !== 'bottom' && cy < vh * 0.40) { curDock = 'bottom'; setDock('bottom'); }
       }
-      // Spot nie hinter die Karte reichen lassen — anhand der echten Kartenlage.
+      // Spot nie hinter die Karte reichen lassen — Kartenlage in Dokument-Koords.
       const cardRect = cardRef.current?.getBoundingClientRect();
       if (cardRect && cardRect.height > 0) {
-        if (curDock === 'bottom' && sp.top + sp.height > cardRect.top - gap) {
-          sp.height = Math.max(28, cardRect.top - gap - sp.top);
-        } else if (curDock === 'top' && sp.top < cardRect.bottom + gap) {
-          const d = cardRect.bottom + gap - sp.top;
+        const cardTopDoc = cardRect.top + sy, cardBottomDoc = cardRect.bottom + sy;
+        if (curDock === 'bottom' && sp.top + sp.height > cardTopDoc - gap) {
+          sp.height = Math.max(28, cardTopDoc - gap - sp.top);
+        } else if (curDock === 'top' && sp.top < cardBottomDoc + gap) {
+          const d = cardBottomDoc + gap - sp.top;
           sp.top += d; sp.height = Math.max(28, sp.height - d);
         }
       }
@@ -378,7 +382,7 @@ export function DemoTour() {
   // Fokus + Tastatur.
   useEffect(() => {
     if (!visible) return;
-    cardRef.current?.focus();
+    cardRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') skip();
       else if (e.key === 'ArrowRight') next();
@@ -394,16 +398,12 @@ export function DemoTour() {
   const isLast = step === steps.length - 1;
 
   return (
-    <div
-      className="mdu-tour-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="mdu-tour-title"
-      style={{ background: spot ? 'transparent' : 'rgba(4,6,10,0.62)', backdropFilter: spot ? 'none' : 'blur(3px)' }}
-      onClick={skip}
-    >
+    <>
       <style>{TOUR_CSS}</style>
 
+      {/* Spotlight in ABSOLUTEN Dokument-Koordinaten (nicht fixed): liegt damit im
+          gleichen Koordinatensystem wie der Seiteninhalt und bleibt auch bei
+          iOS-Zoom exakt auf dem Ziel (fixed würde unter Zoom verrutschen). */}
       {spot && (
         <div
           className="mdu-tour-spot"
@@ -411,6 +411,15 @@ export function DemoTour() {
           aria-hidden="true"
         />
       )}
+
+      <div
+        className="mdu-tour-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mdu-tour-title"
+        style={{ background: spot ? 'transparent' : 'rgba(4,6,10,0.62)', backdropFilter: spot ? 'none' : 'blur(3px)' }}
+        onClick={skip}
+      >
 
       <div
         className="mdu-tour-card"
@@ -458,19 +467,20 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v4</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v5</div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 const TOUR_CSS = `
 .mdu-tour-overlay {
-  position:fixed; inset:0; z-index:1000;
+  position:fixed; inset:0; z-index:1001;
   animation:mdu-tour-fade .2s ease;
 }
 .mdu-tour-spot {
-  position:fixed; z-index:1001; border-radius:12px; pointer-events:none;
+  position:absolute; z-index:1000; border-radius:12px; pointer-events:none;
   box-shadow:0 0 0 9999px rgba(4,6,10,0.62);
   outline:2px solid var(--th-accent); outline-offset:2px;
   transition:top .25s ease, left .25s ease, width .25s ease, height .25s ease;
