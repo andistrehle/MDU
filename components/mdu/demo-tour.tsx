@@ -242,17 +242,26 @@ export function DemoTour() {
     const name = steps[step]?.target;
     let ticking = false;
 
+    const isMobile = window.innerWidth <= 760;
+    const NAV_SAFE = isMobile ? 80 : 16;   // Platz für die mobile Bottom-Nav
+    const HEADER_SAFE = 78;                 // Platz für den Sticky-Header
+
     const placeCard = (sp: SpotRect | null) => {
       const card = cardRef.current;
       if (!card) return;
       const cw = card.offsetWidth, ch = card.offsetHeight;
       const vw = window.innerWidth, vh = window.innerHeight;
-      if (!sp) { // zentriert
+      const gap = 12;
+      if (!sp) { // kein Ziel → zentriert
         setCardPos({ top: Math.max(12, (vh - ch) / 2), left: Math.max(12, (vw - cw) / 2) });
         return;
       }
-      // Karte direkt an den Spotlight andocken: bevorzugt darunter, sonst darüber.
-      const gap = 12;
+      // Mobil: Karte als feste untere Sheet – nie über dem Ziel (das oben liegt).
+      if (isMobile) {
+        setCardPos({ top: Math.max(12, vh - ch - NAV_SAFE), left: Math.max(12, (vw - cw) / 2) });
+        return;
+      }
+      // Desktop: direkt an den Spotlight andocken (darunter, sonst darüber).
       let top: number;
       if (sp.top + sp.height + gap + ch <= vh - 12) top = sp.top + sp.height + gap;
       else if (sp.top - gap - ch >= 12) top = sp.top - gap - ch;
@@ -273,16 +282,31 @@ export function DemoTour() {
         width: Math.min(window.innerWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
+      // Mobil: Spot nie unter die untere Karte reichen lassen (Ziele, die höher
+      // als der Bildschirm sind, werden auf den sichtbaren Bereich begrenzt).
+      if (isMobile) {
+        const ch = cardRef.current?.offsetHeight ?? 300;
+        const maxBottom = window.innerHeight - ch - NAV_SAFE - 12;
+        if (sp.top + sp.height > maxBottom) sp.height = Math.max(28, maxBottom - sp.top);
+      }
       setSpot(sp);
       placeCard(sp);
     };
 
     const el = findTarget(name);
-    if (el) el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
-    else setSpot(null);
+    if (el) {
+      if (isMobile) {
+        // Ziel in den oberen Bereich holen (über der unteren Karte). Instant,
+        // damit keine Smooth-Scroll-Races entstehen. Sticky-Header bleibt oben.
+        const delta = el.getBoundingClientRect().top - HEADER_SAFE;
+        if (Math.abs(delta) > 4) window.scrollBy({ top: delta, behavior: 'auto' });
+      } else {
+        el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+      }
+    } else setSpot(null);
 
     const raf = requestAnimationFrame(measure);
-    const settle = setTimeout(measure, 420);
+    const settle = setTimeout(measure, 220);
 
     const onWin = () => {
       if (ticking) return;
@@ -467,5 +491,17 @@ const TOUR_CSS = `
   .mdu-tour-overlay, .mdu-tour-card { animation:none; }
   .mdu-tour-spot, .mdu-tour-card { transition:none; }
   .mdu-tour-btn.primary { animation:none; }
+}
+/* Mobil: kompaktere Karte, damit sie als untere Sheet Platz für das
+   hervorgehobene Element oben lässt. */
+@media (max-width:760px) {
+  .mdu-tour-card { width:calc(100vw - 20px); max-height:60dvh; padding:16px 18px 12px; border-radius:16px; }
+  .mdu-tour-icon { width:42px; height:42px; font-size:22px; border-radius:12px; margin-bottom:8px; }
+  .mdu-tour-title { font-size:21px; margin-bottom:6px; }
+  .mdu-tour-body { font-size:13.5px; line-height:1.5; }
+  .mdu-tour-cta { margin-top:10px; }
+  .mdu-tour-dots { margin:12px 0 10px; }
+  .mdu-tour-btn { padding:9px 16px; }
+  .mdu-tour-count { margin-top:8px; }
 }
 `;
