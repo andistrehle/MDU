@@ -1,8 +1,8 @@
 -- ============================================================
--- MDU Platform — Migration 0024: Passnummer & Spieler aus Nachmeldung
+-- MDU Platform — Migration 0031: Passnummer & Spieler aus Nachmeldung
 -- ============================================================
 --
--- Im Supabase SQL Editor ausführen (nach 0023).
+-- Im Supabase SQL Editor ausführen (nach 0030).
 --
 -- Bei der Freigabe einer Nachmeldung erzeugt die Plattform einen zuordenbaren
 -- Spieler-Slug und eine VORLÄUFIGE Passnummer (Regel: höchste Passnummer der

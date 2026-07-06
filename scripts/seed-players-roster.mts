@@ -1,12 +1,12 @@
 // ============================================================
-// Übernahme-Seed: Spieler + Kader in die DB (Migration 0025)
+// Übernahme-Seed: Spieler + Kader in die DB (Migration 0032)
 // ============================================================
 //
 // Schreibt den statischen Spielerstamm (lib/data/players.ts) und die Kader-/
 // Team-Zuordnungen (lib/data/assignments.ts) in die DB-Tabellen `players` und
 // `player_assignments`. Idempotent (upsert) — kann gefahrlos erneut laufen.
 //
-// Voraussetzung: Migration 0025 gelaufen, .env.local mit Service-Role-Key.
+// Voraussetzung: Migration 0032 gelaufen, .env.local mit Service-Role-Key.
 // Start (aus Repo-Root):  npx tsx scripts/seed-players-roster.mts
 // ============================================================
 

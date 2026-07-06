@@ -99,19 +99,19 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       patch.license_provisional = true;
       patch.player_id = slug;
 
-      // Neuen Spieler + Kaderzuordnung in die DB übernehmen (Tabellen aus 0025).
+      // Neuen Spieler + Kaderzuordnung in die DB übernehmen (Tabellen aus 0032).
       // Best-effort: schlägt nicht durch, falls die Migration noch nicht lief.
       const seasonId = getCurrentSeason().id;
       const { error: pe } = await supabase.from('players').upsert({
         id: slug, first_name: n.first_name, last_name: n.last_name,
         license_number: gen.license, status: 'active', source: 'nomination',
       }, { onConflict: 'id' });
-      if (pe) console.warn('players upsert (Migration 0025 nötig?):', pe.message);
+      if (pe) console.warn('players upsert (Migration 0032 nötig?):', pe.message);
       const { error: ae } = await supabase.from('player_assignments').upsert({
         id: `pa-nom-${id}`, season_id: seasonId, team_id: n.team_id, player_id: slug,
         status: 'active', is_captain: false, source: 'nomination',
       }, { onConflict: 'id' });
-      if (ae) console.warn('player_assignments upsert (Migration 0025 nötig?):', ae.message);
+      if (ae) console.warn('player_assignments upsert (Migration 0032 nötig?):', ae.message);
     }
   }
 

@@ -1,8 +1,8 @@
 -- ============================================================
--- MDU Platform — Migration 0025: Spieler & Kader in die DB
+-- MDU Platform — Migration 0032: Spieler & Kader in die DB
 -- ============================================================
 --
--- Im Supabase SQL Editor ausführen (nach 0024).
+-- Im Supabase SQL Editor ausführen (nach 0031).
 --
 -- Überführt den Spielerstamm und die Kader-/Team-Zusammensetzung von der
 -- statischen Basis (lib/data) in die DB. Ab jetzt pflegt die Plattform diese
