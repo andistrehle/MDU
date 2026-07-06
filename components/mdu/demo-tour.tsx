@@ -187,35 +187,52 @@ export function DemoTour() {
   // 'center' = mittig, 'bottom'/'top' = feste Sheet (mobil, CSS-verankert).
   const [dock, setDock] = useState<'center' | 'bottom' | 'top' | 'desktop'>('center');
   const cardRef = useRef<HTMLDivElement>(null);
+  // Für welche Seiten-Ankunft die Auto-Anzeige bereits entschieden wurde.
+  // Verhindert, dass die Tour nach dem Wegklicken im selben Besuch neu aufpoppt.
+  const autoHandledRef = useRef<string | null>(null);
+  const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startTour = useCallback((id: TourId, built: TourStep[]) => {
     if (built.length === 0) return;
     setTourId(id); setSteps(built); setStep(0); setSpot(null); setVisible(true);
   }, []);
 
-  // Automatische Erst-Anzeige je nach Seite.
+  // Bei echtem Seitenwechsel: Merker zurücksetzen + geplanten Timer verwerfen.
+  // Dadurch entscheidet die Auto-Anzeige pro Ankunft nur EINMAL und poppt nach
+  // dem Wegklicken nicht im selben Besuch wieder auf – erscheint aber bei einem
+  // erneuten Homepage-Besuch wieder (bis Abschluss oder 3× weggeklickt).
+  useEffect(() => {
+    autoHandledRef.current = null;
+    if (autoTimerRef.current) { clearTimeout(autoTimerRef.current); autoTimerRef.current = null; }
+    return () => { if (autoTimerRef.current) { clearTimeout(autoTimerRef.current); autoTimerRef.current = null; } };
+  }, [pathname]);
+
+  // Automatische Erst-Anzeige je nach Seite (nur einmal pro Ankunft).
   useEffect(() => {
     if (visible) return;
+    if (autoHandledRef.current === pathname) return;
 
     // PUBLIC — Startseite (inkl. Neustart via ?tour=1)
     if (pathname === '/') {
       let forced = false;
       try { forced = new URLSearchParams(window.location.search).get('tour') === '1'; } catch { /* ignore */ }
       if (forced) {
+        autoHandledRef.current = '/';
         try { window.history.replaceState({}, '', '/'); } catch { /* ignore */ }
-        const t = setTimeout(() => startTour('public', PUBLIC_STEPS), 250);
-        return () => clearTimeout(t);
+        autoTimerRef.current = setTimeout(() => startTour('public', PUBLIC_STEPS), 250);
+        return;
       }
-      if (!eligible('public')) return;
-      const t = setTimeout(() => startTour('public', PUBLIC_STEPS), 700);
-      return () => clearTimeout(t);
+      autoHandledRef.current = '/';
+      if (eligible('public')) autoTimerRef.current = setTimeout(() => startTour('public', PUBLIC_STEPS), 700);
+      return;
     }
 
     // MEMBER — „Mein Bereich" nach erstem Login
-    if (pathname === '/mein-bereich' && !loading && user) {
-      if (!eligible('member')) return;
-      const t = setTimeout(() => startTour('member', buildMemberSteps()), 800);
-      return () => clearTimeout(t);
+    if (pathname === '/mein-bereich') {
+      if (loading || !user) return;   // noch nicht entscheidbar → später erneut
+      autoHandledRef.current = '/mein-bereich';
+      if (eligible('member')) autoTimerRef.current = setTimeout(() => startTour('member', buildMemberSteps()), 800);
+      return;
     }
   }, [pathname, user, loading, visible, startTour]);
 
