@@ -124,7 +124,7 @@ function ÜbersichtTab({ rows, league, matches, stats, onSelectPlayer }: Props &
               { k: 'Saison',  v: league.season },
               { k: 'Teams',   v: String(rows.length) },
               { k: 'Spiele',  v: leagueStats ? `${leagueStats.totalGames} gespielt` : '—' },
-              { k: 'Status',  v: league.type === 'playoff' ? 'Playoffs · laufend' : 'Reguläre Saison · abgeschlossen' },
+              { k: 'Status',  v: league.type === 'playoff' ? 'Playoffs · abgeschlossen' : 'Reguläre Saison · abgeschlossen' },
             ].map(item => (
               <div key={item.k} style={{ borderLeft: `3px solid ${league.color}`, paddingLeft: 10 }}>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginBottom: 2 }}>
@@ -299,32 +299,28 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
   return (
     <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px' }}>
       {scheduled.length === 0 ? (
-        !isPlayoff ? (
-          <div style={{
-            background: 'rgba(16,185,129,0.08)',
-            border: '1px solid rgba(16,185,129,0.25)',
-            borderRadius: 10, padding: '18px 22px',
-            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          }}>
-            <Icon name="check" size={16} stroke={2} style={{ color: '#10B981', flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
-                Reguläre Saison abgeschlossen
-              </div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                {league.name} · Saison {league.season} · alle Spieltage gespielt
-              </div>
+        <div style={{
+          background: 'rgba(16,185,129,0.08)',
+          border: '1px solid rgba(16,185,129,0.25)',
+          borderRadius: 10, padding: '18px 22px',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+        }}>
+          <Icon name="check" size={16} stroke={2} style={{ color: '#10B981', flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
+              {isPlayoff ? 'Playoffs abgeschlossen' : 'Reguläre Saison abgeschlossen'}
             </div>
-            <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{
-              fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-              color: 'var(--th-text-muted)', textDecoration: 'underline', flexShrink: 0,
-            }}>
-              Spielplan auf dartunion.de →
-            </a>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
+              {league.name} · Saison {league.season} · alle Spiele gespielt
+            </div>
           </div>
-        ) : (
-          <EmptyState icon="calendar" text="Spielplan folgt" sub="Upcoming Playoff-Spiele folgen auf" />
-        )
+          <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{
+            fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
+            color: 'var(--th-text-muted)', textDecoration: 'underline', flexShrink: 0,
+          }}>
+            Spielplan auf dartunion.de →
+          </a>
+        </div>
       ) : (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -397,21 +393,21 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
   return (
     <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px' }}>
 
-      {/* Status banner */}
+      {/* Status banner — Saison 2025/2026 ist abgeschlossen (auch die Playoffs) */}
       <div style={{
-        background: isPlayoff ? 'rgba(212,0,0,0.08)' : 'rgba(16,185,129,0.08)',
-        border: `1px solid ${isPlayoff ? 'var(--th-accent-a25)' : 'rgba(16,185,129,0.25)'}`,
+        background: 'rgba(16,185,129,0.08)',
+        border: '1px solid rgba(16,185,129,0.25)',
         borderRadius: 10, padding: '14px 18px', marginBottom: 20,
         display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
       }}>
         <Icon
-          name={isPlayoff ? 'lightning' : 'check'}
+          name="check"
           size={16} stroke={2}
-          style={{ color: isPlayoff ? 'var(--th-accent)' : '#10B981', flexShrink: 0 }}
+          style={{ color: '#10B981', flexShrink: 0 }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
-            {isPlayoff ? 'Playoffs · laufend' : 'Reguläre Saison · abgeschlossen'}
+            {isPlayoff ? 'Playoffs · abgeschlossen' : 'Reguläre Saison · abgeschlossen'}
           </div>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>
             {league.name} · Saison {league.season}
