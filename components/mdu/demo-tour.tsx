@@ -149,6 +149,17 @@ function findTarget(name?: string): HTMLElement | null {
   return null;
 }
 
+/** Steckt das Element in einem sticky/fixed Container (Header) → scrollt nicht mit. */
+function isStickyish(el: HTMLElement | null): boolean {
+  let n: HTMLElement | null = el;
+  while (n && n !== document.body) {
+    const pos = getComputedStyle(n).position;
+    if (pos === 'sticky' || pos === 'fixed') return true;
+    n = n.parentElement;
+  }
+  return false;
+}
+
 /** „Mein Bereich"-Schritte auf die tatsächlich sichtbaren Kacheln reduzieren. */
 function buildMemberSteps(): TourStep[] {
   if (typeof document === 'undefined') return MEMBER_CANDIDATES;
@@ -172,6 +183,9 @@ export function DemoTour() {
   const [tourId, setTourId] = useState<TourId | null>(null);
   const [spot, setSpot] = useState<SpotRect | null>(null);
   const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
+  // Andockrichtung der Karte: 'desktop' = frei am Element (via cardPos),
+  // 'center' = mittig, 'bottom'/'top' = feste Sheet (mobil, CSS-verankert).
+  const [dock, setDock] = useState<'center' | 'bottom' | 'top' | 'desktop'>('center');
   const cardRef = useRef<HTMLDivElement>(null);
 
   const startTour = useCallback((id: TourId, built: TourStep[]) => {
@@ -245,23 +259,17 @@ export function DemoTour() {
     const isMobile = window.innerWidth <= 760;
     const NAV_SAFE = isMobile ? 80 : 16;   // Platz für die mobile Bottom-Nav
     const HEADER_SAFE = 78;                 // Platz für den Sticky-Header
+    const gap = 12;
+    // Sichtbare Viewport-Höhe (iOS: ohne Adressleiste) für die Scroll-Rechnung.
+    const vpH = () => window.visualViewport?.height ?? window.innerHeight;
+    // Entschiedene Andockrichtung dieses Schritts (synchron, ohne Effekt-Neustart).
+    let curDock: 'center' | 'bottom' | 'top' | 'desktop' = 'center';
 
-    const placeCard = (sp: SpotRect | null) => {
-      const card = cardRef.current;
-      if (!card) return;
+    // Desktop: Karte frei am Element positionieren.
+    const placeDesktop = (sp: SpotRect) => {
+      const card = cardRef.current; if (!card) return;
       const cw = card.offsetWidth, ch = card.offsetHeight;
       const vw = window.innerWidth, vh = window.innerHeight;
-      const gap = 12;
-      if (!sp) { // kein Ziel → zentriert
-        setCardPos({ top: Math.max(12, (vh - ch) / 2), left: Math.max(12, (vw - cw) / 2) });
-        return;
-      }
-      // Mobil: Karte als feste untere Sheet – nie über dem Ziel (das oben liegt).
-      if (isMobile) {
-        setCardPos({ top: Math.max(12, vh - ch - NAV_SAFE), left: Math.max(12, (vw - cw) / 2) });
-        return;
-      }
-      // Desktop: direkt an den Spotlight andocken (darunter, sonst darüber).
       let top: number;
       if (sp.top + sp.height + gap + ch <= vh - 12) top = sp.top + sp.height + gap;
       else if (sp.top - gap - ch >= 12) top = sp.top - gap - ch;
@@ -273,7 +281,7 @@ export function DemoTour() {
 
     const measure = () => {
       const el = findTarget(name);
-      if (!el) { setSpot(null); placeCard(null); return; }
+      if (!el) { setSpot(null); return; }
       const r = el.getBoundingClientRect();
       const pad = 8;
       const sp: SpotRect = {
@@ -282,31 +290,66 @@ export function DemoTour() {
         width: Math.min(window.innerWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
-      // Mobil: Spot nie unter die untere Karte reichen lassen (Ziele, die höher
-      // als der Bildschirm sind, werden auf den sichtbaren Bereich begrenzt).
-      if (isMobile) {
-        const ch = cardRef.current?.offsetHeight ?? 300;
-        const maxBottom = window.innerHeight - ch - NAV_SAFE - 12;
-        if (sp.top + sp.height > maxBottom) sp.height = Math.max(28, maxBottom - sp.top);
+      // Spot nie hinter die Karte reichen lassen — anhand der echten Kartenlage.
+      const cardRect = cardRef.current?.getBoundingClientRect();
+      if (cardRect && cardRect.height > 0) {
+        if (curDock === 'bottom' && sp.top + sp.height > cardRect.top - gap) {
+          sp.height = Math.max(28, cardRect.top - gap - sp.top);
+        } else if (curDock === 'top' && sp.top < cardRect.bottom + gap) {
+          const d = cardRect.bottom + gap - sp.top;
+          sp.top += d; sp.height = Math.max(28, sp.height - d);
+        }
       }
       setSpot(sp);
-      placeCard(sp);
+      if (curDock === 'desktop') placeDesktop(sp);
     };
 
     const el = findTarget(name);
-    if (el) {
-      if (isMobile) {
-        // Ziel in den oberen Bereich holen (über der unteren Karte). Instant,
-        // damit keine Smooth-Scroll-Races entstehen. Sticky-Header bleibt oben.
-        const delta = el.getBoundingClientRect().top - HEADER_SAFE;
-        if (Math.abs(delta) > 4) window.scrollBy({ top: delta, behavior: 'auto' });
+    if (!el) {
+      setSpot(null);
+      curDock = 'center';
+      // zentrierte Karte (Intro/Outro)
+      const card = cardRef.current;
+      if (card) setCardPos({ top: Math.max(12, (vpH() - card.offsetHeight) / 2), left: Math.max(12, (window.innerWidth - card.offsetWidth) / 2) });
+      setDock('center');
+    } else if (!isMobile) {
+      curDock = 'desktop';
+      setDock('desktop');
+      el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+    } else if (isStickyish(el)) {
+      // Sticky-Header-Ziel (Design/Glocke/Login): bleibt oben → Karte unten, kein Scroll.
+      curDock = 'bottom';
+      setDock('bottom');
+    } else {
+      // Mobil, scrollbares Ziel: Karte unten, wenn das Ziel über die Karte passt,
+      // sonst Karte oben und Ziel darunter.
+      const ch = cardRef.current?.offsetHeight ?? Math.round(vpH() * 0.5);
+      const vh = vpH();
+      const doc = document.scrollingElement ?? document.documentElement;
+      const maxScroll = Math.max(0, doc.scrollHeight - window.innerHeight);
+      const cur = window.scrollY;
+      const r0 = el.getBoundingClientRect();
+      const clamp = (v: number) => Math.max(0, Math.min(maxScroll, v));
+      // Kandidat A: Karte UNTEN, Ziel in [HEADER_SAFE, vh - NAV_SAFE - ch - gap]
+      const regABot = vh - NAV_SAFE - ch - gap;
+      const scrollA = clamp(cur + (r0.top + r0.height / 2) - (HEADER_SAFE + regABot) / 2);
+      const tTopA = r0.top - (scrollA - cur);
+      if (tTopA + r0.height <= regABot + 6 && tTopA >= HEADER_SAFE - 6) {
+        curDock = 'bottom';
+        setDock('bottom');
+        window.scrollTo({ top: scrollA, behavior: 'auto' });
       } else {
-        el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+        // Karte OBEN, Ziel in [gap+ch+gap, vh - NAV_SAFE]
+        const regBTop = gap + ch + gap;
+        const scrollB = clamp(cur + (r0.top + r0.height / 2) - (regBTop + (vh - NAV_SAFE)) / 2);
+        curDock = 'top';
+        setDock('top');
+        window.scrollTo({ top: scrollB, behavior: 'auto' });
       }
-    } else setSpot(null);
+    }
 
     const raf = requestAnimationFrame(measure);
-    const settle = setTimeout(measure, 220);
+    const settle = setTimeout(measure, 240);
 
     const onWin = () => {
       if (ticking) return;
@@ -315,11 +358,13 @@ export function DemoTour() {
     };
     window.addEventListener('resize', onWin);
     window.addEventListener('scroll', onWin, true);
+    window.visualViewport?.addEventListener('resize', onWin);
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(settle);
       window.removeEventListener('resize', onWin);
       window.removeEventListener('scroll', onWin, true);
+      window.visualViewport?.removeEventListener('resize', onWin);
     };
   }, [visible, step, steps]);
 
@@ -364,13 +409,13 @@ export function DemoTour() {
         className="mdu-tour-card"
         ref={cardRef}
         tabIndex={-1}
-        style={{
-          position: 'fixed',
-          top: cardPos?.top ?? 0,
-          left: cardPos?.left ?? 0,
-          visibility: cardPos ? 'visible' : 'hidden',
-          pointerEvents: 'auto',
-        }}
+        style={
+          dock === 'bottom'
+            ? { position: 'fixed', left: 0, right: 0, bottom: 80, marginLeft: 'auto', marginRight: 'auto', pointerEvents: 'auto' }
+            : dock === 'top'
+            ? { position: 'fixed', left: 0, right: 0, top: 12, marginLeft: 'auto', marginRight: 'auto', pointerEvents: 'auto' }
+            : { position: 'fixed', top: cardPos?.top ?? 0, left: cardPos?.left ?? 0, visibility: cardPos ? 'visible' : 'hidden', pointerEvents: 'auto' }
+        }
         onClick={e => e.stopPropagation()}
       >
           <button type="button" className="mdu-tour-x" onClick={skip} aria-label="Tour schließen">×</button>
