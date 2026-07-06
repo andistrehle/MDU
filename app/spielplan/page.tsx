@@ -1,8 +1,11 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { MatchCard } from '@/components/mdu/match-card';
 import { getScheduledMatchesByLeague, formatScheduledDate } from '@/lib/data/matches';
-import { findLeague, LEAGUES, getVenueForTeamInSeason } from '@/lib/data';
+import { findLeague, getVenueForTeamInSeason } from '@/lib/data';
 
 /** Canonical league display order for the Spielplan grouping */
 const LEAGUE_ORDER = [
@@ -16,7 +19,7 @@ export default function SpielplanPage() {
   const rawGroups = getScheduledMatchesByLeague();
 
   // Sort groups by canonical league order; unknown leagues go last
-  const groups = [...rawGroups].sort((a, b) => {
+  const allGroups = [...rawGroups].sort((a, b) => {
     const ia = LEAGUE_ORDER.indexOf(a.leagueId);
     const ib = LEAGUE_ORDER.indexOf(b.leagueId);
     if (ia === -1 && ib === -1) return a.leagueId.localeCompare(b.leagueId);
@@ -25,7 +28,14 @@ export default function SpielplanPage() {
     return ia - ib;
   });
 
-  const totalCount = groups.reduce((s, g) => s + g.matches.length, 0);
+  // Liga-Filter: null = „Alle Ligen" (Standard).
+  const [selected, setSelected] = useState<string | null>(null);
+  const groups = useMemo(
+    () => (selected ? allGroups.filter(g => g.leagueId === selected) : allGroups),
+    [allGroups, selected],
+  );
+
+  const totalCount = allGroups.reduce((s, g) => s + g.matches.length, 0);
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -48,6 +58,35 @@ export default function SpielplanPage() {
             Spielplan
           </h1>
         </div>
+
+        {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}
+        {totalCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
+            <label htmlFor="liga-filter" style={{
+              fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
+              letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)',
+            }}>
+              Liga
+            </label>
+            <select
+              id="liga-filter"
+              value={selected ?? ''}
+              onChange={e => setSelected(e.target.value || null)}
+              style={{
+                padding: '10px 14px', background: 'var(--th-bg-card)',
+                border: '1.5px solid var(--th-line-10)', borderRadius: 8,
+                color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)',
+                fontSize: 14, fontWeight: 600, outline: 'none', cursor: 'pointer', minWidth: 220,
+              }}
+            >
+              <option value="">Alle Ligen</option>
+              {allGroups.map(g => {
+                const league = findLeague(g.leagueId);
+                return <option key={g.leagueId} value={g.leagueId}>{league?.name ?? g.leagueId.toUpperCase()}</option>;
+              })}
+            </select>
+          </div>
+        )}
 
         {totalCount === 0 ? (
           <div style={{
