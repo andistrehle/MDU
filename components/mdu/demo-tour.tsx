@@ -311,13 +311,11 @@ export function DemoTour() {
         width: Math.min(document.documentElement.clientWidth - 16, r.width + pad * 2),
         height: r.height + pad * 2,
       };
-      // Mobil (ohne Sticky-Ziel): Andockseite live anhand ECHTER Überlappung mit
-      // der Karte wählen – überlappt das Ziel die untere Karte, wandert die Karte
-      // nach oben (und umgekehrt). Robust auch für die unterste Kachel.
+      // Mobil (ohne Sticky-Ziel): Überlappt das Ziel die untere Karte, wandert die
+      // Karte EINMALIG nach oben. Kein Zurück-Flip → keine Oszillation/Stroboskop.
       const cardRect = cardRef.current?.getBoundingClientRect();
-      if (isMobile && !sticky && cardRect && cardRect.height > 0) {
-        if (curDock === 'bottom' && r.bottom > cardRect.top - 2) { curDock = 'top'; setDock('top'); }
-        else if (curDock === 'top' && r.top < cardRect.bottom + 2) { curDock = 'bottom'; setDock('bottom'); }
+      if (isMobile && !sticky && curDock === 'bottom' && cardRect && cardRect.height > 0) {
+        if (r.bottom > cardRect.top - 2) { curDock = 'top'; setDock('top'); }
       }
       // Spot nie hinter die Karte reichen lassen — Kartenlage in Dokument-Koords.
       if (cardRect && cardRect.height > 0) {
@@ -469,7 +467,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v6</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length} · v7</div>
         </div>
       </div>
     </>
