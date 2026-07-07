@@ -25,8 +25,7 @@ export default function Datenschutz() {
 
       <h2>Verantwortlicher</h2>
       <p>
-        <span className="placeholder">[Name]</span>,{" "}
-        <span className="placeholder">[Anschrift]</span>
+        Andreas Strehle, Weyarner Str. 55, 81547 München
         <br />
         E-Mail: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
       </p>

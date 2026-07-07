@@ -24,11 +24,8 @@ export const MAX_HISTORY_TURNS = 12;
 export const RATE_LIMIT_MAX_REQUESTS = 60;
 export const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 Minuten
 
-/**
- * Kontaktadresse von Andreas (Footer + Fallback-Hinweise).
- * PLATZHALTER — vor Go-live durch echte Adresse ersetzen.
- */
-export const CONTACT_EMAIL = "andreas.strehle@example.com";
+/** Kontaktadresse von Andreas (Footer + Fallback-Hinweise). */
+export const CONTACT_EMAIL = "andi_strehle@hotmail.com";
 
 /** Hartkodierte Begrüßung (kein API-Call). */
 export const GREETING =

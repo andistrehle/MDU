@@ -19,11 +19,11 @@ export default function Impressum() {
 
       <h2>Verantwortlich für den Inhalt</h2>
       <p>
-        <span className="placeholder">[Name]</span>
+        Andreas Strehle
         <br />
-        <span className="placeholder">[Straße und Hausnummer]</span>
+        Weyarner Str. 55
         <br />
-        <span className="placeholder">[PLZ und Ort]</span>
+        81547 München
         <br />
         Deutschland
       </p>
@@ -31,8 +31,6 @@ export default function Impressum() {
       <h2>Kontakt</h2>
       <p>
         E-Mail: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-        <br />
-        Telefon: <span className="placeholder">[optional]</span>
       </p>
 
       <h2>Hinweis</h2>
