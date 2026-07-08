@@ -86,7 +86,9 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 
 ## 13. P1-Probleme (hoch)
 
-### REV-010 · Fehlender Rollen-Check auf `/api/notifications/email`
+> **Umsetzungsstand (08.07.2026):** Alle 5 offenen P1 sind behoben und auf `main` — REV-010 (Mail-Rollen-Check), REV-040 (Einreichen über Wizard), REV-041 (Ziel-Saison), REV-050 (OCR-Watchdog + maxDuration), REV-070 (Nav-Breakpoint 1080px, behebt zugleich REV-076). REV-090 war ein Fehlalarm (s. o.). Hinweis: Der Mail-Rollen-Check konnte in der Review-Session mangels Supabase-ENV nur bis „503 nicht konfiguriert" getestet werden; die 401/403-Pfade greifen produktiv mit gesetzter ENV.
+
+### REV-010 · Fehlender Rollen-Check auf `/api/notifications/email` — ✅ ERLEDIGT
 - **Priorität:** P1 · **Bereich:** API/Sicherheit · **Route:** `app/api/notifications/email/route.ts:28-46` · **Rolle:** jede:r Eingeloggte · **Gerät:** alle
 - **Problem:** Route prüft nur ein gültiges Token, keine Rolle. `to/name/teamName/reason` frei aus dem Body; `VALID_TYPES` enthält `registration_approved/-rejected/account_activated`. Ein Spieler kann offiziell aussehende „Anmeldung freigegeben/abgelehnt"-Mails über die verifizierte MDU-Domain an beliebige Adressen senden.
 - **Erwartung:** Nur Ligaleitung/Super-Admin dürfen solche Mails auslösen; Ziel-Adresse an die betroffene Registrierung gebunden.
@@ -289,7 +291,7 @@ Legende: Ö=öffentlich · L=Login nötig · Rollen: G(ast)/S(pieler)/K(apitän)
 - **Geprüfte Seiten/Routen:** 48 Seiten + 12 API-Routen (60)
 - **Geprüfte Rollen:** 5 (Gast, Spieler, Kapitän, Ligaleitung, Super Admin)
 - **Geräte:** Desktop + Mobile (Layout/Breakpoint-Analyse 320–1920px)
-- **Findings:** P0 = 0 · P1 = 5 (REV-090 nach Nachprüfung Fehlalarm) · P2 = 28 (REV-094 erledigt) · P3 = 36 (Σ 69 offen)
+- **Findings:** P0 = 0 · P1 = 5 **alle erledigt** (REV-090 war Fehlalarm) · P2 = 28 (REV-094 erledigt) · P3 = 35 offen (REV-076 miterledigt) · **offen gesamt: 63** (P2 + P3)
 - **Build:** ✅ grün · **Typecheck:** ✅ · **Lint:** 31 Punkte (build-neutral)
 
 ---

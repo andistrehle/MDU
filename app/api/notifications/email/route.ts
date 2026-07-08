@@ -9,7 +9,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
 import { sendRegistrationEmail, type EmailType } from '@/lib/server/email/send-email';
 
 export const runtime = 'nodejs';
@@ -25,24 +25,21 @@ const VALID_TYPES: EmailType[] = [
 
 const REASON_REQUIRED: EmailType[] = ['registration_rejected', 'registration_changes_requested'];
 
+// Offizielle Entscheidungs-/Freischalt-Mails dürfen NUR Ligaleitung/Super-Admin
+// auslösen. `registration_submitted` (Eingangsbestätigung an den Antragsteller)
+// bleibt für eingeloggte Teamkapitäne erlaubt.
+const ADMIN_ONLY_TYPES: EmailType[] = [
+  'registration_approved',
+  'registration_rejected',
+  'registration_changes_requested',
+  'account_activated',
+];
+
 export async function POST(request: Request) {
-  // ── Auth: gültiges Supabase-Token verlangen ─────────────────
-  const authHeader = request.headers.get('authorization') ?? '';
-  const token = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : '';
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    return NextResponse.json({ error: 'Supabase nicht konfiguriert.' }, { status: 503 });
-  }
-  if (!token) {
-    return NextResponse.json({ error: 'Nicht authentifiziert.' }, { status: 401 });
-  }
-
-  const authClient = createClient(url, anonKey, { auth: { persistSession: false } });
-  const { data: userData, error: authError } = await authClient.auth.getUser(token);
-  if (authError || !userData.user) {
-    return NextResponse.json({ error: 'Ungültige Sitzung.' }, { status: 401 });
+  // ── Auth: gültiges Token + Rolle laden ──────────────────────
+  const auth = await authenticateRequest(request);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.message }, { status: auth.status });
   }
 
   // ── Eingabe prüfen ──────────────────────────────────────────
@@ -66,6 +63,10 @@ export async function POST(request: Request) {
 
   if (!VALID_TYPES.includes(type)) {
     return NextResponse.json({ error: 'Unbekannter E-Mail-Typ.' }, { status: 400 });
+  }
+  // Offizielle Mails (Freigabe/Ablehnung/Nachbesserung/Freischaltung) nur für Admins.
+  if (ADMIN_ONLY_TYPES.includes(type) && !isAdminUser(auth.user)) {
+    return NextResponse.json({ error: 'Keine Berechtigung für diesen E-Mail-Typ.' }, { status: 403 });
   }
   if (!to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) {
     return NextResponse.json({ error: 'Ungültige Empfängeradresse.' }, { status: 400 });

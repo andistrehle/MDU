@@ -39,8 +39,8 @@ export function DemoTourButton() {
           transition:background 150ms ease, transform 150ms ease;
         }
         .mdu-demo-tour-btn:hover { background:var(--th-accent); color:#fff; transform:translateY(-1px); }
-        /* Mobil: über der Bottom-Navigation und kompakter. */
-        @media (max-width:760px) {
+        /* Sobald die Bottom-Navigation sichtbar ist (≤1080px): darüber platzieren. */
+        @media (max-width:1080px) {
           .mdu-demo-tour-btn { right:12px; bottom:86px; padding:10px 14px; font-size:12px; }
         }
         @media print { .mdu-demo-tour-btn { display:none; } }

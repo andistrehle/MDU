@@ -6,13 +6,10 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canStartRegistration } from '@/lib/auth/roles';
 import {
-  listMyRegistrations, submitRegistration,
+  listMyRegistrations,
   REGISTRATION_STATUS_LABELS, type TeamRegistration,
 } from '@/lib/supabase/registrations';
-import { triggerRegistrationEmail } from '@/lib/supabase/notifications';
-import { getCurrentSeason } from '@/lib/data';
-
-const SEASON = getCurrentSeason();
+import { listSeasons } from '@/lib/supabase/seasons';
 
 function statusColor(s: TeamRegistration['status']): string {
   if (s === 'approved') return 'var(--th-win)';
@@ -25,30 +22,14 @@ export default function MeineAnmeldungenPage() {
   const { user, loading } = useAuth();
   const allowed = canStartRegistration(user);
   const [rows, setRows] = useState<TeamRegistration[] | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [seasonNames, setSeasonNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (allowed) listMyRegistrations().then(setRows);
+    if (!allowed) return;
+    listMyRegistrations().then(setRows);
+    // Ziel-Saison je Anmeldung lesbar machen (DB-Saisons; Fallback = ID).
+    listSeasons().then(ss => setSeasonNames(Object.fromEntries(ss.map(s => [s.id, s.name]))));
   }, [allowed]);
-
-  async function onSubmit(id: string) {
-    setBusyId(id);
-    const { error } = await submitRegistration(id);
-    if (!error) {
-      const reg = (rows ?? []).find(r => r.id === id);
-      if (reg) {
-        await triggerRegistrationEmail({
-          type: 'registration_submitted',
-          to: reg.contact_email,
-          name: reg.contact_name,
-          teamName: reg.team_name,
-          registrationId: id,
-        });
-      }
-    }
-    setRows(await listMyRegistrations());
-    setBusyId(null);
-  }
 
   return (
     <MemberShell title="Meine Anmeldungen">
@@ -76,7 +57,7 @@ export default function MeineAnmeldungenPage() {
                           <div style={{ flex: 1, minWidth: 160 }}>
                             <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>{r.team_name}</div>
                             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                              Saison {SEASON.name} · {r.is_new_team ? 'neue Mannschaft' : 'bestehende Mannschaft'}
+                              Saison {seasonNames[r.season_id] ?? r.season_id} · {r.is_new_team ? 'neue Mannschaft' : 'bestehende Mannschaft'}
                               {r.submitted_at ? ` · eingereicht ${new Date(r.submitted_at).toLocaleDateString('de-DE')}` : ''}
                             </div>
                           </div>
@@ -99,10 +80,10 @@ export default function MeineAnmeldungenPage() {
                             <Link href={`/mein-bereich/mannschaft-anmelden?id=${r.id}`} style={ghostBtn}>Bearbeiten</Link>
                           )}
                           {editable && (
-                            <button onClick={() => onSubmit(r.id)} disabled={busyId === r.id}
-                              style={{ padding: '8px 16px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
-                              {busyId === r.id ? '…' : (r.status === 'changes_requested' ? 'Erneut einreichen' : 'Einreichen')}
-                            </button>
+                            <Link href={`/mein-bereich/mannschaft-anmelden?id=${r.id}`}
+                              style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, textDecoration: 'none' }}>
+                              {r.status === 'changes_requested' ? 'Überarbeiten & einreichen' : 'Prüfen & einreichen'}
+                            </Link>
                           )}
                           {!editable && (
                             <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>

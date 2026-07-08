@@ -22,6 +22,13 @@ import type { GameMatch } from '@/lib/data';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+// Vision-Erkennung kann für Mehrseiten-Berichte länger dauern — Function-Timeout
+// anheben (Vercel clamped auf das Plan-Limit).
+export const maxDuration = 60;
+
+// Grace-Fenster: bleibt ein „processing"-Lauf länger als das hängen (Timeout/
+// Absturz), gilt er als abgebrochen und darf neu gestartet werden.
+const OCR_STALE_MS = 3 * 60 * 1000;
 
 const BUCKET = 'match-report-uploads';
 const EMPTY_CTX: OcrMatchContext = {
@@ -49,7 +56,15 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
   if (!ownsUpload) return NextResponse.json({ error: 'Keine Berechtigung für diesen Upload.' }, { status: 403 });
 
   // Idempotenz: laufend/abgeschlossen nicht erneut (kostenpflichtig) ausführen.
-  if (upload.ocr_status === 'processing') return NextResponse.json({ error: 'Erkennung läuft bereits.' }, { status: 409 });
+  // Ausnahme: ein „processing", das länger als das Grace-Fenster her ist, gilt als
+  // hängengeblieben (Timeout/Absturz) und darf neu gestartet werden — sonst bliebe
+  // der Upload für immer blockiert.
+  if (upload.ocr_status === 'processing') {
+    const startedAt = upload.ocr_started_at ? new Date(upload.ocr_started_at).getTime() : 0;
+    const stale = !startedAt || (Date.now() - startedAt) > OCR_STALE_MS;
+    if (!stale) return NextResponse.json({ error: 'Erkennung läuft bereits.' }, { status: 409 });
+    // sonst: unten als neuer Versuch behandeln (Status wird gleich neu gesetzt).
+  }
   if (upload.ocr_completed_at && upload.ocr_status !== 'failed') {
     return NextResponse.json({
       status: upload.ocr_status, matchReportId: upload.match_report_id ?? null,

@@ -419,6 +419,26 @@ body {
 }
 
 /* =====================================================
+   Navigation ab Tablet-Breite auf Mobile-Logik (Bottom-Nav)
+   -----------------------------------------------------
+   Die Desktop-Top-Nav (8 Links) + Theme-Toggle + Account + Glocke passen
+   zwischen ~769–1080px nicht mehr nebeneinander und würden stumm abgeschnitten.
+   Daher schon ab 1080px die mobile Header-/Bottom-Nav zeigen. Das Inhalts-
+   Layout (mdu-mobile-only/desktop-only, Hero, Tabellen) bleibt bis 768px.
+   ===================================================== */
+@media (max-width: 1080px) {
+  .mdu-header-nav     { display: none !important; }
+  .mdu-header-login   { display: none !important; }
+  .mdu-mobile-actions { display: flex !important; }
+  .mdu-mobile-login   { display: inline-flex !important; align-items: center; }
+  .mdu-bottom-nav     {
+    display: flex !important;
+    padding-bottom: max(26px, env(safe-area-inset-bottom)) !important;
+  }
+  body { padding-bottom: 80px; }
+}
+
+/* =====================================================
    @media (max-width: 768px)
    ===================================================== */
 @media (max-width: 768px) {
