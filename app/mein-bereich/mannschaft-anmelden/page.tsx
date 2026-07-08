@@ -51,6 +51,8 @@ export default function MannschaftAnmeldenPage() {
   const [acceptedRules, setAcceptedRules] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  // Ungespeicherte Änderungen? → Warnung vor Reload/Schließen/Zurück (REV-042).
+  const [dirty, setDirty] = useState(false);
   const [matchHint, setMatchHint] = useState<string | null>(null);
   // Aus den Ergebnissen der abgeschlossenen Saison vorbestimmte Liga (für Default + Abwärts-Warnung).
   const [predetermined, setPredetermined] = useState<PredeterminedLeague | null>(null);
@@ -64,6 +66,15 @@ export default function MannschaftAnmeldenPage() {
   const didPreselect = useRef(false);
   // Fallback-Upload-Ordner (nur für Admins ohne Team/Spieler relevant).
   const uploadIdRef = useRef(Math.random().toString(36).slice(2, 10));
+
+  // Warnung vor Datenverlust bei ungespeicherten Änderungen (Reload/Tab schließen/
+  // Zurück-Button des Browsers). Greift NICHT bei App-internen Link-Klicks.
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [dirty]);
 
   // Bestehenden Entwurf laden (?id=…)
   useEffect(() => {
@@ -255,7 +266,7 @@ export default function MannschaftAnmeldenPage() {
     setBusy(true); setMsg(null);
     const id = await persist();
     setBusy(false);
-    if (id) setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' });
+    if (id) { setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' }); setDirty(false); }
   }
 
   async function onSubmit() {
@@ -283,6 +294,7 @@ export default function MannschaftAnmeldenPage() {
       registrationId: id,
     });
     setBusy(false);
+    setDirty(false);   // erfolgreich abgesendet → keine Verlust-Warnung mehr
     router.push('/mein-bereich/anmeldungen');
   }
 
@@ -299,7 +311,7 @@ export default function MannschaftAnmeldenPage() {
         : !user ? <Notice title="Bitte einloggen">Die Mannschaftsanmeldung ist nur mit Konto verfügbar.{' '}<LoginLink /></Notice>
         : !allowed ? <Notice title="Keine Berechtigung">Mannschaften anmelden dürfen Teamkapitäne und die Ligaleitung.</Notice>
         : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 680 }}>
+          <div onChange={() => setDirty(true)} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 680 }}>
             {msg && (
               <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{
                 padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13,
