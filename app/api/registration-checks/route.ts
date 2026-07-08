@@ -17,6 +17,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { findTeam, findPlayer, getPlayerDisplayName } from '@/lib/data';
 import { sendRegistrationEmail } from '@/lib/server/email/send-email';
+import { rateLimit, clientIp } from '@/lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,11 +27,24 @@ const KONTAKT_EMAIL = 'kontakt@mdudarts.de';
 export async function POST(request: Request) {
   if (!supabaseAdmin) return NextResponse.json({ error: 'not_configured' }, { status: 200 });
 
+  // Missbrauchsschutz: diese Route ist bewusst unauthentifiziert (Registrierung),
+  // deshalb IP-basiertes Rate-Limit gegen Enumeration/Mail-Flut.
+  const ip = clientIp(request);
+  if (!rateLimit(`regchecks:${ip}`, 40, 60_000)) {
+    return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+  }
+
   let body: Record<string, unknown>;
   try { body = (await request.json()) as Record<string, unknown>; }
   catch { return NextResponse.json({ error: 'bad_request' }, { status: 400 }); }
 
   const action = String(body.action ?? '');
+
+  // Mailauslösende Aktionen zusätzlich streng limitieren.
+  if ((action === 'link-reset-request' || action === 'login-help-request')
+      && !rateLimit(`regmail:${ip}`, 5, 600_000)) {
+    return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+  }
 
   // ── Account-Registrierung: Spieler-/Kapitän-Eindeutigkeit ──
   if (action === 'account') {

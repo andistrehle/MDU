@@ -14,12 +14,18 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendRegistrationEmail } from '@/lib/server/email/send-email';
 import { findPlayer, getPlayerDisplayName } from '@/lib/data';
+import { rateLimit, clientIp } from '@/lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   if (!supabaseAdmin) return NextResponse.json({ status: 'skipped', reason: 'no_admin' }, { status: 200 });
+
+  // Missbrauchsschutz gegen Mail-Flut/Enumeration (öffentlich aufrufbar).
+  if (!rateLimit(`newuser:${clientIp(request)}`, 6, 600_000)) {
+    return NextResponse.json({ status: 'skipped', reason: 'rate_limited' }, { status: 429 });
+  }
 
   let email = '';
   try { email = String((await request.json())?.email ?? '').trim(); } catch { /* leer */ }

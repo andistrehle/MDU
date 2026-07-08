@@ -14,6 +14,7 @@
 import { NextResponse } from 'next/server';
 import { sendContactEmail } from '@/lib/server/email/send-contact';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { rateLimit, clientIp } from '@/lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,11 @@ const KONTAKT_EMAIL = 'kontakt@mdudarts.de';
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export async function POST(request: Request) {
+  // Missbrauchsschutz gegen Mail-Flut (neben dem Honeypot): IP-basiertes Limit.
+  if (!rateLimit(`kontakt:${clientIp(request)}`, 5, 600_000)) {
+    return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 });
+  }
+
   let body: Record<string, unknown>;
   try { body = (await request.json()) as Record<string, unknown>; }
   catch { return NextResponse.json({ ok: false, error: 'bad_request' }, { status: 400 }); }
