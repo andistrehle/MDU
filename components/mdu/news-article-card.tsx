@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './icon';
 import type { NewsArticle } from '@/lib/data/news';
+import { useAuth } from '@/lib/auth/auth-context';
+import { hasMinRole } from '@/lib/auth/roles';
+import { ShareNews } from './share-news';
 
 /** Rendert einfache Markdown-Fettschrift (**…**) als <strong>. */
 function renderRich(text: string): ReactNode[] {
@@ -22,6 +25,8 @@ function renderRich(text: string): ReactNode[] {
 export function NewsArticleCard({ article }: { article: NewsArticle }) {
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const { user } = useAuth();
+  const isAdmin = hasMinRole(user, 'league_admin');
 
   useEffect(() => {
     if (!open) return;
@@ -159,6 +164,9 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
                 {article.source}
               </a>
             </div>
+
+            {/* Publishing-Hilfe: News für FB-Gruppe + Instagram aufbereiten (nur Ligaleitung). */}
+            {isAdmin && <ShareNews article={article} />}
           </div>
         </div>
       )}
