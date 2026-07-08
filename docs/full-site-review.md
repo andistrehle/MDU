@@ -146,6 +146,15 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 
 ## 14. P2-Probleme (mittel)
 
+> **Umsetzungsstand (08.07.2026):** Der Großteil der P2 ist behoben und auf `main` —
+> REV-001, REV-011/012 (Rate-Limiting), REV-020, REV-021, REV-043, REV-044, REV-051–056,
+> REV-071, REV-072, REV-073, REV-074, REV-075, REV-091, REV-092, REV-093, REV-095.
+> **Bewusst offen (Entscheidung/größerer Umbau nötig):** REV-002 (Middleware) + REV-016
+> (Admin-Schreibzugriffe serverseitig) → brauchen Cookie-basierte Auth (@supabase/ssr) +
+> RLS-Audit; REV-005 (Bild-`unoptimized` — bewusste Kosten-Entscheidung); REV-030
+> (Rollenrechte — nur nach Freigabe); REV-042 (Autosave/Verlassen-Warnung im Wizard);
+> REV-003 Rest (error-Boundary + Loading-Skeletons; die 404-Seite ist bereits gebrandet).
+
 | ID | Titel | Route/Datei | Problem → Lösung | Aufwand |
 |---|---|---|---|---|
 | REV-001 | Ungültiger Liga-Code kein 404 | `ligen/[code]/page.tsx:27` | rendert leere „XYZ Liga" → bei `!league` `notFound()` | klein |
