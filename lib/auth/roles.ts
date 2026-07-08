@@ -137,11 +137,13 @@ export function canEditUsers(user: UserProfile | null): boolean {
 
 /**
  * Darf ein konkretes Konto bearbeiten?
- * Super Admin: alle. Ligaleitung: alle außer Super-Admin-Konten.
+ * Super Admin: alle. Ligaleitung: nur Spieler/Teamkapitäne — keine anderen
+ * Ligaleitungs-/Super-Admin-Konten (deckt sich mit Löschen & Rollenvergabe,
+ * damit ein league_admin einen Peer weder degradieren noch löschen kann).
  */
 export function canEditUserAccount(actor: UserProfile | null, targetRole: UserRole): boolean {
   if (isSuperAdmin(actor)) return true;
-  return hasMinRole(actor, 'league_admin') && targetRole !== 'super_admin';
+  return hasMinRole(actor, 'league_admin') && (targetRole === 'player' || targetRole === 'team_captain');
 }
 
 /**
@@ -156,11 +158,13 @@ export function canDeleteUserAccount(actor: UserProfile | null, targetRole: User
 
 /**
  * Darf eine bestimmte Rolle vergeben?
- * Super Admin: alle. Ligaleitung: alle außer 'super_admin' (keine Eskalation).
+ * Super Admin: alle. Ligaleitung: nur 'player'/'team_captain' — darf weder
+ * neue Ligaleitungs-Peers ernennen noch nach 'super_admin' eskalieren.
+ * (Ligaleitung wird ausschließlich vom Super Admin vergeben.)
  */
 export function canAssignRole(actor: UserProfile | null, role: UserRole): boolean {
   if (isSuperAdmin(actor)) return true;
-  return hasMinRole(actor, 'league_admin') && role !== 'super_admin';
+  return hasMinRole(actor, 'league_admin') && (role === 'player' || role === 'team_captain');
 }
 
 /** Ist der Benutzer Super Admin? */

@@ -147,13 +147,13 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 ## 14. P2-Probleme (mittel)
 
 > **Umsetzungsstand (08.07.2026):** Der Großteil der P2 ist behoben und auf `main` —
-> REV-001, REV-011/012 (Rate-Limiting), REV-020, REV-021, REV-043, REV-044, REV-051–056,
-> REV-071, REV-072, REV-073, REV-074, REV-075, REV-091, REV-092, REV-093, REV-095.
+> REV-001, REV-003 (error-Boundary + Loading-Zustand), REV-011/012 (Rate-Limiting),
+> REV-020, REV-021, REV-030 (Rollenrechte angeglichen), REV-042 (Verlassen-Warnung im
+> Wizard), REV-043, REV-044, REV-051–056, REV-071, REV-072, REV-073, REV-074, REV-075,
+> REV-091, REV-092, REV-093, REV-095.
 > **Bewusst offen (Entscheidung/größerer Umbau nötig):** REV-002 (Middleware) + REV-016
 > (Admin-Schreibzugriffe serverseitig) → brauchen Cookie-basierte Auth (@supabase/ssr) +
-> RLS-Audit; REV-005 (Bild-`unoptimized` — bewusste Kosten-Entscheidung); REV-030
-> (Rollenrechte — nur nach Freigabe); REV-042 (Autosave/Verlassen-Warnung im Wizard);
-> REV-003 Rest (error-Boundary + Loading-Skeletons; die 404-Seite ist bereits gebrandet).
+> RLS-Audit; REV-005 (Bild-`unoptimized` — bewusste Kosten-Entscheidung).
 
 | ID | Titel | Route/Datei | Problem → Lösung | Aufwand |
 |---|---|---|---|---|
@@ -166,7 +166,7 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 | REV-016 | `/admin/users` Rollenwechsel nur clientseitig | `users/page.tsx:307` | Trust nur RLS (uneinheitlich zum Delete) → kritische Mutationen über API oder RLS `with check` verifizieren | mittel |
 | REV-020 | Kein `?next=`-Redirect nach Login | `login/page.tsx:26` | immer `/mein-bereich` → Zielpfad aus `next` routen, Login-Links mit `?next=` | klein |
 | REV-021 | Veralteter „Passwort vergessen"-Hinweis | `passwort-vergessen/page.tsx:56-58` | „Versand kommt später" obwohl aktiv → Zeile entfernen/korrigieren | klein |
-| REV-030 | Edit/Delete-Asymmetrie league_admin-Peers | `roles.ts:142,152` | Peer degradierbar, nicht löschbar → Edit auf player/team_captain (bzw. Selbst) beschränken oder dokumentieren | klein |
+| REV-030 ✅ | Edit/Delete-Asymmetrie league_admin-Peers | `roles.ts:142,152` | Peer degradierbar, nicht löschbar → **erledigt:** Ligaleitung darf jetzt nur `player`/`team_captain` bearbeiten **und** als Rolle vergeben (deckt sich mit Löschen); Peers/Super-Admins nur durch Super Admin | klein |
 | REV-042 | Kein Datenverlust-Schutz im Anmelde-Wizard | `mannschaft-anmelden/page.tsx` | Back/Reload verwirft Eingaben → `beforeunload`-Warnung/Autosave | mittel |
 | REV-043 | Nachmeldung erscheint nicht sofort im Kader | `nachmelden-button.tsx`, `kader/page.tsx:21-24` | kein Refetch → `onSuccess`-Prop + `listMyNominations()` neu laden | klein |
 | REV-044 | Admin-Detail zeigt rohe `season_id` | `registrations/[id]/page.tsx:189` | technische ID → Saisonname auflösen | klein |
