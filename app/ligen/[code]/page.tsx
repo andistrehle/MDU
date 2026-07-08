@@ -5,6 +5,7 @@ import { Footer } from '@/components/mdu/footer';
 import { LeagueDetailClient } from '@/components/mdu/league-detail-client';
 import { type TeamInfo } from '@/components/mdu/league-standings-panel';
 import { Icon } from '@/components/mdu/icon';
+import { notFound } from 'next/navigation';
 import {
   findLeague, getStandings,
   getCurrentSeason, getTeamAssignment, findVenue, getVenueFullAddress,
@@ -24,7 +25,9 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
   const sp = await props.searchParams;
   const initialTab = resolveInitialTab(sp?.tab);
   const league    = findLeague(code);
-  const leagueName = league?.name ?? `${code.toUpperCase()} Liga`;
+  // Unbekannter Liga-/Playoff-Code → 404 statt leerer „XYZ Liga"-Seite.
+  if (!league) notFound();
+  const leagueName = league.name;
   const standings  = getStandings(code);
 
   // Pre-compute team info (captain + venue) for every team in this competition.
@@ -45,7 +48,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
     id:     league?.id     ?? code,
     name:   leagueName,
     color:  league?.color  ?? 'var(--th-accent)',
-    season: league?.season ?? '2026',
+    season: league?.season ?? '2025/2026',
     type:   league?.type,
   } as const;
 

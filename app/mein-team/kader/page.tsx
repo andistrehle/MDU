@@ -46,7 +46,7 @@ export default function KaderPage() {
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
               <div style={{ flex: 1, minWidth: 200, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-                {team?.name ?? teamId} · Saison {season.name} · {roster.length} Spieler
+                {team?.name ?? teamId} · {season.name} · {roster.length} Spieler
               </div>
               <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} />
             </div>

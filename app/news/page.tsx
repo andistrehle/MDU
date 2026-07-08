@@ -1,67 +1,41 @@
-import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
+import { NewsArticleCard } from '@/components/mdu/news-article-card';
+import { NEWS_ARTICLES } from '@/lib/data/news';
 
 export default function NewsPage() {
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader />
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
-        <div style={{
-          background: 'linear-gradient(180deg, var(--th-bg-card3) 0%, var(--th-bg-card2) 100%)',
-          border: '1px solid var(--th-line-6)',
-          borderRadius: 14,
-          boxShadow: '0 1px 0 var(--th-line-4) inset, 0 8px 28px var(--th-shadow)',
-          padding: '48px 40px',
-          maxWidth: 520,
-          width: '100%',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: '50%',
-            background: 'var(--th-accent-a12)',
-            border: '1px solid var(--th-accent-a25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 24px',
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--th-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z" />
-              <path d="M16 2v4" /><path d="M8 10h8" /><path d="M8 14h8" /><path d="M8 18h5" />
-            </svg>
+      <main style={{ flex: 1 }}>
+        <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '48px 28px 80px', width: '100%' }}>
+          {/* Page header */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{
+              fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
+              letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
+            }}>
+              Aktuelles
+            </div>
+            <h1 style={{
+              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48,
+              letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
+              margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
+            }}>
+              News
+            </h1>
           </div>
 
-          <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,
-            letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: '0 0 12px',
-          }}>
-            Seite befindet sich noch im Aufbau
-          </h1>
-
-          <p style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)',
-            lineHeight: 1.6, margin: '0 0 32px',
-          }}>
-            Diese Funktion wird aktuell vorbereitet und steht bald zur Verfügung.
-          </p>
-
-          <Link
-            href="/"
-            style={{
-              display: 'inline-block',
-              padding: '12px 28px',
-              background: 'var(--th-accent)',
-              color: '#fff',
-              borderRadius: 6,
-              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
-              letterSpacing: '0.16em', textTransform: 'uppercase',
-              textDecoration: 'none',
-              boxShadow: '0 6px 14px var(--th-accent-a32)',
-            }}
-          >
-            Zurück zur Startseite
-          </Link>
+          {NEWS_ARTICLES.length === 0 ? (
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', fontStyle: 'italic', padding: '24px 0' }}>
+              Aktuell keine Neuigkeiten.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {NEWS_ARTICLES.map(a => <NewsArticleCard key={a.id} article={a} />)}
+            </div>
+          )}
         </div>
       </main>
 

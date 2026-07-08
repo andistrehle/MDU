@@ -5,11 +5,9 @@ import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { MatchCard } from '@/components/mdu/match-card';
 import { TeamLink } from '@/components/mdu/team-link';
-import { NewsCard } from '@/components/mdu/news-card';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
 import { NEWS_ARTICLES } from '@/lib/data/news';
 import {
-  HOME_NEWS,
   getUpcomingMatches,
   getRecentResults,
   findLeague,
@@ -141,9 +139,6 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {newsArticles.map(a => <NewsArticleCard key={a.id} article={a} />)}
-            {HOME_NEWS.map((n, i) => (
-              <NewsCard key={i} date={n.date} tag={n.tag} tagTone={n.tagTone} title={n.title} />
-            ))}
           </div>
           <Link href="/news" style={{
             marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 6,

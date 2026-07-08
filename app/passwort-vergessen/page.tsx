@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <AuthSuccess message={`Wenn ein Konto für ${email} existiert, wurde eine E-Mail mit weiteren Schritten versendet.`} />
           <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.55, margin: 0 }}>
-            Hinweis: Der E-Mail-Versand wird mit der Backend-Anbindung aktiviert.
+            Kommt keine E-Mail an, prüfe bitte den Spam-Ordner. Der Link ist nur begrenzt gültig – fordere ihn sonst einfach erneut an.
           </p>
         </div>
       ) : (

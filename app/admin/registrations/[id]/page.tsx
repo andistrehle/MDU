@@ -186,7 +186,7 @@ export default function RegistrationDetailPage() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, color: 'var(--th-text-strong)', textTransform: 'uppercase' }}>{reg.team_name}</div>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                  {reg.is_new_team ? 'Neue Mannschaft' : 'Bestehende Mannschaft'} · Saison {reg.season_id}
+                  {reg.is_new_team ? 'Neue Mannschaft' : 'Bestehende Mannschaft'} · {seasons.find(s => s.id === reg.season_id)?.name ?? reg.season_id}
                 </div>
               </div>
               <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-accent)' }}>

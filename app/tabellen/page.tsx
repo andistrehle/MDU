@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
-import { LEAGUES, STANDINGS_BY_LEAGUE, getExtendedTeam } from '@/lib/data';
+import { LEAGUES, STANDINGS_BY_LEAGUE, getExtendedTeam, getCurrentSeason } from '@/lib/data';
 import { TeamBadge } from '@/components/mdu/team-badge';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ export default function TabellenPage() {
             fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
             letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
           }}>
-            Saison 2026
+            {getCurrentSeason().name}
           </div>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
@@ -131,7 +131,7 @@ export default function TabellenPage() {
                   {['#', 'Team', 'Sp.', 'Pkt.'].map((h, i) => (
                     <span key={h} style={{
                       fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                      color: '#3A3E4A', letterSpacing: '0.08em', textTransform: 'uppercase',
+                      color: 'var(--th-text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase',
                       textAlign: i >= 2 ? 'right' : 'left',
                     }}>{h}</span>
                   ))}
@@ -195,7 +195,7 @@ export default function TabellenPage() {
                   borderTop: '1px solid var(--th-line-4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#3A3E4A' }}>
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)' }}>
                     {rows.length > PREVIEW_ROWS ? `+${rows.length - PREVIEW_ROWS} weitere` : ''}
                   </span>
                   <Link

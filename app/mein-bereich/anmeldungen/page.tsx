@@ -57,7 +57,7 @@ export default function MeineAnmeldungenPage() {
                           <div style={{ flex: 1, minWidth: 160 }}>
                             <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>{r.team_name}</div>
                             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                              Saison {seasonNames[r.season_id] ?? r.season_id} · {r.is_new_team ? 'neue Mannschaft' : 'bestehende Mannschaft'}
+                              {seasonNames[r.season_id] ?? r.season_id} · {r.is_new_team ? 'neue Mannschaft' : 'bestehende Mannschaft'}
                               {r.submitted_at ? ` · eingereicht ${new Date(r.submitted_at).toLocaleDateString('de-DE')}` : ''}
                             </div>
                           </div>
