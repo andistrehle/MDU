@@ -88,7 +88,7 @@ function toContentBlock(page: OcrInputPage): Anthropic.ContentBlockParam {
  * berücksichtigt), statt bei lastIndexOf('}') über Fremdtext zu stolpern.
  */
 function extractJson(text: string): unknown | null {
-  let t = text.trim()
+  const t = text.trim()
     .replace(/^```(?:json)?\s*/i, '')   // führenden Fence entfernen
     .replace(/\s*```$/i, '')            // schließenden Fence entfernen (falls vorhanden)
     .trim();

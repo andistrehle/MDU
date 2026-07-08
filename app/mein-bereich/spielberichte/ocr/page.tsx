@@ -58,7 +58,7 @@ export default function OcrUploadPage() {
 
   // Admin ohne eigene Mannschaft kann nur die „Alle Begegnungen"-Ansicht nutzen.
   useEffect(() => {
-    if (isAdmin && !hasOwnTeam) setScope('all');
+    if (isAdmin && !hasOwnTeam) queueMicrotask(() => setScope('all'));
   }, [isAdmin, hasOwnTeam]);
 
   const matches = useMemo(() => {
@@ -93,7 +93,7 @@ export default function OcrUploadPage() {
 
   // Fällt die aktuell gewählte Begegnung durch einen Filter raus, Auswahl leeren.
   useEffect(() => {
-    if (matchId && !visibleMatches.some(m => m.id === matchId)) setMatchId('');
+    if (matchId && !visibleMatches.some(m => m.id === matchId)) queueMicrotask(() => setMatchId(''));
   }, [visibleMatches, matchId]);
 
   // Datei vor dem Hochladen prüfen: HEIC (iPhone) kann OCR nicht lesen (REV-052),

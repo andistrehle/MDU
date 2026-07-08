@@ -45,7 +45,8 @@ interface Props {
   stats: PlayerStatEntry[];
 }
 
-const TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik', 'Galerie'];
+// „Galerie" wird erst wieder aufgenommen, wenn es Inhalte gibt (kein leerer Tab).
+const TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik'];
 
 // ── Shared helpers ─────────────────────────────────────────────
 
@@ -987,29 +988,6 @@ function StatistikTab({
   );
 }
 
-// ── Placeholder tabs ───────────────────────────────────────────
-
-function PlaceholderTab({ label, icon }: { label: string; icon: string }) {
-  return (
-    <div style={{
-      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-      borderRadius: 14, padding: '36px 24px',
-      fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <Icon name={icon as 'bar'} size={16} stroke={2} style={{ color: '#6B7280', flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, color: 'var(--th-text-muted)' }}>{label} folgt</span>
-      </div>
-      <div>
-        Daten werden auf{' '}
-        <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-          style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>{' '}
-        veröffentlicht.
-      </div>
-    </div>
-  );
-}
-
 // ── Main export ────────────────────────────────────────────────
 
 export function TeamDetailClient({
@@ -1129,7 +1107,6 @@ export function TeamDetailClient({
             onSelectEntry={openFromEntry}
           />
         )}
-        {activeTab === 5 && <PlaceholderTab label="Galerie" icon="users" />}
       </div>
 
       {card && <PlayerCard data={card} onClose={() => setCard(null)} />}

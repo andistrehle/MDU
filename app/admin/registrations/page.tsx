@@ -66,7 +66,7 @@ export default function AdminRegistrationsPage() {
   useEffect(() => {
     try {
       const f = sessionStorage.getItem('mdu_admin_flash');
-      if (f) { setFlash(f); sessionStorage.removeItem('mdu_admin_flash'); }
+      if (f) { queueMicrotask(() => setFlash(f)); sessionStorage.removeItem('mdu_admin_flash'); }
     } catch { /* sessionStorage optional */ }
   }, []);
 

@@ -106,6 +106,8 @@ export interface UseNotificationsResult {
   unread: number;
   byArea: AreaCounts;
   loading: boolean;
+  /** Kurzer Fehlerhinweis, wenn eine Aktion serverseitig fehlschlug (sonst null). */
+  error: string | null;
   refresh: () => void;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
@@ -120,34 +122,53 @@ export function useNotifications(): UseNotificationsResult {
   const pathname = usePathname();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(false);
+  // Echter Ungelesen-Zähler (kann > 30 sein) — unabhängig von der auf 30
+  // begrenzten Liste, damit das Badge nicht bei 30 deckelt (REV-077).
+  const [unread, setUnread] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const userId = user?.id;
 
   const load = useCallback(async () => {
-    if (!userId) { setItems([]); return; }
+    if (!userId) { queueMicrotask(() => { setItems([]); setUnread(0); }); return; }
     setLoading(true);
-    const rows = await listNotifications(30);
+    const [rows, count] = await Promise.all([listNotifications(30), countUnreadNotifications()]);
     setItems(rows);
+    setUnread(count);
     setLoading(false);
   }, [userId]);
 
   useEffect(() => { load(); }, [load, pathname]);
 
+  // markRead wird nur für ungelesene Einträge aufgerufen (siehe Aufrufer).
   const markRead = useCallback(async (id: string) => {
+    setError(null);
     setItems(prev => prev.map(n => n.id === id && !n.read_at ? { ...n, read_at: new Date().toISOString() } : n));
-    await markNotificationRead(id);
+    setUnread(c => Math.max(0, c - 1));
+    const { error } = await markNotificationRead(id);
+    if (error) {
+      // Optimistische Änderung zurücknehmen und ehrlich melden (REV-081).
+      setItems(prev => prev.map(n => n.id === id ? { ...n, read_at: null } : n));
+      setUnread(c => c + 1);
+      setError('Konnte nicht als gelesen markieren.');
+    }
   }, []);
 
   const markAllRead = useCallback(async () => {
+    setError(null);
     const now = new Date().toISOString();
     setItems(prev => prev.map(n => n.read_at ? n : { ...n, read_at: now }));
-    await markAllNotificationsRead();
-  }, []);
+    setUnread(0);
+    const { error } = await markAllNotificationsRead();
+    if (error) {
+      setError('Konnte nicht alle als gelesen markieren.');
+      load(); // echten Stand aus der DB wiederherstellen
+    }
+  }, [load]);
 
-  const unread = items.reduce((acc, n) => acc + (n.read_at ? 0 : 1), 0);
   const byArea = items.reduce<AreaCounts>((acc, n) => {
     if (!n.read_at) acc[areaFromNotification(n)] += 1;
     return acc;
   }, { ...ZERO_AREAS });
 
-  return { items, unread, byArea, loading, refresh: load, markRead, markAllRead };
+  return { items, unread, byArea, loading, error, refresh: load, markRead, markAllRead };
 }

@@ -20,7 +20,7 @@ export function NachmeldenButton({ teamId, teamName, onSuccess }: { teamId: stri
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
 
   useEffect(() => {
     if (!open) return;

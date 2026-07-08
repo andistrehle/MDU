@@ -7,7 +7,7 @@ import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import { FormDots } from './form-dots';
 import { Icon } from './icon';
-import { statusColor, diffColor } from '@/lib/utils';
+import { statusColor, diffColor, GOLD_TOP_RANKS } from '@/lib/utils';
 import { getExtendedTeam, getCurrentSeason } from '@/lib/data';
 import { getRowOutcome, outcomeColor, getLegendForRows } from '@/lib/data/competition-outcomes';
 import { getTeamUrl } from '@/lib/links';
@@ -86,12 +86,24 @@ export function StandingsTable({
     return dyn.length ? dyn.map(l => ({ c: l.color, t: l.label })) : LEGEND_FALLBACK;
   })();
 
-  // Grid columns: Pl. | Team | Sp. | Pkt. | S | [U] | N | Spiele | Legs | Diff. | [Form]
-  const colTemplate = showForm
-    ? '32px 1fr 36px 40px 28px 28px 28px 64px 50px 64px 90px'
-    : showU
-      ? '32px 1fr 36px 40px 28px 28px 28px 64px 50px 64px'
-      : '32px 1fr 36px 40px 28px 28px 64px 50px 64px';
+  // Einzelspiel-Bilanz (z. B. „214:74") gibt es nur für Playoffs, nicht für die
+  // A/B-Ligen → Spalte nur zeigen, wenn wenigstens eine Zeile Daten hat (REV-098).
+  const showSpiele = rows.some(r => r.spiele != null && r.spiele !== '');
+
+  // Grid columns: Pl. | Team | Sp. | Pkt. | S | [U] | N | [Spiele] | Legs | Diff. | [Form]
+  const colTemplate = [
+    '32px',                    // Pl.
+    '1fr',                     // Team
+    '36px',                    // Sp.
+    '40px',                    // Pkt.
+    '28px',                    // S
+    showU ? '28px' : null,     // U
+    '28px',                    // N
+    showSpiele ? '64px' : null, // Spiele
+    '50px',                    // Legs
+    '64px',                    // Diff.
+    showForm ? '90px' : null,  // Form
+  ].filter(Boolean).join(' ');
 
   function handleDesktopRowClick(teamId: string) {
     // Desktop only: update the standings-panel team card
@@ -151,17 +163,17 @@ export function StandingsTable({
               alignItems: 'center',
             }}
           >
-            <span>Pl.</span>
+            <span title="Platzierung">Pl.</span>
             <span>Team</span>
-            <span style={{ textAlign: 'center' }}>Sp.</span>
-            <span style={{ textAlign: 'center' }}>Pkt.</span>
-            <span style={{ textAlign: 'center' }}>S</span>
-            {showU && <span style={{ textAlign: 'center' }}>U</span>}
-            <span style={{ textAlign: 'center' }}>N</span>
-            <span style={{ textAlign: 'center' }}>Spiele</span>
-            <span style={{ textAlign: 'center' }}>Legs</span>
-            <span style={{ textAlign: 'center' }}>Diff.</span>
-            {showForm && <span style={{ textAlign: 'center' }}>Form</span>}
+            <span title="Spiele (absolvierte Begegnungen)" style={{ textAlign: 'center', cursor: 'help' }}>Sp.</span>
+            <span title="Punkte" style={{ textAlign: 'center', cursor: 'help' }}>Pkt.</span>
+            <span title="Siege" style={{ textAlign: 'center', cursor: 'help' }}>S</span>
+            {showU && <span title="Unentschieden" style={{ textAlign: 'center', cursor: 'help' }}>U</span>}
+            <span title="Niederlagen" style={{ textAlign: 'center', cursor: 'help' }}>N</span>
+            {showSpiele && <span title="Gewonnene:verlorene Einzelspiele" style={{ textAlign: 'center', cursor: 'help' }}>Spiele</span>}
+            <span title="Gewonnene:verlorene Legs" style={{ textAlign: 'center', cursor: 'help' }}>Legs</span>
+            <span title="Legdifferenz" style={{ textAlign: 'center', cursor: 'help' }}>Diff.</span>
+            {showForm && <span title="Letzte Ergebnisse" style={{ textAlign: 'center', cursor: 'help' }}>Form</span>}
           </div>
 
           {rows.map(r => {
@@ -216,7 +228,7 @@ export function StandingsTable({
                     fontFamily: 'var(--font-saira-condensed)',
                     fontWeight: 800,
                     fontSize: 16,
-                    color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-strong)',
+                    color: r.pos <= GOLD_TOP_RANKS ? 'var(--th-gold)' : 'var(--th-text-strong)',
                   }}
                 >
                   {r.pos}
@@ -298,16 +310,18 @@ export function StandingsTable({
                 >
                   {losses}
                 </span>
-                <span
-                  style={{
-                    textAlign: 'center',
-                    fontFamily: 'var(--font-jetbrains-mono)',
-                    color: 'var(--th-text-body)',
-                    fontSize: 11,
-                  }}
-                >
-                  {r.spiele ?? '—'}
-                </span>
+                {showSpiele && (
+                  <span
+                    style={{
+                      textAlign: 'center',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      color: 'var(--th-text-body)',
+                      fontSize: 11,
+                    }}
+                  >
+                    {r.spiele ?? '—'}
+                  </span>
+                )}
                 <span
                   style={{
                     textAlign: 'center',
@@ -449,7 +463,7 @@ export function StandingsTable({
                         fontFamily: 'var(--font-saira-condensed)',
                         fontWeight: 800,
                         fontSize: 15,
-                        color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-muted)',
+                        color: r.pos <= GOLD_TOP_RANKS ? 'var(--th-gold)' : 'var(--th-text-muted)',
                         flexShrink: 0,
                         width: 20,
                         textAlign: 'center',
@@ -588,7 +602,9 @@ export function StandingsTable({
                             ? [{ label: 'Unent.',  value: draws,           color: 'var(--th-text-muted)' }]
                             : []),
                           { label: 'Niedl.',  value: losses,          color: 'var(--th-loss)' },
-                          { label: 'Spiele',  value: r.spiele ?? '—', color: 'var(--th-text-body)' },
+                          ...(showSpiele
+                            ? [{ label: 'Spiele', value: r.spiele ?? '—', color: 'var(--th-text-body)' }]
+                            : []),
                           { label: 'Legs',    value: r.legs,          color: 'var(--th-text-body)' },
                           { label: 'Diff.',   value: r.diff,          color: diffColor(r.diff) },
                         ].map(item => (

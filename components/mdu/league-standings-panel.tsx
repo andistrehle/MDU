@@ -6,6 +6,7 @@ import { StandingsTable } from './standings-table';
 import { Icon } from './icon';
 import { getExtendedTeam, getCurrentSeason } from '@/lib/data';
 import { getCompetitionNote } from '@/lib/data/competition-outcomes';
+import { GOLD_TOP_RANKS } from '@/lib/utils';
 
 // ── Types passed from the Server Component ────────────────────
 
@@ -294,7 +295,7 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
                 >
                   <div style={{
                     fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                    color: r.pos <= 2 ? 'var(--th-gold)' : 'var(--th-text-strong)',
+                    color: r.pos <= GOLD_TOP_RANKS ? 'var(--th-gold)' : 'var(--th-text-strong)',
                   }}>
                     {r.pos}.
                   </div>

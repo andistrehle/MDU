@@ -28,7 +28,7 @@ import { normalizeHighlightValue } from '@/lib/ocr/highlights';
 import { MATCHES, getMatchesForTeam, getPlayersForTeamInSeason, getPlayerDisplayName, type GameMatch } from '@/lib/data';
 import type { MatchReportExtraction } from '@/lib/ocr/schemas';
 
-type Level = 'ok' | 'review' | 'missing';
+type Level = 'ok' | 'review' | 'missing' | 'neutral';
 function levelOf(confidence: number | null | undefined, hasValue: boolean): Level {
   if (!hasValue) return 'missing';
   if (confidence == null) return 'review';
@@ -36,10 +36,19 @@ function levelOf(confidence: number | null | undefined, hasValue: boolean): Leve
   if (confidence >= 0.7) return 'review';
   return 'missing';
 }
+/**
+ * Kopf-Felder (Teams/Liga/Datum …) tragen im Schema keine Konfidenz. Statt
+ * sie deshalb pauschal gelb „Bitte prüfen" zu färben, werden sie neutral
+ * dargestellt, wenn ein Wert erkannt wurde (REV-060).
+ */
+function headerLevel(hasValue: boolean): Level {
+  return hasValue ? 'neutral' : 'missing';
+}
 const LEVEL_META: Record<Level, { icon: string; text: string; color: string; bg: string }> = {
   ok:      { icon: '✓', text: 'Sicher erkannt', color: 'var(--th-win)', bg: 'rgba(34,197,94,0.10)' },
   review:  { icon: '!', text: 'Bitte prüfen', color: '#A77A00', bg: 'rgba(232,184,74,0.12)' },
   missing: { icon: '✕', text: 'Nicht erkannt', color: '#E24B4A', bg: 'rgba(212,0,0,0.10)' },
+  neutral: { icon: '·', text: 'Erkannt (bitte gegen den Bogen prüfen)', color: 'var(--th-text-muted)', bg: 'var(--th-line-5)' },
 };
 
 function slotOf(pos: string | null | undefined): number {
@@ -50,11 +59,11 @@ function slotOf(pos: string | null | undefined): number {
 interface FieldRow { label: string; value: string | null; level: Level }
 function buildRows(d: MatchReportExtraction): FieldRow[] {
   const rows: FieldRow[] = [
-    { label: 'Heimmannschaft', value: d.match.homeTeam, level: levelOf(null, !!d.match.homeTeam) },
-    { label: 'Gastmannschaft', value: d.match.guestTeam, level: levelOf(null, !!d.match.guestTeam) },
-    { label: 'Liga', value: d.match.league, level: levelOf(null, !!d.match.league) },
-    { label: 'Spieltag', value: d.match.matchday != null ? String(d.match.matchday) : null, level: levelOf(null, d.match.matchday != null) },
-    { label: 'Datum', value: d.match.date, level: levelOf(null, !!d.match.date) },
+    { label: 'Heimmannschaft', value: d.match.homeTeam, level: headerLevel(!!d.match.homeTeam) },
+    { label: 'Gastmannschaft', value: d.match.guestTeam, level: headerLevel(!!d.match.guestTeam) },
+    { label: 'Liga', value: d.match.league, level: headerLevel(!!d.match.league) },
+    { label: 'Spieltag', value: d.match.matchday != null ? String(d.match.matchday) : null, level: headerLevel(d.match.matchday != null) },
+    { label: 'Datum', value: d.match.date, level: headerLevel(!!d.match.date) },
     { label: 'Gesamtergebnis', value: d.finalScore.home != null ? `${d.finalScore.home} : ${d.finalScore.guest}` : null, level: levelOf(d.finalScore.confidence, d.finalScore.home != null) },
   ];
   for (const g of d.games) {
@@ -148,7 +157,9 @@ export default function OcrReviewPage() {
     return user?.teamId ? getMatchesForTeam(user.teamId) : [...MATCHES];
   }, [resolution, user?.teamId]);
   useEffect(() => {
-    if (!matchSel && structured && !hasDraft) setMatchSel(resolution.match?.id ?? resolution.candidates[0]?.id ?? '');
+    if (!matchSel && structured && !hasDraft) {
+      queueMicrotask(() => setMatchSel(resolution.match?.id ?? resolution.candidates[0]?.id ?? ''));
+    }
   }, [structured, hasDraft, resolution, matchSel]);
 
   const issues: ValidationIssue[] = structured ? validateExtraction(structured) : [];
@@ -182,6 +193,26 @@ export default function OcrReviewPage() {
               <Notice title="Erkennung fehlgeschlagen">
                 {upload.ocr_error ?? 'Der Spielbericht konnte nicht erkannt werden.'}{' '}
                 Du kannst es <Link href="/mein-bereich/spielberichte/ocr" style={linkS}>erneut hochladen</Link> oder den Bericht{' '}
+                <Link href="/mein-bereich/spielberichte" style={linkS}>manuell erfassen</Link>.
+              </Notice>
+            )}
+
+            {/* Erkennung läuft noch — kein leerer Bildschirm (REV-061) */}
+            {!structured && (upload.ocr_status === 'pending' || upload.ocr_status === 'processing') && (
+              <Notice title="Erkennung läuft">
+                Der Spielbericht wird gerade ausgewertet — das dauert meist nur wenige Sekunden.
+                <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <button type="button" onClick={reload} style={btnGhost}>Aktualisieren</button>
+                  <Link href="/mein-bereich/spielberichte/uebersicht" style={linkS}>Zur Übersicht</Link>
+                </div>
+              </Notice>
+            )}
+
+            {/* Status „fertig", aber kein Ergebnis vorhanden — ehrlicher Fallback statt Leere. */}
+            {!structured && (upload.ocr_status === 'completed' || upload.ocr_status === 'needs_review') && (
+              <Notice title="Kein Ergebnis vorhanden">
+                Zu diesem Upload liegt keine Auswertung vor. Bitte{' '}
+                <Link href="/mein-bereich/spielberichte/ocr" style={linkS}>erneut hochladen</Link> oder den Bericht{' '}
                 <Link href="/mein-bereich/spielberichte" style={linkS}>manuell erfassen</Link>.
               </Notice>
             )}

@@ -109,7 +109,6 @@ const B2_STATS: PlayerStatEntry[] = [
 // ── Active leagues — loaded from imported-statistics.json ──────
 // Run `npm run import:dartunion` to refresh.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const IMPORTED = importedRaw as unknown as Record<string, PlayerStatEntry[]>;
 
 // ── Unified map ────────────────────────────────────────────────

@@ -14,6 +14,13 @@ export function shade(hex: string, lum: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+/**
+ * Bis zu welcher Platzierung die Ranglisten-Nummer golden hervorgehoben wird.
+ * Eine gemeinsame Quelle, damit Übersicht, Vollansicht und Panel nicht
+ * auseinanderlaufen (früher 2 vs. 3).
+ */
+export const GOLD_TOP_RANKS = 2;
+
 export function statusColor(status: string | null): string {
   if (status === 'promo')   return '#22C55E';
   if (status === 'playoff') return '#3B82F6';

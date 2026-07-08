@@ -168,7 +168,7 @@ export default function MannschaftAnmeldenPage() {
   useEffect(() => {
     // Ziel-Saison: bei geladenem Entwurf dessen Saison, sonst die Anmelde-Saison.
     const seasonId = regId ? draft.season_id : regSeasonId;
-    if (!choice || choice === 'NEW' || !seasonId) { setAlreadyRegistered(false); return; }
+    if (!choice || choice === 'NEW' || !seasonId) { queueMicrotask(() => setAlreadyRegistered(false)); return; }
     let cancelled = false;
     (async () => {
       try {
@@ -232,15 +232,17 @@ export default function MannschaftAnmeldenPage() {
     setDraft(d => ({ ...d, [k]: v }));
   }
 
-  function validate(): string | null {
-    if (!draft.team_name.trim()) return 'Bitte einen Teamnamen angeben.';
-    if (!draft.requested_league) return 'Bitte wähle aus, für welche Liga die Mannschaft angemeldet werden soll.';
-    if (!draft.contact_name.trim()) return 'Bitte einen Ansprechpartner angeben.';
-    if (!/^\S+@\S+\.\S+$/.test(draft.contact_email)) return 'Bitte eine gültige Kontakt-E-Mail angeben.';
-    if (!draft.venue_name?.trim()) return 'Bitte den Namen der Spielstätte angeben.';
-    if (!draft.venue_address?.trim()) return 'Bitte die Adresse der Spielstätte angeben.';
-    if (players.length === 0) return 'Bitte mindestens einen Spieler im Kader angeben.';
-    return null;
+  /** Sammelt ALLE fehlenden Pflichtangaben (nicht nur die erste), REV-046. */
+  function validate(): string[] {
+    const missing: string[] = [];
+    if (!draft.team_name.trim()) missing.push('Teamname');
+    if (!draft.requested_league) missing.push('Liga');
+    if (!draft.contact_name.trim()) missing.push('Ansprechpartner');
+    if (!/^\S+@\S+\.\S+$/.test(draft.contact_email)) missing.push('gültige Kontakt-E-Mail');
+    if (!draft.venue_name?.trim()) missing.push('Name der Spielstätte');
+    if (!draft.venue_address?.trim()) missing.push('Adresse der Spielstätte');
+    if (players.length === 0) missing.push('mindestens ein Spieler im Kader');
+    return missing;
   }
 
   /** Entwurf anlegen/aktualisieren; gibt die id zurück. */
@@ -272,8 +274,11 @@ export default function MannschaftAnmeldenPage() {
   async function onSubmit() {
     if (!choice) { setMsg({ kind: 'err', text: 'Bitte zuerst eine Mannschaft wählen.' }); return; }
     if (alreadyRegistered) { setMsg({ kind: 'err', text: 'Diese Mannschaft ist für die kommende Saison bereits gemeldet.' }); return; }
-    const v = validate();
-    if (v) { setMsg({ kind: 'err', text: v }); return; }
+    const missing = validate();
+    if (missing.length) {
+      setMsg({ kind: 'err', text: `Bitte noch ergänzen: ${missing.join(', ')}.` });
+      return;
+    }
     if (!confirmed) { setMsg({ kind: 'err', text: 'Bitte die Bestätigung der Rechte/Angaben ankreuzen.' }); return; }
     if (!acceptedRules) { setMsg({ kind: 'err', text: 'Bitte die Spielbedingungen der MDU bestätigen.' }); return; }
     setBusy(true); setMsg(null);

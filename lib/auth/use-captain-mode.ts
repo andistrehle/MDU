@@ -18,7 +18,10 @@ export function useCaptainMode(): [boolean, (v: boolean) => void] {
   const [on, setOn] = useState(false);
 
   useEffect(() => {
-    try { setOn(localStorage.getItem(KEY) === '1'); } catch { /* SSR/Storage off */ }
+    try {
+      const v = localStorage.getItem(KEY) === '1';
+      queueMicrotask(() => setOn(v));
+    } catch { /* SSR/Storage off */ }
   }, []);
 
   const set = (v: boolean) => {

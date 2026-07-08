@@ -40,12 +40,15 @@ export default function AdminSeasonTeamsPage() {
   // Teams + Kader der gewählten Saison laden.
   useEffect(() => {
     if (!canView || !seasonId) return;
-    setTeams(null);
+    let cancelled = false;
     (async () => {
+      setTeams(null);
       const [t, r] = await Promise.all([listSeasonTeams(seasonId), listSeasonRoster(seasonId)]);
+      if (cancelled) return;
       setTeams(t);
       setRoster(r);
     })();
+    return () => { cancelled = true; };
   }, [canView, seasonId]);
 
   const rosterFor = (teamId: string) => roster.filter(p => p.team_id === teamId);

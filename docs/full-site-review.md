@@ -189,9 +189,19 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 
 ## 15. P3-Probleme (niedrig)
 
+> **Umsetzungsstand (08.07.2026):** Auf Wunsch umgesetzt und auf `main` —
+> REV-004 (Performance-Teil: set-state-in-effect-Kaskaden + prefer-const),
+> REV-045, REV-046, REV-058, REV-060, REV-061, REV-076 (bereits durch REV-070 gelöst),
+> REV-077, REV-078, REV-079, REV-080, REV-081, REV-096, REV-097 (tote Komponente entfernt),
+> REV-098, REV-099, REV-100, REV-101.
+> **Bewusst offen:** REV-047 (Nachmeldungs-Freigabe atomar) braucht eine DB-RPC/Transaktion
+> gegen die Produktiv-DB — nicht ungefragt umgesetzt. Restlicher Lint (unescaped-quotes in
+> JSX-Text, wenige ungenutzte Variablen, React-Compiler-Memoization-Hinweise) ist rein
+> kosmetisch, blockiert weder Build noch Laufzeit.
+
 | ID | Titel | Route/Datei | Kurzlösung | Aufwand |
 |---|---|---|---|---|
-| REV-004 | Lint 31 Punkte (2× set-state-in-effect) | admin-counts/user-notifications | `queueMicrotask(load)`; Rest Kosmetik/`--fix` | klein |
+| REV-004 ✅ | Lint (set-state-in-effect) | admin-counts/user-notifications u. a. | **erledigt:** Kaskaden-`setState` per `queueMicrotask` entschärft, prefer-const gefixt; Quote-Escapes bleiben kosmetisch | klein |
 | REV-013 | `/api/notifications/new-user` Status-Leak | route.ts:21-46 | Antwort vereinheitlichen + Rate-Limit | klein |
 | REV-014 | `cleanup-uploads` ohne Eigentümerprüfung | route.ts:30-35 | Uploader/Kapitän/Admin prüfen | klein |
 | REV-015 | Upload-MIME nur client-deklariert | upload/route.ts:62 | Magic-Byte-Check ergänzen | klein |
@@ -207,13 +217,13 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 | REV-037 | Veralteter Zugriffskommentar | users/page.tsx:6-13 | Kommentar korrigieren | klein |
 | REV-045 | `kader` `roster` useMemo-Dep | kader/page.tsx:17 | `roster` in eigenem `useMemo` | klein |
 | REV-046 | Wizard-Validierung: nur 1 Fehler | mannschaft-anmelden:224-233 | alle Pflichtfelder sammeln/markieren | mittel |
-| REV-047 | Nachmeldungs-Freigabe nicht atomar | nominations.ts:85-118 | RPC/Transaktion; Status zuletzt | groß |
+| REV-047 ⏸ | Nachmeldungs-Freigabe nicht atomar | nominations.ts:85-118 | **offen:** echte Atomarität braucht eine DB-RPC/Transaktion (Migration gegen Produktiv-DB) — nicht ungefragt; Status wird bereits zuletzt gesetzt | groß |
 | REV-057 | Signed-URL 5 Min läuft bei „Seite öffnen" ab | signed-url/route.ts:35 | on-click frisch anfordern / 15 Min | klein |
 | REV-058 | Zwei PDF-Quellen können divergieren | vorlage/page.tsx:139 | Version an `TEMPLATE_VERSION` binden/generieren | mittel |
 | REV-059 | Konkurrierende OCR-Starts | ocr/[uploadId]/route.ts:52 | compare-and-set `.eq('ocr_status','pending')` | klein |
 | REV-060 | OCR-Kopf-Felder immer gelb „Bitte prüfen" | pruefen/page.tsx:52-57 | Kopf neutral/Confidence im Schema | klein |
 | REV-061 | processing/pending → leere Prüfseite | pruefen/page.tsx:181 | Warte-/Fehlerzustand + Rücklinks | klein |
-| REV-076 | Tour-Button überlappt Bottom-Nav 761-768px | tour-restart-link.tsx:43 | Breakpoint auf 768px angleichen | klein |
+| REV-076 ✅ | Tour-Button überlappt Bottom-Nav 761-768px | tour-restart-link.tsx:43 | **erledigt** (durch REV-070): Button + Bottom-Nav schalten beide bei ≤1080px, Lücke existiert nicht mehr | klein |
 | REV-077 | Glocken-Badge deckelt Ungelesene auf 30 | user-notifications.ts:128 | `countUnreadNotifications()` nutzen | klein |
 | REV-078 | Ladezustand im Glocken-Dropdown fehlt | notification-bell.tsx:95-99 | `loading`-Skeleton | klein |
 | REV-079 | Kachel-Badge „offene Aufgaben" für Ungelesene | mein-bereich/page.tsx:324 | Titel je Badge-Quelle | klein |
@@ -222,7 +232,7 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 | REV-082 | Icons ohne `aria-hidden` | icon.tsx:9-21 | default `aria-hidden` | klein |
 | REV-083 | Fokus-Ringe auf farbigen Flächen fehlen | header/bottom-nav/popover | `:focus-visible`-Outline | klein |
 | REV-096 | Tabellen-Abkürzungen ohne Tooltips | standings-table.tsx:154 | `title`-Tooltips (Sp./Spiele/Diff.) | klein |
-| REV-097 | Home News-Karten Hover, nicht klickbar | page.tsx:144, news-card.tsx | Hover entfernen oder verlinken | klein |
+| REV-097 ✅ | Home News-Karten Hover, nicht klickbar | page.tsx:144, news-card.tsx | **erledigt:** Startseite nutzt bereits die klickbare `NewsArticleCard`; tote `news-card.tsx` entfernt | klein |
 | REV-098 | „Spiele"-Spalte leer für A/B-Ligen | standings-table.tsx:161 | Spalte konditional (wie `showU`) | klein |
 | REV-099 | Gold-Hervorhebung inkonsistent (≤3 vs ≤2) | tabellen:152 vs standings:219 | einheitliche Schwelle/Outcome-Config | klein |
 | REV-100 | Team-Profil „Galerie"-Tab immer leer | team-detail-client.tsx:48 | Tab ausblenden bis Inhalte | klein |

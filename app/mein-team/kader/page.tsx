@@ -14,7 +14,12 @@ export default function KaderPage() {
   const allowed = !!teamId && canManageTeamPlayers(user, teamId);
   const team = teamId ? findTeam(teamId) : undefined;
   const season = getCurrentSeason();
-  const roster = allowed && teamId ? getRankedRosterForTeam(teamId, season.id) : [];
+  // Eigenes useMemo: sonst wäre `roster` bei jedem Render eine neue Referenz und
+  // das `filtered`-useMemo weiter unten würde jedes Mal neu rechnen (REV-045).
+  const roster = useMemo(
+    () => (allowed && teamId ? getRankedRosterForTeam(teamId, season.id) : []),
+    [allowed, teamId, season.id],
+  );
 
   // Nachgemeldete Spieler dieses Teams (in Prüfung + freigegeben, mit Passnummer).
   const [noms, setNoms] = useState<PlayerNomination[] | null>(null);

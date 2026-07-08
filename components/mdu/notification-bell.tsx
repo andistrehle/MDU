@@ -18,7 +18,7 @@ import { useNotifications, relativeTime, type AppNotification } from '@/lib/supa
 
 export function NotificationBell() {
   const router = useRouter();
-  const { items, unread, markRead, markAllRead } = useNotifications();
+  const { items, unread, loading, error, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -65,7 +65,7 @@ export function NotificationBell() {
         }}
       >
         <Icon name="bell" size={22} stroke={2.2} />
-        <NotificationBadge count={unread} absolute ringColor="var(--th-bg-glass)" title={`${unread} ungelesene Benachrichtigungen`} />
+        <NotificationBadge count={unread} absolute ringColor="var(--th-bg-header)" title={`${unread} ungelesene Benachrichtigungen`} />
       </button>
 
       {open && (
@@ -102,9 +102,42 @@ export function NotificationBell() {
             )}
           </div>
 
+          {/* Fehlerhinweis, wenn eine Aktion serverseitig fehlschlug (REV-081) */}
+          {error && (
+            <div role="alert" style={{
+              padding: '9px 16px', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 600,
+              color: 'var(--th-accent)', background: 'var(--th-accent-a07)', borderBottom: '1px solid var(--th-line-6)',
+            }}>
+              {error}
+            </div>
+          )}
+
           {/* Liste */}
           <div style={{ maxHeight: 'min(420px, 60vh)', overflowY: 'auto' }}>
-            {items.length === 0 ? (
+            {loading && items.length === 0 ? (
+              // Ladezustand statt „leer" beim ersten Öffnen (REV-078)
+              <div style={{ padding: '8px 0' }} aria-hidden="true">
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px' }}>
+                    <span className="mdu-skel" style={{ width: 8, height: 8, borderRadius: '50%', marginTop: 6, flexShrink: 0 }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span className="mdu-skel" style={{ display: 'block', height: 12, borderRadius: 4, width: '85%' }} />
+                      <span className="mdu-skel" style={{ display: 'block', height: 10, borderRadius: 4, width: '40%', marginTop: 6 }} />
+                    </span>
+                  </div>
+                ))}
+                <style>{`
+                  .mdu-skel { background: var(--th-line-8); position: relative; overflow: hidden; }
+                  .mdu-skel::after {
+                    content: ''; position: absolute; inset: 0;
+                    background: linear-gradient(90deg, transparent, var(--th-line-6), transparent);
+                    transform: translateX(-100%); animation: mdu-skel-shine 1.2s infinite;
+                  }
+                  @keyframes mdu-skel-shine { to { transform: translateX(100%); } }
+                  @media (prefers-reduced-motion: reduce) { .mdu-skel::after { animation: none; } }
+                `}</style>
+              </div>
+            ) : items.length === 0 ? (
               <div style={{ padding: '28px 16px', textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
                 Keine neuen Benachrichtigungen.
               </div>

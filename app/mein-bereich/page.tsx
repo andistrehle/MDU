@@ -311,6 +311,9 @@ export default function MeinBereichPage() {
               display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,
             }}>
               {tilesFor(user, captainMode, { open: regOpen, registeredTeamName: regTeamName }).map(tile => {
+                // badgeKey = zu erledigende Aufgaben (Admin), notifKey = ungelesene
+                // Benachrichtigungen → Titel je Quelle korrekt formulieren (REV-079).
+                const badgeIsTasks = !!tile.badgeKey;
                 const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : tile.notifKey ? byArea[tile.notifKey] : 0;
                 const inner = (
                   <div data-tour={tile.tourKey} style={{
@@ -325,7 +328,9 @@ export default function MeinBereichPage() {
                       count={badgeCount}
                       absolute
                       ringColor="var(--th-bg-page)"
-                      title={`${badgeCount} offene Aufgabe${badgeCount === 1 ? '' : 'n'}: ${tile.label}`}
+                      title={badgeIsTasks
+                        ? `${badgeCount} offene Aufgabe${badgeCount === 1 ? '' : 'n'}: ${tile.label}`
+                        : `${badgeCount} neue Benachrichtigung${badgeCount === 1 ? '' : 'en'}: ${tile.label}`}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{

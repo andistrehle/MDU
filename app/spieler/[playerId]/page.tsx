@@ -267,7 +267,7 @@ export default async function PlayerProfilePage(
                       <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>
                         {h.teamName}
                         {h.isCaptain && (
-                          <span style={{ marginLeft: 8, fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px' }}>TC</span>
+                          <span title="Teamkapitän" style={{ marginLeft: 8, fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px' }}>Kapitän</span>
                         )}
                       </div>
                       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 2 }}>

@@ -95,7 +95,7 @@ export function useAdminNotificationCounts(): {
   const isAdmin = canManageLeague(user);
 
   const load = useCallback(async () => {
-    if (!isAdmin) { setCounts(ZERO_COUNTS); return; }
+    if (!isAdmin) { queueMicrotask(() => setCounts(ZERO_COUNTS)); return; }
     setLoading(true);
     const c = await getAdminNotificationCounts(user);
     setCounts(c);

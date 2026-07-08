@@ -7,6 +7,7 @@ import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { LEAGUES, STANDINGS_BY_LEAGUE, getExtendedTeam, getCurrentSeason } from '@/lib/data';
 import { TeamBadge } from '@/components/mdu/team-badge';
+import { GOLD_TOP_RANKS } from '@/lib/utils';
 
 // ── Types ─────────────────────────────────────────────────────
 type Filter = 'alle' | 'playoffs' | 'ligen';
@@ -149,7 +150,7 @@ export default function TabellenPage() {
                   >
                     <span style={{
                       fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
-                      color: row.pos <= 3 ? 'var(--th-gold)' : 'var(--th-text-faint)',
+                      color: row.pos <= GOLD_TOP_RANKS ? 'var(--th-gold)' : 'var(--th-text-faint)',
                       lineHeight: '1.3',
                     }}>
                       {row.pos}

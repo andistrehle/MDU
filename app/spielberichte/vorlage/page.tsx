@@ -135,12 +135,11 @@ function VorlageInner() {
       <div className="mdu-no-print mdu-vorlage-toolbar">
         <Link href="/downloads" className="mdu-vorlage-back">← Downloads</Link>
         <div className="mdu-vorlage-toolbar-actions">
-          <span className="mdu-vorlage-hint">Fertige A4-PDF (passt auf jedem Gerät):</span>
-          <a href="/downloads/MDU-Spielbericht-Vorlage.pdf" download className="mdu-vorlage-print">
-            PDF herunterladen
-          </a>
-          <button type="button" onClick={printSheet} className="mdu-vorlage-print-ghost">
-            Drucken
+          {/* Eine einzige Quelle: die Live-Vorlage selbst. Über den Druckdialog
+              „Als PDF speichern" wählen — kein separates PDF, das veralten kann. */}
+          <span className="mdu-vorlage-hint">Im Druckdialog „Als PDF speichern" wählen (A4, passt auf jedem Gerät):</span>
+          <button type="button" onClick={printSheet} className="mdu-vorlage-print">
+            Als PDF speichern / drucken
           </button>
         </div>
       </div>

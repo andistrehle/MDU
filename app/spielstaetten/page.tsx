@@ -191,7 +191,7 @@ export default function SpielstaettenPage() {
                                   )}
                                   {assignment.captain && !isInactive && (
                                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginTop: 1 }}>
-                                      TC: {assignment.captain}
+                                      Kapitän: {assignment.captain}
                                     </div>
                                   )}
                                 </div>

@@ -50,7 +50,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
   if (!upload) return NextResponse.json({ error: 'Upload nicht gefunden.' }, { status: 404 });
 
   // Basis-Berechtigung: eigener Upload, oder (falls Begegnung vorgewählt) eigenes Team / Admin.
-  let preMatch: GameMatch | null = upload.match_id ? findMatch(upload.match_id) : null;
+  const preMatch: GameMatch | null = upload.match_id ? findMatch(upload.match_id) : null;
   const ownsUpload = upload.uploaded_by === auth.user.id
     || (preMatch && (canUploadForTeam(auth.user, preMatch.homeTeamId) || canUploadForTeam(auth.user, preMatch.awayTeamId)));
   if (!ownsUpload) return NextResponse.json({ error: 'Keine Berechtigung für diesen Upload.' }, { status: 403 });
