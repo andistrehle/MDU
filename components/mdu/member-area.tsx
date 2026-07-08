@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { DesktopHeader } from './desktop-header';
 import { Icon } from './icon';
 
@@ -45,5 +46,7 @@ export function Muted({ children }: { children: React.ReactNode }) {
 }
 
 export function LoginLink() {
-  return <Link href="/login" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Zur Anmeldung →</Link>;
+  const pathname = usePathname();
+  const href = pathname && pathname !== '/login' ? `/login?next=${encodeURIComponent(pathname)}` : '/login';
+  return <Link href={href} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Zur Anmeldung →</Link>;
 }

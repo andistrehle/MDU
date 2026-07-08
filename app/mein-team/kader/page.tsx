@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageTeamPlayers } from '@/lib/auth/roles';
@@ -18,10 +18,11 @@ export default function KaderPage() {
 
   // Nachgemeldete Spieler dieses Teams (in Prüfung + freigegeben, mit Passnummer).
   const [noms, setNoms] = useState<PlayerNomination[] | null>(null);
-  useEffect(() => {
+  const loadNoms = useCallback(() => {
     if (!allowed || !teamId) return;
     listMyNominations().then(all => setNoms(all.filter(n => n.team_id === teamId && n.status !== 'rejected')));
   }, [allowed, teamId]);
+  useEffect(() => { loadNoms(); }, [loadNoms]);
 
   const [query, setQuery] = useState('');
   const filtered = useMemo(() => {
@@ -48,7 +49,7 @@ export default function KaderPage() {
               <div style={{ flex: 1, minWidth: 200, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
                 {team?.name ?? teamId} · {season.name} · {roster.length} Spieler
               </div>
-              <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} />
+              <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} onSuccess={loadNoms} />
             </div>
 
             <input

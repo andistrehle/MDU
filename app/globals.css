@@ -438,6 +438,25 @@ body {
   body { padding-bottom: 80px; }
 }
 
+/* REV-072: Benachrichtigungs-Popover ab Tablet/Mobile am Viewport verankern.
+   Die Glocke sitzt im mobilen Header nicht am rechten Rand — rechtsbündig
+   verankert würde das 360px-Panel über den linken Rand hinausragen. */
+@media (max-width: 1080px) {
+  .mdu-notif-pop {
+    position: fixed !important;
+    top: 66px !important;
+    left: 12px !important; right: 12px !important;
+    width: auto !important; max-width: none !important;
+  }
+}
+
+/* REV-071: sehr schmale Handys (≤380px) — Header-Aktionen enger packen,
+   damit Glocke/Login/Toggle nicht abgeschnitten werden. */
+@media (max-width: 380px) {
+  .mdu-header-inner   { padding-left: 10px !important; padding-right: 10px !important; gap: 8px !important; }
+  .mdu-mobile-actions { gap: 6px !important; }
+}
+
 /* =====================================================
    @media (max-width: 768px)
    ===================================================== */

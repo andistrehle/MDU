@@ -21,15 +21,22 @@ export function NotificationBell() {
   const { items, unread, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  // Klick außerhalb / Escape schließt das Popover.
+  // Klick außerhalb / Escape schließt das Popover (Escape gibt den Fokus zurück).
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); btnRef.current?.focus(); } };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+
+  // Beim Öffnen den Fokus ins Popover setzen (Tastatur/Screenreader).
+  useEffect(() => {
+    if (open) panelRef.current?.focus({ preventScroll: true });
   }, [open]);
 
   async function onItemClick(n: AppNotification) {
@@ -41,6 +48,7 @@ export function NotificationBell() {
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
       <button
+        ref={btnRef}
         type="button"
         aria-label="Benachrichtigungen öffnen"
         aria-haspopup="true"
@@ -62,8 +70,11 @@ export function NotificationBell() {
 
       {open && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-label="Benachrichtigungen"
+          aria-modal="false"
+          tabIndex={-1}
           className="mdu-notif-pop"
           style={{
             position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 300,

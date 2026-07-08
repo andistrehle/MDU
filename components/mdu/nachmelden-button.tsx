@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { createNomination, LAST_LEAGUE_OPTIONS, type LastLeague } from '@/lib/supabase/nominations';
 
-export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamName: string }) {
+export function NachmeldenButton({ teamId, teamName, onSuccess }: { teamId: string; teamName: string; onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -40,6 +40,7 @@ export function NachmeldenButton({ teamId, teamName }: { teamId: string; teamNam
     if (error) { setMsg({ kind: 'err', text: error }); return; }
     setMsg({ kind: 'ok', text: '✓ Nachmeldung erfolgreich an die Ligaleitung zur Prüfung gesendet. Du wirst über das Ergebnis benachrichtigt.' });
     setFirstName(''); setLastName(''); setLastLeague('none');
+    onSuccess?.();   // Elternliste (Kader) aktualisieren.
   }
 
   return (

@@ -18,19 +18,15 @@ export function Footer() {
           <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 14, lineHeight: 1.6, maxWidth: 280 }}>
             Die offizielle Liga-Seite für den organisierten Dartsport in München.
           </p>
+          {/* Echte Kontaktwege statt funktionsloser Attrappen. Social-Media-Icons
+              entfernt, solange es keine offiziellen MDU-Kanäle gibt. */}
           <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-            {(['mail', 'globe'] as const).map((icon, i) => (
-              <div key={i} style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: 'var(--th-line-4)', border: '1px solid var(--th-line-8)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-text-muted)',
-                cursor: 'pointer',
-              }}>
-                <Icon name={icon} size={14} />
-              </div>
-            ))}
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--th-line-4)', border: '1px solid var(--th-line-8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 900, fontSize: 14, cursor: 'pointer' }}>f</div>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--th-line-4)', border: '1px solid var(--th-line-8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--th-text-muted)', cursor: 'pointer' }}><Icon name="image" size={14} /></div>
+            <a href="mailto:kontakt@mdudarts.de" aria-label="E-Mail an die Münchner Dart Union" style={socialIcon}>
+              <Icon name="mail" size={14} />
+            </a>
+            <Link href="/kontakt" aria-label="Zum Kontaktformular" style={socialIcon}>
+              <Icon name="globe" size={14} />
+            </Link>
           </div>
         </div>
 
@@ -58,3 +54,10 @@ export function Footer() {
     </footer>
   );
 }
+
+const socialIcon: React.CSSProperties = {
+  width: 32, height: 32, borderRadius: '50%',
+  background: 'var(--th-line-4)', border: '1px solid var(--th-line-8)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  color: 'var(--th-text-muted)', textDecoration: 'none',
+};

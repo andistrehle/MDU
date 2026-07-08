@@ -23,8 +23,17 @@ export default function LoginPage() {
     if (res.error) {
       setError(res.error);
     } else {
-      router.push('/mein-bereich');
+      router.push(safeNext());
     }
+  }
+
+  // Ziel nach Login: ?next= (nur interne, relative Pfade — kein Open Redirect).
+  function safeNext(): string {
+    try {
+      const n = new URLSearchParams(window.location.search).get('next');
+      if (n && n.startsWith('/') && !n.startsWith('//')) return n;
+    } catch { /* ignore */ }
+    return '/mein-bereich';
   }
 
   const linkStyle: React.CSSProperties = { color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 700 };

@@ -37,9 +37,9 @@ export function BottomNav() {
             href={item.href}
             data-tour={NAV_TOUR[item.href]}
             style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
               position: 'relative', color: active ? 'var(--th-accent)' : 'var(--th-text-muted)',
-              textDecoration: 'none', minWidth: 48,
+              textDecoration: 'none', minWidth: 48, minHeight: 44,
             }}
           >
             {active && (
