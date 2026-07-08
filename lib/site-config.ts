@@ -21,5 +21,5 @@ export const SITE_INDEXABLE = false;
 // Instagram-URL eintragen, sobald der Account existiert.
 export const SOCIAL_LINKS: { facebook: string | null; instagram: string | null } = {
   facebook: 'https://www.facebook.com/groups/492288164134290/',
-  instagram: null,
+  instagram: 'https://www.instagram.com/muenchnerdartunion/',
 };
