@@ -121,7 +121,7 @@ export const LEAGUES: League[] = [
     id: 'a1', code: 'a1',
     name: 'A1 Liga', tier: 'A Liga',
     level: 2, sortOrder: 6,
-    teams: 7, season: '2026',
+    teams: 6, season: '2026',
     color: '#D40000',
     description: 'Zweithöchste Spielklasse der Münchner Dart Union',
   },

@@ -8,7 +8,9 @@
 
 Die Plattform ist **technisch in gutem Zustand**: `npm run build` und `tsc --noEmit` laufen grün, alle 48 Seiten liefern HTTP 200, der Server-Log ist beim Durchklicken fehlerfrei (keine 500er, keine Hydration-Fehler, keine unhandled exceptions). Architektur, Rollenmodell, Ehrlichkeitsprinzip (ehrliche E-Mail-/OCR-/Statuszustände) und RLS-Grundgerüst sind durchdacht und konsistent umgesetzt.
 
-Es wurden **keine P0-Probleme** (kein bestätigter Datenleak, kein blockierter Login, keine kaputte Kernseite) gefunden. Es gibt **6 P1-Punkte**, die vor Go-live behoben werden sollten — am gewichtigsten ein **fehlender Rollen-Check auf `/api/notifications/email`** (jeder eingeloggte Nutzer könnte offiziell aussehende MDU-Mails versenden) und eine **Dat.plausibilität** (Playoff-Tabelle widerspricht der „Saison beendet"-News). Der große Rest sind UX-/Konsistenz-/Robustheits-Verbesserungen (P2/P3), viele davon Quick Wins.
+Es wurden **keine P0-Probleme** (kein bestätigter Datenleak, kein blockierter Login, keine kaputte Kernseite) gefunden. Es gibt **5 P1-Punkte** (nach Nachprüfung; REV-090 war ein Fehlalarm, siehe unten), die vor Go-live behoben werden sollten — am gewichtigsten ein **fehlender Rollen-Check auf `/api/notifications/email`** (jeder eingeloggte Nutzer könnte offiziell aussehende MDU-Mails versenden). Der große Rest sind UX-/Konsistenz-/Robustheits-Verbesserungen (P2/P3), viele davon Quick Wins.
+
+> **Nachtrag REV-090 (aufgelöst):** Der gemeldete Playoff-News-Widerspruch existiert **nicht** in der Anzeige. Der prüfende Agent las nur die statische Fallback-Tabelle (`PLAYOFFS_B_AUFSTIEG_STANDINGS`, 27.05.-Snapshot, sp=7); die **tatsächlich angezeigte** Tabelle wird aus `imported-standings.json` gemergt (überschreibt statisch) und ist **final** (sp=10): Fiaker Deife, Belfort Evolution, **Freibad Bazis** auf Rang 1–3 → deckt sich exakt mit der „Saison beendet"-News. Keine Datenkorrektur nötig. Optionaler Cleanup: den überholten statischen Snapshot auf die finalen Werte angleichen oder entfernen, damit die Fallback-Ebene nicht in die Irre führt (P3).
 
 **Gesamtnote: gut, go-live-fähig nach Abarbeitung der P1 + der sicherheits-/vertrauensrelevanten P2.**
 
@@ -77,8 +79,9 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 
 ## 12. Datenplausibilität (stichprobenartig, nichts geändert)
 
-- **Widerspruch (P1):** Playoff-B-Aufstieg-Tabelle (`lib/data.ts:342-347`, Flying Seven P3 vor Freibad Bazis P4) widerspricht der News „Freibad Bazis steigen auf, Flying Seven bleibt" (`lib/data/news.ts:41`). Ursache: Playoff-Endstände beim Freeze nicht nachgezogen (nur letzte 2 Ergebnisse + C-Liga). Wirkt sich auf `getPredeterminedLeagueForTeam` (Anmeldung) aus. (REV-090)
-- **Zählfehler (P2):** `/ligen` A1-Karte „7 Teams", real 6 (Treff Nix Freimann früh nach A2 verschoben). (REV-094)
+- **REV-090 — kein Widerspruch (aufgelöst):** Die angezeigte Playoff-B-Aufstieg-Tabelle stammt aus `imported-standings.json` (final, sp=10: Fiaker Deife, Belfort Evolution, Freibad Bazis auf 1–3) und deckt sich mit der News. Der Erstbefund beruhte auf der statischen Fallback-Tabelle (`lib/data.ts:342-347`, 27.05.-Snapshot sp=7), die vom Merge überschrieben wird. Der Betreiber bestätigt die Stände als final. (Optional P3: statischen Snapshot angleichen/entfernen.)
+- **REV-094 — erledigt:** `/ligen` A1-Karte zeigte „7 Teams", real 6 (Treff Nix Freimann früh nach A2 verschoben). Anzeigewert `leagues.ts` auf 6 korrigiert (vom Betreiber bestätigt).
+- **Offen (A1-Tabelle):** Die A1-Tabelle (`A1_LIGA_STANDINGS`) ist ein Snapshot mit **uneinheitlichen/unplausiblen Spielzahlen** (sp 14/11/10/12/12/10 — bei 6 Teams max. 10). Eine saubere „jedes Team 10 Spiele"-Rekonstruktion ist aus den gespeicherten Daten **nicht** möglich: es liegen **keine A1-Einzelspiele** vor (`imported-matches.json` a1 = 0, `matches.ts` a1 = 0) und `imported-standings.json` enthält **kein a1**. Rekonstruktion braucht die Quelle (dartunion.de, derzeit nicht erreichbar) oder eine vom Betreiber gelieferte finale A1-Tabelle. **Nicht erfunden.**
 - Konsistent gut: De-Wolperdinga-Rückzug überall markiert; playoff-bewusste Gruppierung auf Teams/Spielstätten/Tabellen; Spieler-Spezialwerte ehrlich „–".
 
 ## 13. P1-Probleme (hoch)
@@ -133,15 +136,11 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 - **Lösungsvorschlag:** Desktop-Nav bereits ab ~1024px auf Burger/Bottom-Nav umstellen oder Items ab ~1100px reduzieren/umbrechen.
 - **Aufwand:** mittel · **Status:** offen
 
-### REV-090 · Playoff-Tabelle widerspricht „Saison beendet"-News
-- **Priorität:** P1 · **Bereich:** Datenplausibilität · **Route:** `/ligen/playoffs-b-aufstieg` + `/` · **Rolle:** Gast · **Gerät:** alle
-- **Problem:** News (`news.ts:41`): Freibad Bazis steigen auf, Flying Seven bleibt. Tabelle (`lib/data.ts:342-347`): Flying Seven P3 (11 Pkt, grün „Aufstieg") über Freibad Bazis P4 (9 Pkt, „Verbleib"). Direkter Widerspruch; wirkt auf `getPredeterminedLeagueForTeam` (Anmelde-Default).
-- **Erwartung:** Tabelle, News und Anmelde-Vorbelegung stimmen überein.
-- **Auswirkung:** Falsche offizielle Darstellung des Saisonausgangs; falsche Liga-Vorbelegung.
-- **Ursache:** Playoff-Endstände beim Freeze nicht nachgezogen (nur letzte 2 + C-Liga).
-- **Reproduktion:** News lesen vs Playoff-B-Aufstieg-Tabelle öffnen.
-- **Lösungsvorschlag:** **Nicht ohne Rücksprache ändern.** Finale Playoff-Endstände von dartunion.de in `PLAYOFFS_B_AUFSTIEG_STANDINGS` (+ ggf. andere Gruppen) nachtragen.
-- **Aufwand:** klein (Datenpflege), Prüfung mittel · **Status:** offen (Rückfrage)
+### REV-090 · ~~Playoff-Tabelle widerspricht „Saison beendet"-News~~ → FEHLALARM (aufgelöst)
+- **Priorität:** ~~P1~~ → **kein Befund** (ggf. P3 Cleanup) · **Bereich:** Datenplausibilität · **Route:** `/ligen/playoffs-b-aufstieg` + `/`
+- **Auflösung:** Die **angezeigte** Tabelle kommt aus `imported-standings.json` (final, sp=10: Fiaker Deife, Belfort Evolution, **Freibad Bazis** auf Rang 1–3) und **stimmt mit der News überein**. Der Erstbefund las nur die statische Fallback-Tabelle `PLAYOFFS_B_AUFSTIEG_STANDINGS` (27.05.-Snapshot, sp=7), die vom Merge (`STANDINGS_BY_LEAGUE`) überschrieben wird. Betreiber bestätigt die Stände als final. dartunion.de aktuell nicht erreichbar (Proxy 403) — keine Nachprüfung an der Quelle nötig, da die importierten Endstände bereits final sind.
+- **Optionaler Cleanup (P3):** Statischen Snapshot an die finalen Werte angleichen oder entfernen, damit die Fallback-Ebene nicht irreführt. **Sportdaten nicht geändert.**
+- **Status:** aufgelöst (kein Handlungsbedarf an den Ständen)
 
 ## 14. P2-Probleme (mittel)
 
@@ -174,7 +173,7 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 | REV-091 | „Alle News anzeigen" → Baustellenseite | `page.tsx:148`, `news/page.tsx:39` | toter CTA → `/news` füllen oder Link ausblenden | klein |
 | REV-092 | Widersprüchliche News (laufen vs beendet) | `page.tsx:144-146`, `lib/data.ts:609-616` | veraltete `HOME_NEWS` → aussortieren/archivieren | klein |
 | REV-093 | Uneinheitliche Saison-Bezeichnung | ligen/tabellen/teams/home | „2026"/„2025/26"/„2025/2026" → überall `getCurrentSeason().name` | klein |
-| REV-094 | A1-Karte „7 Teams" vs 6 | `lib/data/leagues.ts:124` | Zählfehler → `teams:6` (nach Bestätigung) | klein |
+| REV-094 | ✅ ERLEDIGT: A1-Karte „7 Teams" → 6 | `lib/data/leagues.ts:124` | korrigiert (`teams:6`, vom Betreiber bestätigt) | klein |
 | REV-095 | Dark-Mode Tabellenkopf kaum sichtbar | `tabellen/page.tsx:134,198` | hardcodiert `#3A3E4A` → `var(--th-text-muted/faint)` | klein |
 
 ## 15. P3-Probleme (niedrig)
@@ -290,7 +289,7 @@ Legende: Ö=öffentlich · L=Login nötig · Rollen: G(ast)/S(pieler)/K(apitän)
 - **Geprüfte Seiten/Routen:** 48 Seiten + 12 API-Routen (60)
 - **Geprüfte Rollen:** 5 (Gast, Spieler, Kapitän, Ligaleitung, Super Admin)
 - **Geräte:** Desktop + Mobile (Layout/Breakpoint-Analyse 320–1920px)
-- **Findings:** P0 = 0 · P1 = 6 · P2 = 29 · P3 = 36 (Σ 71)
+- **Findings:** P0 = 0 · P1 = 5 (REV-090 nach Nachprüfung Fehlalarm) · P2 = 28 (REV-094 erledigt) · P3 = 36 (Σ 69 offen)
 - **Build:** ✅ grün · **Typecheck:** ✅ · **Lint:** 31 Punkte (build-neutral)
 
 ---
