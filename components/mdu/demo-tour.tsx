@@ -229,6 +229,11 @@ export function DemoTour() {
 
   const startTour = useCallback((id: TourId, built: TourStep[]) => {
     if (built.length === 0) return;
+    // Die „Mein Bereich"-Tour ist eine Einmal-Tour: sobald sie startet, als
+    // gesehen markieren. So poppt sie nicht bei jedem Besuch erneut auf – egal
+    // ob sie durchgeklickt oder per X/Außenklick geschlossen wird. Erneutes
+    // Ansehen läuft bewusst nur über den „Demo Tour erneut ansehen"-Button.
+    if (id === 'member') { try { localStorage.setItem(KEYS.member.done, '1'); } catch { /* ignore */ } }
     setTourId(id); setSteps(built); setStep(0); setSpot(null); setVisible(true);
   }, []);
 
