@@ -13,3 +13,13 @@
 // ============================================================
 
 export const SITE_INDEXABLE = false;
+
+// ============================================================
+// Social-Media-Kanäle der MDU
+// ============================================================
+// Nur gesetzte Links werden im Footer angezeigt (keine toten Attrappen).
+// Instagram-URL eintragen, sobald der Account existiert.
+export const SOCIAL_LINKS: { facebook: string | null; instagram: string | null } = {
+  facebook: 'https://www.facebook.com/groups/492288164134290/',
+  instagram: null,
+};

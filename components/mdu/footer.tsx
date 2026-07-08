@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from './icon';
+import { SOCIAL_LINKS } from '@/lib/site-config';
 
 export function Footer() {
   return (
@@ -18,15 +19,26 @@ export function Footer() {
           <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 14, lineHeight: 1.6, maxWidth: 280 }}>
             Die offizielle Liga-Seite für den organisierten Dartsport in München.
           </p>
-          {/* Echte Kontaktwege statt funktionsloser Attrappen. Social-Media-Icons
-              entfernt, solange es keine offiziellen MDU-Kanäle gibt. */}
+          {/* Echte Kontakt-/Social-Wege (nur gesetzte Kanäle, keine Attrappen). */}
           <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
             <a href="mailto:kontakt@mdudarts.de" aria-label="E-Mail an die Münchner Dart Union" style={socialIcon}>
               <Icon name="mail" size={14} />
             </a>
-            <Link href="/kontakt" aria-label="Zum Kontaktformular" style={socialIcon}>
-              <Icon name="globe" size={14} />
-            </Link>
+            {SOCIAL_LINKS.facebook && (
+              <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="MDU auf Facebook"
+                style={{ ...socialIcon, fontFamily: 'var(--font-manrope)', fontWeight: 900, fontSize: 15 }}>
+                f
+              </a>
+            )}
+            {SOCIAL_LINKS.instagram && (
+              <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="MDU auf Instagram" style={socialIcon}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </a>
+            )}
           </div>
         </div>
 
