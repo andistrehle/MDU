@@ -38,7 +38,7 @@ export function getOcrConfig(): OcrConfig {
     allowedRoles: parseRoles(process.env.OCR_ALLOWED_ROLES),
     provider,
     apiKey,
-    model: (process.env.OCR_MODEL || 'claude-sonnet-4-6').trim(),
+    model: (process.env.OCR_MODEL || 'claude-sonnet-5').trim(),
     maxFileBytes: Math.round((Number.isFinite(mb) && mb > 0 ? mb : 12) * 1024 * 1024),
   };
 }

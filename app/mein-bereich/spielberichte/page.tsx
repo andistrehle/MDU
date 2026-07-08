@@ -307,6 +307,14 @@ function SpielberichteInner() {
       if (!homePlayers.find(p => p.slot === i)?.name.trim()) return `Bitte Heimspieler H${i} angeben.`;
       if (!guestPlayers.find(p => p.slot === i)?.name.trim()) return `Bitte Gastspieler G${i} angeben.`;
     }
+    // Jede Partie muss vollständig besetzt sein — sonst laufen die Einzelpunkte
+    // ins Leere (Doppel Nr. 9/18 brauchen je zwei Spieler pro Seite).
+    for (const g of games) {
+      const isDouble = g.game_type === 'double';
+      if (g.home_slot == null || g.guest_slot == null || (isDouble && (g.home_slot2 == null || g.guest_slot2 == null))) {
+        return `Spiel ${g.game_no}${isDouble ? ' (Doppel)' : ''}: Bitte für beide Seiten die Spieler zuordnen.`;
+      }
+    }
     if (games.some(g => g.legs_home == null)) return 'Bitte alle 18 Spielergebnisse eintragen.';
     return null;
   }

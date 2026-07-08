@@ -41,11 +41,16 @@ export default function SpielberichteUebersichtPage() {
   const isOwner = (r: MatchReport) => r.home_captain_user_id === myId;
 
   async function onConfirm(id: string) {
+    // Unwiderrufliche Aktion: Bericht wird gesperrt + Original-Fotos gelöscht.
+    if (!window.confirm('Ergebnis endgültig bestätigen?\n\nDanach ist der Bericht gesperrt und die hochgeladenen Original-Fotos werden gelöscht. Das lässt sich nicht rückgängig machen.')) return;
     setBusy(true);
     const res = await confirmReport(id);
     // Nach Bestätigung die hochgeladenen Original-Fotos löschen (Datenschutz);
-    // best effort, Fehler blockieren die Bestätigung nicht.
-    if (!res.error) await cleanupReportUploads(id);
+    // best effort, Fehler blockieren die Bestätigung nicht — aber sichtbar machen.
+    if (!res.error) {
+      const cleanup = await cleanupReportUploads(id);
+      if (cleanup.error) console.warn('Original-Uploads konnten nach Bestätigung nicht gelöscht werden:', cleanup.error);
+    }
     setRows(await listMyReports());
     setBusy(false);
   }

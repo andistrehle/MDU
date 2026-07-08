@@ -96,6 +96,24 @@ export default function OcrUploadPage() {
     if (matchId && !visibleMatches.some(m => m.id === matchId)) setMatchId('');
   }, [visibleMatches, matchId]);
 
+  // Datei vor dem Hochladen prüfen: HEIC (iPhone) kann OCR nicht lesen (REV-052),
+  // und zu große Dateien werden serverseitig ohnehin abgelehnt (REV-053) — daher
+  // sofort mit klarer Meldung abfangen, statt erst nach vergeblichem Upload.
+  function pickFile(file: File | null, setFile: (f: File | null) => void) {
+    if (!file) { setFile(null); return; }
+    const isHeic = /heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+    if (isHeic) {
+      setMsg({ kind: 'err', text: 'HEIC-Fotos (iPhone) können nicht ausgelesen werden. Bitte als JPG aufnehmen (iPhone: Einstellungen → Kamera → Formate → „Maximale Kompatibilität") oder als PDF hochladen.' });
+      return;
+    }
+    if (file.size > maxMb * 1024 * 1024) {
+      setMsg({ kind: 'err', text: `Die Datei ist zu groß (${Math.round(file.size / 1024 / 1024)} MB). Erlaubt sind max. ${maxMb} MB.` });
+      return;
+    }
+    setMsg(null);
+    setFile(file);
+  }
+
   async function onStart() {
     if (!page1) { setMsg({ kind: 'err', text: 'Bitte Seite 1 (Spielbericht) als Foto/PDF auswählen.' }); return; }
     setBusy(true); setMsg({ kind: 'info', text: 'Lade hoch …' });
@@ -168,11 +186,11 @@ export default function OcrUploadPage() {
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <label style={btn}>
                   📷 Foto aufnehmen
-                  <input type="file" accept="image/*" capture="environment" hidden onChange={e => setPage1(e.target.files?.[0] ?? null)} />
+                  <input type="file" accept="image/*" capture="environment" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage1)} />
                 </label>
                 <label style={btn}>
                   📄 Datei wählen
-                  <input type="file" accept="image/*,application/pdf" hidden onChange={e => setPage1(e.target.files?.[0] ?? null)} />
+                  <input type="file" accept="image/*,application/pdf" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage1)} />
                 </label>
               </div>
               {page1 && <FilePill file={page1} onRemove={() => setPage1(null)} />}
@@ -193,11 +211,11 @@ export default function OcrUploadPage() {
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <label style={btn}>
                       📷 Foto aufnehmen
-                      <input type="file" accept="image/*" capture="environment" hidden onChange={e => setPage2(e.target.files?.[0] ?? null)} />
+                      <input type="file" accept="image/*" capture="environment" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage2)} />
                     </label>
                     <label style={btn}>
                       📄 Datei wählen
-                      <input type="file" accept="image/*,application/pdf" hidden onChange={e => setPage2(e.target.files?.[0] ?? null)} />
+                      <input type="file" accept="image/*,application/pdf" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage2)} />
                     </label>
                     <button type="button" onClick={() => { setWantPage2(false); setPage2(null); }} style={{ ...btn, color: 'var(--th-text-muted)', borderColor: 'var(--th-line-10)' }}>Doch keine 2. Seite</button>
                   </div>
