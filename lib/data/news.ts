@@ -62,6 +62,46 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       'Er wünscht allen viel Glück und vor allem Gesundheit.',
     ],
   },
+  {
+    id: 'wolperdinga-rueckzug-2026',
+    title: 'De Wolperdinga ziehen sich vom Spielbetrieb zurück',
+    teaser:
+      'De Wolperdinga haben ihre Mannschaft mit sofortiger Wirkung aus dem laufenden Spielbetrieb zurückgezogen.',
+    source: 'dartunion.de',
+    date: '21.05.2026',
+    category: 'MDU News',
+    content: [
+      'De Wolperdinga haben ihre Mannschaft **mit sofortiger Wirkung vom Spielbetrieb zurückgezogen**.',
+      'Die noch offenen Begegnungen werden entsprechend gewertet. In der B-Liga-Tabelle ist das Team weiterhin mit dem Hinweis „*" (zurückgezogen) geführt.',
+      'Weitere Informationen dazu findet ihr auf dartunion.de.',
+    ],
+  },
+  {
+    id: 'playoffs-2025-2026-gestartet',
+    title: 'Playoffs der Saison 2025/2026 gestartet',
+    teaser:
+      'Die Aufstiegs- und Abstiegs-Playoffs der Saison 2025/2026 wurden ausgetragen.',
+    source: 'dartunion.de',
+    date: '14.05.2026',
+    category: 'Playoffs',
+    content: [
+      'Die **Playoffs der Saison 2025/2026** sind gestartet: In den Aufstiegs- und Abstiegsspielen wurde um die letzten Auf- und Abstiegsplätze gespielt.',
+      'Die finalen Ergebnisse aller Playoff-Serien stehen inzwischen fest und sind in den jeweiligen **Ligen**-Tabellen abrufbar.',
+    ],
+  },
+  {
+    id: 'pokal-fight-2026-rueckspiele',
+    title: 'Pokal Fight 2026: Rückspiele ausgetragen',
+    teaser:
+      'Die Rückspiele des Pokal Fight 2026 sind gespielt — alle Ergebnisse auf dartunion.de.',
+    source: 'dartunion.de',
+    date: '10.01.2026',
+    category: 'Pokal',
+    content: [
+      'Die **Rückspiele des Pokal Fight 2026** sind absolviert.',
+      'Alle Ergebnisse gibt es wie gewohnt auf dartunion.de.',
+    ],
+  },
 ];
 
 /** Returns the most recent (first) news article, or undefined. */

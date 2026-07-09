@@ -20,7 +20,8 @@ import {
 export default function HomePage() {
   const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
-  const newsArticles = NEWS_ARTICLES;
+  // Startseite zeigt nur die 2 neuesten; „Alle News anzeigen" (/news) listet alle.
+  const newsArticles = NEWS_ARTICLES.slice(0, 2);
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/" />
