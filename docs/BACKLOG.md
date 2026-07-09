@@ -183,6 +183,7 @@ per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch
 - [ ] Strukturierte Spielbericht-Highlights (180er/171/High Finish/Short Leg) in die Spielerstatistik aggregieren und in Profilen anzeigen
 - [ ] Teamname in `team_linked`/`role_changed`-Notifications (serverseitig im Trigger nicht auflösbar — Teamnamen liegen in lib/data; ggf. clientseitig nachziehen)
 - [ ] Optionale User-Eingangsmail bei Registrierung bewusst ausgelassen (Supabase verschickt bereits Verifizierungs-Mail)
+- [ ] Idee (offen): Dartboard-Hintergrund (wie auf den öffentlichen Seiten via `PageBanner`/`.mdu-pb-board-page`) auch im „Mein Bereich" einbauen — evtl. mit einem **anderen Motiv** als `mdu-hero-dartboard-2.webp`. Nur angedacht, noch nicht beauftragt.
 
 ## Spielerstatistik an Dartlogik anpassen ✅ (Zwischensprint, Juni 2026)
 
