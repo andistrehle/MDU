@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 // ============================================================
 // PageBanner — kompakter Seitenkopf + Dartboard-Hintergrund
@@ -25,6 +25,7 @@ export function PageBanner({
   title,
   breadcrumb,
   children,
+  boardRight,
 }: {
   /** Kleine Überzeile über dem Titel (z. B. „Letzte Spieltage"). */
   eyebrow?: string;
@@ -33,14 +34,18 @@ export function PageBanner({
   breadcrumb?: ReactNode;
   /** Optionaler Zusatzinhalt unter dem Titel (z. B. Kurzbeschreibung). */
   children?: ReactNode;
+  /** CSS-Wert für die rechte Kante des Hintergrund-Dartboards = Inhaltsrand der
+   *  jeweiligen Seite (seitengenaue Ausrichtung). */
+  boardRight?: string;
 }) {
+  const boardStyle = boardRight ? ({ ['--pb-right']: boardRight } as CSSProperties) : undefined;
   return (
     <>
       {/* Desktop-Hintergrund: großes Dartboard hinter den Seiteninhalten. */}
-      <div aria-hidden className="mdu-pb-board-page mdu-banner-dartboard">
+      <div aria-hidden className="mdu-pb-board-page mdu-banner-dartboard" style={boardStyle}>
         <Image src="/mdu-hero-dartboard-2.webp"
           unoptimized alt="" width={780} height={780}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 58%' }} />
       </div>
 
       <div className="mdu-pb">

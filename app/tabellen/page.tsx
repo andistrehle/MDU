@@ -32,7 +32,7 @@ export default function TabellenPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/tabellen" />
 
-      <PageBanner eyebrow={getCurrentSeason().name} title="Tabellenübersicht" />
+      <PageBanner eyebrow={getCurrentSeason().name} title="Tabellenübersicht" boardRight="max(20px, calc(50vw - 430px))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
 

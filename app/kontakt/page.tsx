@@ -16,7 +16,7 @@ export default function KontaktPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/kontakt" />
 
-      <PageBanner eyebrow="Münchner Dart Union" title="Kontakt" />
+      <PageBanner eyebrow="Münchner Dart Union" title="Kontakt" boardRight="max(20px, calc(50vw - 300px))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px 80px' }}>
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>

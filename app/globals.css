@@ -262,19 +262,26 @@ html[data-theme="light"] .mdu-banner-dartboard {
   .mdu-pb-board-page {
     display: block;
     position: absolute;
-    top: 66px;                 /* direkt unter der Menüleiste startend */
+    top: 0;                    /* bis unter die Menüleiste — der Header verdeckt oben */
     left: auto;
-    /* Rechte Kante bündig mit dem Seiteninhalt (max-width 1280 + 28px Padding),
-       nicht am Viewport-Rand. */
-    right: max(28px, calc((100vw - 1280px) / 2 + 28px));
+    /* Rechte Kante seitengenau am Inhaltsrand (pro Seite via --pb-right). */
+    right: var(--pb-right, max(28px, calc((100vw - 1280px) / 2 + 28px)));
     transform: none;
-    width: 780px;
-    height: 780px;
+    width: 860px;
+    height: 540px;
     opacity: 0.5;
     z-index: -1;               /* hinter den Inhalten, über dem Seiten-Hintergrund */
     pointer-events: none;
-    -webkit-mask-image: radial-gradient(circle closest-side at 58% 40%, #000 0%, #000 48%, transparent 84%);
-    mask-image: radial-gradient(circle closest-side at 58% 40%, #000 0%, #000 48%, transparent 84%);
+    /* Großer rechteckiger Ausschnitt: oben/rechts bündig, weich nach links + unten
+       in die Seite auslaufend (keine runde/ovale Maske). */
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, #000 42%),
+      linear-gradient(to top,   transparent 0%, #000 32%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0%, #000 42%),
+      linear-gradient(to top,   transparent 0%, #000 32%);
+    mask-composite: intersect;
   }
 }
 

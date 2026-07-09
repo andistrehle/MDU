@@ -61,7 +61,7 @@ export default function MehrPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/mehr" />
 
-      <PageBanner eyebrow="Münchner Dart Union" title="Mehr" />
+      <PageBanner eyebrow="Münchner Dart Union" title="Mehr" boardRight="max(20px, calc(50vw - 300px))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px 80px' }}>
         {/* Section link cards */}

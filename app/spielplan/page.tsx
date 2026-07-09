@@ -42,7 +42,7 @@ export default function SpielplanPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielplan" />
 
-      <PageBanner eyebrow="Liga-Kalender" title="Spielplan" />
+      <PageBanner eyebrow="Liga-Kalender" title="Spielplan" boardRight="max(28px, min(calc(50vw - 188px), calc(100vw - 828px)))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}

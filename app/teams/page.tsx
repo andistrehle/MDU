@@ -36,7 +36,7 @@ export default async function TeamsPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/teams" />
 
-      <PageBanner eyebrow={season.name} title="Teams" />
+      <PageBanner eyebrow={season.name} title="Teams" boardRight="max(28px, calc(50vw - 612px))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         {/* League groups */}

@@ -17,7 +17,7 @@ export default function DownloadsPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader activeHref="/downloads" />
 
-      <PageBanner eyebrow="Münchner Dart Union" title="Downloads" />
+      <PageBanner eyebrow="Münchner Dart Union" title="Downloads" boardRight="max(20px, calc(50vw - 360px))" />
 
       <main className="mdu-section-pad" style={{ flex: 1, maxWidth: 760, width: '100%', margin: '0 auto', padding: '32px 20px 80px' }}>
         {/* ── Eintrag: Offizieller MDU-Spielbericht ── */}

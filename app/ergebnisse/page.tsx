@@ -42,7 +42,7 @@ export default function ErgebnissePage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/ergebnisse" />
 
-      <PageBanner eyebrow="Letzte Spieltage" title="Ergebnisse" />
+      <PageBanner eyebrow="Letzte Spieltage" title="Ergebnisse" boardRight="max(28px, min(calc(50vw - 288px), calc(100vw - 928px)))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}

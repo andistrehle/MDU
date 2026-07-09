@@ -9,7 +9,7 @@ export default function NewsPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader />
 
-      <PageBanner eyebrow="Aktuelles" title="News" />
+      <PageBanner eyebrow="Aktuelles" title="News" boardRight="max(28px, calc(50vw - 422px))" />
 
       <main style={{ flex: 1 }}>
         <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 28px 80px', width: '100%' }}>

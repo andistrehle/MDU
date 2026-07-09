@@ -19,7 +19,7 @@ export default function SpielstaettenPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielstaetten" />
 
-      <PageBanner eyebrow={season.name} title="Spielstätten" />
+      <PageBanner eyebrow={season.name} title="Spielstätten" boardRight="max(28px, calc(50vw - 612px))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         {/* Warning — only shown when no venue data is available at all */}
