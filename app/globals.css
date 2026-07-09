@@ -254,7 +254,9 @@ html[data-theme="light"] .mdu-banner-dartboard {
 /* Desktop: Titel-Bereich bleibt kompakt; das Dartboard läuft als großes
    Hintergrund-Element HINTER die Seiteninhalte (z-index unter den Feldern). */
 @media (min-width: 900px) {
-  .mdu-pb { border-bottom: none; }
+  /* Transparent, damit das Hintergrund-Dartboard bis hoch unter die Header-Kante
+     durch den Titelbereich scheint (Titel liegt per z-index darüber). */
+  .mdu-pb { border-bottom: none; background: transparent; }
   .mdu-pb-inner { padding: 32px 28px 22px; min-height: 0; }
   /* Mobiles Banner-Board + Veil auf dem Desktop nicht anzeigen. */
   .mdu-pb-board, .mdu-pb-veil { display: none; }
@@ -262,13 +264,13 @@ html[data-theme="light"] .mdu-banner-dartboard {
   .mdu-pb-board-page {
     display: block;
     position: absolute;
-    top: 0;                    /* bis unter die Menüleiste — der Header verdeckt oben */
+    top: 60px;                 /* direkt an der Header-Unterkante beginnend */
     left: auto;
     /* Rechte Kante seitengenau am Inhaltsrand (pro Seite via --pb-right). */
     right: var(--pb-right, max(28px, calc((100vw - 1280px) / 2 + 28px)));
     transform: none;
     width: 860px;
-    height: 540px;
+    height: 640px;
     opacity: 0.5;
     z-index: -1;               /* hinter den Inhalten, über dem Seiten-Hintergrund */
     pointer-events: none;

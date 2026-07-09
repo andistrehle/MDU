@@ -45,7 +45,7 @@ export function PageBanner({
       <div aria-hidden className="mdu-pb-board-page mdu-banner-dartboard" style={boardStyle}>
         <Image src="/mdu-hero-dartboard-2.webp"
           unoptimized alt="" width={780} height={780}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 58%' }} />
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 68%' }} />
       </div>
 
       <div className="mdu-pb">
