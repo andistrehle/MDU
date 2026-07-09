@@ -13,7 +13,7 @@ import { authenticateRequest, canUploadForTeam } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { findMatch } from '@/lib/server/ocr-draft';
 import { getOcrConfig, isOcrAvailable, isRoleAllowed } from '@/lib/ocr/config';
-import { isAcceptedMime, extForMime } from '@/lib/ocr/preprocess';
+import { isAcceptedMime, extForMime, sniffAcceptedMime } from '@/lib/ocr/preprocess';
 import { getCurrentSeason, type GameMatch } from '@/lib/data';
 
 export const runtime = 'nodejs';
@@ -72,6 +72,12 @@ export async function POST(request: Request) {
   const pathBase = match ? `${match.seasonId}/${matchId}` : `unassigned/${auth.user.id}`;
   const path = `match-reports/${pathBase}/${uploadId}/page-${pageNumber}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
+
+  // Inhalt gegen die Dateisignatur prüfen — nicht nur den (fälschbaren)
+  // deklarierten MIME. Passt der echte Inhalt zu keinem erlaubten Format, ablehnen (REV-015).
+  if (!sniffAcceptedMime(buffer)) {
+    return NextResponse.json({ error: 'Der Dateiinhalt passt zu keinem erlaubten Format (JPG, PNG, WEBP, HEIC, PDF).' }, { status: 400 });
+  }
 
   const { error: upErr } = await supabaseAdmin.storage.from(BUCKET).upload(path, buffer, {
     contentType: file.type, upsert: false,

@@ -19,17 +19,22 @@ import { rateLimit, clientIp } from '@/lib/server/rate-limit';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: Request) {
-  if (!supabaseAdmin) return NextResponse.json({ status: 'skipped', reason: 'no_admin' }, { status: 200 });
+// Einheitliche, nichtssagende Antwort. Diese Route ist öffentlich (der neue
+// Nutzer hat bei E-Mail-Bestätigung noch keine Session). Alle Nicht-Fehler-Fälle
+// antworten identisch, damit sich aus der Antwort NICHT ableiten lässt, ob eine
+// E-Mail registriert/zugeordnet ist (Enumeration-Schutz, REV-013).
+const accepted = () => NextResponse.json({ status: 'accepted' }, { status: 200 });
 
+export async function POST(request: Request) {
   // Missbrauchsschutz gegen Mail-Flut/Enumeration (öffentlich aufrufbar).
   if (!rateLimit(`newuser:${clientIp(request)}`, 6, 600_000)) {
-    return NextResponse.json({ status: 'skipped', reason: 'rate_limited' }, { status: 429 });
+    return NextResponse.json({ status: 'accepted' }, { status: 429 });
   }
+  if (!supabaseAdmin) return accepted();
 
   let email = '';
   try { email = String((await request.json())?.email ?? '').trim(); } catch { /* leer */ }
-  if (!email) return NextResponse.json({ error: 'E-Mail fehlt.' }, { status: 400 });
+  if (!email) return accepted();
 
   // Profil zur E-Mail laden — nur ein frisch registriertes, noch nicht
   // zugeordnetes Konto löst die Admin-Mail aus (gegen Missbrauch).
@@ -38,9 +43,9 @@ export async function POST(request: Request) {
     .select('display_name, email, role, player_id, registration_intent, matched_player_id')
     .ilike('email', email)
     .maybeSingle();
-  if (!profile) return NextResponse.json({ status: 'skipped', reason: 'no_profile' }, { status: 200 });
+  if (!profile) return accepted();
   if (!(profile.role === 'player' && !profile.player_id)) {
-    return NextResponse.json({ status: 'skipped', reason: 'already_assigned' }, { status: 200 });
+    return accepted();
   }
 
   // Empfänger: alle Super Admins.
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
     .select('email, display_name')
     .eq('role', 'super_admin');
   const recipients = (admins ?? []).map(a => a.email).filter((e): e is string => !!e);
-  if (recipients.length === 0) return NextResponse.json({ status: 'skipped', reason: 'no_super_admin' }, { status: 200 });
+  if (recipients.length === 0) return accepted();
 
   const matchedName = profile.matched_player_id
     ? (() => { const p = findPlayer(profile.matched_player_id as string); return p ? getPlayerDisplayName(p) : undefined; })()
@@ -70,6 +75,7 @@ export async function POST(request: Request) {
     });
     if (r.status === 'sent') sent++;
   }
+  void sent; // Ergebnis wird bewusst NICHT nach außen gegeben (Enumeration-Schutz).
 
-  return NextResponse.json({ status: 'ok', recipients: recipients.length, sent }, { status: 200 });
+  return accepted();
 }

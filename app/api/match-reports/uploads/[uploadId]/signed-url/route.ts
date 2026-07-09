@@ -32,7 +32,8 @@ export async function GET(request: Request, ctx: { params: Promise<{ uploadId: s
     || (match && (canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId)));
   if (!owns) return NextResponse.json({ error: 'Keine Berechtigung.' }, { status: 403 });
 
-  const { data, error } = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(upload.storage_path, 300);
+  // 15 Min: lang genug für eine gründliche Prüfung, aber weiterhin kurzlebig (REV-057).
+  const { data, error } = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(upload.storage_path, 900);
   if (error || !data) return NextResponse.json({ error: 'Vorschau nicht verfügbar.' }, { status: 500 });
 
   return NextResponse.json({ url: data.signedUrl }, { status: 200 });

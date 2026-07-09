@@ -10,7 +10,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
+import { authenticateRequest, isAdminUser, canUploadForTeam } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
@@ -25,11 +25,22 @@ export async function POST(request: Request, ctx: { params: Promise<{ reportId: 
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
   if (!supabaseAdmin) return NextResponse.json({ error: 'Server-Service ist nicht konfiguriert.' }, { status: 503 });
 
+  const { data: report } = await supabaseAdmin
+    .from('match_reports')
+    .select('id, status, home_captain_user_id, home_team_id, guest_team_id')
+    .eq('id', reportId).maybeSingle();
+  if (!report) return NextResponse.json({ error: 'Spielbericht nicht gefunden.' }, { status: 404 });
+
+  // Eigentümer-/Rollenprüfung: nur der erfassende Kapitän, ein Kapitän der
+  // beteiligten Teams oder Admin/Ligaleitung darf die Originale löschen (REV-014).
+  const owns = report.home_captain_user_id === auth.user.id
+    || (report.home_team_id ? canUploadForTeam(auth.user, report.home_team_id) : false)
+    || (report.guest_team_id ? canUploadForTeam(auth.user, report.guest_team_id) : false)
+    || isAdminUser(auth.user);
+  if (!owns) return NextResponse.json({ error: 'Keine Berechtigung für diesen Spielbericht.' }, { status: 403 });
+
   // Aufräumen erlaubt, wenn der Bericht bestätigt ist (regulärer Fall) ODER der
   // Aufrufer Admin/Ligaleitung ist (z. B. vor dem Löschen eines Berichts).
-  const { data: report } = await supabaseAdmin
-    .from('match_reports').select('id, status').eq('id', reportId).maybeSingle();
-  if (!report) return NextResponse.json({ error: 'Spielbericht nicht gefunden.' }, { status: 404 });
   if (report.status !== 'confirmed' && !isAdminUser(auth.user)) {
     return NextResponse.json({ status: 'skipped', reason: 'not_confirmed' }, { status: 200 });
   }

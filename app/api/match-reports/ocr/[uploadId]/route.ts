@@ -78,11 +78,22 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
     return NextResponse.json({ error: 'OCR-Provider ist nicht konfiguriert.' }, { status: 503 });
   }
 
-  await supabaseAdmin.from('match_report_uploads').update({
+  // Atomarer „Claim" gegen konkurrierende Starts (Doppelklick / parallele Tabs):
+  // Nur wer den erwarteten Ausgangszustand noch vorfindet, darf die (kosten-
+  // pflichtige) OCR starten. Beim Stale-Retry zusätzlich über ocr_started_at,
+  // damit auch dort nur ein Aufruf gewinnt (REV-059).
+  let claim = supabaseAdmin.from('match_report_uploads').update({
     ocr_status: 'processing', ocr_provider: provider.name, ocr_model: cfg.model,
     attempt_count: (upload.attempt_count ?? 0) + 1, last_attempt_at: new Date().toISOString(),
     ocr_started_at: new Date().toISOString(), ocr_error: null,
-  }).eq('id', uploadId);
+  }).eq('id', uploadId).eq('ocr_status', upload.ocr_status);
+  if (upload.ocr_status === 'processing') {
+    claim = upload.ocr_started_at
+      ? claim.eq('ocr_started_at', upload.ocr_started_at)
+      : claim.is('ocr_started_at', null);
+  }
+  const { data: claimed } = await claim.select('id').maybeSingle();
+  if (!claimed) return NextResponse.json({ error: 'Erkennung läuft bereits.' }, { status: 409 });
 
   // Optional vom Client: weitere Seiten (z. B. Seite 2 mit Highlights), die
   // zusammen mit dieser hochgeladen wurden, aber (mangels Begegnung) nicht über

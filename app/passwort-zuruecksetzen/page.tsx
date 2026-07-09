@@ -12,7 +12,7 @@ import { AuthShell, AuthField, AuthError, AuthSubmit } from '@/components/mdu/au
  * (Recovery-Session); hier wird nur das neue Passwort gesetzt.
  */
 export default function ResetPasswordPage() {
-  const { user, updatePassword } = useAuth();
+  const { user, loading, updatePassword } = useAuth();
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -38,40 +38,47 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthShell title="Neues Passwort" subtitle="Passwort zurücksetzen">
-      {!user && (
+      {/* Das Formular nur zeigen, wenn eine gültige Recovery-Session besteht
+          (über den Link aus der E-Mail). Sonst „Link abgelaufen" (REV-023). */}
+      {loading ? (
+        <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', margin: 0 }}>
+          Einen Moment …
+        </p>
+      ) : !user ? (
         <p style={{
           fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)',
-          lineHeight: 1.6, margin: '0 0 16px',
+          lineHeight: 1.6, margin: 0,
         }}>
-          Hinweis: Diese Seite funktioniert über den Link aus der
-          „Passwort vergessen“-E-Mail. Falls der Link abgelaufen ist,{' '}
+          Dieser Link ist ungültig oder abgelaufen. Diese Seite funktioniert nur
+          über den frischen Link aus der „Passwort vergessen“-E-Mail.{' '}
           <Link href="/passwort-vergessen" style={{ color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 700 }}>
-            fordere einen neuen an
+            Fordere einen neuen an
           </Link>.
         </p>
+      ) : (
+        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {error && <AuthError message={error} />}
+          <AuthField
+            label="Neues Passwort"
+            type="password"
+            placeholder="Mindestens 6 Zeichen"
+            autoComplete="new-password"
+            required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          <AuthField
+            label="Passwort bestätigen"
+            type="password"
+            placeholder="Passwort wiederholen"
+            autoComplete="new-password"
+            required
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+          />
+          <AuthSubmit busy={busy}>Passwort speichern</AuthSubmit>
+        </form>
       )}
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {error && <AuthError message={error} />}
-        <AuthField
-          label="Neues Passwort"
-          type="password"
-          placeholder="Mindestens 6 Zeichen"
-          autoComplete="new-password"
-          required
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
-        <AuthField
-          label="Passwort bestätigen"
-          type="password"
-          placeholder="Passwort wiederholen"
-          autoComplete="new-password"
-          required
-          value={confirm}
-          onChange={e => setConfirm(e.target.value)}
-        />
-        <AuthSubmit busy={busy}>Passwort speichern</AuthSubmit>
-      </form>
 
       <p style={{
         textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13,

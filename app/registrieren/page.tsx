@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -8,8 +8,14 @@ import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit, AuthCheckbox 
 import { notifyNewUserToAdmins } from '@/lib/supabase/notifications';
 
 export default function RegisterPage() {
-  const { signUp } = useAuth();
+  const { user, signUp } = useAuth();
   const router = useRouter();
+
+  // Bereits eingeloggt? Registrierung ergibt keinen Sinn → weiterleiten (REV-024).
+  useEffect(() => {
+    if (user) router.replace('/mein-bereich');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [intent, setIntent] = useState<'player' | 'team_captain'>('player');

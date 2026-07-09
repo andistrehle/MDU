@@ -1,18 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { AuthShell, AuthField, AuthError, AuthSubmit } from '@/components/mdu/auth-shell';
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
+  const { user, signIn } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Bereits eingeloggt? Dann hat die Login-Seite keinen Zweck → weiterleiten (REV-024).
+  useEffect(() => {
+    if (user) router.replace(safeNext());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

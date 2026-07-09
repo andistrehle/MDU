@@ -316,6 +316,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
+        // Ziel der Bestätigungs-Mail: zurück auf die richtige Umgebung/Domain
+        // (sonst kann der Link ins Leere/auf localhost zeigen), REV-022.
+        emailRedirectTo: `${window.location.origin}/mein-bereich`,
         data: {
           display_name: displayName,
           first_name: firstName,
