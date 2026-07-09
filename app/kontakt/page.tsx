@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function KontaktPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/kontakt" />
 
       <PageBanner eyebrow="Münchner Dart Union" title="Kontakt" />

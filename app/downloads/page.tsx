@@ -14,7 +14,7 @@ export const metadata = {
 
 export default function DownloadsPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader activeHref="/downloads" />
 
       <PageBanner eyebrow="Münchner Dart Union" title="Downloads" />

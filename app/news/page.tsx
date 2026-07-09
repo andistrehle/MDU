@@ -6,7 +6,7 @@ import { NEWS_ARTICLES } from '@/lib/data/news';
 
 export default function NewsPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate', display: 'flex', flexDirection: 'column' }}>
       <DesktopHeader />
 
       <PageBanner eyebrow="Aktuelles" title="News" />

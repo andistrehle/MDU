@@ -39,7 +39,7 @@ export default function SpielplanPage() {
   const totalCount = allGroups.reduce((s, g) => s + g.matches.length, 0);
 
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielplan" />
 
       <PageBanner eyebrow="Liga-Kalender" title="Spielplan" />

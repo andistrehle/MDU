@@ -29,7 +29,7 @@ export default function TabellenPage() {
   });
 
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/tabellen" />
 
       <PageBanner eyebrow={getCurrentSeason().name} title="Tabellenübersicht" />

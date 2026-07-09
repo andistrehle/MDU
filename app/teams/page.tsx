@@ -33,7 +33,7 @@ export default async function TeamsPage() {
   const groups = getPlayoffAwareLeagueGroupings(season.id);
 
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/teams" />
 
       <PageBanner eyebrow={season.name} title="Teams" />
@@ -155,7 +155,7 @@ function SelfManagedTeams({ seasonName, teams }: { seasonName: string; teams: Se
     .sort((a, b) => (a.league?.sortOrder ?? 99) - (b.league?.sortOrder ?? 99));
 
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/teams" />
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
         <div style={{ marginBottom: 40 }}>

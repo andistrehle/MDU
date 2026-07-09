@@ -16,7 +16,7 @@ export default function SpielstaettenPage() {
     .filter(v => v.venue !== null).length;
 
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielstaetten" />
 
       <PageBanner eyebrow={season.name} title="Spielstätten" />

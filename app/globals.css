@@ -248,21 +248,29 @@ html[data-theme="light"] .mdu-banner-dartboard {
   background: linear-gradient(90deg, var(--th-bg-page) 26%, transparent 68%);
 }
 
-/* Desktop: großes Dartboard, das weich in die Seite hineinreicht. */
+/* Seitenweites Hintergrund-Dartboard — nur Desktop. Mobil aus. */
+.mdu-pb-board-page { display: none; }
+
+/* Desktop: Titel-Bereich bleibt kompakt; das Dartboard läuft als großes
+   Hintergrund-Element HINTER die Seiteninhalte (z-index unter den Feldern). */
 @media (min-width: 900px) {
   .mdu-pb { border-bottom: none; }
-  .mdu-pb-inner { padding: 46px 28px 74px; min-height: 300px; }
-  .mdu-pb-board {
-    right: 24px;
-    width: 700px;
-    height: 700px;
-    opacity: 0.6;
-  }
-  .mdu-pb-veil {
-    background:
-      linear-gradient(90deg,  var(--th-bg-page) 0%, transparent 50%),
-      linear-gradient(270deg, var(--th-bg-page) 0%, transparent 14%),
-      linear-gradient(180deg, var(--th-bg-page) 0%, transparent 14%, transparent 82%, var(--th-bg-page) 100%);
+  .mdu-pb-inner { padding: 32px 28px 22px; min-height: 0; }
+  /* Mobiles Banner-Board + Veil auf dem Desktop nicht anzeigen. */
+  .mdu-pb-board, .mdu-pb-veil { display: none; }
+
+  .mdu-pb-board-page {
+    display: block;
+    position: absolute;
+    top: 74px;                 /* direkt unter dem Header beginnen */
+    right: 0;
+    width: 780px;
+    height: 780px;
+    opacity: 0.5;
+    z-index: -1;               /* hinter den Inhalten, über dem Seiten-Hintergrund */
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(circle closest-side at 58% 42%, #000 0%, #000 46%, transparent 82%);
+    mask-image: radial-gradient(circle closest-side at 58% 42%, #000 0%, #000 46%, transparent 82%);
   }
 }
 

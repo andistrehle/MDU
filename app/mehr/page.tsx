@@ -58,7 +58,7 @@ const SECTIONS = [
 
 export default function MehrPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/mehr" />
 
       <PageBanner eyebrow="Münchner Dart Union" title="Mehr" />
