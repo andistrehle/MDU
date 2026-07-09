@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
+import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { MatchCard } from '@/components/mdu/match-card';
 import { getScheduledMatchesByLeague, formatScheduledDate } from '@/lib/data/matches';
@@ -41,24 +42,9 @@ export default function SpielplanPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/spielplan" />
 
-      <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
-        {/* Page header */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
-          }}>
-            Liga-Kalender
-          </div>
-          <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
-          }}>
-            Spielplan
-          </h1>
-        </div>
+      <PageBanner eyebrow="Liga-Kalender" title="Spielplan" />
 
+      <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}
         {totalCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>

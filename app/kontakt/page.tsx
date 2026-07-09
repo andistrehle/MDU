@@ -4,6 +4,7 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { ContactForm } from '@/components/mdu/contact-form';
+import { PageBanner } from '@/components/mdu/page-banner';
 
 export const metadata: Metadata = {
   title: 'Kontakt · Münchner Dart Union',
@@ -15,24 +16,9 @@ export default function KontaktPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/kontakt" />
 
-      <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '40px 20px 80px' }}>
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
-          }}>
-            Münchner Dart Union
-          </div>
-          <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
-          }}>
-            Kontakt
-          </h1>
-        </div>
+      <PageBanner eyebrow="Münchner Dart Union" title="Kontakt" />
 
+      <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px 80px' }}>
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>
           Fragen zur Liga, zur Plattform oder zu deinem Konto? Schreib uns einfach – wir helfen
           gerne weiter.

@@ -8,6 +8,7 @@ import { Icon } from '@/components/mdu/icon';
 import { LEAGUES, STANDINGS_BY_LEAGUE, getExtendedTeam, getCurrentSeason } from '@/lib/data';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { GOLD_TOP_RANKS } from '@/lib/utils';
+import { PageBanner } from '@/components/mdu/page-banner';
 
 // ── Types ─────────────────────────────────────────────────────
 type Filter = 'alle' | 'playoffs' | 'ligen';
@@ -31,24 +32,9 @@ export default function TabellenPage() {
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/tabellen" />
 
-      <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
+      <PageBanner eyebrow={getCurrentSeason().name} title="Tabellenübersicht" />
 
-        {/* ── Page heading ─────────────────────────────── */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
-          }}>
-            {getCurrentSeason().name}
-          </div>
-          <h1 style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 40,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)',
-            margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block',
-          }}>
-            Tabellenübersicht
-          </h1>
-        </div>
+      <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
 
         {/* ── Filter tabs ──────────────────────────────── */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
