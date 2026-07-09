@@ -1,15 +1,17 @@
 'use client';
 
 // ============================================================
-// Benutzerverwaltung — echte Supabase profiles (Super Admin)
+// Benutzerverwaltung — echte Supabase profiles
 // ============================================================
 //
-// Lädt public.profiles aus Supabase und erlaubt dem Super Admin,
-// displayName / role / player_id / team_id zu bearbeiten.
-// E-Mail, id und created_at sind nicht editierbar.
+// Lädt public.profiles aus Supabase und erlaubt das Bearbeiten von
+// displayName / role / player_id / team_id. E-Mail, id und created_at
+// sind nicht editierbar.
 //
-// Zugriff: nur super_admin (canManageUsers). RLS in der DB sichert
-// das zusätzlich serverseitig ab — das Frontend blendet nur aus.
+// Zugriff: Ligaleitung aufwärts (canViewUsers/canEditUsers). Welches Konto
+// jemand bearbeiten/löschen darf, regeln canEditUserAccount/
+// canDeleteUserAccount (Ligaleitung nur Spieler/Teamkapitäne; Super Admin
+// alles). RLS in der DB sichert das zusätzlich serverseitig ab.
 // ============================================================
 
 import { useCallback, useEffect, useState } from 'react';

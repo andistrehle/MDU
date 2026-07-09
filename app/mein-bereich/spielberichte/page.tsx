@@ -93,6 +93,8 @@ function SpielberichteInner() {
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const proposeParam = searchParams.get('propose');
+  // Aus der Admin-Konsole hierher gesprungen? Dann Rückweg anbieten (REV-036).
+  const fromAdmin = searchParams.get('from') === 'admin';
   const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
   // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
   const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
@@ -374,6 +376,15 @@ function SpielberichteInner() {
 
   return (
     <MemberShell title="Spielbericht erfassen">
+      {fromAdmin && (
+        <Link href="/admin/spielberichte" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16,
+          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+          color: 'var(--th-accent)', textDecoration: 'none',
+        }}>
+          ← Zurück zur Admin-Konsole
+        </Link>
+      )}
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Spielberichte sind nur mit Konto verfügbar.{' '}<LoginLink /></Notice>
         : !allowed ? <Notice title="Keine Berechtigung">Spielberichte erfassen dürfen Teamkapitäne und die Ligaleitung.</Notice>

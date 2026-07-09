@@ -7,6 +7,8 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, isSuperAdmin, canManageLeague } from '@/lib/auth/roles';
 import { TEAMS, PLAYERS, LEAGUES } from '@/lib/data';
 import { useNotifications, relativeTime } from '@/lib/supabase/user-notifications';
+import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
+import { NotificationBadge } from '@/components/mdu/notification-badge';
 
 interface AdminCard {
   icon: string;
@@ -14,15 +16,18 @@ interface AdminCard {
   desc: string;
   href: string;
   super?: boolean;
+  /** Anzahl offener Aufgaben als Badge (aus useAdminNotificationCounts). */
+  badgeKey?: keyof AdminNotificationCounts;
 }
 
 const CARDS: AdminCard[] = [
-  { icon: 'users',    label: 'Benutzerverwaltung', desc: 'Konten, Rollen & Verknüpfungen.', href: '/admin/users' },
+  { icon: 'users',    label: 'Benutzerverwaltung', desc: 'Konten, Rollen & Verknüpfungen.', href: '/admin/users', badgeKey: 'users' },
   { icon: 'edit',     label: 'Rollenverwaltung',   desc: 'Rollen & Rechte im Überblick.',   href: '/admin/roles' },
   { icon: 'trophy',   label: 'Teams',              desc: 'Teams der Saison verwalten.',     href: '/admin/teams' },
   { icon: 'user',     label: 'Spieler',            desc: 'Spieler & Verknüpfungen.',        href: '/admin/players' },
-  { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/registrations' },
-  { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte' },
+  { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/registrations', badgeKey: 'registrations' },
+  { icon: 'user',     label: 'Nachmeldungen',      desc: 'Spieler-Nachmeldungen prüfen.',   href: '/admin/nachmeldungen', badgeKey: 'nominations' },
+  { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte', badgeKey: 'matchReports' },
   { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
   { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },
   { icon: 'upload',   label: 'Datenimport',        desc: 'dartunion.de-Importstatus.',      href: '/admin/import' },
@@ -34,6 +39,7 @@ export default function AdminDashboardPage() {
   const { user } = useAuth();
   const superUser = isSuperAdmin(user);
   const cards = CARDS.filter(c => !c.super || superUser);
+  const { counts } = useAdminNotificationCounts();
 
   return (
     <AdminGuard title="Dashboard" subtitle="Zentrale Verwaltung der MDU-Plattform.">
@@ -69,9 +75,12 @@ export default function AdminDashboardPage() {
 
       {/* Schnellzugriffe */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 12 }}>
-        {cards.map(c => (
+        {cards.map(c => {
+          const badgeCount = c.badgeKey ? counts[c.badgeKey] : 0;
+          return (
           <Link key={c.href} href={c.href} className="mdu-card-hover" style={{ textDecoration: 'none', display: 'block' }}>
-            <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: 18, height: '100%' }}>
+            <div style={{ position: 'relative', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: 18, height: '100%' }}>
+              <NotificationBadge count={badgeCount} absolute ringColor="var(--th-bg-card)" title={`${badgeCount} offen: ${c.label}`} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <div style={{
                   width: 38, height: 38, borderRadius: 9, flexShrink: 0,
@@ -85,7 +94,8 @@ export default function AdminDashboardPage() {
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.5, margin: 0 }}>{c.desc}</p>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </AdminGuard>
   );

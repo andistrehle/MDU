@@ -17,6 +17,10 @@ export function Icon({ name, size = 18, stroke = 1.75, className, style }: IconP
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     className,
+    // Icons sind rein dekorativ — nie separat vorlesen/fokussieren. Die tragende
+    // Bedeutung steckt im umgebenden Text bzw. aria-label des Buttons (REV-082).
+    'aria-hidden': true,
+    focusable: false,
     style: { width: size, height: size, ...style },
   };
 

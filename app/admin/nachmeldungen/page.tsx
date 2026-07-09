@@ -32,6 +32,11 @@ export default function AdminNachmeldungenPage() {
   const filtered = useMemo(() => (rows ?? []).filter(r => !statusFilter || r.status === statusFilter), [rows, statusFilter]);
 
   async function approve(id: string) {
+    // Freigabe erzeugt eine vorläufige Passnummer + übernimmt den Spieler in den
+    // Kader → vor dieser folgenreichen Aktion rückfragen (REV-035).
+    const nom = (rows ?? []).find(n => n.id === id);
+    const who = nom ? `${nom.first_name} ${nom.last_name}`.trim() : 'diesen Spieler';
+    if (!window.confirm(`„${who}" freigeben?\n\nEs wird eine vorläufige Passnummer erzeugt und der Spieler in den Kader übernommen.`)) return;
     setBusy(true); setMsg(null);
     const { error } = await reviewNomination(id, 'approved');
     setBusy(false);

@@ -98,18 +98,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="mdu-admin-topbar-desktop" style={{
           height: 70, padding: '0 30px', background: 'var(--th-bg-header)',
           borderBottom: '1px solid var(--th-line-6)',
-          alignItems: 'center', justifyContent: 'space-between',
+          alignItems: 'center', justifyContent: 'flex-end',
           position: 'sticky', top: 0, zIndex: 40,
         }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            background: 'var(--th-bg-page)', border: '1px solid var(--th-line-8)',
-            borderRadius: 8, padding: '10px 14px', flex: 1, maxWidth: 360,
-          }}>
-            <Icon name="search" size={15} style={{ color: 'var(--th-text-faint2)' }} />
-            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint2)' }}>Suchen… </span>
-            <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-faint2)', background: 'var(--th-line-4)', padding: '2px 6px', borderRadius: 4 }}>⌘K</span>
-          </div>
+          {/* (Frühere „⌘K"-Suchleiste war ohne Funktion und wurde entfernt, REV-032.) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link
               href="/mein-bereich"

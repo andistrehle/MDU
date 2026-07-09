@@ -74,7 +74,10 @@ export default function AdminRegistrationsPage() {
     if (!rows) return [];
     const needle = q.trim().toLowerCase();
     const out = rows
-      .filter(r => !statusFilter || r.status === statusFilter)
+      // „pending" = derselbe Umfang wie der Zähler oben (submitted + in_review), REV-034.
+      .filter(r => !statusFilter || (statusFilter === 'pending'
+        ? (r.status === 'submitted' || r.status === 'in_review')
+        : r.status === statusFilter))
       .filter(r => !typeFilter || (typeFilter === 'new' ? r.is_new_team : !r.is_new_team))
       .filter(r => !leagueFilter || r.requested_league === leagueFilter)
       .filter(r => !needle || r.team_name.toLowerCase().includes(needle) || r.contact_name.toLowerCase().includes(needle));
@@ -116,7 +119,7 @@ export default function AdminRegistrationsPage() {
       {pendingCount > 0 && (
         <button
           type="button"
-          onClick={() => setStatusFilter(statusFilter === 'submitted' ? '' : 'submitted')}
+          onClick={() => setStatusFilter(statusFilter === 'pending' ? '' : 'pending')}
           style={{
             display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 820, marginBottom: 14,
             padding: '12px 16px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
@@ -142,6 +145,7 @@ export default function AdminRegistrationsPage() {
         <FilterField label="Status">
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={ctl}>
             <option value="">Alle Status</option>
+            <option value="pending">Warten auf Prüfung</option>
             {STATUSES.map(s => <option key={s} value={s}>{REGISTRATION_STATUS_LABELS[s]}</option>)}
           </select>
         </FilterField>

@@ -60,7 +60,12 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {items.map(item => {
-        const active = pathname === item.href;
+        // Präfix-Match, damit Detailseiten (z. B. /admin/registrations/123) den
+        // Elternpunkt markieren. Dashboard „/admin" bleibt exakt, sonst wäre es
+        // auf jeder Admin-Seite aktiv (REV-031).
+        const active = item.href === '/admin'
+          ? pathname === '/admin'
+          : pathname === item.href || pathname.startsWith(item.href + '/');
         return (
           <Link
             key={item.href}

@@ -79,7 +79,7 @@ export default function AdminSpielberichtePage() {
                           <td style={{ ...d, fontWeight: 700 }}>{r.spiele_home}:{r.spiele_guest}</td>
                           <td style={{ ...d, fontWeight: 700, color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</td>
                           <td style={{ ...d, display: 'flex', gap: 12 }}>
-                            <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>Bearbeiten</Link>
+                            <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>Bearbeiten</Link>
                             <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>
                               {busy === r.id ? '…' : 'Löschen'}
                             </button>
@@ -105,7 +105,7 @@ export default function AdminSpielberichtePage() {
                         {r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : ''}
                       </div>
                       <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
-                        <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>
+                        <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, color: 'var(--th-accent)', textDecoration: 'none' }}>Bearbeiten</Link>
                         <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>
                           {busy === r.id ? '…' : 'Löschen'}
                         </button>
