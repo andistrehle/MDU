@@ -151,9 +151,13 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 > REV-020, REV-021, REV-030 (Rollenrechte angeglichen), REV-042 (Verlassen-Warnung im
 > Wizard), REV-043, REV-044, REV-051–056, REV-071, REV-072, REV-073, REV-074, REV-075,
 > REV-091, REV-092, REV-093, REV-095.
-> **Bewusst offen (Entscheidung/größerer Umbau nötig):** REV-002 (Middleware) + REV-016
-> (Admin-Schreibzugriffe serverseitig) → brauchen Cookie-basierte Auth (@supabase/ssr) +
-> RLS-Audit; REV-005 (Bild-`unoptimized` — bewusste Kosten-Entscheidung).
+> **Nachtrag (09.07.2026):** REV-016 umgesetzt (Konto-/Rollenänderungen über
+> `PATCH /api/admin/users/[id]` mit service_role + Rechteprüfung). REV-002 umgesetzt
+> als `proxy.ts` (Server-Guard `/admin`+`/mein-bereich` → `/login?next`, tokenfreier
+> Marker-Cookie + Security-Header); die volle `@supabase/ssr`-Cookie-Auth wurde bewusst
+> NICHT gemacht (erzwingt PKCE → Supabase-Mail-Templates/Redirects nötig, hier nicht
+> testbar). **Bewusst offen:** REV-005 (Bild-`unoptimized` — Kosten-Entscheidung);
+> vollständiger RLS-Audit vor Go-live.
 
 | ID | Titel | Route/Datei | Problem → Lösung | Aufwand |
 |---|---|---|---|---|
@@ -194,10 +198,11 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 > REV-045, REV-046, REV-058, REV-060, REV-061, REV-076 (bereits durch REV-070 gelöst),
 > REV-077, REV-078, REV-079, REV-080, REV-081, REV-096, REV-097 (tote Komponente entfernt),
 > REV-098, REV-099, REV-100, REV-101.
-> **Bewusst offen:** REV-047 (Nachmeldungs-Freigabe atomar) braucht eine DB-RPC/Transaktion
-> gegen die Produktiv-DB — nicht ungefragt umgesetzt. Restlicher Lint (unescaped-quotes in
-> JSX-Text, wenige ungenutzte Variablen, React-Compiler-Memoization-Hinweise) ist rein
-> kosmetisch, blockiert weder Build noch Laufzeit.
+> **Nachtrag (09.07.2026):** Weitere P3 auf Wunsch umgesetzt — REV-031/032/033/034/035/036/037
+> (Admin-Konsole-Feinschliff), REV-082/083 (Barrierefreiheit: Icons `aria-hidden`,
+> `:focus-visible`-Ringe), REV-047 (Nachmeldungs-Freigabe atomar via RPC — **Migration 0033
+> im Supabase SQL Editor einspielen**). Restlicher Lint (unescaped-quotes in JSX-Text, wenige
+> ungenutzte Variablen, React-Compiler-Memoization-Hinweise) ist rein kosmetisch.
 
 | ID | Titel | Route/Datei | Kurzlösung | Aufwand |
 |---|---|---|---|---|
