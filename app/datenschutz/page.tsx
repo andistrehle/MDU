@@ -31,12 +31,16 @@ export default function DatenschutzPage() {
         Garantien (EU-Standardvertragsklauseln bzw. EU-US Data Privacy Framework).
       </LegalSection>
 
-      <LegalSection title="3. DNS & Content-Delivery (Cloudflare)">
-        Der Abruf der Website wird über die Cloudflare, Inc. geleitet (DNS, Content-Delivery,
-        Schutz vor Angriffen). Dabei werden technische Verbindungsdaten (u. a. IP-Adresse)
-        verarbeitet, um Auslieferung und Sicherheit zu gewährleisten. Rechtsgrundlage:
-        berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO); Auftragsverarbeitung und
-        geeignete Garantien für etwaige Drittlandübermittlung wie unter Ziffer 2.
+      <LegalSection title="3. DNS-Verwaltung (Cloudflare)">
+        Die DNS-Verwaltung der Domain (autoritative Namensauflösung, also die Zuordnung von
+        mdudarts.de zur Server-Adresse) erfolgt über die Cloudflare, Inc. Der eigentliche Abruf
+        der Website läuft <strong>nicht</strong> über Cloudflare, sondern direkt beim Hoster
+        (Vercel, siehe Ziffer 2); Cloudflare fungiert hier ausschließlich als Nameserver und
+        liegt nicht im Übertragungsweg der Seiteninhalte. Bei DNS-Anfragen können technische
+        Daten (z. B. die angefragte Domain) verarbeitet werden. Rechtsgrundlage: berechtigtes
+        Interesse an einer zuverlässigen, sicheren Erreichbarkeit (Art. 6 Abs. 1 lit. f DSGVO).
+        Auftragsverarbeitung und geeignete Garantien für etwaige Drittlandübermittlung (USA) wie
+        unter Ziffer 2.
       </LegalSection>
 
       <LegalSection title="4. Benutzerkonten & Authentifizierung (Supabase)">
