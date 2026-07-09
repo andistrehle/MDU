@@ -30,9 +30,9 @@ export default function HomePage() {
       <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--th-bg-page)', borderBottom: '1px solid var(--th-line-4)' }}>
         {/* Hero dartboard photo — absolutely positioned, feathered into background */}
         <div aria-hidden className="mdu-hero-dartboard" style={{
-          // Rechte Kante am Inhaltsrand (max-width 1280) abschließen statt am
-          // Viewport → Dartboard sitzt weiter links.
-          position: 'absolute', right: 'max(28px, calc((100vw - 1280px) / 2 + 28px))', top: '50%', transform: 'translateY(-50%)',
+          // Etwas nach rechts über den Inhaltsrand hinaus, damit die Pfeile
+          // komplett sichtbar sind (nicht am äußersten Viewport-Rand).
+          position: 'absolute', right: 'max(0px, calc((100vw - 1280px) / 2 - 40px))', top: '50%', transform: 'translateY(-50%)',
           width: 1250, height: 1250, pointerEvents: 'none',
           WebkitMaskImage: 'radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 70%, transparent 92%)',
           maskImage: 'radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 70%, transparent 92%)',
