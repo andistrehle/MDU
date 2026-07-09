@@ -121,10 +121,13 @@ export default function DatenschutzPage() {
       </LegalSection>
 
       <LegalSection title="11. Cookies / lokale Speicherung">
-        Es werden ausschließlich technisch notwendige Mechanismen für die Anmeldung (Session)
-        sowie die Designauswahl (Hell/Dunkel) genutzt. Es werden keine Tracking- oder
-        Marketing-Cookies eingesetzt; eine Einwilligung (Cookie-Banner) ist hierfür nicht
-        erforderlich.
+        Es werden ausschließlich technisch notwendige Mechanismen genutzt: für die Anmeldung
+        (Session), die Designauswahl (Hell/Dunkel) sowie einzelne Komfort-/Anzeige-Einstellungen
+        (z. B. ob die einmalige Einführungstour bereits angezeigt wurde oder die gewählte
+        Kapitäns-Ansicht). Diese Angaben werden lokal im Browser (localStorage/sessionStorage)
+        bzw. in technisch notwendigen Cookies gespeichert und dienen nicht der Nachverfolgung.
+        Es werden keine Tracking- oder Marketing-Cookies eingesetzt; eine Einwilligung
+        (Cookie-Banner) ist hierfür nicht erforderlich.
       </LegalSection>
 
       <LegalSection title="12. Speicherdauer">
