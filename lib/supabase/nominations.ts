@@ -95,23 +95,41 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
         .filter((x): x is number => x != null);
       const gen = generateNextPassNumber(n.team_id, { extraUsed });
       const slug = n.player_id ?? nominationPlayerSlug(n.first_name, n.last_name, gen.number);
+      const seasonId = getCurrentSeason().id;
+
+      // Atomar über die RPC aus Migration 0033: Spieler + Kaderzuordnung +
+      // Nominierungsstatus in EINER Transaktion — entweder alles oder nichts,
+      // kein „approved" ohne Spieler/Kader mehr (REV-047).
+      const { error: rpcError } = await supabase.rpc('approve_nomination', {
+        p_id: id,
+        p_license: gen.license,
+        p_player_id: slug,
+        p_season_id: seasonId,
+        p_team_id: n.team_id,
+        p_first_name: n.first_name,
+        p_last_name: n.last_name,
+        p_provisional: true,
+      });
+      if (!rpcError) return { error: null };
+
+      // Fallback NUR, solange Migration 0033 noch nicht eingespielt ist (Funktion
+      // fehlt) — dann der bisherige, nicht-atomare Pfad, damit nichts blockiert.
+      const rpcMissing = /PGRST202|could not find the function|does not exist/i.test(rpcError.message);
+      if (!rpcMissing) return { error: rpcError.message };
+
       patch.license_number = gen.license;
       patch.license_provisional = true;
       patch.player_id = slug;
-
-      // Neuen Spieler + Kaderzuordnung in die DB übernehmen (Tabellen aus 0032).
-      // Best-effort: schlägt nicht durch, falls die Migration noch nicht lief.
-      const seasonId = getCurrentSeason().id;
       const { error: pe } = await supabase.from('players').upsert({
         id: slug, first_name: n.first_name, last_name: n.last_name,
         license_number: gen.license, status: 'active', source: 'nomination',
       }, { onConflict: 'id' });
-      if (pe) console.warn('players upsert (Migration 0032 nötig?):', pe.message);
+      if (pe) console.warn('players upsert (Migration 0032/0033 nötig?):', pe.message);
       const { error: ae } = await supabase.from('player_assignments').upsert({
         id: `pa-nom-${id}`, season_id: seasonId, team_id: n.team_id, player_id: slug,
         status: 'active', is_captain: false, source: 'nomination',
       }, { onConflict: 'id' });
-      if (ae) console.warn('player_assignments upsert (Migration 0032 nötig?):', ae.message);
+      if (ae) console.warn('player_assignments upsert (Migration 0032/0033 nötig?):', ae.message);
     }
   }
 
