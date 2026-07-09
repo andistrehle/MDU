@@ -6,7 +6,7 @@ import { Icon } from '@/components/mdu/icon';
 import { MatchCard } from '@/components/mdu/match-card';
 import { TeamLink } from '@/components/mdu/team-link';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
-import { NEWS_ARTICLES } from '@/lib/data/news';
+import { getPublishedNews } from '@/lib/server/news-data';
 import {
   getUpcomingMatches,
   getRecentResults,
@@ -17,11 +17,14 @@ import {
   formatScheduledDate,
 } from '@/lib/data';
 
-export default function HomePage() {
+// News kommen aus der DB (Admin-verwaltet); alle 60 s serverseitig neu erzeugt.
+export const revalidate = 60;
+
+export default async function HomePage() {
   const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
   // Startseite zeigt nur die 2 neuesten; „Alle News anzeigen" (/news) listet alle.
-  const newsArticles = NEWS_ARTICLES.slice(0, 2);
+  const newsArticles = (await getPublishedNews()).slice(0, 2);
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/" />

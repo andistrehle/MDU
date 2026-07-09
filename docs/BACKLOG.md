@@ -156,6 +156,7 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 - [x] Supabase-Migrationen ausführen: bis einschließlich `0026_media_bucket.sql` im SQL-Editor
 - [ ] **Migration `0027_media_team_policies.sql` im SQL-Editor ausführen** (Storage-Policies für Teamlogo/Mannschaftsbild; nötig, damit Kapitäne in den `teams/`-Pfad hochladen dürfen). Idempotent (`drop policy if exists` → `create`) — im Zweifel gefahrlos erneut ausführen, um sicherzustellen, dass es drin ist.
 - [ ] **Migration `0034_uniqueness_constraints.sql` im SQL-Editor ausführen** — **erst NACH** dem Löschen der Demo-/Testkonten (das Demo-Spieler-Konto belegt `player_id='andreas-strehle'` und würde sonst den Unique-Index sprengen). Enthält Prüf-Queries; beide müssen 0 Zeilen liefern, bevor die Indizes greifen.
+- [ ] **Migration `0035_news.sql` im SQL-Editor ausführen** + danach `npx tsx scripts/seed-news.mts` (übernimmt die bestehenden Meldungen als „veröffentlicht", idempotent). Erst dann verwaltet die Ligaleitung News unter **Admin → News** (Anlegen/Bearbeiten/Veröffentlichen/Archivieren/Löschen). Bis dahin bleibt der statische Bestand aus `lib/data/news.ts` sichtbar.
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)
