@@ -186,6 +186,20 @@ function writeMockSession(user: UserProfile | null) {
   } catch { /* storage unavailable */ }
 }
 
+/**
+ * Setzt/löscht einen einfachen Marker-Cookie „mdu-auth", damit die Middleware
+ * am Server erkennt, ob überhaupt eine Anmeldung besteht, und Gäste von
+ * /admin und /mein-bereich wegleiten kann (REV-002). Enthält KEINE Tokens —
+ * die eigentliche Autorisierung bleibt bei RLS + den Server-APIs.
+ */
+function writeAuthCookie(hasSession: boolean) {
+  if (typeof document === 'undefined') return;
+  const secure = typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = hasSession
+    ? `mdu-auth=1; path=/; max-age=2592000; SameSite=Lax${secure}`
+    : `mdu-auth=; path=/; max-age=0; SameSite=Lax${secure}`;
+}
+
 // ── Provider ──────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -214,6 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const sessionUser = data.session?.user;
       if (cancelled) return;
       if (sessionUser) {
+        writeAuthCookie(true);
         const profile = await loadProfile(
           sessionUser.id,
           sessionUser.email ?? '',
@@ -221,6 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
         if (!cancelled) setUser(profile);
       } else {
+        writeAuthCookie(false);
         setUser(null);
       }
       if (!cancelled) setLoading(false);
@@ -231,9 +247,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (cancelled) return;
       if (!session?.user) {
+        writeAuthCookie(false);
         setUser(null);
         return;
       }
+      writeAuthCookie(true);
       loadProfile(
         session.user.id,
         session.user.email ?? '',
@@ -268,6 +286,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (data.user.user_metadata?.display_name as string) ?? '',
     );
     if (!profile) return { error: 'Dein Profil konnte nicht geladen werden. Bitte später erneut versuchen.' };
+    writeAuthCookie(true); // synchron vor dem Redirect (sonst Race mit der Middleware)
     setUser(profile);
     return { error: null };
   }, []);
@@ -314,7 +333,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!data.session) return { error: null, needsEmailConfirmation: true };
 
     const profile = await loadProfile(data.user!.id, email, displayName);
-    if (profile) setUser(profile);
+    if (profile) { writeAuthCookie(true); setUser(profile); }
     return { error: null };
   }, []);
 
@@ -325,6 +344,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     if (supabase) await supabase.auth.signOut();
+    writeAuthCookie(false);
     setUser(null);
   }, []);
 
