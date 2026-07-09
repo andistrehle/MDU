@@ -27,29 +27,33 @@ export function PageBanner({
   return (
     <div style={{
       position: 'relative', overflow: 'hidden',
-      background: 'linear-gradient(180deg, var(--th-bg-header) 0%, var(--th-bg-page) 100%)',
+      background: 'var(--th-bg-page)',
       borderBottom: '1px solid var(--th-line-4)',
     }}>
       <div className="mdu-section-pad" style={{
-        maxWidth: 1280, margin: '0 auto', padding: '34px 28px 26px', position: 'relative',
+        maxWidth: 1280, margin: '0 auto', padding: '48px 28px 52px', position: 'relative', minHeight: 140,
       }}>
-        {/* Dartboard dezent im Hintergrund — rechter Rand schließt mit der
-            Content-/Glocken-Kante ab (im Inhaltsrahmen positioniert, nicht am
-            Viewport), damit es sichtbar bleibt und nicht rechts „abfällt". */}
+        {/* Großflächiges Dartboard, das über einen weichen Radial-Verlauf in den
+            Hintergrund ausläuft — keine harten Kanten, dezent im Hintergrund
+            „schimmernd", rechter Rand nahe der Glocken-/Content-Kante. */}
         <div aria-hidden className="mdu-banner-dartboard" style={{
-          position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-          width: 440, height: 440, pointerEvents: 'none', opacity: 0.55, zIndex: 0,
-          WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 58%, transparent 84%)',
-          maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 58%, transparent 84%)',
+          position: 'absolute', right: 90, top: '50%', transform: 'translateY(-50%)',
+          width: 560, height: 560, pointerEvents: 'none', opacity: 0.6, zIndex: 0,
+          WebkitMaskImage: 'radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 55%, transparent 88%)',
+          maskImage: 'radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 55%, transparent 88%)',
         }}>
           <Image src="/mdu-hero-dartboard-2.webp"
-            unoptimized alt="" width={440} height={440}
-            style={{ width: 440, height: 440, objectFit: 'cover', objectPosition: 'center' }} />
+            unoptimized alt="" width={560} height={560}
+            style={{ width: 560, height: 560, objectFit: 'cover', objectPosition: 'center' }} />
         </div>
-        {/* Schleier links → Text bleibt lesbar, rechts scheint das Board durch. */}
+        {/* Jede Seite linear in den Hintergrund ausblenden (links fürs Textfeld,
+            rechts + oben/unten gegen harte Kanten). Kein Kasten, weiches Schimmern. */}
         <div aria-hidden style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
-          background: 'linear-gradient(90deg, var(--th-bg-page) 22%, var(--th-veil-40, transparent) 55%, transparent 78%)',
+          background:
+            'linear-gradient(90deg,  var(--th-bg-page) 0%, transparent 46%),'
+            + 'linear-gradient(270deg, var(--th-bg-page) 0%, transparent 18%),'
+            + 'linear-gradient(180deg, var(--th-bg-page) 0%, transparent 20%, transparent 70%, var(--th-bg-page) 100%)',
         }} />
 
         <div style={{ position: 'relative', zIndex: 2 }}>
