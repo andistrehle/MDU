@@ -274,15 +274,15 @@ html[data-theme="light"] .mdu-banner-dartboard {
     opacity: 0.5;
     z-index: -1;               /* hinter den Inhalten, über dem Seiten-Hintergrund */
     pointer-events: none;
-    /* Großer rechteckiger Ausschnitt: oben/rechts bündig, weich nach links + unten
-       in die Seite auslaufend (keine runde/ovale Maske). */
+    /* Großer Ausschnitt: oben bündig unter dem Header; links, RECHTS und unten
+       weich/oval in die Seite auslaufend (rechte Kante rundet dezent ab). */
     -webkit-mask-image:
-      linear-gradient(to right, transparent 0%, #000 42%),
-      linear-gradient(to top,   transparent 0%, #000 32%);
+      linear-gradient(to right, transparent 0%, #000 36%, #000 74%, transparent 100%),
+      linear-gradient(to top,   transparent 0%, #000 34%);
     -webkit-mask-composite: source-in;
     mask-image:
-      linear-gradient(to right, transparent 0%, #000 42%),
-      linear-gradient(to top,   transparent 0%, #000 32%);
+      linear-gradient(to right, transparent 0%, #000 36%, #000 74%, transparent 100%),
+      linear-gradient(to top,   transparent 0%, #000 34%);
     mask-composite: intersect;
   }
 }
