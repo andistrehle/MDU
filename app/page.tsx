@@ -54,8 +54,8 @@ export default function HomePage() {
         }} />
 
         <div className="mdu-hero-grid" style={{
-          maxWidth: 1280, margin: '0 auto', padding: '80px 28px 84px', position: 'relative',
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center', minHeight: 520,
+          maxWidth: 1280, margin: '0 auto', padding: '52px 28px 56px', position: 'relative',
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center', minHeight: 400,
         }}>
           <div className="mdu-hero-inner" style={{ position: 'relative', zIndex: 2 }}>
             <h1 className="mdu-hero-title" style={{
@@ -92,7 +92,7 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="mdu-hero-spacer" style={{ minHeight: 540 }} />
+          <div className="mdu-hero-spacer" style={{ minHeight: 400 }} />
         </div>
       </section>
 
