@@ -306,17 +306,23 @@ function EditModal({ actor, profile, onClose, onSaved }: {
       team_id: teamId || null,
       match_status: matchStatus,
     };
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(patch)
-      .eq('id', profile.id)
-      .select('*')
-      .maybeSingle();
-    if (error || !data) {
+    // Serverseitig über die Admin-API speichern (Rechteprüfung + service_role),
+    // statt direkt aus dem Client in die DB zu schreiben (REV-016).
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    if (!token) { setBusy(false); setErr('Keine aktive Sitzung.'); return; }
+    const res = await fetch(`/api/admin/users/${profile.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(patch),
+    });
+    const json = await res.json().catch(() => ({} as { profile?: ProfileRow; error?: string }));
+    if (!res.ok || !json.profile) {
       setBusy(false);
-      setErr(error?.message ?? 'Speichern fehlgeschlagen.');
+      setErr(json.error ?? 'Speichern fehlgeschlagen.');
       return;
     }
+    const data = json.profile as ProfileRow;
 
     // „Konto freigeschaltet"-Mail an den Benutzer (best-effort, blockiert nicht).
     let notice: string | undefined = 'Benutzer gespeichert.';
