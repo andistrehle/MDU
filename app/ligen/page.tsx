@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
+import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { LEAGUES, getCurrentSeason } from '@/lib/data';
 
@@ -35,18 +36,12 @@ function LeagueCard({ league }: { league: typeof LEAGUES[number] }) {
 
 export default function LigenPage() {
   return (
-    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/ligen" />
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 80px' }}>
-        {/* Page header */}
-        <div style={{ marginBottom: 40 }}>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8 }}>{getCurrentSeason().name}</div>
-          <h1 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 48, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0, paddingBottom: 12, borderBottom: '3px solid var(--th-accent)', display: 'inline-block' }}>
-            Ligen Übersicht
-          </h1>
-        </div>
+      <PageBanner eyebrow={getCurrentSeason().name} title="Ligen Übersicht" boardRight="max(28px, calc(50vw - 612px))" />
 
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         {/* Playoff groups — shown first */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--th-text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>{getCurrentSeason().name}</div>
