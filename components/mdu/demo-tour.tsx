@@ -37,6 +37,47 @@ const KEYS: Record<TourId, { done: string; skips: string }> = {
 };
 const MAX_SKIPS = 3;
 
+// ── Merker-Persistenz (localStorage + Cookie-Fallback) ──────────────
+// Auf manchen Mobil-Browsern (klassisch: iOS-Safari im Privatmodus) liefert
+// `localStorage.getItem` zwar `null`, aber `localStorage.setItem` WIRFT — der
+// „gesehen"-Merker wird also nie gespeichert, und die Tour poppt bei jedem
+// Neuladen erneut auf (nur mobil beobachtet). Deshalb spiegeln wir die Merker
+// zusätzlich in ein First-Party-Cookie, das dort das Neuladen übersteht.
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const esc = name.replace(/[.$?*|{}()[\]\\/+^]/g, '\\$&');
+  const m = document.cookie.match(new RegExp('(?:^|; )' + esc + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+function writeCookie(name: string, value: string): void {
+  if (typeof document === 'undefined') return;
+  try {
+    // 1 Jahr, gesamte Domain, SameSite=Lax — nur ein harmloser UI-Merker.
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
+  } catch { /* ignore */ }
+}
+
+function markTourDone(id: TourId): void {
+  try { localStorage.setItem(KEYS[id].done, '1'); } catch { /* ignore */ }
+  writeCookie(KEYS[id].done, '1');
+}
+function readTourDone(id: TourId): boolean {
+  let ls = false;
+  try { ls = localStorage.getItem(KEYS[id].done) === '1'; } catch { /* ignore */ }
+  return ls || readCookie(KEYS[id].done) === '1';
+}
+function readSkips(id: TourId): number {
+  let ls = 0;
+  try { ls = parseInt(localStorage.getItem(KEYS[id].skips) ?? '0', 10) || 0; } catch { /* ignore */ }
+  const ck = parseInt(readCookie(KEYS[id].skips) ?? '0', 10) || 0;
+  return Math.max(ls, ck);
+}
+function bumpSkips(id: TourId): void {
+  const n = readSkips(id) + 1;
+  try { localStorage.setItem(KEYS[id].skips, String(n)); } catch { /* ignore */ }
+  writeCookie(KEYS[id].skips, String(n));
+}
+
 interface TourStep {
   icon: string;
   tag: string;
@@ -202,11 +243,7 @@ function memberTourReady(user: UserProfile | null): boolean {
 }
 
 function eligible(id: TourId): boolean {
-  try {
-    const done = localStorage.getItem(KEYS[id].done) === '1';
-    const skips = parseInt(localStorage.getItem(KEYS[id].skips) ?? '0', 10) || 0;
-    return !done && skips < MAX_SKIPS;
-  } catch { return false; }
+  return !readTourDone(id) && readSkips(id) < MAX_SKIPS;
 }
 
 export function DemoTour() {
@@ -233,7 +270,7 @@ export function DemoTour() {
     // gesehen markieren. So poppt sie nicht bei jedem Besuch erneut auf – egal
     // ob sie durchgeklickt oder per X/Außenklick geschlossen wird. Erneutes
     // Ansehen läuft bewusst nur über den „Demo Tour erneut ansehen"-Button.
-    if (id === 'member') { try { localStorage.setItem(KEYS.member.done, '1'); } catch { /* ignore */ } }
+    if (id === 'member') markTourDone('member');
     setTourId(id); setSteps(built); setStep(0); setSpot(null); setVisible(true);
   }, []);
 
@@ -288,17 +325,12 @@ export function DemoTour() {
   }, [pathname, user, startTour]);
 
   const finish = useCallback(() => {
-    if (tourId) { try { localStorage.setItem(KEYS[tourId].done, '1'); } catch { /* ignore */ } }
+    if (tourId) markTourDone(tourId);
     setVisible(false);
   }, [tourId]);
 
   const skip = useCallback(() => {
-    if (tourId) {
-      try {
-        const n = (parseInt(localStorage.getItem(KEYS[tourId].skips) ?? '0', 10) || 0) + 1;
-        localStorage.setItem(KEYS[tourId].skips, String(n));
-      } catch { /* ignore */ }
-    }
+    if (tourId) bumpSkips(tourId);
     setVisible(false);
   }, [tourId]);
 

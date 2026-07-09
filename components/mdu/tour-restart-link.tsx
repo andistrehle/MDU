@@ -15,7 +15,10 @@ export function DemoTourButton() {
   const pathname = usePathname();
 
   const restart = () => {
+    // localStorage UND Cookie-Spiegel löschen (der Fallback aus demo-tour.tsx
+    // greift z. B. im iOS-Privatmodus), sonst bliebe die Tour „gesehen".
     try { KEYS.forEach(k => localStorage.removeItem(k)); } catch { /* ignore */ }
+    try { KEYS.forEach(k => { document.cookie = `${k}=; path=/; max-age=0; SameSite=Lax`; }); } catch { /* ignore */ }
     if (pathname === '/' || pathname === '/mein-bereich') {
       window.dispatchEvent(new Event('mdu:start-tour'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
