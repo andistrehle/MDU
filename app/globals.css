@@ -207,6 +207,65 @@ html[data-theme="light"] .mdu-banner-dartboard {
   opacity: 0.42 !important;
 }
 
+/* =====================================================
+   PageBanner mit Dartboard-Hintergrund (responsive)
+   Mobil: klein & dezent. Desktop: groß, läuft in die Seite.
+   ===================================================== */
+.mdu-pb {
+  position: relative;
+  overflow: hidden;
+  background: var(--th-bg-page);
+  border-bottom: 1px solid var(--th-line-4);
+}
+.mdu-pb-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 20px 24px;
+  position: relative;
+  min-height: 110px;
+}
+.mdu-pb-content { position: relative; z-index: 2; }
+
+/* Mobil (Standard): kleines, dezentes Dartboard rechts. */
+.mdu-pb-board {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 340px;
+  height: 340px;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 55%, transparent 86%);
+  mask-image: radial-gradient(circle closest-side at 50% 50%, #000 0%, #000 55%, transparent 86%);
+}
+.mdu-pb-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--th-bg-page) 26%, transparent 68%);
+}
+
+/* Desktop: großes Dartboard, das weich in die Seite hineinreicht. */
+@media (min-width: 900px) {
+  .mdu-pb { border-bottom: none; }
+  .mdu-pb-inner { padding: 46px 28px 74px; min-height: 300px; }
+  .mdu-pb-board {
+    right: 24px;
+    width: 700px;
+    height: 700px;
+    opacity: 0.6;
+  }
+  .mdu-pb-veil {
+    background:
+      linear-gradient(90deg,  var(--th-bg-page) 0%, transparent 50%),
+      linear-gradient(270deg, var(--th-bg-page) 0%, transparent 14%),
+      linear-gradient(180deg, var(--th-bg-page) 0%, transparent 14%, transparent 82%, var(--th-bg-page) 100%);
+  }
+}
+
 /* Homepage hero wordmark — echoes the classic MDU logo colors
    (grey badge with silver "DART"). Light mode only; dark mode
    spans simply inherit the h1 color. */
