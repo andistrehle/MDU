@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
@@ -41,25 +42,23 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Theme serverseitig aus dem Cookie bestimmen und direkt ins <html> schreiben.
+  // Dadurch liefert schon der Server das richtige Theme aus — kein Flash, kein
+  // „springt auf Dunkel", unabhängig von Client-Script, localStorage-Timing,
+  // Hydration oder Cache. Default (kein Cookie) = „Old School" (light); nur eine
+  // ausdrückliche „dark"-Wahl (New Design) bleibt dunkel (dann kein data-theme).
+  const themeCookie = (await cookies()).get('mdu-theme')?.value;
+  const dataTheme = themeCookie === 'dark' ? undefined : 'light';
+
   return (
     <html
       lang="de"
+      data-theme={dataTheme}
       className={`${sairaCondensed.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>
-        {/* Persistiertes Theme VOR dem ersten Paint wiederherstellen (kein Flash).
-            Bewusst ein rohes Inline-Script (KEIN next/script): es läuft synchron
-            beim HTML-Parsen, noch bevor der Body gezeichnet wird. `beforeInteractive`
-            von next/script wird erst nach dem ersten Paint injiziert → dort blitzte
-            für Hell-Nutzer kurz der dunkle Standard auf. Default (Erstbesuch / keine
-            Auswahl) = „Old School" (light); nur eine ausdrückliche „dark"-Wahl bleibt dunkel. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('mdu-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
-          }}
-        />
         <AuthProvider>
           {children}
           <BottomNav />

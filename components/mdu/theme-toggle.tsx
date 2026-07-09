@@ -11,6 +11,16 @@ function getStoredTheme(): Theme {
   return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
 }
 
+/** Theme in ein Cookie schreiben — DER Server liest es und setzt data-theme
+ *  direkt ins <html> (kein Flash, kein „springt auf Dunkel"). */
+function writeThemeCookie(theme: Theme): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `mdu-theme=${theme}; path=/; max-age=31536000; SameSite=Lax${secure}`;
+  } catch { /* ignore */ }
+}
+
 /** Decorative flanking lines around a sub-label, e.g. ── HELL ── */
 function SubLabel({ text, color, lineColor, fontSize }: { text: string; color: string; lineColor: string; fontSize: number }) {
   return (
@@ -45,8 +55,23 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
   useEffect(() => {
     // Initial-Sync außerhalb des Effect-Bodys (react-hooks/set-state-in-effect)
     queueMicrotask(() => {
-      setTheme(getStoredTheme());
+      const current = getStoredTheme();
+      setTheme(current);
       setMounted(true);
+      // Migration: Wer noch kein Theme-Cookie hat, aber früher schon per
+      // localStorage eine Wahl getroffen hat, bekommt jetzt das Cookie gesetzt
+      // (damit der Server das Theme künftig direkt richtig ausliefert).
+      const hasCookie = /(?:^|;\s*)mdu-theme=/.test(document.cookie);
+      if (!hasCookie) {
+        let pref: Theme = current;
+        try { const ls = localStorage.getItem(STORAGE_KEY); if (ls === 'dark' || ls === 'light') pref = ls; } catch { /* ignore */ }
+        writeThemeCookie(pref);
+        if (pref !== current) {
+          if (pref === 'light') document.documentElement.dataset.theme = 'light';
+          else delete document.documentElement.dataset.theme;
+          setTheme(pref);
+        }
+      }
     });
     // Keep every switch instance in sync (e.g. header + /mehr) and across tabs.
     const onChange = (e: Event) => setTheme((e as CustomEvent<Theme>).detail);
@@ -74,6 +99,8 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
     } catch {
       /* storage unavailable (private mode) — toggle still works for session */
     }
+    // Cookie ist die maßgebliche Quelle für die serverseitige Theme-Auslieferung.
+    writeThemeCookie(next);
     window.dispatchEvent(new CustomEvent<Theme>('mdu-theme-change', { detail: next }));
   }
 
