@@ -30,24 +30,29 @@ export function PageBanner({
       background: 'linear-gradient(180deg, var(--th-bg-header) 0%, var(--th-bg-page) 100%)',
       borderBottom: '1px solid var(--th-line-4)',
     }}>
-      <div aria-hidden className="mdu-banner-dartboard" style={{
-        position: 'absolute', right: -260, top: '50%', transform: 'translateY(-50%)',
-        width: 680, height: 680, pointerEvents: 'none', opacity: 0.7,
-        WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
-        maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
-      }}>
-        <Image src="/mdu-hero-dartboard-2.webp"
-          unoptimized alt="" width={680} height={680}
-          style={{ width: 680, height: 680, objectFit: 'cover', objectPosition: 'center' }} />
-      </div>
-      <div aria-hidden style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'linear-gradient(90deg, var(--th-bg-page) 30%, var(--th-veil-40) 65%, var(--th-veil-70))',
-      }} />
-
       <div className="mdu-section-pad" style={{
-        maxWidth: 1280, margin: '0 auto', padding: '34px 28px 26px', position: 'relative', zIndex: 2,
+        maxWidth: 1280, margin: '0 auto', padding: '34px 28px 26px', position: 'relative',
       }}>
+        {/* Dartboard dezent im Hintergrund — rechter Rand schließt mit der
+            Content-/Glocken-Kante ab (im Inhaltsrahmen positioniert, nicht am
+            Viewport), damit es sichtbar bleibt und nicht rechts „abfällt". */}
+        <div aria-hidden className="mdu-banner-dartboard" style={{
+          position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+          width: 440, height: 440, pointerEvents: 'none', opacity: 0.55, zIndex: 0,
+          WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 58%, transparent 84%)',
+          maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 58%, transparent 84%)',
+        }}>
+          <Image src="/mdu-hero-dartboard-2.webp"
+            unoptimized alt="" width={440} height={440}
+            style={{ width: 440, height: 440, objectFit: 'cover', objectPosition: 'center' }} />
+        </div>
+        {/* Schleier links → Text bleibt lesbar, rechts scheint das Board durch. */}
+        <div aria-hidden style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
+          background: 'linear-gradient(90deg, var(--th-bg-page) 22%, var(--th-veil-40, transparent) 55%, transparent 78%)',
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 2 }}>
         {breadcrumb}
         {eyebrow && (
           <div style={{
@@ -65,6 +70,7 @@ export function PageBanner({
           {title}
         </h1>
         {children}
+        </div>
       </div>
     </div>
   );

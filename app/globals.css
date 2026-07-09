@@ -201,9 +201,10 @@ html[data-theme="light"] .mdu-card {
   border-color: rgba(15,23,42,0.06);
 }
 
-/* Soften the dartboard photo on sub-page banners (league/team) */
+/* Soften the dartboard photo on sub-page banners (league/team) — im Hell-Theme
+   etwas kräftiger als früher, damit es sichtbar bleibt, aber dezent im Hintergrund. */
 html[data-theme="light"] .mdu-banner-dartboard {
-  opacity: 0.28 !important;
+  opacity: 0.42 !important;
 }
 
 /* Homepage hero wordmark — echoes the classic MDU logo colors
