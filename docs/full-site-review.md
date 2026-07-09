@@ -203,6 +203,12 @@ Positiv: Pinch-Zoom erlaubt (`maximumScale:5`), Unread/aktive Nav mehrfach kodie
 > `:focus-visible`-Ringe), REV-047 (Nachmeldungs-Freigabe atomar via RPC — **Migration 0033
 > im Supabase SQL Editor einspielen**). Restlicher Lint (unescaped-quotes in JSX-Text, wenige
 > ungenutzte Variablen, React-Compiler-Memoization-Hinweise) ist rein kosmetisch.
+>
+> **Nachtrag (09.07.2026, Sicherheits-Härtungen):** REV-013 (Enumeration-Schutz new-user),
+> REV-014 (Eigentümerprüfung cleanup-uploads), REV-015 (Magic-Byte-Upload-Check),
+> REV-022 (`emailRedirectTo`), REV-023 (Reset-Formular nur mit Recovery-Session),
+> REV-024 (eingeloggte von /login,/registrieren weg), REV-057 (Signed-URL 15 Min),
+> REV-059 (atomarer OCR-Start) — alle umgesetzt.
 
 | ID | Titel | Route/Datei | Kurzlösung | Aufwand |
 |---|---|---|---|---|
