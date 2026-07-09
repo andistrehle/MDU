@@ -25,11 +25,17 @@ if (!url || !key) { console.error('ENV fehlt (NEXT_PUBLIC_SUPABASE_URL / SUPABAS
 
 const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
-// Reihenfolge des statischen Bestands beibehalten (Index 0 = neueste, ganz oben).
-// Anker knapp unter „heute", damit künftige Admin-Meldungen (sort_ts = now())
-// automatisch darüber erscheinen.
-const BASE = Date.UTC(2026, 6, 6, 12, 0, 0); // 2026-07-06 12:00 UTC
+// sort_ts (Sortierung, neueste zuerst) aus dem echten Anzeige-Datum ableiten.
+// Freitext wie „2026" wird knapp unter der neuesten Meldung einsortiert, damit
+// die bestehende Reihenfolge erhalten bleibt.
+const BASE = Date.UTC(2026, 6, 6, 12, 0, 0); // 2026-07-06 12:00 UTC (neueste Meldung)
 const DAY = 86_400_000;
+
+function toSortTs(displayDate: string, index: number): string {
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(displayDate.trim());
+  if (m) return new Date(Date.UTC(+m[3], +m[2] - 1, +m[1], 12, 0, 0)).toISOString();
+  return new Date(BASE - index * DAY).toISOString();
+}
 
 const rows = NEWS_ARTICLES.map((a, i) => ({
   id: a.id,
@@ -40,7 +46,7 @@ const rows = NEWS_ARTICLES.map((a, i) => ({
   category: a.category,
   content: a.content,
   status: 'published',
-  sort_ts: new Date(BASE - i * DAY).toISOString(),
+  sort_ts: toSortTs(a.date, i),
 }));
 
 const { data, error } = await admin

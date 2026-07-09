@@ -6,7 +6,7 @@ import { Icon } from '@/components/mdu/icon';
 import { MatchCard } from '@/components/mdu/match-card';
 import { TeamLink } from '@/components/mdu/team-link';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
-import { getPublishedNews } from '@/lib/server/news-data';
+import { getHomepageNews } from '@/lib/server/news-data';
 import {
   getUpcomingMatches,
   getRecentResults,
@@ -23,8 +23,9 @@ export const revalidate = 60;
 export default async function HomePage() {
   const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
-  // Startseite zeigt nur die 2 neuesten; „Alle News anzeigen" (/news) listet alle.
-  const newsArticles = (await getPublishedNews()).slice(0, 2);
+  // Startseite: News des letzten Monats, mindestens die 3 neuesten;
+  // „Alle News anzeigen" (/news) listet alle.
+  const newsArticles = await getHomepageNews();
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/" />

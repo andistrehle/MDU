@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
@@ -50,12 +49,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body>
-        {/* Restore the persisted theme before first paint (no flash).
-            Default (Erstbesuch / keine Auswahl) = „Old School" (light);
-            nur eine ausdrückliche „dark"-Wahl (New Design) bleibt dunkel. */}
-        <Script id="mdu-theme-init" strategy="beforeInteractive">
-          {"try{if(localStorage.getItem('mdu-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}"}
-        </Script>
+        {/* Persistiertes Theme VOR dem ersten Paint wiederherstellen (kein Flash).
+            Bewusst ein rohes Inline-Script (KEIN next/script): es läuft synchron
+            beim HTML-Parsen, noch bevor der Body gezeichnet wird. `beforeInteractive`
+            von next/script wird erst nach dem ersten Paint injiziert → dort blitzte
+            für Hell-Nutzer kurz der dunkle Standard auf. Default (Erstbesuch / keine
+            Auswahl) = „Old School" (light); nur eine ausdrückliche „dark"-Wahl bleibt dunkel. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('mdu-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
+          }}
+        />
         <AuthProvider>
           {children}
           <BottomNav />
