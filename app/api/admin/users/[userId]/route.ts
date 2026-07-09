@@ -81,6 +81,16 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ userId: s
   const { data, error } = await supabaseAdmin
     .from('profiles').update(patch).eq('id', userId).select('*').maybeSingle();
   if (error || !data) {
+    // Eindeutigkeit (Migration 0034): ein Spieler-Slug darf nur mit EINEM Konto
+    // verknüpft sein. Bei Verstoß eine verständliche Meldung statt des rohen
+    // „duplicate key"-Fehlers.
+    const dupPlayer = error?.code === '23505'
+      && /profiles_player_id_uniq|player_id/i.test(`${error.message} ${error.details ?? ''}`);
+    if (dupPlayer) {
+      return NextResponse.json({
+        error: 'Dieses Spielerprofil ist bereits mit einem anderen Konto verknüpft. Ein Spielerprofil kann nur einem einzigen Konto zugeordnet sein.',
+      }, { status: 409 });
+    }
     return NextResponse.json({ error: error?.message ?? 'Speichern fehlgeschlagen.' }, { status: 400 });
   }
   return NextResponse.json({ status: 'updated', profile: data }, { status: 200 });

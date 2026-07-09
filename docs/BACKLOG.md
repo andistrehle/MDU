@@ -154,13 +154,14 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 ## Wichtig / abhängig
 
 - [x] Supabase-Migrationen ausführen: bis einschließlich `0026_media_bucket.sql` im SQL-Editor
-- [ ] **Migration `0027_media_team_policies.sql` im SQL-Editor ausführen** (Storage-Policies für Teamlogo/Mannschaftsbild; nötig, damit Kapitäne in den `teams/`-Pfad hochladen dürfen)
+- [ ] **Migration `0027_media_team_policies.sql` im SQL-Editor ausführen** (Storage-Policies für Teamlogo/Mannschaftsbild; nötig, damit Kapitäne in den `teams/`-Pfad hochladen dürfen). Idempotent (`drop policy if exists` → `create`) — im Zweifel gefahrlos erneut ausführen, um sicherzustellen, dass es drin ist.
+- [ ] **Migration `0034_uniqueness_constraints.sql` im SQL-Editor ausführen** — **erst NACH** dem Löschen der Demo-/Testkonten (das Demo-Spieler-Konto belegt `player_id='andreas-strehle'` und würde sonst den Unique-Index sprengen). Enthält Prüf-Queries; beide müssen 0 Zeilen liefern, bevor die Indizes greifen.
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
 ## Vor Go-live (offen)
 
-- [ ] Eindeutigkeits-/Dubletten-Regeln: 1 Spielerprofil = 1 Konto (DB-Constraint), jedes Team nur 1× pro Saison freigegeben; Namensgleichheit nur zur Admin-Prüfung markieren, nicht hart blockieren
-- [ ] Alle Testuser löschen (sauberer Start), u. a. julia.andi@web.de
+- [~] Eindeutigkeits-/Dubletten-Regeln: **Migration `0034` geschrieben** — `profiles.player_id` unique (1 Spielerprofil = 1 Konto) + `team_registrations (season_id, source_team_id)` unique bei `status='approved'` (jedes bestehende Team nur 1× pro Saison freigegeben). Namensgleichheit NEUER Teams bleibt bewusst app-seitige Admin-Markierung (kein harter Constraint). Admin-PATCH gibt bei Verstoß eine verständliche Meldung. **Offen: Migration im SQL-Editor ausführen** (nach dem Test-/Demo-Cleanup, siehe „Wichtig / abhängig").
+- [ ] Alle Testuser + Demo-Video-Daten löschen (sauberer Start): `node scripts/cleanup-test-data.mjs` (löscht `julia.andi@web.de` + `strehleandi@gmail.com`) und `node scripts/cleanup-demo-video.mjs` (löscht `demo.kapitaen@`/`demo.spieler@` + „DC Demo München"). Das Streukonto `demo@example.com` ist in keinem Skript — separat über die Benutzerverwaltung („Löschen") entfernen. Skripte brauchen `.env.local` (Service-Role) → lokal ausführen, nicht in Cloud-/Handy-Sessions.
 - [ ] **Rechtliches:** Anschrift/Vertretung eingetragen; Rechtsform „nicht eingetragener Verein" ergänzt. Interne **DSB- + anwaltliche Tiefenprüfung** der drei Rechtstexte durchgeführt (AGB-feste Haftung, Änderungsklausel, Minderjährige, Aufsichtsbehörde, Art. 22, zweiter Kontaktweg). **Externe anwaltliche Freigabe** weiterhin empfohlen → danach Hinweis-Banner aus `LegalPage` entfernen. Außerdem offen: AVV mit Vercel/Supabase/Resend/Cloudflare/Anthropic abschließen.
 
 ### Domain-Umzug auf www.mdudarts.de (Checkliste Livegang)
