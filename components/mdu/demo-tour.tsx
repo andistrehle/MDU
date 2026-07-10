@@ -387,10 +387,15 @@ export function DemoTour() {
       // Dokument-Koordinaten (scrollY/scrollX): der absolut positionierte Spot
       // liegt so im selben Koordinatensystem wie der Inhalt (iOS-Zoom-fest).
       const sx = window.scrollX, sy = window.scrollY;
+      const clientW = document.documentElement.clientWidth;
+      const spLeft = Math.max(0, r.left + sx - pad);
       const sp: SpotRect = {
         top: Math.max(0, r.top + sy - pad),
-        left: Math.max(0, r.left + sx - pad),
-        width: Math.min(document.documentElement.clientWidth - 16, r.width + pad * 2),
+        left: spLeft,
+        // Breite bis zur rechten Zielkante begrenzen (nicht auf ein festes
+        // clientWidth-16): bei randbündigen Vollbreiten-Zielen (mobile Bottom-Nav)
+        // wurde sonst rechts ein ~16px-Streifen abgeschnitten → „Rahmen verschoben".
+        width: Math.min(r.width + pad * 2, clientW - spLeft),
         height: r.height + pad * 2,
       };
       // Andockseite wird deterministisch beim Schrittwechsel entschieden (unten),
@@ -575,7 +580,7 @@ export function DemoTour() {
             </div>
           </div>
 
-          <div className="mdu-tour-count">{step + 1} / {steps.length} · v11</div>
+          <div className="mdu-tour-count">{step + 1} / {steps.length}</div>
         </div>
       </div>
     </>

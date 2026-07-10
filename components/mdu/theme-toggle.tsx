@@ -110,7 +110,9 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
   const W       = mini ? 118 : compact ? 220 : 288;
   const H       = mini ? 34  : compact ? 46  : 54;
   const pad     = mini ? 2 : 4;
-  const thumbD  = mini ? 20 : H - pad * 2 - 2; // small round handle, stays inside
+  // Kleiner runder Griff — bewusst mit etwas Luft (−8 statt −2), damit er den
+  // farbigen Rahmen (inset-Ring) der aktiven Hälfte oben/unten NICHT anschneidet.
+  const thumbD  = mini ? 20 : H - pad * 2 - 8; // small round handle, stays inside
   const clear   = mini ? 22 : thumbD + 6;      // active-label clearance on handle side
   const fz      = mini ? 8 : compact ? 11.5 : 13; // main label
   const fz2     = compact ? 7.5 : 8.5;       // sub label (not shown in mini)
