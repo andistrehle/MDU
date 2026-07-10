@@ -90,9 +90,11 @@ export async function getHomepageNews(): Promise<NewsArticle[]> {
       const t = Date.parse(r.sort_ts);
       return !Number.isNaN(t) && t >= cutoff;
     });
-    // „Letzter Monat" wenn das mindestens 3 sind, sonst die 3 neuesten.
-    const chosen = withinMonth.length >= 3 ? withinMonth : rows.slice(0, 3);
-    return chosen.map(rowToArticle);
+    // „Letzter Monat" wenn das mindestens 3 sind, sonst die 3 neuesten —
+    // nach oben auf 6 gedeckelt, damit ein Publishing-Schub die Startseite
+    // nicht mit beliebig vielen Karten flutet.
+    const base = withinMonth.length >= 3 ? withinMonth : rows.slice(0, 3);
+    return base.slice(0, 6).map(rowToArticle);
   } catch {
     return NEWS_ARTICLES.slice(0, 3);
   }

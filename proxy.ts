@@ -14,7 +14,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED_PREFIXES = ['/admin', '/mein-bereich'];
+const PROTECTED_PREFIXES = ['/admin', '/mein-bereich', '/mein-profil', '/mein-team'];
 
 function withSecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-Frame-Options', 'SAMEORIGIN');

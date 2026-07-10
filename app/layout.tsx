@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/mdu/bottom-nav';
@@ -42,23 +41,25 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Theme serverseitig aus dem Cookie bestimmen und direkt ins <html> schreiben.
-  // Dadurch liefert schon der Server das richtige Theme aus — kein Flash, kein
-  // „springt auf Dunkel", unabhängig von Client-Script, localStorage-Timing,
-  // Hydration oder Cache. Default (kein Cookie) = „Old School" (light); nur eine
-  // ausdrückliche „dark"-Wahl (New Design) bleibt dunkel (dann kein data-theme).
-  const themeCookie = (await cookies()).get('mdu-theme')?.value;
-  const dataTheme = themeCookie === 'dark' ? undefined : 'light';
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="de"
-      data-theme={dataTheme}
       className={`${sairaCondensed.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>
+        {/* Theme VOR dem ersten Paint aus dem Cookie (Fallback localStorage) setzen.
+            Bewusst ein rohes, synchrones Inline-Script als erstes im <body> — es
+            läuft beim HTML-Parsen, bevor der Body gezeichnet wird. So bleiben die
+            Seiten statisch/ISR (kein cookies() im Layout → kein dynamisches
+            Rendering, echtes 404) UND das Theme hält über Reloads. Default
+            (kein Cookie) = „Old School" (light); nur ausdrückliches „dark" bleibt dunkel. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{var m=document.cookie.match(/(?:^|;\\s*)mdu-theme=([^;]*)/);var t=m?m[1]:null;if(!t){try{t=localStorage.getItem('mdu-theme')}catch(e){}}if(t!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
+          }}
+        />
         <AuthProvider>
           {children}
           <BottomNav />

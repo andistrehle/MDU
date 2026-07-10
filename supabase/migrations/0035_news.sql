@@ -11,9 +11,12 @@
 -- Übernahme der bestehenden Meldungen per Seed-Script (idempotent, additiv):
 --   npx tsx scripts/seed-news.mts
 --
--- Lese-Logik (lib/server/news-data.ts): solange die Tabelle fehlt/leer ist bzw.
--- die Abfrage fehlschlägt, bleibt der statische Bestand sichtbar („sieht aus wie
--- vorher"). Sobald geseedet, ist die DB die Quelle.
+-- Lese-Logik (lib/server/news-data.ts): solange die Tabelle FEHLT/nicht migriert
+-- ist bzw. die Abfrage fehlschlägt, bleibt der statische Bestand sichtbar
+-- („sieht aus wie vorher"). Ist die Tabelle vorhanden, aber LEER (alles
+-- archiviert/gelöscht ODER Migration ohne Seed), zeigt „Aktuelles"/„/news"
+-- bewusst nichts an — dann ist die DB die Quelle. Daher NACH dem Einspielen
+-- unbedingt das Seed ausführen: npx tsx scripts/seed-news.mts
 --
 -- Sicherheit (RLS):
 --   • Lesen: öffentlich nur status='published'; Ligaleitung/Admin sieht alle.

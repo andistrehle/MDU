@@ -316,6 +316,11 @@ function SpielberichteInner() {
       if (g.home_slot == null || g.guest_slot == null || (isDouble && (g.home_slot2 == null || g.guest_slot2 == null))) {
         return `Spiel ${g.game_no}${isDouble ? ' (Doppel)' : ''}: Bitte für beide Seiten die Spieler zuordnen.`;
       }
+      // Im Doppel müssen die beiden Partner je Seite verschieden sein (kann durch
+      // OCR-Übernahme/nachträglich geänderte Aufstellung sonst durchrutschen).
+      if (isDouble && (g.home_slot === g.home_slot2 || g.guest_slot === g.guest_slot2)) {
+        return `Spiel ${g.game_no} (Doppel): Pro Seite müssen zwei verschiedene Spieler stehen.`;
+      }
     }
     if (games.some(g => g.legs_home == null)) return 'Bitte alle 18 Spielergebnisse eintragen.';
     return null;

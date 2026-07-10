@@ -59,6 +59,13 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ userId: s
     .from('profiles').select('id, role').eq('id', userId).maybeSingle();
   if (!target) return NextResponse.json({ error: 'Benutzer nicht gefunden.' }, { status: 404 });
 
+  // Selbst-Aussperren verhindern: die eigene Rolle nicht per PATCH ändern (analog
+  // zum Selbst-Löschschutz im DELETE). Sonst könnte sich z. B. der letzte Super
+  // Admin versehentlich zum Spieler degradieren und den Adminzugang verlieren.
+  if (userId === auth.user.id && newRole !== target.role) {
+    return NextResponse.json({ error: 'Du kannst deine eigene Rolle hier nicht ändern.' }, { status: 400 });
+  }
+
   // Darf der Akteur DIESES Konto bearbeiten? (Ligaleitung nur Spieler/Kapitäne.)
   if (!canEditUserAccount(actor, target.role as UserRole)) {
     return NextResponse.json({ error: 'Dieses Konto darfst du nicht bearbeiten.' }, { status: 403 });

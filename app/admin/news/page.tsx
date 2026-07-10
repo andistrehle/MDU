@@ -244,7 +244,8 @@ export default function AdminNewsPage() {
 
       <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 16, maxWidth: 820, lineHeight: 1.6 }}>
         Öffentlich sichtbar sind nur <strong>veröffentlichte</strong> Meldungen. Entwürfe und archivierte
-        Meldungen siehst nur du hier. Die Startseite zeigt die zwei neuesten, <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>/news</code> alle.
+        Meldungen siehst nur du hier. Die Startseite zeigt die neuesten Meldungen des letzten Monats
+        (mindestens drei), <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>/news</code> alle.
       </p>
     </AdminGuard>
   );

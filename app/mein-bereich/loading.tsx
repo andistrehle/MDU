@@ -1,5 +1,6 @@
-// Route-Level-Ladezustand (App Router). Wird während des Ladens einer Route
-// angezeigt, damit statt eines leeren Bildschirms ein dezenter Hinweis erscheint.
+// Route-Level-Ladezustand für „Mein Bereich" (dynamische, DB-gestützte Seiten).
+// Bewusst NUR hier (und in /admin), NICHT global — siehe app/admin/loading.tsx
+// (globale loading.tsx → Soft-404 auf öffentlichen [param]-Routen, REV2-N01).
 
 export default function Loading() {
   return (
