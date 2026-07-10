@@ -186,6 +186,8 @@ per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch
 - [ ] Teamname in `team_linked`/`role_changed`-Notifications (serverseitig im Trigger nicht auflösbar — Teamnamen liegen in lib/data; ggf. clientseitig nachziehen)
 - [ ] Optionale User-Eingangsmail bei Registrierung bewusst ausgelassen (Supabase verschickt bereits Verifizierungs-Mail)
 - [ ] Idee (offen): Dartboard-Hintergrund (wie auf den öffentlichen Seiten via `PageBanner`/`.mdu-pb-board-page`) auch im „Mein Bereich" einbauen — evtl. mit einem **anderen Motiv** als `mdu-hero-dartboard-2.webp`. Nur angedacht, noch nicht beauftragt.
+- [ ] **Spieler-Startseite personalisieren (User-Wunsch Tim Weber):** Für eingeloggte Spieler oben auf der Startseite eine personalisierte Zeile „Meine Mannschaft" und/oder „Meine Liga" mit Direktlinks anzeigen — sichtbarer Mehrwert des eigenen Bereichs direkt beim Einstieg. Nur für verknüpfte Spieler; für noch nicht zugeordnete ggf. dezenter Hinweis. **Design (Ort/Prominenz) vor Umsetzung mit Betreiber klären.**
+- [ ] Idee (nur evtl.): **Demo-Tour „fortsetzen"** — bei Unterbrechung den Schritt merken und unten einen „Demo fortsetzen"-Button zeigen, der an derselben Stelle weitermacht (statt neu zu starten). User-Wunsch (Tim Weber); vom Betreiber als „ganz vielleicht" eingestuft.
 
 ## Spielerstatistik an Dartlogik anpassen ✅ (Zwischensprint, Juni 2026)
 
