@@ -132,15 +132,17 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Prüfen: Hover/Focus/Active-Styles, Pointer-Events, Android Chrome · Betroffen: Team-/Tabellen-Listen (`mdu-link-name` u. a.), `app/globals.css`
 - Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** · Abhängigkeiten: evtl. Ursache von UT-09
 
-**UT-09 · Tabellen-Zeile mobil: Detail-Expand raus → direkt ins Teamprofil**
-- Kategorie: UX/Mobile · Priorität: **P2** · Plattform: **mobil (Verhalten mobil ≠ Desktop)**
-- Beschreibung: **Betreiber-Klärung:** Gemeint ist nicht das Teamprofil, sondern die **Anzeige unter der Tabelle** — mobil klappt eine Tabellen-Zeile aktuell eine **Detailanzeige** auf (`StandingsTable`, `expandedPos`/`toggleExpand`) und wirkte dabei „zeitweise nicht anklickbar". Diese Detailanzeige wird mobil **nicht** gebraucht: ein Tap auf die Zeile soll **direkt ins Teamprofil** springen (wie auf Desktop). **Desktop** bleibt unverändert klickbar.
-- Nutzerfeedback: „Kader, Spielplan … ließen sich zeitweise nicht anklicken." + Betreiber: „Ich glaube er meint die Anzeige unter der Tabelle. Mobil brauche ich die nicht, weil ich vom Tabellen-Klick direkt ins Teamprofil springe. Desktop soll klickbar bleiben."
-- Zielverhalten: **Mobil:** Tap auf Tabellen-Zeile → Teamprofil (kein Expand mehr). **Desktop:** unverändert (Zeile klickbar → Teamprofil).
-- Akzeptanzkriterien: Mobil öffnet ein Zeilen-Tap zuverlässig das Teamprofil; kein hängendes/nicht reagierendes Expand mehr; Desktop-Verhalten identisch zu heute.
-- Betroffen: `components/mdu/standings-table.tsx` (mobiler Expand-Pfad `expandedPos`/`toggleExpand`, `.mdu-mobile-only`) · Abhängigkeiten: ggf. verwandt mit UT-08 (klebende Touch-States)
-- ⚠️ **Beim Umsetzen prüfen:** Der mobile Expand zeigt aktuell Zusatzspalten (Sp./Legs/Diff./Form), die in die kompakte Zeile nicht passen — vor dem Entfernen bestätigen, dass diese Detailinfos mobil nicht vermisst werden. Betreiber selbst unsicher über das genaue Element („Ich glaube") → **einmal visuell gegenprüfen**.
-- Status: **offen (entschieden: mobiler Expand raus → Direktnavigation)** · Reproduzierbarkeit: bestätigt (Verhalten im Code)
+**UT-09 · Tabelle mobil vereinfachen (A) + Teamprofil-Tabs sicher klickbar (B)**
+- Kategorie: UX/Mobile · Priorität: **P2** · Plattform: **mobil (A) + Desktop (B)**
+- Beschreibung — **zwei Aspekte** (Betreiber-Klärung):
+  - **(A) Tabelle mobil:** Eine Tabellen-Zeile klappt mobil aktuell eine **Detailanzeige** auf (`StandingsTable`, `expandedPos`/`toggleExpand`) und wirkte dabei „zeitweise nicht anklickbar". Diese Anzeige wird mobil **nicht** gebraucht → ein Tap soll **direkt ins Teamprofil** springen (wie Desktop). Desktop-Tabellenzeile bleibt unverändert klickbar.
+  - **(B) Teamprofil-Tabs:** Die Tabs im Teamprofil (Übersicht/Kader/Spielplan/Ergebnisse/Statistik) **müssen zuverlässig klickbar sein — insbesondere auf Desktop ausdrücklich vom Betreiber verlangt** („da müssen dann die Team Tabs aber klickbar sein"). Deckt die ursprüngliche Tester-Beobachtung ab.
+- Nutzerfeedback: „Kader, Spielplan … ließen sich zeitweise nicht anklicken." + Betreiber (A): „…Anzeige unter der Tabelle … mobil brauche ich die nicht … Desktop klickbar." + Betreiber (B): „im Desktop müssen dann die Team Tabs klickbar sein."
+- Zielverhalten: **(A)** Mobil: Zeilen-Tap → Teamprofil (kein Expand). **(B)** Teamprofil-Tabs auf Desktop (und mobil) jederzeit zuverlässig antippbar/klickbar.
+- Akzeptanzkriterien: (A) mobiler Zeilen-Tap öffnet zuverlässig das Teamprofil, kein hängendes Expand; Desktop-Zeile unverändert. (B) alle Teamprofil-Tabs auf Desktop wiederholt und zuverlässig wechselbar (mobil ebenso).
+- Betroffen: `components/mdu/standings-table.tsx` (A: `expandedPos`/`toggleExpand`, `.mdu-mobile-only`); `components/mdu/team-detail-client.tsx` (B: Tab-Leiste) · Abhängigkeiten: ggf. verwandt mit UT-08 (klebende Touch-States könnten Klicks blockieren)
+- ⚠️ **Beim Umsetzen prüfen:** (A) Der mobile Expand zeigt Zusatzspalten (Sp./Legs/Diff./Form) — vor dem Entfernen bestätigen, dass diese mobil nicht vermisst werden. (B) Ursache der zeitweise nicht klickbaren Tabs identifizieren (Pointer-Events/Overlay?).
+- Status: **offen** — (A) entschieden (Expand raus → Direktnavigation), (B) Desktop-Klickbarkeit sicherstellen · Reproduzierbarkeit: (A) bestätigt (Code) · (B) Tester-Beobachtung, Ursache noch zu prüfen
 
 **UT-10 · Statistik-Tab im Teamprofil: Einzelrangliste fachlich unpassend**
 - Kategorie: Produkt/Content · Priorität: **P2** · Plattform: übergreifend
