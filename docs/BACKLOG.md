@@ -105,14 +105,14 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Betroffen: `components/mdu/bottom-nav.tsx` · Abhängigkeiten: keine
 - Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (Android real, iOS gegentesten)
 
-**UT-06 · Rahmen im „Schnellzugriff" wirkt abgeschnitten**
-- Kategorie: UI/Layout · Priorität: **P2** · Plattform: **allgemein mobil (verify)**
-- Beschreibung: Der Rahmen/Container des Startseiten-Schnellzugriffs (`.mdu-quick-bar`, Spielplan/Tabellen) bzw. dessen Darstellung während der Tour wirkt am Rand beschnitten. (Verwandt, aber getrennt von der Tour-Spotlight-Korrektur `139c8c2`.)
-- Nutzerfeedback: „Der Rahmen des Schnellzugriffs wirkt abgeschnitten."
-- Zielverhalten: Container mit korrektem Padding/Margin; kein angeschnittener Rand/Schatten am Viewport-Rand.
-- Akzeptanzkriterien: Schnellzugriff-Karte auf 320–430 px vollständig mit umlaufendem Rand/Schatten sichtbar.
-- Betroffen: `app/page.tsx` (`.mdu-quickbar-outer`/`.mdu-quick-bar`), `app/globals.css` · Abhängigkeiten: keine
-- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (genaues Element beim Nutzer rückfragen)
+**UT-06 · „Demo Tour erneut ansehen"-Button: Rahmen abgeschnitten (Instagram-In-App-Browser, hoher Zoom)**
+- Kategorie: UI/Layout · Priorität: **P2** · Plattform: **allgemein mobil (verstärkt Instagram-In-App-Browser + hohe Zoom-/Schriftgröße)**
+- Beschreibung: **Per Betreiber-Screenshot geklärt:** Gemeint ist der schwebende **„Demo Tour erneut ansehen"-Button** („Demo-Schnellzugriff") — dessen roter Pill-Rahmen wirkt seitlich **angeschnitten**. Der Screenshot stammt aus dem **Instagram-In-App-Browser** bei stark vergrößerter Darstellung; Button/Border skaliert bzw. positioniert dort nicht sauber (ragt über den Rand).
+- Nutzerfeedback: „Der Rahmen des Schnellzugriffs wirkt abgeschnitten." (+ Bild: Instagram-WebView, „…Tour erneut a…", oben/unten rote Border sichtbar, seitlich abgeschnitten.)
+- Zielverhalten: Button samt Rahmen bei hoher Zoom-/Schriftgröße und im In-App-Browser vollständig sichtbar; nicht über den Viewport-Rand hinausragen (ggf. `max-width`/Textumbruch, sichere Positionierung).
+- Akzeptanzkriterien: Bei 320–430 px, hohem Systemzoom und im Instagram-WebView ist der Button-Rahmen komplett sichtbar; kein Überlauf/Anschnitt.
+- Betroffen: `components/mdu/tour-restart-link.tsx` (`.mdu-demo-tour-btn`) · Abhängigkeiten: **UT-01** (nur Startseite → seltener sichtbar), **UT-02** (Instagram-In-App-Browser-Kontext)
+- Status: **offen** · Reproduzierbarkeit: **bestätigt (Bild)** — im Instagram-WebView + hohem Zoom gegentesten
 
 **UT-07 · Player-Card-Overlay: Hintergrund scrollt (Scroll-Lock fehlt)**
 - Kategorie: Bug/UX · Priorität: **P2** · Plattform: **allgemein mobil (evtl. übergreifend)**
@@ -132,14 +132,15 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Prüfen: Hover/Focus/Active-Styles, Pointer-Events, Android Chrome · Betroffen: Team-/Tabellen-Listen (`mdu-link-name` u. a.), `app/globals.css`
 - Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** · Abhängigkeiten: evtl. Ursache von UT-09
 
-**UT-09 · Tabs im Teamprofil zeitweise nicht anklickbar**
-- Kategorie: Bug/Analyse · Priorität: **P1 (falls bestätigt — blockiert Kernnavigation)** · Plattform: **allgemein mobil / Android (verify)**
-- Beschreibung: Kader/Spielplan-Tabs ließen sich zeitweise nicht antippen. **Noch nicht als bestätigter Bug behandeln.**
-- Nutzerfeedback: „Kader, Spielplan usw. ließen sich zeitweise nicht anklicken."
-- Zielverhalten: Tabs jederzeit zuverlässig antippbar.
-- Akzeptanzkriterien: Auf Android/iOS lassen sich alle Tabs wiederholt und zuverlässig wechseln.
-- Betroffen: `components/mdu/team-detail-client.tsx` (Tab-Leiste) · Abhängigkeiten: mögliche gemeinsame Ursache mit UT-08 (klebende Pointer-Events blockieren Klicks)
-- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen (Priorität!)**
+**UT-09 · Tabellen-Zeile mobil: Detail-Expand raus → direkt ins Teamprofil**
+- Kategorie: UX/Mobile · Priorität: **P2** · Plattform: **mobil (Verhalten mobil ≠ Desktop)**
+- Beschreibung: **Betreiber-Klärung:** Gemeint ist nicht das Teamprofil, sondern die **Anzeige unter der Tabelle** — mobil klappt eine Tabellen-Zeile aktuell eine **Detailanzeige** auf (`StandingsTable`, `expandedPos`/`toggleExpand`) und wirkte dabei „zeitweise nicht anklickbar". Diese Detailanzeige wird mobil **nicht** gebraucht: ein Tap auf die Zeile soll **direkt ins Teamprofil** springen (wie auf Desktop). **Desktop** bleibt unverändert klickbar.
+- Nutzerfeedback: „Kader, Spielplan … ließen sich zeitweise nicht anklicken." + Betreiber: „Ich glaube er meint die Anzeige unter der Tabelle. Mobil brauche ich die nicht, weil ich vom Tabellen-Klick direkt ins Teamprofil springe. Desktop soll klickbar bleiben."
+- Zielverhalten: **Mobil:** Tap auf Tabellen-Zeile → Teamprofil (kein Expand mehr). **Desktop:** unverändert (Zeile klickbar → Teamprofil).
+- Akzeptanzkriterien: Mobil öffnet ein Zeilen-Tap zuverlässig das Teamprofil; kein hängendes/nicht reagierendes Expand mehr; Desktop-Verhalten identisch zu heute.
+- Betroffen: `components/mdu/standings-table.tsx` (mobiler Expand-Pfad `expandedPos`/`toggleExpand`, `.mdu-mobile-only`) · Abhängigkeiten: ggf. verwandt mit UT-08 (klebende Touch-States)
+- ⚠️ **Beim Umsetzen prüfen:** Der mobile Expand zeigt aktuell Zusatzspalten (Sp./Legs/Diff./Form), die in die kompakte Zeile nicht passen — vor dem Entfernen bestätigen, dass diese Detailinfos mobil nicht vermisst werden. Betreiber selbst unsicher über das genaue Element („Ich glaube") → **einmal visuell gegenprüfen**.
+- Status: **offen (entschieden: mobiler Expand raus → Direktnavigation)** · Reproduzierbarkeit: bestätigt (Verhalten im Code)
 
 **UT-10 · Statistik-Tab im Teamprofil: Einzelrangliste fachlich unpassend**
 - Kategorie: Produkt/Content · Priorität: **P2** · Plattform: übergreifend
@@ -224,15 +225,16 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - **UT-10 — ✅ beantwortet:** Team-Tab „Statistik" = Coming Soon; Liga = Einzelrangliste + Coming-Soon für weitere.
 - **UT-11 — ✅ beantwortet:** dartunion.de offline → alle Hyperlinks raus.
 - **UT-14 — ✅ beantwortet:** Login bleibt eigene Seite; Modal später.
-- **Weiterhin offen — UT-06:** Auf welcher Seite genau wirkt der „Schnellzugriff-Rahmen abgeschnitten" (Startseite-Schnellzugriff? etwas anderes?) — für gezielte Reproduktion.
+- **UT-06 — ✅ geklärt (Bild):** der „Demo Tour erneut ansehen"-Button, roter Rahmen seitlich abgeschnitten im Instagram-In-App-Browser bei hohem Zoom.
+- **UT-09 — ✅ geklärt:** „Anzeige unter der Tabelle" = mobiler Detail-Expand → mobil raus, direkt ins Teamprofil; Desktop klickbar lassen.
 - **Weiterhin offen — UT-13:** Auf welcher Seite/bei welcher Aktion erschien React #418? (Bitte beim nächsten Auftreten notieren.)
 
 ### Empfohlene Reihenfolge (spätere Umsetzung, nicht jetzt)
-1. **Reproduzierbarkeit klären** (Android real, iOS gegentesten): UT-09 (Tabs, P1), UT-15 (Auth, P1), UT-08 (Hover), UT-07 (Swipe), UT-05 (Bottom-Nav), UT-13 (#418).
-2. **Sicherheits-/Datenschutz-relevant:** UT-15 + UT-17 → im Live-RLS-Audit (Runde 2) mitbehandeln.
-3. **Schnelle, klare Fixes:** UT-01 (CTA nur Startseite), UT-11 (dartunion-Links), UT-05 (Safe-Area), UT-12 Teil B (OG/Manifest).
-4. **Nach Entscheidung:** UT-10 (Statistik-Tab), UT-16 (Zeichen-Validierung), UT-06.
-5. **Ideen/später:** UT-14 (Login-Modal), UT-20/Personalisierung (bereits im Backlog).
+1. **P1 / Sicherheit zuerst:** UT-15 (Aktionen ohne E-Mail-Bestätigung) — braucht Live-DB/Login; zusammen mit dem Live-RLS-Audit (Runde 2) + UT-17 (Datenminimierung).
+2. **Umsetzungsbereit (entschieden/klar):** UT-01 (Button nur Startseite), UT-11 (dartunion-Links raus), UT-07 (Body-Scroll-Lock), UT-09 (mobiler Expand raus → Direktnavigation), UT-10 (Coming-Soon Team-Tab + Liga), UT-06 (Button-Rahmen im Zoom/WebView).
+3. **Reproduzierbarkeit klären (Android real, iOS gegentesten):** UT-08 (Hover klebt), UT-05 (Bottom-Nav Safe-Area), UT-13 (#418), UT-02 (Tour bei Instagram/UTM).
+4. **Nach Detail-Klärung:** UT-16 (Zeichen-Validierung), UT-12 Teil B (OG/Manifest/metadataBase).
+5. **Ideen/später:** UT-14 (Login-Modal, zurückgestellt), Personalisierung (UT-20, bereits im Backlog).
 
 ## Erledigt — Kontaktformular, Spielbedingungen, Rechts-Tiefenprüfung, Domain/Go-live (30. Juni 2026, zuletzt)
 
