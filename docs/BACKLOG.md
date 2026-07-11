@@ -182,8 +182,9 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Zielverhalten: Ursache identifizieren und beseitigen; keine Hydration-Fehler in der Konsole.
 - Akzeptanzkriterien: Kein React #418 im Dev-Build (Klartext-Meldung reproduziert + gefixt); Konsole sauber.
 - Betroffen: zu ermitteln (Analyse zuerst; Dev-Build zeigt die Klartext-Meldung mit Komponente) · Abhängigkeiten: keine
-- **Hinweis:** #418 ist ein **Hydration-Mismatch** (technischer Konsolen-Fehler), **nicht** die dartunion-„Forbidden"-Sache (das ist UT-11). Auslöser-Seite noch unbekannt → beim nächsten Auftreten Seite/Aktion notieren.
-- Status: **offen (Analyse-Ticket)** · Reproduzierbarkeit: **noch zu prüfen** (welche Seite/Aktion löste es aus?)
+- **Hinweis:** #418 ist ein **Hydration-Mismatch** (technischer Konsolen-Fehler), **nicht** die dartunion-„Forbidden"-Sache (das ist UT-11 — Betreiber vermutete eine Verwechslung).
+- **Analyse 10.07.2026:** Konsolen-Check über 12 öffentliche Seiten-Ladungen (Start/Liga/Tabellen/Teamprofil/Spielerprofil/News × mobil+Desktop) → **kein #418, kein Hydration-Fehler** (nur die env-bedingte „Supabase nicht konfiguriert"-Warnung, die live nicht auftritt). Vermutlich durch den **Theme-Refactor** bereits behoben (die zwischenzeitliche server-seitige Cookie-Theme-Variante konnte solche Mismatches erzeugen). **Eingeloggte Zustände hier nicht testbar** (kein Supabase-Login).
+- Status: **vermutlich behoben / nicht reproduzierbar (öffentlich)** — als Beobachtungspunkt offen halten; falls wieder gesehen (v. a. eingeloggt), Seite/Aktion notieren · Reproduzierbarkeit: **nicht reproduziert (aktueller Stand)**
 
 **UT-14 · Login als Modal/Dialog statt eigener Seite**
 - Kategorie: UX-Idee · Priorität: **P3** · Plattform: übergreifend
