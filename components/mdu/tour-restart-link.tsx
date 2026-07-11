@@ -14,10 +14,11 @@ const KEYS = [
 export function DemoTourButton() {
   const pathname = usePathname();
 
-  // UT-01: Der schwebende CTA soll AUSSCHLIESSLICH auf der Startseite erscheinen
-  // (auf Unterseiten/Teamprofilen wirkte er störend). Die Tour selbst bleibt
-  // unberührt; von der Startseite aus wird die passende Tour neu gestartet.
-  if (pathname !== '/') return null;
+  // UT-01: Der schwebende CTA erscheint nur auf der Startseite UND auf dem
+  // „Mein Bereich"-Dashboard (dort lebt die rollenadaptive Tour) — aber NICHT
+  // auf Unterseiten/Teamprofilen und NICHT auf den „Mein Bereich"-Unterseiten
+  // (wenn man eine Kachel anklickt). Daher exakter Pfad-Match, kein startsWith.
+  if (pathname !== '/' && pathname !== '/mein-bereich') return null;
 
   const restart = () => {
     // localStorage UND Cookie-Spiegel löschen (der Fallback aus demo-tour.tsx
