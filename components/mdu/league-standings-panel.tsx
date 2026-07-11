@@ -173,8 +173,11 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
         )}
       </div>
 
-      {/* ── Right: Team card ──────────────────────────────── */}
-      <div style={{
+      {/* ── Right: Team card — nur Desktop/Tablet (>768px).
+          UT-09: In der mobilen Ansicht ist die Tabelle eine Liste aus direkten
+          Team-Links (Tap → Teamprofil); die Karte würde sich dort nie
+          aktualisieren und ist nur „Team-Profil ansehen" wert → mobil ausblenden. */}
+      <div className="mdu-desktop-only" style={{
         minWidth: 0,
         background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
         borderRadius: 14, padding: '22px 24px',
