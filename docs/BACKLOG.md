@@ -41,6 +41,191 @@ Mannschaft weiter den 25/26-Kader zeigen. **Beim Saisonwechsel 26/27** deshalb:
   **DB-Kader der aktiven Saison** kombinieren, statt den `SeasonTeamView`-Pfad nur für neue Teams
 - Erst sinnvoll, wenn 26/27 wirklich live geht (dann existieren auch Tabellen/Spielplan 26/27)
 
+## Android-Nutzertest (Juli 2026) — Feedback-Tickets
+
+Quelle: **ein einzelner realer Testnutzer**, Test überwiegend auf **Android**. Mobile
+Auffälligkeiten daher zunächst als Android-Beobachtung behandeln (nicht automatisch
+plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
+(Nachvollziehbarkeit). Reihenfolge-/Umsetzungsempfehlung am Ende des Abschnitts.
+**Noch nichts umgesetzt — reine Backlog-Erfassung.**
+
+### Bereits erledigt / analysiert (kein offener Aufwand, nur nach Deploy gegenprüfen)
+
+- **UT-03 · Light-/Dark-Mode dauerhaft speichern — ✅ ERLEDIGT.** Theme wird in Cookie
+  (+ localStorage-Fallback) gespeichert und per synchronem Inline-Script vor dem ersten
+  Paint gesetzt; Reload/Wiederbesuch behält die Wahl (im Browser beide Richtungen getestet).
+  Commits `d0dadd7`/`546e54e`. → **Nach Deploy auf Android gegenprüfen** (Reproduzierbarkeit).
+- **UT-04 · Toggle schneidet den Rahmen — ✅ ERLEDIGT.** Der weiße Griff schnitt den
+  farbigen inset-Ring der aktiven Hälfte an; Griff mit mehr Luft → Ring wieder vollständig
+  (hell + dunkel geprüft). Commit `139c8c2`. Deckt sich mit demselben Feedback von Tim Weber.
+  ⚠️ **Nicht verwechseln** mit dem separaten Header-Überlauf eingeloggt 1081–1280 px
+  (REV2-U01, siehe Review Runde 2) — das bleibt offen.
+- **UT-18 · Cookie-/Consent-Konzept — ✅ ANALYSIERT: kein Banner nötig.** Kein Analytics,
+  kein Marketing-/Social-Pixel, keine eingebetteten Medien; Fonts self-hosted (`next/font`);
+  nur technisch notwendige First-Party-Mechanismen (Session, Theme, Tour-Merker,
+  Kapitäns-Ansicht). Deckt sich mit Datenschutz §11. Kein Handlungsbedarf, solange nichts
+  Einwilligungspflichtiges dazukommt.
+- **UT-19 · Google Maps — ✅ ANALYSIERT: nur Links, keine Einbettung.** Adressen öffnen als
+  `<a href="…google.com/maps…">` in neuem Tab; **kein** iFrame/Embed → kein Datenschutzbedarf.
+- **UT-12 (Teil A) · Favicon/App-Icons — ✅ ERLEDIGT.** MDU-Dartboard-Emblem als
+  `favicon.ico`/`icon.png`/`apple-icon.png` (Commit `77ee1d2`). Offener Rest siehe UT-12 unten.
+- **UT-20 · Persönlicher Bereich (Zukunftsidee) — ➡️ ZUSAMMENGEFÜHRT** mit dem bestehenden
+  Ticket „Spieler-Startseite personalisieren (Tim Weber)" (Abschnitt „Bekannte To-dos").
+  Hinweis: „Mein Bereich" bietet **bereits** Kacheln Meine Mannschaft / Meine Liga / Meine
+  Statistik / Benachrichtigungen; der Wunsch betrifft die **prominentere Sichtbarkeit** (u. a.
+  direkt auf der Startseite). Kein separates neues Ticket.
+
+### Offene Tickets
+
+**UT-01 · „Demo Tour erneut ansehen"-Button nur auf der Startseite**
+- Kategorie: UI/Navigation · Priorität: **P2** · Plattform: **plattformübergreifend**
+- Beschreibung: Der schwebende CTA ist global in `app/layout.tsx` gemountet (`<DemoTourButton/>`) und erscheint auf **allen** Seiten, auch auf Teamprofilen etc.
+- Nutzerfeedback: „Erscheint auch auf Unterseiten … wirkt auf Teamprofilen störend … sollte ausschließlich auf der Startseite sichtbar sein."
+- Zielverhalten: CTA nur bei `pathname === '/'` rendern, auf Unterseiten ausblenden. (Die Tour selbst bleibt unberührt.)
+- Akzeptanzkriterien: Button sichtbar nur auf `/`; auf `/teams/[id]`, `/ligen/*`, `/tabellen` etc. nicht vorhanden; „erneut ansehen" funktioniert weiter.
+- Betroffen: `components/mdu/tour-restart-link.tsx`, `app/layout.tsx`
+- Abhängigkeiten: keine · Status: **offen** · Reproduzierbarkeit: **bestätigt (Code)**
+
+**UT-02 · Demo-Tour-Status auch bei Instagram-/UTM-Einstieg zuverlässig speichern**
+- Kategorie: Bug/Analyse · Priorität: **P2** · Plattform: übergreifend (verstärkt Android)
+- Beschreibung: Die Nicht-Wiederholung wurde bereits über localStorage + Cookie-Fallback gelöst (Commit `a0373de`). Feedback deutet an, dass der Einstieg über Instagram/UTM-Links die „schon gesehen"-Erkennung teils umgeht.
+- Nutzerfeedback: „Beim Einstieg über Instagram bzw. UTM-Links scheint dies teilweise nicht zu funktionieren."
+- Zielverhalten: „Schon gesehen" gilt unabhängig von Query-Parametern (`?utm_*`, `?tour=1`) und URL-Varianten; nur ein bewusster Neustart (Button) zeigt die Tour erneut.
+- Akzeptanzkriterien: Aufruf mit `?utm_source=instagram` o. Ä. startet die Tour **nicht** erneut, wenn schon gesehen; Verhalten auf `www` vs. Apex identisch.
+- Prüfen: localStorage/Cookie-Persistenz, `?tour=1`-Erzwingung, Domains/Subdomains (`www.` vs. `mdudarts.de`), In-App-Browser von Instagram (eigener WebView, evtl. eigener Storage).
+- Betroffen: `components/mdu/demo-tour.tsx` · Abhängigkeiten: UT-02 baut auf `a0373de` auf
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (Instagram-In-App-Browser)
+
+**UT-05 · Bottom-Navigation: Icons zu weit unten / roter Aktiv-Indikator angeschnitten**
+- Kategorie: UI/Responsive · Priorität: **P2** · Plattform: **Android-spezifisch (vermutlich Safe-Area)**
+- Beschreibung: `components/mdu/bottom-nav.tsx` nutzt festes `padding: '10px 6px 26px'` — **kein** `env(safe-area-inset-bottom)`. Auf Android-Gestennavigation kann das zu tief sitzen / den Indikator anschneiden.
+- Nutzerfeedback: „Icons sitzen etwas zu weit unten. Der rote aktive Indikator wirkt abgeschnitten."
+- Zielverhalten: Bottom-Nav respektiert die Geräte-Safe-Area; Icons + Aktiv-Indikator vollständig sichtbar, sauber vertikal zentriert.
+- Akzeptanzkriterien: Auf Android (Gesten- + Button-Nav) und iOS kein Anschnitt; `env(safe-area-inset-bottom)` berücksichtigt.
+- Betroffen: `components/mdu/bottom-nav.tsx` · Abhängigkeiten: keine
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (Android real, iOS gegentesten)
+
+**UT-06 · Rahmen im „Schnellzugriff" wirkt abgeschnitten**
+- Kategorie: UI/Layout · Priorität: **P2** · Plattform: **allgemein mobil (verify)**
+- Beschreibung: Der Rahmen/Container des Startseiten-Schnellzugriffs (`.mdu-quick-bar`, Spielplan/Tabellen) bzw. dessen Darstellung während der Tour wirkt am Rand beschnitten. (Verwandt, aber getrennt von der Tour-Spotlight-Korrektur `139c8c2`.)
+- Nutzerfeedback: „Der Rahmen des Schnellzugriffs wirkt abgeschnitten."
+- Zielverhalten: Container mit korrektem Padding/Margin; kein angeschnittener Rand/Schatten am Viewport-Rand.
+- Akzeptanzkriterien: Schnellzugriff-Karte auf 320–430 px vollständig mit umlaufendem Rand/Schatten sichtbar.
+- Betroffen: `app/page.tsx` (`.mdu-quickbar-outer`/`.mdu-quick-bar`), `app/globals.css` · Abhängigkeiten: keine
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (genaues Element beim Nutzer rückfragen)
+
+**UT-07 · Player-Card-Swipe: Seitenhintergrund scrollt mit**
+- Kategorie: Bug/Touch · Priorität: **P2** · Plattform: **Android (verify)**
+- Beschreibung: Beim horizontalen Swipe einer Player-Card scrollt/verschiebt sich gleichzeitig der Seitenhintergrund.
+- Nutzerfeedback: „Beim Swipen bewegt sich gleichzeitig der Seitenhintergrund."
+- Zielverhalten: Swipe wirkt nur auf die Card; Seite scrollt dabei nicht. (`touch-action`/`overscroll-behavior` prüfen.)
+- Akzeptanzkriterien: Horizontaler Swipe bewegt nur die Card; vertikaler Scroll weiterhin möglich; kein „Mitziehen" des Backgrounds.
+- Betroffen: die Player-Card-Komponente (Team-/Spielerkontext) · Abhängigkeiten: ggf. verwandt mit UT-08
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen (Android besonders)** — welche Seite genau beim Nutzer rückfragen
+
+**UT-08 · Hover-/Selected-State bleibt nach dem Scrollen „kleben"**
+- Kategorie: Bug/Touch · Priorität: **P2** · Plattform: **Android Chrome (verify)**
+- Beschreibung: Klassisches Touch-Verhalten: `:hover`/`:active` bleibt nach Antippen/Scrollen an einem Teamnamen hängen.
+- Nutzerfeedback: „Beim Scrollen bleibt ein Teamname teilweise markiert."
+- Zielverhalten: Kein persistenter Hover/Active auf Touch-Geräten (z. B. `@media (hover: hover)`-Gating der Hover-Styles).
+- Akzeptanzkriterien: Nach Tap/Scroll bleibt kein Element visuell markiert; Desktop-Hover unverändert.
+- Prüfen: Hover/Focus/Active-Styles, Pointer-Events, Android Chrome · Betroffen: Team-/Tabellen-Listen (`mdu-link-name` u. a.), `app/globals.css`
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** · Abhängigkeiten: evtl. Ursache von UT-09
+
+**UT-09 · Tabs im Teamprofil zeitweise nicht anklickbar**
+- Kategorie: Bug/Analyse · Priorität: **P1 (falls bestätigt — blockiert Kernnavigation)** · Plattform: **allgemein mobil / Android (verify)**
+- Beschreibung: Kader/Spielplan-Tabs ließen sich zeitweise nicht antippen. **Noch nicht als bestätigter Bug behandeln.**
+- Nutzerfeedback: „Kader, Spielplan usw. ließen sich zeitweise nicht anklicken."
+- Zielverhalten: Tabs jederzeit zuverlässig antippbar.
+- Akzeptanzkriterien: Auf Android/iOS lassen sich alle Tabs wiederholt und zuverlässig wechseln.
+- Betroffen: `components/mdu/team-detail-client.tsx` (Tab-Leiste) · Abhängigkeiten: mögliche gemeinsame Ursache mit UT-08 (klebende Pointer-Events blockieren Klicks)
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen (Priorität!)**
+
+**UT-10 · Statistik-Tab im Teamprofil: Einzelrangliste fachlich unpassend**
+- Kategorie: Produkt/Content · Priorität: **P2** · Plattform: übergreifend
+- Beschreibung: Der Statistik-Tab zeigt die Einzelrangliste, was für eine **Mannschafts**-Statistik unpassend wirkt. **Nicht sofort entscheiden.**
+- Nutzerfeedback: „Der Statistik-Tab enthält keine wirkliche Teamstatistik. Die Einzelrangliste wirkt dort fachlich unpassend."
+- Optionen (Entscheidung offen): ausblenden · „Coming Soon" · echte Team-Statistiken ergänzen · Einzelrangliste sinnvoller platzieren.
+- Akzeptanzkriterien: nach Entscheidung — entweder echte Teamstatistik, klarer Coming-Soon-Zustand, oder Tab entfernt.
+- Betroffen: `components/mdu/team-detail-client.tsx` (TABS) · Abhängigkeiten: „Team-Statistiken behalten Unentschieden" (Abschnitt Spielerstatistik)
+- Status: **offen (Entscheidung nötig)** · Reproduzierbarkeit: bestätigt (Content)
+
+**UT-11 · Alte dartunion.de-Links entfernen/prüfen (teils „Forbidden Access")**
+- Kategorie: Content/Links · Priorität: **P2** · Plattform: übergreifend
+- Beschreibung: **13 user-facing `<a href="https://dartunion.de">`-Links** (Quellenangaben) über `app/ergebnisse`, `app/spielplan`, `app/spielstaetten`, `app/mehr`, `components/mdu/league-detail-client.tsx`, `team-detail-client.tsx`, `news-article-card.tsx`, `league-standings-panel.tsx`. Passt zur Phase-2-Entscheidung „nichts läuft mehr über dartunion.de".
+- Nutzerfeedback: „Es existieren noch Links zur alten Seite. Teilweise führen diese auf ‚Forbidden Access'."
+- Zielverhalten: Alle user-facing dartunion.de-Links prüfen; tote/verbotene entfernen oder als reinen Text (Quellenhinweis ohne Link) belassen; keine kaputten externen Links.
+- Akzeptanzkriterien: Kein anklickbarer Link führt auf „Forbidden Access"; Quellenangaben bleiben inhaltlich korrekt.
+- Betroffen: die 8 oben genannten Dateien (13 Fundstellen) · Abhängigkeiten: keine
+- Status: **offen** · Reproduzierbarkeit: **teils bestätigt (Code), 403-Verhalten pro Ziel prüfen**
+
+**UT-12 · Metadaten vervollständigen: Open Graph, Web-Manifest, `metadataBase` (Favicon ✅)**
+- Kategorie: SEO/Sharing/PWA · Priorität: **P2 (OG) / P3 (Manifest)** · Plattform: übergreifend
+- Beschreibung: Favicon/App-Icons sind erledigt (`77ee1d2`). **Fehlen:** Open-Graph-/Twitter-Meta (Link-Vorschau beim Teilen in WhatsApp/Instagram/FB), `app/manifest.ts`/`site.webmanifest` (PWA), `metadataBase` in `app/layout.tsx`.
+- Nutzerfeedback: „Favicon, App Icons, Open Graph, Manifest, Browser Tab prüfen."
+- Zielverhalten: Aussagekräftige OG-Karte (Titel, Beschreibung, MDU-Bild) beim Teilen; Web-Manifest mit Name/Icons/Theme-Color; `metadataBase` gesetzt.
+- Akzeptanzkriterien: Teilen eines MDU-Links zeigt eine MDU-Vorschau (nicht leer/Vercel); Manifest valide; Icons überall MDU.
+- Betroffen: `app/layout.tsx` (metadata), neue `app/manifest.ts` + `app/opengraph-image.*` (bewusst noch nicht angelegt) · Abhängigkeiten: `NEXT_PUBLIC_SITE_URL` (Go-live)
+- Status: **offen (Teil B)** · Reproduzierbarkeit: bestätigt (Code)
+
+**UT-13 · React Minified Error #418 (Hydration) analysieren**
+- Kategorie: Bug/Analyse · Priorität: **P2** · Plattform: übergreifend (beobachtet Android)
+- Beschreibung: `Uncaught Error: Minified React error #418` = Hydration-Mismatch (Server-HTML ≠ Client). Kandidaten: `suppressHydrationWarning`/Theme am `<html>`, zeit-/zufallsabhängige Renderpfade, ggf. Datums-/Locale-Formatierung.
+- Nutzerfeedback: „In der Browserkonsole: Uncaught Error: Minified React error #418."
+- Zielverhalten: Ursache identifizieren und beseitigen; keine Hydration-Fehler in der Konsole.
+- Akzeptanzkriterien: Kein React #418 im Dev-Build (Klartext-Meldung reproduziert + gefixt); Konsole sauber.
+- Betroffen: zu ermitteln (Analyse zuerst; Dev-Build zeigt die Klartext-Meldung mit Komponente) · Abhängigkeiten: keine
+- Status: **offen (Analyse-Ticket)** · Reproduzierbarkeit: **noch zu prüfen** (welche Seite/Aktion löste es aus?)
+
+**UT-14 · Login als Modal/Dialog statt eigener Seite**
+- Kategorie: UX-Idee · Priorität: **P3** · Plattform: übergreifend
+- Beschreibung: Vorschlag, den Login als Overlay-Dialog zu öffnen. **Kein Bug.**
+- Nutzerfeedback: „Login könnte als Modal/Dialog geöffnet werden."
+- Zielverhalten: Login-Dialog über der aktuellen Seite (mit Fallback-Seite `/login` für Direktaufruf/`?next=`).
+- Akzeptanzkriterien: Dialog öffnet/schließt sauber; `?next=`-Redirect bleibt; Direktaufruf `/login` funktioniert weiterhin.
+- Betroffen: `app/login/page.tsx`, Header-Login-Link · Abhängigkeiten: `?next=`-Logik (REV-020)
+- Status: **offen (Idee)** · Reproduzierbarkeit: n. a.
+
+**UT-15 · Auth-Flow: Aktionen ohne bestätigte E-Mail möglich?**
+- Kategorie: Security/Auth · Priorität: **P1 (falls bestätigt)** · Plattform: übergreifend
+- Beschreibung: Eindruck, dass bestimmte Aktionen auch **ohne** E-Mail-Bestätigung möglich waren. Ganzen Auth-Flow prüfen (Supabase `email_confirmed_at`, RLS, welche Aktionen ein unbestätigtes Konto ausführen kann).
+- Nutzerfeedback: „Eindruck, dass bestimmte Aktionen auch ohne bestätigte E-Mail möglich waren."
+- Zielverhalten: Klare Definition, was ein unbestätigtes Konto darf (idealerweise: nichts Schreibendes); serverseitig/RLS erzwungen.
+- Akzeptanzkriterien: Ohne bestätigte E-Mail keine privilegierten/schreibenden Aktionen; freundlicher Hinweis „bitte E-Mail bestätigen".
+- Betroffen: `lib/auth/*`, Supabase-Auth-Konfiguration, RLS-Policies · Abhängigkeiten: **überlappt mit dem Live-RLS-Audit (Review Runde 2, zwingend vor Go-live)**
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen (Priorität!)** — braucht Live-DB/Login
+
+**UT-16 · Eingabe-Validierung: Emojis / Sonderzeichen**
+- Kategorie: Validierung/Robustheit · Priorität: **P2** · Plattform: übergreifend
+- Beschreibung: Festlegen, welche Zeichen in Namen/Freitextfeldern (Registrierung, Profil, Spitzname, Teamname, „Über mich", Kontakt) erlaubt sind; Validierung vereinheitlichen.
+- Nutzerfeedback: „Validierung verschiedener Eingaben prüfen. Festlegen, welche Zeichen erlaubt sein sollen."
+- Zielverhalten: Definierter erlaubter Zeichensatz je Feld; konsistente, freundliche Fehlermeldungen; keine kaputte Anzeige/DB durch Sonderzeichen.
+- Akzeptanzkriterien: Dokumentierte Regeln; problematische Eingaben werden sauber abgefangen; Emojis bewusst erlaubt **oder** klar abgelehnt.
+- Betroffen: Formulare in Registrierung/Profil/Team/Kontakt · Abhängigkeiten: keine
+- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (welche Felder konkret auffällig)
+
+**UT-17 · Netzwerk-Requests / Datenminimierung prüfen**
+- Kategorie: Datenschutz/Security/Analyse · Priorität: **P2** · Plattform: übergreifend
+- Beschreibung: Analysieren, welche Daten die Seite überträgt und ob nur Notwendiges gesendet wird (kein Over-Fetching sensibler Felder an den Client).
+- Nutzerfeedback: „Welche Daten werden übertragen? Werden nur notwendige Informationen gesendet? Datenschutz/Security überprüfen."
+- Zielverhalten: Öffentliche/rollenbezogene Endpunkte liefern nur nötige Felder; keine E-Mails/Telefonnummern o. Ä. an Unberechtigte.
+- Akzeptanzkriterien: Ergebnis dokumentiert; ggf. Select-Felder/Policies verschlankt.
+- Betroffen: Supabase-Queries/RLS, API-Routen · Abhängigkeiten: **teilweise = Live-RLS-Audit (Review Runde 2)** → dort mitbehandeln
+- Status: **offen (Analyse)** · Reproduzierbarkeit: bestätigt (Analyse-Aufgabe)
+
+### Offene Rückfragen an den Betreiber
+- **UT-06/UT-07:** Auf welcher Seite genau trat der „abgeschnittene Schnellzugriff-Rahmen" bzw. der „Player-Card-Swipe" auf (Startseite? Teamprofil? Spielerprofil?) — für gezielte Reproduktion.
+- **UT-10:** Welche der vier Optionen für den Statistik-Tab (ausblenden / Coming Soon / echte Teamstatistik / Einzelrangliste verschieben)?
+- **UT-13:** Auf welcher Seite/bei welcher Aktion erschien React #418?
+- **UT-14:** Login-Modal gewünscht oder bewusst als eigene Seite belassen?
+
+### Empfohlene Reihenfolge (spätere Umsetzung, nicht jetzt)
+1. **Reproduzierbarkeit klären** (Android real, iOS gegentesten): UT-09 (Tabs, P1), UT-15 (Auth, P1), UT-08 (Hover), UT-07 (Swipe), UT-05 (Bottom-Nav), UT-13 (#418).
+2. **Sicherheits-/Datenschutz-relevant:** UT-15 + UT-17 → im Live-RLS-Audit (Runde 2) mitbehandeln.
+3. **Schnelle, klare Fixes:** UT-01 (CTA nur Startseite), UT-11 (dartunion-Links), UT-05 (Safe-Area), UT-12 Teil B (OG/Manifest).
+4. **Nach Entscheidung:** UT-10 (Statistik-Tab), UT-16 (Zeichen-Validierung), UT-06.
+5. **Ideen/später:** UT-14 (Login-Modal), UT-20/Personalisierung (bereits im Backlog).
+
 ## Erledigt — Kontaktformular, Spielbedingungen, Rechts-Tiefenprüfung, Domain/Go-live (30. Juni 2026, zuletzt)
 
 Live auf `main` / Vercel. `www.mdudarts.de` ist technisch live, bleibt aber bis zum Go-live **noindex** (nicht beworben).
@@ -186,7 +371,7 @@ per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch
 - [ ] Teamname in `team_linked`/`role_changed`-Notifications (serverseitig im Trigger nicht auflösbar — Teamnamen liegen in lib/data; ggf. clientseitig nachziehen)
 - [ ] Optionale User-Eingangsmail bei Registrierung bewusst ausgelassen (Supabase verschickt bereits Verifizierungs-Mail)
 - [ ] Idee (offen): Dartboard-Hintergrund (wie auf den öffentlichen Seiten via `PageBanner`/`.mdu-pb-board-page`) auch im „Mein Bereich" einbauen — evtl. mit einem **anderen Motiv** als `mdu-hero-dartboard-2.webp`. Nur angedacht, noch nicht beauftragt.
-- [ ] **Spieler-Startseite personalisieren (User-Wunsch Tim Weber):** Für eingeloggte Spieler oben auf der Startseite eine personalisierte Zeile „Meine Mannschaft" und/oder „Meine Liga" mit Direktlinks anzeigen — sichtbarer Mehrwert des eigenen Bereichs direkt beim Einstieg. Nur für verknüpfte Spieler; für noch nicht zugeordnete ggf. dezenter Hinweis. **Design (Ort/Prominenz) vor Umsetzung mit Betreiber klären.**
+- [ ] **Spieler-Startseite personalisieren (User-Wunsch Tim Weber; + Android-Nutzertest UT-20):** Für eingeloggte Spieler oben auf der Startseite eine personalisierte Zeile „Meine Mannschaft" und/oder „Meine Liga" mit Direktlinks anzeigen — sichtbarer Mehrwert des eigenen Bereichs direkt beim Einstieg. Der Android-Nutzertest (UT-20) wünscht darüber hinaus im Blick zu haben: meine Spiele, persönliche Statistiken, offene Aufgaben, Benachrichtigungen (vieles davon existiert bereits als Kachel in „Mein Bereich" — hier geht es um Sichtbarkeit/Zusammenführung). Nur für verknüpfte Spieler; für noch nicht zugeordnete ggf. dezenter Hinweis. **Design (Ort/Prominenz) vor Umsetzung mit Betreiber klären.**
 - [ ] Idee (nur evtl.): **Demo-Tour „fortsetzen"** — bei Unterbrechung den Schritt merken und unten einen „Demo fortsetzen"-Button zeigen, der an derselben Stelle weitermacht (statt neu zu starten). User-Wunsch (Tim Weber); vom Betreiber als „ganz vielleicht" eingestuft.
 
 ## Spielerstatistik an Dartlogik anpassen ✅ (Zwischensprint, Juni 2026)
