@@ -148,7 +148,10 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Akzeptanzkriterien: (A) mobiler Zeilen-Tap öffnet zuverlässig das Teamprofil, kein hängendes Expand; Desktop-Zeile unverändert. (B) alle Teamprofil-Tabs auf Desktop wiederholt und zuverlässig wechselbar (mobil ebenso).
 - Betroffen: `components/mdu/standings-table.tsx` (A: `expandedPos`/`toggleExpand`, `.mdu-mobile-only`); `components/mdu/team-detail-client.tsx` (B: Tab-Leiste) · Abhängigkeiten: ggf. verwandt mit UT-08 (klebende Touch-States könnten Klicks blockieren)
 - ⚠️ **Beim Umsetzen prüfen:** (A) Der mobile Expand zeigt Zusatzspalten (Sp./Legs/Diff./Form) — vor dem Entfernen bestätigen, dass diese mobil nicht vermisst werden. (B) Ursache der zeitweise nicht klickbaren Tabs identifizieren (Pointer-Events/Overlay?).
-- Status: **offen** — (A) entschieden (Expand raus → Direktnavigation), (B) Desktop-Klickbarkeit sicherstellen · Reproduzierbarkeit: (A) bestätigt (Code) · (B) Tester-Beobachtung, Ursache noch zu prüfen
+- **Umsetzung (`✅ erledigt`):**
+  - **(A)** `standings-table.tsx`: mobiler Expand (`expandedPos`/`toggleExpand`/Detail-Grid) entfernt; die ganze Tabellen-Zeile ist mobil jetzt ein `TeamLink` → ein Tap springt direkt ins Teamprofil (rechts ein Navigations-Chevron als Affordanz). Desktop-Zeile unverändert. Die Zusatzwerte Sp./Legs/Diff./Form gibt es weiterhin im Teamprofil + in der Spielerkarte → mobil nicht vermisst.
+  - **(B)** Ursache gefunden: der Site-Header (`desktop-header.tsx`) ist `sticky; top:0; z-index:50; height:70px`; die Tab-Leiste war `sticky; top:0; z-index:10` → beim Scrollen rutschte sie **unter** den (halbtransparenten) Header und war dort nicht mehr klickbar. Fix: Tab-Leiste in `team-detail-client.tsx` **und** `league-detail-client.tsx` auf `top:70` gesetzt → parkt unter dem Header, immer klickbar (Desktop headless verifiziert).
+- Status: **✅ erledigt** (tsc + build grün, Browser verifiziert) · Reproduzierbarkeit: (A) bestätigt (Code) · (B) Ursache (Header-Overlap) identifiziert & behoben
 
 **UT-10 · Statistik-Tab im Teamprofil: Einzelrangliste fachlich unpassend**
 - Kategorie: Produkt/Content · Priorität: **P2** · Plattform: übergreifend
@@ -160,7 +163,10 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Zielverhalten: konsistente Statistik-Darstellung; nirgends eine fachlich unpassende Einzelrangliste unter „Team-Statistik".
 - Akzeptanzkriterien: Team-Tab „Statistik" zeigt einen sauberen Coming-Soon-Zustand; Liga-Statistik zeigt die Einzelrangliste + Coming-Soon-Platzhalter für die übrigen.
 - Betroffen: `components/mdu/team-detail-client.tsx` (TABS), Liga-Statistik (`components/mdu/league-detail-client.tsx` / `getStatisticsForLeague`) · Abhängigkeiten: „Team-Statistiken behalten Unentschieden" (Abschnitt Spielerstatistik)
-- Status: **offen (entschieden, bereit zur Umsetzung)** · Reproduzierbarkeit: bestätigt (Content)
+- **Umsetzung (`✅ erledigt`):**
+  - **Teamprofil:** `StatistikTab` in `team-detail-client.tsx` durch einen sauberen Coming-Soon-Zustand ersetzt (Icon + „Coming Soon" + Hinweis auf Kader/Spielerkarte). Die frühere Einzelrangliste-Tabelle + `openFromEntry` samt jetzt ungenutzter Imports entfernt.
+  - **Liga-Detailseite:** Einzelrangliste bleibt als **eine** Statistik; darunter ein Coming-Soon-Platzhalter „Weitere Statistiken" (gestrichelte Card + Badge) für die übrigen Auswertungen.
+- Status: **✅ erledigt** (tsc + build grün, Browser verifiziert) · Reproduzierbarkeit: bestätigt (Content)
 
 **UT-11 · Alte dartunion.de-Links entfernen/prüfen (teils „Forbidden Access")**
 - Kategorie: Content/Links · Priorität: **P2** · Plattform: übergreifend
@@ -240,7 +246,7 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 
 ### Empfohlene Reihenfolge (spätere Umsetzung, nicht jetzt)
 1. **P1 / Sicherheit zuerst:** UT-15 (Aktionen ohne E-Mail-Bestätigung) — braucht Live-DB/Login; zusammen mit dem Live-RLS-Audit (Runde 2) + UT-17 (Datenminimierung).
-2. **Umsetzungsbereit (entschieden/klar):** UT-01 (Button nur Startseite), UT-11 (dartunion-Links raus), UT-07 (Body-Scroll-Lock), UT-09 (mobiler Expand raus → Direktnavigation), UT-10 (Coming-Soon Team-Tab + Liga), UT-06 (Button-Rahmen im Zoom/WebView).
+2. **✅ Umgesetzt:** UT-01 (Button nur Startseite), UT-11 (dartunion-Links raus), UT-07 (Body-Scroll-Lock), UT-06 (Button-Rahmen im Zoom/WebView), UT-09 (mobiler Expand raus → Direktnavigation + Tab-Overlap-Fix), UT-10 (Coming-Soon Team-Tab + Liga).
 3. **Reproduzierbarkeit klären (Android real, iOS gegentesten):** UT-08 (Hover klebt), UT-05 (Bottom-Nav Safe-Area), UT-13 (#418), UT-02 (Tour bei Instagram/UTM).
 4. **Nach Detail-Klärung:** UT-16 (Zeichen-Validierung), UT-12 Teil B (OG/Manifest/metadataBase).
 5. **Ideen/später:** UT-14 (Login-Modal, zurückgestellt), Personalisierung (UT-20, bereits im Backlog).

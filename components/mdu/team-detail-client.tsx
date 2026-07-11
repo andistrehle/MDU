@@ -7,8 +7,7 @@ import { TeamLink } from './team-link';
 import { PlayerCard, type PlayerCardData } from './player-card';
 import {
   getExtendedTeam, formatMatchDate, formatScheduledDate, findLeague,
-  getPlayerPhotoByName, getInitialsFromName, formatWinRate,
-  getPlayerSeasonStatsFromEntry, getPlayerDisplayName,
+  formatWinRate,
 } from '@/lib/data';
 import type { StandingRow, PlayerStatEntry, SeasonPlayerStats } from '@/lib/data';
 import type { Match } from '@/lib/data/matches';
@@ -762,224 +761,42 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
   );
 }
 
-// ── Statistik Tab ──────────────────────────────────────────────
+// ── Statistik Tab (Coming Soon) ────────────────────────────────
+// UT-10: Der Statistik-Tab zeigte bisher die Einzelrangliste — als
+// „Mannschafts"-Statistik fachlich unpassend. Bis es echte Team-Statistiken
+// gibt, steht hier ein sauberer Coming-Soon-Zustand (Betreiber-Entscheidung).
 
-function StatistikTab({
-  stats,
-  teamId,
-  teamColor,
-  leagueName,
-  onSelectEntry,
-}: {
-  stats: PlayerStatEntry[];
-  teamId: string;
-  teamColor: string;
-  leagueName: string;
-  onSelectEntry: (entry: PlayerStatEntry) => void;
-}) {
-  if (stats.length === 0) {
-    return (
-      <div style={{
-        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-        borderRadius: 14, padding: '36px 24px',
-        fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#6B7280',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <Icon name="bar" size={16} stroke={2} style={{ color: '#6B7280', flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, color: 'var(--th-text-muted)' }}>Statistiken noch nicht verfügbar</span>
-        </div>
-        <div>
-          Einzelrangliste folgt auf{' '}
-          <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
-        </div>
-      </div>
-    );
-  }
-
+function StatistikTab({ teamColor }: { teamColor: string }) {
   return (
-    <>
-      {/* ── Desktop: rich 5-column scrollable table ── */}
-      <div className="mdu-desktop-only mdu-table-scroll" style={{ maxWidth: 800 }}>
-        <div className="mdu-standings-inner" style={{
-          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-          borderRadius: 14, padding: '22px 24px',
-          minWidth: 560,
-        }}>
-          <div style={{
-            fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20,
-            letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: '0 0 6px',
-            textTransform: 'uppercase',
-          }}>
-            Einzelrangliste
-          </div>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: '#6B7280', marginBottom: 18, fontStyle: 'italic' }}>
-            {leagueName} · Saison 2026 · Quelle: dartunion.de
-          </div>
-
-          {/* Header */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
-            padding: '10px 8px', borderBottom: '1px solid var(--th-line-8)',
-            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-            letterSpacing: '0.1em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
-            gap: 6, alignItems: 'center',
-          }}>
-            <span>#</span>
-            <span>Spieler</span>
-            <span>Team</span>
-            <span style={{ textAlign: 'center' }}>S · N</span>
-            <span style={{ textAlign: 'right' }}>Pkt.</span>
-          </div>
-
-          {stats.map((p, i) => {
-            const isOwnTeam = p.teamId === teamId;
-            return (
-              <button key={i} type="button" onClick={() => onSelectEntry(p)} className="mdu-kader-row" style={{
-                display: 'grid', gridTemplateColumns: '36px 1fr 1fr 60px 80px',
-                width: '100%', padding: '11px 8px', border: 'none',
-                borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
-                fontFamily: 'var(--font-manrope)', fontSize: 13, alignItems: 'center',
-                gap: 6,
-                background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
-                borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
-              }}>
-                <span style={{
-                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16,
-                  color: p.rank <= 3 ? 'var(--th-gold)' : 'var(--th-text-muted)',
-                }}>
-                  {p.rank}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <Avatar
-                    initials={getInitialsFromName(p.name)}
-                    color={teamColor}
-                    photoUrl={getPlayerPhotoByName(p.name)}
-                    size={36}
-                  />
-                  <span style={{
-                    fontWeight: isOwnTeam ? 800 : 700,
-                    color: 'var(--th-text-strong)',
-                    fontSize: 13,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {p.name}
-                  </span>
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <span style={{
-                    color: isOwnTeam ? teamColor : 'var(--th-text-muted)', fontSize: 12,
-                    fontWeight: isOwnTeam ? 700 : 400,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                  }}>
-                    {p.teamName}
-                  </span>
-                </div>
-                <span style={{
-                  fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)',
-                  textAlign: 'center',
-                }}>
-                  {p.wins}·{p.losses}
-                </span>
-                <span style={{
-                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-                  color: 'var(--th-text-strong)', textAlign: 'right',
-                }}>
-                  {p.pts}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+    <div style={{
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
+      borderRadius: 14, padding: '48px 24px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      textAlign: 'center', gap: 14,
+    }}>
+      <div style={{
+        width: 52, height: 52, borderRadius: 14, display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        background: `${teamColor}18`, border: `1px solid ${teamColor}40`,
+      }}>
+        <Icon name="bar" size={24} stroke={2} style={{ color: teamColor }} />
       </div>
-
-      {/* ── Mobile: compact 4-column no-scroll table ── */}
-      <div className="mdu-mobile-only">
-        <div style={{
-          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-          borderRadius: 14, overflow: 'hidden',
-        }}>
-          {/* Heading */}
-          <div style={{ padding: '14px 14px 0' }}>
-            <div style={{
-              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
-              letterSpacing: '0.06em', color: 'var(--th-text-strong)', textTransform: 'uppercase', marginBottom: 4,
-            }}>
-              Einzelrangliste
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-manrope)', fontSize: 10, color: '#6B7280',
-              fontStyle: 'italic', marginBottom: 10,
-            }}>
-              {leagueName} · Quelle: dartunion.de
-            </div>
-          </div>
-
-          {/* 2-row card rows: name+badge / stats line */}
-          <div style={{ borderTop: '1px solid var(--th-line-6)' }}>
-            {stats.map((p, i) => {
-              const td = getExtendedTeam(p.teamId);
-              const isOwnTeam = p.teamId === teamId;
-              const games = p.wins + p.losses;
-              return (
-                <button key={i} type="button" onClick={() => onSelectEntry(p)} className="mdu-kader-row" style={{
-                  display: 'block', width: '100%', textAlign: 'left', border: 'none',
-                  padding: '9px 14px',
-                  borderBottom: i < stats.length - 1 ? '1px solid var(--th-line-4)' : 'none',
-                  background: isOwnTeam ? `${teamColor}12` : i === 0 ? 'rgba(232,184,74,0.05)' : undefined,
-                  borderLeft: isOwnTeam ? `3px solid ${teamColor}` : '3px solid transparent',
-                }}>
-                  {/* Row 1: rank · name · badge */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{
-                      fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14,
-                      color: p.rank <= 3 ? 'var(--th-gold)' : 'var(--th-text-muted)', flexShrink: 0, width: 22,
-                    }}>
-                      {p.rank}
-                    </span>
-                    <Avatar
-                      initials={getInitialsFromName(p.name)}
-                      color={teamColor}
-                      photoUrl={getPlayerPhotoByName(p.name)}
-                      size={28}
-                    />
-                    <span style={{
-                      fontFamily: 'var(--font-manrope)', fontWeight: isOwnTeam ? 800 : 700,
-                      color: 'var(--th-text-strong)', fontSize: 12,
-                      flex: 1, minWidth: 0,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {p.name}
-                    </span>
-                    <div title={p.teamName} style={{ flexShrink: 0 }}>
-                      <TeamBadge initials={td.short.slice(0, 3)} color={td.color} logoUrl={td.logoUrl} size={22} />
-                    </div>
-                  </div>
-                  {/* Row 2: stats meta line — indent: rank(22) + gap(8) + avatar(28) + gap(8) = 66 */}
-                  <div style={{
-                    paddingLeft: 66,
-                    fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--th-text-faint)',
-                    letterSpacing: '0.02em',
-                  }}>
-                    <span style={{
-                      color: isOwnTeam ? teamColor : 'var(--th-text-muted)',
-                      fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13,
-                    }}>
-                      {p.pts} Pkt.
-                    </span>
-                    <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
-                    {games} Sp.
-                    <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
-                    {p.wins} G
-                    <span style={{ margin: '0 5px', color: '#3A3E4A' }}>·</span>
-                    {p.losses} V
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <div style={{
+        fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24,
+        letterSpacing: '0.05em', color: 'var(--th-text-strong)', textTransform: 'uppercase',
+      }}>
+        Coming Soon
       </div>
-    </>
+      <div style={{
+        fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)',
+        maxWidth: 400, lineHeight: 1.55,
+      }}>
+        Mannschafts-Statistiken sind in Arbeit. Die Einzelwerte der Spieler findest du
+        bis dahin im Tab{' '}
+        <strong style={{ color: 'var(--th-text-body)' }}>Kader</strong>{' '}
+        und in der jeweiligen Spielerkarte.
+      </div>
+    </div>
   );
 }
 
@@ -988,7 +805,6 @@ function StatistikTab({
 export function TeamDetailClient({
   teamId,
   teamColor,
-  seasonId,
   seasonName,
   leagueName,
   leagueId,
@@ -999,7 +815,6 @@ export function TeamDetailClient({
   roster,
   scheduledMatches,
   completedMatches,
-  stats,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
   const [card, setCard] = useState<PlayerCardData | null>(null);
@@ -1018,29 +833,15 @@ export function TeamDetailClient({
     });
   };
 
-  // Open the card from an Einzelrangliste entry (resolve player by name).
-  const openFromEntry = (entry: PlayerStatEntry) => {
-    const { stats: builtStats, player } = getPlayerSeasonStatsFromEntry(entry, seasonId);
-    const td = getExtendedTeam(entry.teamId);
-    setCard({
-      playerId: player?.id ?? null,
-      displayName: player ? getPlayerDisplayName(player) : entry.name,
-      nickname: player?.nickname ?? null,
-      photoUrl: player?.photoUrl ?? getPlayerPhotoByName(entry.name),
-      teamId: entry.teamId,
-      teamName: entry.teamName,
-      teamColor: entry.teamId === teamId ? teamColor : td.color,
-      stats: builtStats,
-    });
-  };
-
   return (
     <>
-      {/* Tab bar */}
+      {/* Tab bar — UT-09 B: klebt unterhalb des 70px hohen Site-Headers
+          (sticky, z-index 50). Mit top:0 rutschte die Leiste beim Scrollen
+          unter den Header und war dort nicht mehr klickbar. */}
       <div style={{
         borderTop: '1px solid var(--th-line-6)',
         background: 'var(--th-bg-tabbar2)',
-        position: 'sticky', top: 0, zIndex: 10,
+        position: 'sticky', top: 70, zIndex: 10,
       }}>
         <div
           className="mdu-tabs-row"
@@ -1094,13 +895,7 @@ export function TeamDetailClient({
           <ErgebnisseTab teamId={teamId} completedMatches={completedMatches} teamColor={teamColor} />
         )}
         {activeTab === 4 && (
-          <StatistikTab
-            stats={stats}
-            teamId={teamId}
-            teamColor={teamColor}
-            leagueName={leagueName}
-            onSelectEntry={openFromEntry}
-          />
+          <StatistikTab teamColor={teamColor} />
         )}
       </div>
 

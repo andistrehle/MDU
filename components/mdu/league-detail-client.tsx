@@ -820,6 +820,47 @@ function StatistikTab({ stats, league, onSelectPlayer }: { stats: PlayerStatEntr
         </div>
       </div>
 
+      {/* UT-10: Die Einzelrangliste bleibt als EINE Statistik erhalten; weitere
+          (Team-)Statistiken folgen — hier als klarer Coming-Soon-Platzhalter. */}
+      <div style={{
+        marginTop: 16,
+        background: 'var(--th-bg-card)', border: '1px dashed var(--th-line-8)',
+        borderRadius: 14, padding: '26px 24px',
+        display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+      }}>
+        <div style={{
+          width: 46, height: 46, borderRadius: 12, flexShrink: 0, display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          background: 'var(--th-accent-a12)', border: '1px solid var(--th-accent-a25)',
+        }}>
+          <Icon name="bar" size={22} stroke={2} style={{ color: 'var(--th-accent)' }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+            <span style={{
+              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18,
+              letterSpacing: '0.04em', color: 'var(--th-text-strong)', textTransform: 'uppercase',
+            }}>
+              Weitere Statistiken
+            </span>
+            <span style={{
+              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: 'var(--th-accent)', background: 'var(--th-accent-a12)',
+              border: '1px solid var(--th-accent-a25)', borderRadius: 999, padding: '3px 9px',
+            }}>
+              Coming Soon
+            </span>
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.5,
+          }}>
+            Aktuell zeigen wir die Einzelrangliste. Weitere Auswertungen (z. B. Team- und
+            Leg-Statistiken) sind in Arbeit.
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
@@ -918,11 +959,14 @@ export function LeagueDetailClient({ rows, league, teamInfoMap, stats, matches, 
 
   return (
     <>
-      {/* Tab bar — visually merges with the banner above */}
+      {/* Tab bar — visually merges with the banner above.
+          UT-09 B: klebt unterhalb des 70px hohen Site-Headers (sticky, z-index 50);
+          top:0 ließ die Leiste beim Scrollen unter den Header rutschen → dort
+          nicht mehr klickbar. */}
       <div style={{
         borderTop: '1px solid var(--th-line-6)',
         background: 'var(--th-bg-tabbar1)',
-        position: 'sticky', top: 0, zIndex: 10,
+        position: 'sticky', top: 70, zIndex: 10,
       }}>
         <div
           className="mdu-tabs-row"

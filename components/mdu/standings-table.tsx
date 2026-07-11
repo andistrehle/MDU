@@ -1,8 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import { FormDots } from './form-dots';
@@ -10,7 +7,6 @@ import { Icon } from './icon';
 import { statusColor, diffColor, GOLD_TOP_RANKS } from '@/lib/utils';
 import { getExtendedTeam, getCurrentSeason } from '@/lib/data';
 import { getRowOutcome, outcomeColor, getLegendForRows } from '@/lib/data/competition-outcomes';
-import { getTeamUrl } from '@/lib/links';
 
 interface StandingRow {
   pos: number;
@@ -72,9 +68,6 @@ export function StandingsTable({
   competitionId,
   seasonId,
 }: StandingsTableProps) {
-  const router = useRouter();
-  const [expandedPos, setExpandedPos] = useState<number | null>(null);
-
   const season = seasonId ?? getCurrentSeason().id;
   const total = rows.length;
   // Outcome je Zeile aus der zentralen Config (positionsbasiert); null → Fallback.
@@ -108,10 +101,6 @@ export function StandingsTable({
   function handleDesktopRowClick(teamId: string) {
     // Desktop only: update the standings-panel team card
     onRowClick?.(teamId);
-  }
-
-  function toggleExpand(pos: number) {
-    setExpandedPos(prev => (prev === pos ? null : pos));
   }
 
   return (
@@ -428,10 +417,6 @@ export function StandingsTable({
                 ? { name: r.name, short: r.name.split(' ').map((x: string) => x[0]).join('').slice(0, 3), color: _mExt.color, logoUrl: _mExt.logoUrl }
                 : _mExt;
               const sp     = r.sp ?? r.p ?? 0;
-              const wins   = r.s ?? r.w ?? 0;
-              const draws  = r.u ?? 0;
-              const losses = r.n ?? r.l ?? 0;
-              const isExpanded = expandedPos === r.pos;
               const displayName = (r.name ?? teamData.name).replace(' *', '');
               const mOutcome = outcomeOf(r);
               const barColor = mOutcome ? outcomeColor(mOutcome.type) : statusColor(r.status);
@@ -448,13 +433,19 @@ export function StandingsTable({
                       : '3px solid transparent',
                   }}
                 >
-                  {/* ── Collapsed row ── */}
-                  <div
+                  {/* UT-09: Ein Tap auf die Zeile springt direkt ins Teamprofil
+                      (kein Aufklappen mehr — die Zusatzwerte Sp./Legs/Diff./Form
+                      gibt es im Teamprofil und in der Spielerkarte). */}
+                  <TeamLink
+                    teamId={r.team}
+                    teamName={displayName}
+                    competitionId={competitionId}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       padding: '10px 10px',
                       gap: 8,
+                      width: '100%',
                     }}
                   >
                     {/* Rank */}
@@ -472,48 +463,43 @@ export function StandingsTable({
                       {r.pos}
                     </span>
 
-                    {/* Badge + name → navigates to team profile */}
-                    <TeamLink
-                      teamId={r.team}
-                      teamName={displayName}
-                      competitionId={competitionId}
-                      style={{ flex: 1, minWidth: 0, gap: 8 }}
-                    >
-                      <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                        <TeamBadge
-                          initials={teamData.short.slice(0, 3)}
-                          color={teamData.color}
-                          size={22}
-                          logoUrl={teamData.logoUrl}
-                        />
+                    {/* Badge */}
+                    <span style={{ flexShrink: 0, display: 'inline-flex' }}>
+                      <TeamBadge
+                        initials={teamData.short.slice(0, 3)}
+                        color={teamData.color}
+                        size={22}
+                        logoUrl={teamData.logoUrl}
+                      />
+                    </span>
+
+                    {/* Name (+ Verbleib-Label) */}
+                    <span style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
+                      <span
+                        className="mdu-link-name"
+                        style={{
+                          fontFamily: 'var(--font-manrope)',
+                          fontWeight: 700,
+                          fontSize: 12,
+                          color: 'var(--th-text-strong)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          minWidth: 0,
+                        }}
+                      >
+                        {displayName}
                       </span>
-                      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
-                        <span
-                          className="mdu-link-name"
-                          style={{
-                            fontFamily: 'var(--font-manrope)',
-                            fontWeight: 700,
-                            fontSize: 12,
-                            color: 'var(--th-text-strong)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            minWidth: 0,
-                          }}
-                        >
-                          {displayName}
+                      {shortLabel && (
+                        <span style={{
+                          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 8.5,
+                          letterSpacing: '0.04em', textTransform: 'uppercase', color: barColor,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {shortLabel}
                         </span>
-                        {shortLabel && (
-                          <span style={{
-                            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 8.5,
-                            letterSpacing: '0.04em', textTransform: 'uppercase', color: barColor,
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
-                            {shortLabel}
-                          </span>
-                        )}
-                      </span>
-                    </TeamLink>
+                      )}
+                    </span>
 
                     {/* Pts + Sp */}
                     <div style={{ flexShrink: 0, textAlign: 'right' }}>
@@ -550,118 +536,14 @@ export function StandingsTable({
                       </div>
                     </div>
 
-                    {/* Expand / collapse chevron */}
-                    <button
-                      onClick={() => toggleExpand(r.pos)}
-                      aria-label={
-                        isExpanded ? 'Details einklappen' : 'Details ausklappen'
-                      }
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: '4px 2px',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: isExpanded ? 'var(--th-accent)' : 'var(--th-text-faint)',
-                      }}
-                    >
-                      <Icon
-                        name="chevron-down"
-                        size={16}
-                        stroke={2.5}
-                        style={{
-                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.15s ease',
-                        }}
-                      />
-                    </button>
-                  </div>
-
-                  {/* ── Expanded details ── */}
-                  {isExpanded && (
-                    <div
-                      style={{
-                        padding: '0 10px 12px 52px',
-                        background: 'rgba(255,255,255,0.015)',
-                      }}
-                    >
-                      {/* Stat grid */}
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(3, 1fr)',
-                          gap: 6,
-                          marginBottom: 10,
-                        }}
-                      >
-                        {[
-                          { label: 'Siege',   value: wins,            color: 'var(--th-win)' },
-                          ...(showU
-                            ? [{ label: 'Unent.',  value: draws,           color: 'var(--th-text-muted)' }]
-                            : []),
-                          { label: 'Niedl.',  value: losses,          color: 'var(--th-loss)' },
-                          ...(showSpiele
-                            ? [{ label: 'Spiele', value: r.spiele ?? '—', color: 'var(--th-text-body)' }]
-                            : []),
-                          { label: 'Legs',    value: r.legs,          color: 'var(--th-text-body)' },
-                          { label: 'Diff.',   value: r.diff,          color: diffColor(r.diff) },
-                        ].map(item => (
-                          <div
-                            key={item.label}
-                            style={{
-                              background: 'var(--th-line-3)',
-                              borderRadius: 6,
-                              padding: '5px 7px',
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontFamily: 'var(--font-manrope)',
-                                fontWeight: 700,
-                                fontSize: 9,
-                                letterSpacing: '0.1em',
-                                color: 'var(--th-text-faint)',
-                                textTransform: 'uppercase',
-                                marginBottom: 2,
-                              }}
-                            >
-                              {item.label}
-                            </div>
-                            <div
-                              style={{
-                                fontFamily: 'var(--font-jetbrains-mono)',
-                                fontWeight: 600,
-                                fontSize: 12,
-                                color: item.color,
-                              }}
-                            >
-                              {item.value}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Link to full team profile */}
-                      <Link
-                        href={getTeamUrl(r.team, competitionId)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          fontFamily: 'var(--font-manrope)',
-                          fontWeight: 700,
-                          fontSize: 11,
-                          color: 'var(--th-accent)',
-                          textDecoration: 'none',
-                        }}
-                      >
-                        Teamprofil ansehen
-                        <Icon name="arrow-right" size={12} stroke={2.5} />
-                      </Link>
-                    </div>
-                  )}
+                    {/* Navigations-Chevron (→ Teamprofil) */}
+                    <Icon
+                      name="chevron"
+                      size={15}
+                      stroke={2}
+                      style={{ color: 'var(--th-text-faint2)', flexShrink: 0 }}
+                    />
+                  </TeamLink>
                 </div>
               );
             })}
