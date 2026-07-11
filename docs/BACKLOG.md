@@ -75,6 +75,12 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
   Statistik / Benachrichtigungen; der Wunsch betrifft die **prominentere Sichtbarkeit** (u. a.
   direkt auf der Startseite). Kein separates neues Ticket.
 
+### Umsetzungsstand (10.07.2026)
+- **UT-01 ✅ erledigt** — Demo-Button nur noch auf der Startseite (Browser-verifiziert). ⚠️ Nebeneffekt: auf `/mein-bereich` erscheint der Button damit auch nicht mehr → die „Mein Bereich"-Tour lässt sich dort nicht per Button neu starten. Falls gewünscht, `/mein-bereich` wieder aufnehmen.
+- **UT-06 ✅ erledigt** — Button `max-width: calc(100vw - 24px)` + Label-Ellipsis; Rahmen bei hohem Zoom/In-App-Browser vollständig (bei 220/280/360 px geprüft).
+- **UT-07 ✅ umgesetzt (Android-Verifikation offen)** — PlayerCard sperrt jetzt `html` UND `body` + `overscroll-behavior: contain`; echter Android-Touch-Scroll noch auf Gerät gegenzuchecken.
+- **UT-11 ✅ erledigt** — alle 13 dartunion.de-Hyperlinks entfernt (Klartext ohne Link); `grep href.*dartunion` = 0. **Offene Rückfrage:** einige dieser Stellen sind Verweis-Sätze („vollständiger Spielplan/Ergebnisse **auf** dartunion.de", „Teilnehmer/Spielplan folgen **auf** dartunion.de"). Da dartunion offline ist, zeigen sie jetzt textlich ins Leere — **soll ich diese Verweise auch textlich entfernen/umformulieren?**
+
 ### Offene Tickets
 
 **UT-01 · „Demo Tour erneut ansehen"-Button nur auf der Startseite**
