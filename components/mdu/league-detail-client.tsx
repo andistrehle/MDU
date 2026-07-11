@@ -80,10 +80,9 @@ function EmptyState({ icon, text, sub }: { icon: string; text: string; sub?: str
       {sub && (
         <div>
           {sub}{' '}
-          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
+          <span style={{ color: 'var(--th-text-muted)' }}>
             dartunion.de
-          </a>.
+          </span>.
         </div>
       )}
     </div>
@@ -233,7 +232,7 @@ function ÜbersichtTab({ rows, league, matches, stats, onSelectPlayer }: Props &
           ) : (
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
               Spielplan wird auf{' '}
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>
+              <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>
               {' '}veröffentlicht.
             </div>
           )}

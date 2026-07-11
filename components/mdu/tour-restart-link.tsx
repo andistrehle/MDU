@@ -14,6 +14,11 @@ const KEYS = [
 export function DemoTourButton() {
   const pathname = usePathname();
 
+  // UT-01: Der schwebende CTA soll AUSSCHLIESSLICH auf der Startseite erscheinen
+  // (auf Unterseiten/Teamprofilen wirkte er störend). Die Tour selbst bleibt
+  // unberührt; von der Startseite aus wird die passende Tour neu gestartet.
+  if (pathname !== '/') return null;
+
   const restart = () => {
     // localStorage UND Cookie-Spiegel löschen (der Fallback aus demo-tour.tsx
     // greift z. B. im iOS-Privatmodus), sonst bliebe die Tour „gesehen".
@@ -40,7 +45,12 @@ export function DemoTourButton() {
           font-family:var(--font-manrope), system-ui, sans-serif;
           font-weight:800; font-size:13px; letter-spacing:0.01em;
           transition:background 150ms ease, transform 150ms ease;
+          /* UT-06: nie breiter als der Viewport → Rahmen wird bei hohem Zoom /
+             im In-App-Browser nicht mehr seitlich abgeschnitten. */
+          max-width:calc(100vw - 24px); box-sizing:border-box; overflow:hidden;
         }
+        .mdu-demo-tour-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+        .mdu-demo-tour-btn > span[aria-hidden] { flex:0 0 auto; }
         .mdu-demo-tour-btn:hover { background:var(--th-accent); color:#fff; transform:translateY(-1px); }
         /* Sobald die Bottom-Navigation sichtbar ist (≤1080px): darüber platzieren. */
         @media (max-width:1080px) {
@@ -55,7 +65,7 @@ export function DemoTourButton() {
         aria-label="Demo Tour erneut ansehen"
       >
         <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1 }}>▶</span>
-        Demo Tour erneut ansehen
+        <span className="mdu-demo-tour-label">Demo Tour erneut ansehen</span>
       </button>
     </>
   );

@@ -95,8 +95,7 @@ function ÜbersichtTab({
           ) : (
             <EmptyNote>
               Keine bevorstehenden Spiele — Spielplan auf{' '}
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
+              <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
             </EmptyNote>
           )}
         </div>
@@ -136,8 +135,7 @@ function ÜbersichtTab({
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6B7280' }}>
               <Icon name="globe" size={14} stroke={2} style={{ flexShrink: 0 }} />
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-                style={{ color: '#6B7280', textDecoration: 'none' }}>dartunion.de</a>
+              <span style={{ color: '#6B7280' }}>dartunion.de</span>
             </div>
           </div>
         </div>
@@ -591,8 +589,7 @@ function SpielplanTab({ teamId, scheduledMatches, teamColor }: { teamId: string;
         borderRadius: 14, padding: '28px 24px',
       }}>
         <EmptyNote>Keine bevorstehenden Spiele — vollständiger Spielplan auf{' '}
-          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
+          <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
         </EmptyNote>
       </div>
     );
@@ -664,8 +661,7 @@ function ErgebnisseTab({ teamId, completedMatches, teamColor }: { teamId: string
         borderRadius: 14, padding: '28px 24px',
       }}>
         <EmptyNote>Noch keine Ergebnisse — aktuelle Ergebnisse auf{' '}
-          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
+          <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
         </EmptyNote>
       </div>
     );
@@ -794,8 +790,7 @@ function StatistikTab({
         </div>
         <div>
           Einzelrangliste folgt auf{' '}
-          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
+          <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
         </div>
       </div>
     );

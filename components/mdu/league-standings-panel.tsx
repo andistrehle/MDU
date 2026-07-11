@@ -130,9 +130,9 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
             </div>
             <div>
               Teilnehmer und Spielplan folgen auf{' '}
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
+              <span style={{ color: 'var(--th-text-muted)' }}>
                 dartunion.de
-              </a>.
+              </span>.
             </div>
           </div>
         ) : (

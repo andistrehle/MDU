@@ -159,10 +159,9 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
               fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)',
             }}>
               Quelle:{' '}
-              <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
+              <span style={{ color: 'var(--th-text-muted)' }}>
                 {article.source}
-              </a>
+              </span>
             </div>
 
             {/* Publishing-Hilfe: News für FB-Gruppe + Instagram aufbereiten (nur Ligaleitung). */}

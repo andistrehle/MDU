@@ -180,10 +180,9 @@ export default function MehrPage() {
           fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint2)', lineHeight: 1.6,
         }}>
           Weitere Informationen unter{' '}
-          <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
+          <span style={{ color: 'var(--th-text-muted)' }}>
             dartunion.de
-          </a>
+          </span>
         </div>
       </div>
 

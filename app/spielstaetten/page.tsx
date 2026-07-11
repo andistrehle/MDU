@@ -37,9 +37,9 @@ export default function SpielstaettenPage() {
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 4, lineHeight: 1.5 }}>
                 Für {season.name} wurden noch keine Spielstätten veröffentlicht.
                 Vollständige Informationen auf{' '}
-                <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-body)', textDecoration: 'underline' }}>
+                <span style={{ color: 'var(--th-text-body)' }}>
                   dartunion.de
-                </a>.
+                </span>.
               </div>
             </div>
           </div>

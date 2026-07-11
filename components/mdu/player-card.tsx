@@ -106,15 +106,21 @@ export function PlayerCard({ data, onClose }: { data: PlayerCardData; onClose: (
   const { stats } = data;
   const accent = data.teamColor;
 
-  // Close on Escape; lock body scroll while open
+  // Close on Escape; Hintergrund-Scroll sperren, solange offen (UT-07).
+  // Wichtig für Android/mobil: body-overflow:hidden allein reicht dort oft nicht,
+  // weil der Scroll-Container das <html>-Element ist — daher BEIDE sperren.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
-    const prevOverflow = document.body.style.overflow;
+    const html = document.documentElement;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = html.style.overflow;
     document.body.style.overflow = 'hidden';
+    html.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = prevBody;
+      html.style.overflow = prevHtml;
     };
   }, [onClose]);
 
@@ -140,6 +146,7 @@ export function PlayerCard({ data, onClose }: { data: PlayerCardData; onClose: (
         aria-label={`Spielerkarte ${data.displayName}`}
         style={{
           width: '100%', maxWidth: 440, maxHeight: '88vh', overflowY: 'auto',
+          overscrollBehavior: 'contain',
           background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)',
           borderRadius: 18, boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
           position: 'relative',

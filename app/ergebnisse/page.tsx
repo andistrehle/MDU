@@ -80,8 +80,7 @@ export default function ErgebnissePage() {
             fontStyle: 'italic', padding: '24px 0',
           }}>
             Noch keine Ergebnisse eingetragen — aktuelle Ergebnisse auf{' '}
-            <a href="https://dartunion.de" target="_blank" rel="noopener noreferrer"
-              style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
+            <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
