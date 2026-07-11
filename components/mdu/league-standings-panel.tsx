@@ -46,8 +46,6 @@ interface Props {
 
 // ── Helpers ───────────────────────────────────────────────────
 
-const TEAM_TABS = ['Übersicht', 'Kader', 'Spielplan', 'Ergebnisse', 'Statistik'];
-
 function HexBadge({ short, color }: { short: string; color: string }) {
   return (
     <div style={{
@@ -209,28 +207,6 @@ export function LeagueStandingsPanel({ rows, league, teamInfoMap }: Props) {
               {league.name}
             </div>
           </div>
-        </div>
-
-        {/* Tab bar (decorative) */}
-        <div
-          className="mdu-tabs-row"
-          style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--th-line-6)', marginBottom: 18 }}
-        >
-          {TEAM_TABS.map((tab, i) => (
-            <div
-              key={tab}
-              style={{
-                padding: '10px 0',
-                fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
-                color: i === 0 ? 'var(--th-accent)' : 'var(--th-text-muted)',
-                borderBottom: i === 0 ? '2px solid var(--th-accent)' : '2px solid transparent',
-                marginBottom: -1, cursor: 'pointer',
-                letterSpacing: '0.04em', textTransform: 'uppercase',
-              }}
-            >
-              {tab}
-            </div>
-          ))}
         </div>
 
         {/* Info grid */}
