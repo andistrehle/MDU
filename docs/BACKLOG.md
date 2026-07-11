@@ -114,14 +114,14 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Betroffen: `app/page.tsx` (`.mdu-quickbar-outer`/`.mdu-quick-bar`), `app/globals.css` · Abhängigkeiten: keine
 - Status: **offen** · Reproduzierbarkeit: **noch zu prüfen** (genaues Element beim Nutzer rückfragen)
 
-**UT-07 · Player-Card-Swipe: Seitenhintergrund scrollt mit**
-- Kategorie: Bug/Touch · Priorität: **P2** · Plattform: **Android (verify)**
-- Beschreibung: Beim horizontalen Swipe einer Player-Card scrollt/verschiebt sich gleichzeitig der Seitenhintergrund.
-- Nutzerfeedback: „Beim Swipen bewegt sich gleichzeitig der Seitenhintergrund."
-- Zielverhalten: Swipe wirkt nur auf die Card; Seite scrollt dabei nicht. (`touch-action`/`overscroll-behavior` prüfen.)
-- Akzeptanzkriterien: Horizontaler Swipe bewegt nur die Card; vertikaler Scroll weiterhin möglich; kein „Mitziehen" des Backgrounds.
-- Betroffen: die Player-Card-Komponente (Team-/Spielerkontext) · Abhängigkeiten: ggf. verwandt mit UT-08
-- Status: **offen** · Reproduzierbarkeit: **noch zu prüfen (Android besonders)** — welche Seite genau beim Nutzer rückfragen
+**UT-07 · Player-Card-Overlay: Hintergrund scrollt (Scroll-Lock fehlt)**
+- Kategorie: Bug/UX · Priorität: **P2** · Plattform: **allgemein mobil (evtl. übergreifend)**
+- Beschreibung: **Betreiber-Klärung:** Nicht ein Swipe-Problem — sobald die Player-Card **geöffnet** ist (egal von welcher Seite/Liste), lässt sich der **Hintergrund** darunter scrollen. Ursache: fehlender Body-Scroll-Lock, während das Overlay offen ist (das News-Modal macht es korrekt via `document.body.style.overflow='hidden'`).
+- Nutzerfeedback: „Wenn man die Player Card öffnet, egal wo, kann man den Hintergrund scrollen."
+- Zielverhalten: Solange die Player-Card offen ist, ist der Seiten-Hintergrund gesperrt (kein Scrollen); nach Schließen wieder normal, Scroll-Position erhalten.
+- Akzeptanzkriterien: Bei geöffneter Card scrollt der Hintergrund nicht (Android + iOS + Desktop); Schließen stellt den Scroll sauber wieder her.
+- Betroffen: die Player-Card-Overlay-Komponente (überall wo sie geöffnet wird) · Abhängigkeiten: Muster analog `news-article-card.tsx` (Body-Scroll-Lock)
+- Status: **offen** · Reproduzierbarkeit: **bestätigt (Betreiber: „egal wo")** — iOS/Desktop gegentesten
 
 **UT-08 · Hover-/Selected-State bleibt nach dem Scrollen „kleben"**
 - Kategorie: Bug/Touch · Priorität: **P2** · Plattform: **Android Chrome (verify)**
@@ -145,19 +145,23 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Kategorie: Produkt/Content · Priorität: **P2** · Plattform: übergreifend
 - Beschreibung: Der Statistik-Tab zeigt die Einzelrangliste, was für eine **Mannschafts**-Statistik unpassend wirkt. **Nicht sofort entscheiden.**
 - Nutzerfeedback: „Der Statistik-Tab enthält keine wirkliche Teamstatistik. Die Einzelrangliste wirkt dort fachlich unpassend."
-- Optionen (Entscheidung offen): ausblenden · „Coming Soon" · echte Team-Statistiken ergänzen · Einzelrangliste sinnvoller platzieren.
-- Akzeptanzkriterien: nach Entscheidung — entweder echte Teamstatistik, klarer Coming-Soon-Zustand, oder Tab entfernt.
-- Betroffen: `components/mdu/team-detail-client.tsx` (TABS) · Abhängigkeiten: „Team-Statistiken behalten Unentschieden" (Abschnitt Spielerstatistik)
-- Status: **offen (Entscheidung nötig)** · Reproduzierbarkeit: bestätigt (Content)
+- **Betreiber-Entscheidung getroffen:**
+  - **Teamprofil (Team-Tabs):** Statistik-Tab → **„Coming Soon"** (noch keine echte Teamstatistik anzeigen).
+  - **Liga-Detailseite (Statistiken):** die **Einzelrangliste als eine** Statistik behalten; weitere Statistiken als **„Coming Soon"** kennzeichnen.
+- Zielverhalten: konsistente Statistik-Darstellung; nirgends eine fachlich unpassende Einzelrangliste unter „Team-Statistik".
+- Akzeptanzkriterien: Team-Tab „Statistik" zeigt einen sauberen Coming-Soon-Zustand; Liga-Statistik zeigt die Einzelrangliste + Coming-Soon-Platzhalter für die übrigen.
+- Betroffen: `components/mdu/team-detail-client.tsx` (TABS), Liga-Statistik (`components/mdu/league-detail-client.tsx` / `getStatisticsForLeague`) · Abhängigkeiten: „Team-Statistiken behalten Unentschieden" (Abschnitt Spielerstatistik)
+- Status: **offen (entschieden, bereit zur Umsetzung)** · Reproduzierbarkeit: bestätigt (Content)
 
 **UT-11 · Alte dartunion.de-Links entfernen/prüfen (teils „Forbidden Access")**
 - Kategorie: Content/Links · Priorität: **P2** · Plattform: übergreifend
 - Beschreibung: **13 user-facing `<a href="https://dartunion.de">`-Links** (Quellenangaben) über `app/ergebnisse`, `app/spielplan`, `app/spielstaetten`, `app/mehr`, `components/mdu/league-detail-client.tsx`, `team-detail-client.tsx`, `news-article-card.tsx`, `league-standings-panel.tsx`. Passt zur Phase-2-Entscheidung „nichts läuft mehr über dartunion.de".
 - Nutzerfeedback: „Es existieren noch Links zur alten Seite. Teilweise führen diese auf ‚Forbidden Access'."
-- Zielverhalten: Alle user-facing dartunion.de-Links prüfen; tote/verbotene entfernen oder als reinen Text (Quellenhinweis ohne Link) belassen; keine kaputten externen Links.
-- Akzeptanzkriterien: Kein anklickbarer Link führt auf „Forbidden Access"; Quellenangaben bleiben inhaltlich korrekt.
-- Betroffen: die 8 oben genannten Dateien (13 Fundstellen) · Abhängigkeiten: keine
-- Status: **offen** · Reproduzierbarkeit: **teils bestätigt (Code), 403-Verhalten pro Ziel prüfen**
+- **Betreiber-Entscheidung:** dartunion.de ist **offline** (liefert „Forbidden") → **alle** dartunion.de-**Hyperlinks entfernen**. Reine Quellen-/Textnennung darf bleiben, aber **nicht** mehr klickbar.
+- Zielverhalten: Kein anklickbarer dartunion.de-Link mehr in der gesamten App; wo eine Quellenangabe sinnvoll ist, als Klartext (ohne `<a>`).
+- Akzeptanzkriterien: `grep href.*dartunion` liefert 0 Treffer; keine ins Leere/„Forbidden" führenden externen Links; Texte inhaltlich unverändert.
+- Betroffen: 13 Fundstellen in `app/ergebnisse`, `app/spielplan`, `app/spielstaetten`, `app/mehr`, `components/mdu/league-detail-client.tsx`, `team-detail-client.tsx`, `news-article-card.tsx`, `league-standings-panel.tsx` · Abhängigkeiten: keine
+- Status: **offen (entschieden: alle Links raus)** · Reproduzierbarkeit: **bestätigt (Code + Betreiber)**
 
 **UT-12 · Metadaten vervollständigen: Open Graph, Web-Manifest, `metadataBase` (Favicon ✅)**
 - Kategorie: SEO/Sharing/PWA · Priorität: **P2 (OG) / P3 (Manifest)** · Plattform: übergreifend
@@ -175,6 +179,7 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Zielverhalten: Ursache identifizieren und beseitigen; keine Hydration-Fehler in der Konsole.
 - Akzeptanzkriterien: Kein React #418 im Dev-Build (Klartext-Meldung reproduziert + gefixt); Konsole sauber.
 - Betroffen: zu ermitteln (Analyse zuerst; Dev-Build zeigt die Klartext-Meldung mit Komponente) · Abhängigkeiten: keine
+- **Hinweis:** #418 ist ein **Hydration-Mismatch** (technischer Konsolen-Fehler), **nicht** die dartunion-„Forbidden"-Sache (das ist UT-11). Auslöser-Seite noch unbekannt → beim nächsten Auftreten Seite/Aktion notieren.
 - Status: **offen (Analyse-Ticket)** · Reproduzierbarkeit: **noch zu prüfen** (welche Seite/Aktion löste es aus?)
 
 **UT-14 · Login als Modal/Dialog statt eigener Seite**
@@ -183,8 +188,9 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Nutzerfeedback: „Login könnte als Modal/Dialog geöffnet werden."
 - Zielverhalten: Login-Dialog über der aktuellen Seite (mit Fallback-Seite `/login` für Direktaufruf/`?next=`).
 - Akzeptanzkriterien: Dialog öffnet/schließt sauber; `?next=`-Redirect bleibt; Direktaufruf `/login` funktioniert weiterhin.
+- **Betreiber-Entscheidung:** Login bleibt vorerst **eigene Seite**; Modal ist eine **spätere** Idee (zurückgestellt).
 - Betroffen: `app/login/page.tsx`, Header-Login-Link · Abhängigkeiten: `?next=`-Logik (REV-020)
-- Status: **offen (Idee)** · Reproduzierbarkeit: n. a.
+- Status: **zurückgestellt (P3, später)** · Reproduzierbarkeit: n. a.
 
 **UT-15 · Auth-Flow: Aktionen ohne bestätigte E-Mail möglich?**
 - Kategorie: Security/Auth · Priorität: **P1 (falls bestätigt)** · Plattform: übergreifend
@@ -214,10 +220,12 @@ plattformübergreifend). IDs `UT-01…UT-20` entsprechen 1:1 den Feedbackpunkten
 - Status: **offen (Analyse)** · Reproduzierbarkeit: bestätigt (Analyse-Aufgabe)
 
 ### Offene Rückfragen an den Betreiber
-- **UT-06/UT-07:** Auf welcher Seite genau trat der „abgeschnittene Schnellzugriff-Rahmen" bzw. der „Player-Card-Swipe" auf (Startseite? Teamprofil? Spielerprofil?) — für gezielte Reproduktion.
-- **UT-10:** Welche der vier Optionen für den Statistik-Tab (ausblenden / Coming Soon / echte Teamstatistik / Einzelrangliste verschieben)?
-- **UT-13:** Auf welcher Seite/bei welcher Aktion erschien React #418?
-- **UT-14:** Login-Modal gewünscht oder bewusst als eigene Seite belassen?
+- **UT-07 — ✅ beantwortet:** Player-Card-Overlay, „egal wo" → Body-Scroll-Lock fehlt.
+- **UT-10 — ✅ beantwortet:** Team-Tab „Statistik" = Coming Soon; Liga = Einzelrangliste + Coming-Soon für weitere.
+- **UT-11 — ✅ beantwortet:** dartunion.de offline → alle Hyperlinks raus.
+- **UT-14 — ✅ beantwortet:** Login bleibt eigene Seite; Modal später.
+- **Weiterhin offen — UT-06:** Auf welcher Seite genau wirkt der „Schnellzugriff-Rahmen abgeschnitten" (Startseite-Schnellzugriff? etwas anderes?) — für gezielte Reproduktion.
+- **Weiterhin offen — UT-13:** Auf welcher Seite/bei welcher Aktion erschien React #418? (Bitte beim nächsten Auftreten notieren.)
 
 ### Empfohlene Reihenfolge (spätere Umsetzung, nicht jetzt)
 1. **Reproduzierbarkeit klären** (Android real, iOS gegentesten): UT-09 (Tabs, P1), UT-15 (Auth, P1), UT-08 (Hover), UT-07 (Swipe), UT-05 (Bottom-Nav), UT-13 (#418).
