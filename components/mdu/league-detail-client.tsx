@@ -39,20 +39,6 @@ interface Props {
 
 const TABS = ['Übersicht', 'Tabelle', 'Spielplan', 'Ergebnisse', 'Statistiken', 'Teams'];
 
-/** Maps internal league id → dartunion.de LigaId query param */
-const LIGA_ID_MAP: Record<string, string> = {
-  'la':                  '88',
-  'a1':                  '86',
-  'a2':                  '87',
-  'b1':                  '84',
-  'b2':                  '85',
-  'c':                   '94',
-  'playoffs-a-aufstieg': '89',
-  'playoffs-a-abstieg':  '91',
-  'playoffs-b-aufstieg': '90',
-  'playoffs-b-abstieg':  '92',
-};
-
 // ── Helpers ──────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -292,8 +278,6 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
   const today      = new Date().toISOString().slice(0, 10);
   const scheduled  = matches.filter(m => m.status === 'scheduled' && (!m.date || m.date >= today));
   const isPlayoff  = league.type === 'playoff';
-  const ligaId     = LIGA_ID_MAP[league.id] ?? '';
-  const dartUrl    = ligaId ? `https://dartunion.de/ranking01.php?LigaId=${ligaId}` : 'https://dartunion.de';
 
   return (
     <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px' }}>
@@ -313,12 +297,12 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
               {league.name} · Saison {league.season} · alle Spiele gespielt
             </div>
           </div>
-          <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{
+          <span style={{
             fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-            color: 'var(--th-text-muted)', textDecoration: 'underline', flexShrink: 0,
+            color: 'var(--th-text-muted)', flexShrink: 0,
           }}>
-            Spielplan auf dartunion.de →
-          </a>
+            Spielplan auf dartunion.de
+          </span>
         </div>
       ) : (
         <>
@@ -363,7 +347,7 @@ function SpielplanTab({ matches, league }: { matches: GameMatch[]; league: Leagu
           </div>
           <div style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
             Vollständiger Spielplan auf{' '}
-            <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>dartunion.de</a>.
+            <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
           </div>
         </>
       )}
@@ -384,10 +368,6 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
       return b.date.localeCompare(a.date);
     });
   const isPlayoff = league.type === 'playoff';
-  const ligaId    = LIGA_ID_MAP[league.id] ?? '';
-  const dartUrl   = ligaId
-    ? `https://dartunion.de/ranking01.php?LigaId=${ligaId}`
-    : 'https://dartunion.de';
 
   return (
     <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '30px 28px 60px' }}>
@@ -412,12 +392,12 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
             {league.name} · Saison {league.season}
           </div>
         </div>
-        <a href={dartUrl} target="_blank" rel="noopener noreferrer" style={{
+        <span style={{
           fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-          color: 'var(--th-text-muted)', textDecoration: 'underline', flexShrink: 0,
+          color: 'var(--th-text-muted)', flexShrink: 0,
         }}>
-          Alle Ergebnisse auf dartunion.de →
-        </a>
+          Alle Ergebnisse auf dartunion.de
+        </span>
       </div>
 
       {/* Individual match results — grouped by matchday */}
@@ -575,10 +555,7 @@ function ErgebnisseTab({ rows, league, matches }: { rows: StandingRow[]; league:
           </div>
           <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
             Quelle: dartunion.de · Einzelergebnisse (Spieltag-Details) unter{' '}
-            <a href={dartUrl} target="_blank" rel="noopener noreferrer"
-              style={{ color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
-              dartunion.de
-            </a>
+            <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>
           </div>
         </div>
       ) : (
