@@ -15,6 +15,25 @@
 export const SITE_INDEXABLE = false;
 
 // ============================================================
+// Coming-Soon- / Wartungsmodus
+// ============================================================
+//
+// COMING_SOON = true  → JEDER Seitenaufruf wird in der Middleware (proxy.ts)
+//   auf die Holding-Seite `/coming-soon` umgeschrieben („Neue MDU-Plattform –
+//   Coming soon"). Die eigentliche Seite bleibt im Code vorhanden, ist nach
+//   außen aber nicht mehr erreichbar.
+//
+// Wieder „aufmachen": einfach auf `false` setzen, committen, deployen.
+//
+// VORSCHAU (damit man sich nicht selbst aussperrt): Die echte Seite lässt sich
+// trotz Coming-Soon ansehen, indem man einmal `…?vorschau=<PREVIEW_KEY>` aufruft
+// (setzt ein Cookie für ~30 Tage). Mit `?vorschau=aus` wird die Vorschau wieder
+// beendet. Der Key ist kein echtes Geheimnis (Seite ist ohnehin noindex), nur
+// ein einfacher Riegel gegen zufällige Besucher.
+export const COMING_SOON = true;
+export const PREVIEW_KEY = 'mdu-intern';
+
+// ============================================================
 // Social-Media-Kanäle der MDU
 // ============================================================
 // Nur gesetzte Links werden im Footer angezeigt (keine toten Attrappen).

@@ -13,8 +13,10 @@
 // Zusätzlich setzt der Proxy defensive Security-Header auf alle Antworten.
 
 import { NextResponse, type NextRequest } from 'next/server';
+import { COMING_SOON, PREVIEW_KEY } from '@/lib/site-config';
 
 const PROTECTED_PREFIXES = ['/admin', '/mein-bereich', '/mein-profil', '/mein-team'];
+const PREVIEW_COOKIE = 'mdu-preview';
 
 function withSecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-Frame-Options', 'SAMEORIGIN');
@@ -26,6 +28,41 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // ── Coming-Soon-/Wartungsmodus (lib/site-config.ts) ──
+  // Bei aktivem COMING_SOON wird JEDER Aufruf auf die Holding-Seite
+  // umgeschrieben. Ausnahme: eine Vorschau-Sitzung (Cookie), damit man sich
+  // nicht selbst aussperrt. Vorschau an/aus per `?vorschau=<KEY>` / `?vorschau=aus`.
+  if (COMING_SOON) {
+    const vorschau = request.nextUrl.searchParams.get('vorschau');
+
+    // Vorschau beenden → Cookie löschen, sauber ohne Query weiterleiten.
+    if (vorschau === 'aus') {
+      const url = request.nextUrl.clone();
+      url.searchParams.delete('vorschau');
+      const res = NextResponse.redirect(url);
+      res.cookies.set(PREVIEW_COOKIE, '', { path: '/', maxAge: 0, sameSite: 'lax' });
+      return withSecurityHeaders(res);
+    }
+    // Vorschau aktivieren → Cookie setzen, sauber ohne Query weiterleiten.
+    if (vorschau === PREVIEW_KEY) {
+      const url = request.nextUrl.clone();
+      url.searchParams.delete('vorschau');
+      const res = NextResponse.redirect(url);
+      res.cookies.set(PREVIEW_COOKIE, '1', { path: '/', maxAge: 60 * 60 * 24 * 30, sameSite: 'lax' });
+      return withSecurityHeaders(res);
+    }
+
+    const hasPreview = request.cookies.get(PREVIEW_COOKIE)?.value === '1';
+    // Ohne Vorschau: alles auf die Holding-Seite (kein Loop auf /coming-soon selbst).
+    if (!hasPreview && pathname !== '/coming-soon') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/coming-soon';
+      url.search = '';
+      return withSecurityHeaders(NextResponse.rewrite(url));
+    }
+    // mit Vorschau-Cookie: normal weiter (fällt in den Auth-Guard unten).
+  }
 
   const isProtected = PROTECTED_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'));
   if (isProtected && !request.cookies.get('mdu-auth')) {
