@@ -33,7 +33,13 @@ export async function POST(request: Request) {
   if (!supabaseAdmin) return accepted();
 
   let email = '';
-  try { email = String((await request.json())?.email ?? '').trim(); } catch { /* leer */ }
+  let comment = '';
+  try {
+    const body = (await request.json()) as { email?: unknown; comment?: unknown };
+    email = String(body?.email ?? '').trim();
+    // Freitext-Kommentar (bei nicht erkanntem Spieler); Länge begrenzen (Missbrauch/Mail).
+    comment = String(body?.comment ?? '').trim().slice(0, 1000);
+  } catch { /* leer */ }
   if (!email) return accepted();
 
   // Profil zur E-Mail laden — nur ein frisch registriertes, noch nicht
@@ -71,6 +77,7 @@ export async function POST(request: Request) {
       newUserEmail: profile.email ?? email,
       intent: profile.registration_intent ?? undefined,
       playerName: matchedName,
+      note: comment || undefined,
       actionUrl: `${base}/admin/users`,
     });
     if (r.status === 'sent') sent++;

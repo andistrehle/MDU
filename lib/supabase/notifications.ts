@@ -74,13 +74,17 @@ export async function triggerAccountActivatedEmail(
  * Benachrichtigt die Super-Admins per E-Mail über eine neue Registrierung
  * (Rolle/Spieler-Zuordnung nötig). Best-effort, ohne Session/Token — der
  * Server prüft, dass ein frisch registriertes Profil existiert.
+ *
+ * `comment` ist der optionale Freitext-Hinweis (Team/Lokal/Liga), der nur
+ * eingeblendet wird, wenn kein Spielerprofil erkannt wurde; er wird in die
+ * Admin-Mail übernommen.
  */
-export async function notifyNewUserToAdmins(email: string): Promise<void> {
+export async function notifyNewUserToAdmins(email: string, comment?: string): Promise<void> {
   try {
     await fetch('/api/notifications/new-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, comment: comment?.trim() || undefined }),
     });
   } catch { /* best-effort — blockiert die Registrierung nicht */ }
 }

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { AuthShell, AuthField, AuthError, AuthSuccess, AuthSubmit, AuthCheckbox } from '@/components/mdu/auth-shell';
 import { notifyNewUserToAdmins } from '@/lib/supabase/notifications';
+import { getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 
 export default function RegisterPage() {
   const { user, signUp } = useAuth();
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [intent, setIntent] = useState<'player' | 'team_captain'>('player');
+  const [comment, setComment] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -34,6 +36,16 @@ export default function RegisterPage() {
   } | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
+  // Spieler-Erkennung (statische Ligadaten, rein clientseitig): Ist der
+  // eingegebene Name keinem Spielerprofil zuzuordnen, blenden wir ein
+  // Kommentarfeld ein, damit die Ligaleitung Team/Lokal/Liga erfährt.
+  //  · Kein Treffer / mehrdeutig  → matchedPlayerId == null → „nicht erkannt".
+  //  · TC-Wunsch  → Kommentar Pflicht.  · Spieler-Wunsch → Kommentar optional.
+  const bothNames        = firstName.trim() !== '' && lastName.trim() !== '';
+  const playerRecognized = bothNames && getRegistrationMatchSuggestion(firstName, lastName).matchedPlayerId != null;
+  const showComment      = bothNames && !playerRecognized;
+  const commentRequired  = showComment && intent === 'team_captain';
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -43,6 +55,11 @@ export default function RegisterPage() {
     }
     if (!acceptPrivacy || !acceptTerms) {
       setError('Bitte bestätige Datenschutzerklärung und Nutzungsbedingungen.');
+      return;
+    }
+    // Kein Spielerprofil erkannt + Teamkapitän-Wunsch → Kommentar ist Pflicht.
+    if (commentRequired && comment.trim() === '') {
+      setError('Bitte beschreibe kurz dein Team, Lokal und Liga — für Teamkapitäne ist dieser Hinweis Pflicht.');
       return;
     }
     setBusy(true);
@@ -63,7 +80,8 @@ export default function RegisterPage() {
       setError(res.error);
     } else {
       // Super-Admins über die neue Registrierung informieren (best-effort).
-      void notifyNewUserToAdmins(email);
+      // Bei nicht erkanntem Spieler den Freitext-Kommentar mitgeben.
+      void notifyNewUserToAdmins(email, showComment ? comment.trim() : undefined);
       if (res.needsEmailConfirmation) {
         // Supabase verlangt E-Mail-Bestätigung → Hinweis statt Redirect
         setConfirmEmailSent(true);
@@ -213,6 +231,39 @@ export default function RegisterPage() {
             Die Auswahl hilft der Ligaleitung bei der Freigabe. Rollen und Teamrechte werden erst nach Prüfung vergeben.
           </p>
         </div>
+
+        {/* Kommentarfeld nur, wenn kein Spielerprofil erkannt wurde.
+            TC-Wunsch → Pflicht, Spieler-Wunsch → optional. Geht in die Admin-Mail. */}
+        {showComment && (
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Kommentar {commentRequired ? '(Pflichtfeld)' : '(optional)'}
+            </label>
+            <textarea
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              required={commentRequired}
+              rows={4}
+              maxLength={1000}
+              placeholder={commentRequired
+                ? 'Bitte kurz beschreiben: welches Team, welches Lokal, welche Liga …'
+                : 'Optional: welches Team, welches Lokal, welche Liga …'}
+              style={{
+                width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
+                border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)',
+                fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
+                resize: 'vertical', minHeight: 96, lineHeight: 1.5,
+              }}
+            />
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', lineHeight: 1.5, margin: '8px 0 0' }}>
+              Wir konnten dich noch keinem Spielerprofil zuordnen.{' '}
+              {commentRequired
+                ? 'Damit die Ligaleitung dich als Teamkapitän richtig einordnen kann, ist dieser Hinweis Pflicht.'
+                : 'Ein kurzer Hinweis hilft der Ligaleitung bei der Zuordnung.'}
+            </p>
+          </div>
+        )}
+
         <AuthField
           label="E-Mail"
           type="email"

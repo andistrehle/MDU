@@ -169,11 +169,15 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
       };
     case 'new_user_admin': {
       const intentLabel = input.intent === 'team_captain' ? 'Teamkapitän / TC' : input.intent === 'player' ? 'Spieler' : null;
+      const note = input.note?.trim();
       const lines = [
         `Name: ${input.newUserName?.trim() || '—'}`,
         `E-Mail: ${input.newUserEmail?.trim() || '—'}`,
         intentLabel ? `Wunsch bei Registrierung: ${intentLabel}` : null,
-        input.playerName ? `Automatisch erkannt: ${input.playerName}` : null,
+        input.playerName
+          ? `Automatisch erkannt: ${input.playerName}`
+          : 'Automatisch erkannt: kein Spielerprofil gefunden',
+        note ? `Angaben des Nutzers (Team / Lokal / Liga):\n${note}` : null,
       ].filter(Boolean).join('\n');
       return {
         subject: 'Neue MDU-Registrierung – Rolle/Spieler zuordnen',
