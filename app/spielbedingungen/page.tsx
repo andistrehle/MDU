@@ -29,7 +29,7 @@ export default function SpielbedingungenPage() {
       <LegalSection title="2. Spielklassen & Spielvarianten">
         Gespielt wird je Spielklasse in folgender Variante – jeweils <strong>ohne Rundenbegrenzung</strong>:
         <ul style={ul}>
-          <li><strong>C&nbsp;Liga:</strong> 301 Master Out</li>
+          <li><strong>C&nbsp;Liga:</strong> 501 Master Out</li>
           <li><strong>B&nbsp;Liga:</strong> 501 Master Out</li>
           <li><strong>A&nbsp;Liga:</strong> 501 Double Out</li>
           <li><strong>La&nbsp;Liga:</strong> 501 Double Out</li>
