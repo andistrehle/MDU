@@ -275,6 +275,26 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   const [teamId, setTeamId] = useState(profile.team_id ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Registrierungs-Kommentar (Team/Lokal/Liga) liegt in den Auth-Metadaten →
+  // per Admin-API (service_role) nachladen, sobald der Dialog geöffnet ist.
+  const [regComment, setRegComment] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!supabase) return;
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) return;
+      const res = await fetch(`/api/admin/users/${profile.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => null);
+      if (!res || !res.ok || cancelled) return;
+      const json = await res.json().catch(() => ({} as { registrationComment?: string | null }));
+      if (!cancelled) setRegComment(json.registrationComment ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [profile.id]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -368,10 +388,16 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           )}
 
           {/* Automatischer Erkennungs-Vorschlag */}
-          {(profile.registration_intent || profile.matched_player_id) && (
+          {(profile.registration_intent || profile.matched_player_id || regComment) && (
             <div style={{ background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 10, padding: '12px 14px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.6 }}>
               {profile.registration_intent && (
                 <div>Wunsch: <strong style={{ color: 'var(--th-text-strong)' }}>{profile.registration_intent === 'team_captain' ? 'Teamkapitän / TC' : 'Spieler'}</strong></div>
+              )}
+              {regComment && (
+                <div style={{ marginTop: 4 }}>
+                  Angaben des Nutzers (Team/Lokal/Liga):{' '}
+                  <strong style={{ color: 'var(--th-text-strong)', fontWeight: 700 }}>{regComment}</strong>
+                </div>
               )}
               {profile.matched_player_id ? (
                 <>

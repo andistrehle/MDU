@@ -54,11 +54,12 @@ export async function POST(request: Request) {
     return accepted();
   }
 
-  // Empfänger: alle Super Admins.
+  // Empfänger: alle Super Admins UND Ligaleitung (damit die Registrierungs-Mail
+  // zuverlässig ankommt, nicht nur bei Super-Admins).
   const { data: admins } = await supabaseAdmin
     .from('profiles')
     .select('email, display_name')
-    .eq('role', 'super_admin');
+    .in('role', ['super_admin', 'league_admin']);
   const recipients = (admins ?? []).map(a => a.email).filter((e): e is string => !!e);
   if (recipients.length === 0) return accepted();
 

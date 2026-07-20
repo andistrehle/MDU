@@ -24,6 +24,38 @@ export const dynamic = 'force-dynamic';
 const VALID_ROLES: UserRole[] = ['guest', 'player', 'team_captain', 'league_admin', 'super_admin'];
 
 // ------------------------------------------------------------
+// GET /api/admin/users/[userId] — Registrierungs-Kommentar lesen
+// ------------------------------------------------------------
+// Der bei der Registrierung eingegebene Freitext (Team/Lokal/Liga bei nicht
+// erkanntem Spieler) liegt in den Auth-User-Metadaten (raw_user_meta_data),
+// nicht in profiles. Nur per service_role lesbar → dieser Admin-Endpoint gibt
+// ihn für den Benutzer-Dialog zurück. Erfordert mindestens Ligaleitung.
+export async function GET(request: Request, ctx: { params: Promise<{ userId: string }> }) {
+  const { userId } = await ctx.params;
+
+  const auth = await authenticateRequest(request);
+  if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
+  if (!supabaseAdmin) return NextResponse.json({ error: 'Server-Service ist nicht konfiguriert.' }, { status: 503 });
+
+  const actor: UserProfile = {
+    id: auth.user.id, email: auth.user.email, displayName: '',
+    role: auth.user.role, teamId: auth.user.teamId ?? undefined, createdAt: '', updatedAt: '',
+  };
+  if (!hasMinRole(actor, 'league_admin')) {
+    return NextResponse.json({ error: 'Keine Berechtigung.' }, { status: 403 });
+  }
+
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (error || !data?.user) {
+    return NextResponse.json({ error: 'Benutzer nicht gefunden.' }, { status: 404 });
+  }
+  const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+  const registrationComment = typeof meta.registration_comment === 'string'
+    ? meta.registration_comment.trim() : '';
+  return NextResponse.json({ registrationComment: registrationComment || null }, { status: 200 });
+}
+
+// ------------------------------------------------------------
 // PATCH /api/admin/users/[userId] — Konto bearbeiten (REV-016)
 // ------------------------------------------------------------
 // Kritische Konto-/Rollenänderungen laufen serverseitig (service_role) mit

@@ -46,6 +46,9 @@ export interface SignUpParams {
   password: string;
   /** Registrierungs-Wunsch (kein Rechtebeweis). */
   intent: 'player' | 'team_captain';
+  /** Freitext-Hinweis (Team/Lokal/Liga) bei nicht erkanntem Spieler; wird in
+   *  den User-Metadaten abgelegt und im Admin sichtbar gemacht. */
+  comment?: string;
 }
 
 interface AuthContextValue {
@@ -295,6 +298,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const firstName = params.firstName.trim();
     const lastName = params.lastName.trim();
     const { email, password, intent } = params;
+    const comment = (params.comment ?? '').trim();
     const displayName = `${firstName} ${lastName}`.trim();
 
     if (USE_MOCK) {
@@ -324,6 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           first_name: firstName,
           last_name: lastName,
           registration_intent: intent,
+          registration_comment: comment,
           matched_player_id: match.matchedPlayerId ?? '',
           matched_team_id: match.matchedTeamId ?? '',
           match_confidence: match.confidence,

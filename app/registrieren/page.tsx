@@ -74,7 +74,7 @@ export default function RegisterPage() {
       if (cd.playerLinked || cd.teamCaptain) { setCheck(cd); setBusy(false); return; }
     } catch { /* Prüfung best-effort — bei Fehler normal fortfahren */ }
 
-    const res = await signUp({ firstName, lastName, email, password, intent });
+    const res = await signUp({ firstName, lastName, email, password, intent, comment: showComment ? comment.trim() : undefined });
     setBusy(false);
     if (res.error) {
       setError(res.error);
