@@ -369,11 +369,19 @@ Reihenfolge ~chronologisch. Alles live auf `mdu-three.vercel.app` (Domain `mduda
 - [ ] **Migration `0035_news.sql` im SQL-Editor ausführen** + danach `npx tsx scripts/seed-news.mts` (übernimmt die bestehenden Meldungen als „veröffentlicht", idempotent). Erst dann verwaltet die Ligaleitung News unter **Admin → News** (Anlegen/Bearbeiten/Veröffentlichen/Archivieren/Löschen). Bis dahin bleibt der statische Bestand aus `lib/data/news.ts` sichtbar.
 - [ ] Deploy-Kontrolle: nach jedem Push prüfen, dass Vercel den neuesten Commit als „Ready" baut (war schon mal nicht auto-deployt)
 
-## Vor Go-live (offen)
+## Go-live — 🟢 LIVE seit 20.07.2026 (Commit `90b68c5`)
 
-- [~] Eindeutigkeits-/Dubletten-Regeln: **Migration `0034` geschrieben** — `profiles.player_id` unique (1 Spielerprofil = 1 Konto) + `team_registrations (season_id, source_team_id)` unique bei `status='approved'` (jedes bestehende Team nur 1× pro Saison freigegeben). Namensgleichheit NEUER Teams bleibt bewusst app-seitige Admin-Markierung (kein harter Constraint). Admin-PATCH gibt bei Verstoß eine verständliche Meldung. **Offen: Migration im SQL-Editor ausführen** (nach dem Test-/Demo-Cleanup, siehe „Wichtig / abhängig").
-- [ ] Alle Testuser + Demo-Video-Daten löschen (sauberer Start): `node scripts/cleanup-test-data.mjs` (löscht `julia.andi@web.de` + `strehleandi@gmail.com`) und `node scripts/cleanup-demo-video.mjs` (löscht `demo.kapitaen@`/`demo.spieler@` + „DC Demo München"). Das Streukonto `demo@example.com` ist in keinem Skript — separat über die Benutzerverwaltung („Löschen") entfernen. Skripte brauchen `.env.local` (Service-Role) → lokal ausführen, nicht in Cloud-/Handy-Sessions.
-- [ ] **Rechtliches:** Anschrift/Vertretung eingetragen; Rechtsform „nicht eingetragener Verein" ergänzt. Interne **DSB- + anwaltliche Tiefenprüfung** der drei Rechtstexte durchgeführt (AGB-feste Haftung, Änderungsklausel, Minderjährige, Aufsichtsbehörde, Art. 22, zweiter Kontaktweg). **Externe anwaltliche Freigabe** weiterhin empfohlen → danach Hinweis-Banner aus `LegalPage` entfernen. Außerdem offen: AVV mit Vercel/Supabase/Resend/Cloudflare/Anthropic abschließen.
+Seite offen + indexierbar (`SITE_INDEXABLE=true`, `COMING_SOON=false`), Rechts-Banner
+entfernt, Vercel-ENV + Supabase-Auth-URLs auf `www.mdudarts.de`, Auth-Mock aus Vercel
+entfernt. Verifiziert: Startseite echt, `robots.txt=Allow: /`, Bestätigungsmail-Links auf
+`www.mdudarts.de`, Login ok. **Noch organisatorisch offen:** AVVs (Vercel/Supabase/Resend/
+Cloudflare/Anthropic), Supabase-EU-Region (verschoben), Sitemap in Search Console (optional).
+
+- [x] Eindeutigkeits-/Dubletten-Regeln: **Migration `0034` ausgeführt** — `profiles.player_id` unique (1 Spielerprofil = 1 Konto) + `team_registrations (season_id, source_team_id)` unique bei `status='approved'` (jedes bestehende Team nur 1× pro Saison freigegeben). Namensgleichheit NEUER Teams bleibt bewusst app-seitige Admin-Markierung (kein harter Constraint). Admin-PATCH gibt bei Verstoß eine verständliche Meldung. **Offen: Migration im SQL-Editor ausführen** (nach dem Test-/Demo-Cleanup, siehe „Wichtig / abhängig").
+- [x] Alle Testuser + Demo-Video-Daten gelöscht (sauberer Start): `node scripts/cleanup-test-data.mjs` (löscht `julia.andi@web.de` + `strehleandi@gmail.com`) und `node scripts/cleanup-demo-video.mjs` (löscht `demo.kapitaen@`/`demo.spieler@` + „DC Demo München"). Das Streukonto `demo@example.com` ist in keinem Skript — separat über die Benutzerverwaltung („Löschen") entfernen. Skripte brauchen `.env.local` (Service-Role) → lokal ausführen, nicht in Cloud-/Handy-Sessions.
+- [x] **Rechtliches:** Externe anwaltliche Freigabe erteilt → Hinweis-Banner aus `LegalPage`
+  (Impressum/Datenschutz/Nutzungsbedingungen) entfernt. **Weiterhin offen:** AVV mit
+  Vercel/Supabase/Resend/Cloudflare/Anthropic abschließen.
 
 ### Domain-Umzug auf www.mdudarts.de (Checkliste Livegang)
 Code-seitig erledigt: robots.txt, sitemap.xml und Canonical nutzen `www.mdudarts.de` (Fallback);
@@ -381,9 +389,9 @@ per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch
 
 - [x] **Vercel → Domains:** `www.mdudarts.de` (primär, Production) + `mdudarts.de` (308 → www) hinzugefügt
 - [x] **DNS (Cloudflare):** `www` CNAME → `cname.vercel-dns.com`, Apex A → `76.76.21.21`, beide „DNS only" (grau); alte Strato-A/AAAA ersetzt/gelöscht; MX/Resend unangetastet
-- [ ] **Vercel-ENV:** `NEXT_PUBLIC_SITE_URL=https://www.mdudarts.de` (Production) setzen, dann redeployen
-- [ ] **⚠️ Supabase → Auth → URL Configuration:** Site URL = `https://www.mdudarts.de`, Redirect URLs um `https://www.mdudarts.de/**` ergänzen (sonst zeigen Bestätigungs-/Reset-Mail-Links auf die alte Domain)
-- [ ] **Scharf schalten:** `SITE_INDEXABLE=true` in `lib/site-config.ts` (entfernt noindex + robots-`Disallow: /`), committen, deployen
+- [x] **Vercel-ENV:** `NEXT_PUBLIC_SITE_URL=https://www.mdudarts.de` (Production) gesetzt (+ Auth-Mock `NEXT_PUBLIC_USE_AUTH_MOCK` aus Vercel entfernt)
+- [x] **Supabase → Auth → URL Configuration:** Site URL = `https://www.mdudarts.de`, Redirect URLs um `https://www.mdudarts.de/**` ergänzt — verifiziert (Bestätigungsmail-Links korrekt)
+- [x] **Scharf geschaltet:** `SITE_INDEXABLE=true` (+ `COMING_SOON=false`) in `lib/site-config.ts`, committet, deployed
 - [ ] Optional: Cloudflare-Proxy für `www`/Apex wieder „orange" — nur zusammen mit SSL/TLS-Modus „Full"
 - [x] `mdu-three.vercel.app` bleibt während des Umzugs erreichbar (Testen ohne Domain)
 

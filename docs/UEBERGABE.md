@@ -6,9 +6,11 @@ Startrampe.
 
 ## Stand
 - **Repo:** `andistrehle/MDU` · **Branch:** `main` · **Deploy:** Vercel (auto bei Push auf `main`)
-- **Live:** https://www.mdudarts.de (aktuell `SITE_INDEXABLE=false`, noindex — Pre-Go-live)
+- **🟢 LIVE seit 20.07.2026** (Commit `90b68c5`): https://www.mdudarts.de ist **offen
+  und indexierbar** (`SITE_INDEXABLE=true`, `COMING_SOON=false`). Verifiziert: Startseite
+  echt, `robots.txt=Allow: /`, Bestätigungsmail-Links auf `www.mdudarts.de`, Login ok,
+  Rechts-Banner entfernt.
 - Working Tree ist **sauber**, lokaler `main` == `origin/main` (nichts Uncommittetes).
-- Letzter relevanter Commit-Block: UT-09 / UT-10 / UT-11 (siehe unten).
 
 ## Neuer Rechner — Setup
 1. `git clone` des Repos, dann `npm install` (Node 22.x, npm 10.x; hier lief 22.22.2 / 10.9.7).
@@ -52,14 +54,23 @@ UT-15 (Auth-Flow: Aktionen ohne bestätigte E-Mail?).
 
 **Zurückgestellt:** UT-14 (Login-Modal), Personalisierung (UT-20).
 
-## Go-live-Blocker (Betreiber-Seite, nicht Code)
-- Migrationen im Supabase-SQL-Editor: 0027, 0034, 0035 (+ News-`sort_ts`-Korrektur);
-  Testuser/Demo-Daten löschen (`node scripts/cleanup-demo-video.mjs`).
-- Vercel-ENV `NEXT_PUBLIC_SITE_URL` + Supabase-Auth-URLs auf `www.mdudarts.de`.
-- Supabase EU-Region.
-- Externe anwaltliche Freigabe → dann Rechts-Banner in `LegalPage` entfernen + AVVs mit
-  Dienstleistern (Vercel, Supabase, Resend, Anthropic).
-- Zum Schluss: `SITE_INDEXABLE = true` in `lib/site-config.ts`.
+## Go-live — erledigt (20.07.2026)
+- [x] Test-/Demo-Daten gelöscht + Migrationen 0027/0034/0035 (+ News-`sort_ts`) ausgeführt.
+- [x] Vercel-ENV `NEXT_PUBLIC_SITE_URL=https://www.mdudarts.de` gesetzt.
+- [x] Auth-Mock `NEXT_PUBLIC_USE_AUTH_MOCK` aus Vercel (Prod+Preview) **entfernt**.
+- [x] Supabase Auth-URLs (Site URL + Redirect `…/**`) auf `www.mdudarts.de`.
+- [x] Externe anwaltliche Freigabe → Rechts-Banner (Impressum/Datenschutz/Nutzungsbed.) entfernt.
+- [x] `SITE_INDEXABLE=true` + `COMING_SOON=false` → live.
+
+## Noch offen nach Go-live (organisatorisch / später)
+- [ ] **AVVs** mit Vercel/Supabase/Resend/Cloudflare/Anthropic abschließen.
+- [ ] **Supabase EU-Region** — bewusst verschoben (Regionwechsel = Projekt-Umzug; DSGVO
+      via AVV/SCC abgedeckt). Separates Vorhaben, wenn gewünscht.
+- [ ] Optional: `sitemap.xml` in der Google Search Console einreichen (schnellere Indexierung).
+
+## Wieder „offline" nehmen (falls nötig)
+`COMING_SOON=true` in `lib/site-config.ts` → Vorhang zurück. Vorschau trotz Vorhang:
+`…?vorschau=mdu-intern` (aus: `?vorschau=aus`).
 
 ## Datenstand / Vorsicht (aus CLAUDE.md)
 - Saison 2025/2026 ist **beendet und manuell eingefroren** — der tägliche Import-Cron
