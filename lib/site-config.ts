@@ -12,7 +12,7 @@
 // (Dann greift wieder die normale robots.txt mit den erlaubten Bereichen.)
 // ============================================================
 
-export const SITE_INDEXABLE = false;
+export const SITE_INDEXABLE = true;
 
 // ============================================================
 // Coming-Soon- / Wartungsmodus
@@ -30,7 +30,7 @@ export const SITE_INDEXABLE = false;
 // (setzt ein Cookie für ~30 Tage). Mit `?vorschau=aus` wird die Vorschau wieder
 // beendet. Der Key ist kein echtes Geheimnis (Seite ist ohnehin noindex), nur
 // ein einfacher Riegel gegen zufällige Besucher.
-export const COMING_SOON = true;
+export const COMING_SOON = false;
 export const PREVIEW_KEY = 'mdu-intern';
 
 // ============================================================

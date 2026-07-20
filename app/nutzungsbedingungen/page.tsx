@@ -11,7 +11,7 @@ export default function NutzungsbedingungenPage() {
     <LegalPage
       title="Nutzungsbedingungen"
       updated="Juni 2026"
-      notice={<>Hinweis: Diese Nutzungsbedingungen werden vor dem offiziellen Livegang rechtlich geprüft.</>}
+      notice={null}
     >
       <LegalSection title="1. Geltungsbereich">
         Diese Nutzungsbedingungen gelten für die Nutzung der Online-Plattform der Münchner Dart

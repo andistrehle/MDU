@@ -12,7 +12,7 @@ export default function ImpressumPage() {
     <LegalPage
       title="Impressum"
       updated="Juni 2026"
-      notice={<>Hinweis: Dieser Text wird vor dem offiziellen Livegang rechtlich geprüft.</>}
+      notice={null}
     >
       <LegalSection title="Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)">
         Münchner Dart Union<br />

@@ -11,7 +11,7 @@ export default function DatenschutzPage() {
     <LegalPage
       title="Datenschutzerklärung"
       updated="Juni 2026"
-      notice={<>Hinweis: Dieser Text wird vor dem offiziellen Livegang rechtlich geprüft.</>}
+      notice={null}
     >
       <LegalSection title="1. Verantwortlicher">
         Verantwortlich für die Datenverarbeitung auf dieser Website ist die Münchner Dart
