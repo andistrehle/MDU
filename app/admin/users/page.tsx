@@ -19,7 +19,8 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canViewUsers, canEditUsers, canEditUserAccount, canDeleteUserAccount, canAssignRole, ROLE_LABELS, type UserRole, type UserProfile } from '@/lib/auth/roles';
-import { PLAYERS, getPlayerDisplayName, TEAMS } from '@/lib/data';
+import { PLAYERS, getPlayerDisplayName, TEAMS, getCaptainForTeamInSeason, getCurrentSeason } from '@/lib/data';
+import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
 
@@ -72,6 +73,24 @@ function playerName(id: string | null): string {
 function teamName(id: string | null): string {
   if (!id) return '–';
   return TEAM_OPTIONS.find(t => t.id === id)?.name ?? id;
+}
+
+// War der erkannte Spieler in der (letzten) Saison Teamkapitän seines Teams?
+// Vergleich des Kapitäns-Namens der Team-Saison-Zuordnung mit dem Spielernamen
+// (normalisiert). Rückgabe: { was, captainName } — captainName für den Gegencheck.
+function captainCheck(playerId: string | null, teamId: string | null): { was: boolean; captainName: string | null } {
+  if (!playerId || !teamId) return { was: false, captainName: null };
+  const cap = getCaptainForTeamInSeason(teamId, getCurrentSeason().id);
+  if (!cap) return { was: false, captainName: null };
+  const capN = normalizePersonName(cap);
+  // Gegen mehrere Namensformen prüfen (Anzeigename kann Spitzname/Format enthalten):
+  const p = PLAYERS.find(x => x.id === playerId);
+  const candidates = [
+    playerName(playerId),
+    p ? `${p.firstName} ${p.lastName}` : '',
+    p?.displayName ?? '',
+  ].filter(Boolean).map(normalizePersonName);
+  return { was: candidates.includes(capN), captainName: cap };
 }
 
 export default function AdminUsersPage() {
@@ -404,6 +423,21 @@ function EditModal({ actor, profile, onClose, onSaved }: {
                   <div>Erkannt: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(profile.matched_player_id)}</strong>
                     {profile.matched_team_id ? ` · ${teamName(profile.matched_team_id)}` : ''}
                     {profile.match_confidence ? ` (${profile.match_confidence})` : ''}</div>
+                  {/* Bei TC-Wunsch: war der erkannte Spieler bisher schon Kapitän? (Gegencheck) */}
+                  {profile.registration_intent === 'team_captain' && (() => {
+                    const { was, captainName } = captainCheck(profile.matched_player_id, profile.matched_team_id);
+                    return (
+                      <div style={{ marginTop: 4 }}>
+                        War bisher TC:{' '}
+                        <strong style={{ color: was ? '#16A34A' : '#E24B4A', fontWeight: 700 }}>
+                          {profile.matched_team_id ? (was ? 'Ja' : 'Nein') : 'unbekannt (kein Team erkannt)'}
+                        </strong>
+                        {profile.matched_team_id && !was && captainName && (
+                          <span style={{ color: 'var(--th-text-muted)' }}> · bisheriger TC: {captainName}</span>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <button type="button" onClick={() => {
                     setPlayerId(profile.matched_player_id ?? '');
                     if (profile.matched_team_id) setTeamId(profile.matched_team_id);
