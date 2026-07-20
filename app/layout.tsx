@@ -28,9 +28,33 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+// Basis-URL für Canonical/OG (Fallback = Live-Domain), überschreibbar per ENV.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
+
 export const metadata: Metadata = {
-  title: 'Münchner Dart Union',
-  description: 'Die offizielle Liga-Seite für den organisierten Dartsport in München.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Münchner Dart Union (MDU) – Dart-Liga München',
+    template: '%s · Münchner Dart Union (MDU)',
+  },
+  description:
+    'Offizielle Seite der Münchner Dart Union (MDU): Ligabetrieb, Tabellen, Spielpläne, ' +
+    'Ergebnisse und Teams im organisierten Dartsport in München.',
+  applicationName: 'Münchner Dart Union',
+  keywords: [
+    'Münchner Dart Union', 'MDU', 'MDU München', 'MDU Dart', 'MDU Darts',
+    'Dart Liga München', 'Dartliga München', 'Darts München', 'Dartsport München',
+    'Dartverein München', 'Dart München',
+  ],
+  openGraph: {
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'Münchner Dart Union',
+    url: SITE_URL,
+    title: 'Münchner Dart Union (MDU) – Dart-Liga München',
+    description:
+      'Ligabetrieb, Tabellen, Spielpläne, Ergebnisse und Teams der Münchner Dart Union.',
+  },
   // Pre-Go-live: Seite erreichbar, aber nicht für Suchmaschinen. Schalter: lib/site-config.ts
   robots: SITE_INDEXABLE ? undefined : { index: false, follow: false },
 };

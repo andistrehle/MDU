@@ -1,5 +1,7 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { SOCIAL_LINKS } from '@/lib/site-config';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
@@ -20,6 +22,37 @@ import {
 // News kommen aus der DB (Admin-verwaltet); alle 60 s serverseitig neu erzeugt.
 export const revalidate = 60;
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
+
+// Startseite = kanonische Einstiegsseite für die Marken-Suchbegriffe
+// (MDU, Münchner Dart Union, Dart Liga München …).
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
+
+// Strukturierte Daten (schema.org) — hilft Google, mdudarts.de eindeutig der
+// „Münchner Dart Union (MDU)" zuzuordnen. Adresse aus dem Impressum; sameAs =
+// offizielle Kanäle. Nur belegbare Angaben (keine erfundenen Telefon-/Daten).
+const ORG_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'SportsOrganization',
+  name: 'Münchner Dart Union',
+  alternateName: ['MDU', 'MDU München'],
+  url: SITE_URL,
+  logo: `${SITE_URL}/mdu-logo.webp`,
+  sport: 'Darts',
+  email: 'kontakt@mdudarts.de',
+  areaServed: 'München',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Zenettistraße 30',
+    postalCode: '80337',
+    addressLocality: 'München',
+    addressCountry: 'DE',
+  },
+  sameAs: [SOCIAL_LINKS.facebook, SOCIAL_LINKS.instagram].filter(Boolean),
+};
+
 export default async function HomePage() {
   const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
@@ -28,6 +61,11 @@ export default async function HomePage() {
   const newsArticles = await getHomepageNews();
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+      {/* Strukturierte Daten (Organisation) für die Suchmaschinen-Zuordnung */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}
+      />
       <DesktopHeader activeHref="/" />
 
       {/* Hero */}
