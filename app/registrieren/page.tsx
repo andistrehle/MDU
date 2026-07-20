@@ -75,13 +75,16 @@ export default function RegisterPage() {
     } catch { /* Prüfung best-effort — bei Fehler normal fortfahren */ }
 
     const res = await signUp({ firstName, lastName, email, password, intent, comment: showComment ? comment.trim() : undefined });
-    setBusy(false);
     if (res.error) {
+      setBusy(false);
       setError(res.error);
     } else {
-      // Super-Admins über die neue Registrierung informieren (best-effort).
-      // Bei nicht erkanntem Spieler den Freitext-Kommentar mitgeben.
-      void notifyNewUserToAdmins(email, showComment ? comment.trim() : undefined);
+      // Ligaleitung/Super-Admins über die neue Registrierung informieren.
+      // WICHTIG: bewusst AWAIT (nicht fire-and-forget) — sonst kann der Request
+      // beim UI-Wechsel/Redirect abgebrochen werden und die Mail bleibt aus.
+      // notifyNewUserToAdmins wirft nie (best-effort intern) → blockiert nicht.
+      await notifyNewUserToAdmins(email, showComment ? comment.trim() : undefined);
+      setBusy(false);
       if (res.needsEmailConfirmation) {
         // Supabase verlangt E-Mail-Bestätigung → Hinweis statt Redirect
         setConfirmEmailSent(true);
