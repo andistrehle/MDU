@@ -8,6 +8,7 @@
 // ============================================================
 
 import { supabase } from './client';
+import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug } from '@/lib/data/pass-numbers';
 
 export interface SeasonTeamRow {
   id: string;
@@ -53,6 +54,72 @@ export async function setActiveSeason(seasonId: string): Promise<{ error: string
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const { error } = await supabase.rpc('set_active_season', { p_season_id: seasonId });
   return { error: error?.message ?? null };
+}
+
+/**
+ * Neue Spieler eines freigegebenen Teams „scharf schalten": Für jede Kader-Zeile
+ * im Status `pending_review` (Spieler aus der Mannschaftsanmeldung, die es noch
+ * nicht als Profil gab) wird ein echtes Spielerprofil + Passnummer erzeugt und
+ * die Kader-Zeile auf `active` gesetzt. Nutzt dieselbe Regel wie die Nachmeldung
+ * (höchste Teamkollegen-Nummer + 1, nächste global freie). Idempotent: bereits
+ * finalisierte Zeilen (mit Passnummer) werden übersprungen; erneutes Ausführen
+ * ist gefahrlos (Upserts). Schreibt ECHTE Passnummern → nur Admin (RLS).
+ */
+export async function finalizeNewRosterPlayers(
+  seasonId: string,
+  teamId: string,
+): Promise<{ finalized: number; error: string | null }> {
+  if (!supabase || !seasonId || !teamId) return { finalized: 0, error: 'Supabase ist nicht konfiguriert.' };
+
+  const { data: rows, error: loadErr } = await supabase
+    .from('season_roster_assignments')
+    .select('id, first_name, last_name, player_id, is_captain, license_number')
+    .eq('season_id', seasonId).eq('team_id', teamId).eq('status', 'pending_review');
+  if (loadErr) return { finalized: 0, error: loadErr.message };
+  const todo = ((rows ?? []) as { id: string; first_name: string; last_name: string; player_id: string | null; is_captain: boolean; license_number: string | null }[])
+    .filter(r => !r.license_number);   // schon vergebene nicht doppelt behandeln
+  if (todo.length === 0) return { finalized: 0, error: null };
+
+  // Bereits vergebene Passnummern aus der DB einsammeln (players + Kader), damit
+  // es keine Doppelvergabe gibt. Der statische Stamm steckt schon in generateNextPassNumber.
+  const extraUsed: number[] = [];
+  const push = (rowsL: { license_number: string | null }[] | null) => {
+    for (const r of rowsL ?? []) { const n = parseLicenseNumber(r.license_number); if (n != null) extraUsed.push(n); }
+  };
+  const { data: dbP } = await supabase.from('players').select('license_number').not('license_number', 'is', null);
+  push(dbP as { license_number: string | null }[] | null);
+  const { data: dbR } = await supabase.from('season_roster_assignments').select('license_number').not('license_number', 'is', null);
+  push(dbR as { license_number: string | null }[] | null);
+
+  let finalized = 0;
+  for (const row of todo) {
+    const gen  = generateNextPassNumber(teamId, { seasonId, extraUsed });
+    const slug = row.player_id ?? nominationPlayerSlug(row.first_name, row.last_name, gen.number);
+
+    const { error: pe } = await supabase.from('players').upsert(
+      { id: slug, first_name: row.first_name, last_name: row.last_name, license_number: gen.license, status: 'active', source: 'registration' },
+      { onConflict: 'id' });
+    if (pe) return { finalized, error: `Spieler ${row.first_name} ${row.last_name}: ${pe.message}` };
+
+    const { error: ae } = await supabase.from('player_assignments').upsert(
+      { id: `pa-reg-${row.id}`, season_id: seasonId, team_id: teamId, player_id: slug, status: 'active', is_captain: row.is_captain, source: 'registration' },
+      { onConflict: 'id' });
+    if (ae) return { finalized, error: `Zuordnung ${row.first_name} ${row.last_name}: ${ae.message}` };
+
+    const { error: ue } = await supabase.from('season_roster_assignments')
+      .update({ player_id: slug, license_number: gen.license, status: 'active' }).eq('id', row.id);
+    if (ue) return { finalized, error: `Kader ${row.first_name} ${row.last_name}: ${ue.message}` };
+
+    // War der neue Spieler der Kapitän, die Team-Zuordnung nachziehen.
+    if (row.is_captain) {
+      await supabase.from('season_team_assignments')
+        .update({ captain_player_id: slug }).eq('season_id', seasonId).eq('team_id', teamId);
+    }
+
+    extraUsed.push(gen.number);
+    finalized++;
+  }
+  return { finalized, error: null };
 }
 
 /** Gesamter Saisonkader einer Saison (zum Gruppieren je Team). */

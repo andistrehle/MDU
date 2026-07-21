@@ -13,7 +13,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { canManageUsers } from '@/lib/auth/roles';
 
 export default function AdminSeasonTeamsPage() {
@@ -58,6 +58,30 @@ export default function AdminSeasonTeamsPage() {
 
   const [switching, setSwitching] = useState(false);
   const [switchMsg, setSwitchMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  // Neue Spieler eines Teams freigeben (Profil + Passnummer erzeugen).
+  const [finalizing, setFinalizing] = useState<string | null>(null);
+  const [finalizeMsg, setFinalizeMsg] = useState<{ teamId: string; kind: 'ok' | 'err'; text: string } | null>(null);
+
+  async function onFinalize(teamId: string, teamName: string) {
+    const pending = rosterFor(teamId).filter(p => p.status === 'pending_review');
+    if (pending.length === 0) return;
+    if (!confirm(
+      `Für „${teamName}" ${pending.length} neue${pending.length === 1 ? 'n' : ''} Spieler freigeben und ` +
+      `${pending.length === 1 ? 'eine Passnummer' : 'Passnummern'} vergeben?\n\n` +
+      `Es werden echte Spielerprofile mit Passnummer angelegt. Das lässt sich nicht einfach rückgängig machen.`,
+    )) return;
+    setFinalizing(teamId); setFinalizeMsg(null);
+    const { finalized, error } = await finalizeNewRosterPlayers(seasonId, teamId);
+    if (error) {
+      setFinalizing(null);
+      setFinalizeMsg({ teamId, kind: 'err', text: `Fehler nach ${finalized} Spieler(n): ${error}` });
+      return;
+    }
+    setRoster(await listSeasonRoster(seasonId));
+    setFinalizing(null);
+    setFinalizeMsg({ teamId, kind: 'ok', text: `${finalized} Spieler freigegeben und Passnummern vergeben.` });
+  }
 
   async function onActivate() {
     if (!season) return;
@@ -183,6 +207,33 @@ export default function AdminSeasonTeamsPage() {
                         ))}
                       </div>
                     )}
+
+                    {/* Neue Spieler freigeben + Passnummern vergeben */}
+                    {(() => {
+                      const pending = r.filter(p => p.status === 'pending_review').length;
+                      if (pending === 0) return null;
+                      return (
+                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--th-line-4)' }}>
+                          <button
+                            type="button"
+                            onClick={() => onFinalize(t.team_id, t.teams?.name ?? t.team_id)}
+                            disabled={finalizing === t.team_id}
+                            style={{ padding: '9px 14px', borderRadius: 8, cursor: finalizing === t.team_id ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}
+                          >
+                            {finalizing === t.team_id ? 'Vergebe Passnummern …' : `${pending} neue${pending === 1 ? 'n' : ''} Spieler freigeben & Passnummer${pending === 1 ? '' : 'n'} vergeben`}
+                          </button>
+                          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', margin: '8px 0 0', lineHeight: 1.5 }}>
+                            Legt für die als „neu (Prüfung)" markierten Spieler ein Spielerprofil an und vergibt eine Passnummer
+                            (Regel: höchste Teamkollegen-Nummer + 1, nächste freie). Danach sind sie im „Verknüpfter Spieler"-Feld auswählbar.
+                          </p>
+                          {finalizeMsg?.teamId === t.team_id && (
+                            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, marginTop: 8, color: finalizeMsg.kind === 'ok' ? 'var(--th-win)' : '#E24B4A' }}>
+                              {finalizeMsg.text}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

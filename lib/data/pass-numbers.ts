@@ -70,10 +70,17 @@ export function generateNextPassNumber(
 
   const used = usedNumbers(extraUsed);
 
-  // Basis: höchste Team-Nummer; ohne Team-Nummern über den Gesamtbestand.
+  // Basis: höchste Team-Nummer (Regel „Teamkollege + 1"). Ohne Teamkollegen
+  // (z. B. brandneues Team) NICHT über den kompletten Bestand, sondern nur über
+  // die MDU-lokale 4-stellige Serie — sonst würden vereinzelte große DSB-Nummern
+  // (z. B. „MDU 115006") die Basis nach oben ziehen und neue Spieler bekämen
+  // 6-stellige Nummern. Die großen Nummern bleiben aber für die Kollisionsprüfung
+  // (used) berücksichtigt.
+  const LOCAL_SERIES_MAX = 9999; // MDU-lokale Passnummern sind 4-stellig
+  const localUsed = [...used].filter(n => n <= LOCAL_SERIES_MAX);
   const base = teamNumbers.length
     ? Math.max(...teamNumbers)
-    : (used.size ? Math.max(...used) : 0);
+    : (localUsed.length ? Math.max(...localUsed) : 0);
 
   let next = base + 1;
   while (used.has(next)) next++;
