@@ -80,6 +80,14 @@ export async function finalizeNewRosterPlayers(
     .filter(r => !r.license_number);   // schon vergebene nicht doppelt behandeln
   if (todo.length === 0) return { finalized: 0, error: null };
 
+  // Schutz: niemals namenlose Profile anlegen. Fehlt bei einer Kaderzeile Vor-
+  // UND Nachname (z. B. Altbestand, bei dem nur display_name gesetzt war), lieber
+  // abbrechen und die Namen zuerst ergänzen lassen, statt Leer-Spieler zu erzeugen.
+  const nameless = todo.filter(r => !`${r.first_name ?? ''} ${r.last_name ?? ''}`.trim());
+  if (nameless.length) {
+    return { finalized: 0, error: `${nameless.length} Kaderzeile(n) ohne Namen — bitte zuerst die Namen ergänzen, dann erneut freigeben.` };
+  }
+
   // Bereits vergebene Passnummern aus der DB einsammeln (players + Kader), damit
   // es keine Doppelvergabe gibt. Der statische Stamm steckt schon in generateNextPassNumber.
   const extraUsed: number[] = [];

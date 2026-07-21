@@ -147,22 +147,44 @@ export async function updateRegistration(
   return { error: perr };
 }
 
+/**
+ * Zerlegt einen angezeigten Namen in Vor-/Nachname. Neue Spieler werden im
+ * Formular über EIN Feld (`display_name`) erfasst — damit die Kaderübernahme
+ * (die `first_name`/`last_name` kopiert) nicht leere Namen weiterreicht, leiten
+ * wir die beiden Felder hier ab: letztes Wort = Nachname, Rest = Vorname.
+ */
+export function splitDisplayName(display: string): { first: string; last: string } {
+  const parts = (display ?? '').trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts.slice(0, -1).join(' '), last: parts[parts.length - 1] };
+}
+
 /** Ersetzt den Kader einer Anmeldung (löscht + neu einfügen). */
 async function replacePlayers(registrationId: string, players: RegistrationPlayer[]): Promise<string | null> {
   if (!supabase) return NOT_CONFIGURED;
   await supabase.from('team_registration_players').delete().eq('registration_id', registrationId);
   if (players.length === 0) return null;
-  const rows = players.map(p => ({
-    registration_id: registrationId,
-    player_id: p.player_id,
-    first_name: p.first_name,
-    last_name: p.last_name,
-    display_name: p.display_name,
-    license_number: p.license_number,
-    is_captain: p.is_captain,
-    is_existing_player: p.is_existing_player,
-    status: p.status,
-  }));
+  const rows = players.map(p => {
+    let first = (p.first_name ?? '').trim();
+    let last = (p.last_name ?? '').trim();
+    // Neuer Spieler nur über display_name erfasst → Vor-/Nachname ableiten.
+    if (!first && !last && (p.display_name ?? '').trim()) {
+      const s = splitDisplayName(p.display_name);
+      first = s.first; last = s.last;
+    }
+    return {
+      registration_id: registrationId,
+      player_id: p.player_id,
+      first_name: first,
+      last_name: last,
+      display_name: (p.display_name ?? '').trim() || `${first} ${last}`.trim(),
+      license_number: p.license_number,
+      is_captain: p.is_captain,
+      is_existing_player: p.is_existing_player,
+      status: p.status,
+    };
+  });
   const { error } = await supabase.from('team_registration_players').insert(rows);
   return error?.message ?? null;
 }
