@@ -151,6 +151,26 @@ export async function finalizeNewRosterPlayers(
   return { finalized, error: null };
 }
 
+/**
+ * Alle aktiven Spieler aus der DB-Tabelle `players` als Zuordnungs-Optionen
+ * (id, Anzeigename, Passnummer) — inkl. der per Team-Freigabe/Nachmeldung neu
+ * angelegten, die es im statischen Stamm noch nicht gibt. Für das „Verknüpfter
+ * Spieler"-Dropdown im Admin, damit auch frisch angelegte Spieler auswählbar sind.
+ */
+export async function listDbPlayerOptions(): Promise<{ id: string; name: string; license: string | null }[]> {
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from('players')
+    .select('id, first_name, last_name, display_name, license_number, status')
+    .eq('status', 'active');
+  return ((data ?? []) as { id: string; first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null }[])
+    .map(p => ({
+      id: p.id,
+      name: (p.display_name ?? `${p.first_name ?? ''} ${p.last_name ?? ''}`).trim() || p.id,
+      license: p.license_number ?? null,
+    }));
+}
+
 /** Gesamter Saisonkader einer Saison (zum Gruppieren je Team). */
 export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRow[]> {
   if (!supabase || !seasonId) return [];

@@ -23,6 +23,7 @@ import { PLAYERS, getPlayerDisplayName, TEAMS, getCaptainForTeamInSeason, getCur
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
+import { listDbPlayerOptions } from '@/lib/supabase/season-teams';
 
 interface ProfileRow {
   id: string;
@@ -107,17 +108,28 @@ export default function AdminUsersPage() {
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
     setStatus('loading');
-    const [{ data, error }, nominated] = await Promise.all([
+    const [{ data, error }, nominated, dbPlayers] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: true }),
       listApprovedNominatedPlayers().catch(() => []),
+      listDbPlayerOptions().catch(() => []),
     ]);
     if (error) {
       setStatus('error');
       setErrorMsg(error.message);
       return;
     }
-    // Freigegebene Nachmeldungs-Spieler zusätzlich zuordenbar machen.
-    NOMINATED_OPTIONS = (nominated ?? []).map(n => ({ id: n.id, name: n.license ? `${n.name} · ${n.license}` : n.name }));
+    // Zusätzlich zuordenbar: freigegebene Nachmeldungs-Spieler UND alle in der DB
+    // angelegten Spieler (Team-Freigabe/Registrierung), die nicht im statischen
+    // Stamm stehen. Deduplizieren nach id, statische Ids überspringen (die stecken
+    // schon in PLAYER_OPTIONS).
+    const staticIds = new Set(PLAYER_OPTIONS.map(o => o.id));
+    const extra = new Map<string, { id: string; name: string }>();
+    for (const n of nominated ?? []) extra.set(n.id, { id: n.id, name: n.license ? `${n.name} · ${n.license}` : n.name });
+    for (const p of dbPlayers ?? []) {
+      if (staticIds.has(p.id) || extra.has(p.id)) continue;
+      extra.set(p.id, { id: p.id, name: p.license ? `${p.name} · ${p.license}` : p.name });
+    }
+    NOMINATED_OPTIONS = [...extra.values()];
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
   }, []);
