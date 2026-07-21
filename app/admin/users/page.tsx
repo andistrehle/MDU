@@ -51,8 +51,13 @@ const PLAYER_OPTIONS = [...PLAYERS]
 // Zusätzlich zuordenbare Spieler aus freigegebenen Nachmeldungen (zur Laufzeit
 // aus der DB geladen). Modul-Registry, damit playerName()/Dropdown sie sehen.
 let NOMINATED_OPTIONS: { id: string; name: string }[] = [];
+// Aktuelle Passnummer je Spieler-Id (zur Laufzeit aus der DB) — hängt im Dropdown
+// einheitlich an jeden Namen an, statisch wie neu.
+let LICENSE_BY_ID = new Map<string, string>();
 function combinedPlayerOptions(): { id: string; name: string }[] {
-  return [...PLAYER_OPTIONS, ...NOMINATED_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  return [...PLAYER_OPTIONS, ...NOMINATED_OPTIONS]
+    .map(o => { const lic = LICENSE_BY_ID.get(o.id); return { id: o.id, name: lic ? `${o.name} · ${lic}` : o.name }; })
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 }
 
 const TEAM_OPTIONS = [...TEAMS]
@@ -121,15 +126,19 @@ export default function AdminUsersPage() {
     // Zusätzlich zuordenbar: freigegebene Nachmeldungs-Spieler UND alle in der DB
     // angelegten Spieler (Team-Freigabe/Registrierung), die nicht im statischen
     // Stamm stehen. Deduplizieren nach id, statische Ids überspringen (die stecken
-    // schon in PLAYER_OPTIONS).
+    // schon in PLAYER_OPTIONS). Namen OHNE Passnummer — die Nummer hängt für ALLE
+    // einheitlich combinedPlayerOptions() aus der DB an (aktuelle „MDU 27"-Nummer).
     const staticIds = new Set(PLAYER_OPTIONS.map(o => o.id));
     const extra = new Map<string, { id: string; name: string }>();
-    for (const n of nominated ?? []) extra.set(n.id, { id: n.id, name: n.license ? `${n.name} · ${n.license}` : n.name });
+    for (const n of nominated ?? []) extra.set(n.id, { id: n.id, name: n.name });
     for (const p of dbPlayers ?? []) {
       if (staticIds.has(p.id) || extra.has(p.id)) continue;
-      extra.set(p.id, { id: p.id, name: p.license ? `${p.name} · ${p.license}` : p.name });
+      extra.set(p.id, { id: p.id, name: p.name });
     }
     NOMINATED_OPTIONS = [...extra.values()];
+    // Aktuelle Passnummern aus der DB (für ALLE Spieler, auch statische) — damit
+    // im Dropdown überall die gültige Nummer steht, nicht die veraltete statische.
+    LICENSE_BY_ID = new Map((dbPlayers ?? []).filter(p => p.license).map(p => [p.id, p.license as string]));
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
   }, []);
