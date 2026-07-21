@@ -26,11 +26,15 @@ export const dynamic = 'force-dynamic';
 const accepted = () => NextResponse.json({ status: 'accepted' }, { status: 200 });
 
 export async function POST(request: Request) {
-  // Missbrauchsschutz gegen Mail-Flut/Enumeration (öffentlich aufrufbar).
-  if (!rateLimit(`newuser:${clientIp(request)}`, 6, 600_000)) {
+  if (!supabaseAdmin) return accepted();
+
+  // Loses Anti-Loop-Limit PRO IP: großzügig, damit gemeinsame Netze
+  // (Vereinsabend/Lokal-WLAN) oder eine als 'unknown' gelieferte IP NICHT
+  // dazu führen, dass sich echte Anmeldungen ein Bucket teilen und verschluckt
+  // werden. Der eigentliche Missbrauchsschutz läuft weiter unten pro Ziel-Adresse.
+  if (!rateLimit(`newuser-ip:${clientIp(request)}`, 120, 600_000)) {
     return NextResponse.json({ status: 'accepted' }, { status: 429 });
   }
-  if (!supabaseAdmin) return accepted();
 
   let email = '';
   let comment = '';
@@ -41,6 +45,14 @@ export async function POST(request: Request) {
     comment = String(body?.comment ?? '').trim().slice(0, 1000);
   } catch { /* leer */ }
   if (!email) return accepted();
+
+  // Missbrauchsschutz PRO Ziel-E-Mail statt pro IP: dieselbe (frisch
+  // registrierte) Adresse kann die Admin-Mail nur begrenzt oft auslösen —
+  // aber jede eigenständige Registrierung (= eigene E-Mail) hat ihr eigenes
+  // Budget. So blockiert ein gemeinsames WLAN keine echten Anmeldungen mehr.
+  if (!rateLimit(`newuser:${email.toLowerCase()}`, 3, 600_000)) {
+    return accepted();
+  }
 
   // Profil zur E-Mail laden — nur ein frisch registriertes, noch nicht
   // zugeordnetes Konto löst die Admin-Mail aus (gegen Missbrauch).
