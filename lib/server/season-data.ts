@@ -76,13 +76,26 @@ export async function getSeasonTeams(seasonId: string): Promise<SeasonTeam[]> {
     teams: { name: string | null; short_name: string | null; logo_url: string | null } | null;
     venues: { name: string | null } | null;
   };
-  return ((data ?? []) as unknown as Row[]).map(r => {
+  const rows = (data ?? []) as unknown as Row[];
+
+  // Über „Team bearbeiten" gepflegte Logos liegen in team_profiles (Overlay) —
+  // die haben Vorrang vor dem bei der Anmeldung gesetzten teams.logo_url.
+  const logoByTeam = new Map<string, string>();
+  if (rows.length) {
+    const { data: profs } = await c
+      .from('team_profiles').select('team_id, logo_url').in('team_id', rows.map(r => r.team_id));
+    for (const p of (profs ?? []) as { team_id: string; logo_url: string | null }[]) {
+      if (p.logo_url) logoByTeam.set(p.team_id, p.logo_url);
+    }
+  }
+
+  return rows.map(r => {
     const league = r.assigned_competition_id ? findLeague(r.assigned_competition_id) : undefined;
     return {
       teamId: r.team_id,
       name: r.teams?.name ?? r.team_id,
       shortName: r.teams?.short_name ?? null,
-      logoUrl: r.teams?.logo_url ?? null,
+      logoUrl: logoByTeam.get(r.team_id) ?? r.teams?.logo_url ?? null,
       leagueId: r.assigned_competition_id ?? null,
       leagueName: league?.name ?? null,
       venueName: r.venues?.name ?? null,
