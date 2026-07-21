@@ -222,6 +222,36 @@ export function deriveTeamShortName(name: string): string {
   return code.slice(0, 3);
 }
 
+/** Locker normalisieren für Spielstätten-Abgleich: Groß/klein, ß→ss,
+ *  „straße"/„strasse"→„str", alle Sonderzeichen/Leerzeichen raus.
+ *  So matchen „Gleichmannstr.6" und „Gleichmannstraße 6". */
+function normalizeLoose(s: string | null | undefined): string {
+  return (s ?? '').toLowerCase().replace(/ß/g, 'ss').replace(/strasse/g, 'str').replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Vor der Freigabe die Spielstätte der Anmeldung mit dem Bestand abgleichen:
+ * Gibt es (schreibweisen-tolerant) schon eine passende Spielstätte, wird die
+ * Anmeldung auf deren kanonische Schreibweise angeglichen — dann findet die
+ * Freigabe-RPC sie per exaktem Vergleich wieder und legt KEINE Dublette an.
+ * Gibt es keine → bleibt alles, die RPC erstellt die neue Spielstätte.
+ */
+async function reconcileVenue(registrationId: string): Promise<void> {
+  if (!supabase) return;
+  const { data: reg } = await supabase.from('team_registrations')
+    .select('venue_name, venue_address').eq('id', registrationId).single();
+  const r = reg as { venue_name: string | null; venue_address: string | null } | null;
+  if (!r || !(r.venue_name ?? '').trim()) return;
+  const { data: venues } = await supabase.from('venues').select('id, name, address');
+  const nName = normalizeLoose(r.venue_name), nAddr = normalizeLoose(r.venue_address);
+  const match = ((venues ?? []) as { id: string; name: string; address: string | null }[])
+    .find(v => normalizeLoose(v.name) === nName && normalizeLoose(v.address) === nAddr);
+  if (match && (match.name !== r.venue_name || (match.address ?? '') !== (r.venue_address ?? ''))) {
+    await supabase.from('team_registrations')
+      .update({ venue_name: match.name, venue_address: match.address }).eq('id', registrationId);
+  }
+}
+
 /** Für ein NEUES Team ohne Kurznamen automatisch eines setzen (idempotent). */
 async function ensureShortName(registrationId: string): Promise<void> {
   if (!supabase) return;
@@ -295,6 +325,8 @@ export async function applyApprovedTeamRegistration(
   // Neues Team ohne Kürzel → vor der Übernahme automatisch eines setzen, damit
   // das angelegte Team nicht ohne Kurzname bleibt (auch für früher eingereichte).
   await ensureShortName(registrationId);
+  // Spielstätte schreibweisen-tolerant mit dem Bestand abgleichen (keine Dubletten).
+  await reconcileVenue(registrationId);
 
   // Begründung/Anmerkung vorab speichern (RPC kümmert sich um den Status).
   if (opts.reviewNote !== undefined) {
