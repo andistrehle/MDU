@@ -14,7 +14,7 @@
 // alles). RLS in der DB sichert das zusätzlich serverseitig ab.
 // ============================================================
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -119,6 +119,13 @@ export default function AdminUsersPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [editing, setEditing] = useState<ProfileRow | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Filter: alle ODER nur „zuzuweisen" (Konten ohne verknüpften Spieler).
+  const [filter, setFilter] = useState<'all' | 'unassigned'>('all');
+  const unassignedCount = useMemo(() => profiles.filter(p => !p.player_id).length, [profiles]);
+  const shown = useMemo(
+    () => filter === 'unassigned' ? profiles.filter(p => !p.player_id) : profiles,
+    [profiles, filter],
+  );
 
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
@@ -223,10 +230,33 @@ export default function AdminUsersPage() {
 
       {status === 'idle' && (
         <>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginBottom: 16 }}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginBottom: 12 }}>
             {profiles.length} Benutzer · Quelle: Supabase <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>public.profiles</code>
             {!canEdit && ' · Nur-Lese-Ansicht (Bearbeiten nur Super Admin)'}
           </div>
+
+          {/* Filter: alle / nur zuzuweisende (ohne Spieler-Verknüpfung) */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+            {([['all', `Alle (${profiles.length})`], ['unassigned', `Zuzuweisen (${unassignedCount})`]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                style={{
+                  padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5,
+                  background: filter === key ? 'var(--th-accent)' : 'transparent',
+                  color: filter === key ? '#fff' : 'var(--th-text-muted)',
+                  border: `1.5px solid ${filter === key ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
+                }}
+              >{label}</button>
+            ))}
+          </div>
+          {filter === 'unassigned' && (
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', margin: '0 0 14px' }}>
+              Konten, die noch mit keinem Spieler verknüpft sind — hier fehlt in der Regel noch die Zuordnung.
+            </p>
+          )}
 
           {/* ── Desktop-Tabelle ──────────────────────────────── */}
           <div className="mdu-desktop-only mdu-table-scroll">
@@ -239,11 +269,11 @@ export default function AdminUsersPage() {
               }}>
                 <span>Name</span><span>E-Mail</span><span>Rolle</span><span>Spieler</span><span>Team</span><span></span>
               </div>
-              {profiles.map((p, i) => (
+              {shown.map((p, i) => (
                 <div key={p.id} style={{
                   display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1.1fr 1.1fr 1fr 150px',
                   padding: '12px 18px', gap: 12, alignItems: 'center',
-                  borderBottom: i < profiles.length - 1 ? '1px solid var(--th-line-4)' : 'none',
+                  borderBottom: i < shown.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)',
                 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
@@ -265,13 +295,13 @@ export default function AdminUsersPage() {
                   </span>
                 </div>
               ))}
-              {profiles.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>Noch keine Benutzer registriert.</div>}
+              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{filter === 'unassigned' ? 'Keine zuzuweisenden Konten — alles verknüpft. 🎉' : 'Noch keine Benutzer registriert.'}</div>}
             </div>
           </div>
 
           {/* ── Mobile-Karten ────────────────────────────────── */}
           <div className="mdu-mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {profiles.map(p => (
+            {shown.map(p => (
               <div key={p.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
@@ -291,7 +321,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             ))}
-            {profiles.length === 0 && <p style={muted}>Noch keine Benutzer registriert.</p>}
+            {shown.length === 0 && <p style={muted}>{filter === 'unassigned' ? 'Keine zuzuweisenden Konten — alles verknüpft. 🎉' : 'Noch keine Benutzer registriert.'}</p>}
           </div>
         </>
       )}
