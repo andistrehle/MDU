@@ -171,6 +171,21 @@ export async function listDbPlayerOptions(): Promise<{ id: string; name: string;
     }));
 }
 
+/**
+ * Alle aktiven Teams aus der DB-Tabelle `teams` als Zuordnungs-Optionen
+ * (id, Name) — inkl. der bei einer Mannschaftsanmeldung neu angelegten Teams,
+ * die es im statischen Stamm noch nicht gibt. Für das „Verknüpftes Team"-Dropdown.
+ */
+export async function listDbTeamOptions(): Promise<{ id: string; name: string }[]> {
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from('teams')
+    .select('id, name, status')
+    .eq('status', 'active');
+  return ((data ?? []) as { id: string; name: string | null }[])
+    .map(t => ({ id: t.id, name: (t.name ?? '').trim() || t.id }));
+}
+
 /** Gesamter Saisonkader einer Saison (zum Gruppieren je Team). */
 export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRow[]> {
   if (!supabase || !seasonId) return [];

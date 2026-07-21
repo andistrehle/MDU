@@ -23,7 +23,7 @@ import { PLAYERS, getPlayerDisplayName, TEAMS, getCaptainForTeamInSeason, getCur
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
-import { listDbPlayerOptions } from '@/lib/supabase/season-teams';
+import { listDbPlayerOptions, listDbTeamOptions } from '@/lib/supabase/season-teams';
 
 interface ProfileRow {
   id: string;
@@ -64,6 +64,14 @@ const TEAM_OPTIONS = [...TEAMS]
   .map(t => ({ id: t.id, name: t.name }))
   .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
+// Zusätzliche Teams aus der DB (bei Anmeldung neu angelegt), zur Laufzeit geladen.
+let DB_TEAM_OPTIONS: { id: string; name: string }[] = [];
+function combinedTeamOptions(): { id: string; name: string }[] {
+  const ids = new Set(TEAM_OPTIONS.map(o => o.id));
+  return [...TEAM_OPTIONS, ...DB_TEAM_OPTIONS.filter(t => !ids.has(t.id))]
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+
 function fmtDate(iso: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '–';
@@ -78,7 +86,9 @@ function playerName(id: string | null): string {
 }
 function teamName(id: string | null): string {
   if (!id) return '–';
-  return TEAM_OPTIONS.find(t => t.id === id)?.name ?? id;
+  return TEAM_OPTIONS.find(t => t.id === id)?.name
+    ?? DB_TEAM_OPTIONS.find(t => t.id === id)?.name
+    ?? id;
 }
 
 // War der erkannte Spieler in der (letzten) Saison Teamkapitän seines Teams?
@@ -113,10 +123,11 @@ export default function AdminUsersPage() {
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
     setStatus('loading');
-    const [{ data, error }, nominated, dbPlayers] = await Promise.all([
+    const [{ data, error }, nominated, dbPlayers, dbTeams] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: true }),
       listApprovedNominatedPlayers().catch(() => []),
       listDbPlayerOptions().catch(() => []),
+      listDbTeamOptions().catch(() => []),
     ]);
     if (error) {
       setStatus('error');
@@ -139,6 +150,8 @@ export default function AdminUsersPage() {
     // Aktuelle Passnummern aus der DB (für ALLE Spieler, auch statische) — damit
     // im Dropdown überall die gültige Nummer steht, nicht die veraltete statische.
     LICENSE_BY_ID = new Map((dbPlayers ?? []).filter(p => p.license).map(p => [p.id, p.license as string]));
+    // Bei Anmeldung neu angelegte Teams zusätzlich auswählbar machen.
+    DB_TEAM_OPTIONS = dbTeams ?? [];
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
   }, []);
@@ -497,7 +510,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           <Field label="Verknüpftes Team">
             <select value={teamId} onChange={e => setTeamId(e.target.value)} style={inputStyle}>
               <option value="">— kein Team —</option>
-              {TEAM_OPTIONS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              {combinedTeamOptions().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           </Field>
 
