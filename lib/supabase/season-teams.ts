@@ -8,7 +8,7 @@
 // ============================================================
 
 import { supabase } from './client';
-import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug } from '@/lib/data/pass-numbers';
+import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
 
 export interface SeasonTeamRow {
   id: string;
@@ -91,9 +91,30 @@ export async function finalizeNewRosterPlayers(
   const { data: dbR } = await supabase.from('season_roster_assignments').select('license_number').not('license_number', 'is', null);
   push(dbR as { license_number: string | null }[] | null);
 
+  // Block dieses Teams EINMAL bestimmen (Betreiber-Systematik: 1 Team = 1 100er-Block):
+  //   1) aus bereits vergebenen Nummern DIESES Teams in der Saison (DB),
+  //   2) sonst der historische statische Block (25/26),
+  //   3) sonst der nächste global freie Block (inkl. schon belegter DB-Blöcke).
+  const { data: teamRows } = await supabase
+    .from('season_roster_assignments').select('license_number')
+    .eq('season_id', seasonId).eq('team_id', teamId).not('license_number', 'is', null);
+  const teamNums = ((teamRows ?? []) as { license_number: string | null }[])
+    .map(r => parseLicenseNumber(r.license_number)).filter((n): n is number => n != null && n >= 1000 && n < 10000);
+  let blockBase: number | undefined;
+  if (teamNums.length) {
+    const cnt = new Map<number, number>();
+    for (const n of teamNums) { const b = Math.floor(n / 100) * 100; cnt.set(b, (cnt.get(b) ?? 0) + 1); }
+    blockBase = [...cnt.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+  } else {
+    blockBase = staticTeamBlock(teamId) ?? nextFreeBlock(extraUsed.map(n => Math.floor(n / 100) * 100));
+  }
+  // Saison-Präfix (z. B. „…2027" → 27); sonst Default aus generateNextPassNumber.
+  const years = [...String(seasonId).matchAll(/\d{4}/g)].map(m => parseInt(m[0], 10)).filter(y => y >= 2000);
+  const seasonYear = years.length ? Math.max(...years) : undefined;
+
   let finalized = 0;
   for (const row of todo) {
-    const gen  = generateNextPassNumber(teamId, { seasonId, extraUsed });
+    const gen  = generateNextPassNumber(teamId, { seasonId, seasonYear, extraUsed, isCaptain: row.is_captain, blockBase });
     const slug = row.player_id ?? nominationPlayerSlug(row.first_name, row.last_name, gen.number);
 
     const { error: pe } = await supabase.from('players').upsert(

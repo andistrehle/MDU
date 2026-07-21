@@ -11,6 +11,7 @@
 // ============================================================
 
 import { PLAYERS } from './players';
+import { TEAMS } from './teams';
 import { getPlayersForTeamInSeason } from './assignments';
 import { getCurrentSeason } from './seasons';
 
@@ -56,35 +57,65 @@ export interface GeneratedPass {
  * @param extraUsed zusätzlich schon vergebene Nummern (z. B. aus früheren
  *                  Nachmeldungen), damit es keine Doppelvergabe gibt.
  */
+/** Block-Basis eines Teams aus dem statischen Bestand (historisch, 25/26):
+ *  Modus der Hunderter der 4-stelligen Nummern (größter Cluster).
+ *  null, wenn das Team keine 4-stellige Nummer hat (z. B. brandneu). */
+export function staticTeamBlock(teamId: string): number | null {
+  const clean = getPlayersForTeamInSeason(teamId, getCurrentSeason().id)
+    .map(tp => parseLicenseNumber(tp.player.licenseNumber))
+    .filter((n): n is number => n != null && n >= 1000 && n < 10000);
+  if (!clean.length) return null;
+  const cnt = new Map<number, number>();
+  for (const n of clean) { const b = Math.floor(n / 100) * 100; cnt.set(b, (cnt.get(b) ?? 0) + 1); }
+  return [...cnt.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+}
+
+/** Alle von statischen Teams belegten 100er-Blöcke. */
+function usedBlocks(): Set<number> {
+  const s = new Set<number>();
+  for (const t of TEAMS) { const b = staticTeamBlock(t.id); if (b != null) s.add(b); }
+  return s;
+}
+
+/**
+ * Nächster global freier 100er-Block (Basis 1000, 1100, …) für ein NEUES Team
+ * ohne eigene Nummern. `extraUsedBlocks` für bereits (z. B. in der DB) belegte
+ * Blöcke, die im statischen Bestand nicht auftauchen.
+ */
+export function nextFreeBlock(extraUsedBlocks: number[] = []): number {
+  const used = usedBlocks();
+  for (const b of extraUsedBlocks) used.add(b);
+  for (let b = 1000; b < 100000; b += 100) if (!used.has(b)) return b;
+  return 1000;
+}
+
+/**
+ * Nächste Passnummer nach der Block-Systematik (Betreiber-Regel, ab 2026/2027):
+ *   MDU XX YYYY — je Team ein 100er-Block, TC bevorzugt auf …01, sonst der
+ *   nächste freie Platz im Block; global eindeutig.
+ * `blockBase` kann explizit gesetzt werden (z. B. für ein neues DB-Team, dessen
+ * freier Block dort ermittelt wird); sonst aus dem statischen Bestand abgeleitet,
+ * andernfalls der nächste freie Block.
+ * `seasonYear` steuert das Präfix (z. B. 2027 → „27"); Default = aktuelle Saison.
+ */
 export function generateNextPassNumber(
   teamId: string,
-  opts: { seasonId?: string; extraUsed?: number[] } = {},
+  opts: { seasonId?: string; seasonYear?: number; extraUsed?: number[]; isCaptain?: boolean; blockBase?: number } = {},
 ): GeneratedPass {
   const season = getCurrentSeason();
-  const seasonId = opts.seasonId ?? season.id;
-  const extraUsed = opts.extraUsed ?? [];
+  const yy = String((opts.seasonYear ?? season.year) % 100).padStart(2, '0');
+  const used = usedNumbers(opts.extraUsed ?? []);
 
-  const teamNumbers = getPlayersForTeamInSeason(teamId, seasonId)
-    .map(tp => parseLicenseNumber(tp.player.licenseNumber))
-    .filter((n): n is number => n != null);
+  const B = opts.blockBase
+    ?? staticTeamBlock(teamId)
+    ?? nextFreeBlock((opts.extraUsed ?? []).map(n => Math.floor(n / 100) * 100));
 
-  const used = usedNumbers(extraUsed);
-
-  // Basis: höchste Team-Nummer (Regel „Teamkollege + 1"). Ohne Teamkollegen
-  // (z. B. brandneues Team) NICHT über den kompletten Bestand, sondern nur über
-  // die MDU-lokale 4-stellige Serie — sonst würden vereinzelte große DSB-Nummern
-  // (z. B. „MDU 115006") die Basis nach oben ziehen und neue Spieler bekämen
-  // 6-stellige Nummern. Die großen Nummern bleiben aber für die Kollisionsprüfung
-  // (used) berücksichtigt.
-  const LOCAL_SERIES_MAX = 9999; // MDU-lokale Passnummern sind 4-stellig
-  const localUsed = [...used].filter(n => n <= LOCAL_SERIES_MAX);
-  const base = teamNumbers.length
-    ? Math.max(...teamNumbers)
-    : (localUsed.length ? Math.max(...localUsed) : 0);
-
-  let next = base + 1;
-  while (used.has(next)) next++;
-
-  const seasonShort = String(season.year % 100).padStart(2, '0');
-  return { number: next, license: `MDU ${seasonShort} ${next}` };
+  const mk = (n: number): GeneratedPass => ({ number: n, license: `MDU ${yy} ${n}` });
+  // TC bevorzugt …01
+  if (opts.isCaptain && !used.has(B + 1)) return mk(B + 1);
+  for (let i = 1; i <= 99; i++) if (!used.has(B + i)) return mk(B + i);
+  // Block voll → nächste global freie Nummer darüber (Notfall).
+  let n = B + 100;
+  while (used.has(n)) n++;
+  return mk(n);
 }
