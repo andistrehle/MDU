@@ -84,19 +84,33 @@ const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 
 // ── Lesen ─────────────────────────────────────────────────────
 
-/** Eigene Anmeldungen (RLS filtert automatisch auf submitted_by). */
+/**
+ * Eigene Anmeldungen. WICHTIG: explizit auf das eigene Konto filtern —
+ * Admins dürfen per RLS ALLE lesen, „Meine Anmeldungen" soll aber nur die
+ * selbst eingereichten zeigen (sonst tauchen fremde Teams auf).
+ */
 export async function listMyRegistrations(): Promise<TeamRegistration[]> {
+  if (!supabase) return [];
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return [];
+  const { data } = await supabase
+    .from('team_registrations')
+    .select('*')
+    .eq('submitted_by', uid)
+    .order('created_at', { ascending: false });
+  return (data ?? []) as TeamRegistration[];
+}
+
+/** Alle Anmeldungen (nur für Admins per RLS sichtbar) — NICHT auf das eigene
+ *  Konto gefiltert; RLS entscheidet über die Sichtbarkeit (Admin sieht alle). */
+export async function listAllRegistrations(): Promise<TeamRegistration[]> {
   if (!supabase) return [];
   const { data } = await supabase
     .from('team_registrations')
     .select('*')
     .order('created_at', { ascending: false });
   return (data ?? []) as TeamRegistration[];
-}
-
-/** Alle Anmeldungen (nur für Admins per RLS sichtbar). */
-export async function listAllRegistrations(): Promise<TeamRegistration[]> {
-  return listMyRegistrations(); // gleiche Query — RLS entscheidet über Sichtbarkeit
 }
 
 export async function getRegistration(id: string): Promise<TeamRegistration | null> {
