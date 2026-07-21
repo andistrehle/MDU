@@ -9,6 +9,7 @@
 import { supabase } from './client';
 import { generateNextPassNumber, nominationPlayerSlug, parseLicenseNumber } from '@/lib/data/pass-numbers';
 import { getCurrentSeason } from '@/lib/data';
+import { normalizePersonName } from '@/lib/auth/player-match';
 
 export type NominationStatus = 'pending' | 'approved' | 'rejected';
 
@@ -87,14 +88,34 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       .select('team_id, first_name, last_name, player_id, license_number').eq('id', id).single();
     const n = nom as { team_id: string; first_name: string; last_name: string; player_id: string | null; license_number: string | null } | null;
     if (n && !n.license_number) {
-      // Schon vergebene generierte Nummern (andere Freigaben) berücksichtigen.
-      const { data: others } = await supabase.from('player_nominations')
-        .select('license_number').eq('status', 'approved').not('license_number', 'is', null);
-      const extraUsed = ((others ?? []) as { license_number: string }[])
-        .map(o => parseLicenseNumber(o.license_number))
-        .filter((x): x is number => x != null);
-      const gen = generateNextPassNumber(n.team_id, { extraUsed });
-      const slug = n.player_id ?? nominationPlayerSlug(n.first_name, n.last_name, gen.number);
+      // Prüfen, ob es den Spieler schon gibt (Teamwechsel/Wiederholung) → bestehendes
+      // Profil + permanente Nummer WIEDERVERWENDEN, statt eine neue Nummer zu vergeben.
+      // Nur bei eindeutigem Namenstreffer; sonst wird regulär eine Nummer erzeugt.
+      let slug = n.player_id ?? '';
+      let license = '';
+      let provisional = true;
+      if (!slug) {
+        const { data: allP } = await supabase.from('players')
+          .select('id, first_name, last_name, display_name, license_number');
+        const target = normalizePersonName(`${n.first_name} ${n.last_name}`);
+        const hits = ((allP ?? []) as { id: string; first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null }[])
+          .filter(p => normalizePersonName(`${p.first_name ?? ''} ${p.last_name ?? ''}`) === target
+                    || (p.display_name ? normalizePersonName(p.display_name) === target : false));
+        if (hits.length === 1 && hits[0].license_number) { slug = hits[0].id; license = hits[0].license_number!; provisional = false; }
+      }
+      if (!license) {
+        // Neuer Spieler (oder ohne Nummer) → nächste freie Nummer vergeben. Schon
+        // vergebene generierte Nummern (andere Freigaben) berücksichtigen.
+        const { data: others } = await supabase.from('player_nominations')
+          .select('license_number').eq('status', 'approved').not('license_number', 'is', null);
+        const extraUsed = ((others ?? []) as { license_number: string }[])
+          .map(o => parseLicenseNumber(o.license_number))
+          .filter((x): x is number => x != null);
+        const gen = generateNextPassNumber(n.team_id, { extraUsed });
+        license = gen.license;
+        if (!slug) slug = nominationPlayerSlug(n.first_name, n.last_name, gen.number);
+        provisional = true;
+      }
       const seasonId = getCurrentSeason().id;
 
       // Atomar über die RPC aus Migration 0033: Spieler + Kaderzuordnung +
@@ -102,13 +123,13 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       // kein „approved" ohne Spieler/Kader mehr (REV-047).
       const { error: rpcError } = await supabase.rpc('approve_nomination', {
         p_id: id,
-        p_license: gen.license,
+        p_license: license,
         p_player_id: slug,
         p_season_id: seasonId,
         p_team_id: n.team_id,
         p_first_name: n.first_name,
         p_last_name: n.last_name,
-        p_provisional: true,
+        p_provisional: provisional,
       });
       if (!rpcError) return { error: null };
 
@@ -117,12 +138,12 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       const rpcMissing = /PGRST202|could not find the function|does not exist/i.test(rpcError.message);
       if (!rpcMissing) return { error: rpcError.message };
 
-      patch.license_number = gen.license;
-      patch.license_provisional = true;
+      patch.license_number = license;
+      patch.license_provisional = provisional;
       patch.player_id = slug;
       const { error: pe } = await supabase.from('players').upsert({
         id: slug, first_name: n.first_name, last_name: n.last_name,
-        license_number: gen.license, status: 'active', source: 'nomination',
+        license_number: license, status: 'active', source: 'nomination',
       }, { onConflict: 'id' });
       if (pe) console.warn('players upsert (Migration 0032/0033 nötig?):', pe.message);
       const { error: ae } = await supabase.from('player_assignments').upsert({
