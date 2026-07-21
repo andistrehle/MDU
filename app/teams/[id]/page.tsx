@@ -16,7 +16,7 @@ import {
 import { notFound } from 'next/navigation';
 import { shade } from '@/lib/utils';
 import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
-import { getActiveSeason, getSeasonTeam, getSeasonRoster, getDbRosterForTeam } from '@/lib/server/season-data';
+import { getActiveSeason, getSeasonTeam, getSeasonRoster, getDbRosterForTeam, getAnySeasonTeamView } from '@/lib/server/season-data';
 import { SeasonTeamView } from '@/components/mdu/season-team-view';
 import { getRowOutcome } from '@/lib/data/competition-outcomes';
 
@@ -29,6 +29,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   // (aus Supabase, ohne statische Stammdaten). Archivierte Saisons nutzen die
   // reiche statische Teamseite unten.
   if (!staticTeam) {
+    // 1) Team in der aktiven (selbstverwalteten) Saison?
     const active = await getActiveSeason();
     if (active.selfManaged) {
       const st = await getSeasonTeam(active.id, id);
@@ -37,6 +38,10 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
         return <SeasonTeamView seasonName={active.name} team={st} roster={roster} />;
       }
     }
+    // 2) Sonst: neueste freigegebene Saison dieses Teams (z. B. 2026/2027, bevor
+    //    die Saison aktiv geschaltet ist) — damit neue Teams schon ein Profil haben.
+    const any = await getAnySeasonTeamView(id);
+    if (any) return <SeasonTeamView seasonName={any.seasonName} team={any.team} roster={any.roster} />;
     notFound();
   }
   const team = staticTeam;

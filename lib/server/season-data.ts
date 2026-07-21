@@ -128,6 +128,30 @@ export async function getSeasonTeam(seasonId: string, teamId: string): Promise<S
   return teams.find(t => t.teamId === teamId) ?? null;
 }
 
+/**
+ * Team in seiner NEUESTEN freigegebenen Saison finden (für die öffentliche
+ * Teamseite) — auch wenn diese Saison noch nicht aktiv geschaltet ist (z. B.
+ * ein für 2026/2027 angemeldetes Team, während aktiv noch 2025/2026 läuft).
+ */
+export async function getAnySeasonTeamView(
+  teamId: string,
+): Promise<{ seasonName: string; team: SeasonTeam; roster: SeasonRosterPlayer[] } | null> {
+  const c = anon();
+  if (!c || !teamId) return null;
+  const { data } = await c
+    .from('season_team_assignments')
+    .select('season_id, seasons:season_id(name)')
+    .eq('team_id', teamId).eq('status', 'approved')
+    .order('season_id', { ascending: false }).limit(1);
+  const row = ((data ?? [])[0]) as unknown as { season_id: string; seasons: { name: string } | { name: string }[] | null } | undefined;
+  if (!row) return null;
+  const seasonName = Array.isArray(row.seasons) ? (row.seasons[0]?.name ?? null) : (row.seasons?.name ?? null);
+  const team = await getSeasonTeam(row.season_id, teamId);
+  if (!team) return null;
+  const roster = await getSeasonRoster(row.season_id, teamId);
+  return { seasonName: seasonName ?? row.season_id, team, roster };
+}
+
 // ── Phase 2, Stufe 1: Kader aus der DB (Tabellen `players` + ────
 //    `player_assignments`, Migration 0032) ──────────────────────
 //
