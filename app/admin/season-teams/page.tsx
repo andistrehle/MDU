@@ -9,6 +9,7 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
@@ -196,6 +197,11 @@ export default function AdminSeasonTeamsPage() {
                       <span style={{ color: 'var(--th-text-muted)' }}>Liga/Wettbewerb</span>
                       <span style={{ color: t.assigned_competition_id ? 'var(--th-text-strong)' : 'var(--th-text-faint2)' }}>{t.assigned_competition_id ?? 'noch nicht zugewiesen'}</span>
                     </div>
+
+                    <Link href={`/mein-team/bearbeiten?team=${t.team_id}`}
+                      style={{ display: 'inline-block', marginBottom: 10, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                      Team-Profil bearbeiten (Logo, Beschreibung, Social) →
+                    </Link>
 
                     <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', margin: '6px 0 8px' }}>
                       Kader ({r.length})

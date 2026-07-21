@@ -1,27 +1,46 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
 import { loadTeamProfile, saveTeamProfile, type TeamProfileExtras } from '@/lib/supabase/profiles';
+import { getDbTeamName } from '@/lib/supabase/season-teams';
 import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
 import { ImageUpload } from '@/components/mdu/image-upload';
 
 export default function TeamBearbeitenPage() {
+  return <Suspense fallback={<MemberShell title="Team bearbeiten"><Muted>Lade …</Muted></MemberShell>}><TeamBearbeiten /></Suspense>;
+}
+
+function TeamBearbeiten() {
   const { user, loading } = useAuth();
-  const teamId = user?.teamId ?? null;
+  const params = useSearchParams();
+  // Admins (league_admin+) dürfen per ?team=<id> jedes Team bearbeiten; sonst
+  // das eigene. canEditTeam lässt für Kapitäne nur das eigene Team zu.
+  const paramTeam = params.get('team');
+  const teamId = (paramTeam && canEditTeam(user, paramTeam)) ? paramTeam : (user?.teamId ?? null);
+  const isForeign = !!paramTeam && paramTeam !== user?.teamId;
   const allowed = !!teamId && canEditTeam(user, teamId);
-  const team = teamId ? findTeam(teamId) : undefined;
+  const staticTeam = teamId ? findTeam(teamId) : undefined;
 
   const [extras, setExtras] = useState<TeamProfileExtras | null>(null);
+  const [dbTeamName, setDbTeamName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const team: { name: string; logoUrl: string | null } | undefined = staticTeam
+    ? { name: staticTeam.name, logoUrl: staticTeam.logoUrl ?? null }
+    : (dbTeamName ? { name: dbTeamName, logoUrl: null } : undefined);
 
   useEffect(() => {
     if (allowed && teamId) loadTeamProfile(teamId).then(setExtras);
   }, [allowed, teamId]);
+  useEffect(() => {
+    if (teamId && !staticTeam) getDbTeamName(teamId).then(t => setDbTeamName(t?.name ?? null));
+    else setDbTeamName(null);
+  }, [teamId, staticTeam]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,12 +65,17 @@ export default function TeamBearbeitenPage() {
         : !extras ? <Muted>Teamdaten werden geladen …</Muted>
         : (
           <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 620 }}>
+            {isForeign && (
+              <div role="status" style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.35)', color: 'var(--th-text-body)' }}>
+                Admin-Modus: Du bearbeitest ein fremdes Team-Profil (<strong>{team?.name ?? teamId}</strong>).
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 200, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
                 Team: <strong style={{ color: 'var(--th-text-strong)' }}>{team?.name ?? teamId}</strong>
                 <span style={{ color: 'var(--th-text-faint)' }}> · der Teamname wird zentral verwaltet</span>
               </div>
-              <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} />
+              {!isForeign && <NachmeldenButton teamId={teamId} teamName={team?.name ?? teamId} />}
             </div>
 
             {msg && (
