@@ -9,6 +9,7 @@
 
 import { supabase } from './client';
 import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
+import { normalizePersonName } from '@/lib/auth/player-match';
 
 export interface SeasonTeamRow {
   id: string;
@@ -68,7 +69,7 @@ export async function setActiveSeason(seasonId: string): Promise<{ error: string
 export async function finalizeNewRosterPlayers(
   seasonId: string,
   teamId: string,
-): Promise<{ finalized: number; error: string | null }> {
+): Promise<{ finalized: number; created?: number; linked?: number; ambiguous?: string[]; error: string | null }> {
   if (!supabase || !seasonId || !teamId) return { finalized: 0, error: 'Supabase ist nicht konfiguriert.' };
 
   const { data: rows, error: loadErr } = await supabase
@@ -120,35 +121,84 @@ export async function finalizeNewRosterPlayers(
   const years = [...String(seasonId).matchAll(/\d{4}/g)].map(m => parseInt(m[0], 10)).filter(y => y >= 2000);
   const seasonYear = years.length ? Math.max(...years) : undefined;
 
-  let finalized = 0;
+  // Bestehende Spieler nach Namen indexieren, damit Teamwechsler WIEDERVERWENDET
+  // werden (statt eine Dublette anzulegen) — Passnummer + Historie bleiben am
+  // bestehenden Profil. Zusätzlich license je Id, um die permanente Nummer zu ziehen.
+  const { data: allP } = await supabase.from('players')
+    .select('id, first_name, last_name, display_name, license_number');
+  const byName = new Map<string, string[]>();       // normalisierter Name → [playerId]
+  const licById = new Map<string, string | null>(); // playerId → Passnummer
+  const indexName = (name: string, id: string) => {
+    const key = normalizePersonName(name); if (!key) return;
+    const arr = byName.get(key) ?? []; if (!arr.includes(id)) arr.push(id); byName.set(key, arr);
+  };
+  for (const p of (allP ?? []) as { id: string; first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null }[]) {
+    licById.set(p.id, p.license_number ?? null);
+    indexName(`${p.first_name ?? ''} ${p.last_name ?? ''}`, p.id);
+    if (p.display_name) indexName(p.display_name, p.id);
+  }
+
+  let created = 0, linked = 0;
+  const ambiguous: string[] = [];
   for (const row of todo) {
+    const fullName = `${row.first_name} ${row.last_name}`.trim();
+
+    // Bestehenden Spieler bestimmen: explizit verknüpft ODER eindeutiger Namenstreffer.
+    let existingId: string | null = row.player_id ?? null;
+    if (!existingId) {
+      const matches = byName.get(normalizePersonName(fullName)) ?? [];
+      if (matches.length === 1) existingId = matches[0];
+      else if (matches.length > 1) { ambiguous.push(fullName); continue; } // mehrdeutig → manuell
+    }
+
+    if (existingId) {
+      // Wiederverwenden: nur neue Saison-/Team-Zuordnung + Kaderzeile, KEINE neue
+      // Passnummer (permanente Nummer + Historie am bestehenden Profil bleiben).
+      const lic = licById.get(existingId) ?? null;
+      const { error: ae } = await supabase.from('player_assignments').upsert(
+        { id: `pa-reg-${row.id}`, season_id: seasonId, team_id: teamId, player_id: existingId, status: 'active', is_captain: row.is_captain, source: 'registration' },
+        { onConflict: 'id' });
+      if (ae) return { finalized: created + linked, error: `Zuordnung ${fullName}: ${ae.message}` };
+      const { error: ue } = await supabase.from('season_roster_assignments')
+        .update({ player_id: existingId, license_number: lic, status: 'active' }).eq('id', row.id);
+      if (ue) return { finalized: created + linked, error: `Kader ${fullName}: ${ue.message}` };
+      if (row.is_captain) {
+        await supabase.from('season_team_assignments')
+          .update({ captain_player_id: existingId }).eq('season_id', seasonId).eq('team_id', teamId);
+      }
+      linked++;
+      continue;
+    }
+
+    // Wirklich neuer Spieler → Profil + Passnummer anlegen.
     const gen  = generateNextPassNumber(teamId, { seasonId, seasonYear, extraUsed, isCaptain: row.is_captain, blockBase });
-    const slug = row.player_id ?? nominationPlayerSlug(row.first_name, row.last_name, gen.number);
+    const slug = nominationPlayerSlug(row.first_name, row.last_name, gen.number);
 
     const { error: pe } = await supabase.from('players').upsert(
       { id: slug, first_name: row.first_name, last_name: row.last_name, license_number: gen.license, status: 'active', source: 'registration' },
       { onConflict: 'id' });
-    if (pe) return { finalized, error: `Spieler ${row.first_name} ${row.last_name}: ${pe.message}` };
+    if (pe) return { finalized: created + linked, error: `Spieler ${fullName}: ${pe.message}` };
 
     const { error: ae } = await supabase.from('player_assignments').upsert(
       { id: `pa-reg-${row.id}`, season_id: seasonId, team_id: teamId, player_id: slug, status: 'active', is_captain: row.is_captain, source: 'registration' },
       { onConflict: 'id' });
-    if (ae) return { finalized, error: `Zuordnung ${row.first_name} ${row.last_name}: ${ae.message}` };
+    if (ae) return { finalized: created + linked, error: `Zuordnung ${fullName}: ${ae.message}` };
 
     const { error: ue } = await supabase.from('season_roster_assignments')
       .update({ player_id: slug, license_number: gen.license, status: 'active' }).eq('id', row.id);
-    if (ue) return { finalized, error: `Kader ${row.first_name} ${row.last_name}: ${ue.message}` };
+    if (ue) return { finalized: created + linked, error: `Kader ${fullName}: ${ue.message}` };
 
-    // War der neue Spieler der Kapitän, die Team-Zuordnung nachziehen.
     if (row.is_captain) {
       await supabase.from('season_team_assignments')
         .update({ captain_player_id: slug }).eq('season_id', seasonId).eq('team_id', teamId);
     }
 
+    // Neu angelegten Spieler indexieren (falls zwei gleiche Namen im selben Kader).
+    indexName(fullName, slug); licById.set(slug, gen.license);
     extraUsed.push(gen.number);
-    finalized++;
+    created++;
   }
-  return { finalized, error: null };
+  return { finalized: created + linked, created, linked, ambiguous: ambiguous.length ? ambiguous : undefined, error: null };
 }
 
 /**

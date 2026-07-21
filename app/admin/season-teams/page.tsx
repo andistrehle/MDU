@@ -72,7 +72,7 @@ export default function AdminSeasonTeamsPage() {
       `Es werden echte Spielerprofile mit Passnummer angelegt. Das lässt sich nicht einfach rückgängig machen.`,
     )) return;
     setFinalizing(teamId); setFinalizeMsg(null);
-    const { finalized, error } = await finalizeNewRosterPlayers(seasonId, teamId);
+    const { finalized, created, linked, ambiguous, error } = await finalizeNewRosterPlayers(seasonId, teamId);
     if (error) {
       setFinalizing(null);
       setFinalizeMsg({ teamId, kind: 'err', text: `Fehler nach ${finalized} Spieler(n): ${error}` });
@@ -80,7 +80,14 @@ export default function AdminSeasonTeamsPage() {
     }
     setRoster(await listSeasonRoster(seasonId));
     setFinalizing(null);
-    setFinalizeMsg({ teamId, kind: 'ok', text: `${finalized} Spieler freigegeben und Passnummern vergeben.` });
+    // Ehrliche Rückmeldung: neu angelegt vs. mit bestehendem Profil verknüpft
+    // (Teamwechsler) vs. mehrdeutige Namen, die manuell zugeordnet werden müssen.
+    const parts: string[] = [];
+    if (created) parts.push(`${created} neu angelegt (mit Passnummer)`);
+    if (linked) parts.push(`${linked} mit bestehendem Profil verknüpft`);
+    let text = parts.length ? parts.join(' · ') : `${finalized} Spieler freigegeben.`;
+    if (ambiguous?.length) text += ` · ⚠ ${ambiguous.length} mehrdeutig (bitte manuell zuordnen): ${ambiguous.join(', ')}`;
+    setFinalizeMsg({ teamId, kind: ambiguous?.length ? 'err' : 'ok', text });
   }
 
   async function onActivate() {
