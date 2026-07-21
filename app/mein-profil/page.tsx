@@ -10,6 +10,7 @@ import {
   loadPlayerProfile, savePlayerProfile, type PlayerProfileExtras,
   loadPlayerContact, savePlayerContact, type PlayerContact,
 } from '@/lib/supabase/profiles';
+import { getDbTeamName, getDbPlayerName } from '@/lib/supabase/season-teams';
 import { ImageUpload } from '@/components/mdu/image-upload';
 
 export default function MeinProfilPage() {
@@ -18,6 +19,22 @@ export default function MeinProfilPage() {
   const player = playerId ? findPlayer(playerId) : undefined;
   const team = user?.teamId ? findTeam(user.teamId) : undefined;
   const canEdit = !!playerId && canEditPlayerProfile(user, playerId);
+
+  // DB-Fallback für Namen, die nicht im statischen Stamm stehen (neu angelegte
+  // Spieler/Teams aus der Mannschaftsanmeldung) — sonst „Noch nicht verknüpft"
+  // trotz vorhandener Verknüpfung.
+  const [dbTeamName, setDbTeamName] = useState<string | null>(null);
+  const [dbPlayerName, setDbPlayerName] = useState<string | null>(null);
+  useEffect(() => {
+    if (user?.teamId && !team) getDbTeamName(user.teamId).then(t => setDbTeamName(t?.name ?? null));
+    else setDbTeamName(null);
+  }, [user?.teamId, team]);
+  useEffect(() => {
+    if (playerId && !player) getDbPlayerName(playerId).then(p => setDbPlayerName(p?.name ?? null));
+    else setDbPlayerName(null);
+  }, [playerId, player]);
+  const teamLabel = team?.name ?? dbTeamName ?? (user?.teamId ? '…' : 'Noch nicht verknüpft');
+  const playerLabel = player ? getPlayerDisplayName(player) : (dbPlayerName ?? (playerId ? '…' : 'Noch nicht verknüpft'));
 
   const [extras, setExtras] = useState<PlayerProfileExtras | null>(null);
   const [contact, setContact] = useState<PlayerContact | null>(null);
@@ -68,16 +85,16 @@ export default function MeinProfilPage() {
                 { k: 'Name',          v: user.displayName },
                 { k: 'E-Mail',        v: user.email },
                 { k: 'Rolle',         v: ROLE_LABELS[user.role] },
-                { k: 'Spielerprofil', v: player ? getPlayerDisplayName(player) : 'Noch nicht verknüpft' },
-                { k: 'Team',          v: team?.name ?? 'Noch nicht verknüpft' },
+                { k: 'Spielerprofil', v: playerLabel },
+                { k: 'Team',          v: teamLabel },
               ].map(row => (
                 <div key={row.k} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 10, marginBottom: 10 }}>
                   <span style={{ color: 'var(--th-text-muted)', fontSize: 13, fontFamily: 'var(--font-manrope)' }}>{row.k}</span>
                   <span style={{ color: 'var(--th-text-strong)', fontWeight: 600, fontSize: 13, fontFamily: 'var(--font-manrope)' }}>{row.v}</span>
                 </div>
               ))}
-              {player && (
-                <Link href={`/spieler/${player.id}`} style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>
+              {(player || (playerId && dbPlayerName)) && (
+                <Link href={`/spieler/${player?.id ?? playerId}`} style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>
                   Öffentliches Spielerprofil ansehen →
                 </Link>
               )}

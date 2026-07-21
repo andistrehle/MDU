@@ -236,6 +236,59 @@ export async function listDbTeamOptions(): Promise<{ id: string; name: string }[
     .map(t => ({ id: t.id, name: (t.name ?? '').trim() || t.id }));
 }
 
+/**
+ * Team-/Kader-Kontext für den eingeloggten Kapitän: die NEUESTE Saison-
+ * Zuordnung seines Teams (z. B. eine neu angemeldete 2026/2027-Mannschaft, auch
+ * wenn die aktive Saison noch 2025/2026 ist) inkl. DB-Teamname, Kürzel, Liga und
+ * Kader. Liefert null, wenn das Team keine DB-Saisonzuordnung hat (dann greift
+ * der statische Pfad wie bisher).
+ */
+export async function getCaptainTeamView(teamId: string): Promise<{
+  seasonId: string; seasonName: string | null; teamName: string; shortName: string | null; leagueId: string | null;
+  roster: { name: string; license: string | null; isCaptain: boolean; playerId: string | null; status: string }[];
+} | null> {
+  if (!supabase || !teamId) return null;
+  const { data: sta } = await supabase
+    .from('season_team_assignments')
+    .select('season_id, assigned_competition_id, teams:team_id(name, short_name), seasons:season_id(name)')
+    .eq('team_id', teamId).order('season_id', { ascending: false }).limit(1);
+  const top = (sta ?? [])[0] as unknown as {
+    season_id: string; assigned_competition_id: string | null;
+    teams: { name: string; short_name: string | null } | null; seasons: { name: string } | null;
+  } | undefined;
+  if (!top) return null;
+  const { data: roster } = await supabase
+    .from('season_roster_assignments')
+    .select('first_name, last_name, license_number, is_captain, player_id, status')
+    .eq('season_id', top.season_id).eq('team_id', teamId).order('is_captain', { ascending: false });
+  return {
+    seasonId: top.season_id,
+    seasonName: top.seasons?.name ?? null,
+    teamName: top.teams?.name ?? teamId,
+    shortName: top.teams?.short_name ?? null,
+    leagueId: top.assigned_competition_id ?? null,
+    roster: ((roster ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string }[])
+      .map(r => ({ name: `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim(), license: r.license_number, isCaptain: r.is_captain, playerId: r.player_id, status: r.status })),
+  };
+}
+
+/** Einzelner DB-Teamname (Fallback, wenn nicht im statischen Stamm). */
+export async function getDbTeamName(teamId: string): Promise<{ name: string; shortName: string | null } | null> {
+  if (!supabase || !teamId) return null;
+  const { data } = await supabase.from('teams').select('name, short_name').eq('id', teamId).maybeSingle();
+  const t = data as { name: string | null; short_name: string | null } | null;
+  return t ? { name: (t.name ?? '').trim() || teamId, shortName: t.short_name ?? null } : null;
+}
+
+/** Einzelner DB-Spielername (Fallback, wenn nicht im statischen Stamm). */
+export async function getDbPlayerName(playerId: string): Promise<{ name: string; license: string | null } | null> {
+  if (!supabase || !playerId) return null;
+  const { data } = await supabase.from('players').select('first_name, last_name, display_name, license_number').eq('id', playerId).maybeSingle();
+  const p = data as { first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null } | null;
+  if (!p) return null;
+  return { name: (p.display_name ?? `${p.first_name ?? ''} ${p.last_name ?? ''}`).trim() || playerId, license: p.license_number ?? null };
+}
+
 /** Gesamter Saisonkader einer Saison (zum Gruppieren je Team). */
 export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRow[]> {
   if (!supabase || !seasonId) return [];

@@ -1,19 +1,37 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/mdu/icon';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
-import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam } from '@/lib/data';
+import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam, findLeague } from '@/lib/data';
+import { getCaptainTeamView } from '@/lib/supabase/season-teams';
 
 export default function MeinTeamPage() {
   const { user, loading } = useAuth();
   const teamId = user?.teamId ?? null;
   const canEdit = !!teamId && canEditTeam(user, teamId);
-  const team = teamId ? findTeam(teamId) : undefined;
+  const staticTeam = teamId ? findTeam(teamId) : undefined;
   const season = getCurrentSeason();
-  const leagueName = team ? (getCurrentCompetitionForTeam(team.id, season.id)?.league?.name ?? '–') : '–';
+
+  // DB-Kontext für neu angemeldete Teams (Name/Kürzel/Saison/Liga aus der DB,
+  // auch wenn die aktive Saison noch die alte ist). Fällt auf statisch zurück.
+  const [dbView, setDbView] = useState<Awaited<ReturnType<typeof getCaptainTeamView>> | null>(null);
+  useEffect(() => {
+    if (teamId && !staticTeam) getCaptainTeamView(teamId).then(setDbView);
+    else setDbView(null);
+  }, [teamId, staticTeam]);
+
+  const team = staticTeam;
+  const teamName = staticTeam?.name ?? dbView?.teamName ?? teamId;
+  const teamShort = staticTeam?.short ?? dbView?.shortName ?? '?';
+  const teamColor = staticTeam?.color ?? '#888';
+  const seasonLabel = staticTeam ? season.name : (dbView?.seasonName ?? season.name);
+  const leagueName = staticTeam
+    ? (getCurrentCompetitionForTeam(staticTeam.id, season.id)?.league?.name ?? '–')
+    : (dbView?.leagueId ? (findLeague(dbView.leagueId)?.name ?? dbView.leagueId) : '–');
 
   return (
     <MemberShell title={team ? `Mein Team – ${team.name}` : 'Mein Team'}>
@@ -37,18 +55,18 @@ export default function MeinTeamPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
               <div style={{
                 width: 54, height: 54, borderRadius: 12, flexShrink: 0,
-                background: `${team?.color ?? '#888'}22`, border: `1px solid ${team?.color ?? '#888'}55`,
+                background: `${teamColor}22`, border: `1px solid ${teamColor}55`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: team?.color ?? 'var(--th-text-muted)',
+                fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: teamColor,
               }}>
-                {team?.short ?? '?'}
+                {teamShort}
               </div>
               <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, color: 'var(--th-text-strong)', textTransform: 'uppercase', lineHeight: 1.1, minWidth: 0 }}>
-                {team?.name ?? teamId}
+                {teamName}
               </div>
             </div>
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-              {leagueName} · {season.name}
+              {leagueName} · {seasonLabel}
             </div>
             <Link href={`/teams/${teamId}`} style={ghostBtn}>Öffentliches Profil ansehen</Link>
           </div>
