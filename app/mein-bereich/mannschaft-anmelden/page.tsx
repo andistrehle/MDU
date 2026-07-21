@@ -247,8 +247,15 @@ export default function MannschaftAnmeldenPage() {
 
   /** Entwurf anlegen/aktualisieren; gibt die id zurück. */
   async function persist(): Promise<string | null> {
+    // Ziel-Saison IMMER die offene Anmelde-Saison (registration_open) — nie die
+    // laufende/eingefrorene. Frisch holen, falls der Effekt sie noch nicht hat,
+    // und auch bestehende Entwürfe darauf korrigieren (verhindert Anmeldungen
+    // gegen die falsche Saison, wie beim 2025/2026-Entwurf).
+    const s = regSeasonId ? { id: regSeasonId } : await getRegistrationSeason();
+    if (!s) { setMsg({ kind: 'err', text: 'Aktuell ist keine Saison zur Anmeldung geöffnet.' }); return null; }
     const payload: RegistrationDraft = {
       ...draft,
+      season_id: s.id,
       is_new_team: choice === 'NEW',
       source_team_id: choice === 'NEW' ? null : (choice || null),
     };
