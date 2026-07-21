@@ -187,6 +187,8 @@ export default function AdminSeasonTeamsPage() {
                 {isOpen && (
                   <div style={{ padding: '4px 18px 16px', borderTop: '1px solid var(--th-line-4)' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8, padding: '12px 0', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
+                      <span style={{ color: 'var(--th-text-muted)' }}>Kurzname</span>
+                      <span style={{ color: t.teams?.short_name ? 'var(--th-text-strong)' : 'var(--th-text-faint2)', letterSpacing: t.teams?.short_name ? '0.08em' : undefined }}>{t.teams?.short_name ?? '–'}</span>
                       <span style={{ color: 'var(--th-text-muted)' }}>Spielstätte</span>
                       <span style={{ color: 'var(--th-text-strong)' }}>{t.venues?.name ?? '–'}{t.venues?.address ? ` · ${t.venues.address}` : ''}</span>
                       <span style={{ color: 'var(--th-text-muted)' }}>Team-ID</span>
