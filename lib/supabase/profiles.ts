@@ -21,6 +21,8 @@ export interface PlayerProfileExtras {
 }
 
 export interface TeamProfileExtras {
+  /** Kurzname/Badge (liegt in `teams`, nicht in `team_profiles`). */
+  shortName: string | null;
   description: string | null;
   logoUrl: string | null;
   teamImageUrl: string | null;
@@ -35,7 +37,7 @@ export interface TeamProfileExtras {
 // Spitzname: nur per aktiver, freiwilliger Einwilligung (Art. 6 I a) — Default AUS.
 const EMPTY_PLAYER: PlayerProfileExtras = { nickname: null, aboutMe: null, profileImageUrl: null, showNickname: false, showPhoto: true };
 const EMPTY_TEAM: TeamProfileExtras = {
-  description: null, logoUrl: null, teamImageUrl: null,
+  shortName: null, description: null, logoUrl: null, teamImageUrl: null,
   instagramUrl: null, facebookUrl: null, websiteUrl: null,
 };
 
@@ -155,13 +157,17 @@ export async function loadPublicTeamProfile(teamId: string): Promise<{ logoUrl: 
 
 export async function loadTeamProfile(teamId: string): Promise<TeamProfileExtras> {
   if (!supabase) return EMPTY_TEAM;
-  const { data, error } = await supabase
-    .from('team_profiles')
-    .select('description, logo_url, team_image_url, instagram_url, facebook_url, website_url')
-    .eq('team_id', teamId)
-    .maybeSingle();
-  if (error || !data) return EMPTY_TEAM;
+  // Kurzname liegt in `teams`, die übrigen Extras in `team_profiles`.
+  const [{ data }, { data: teamRow }] = await Promise.all([
+    supabase.from('team_profiles')
+      .select('description, logo_url, team_image_url, instagram_url, facebook_url, website_url')
+      .eq('team_id', teamId).maybeSingle(),
+    supabase.from('teams').select('short_name').eq('id', teamId).maybeSingle(),
+  ]);
+  const shortName = (teamRow as { short_name: string | null } | null)?.short_name ?? null;
+  if (!data) return { ...EMPTY_TEAM, shortName };
   return {
+    shortName,
     description: data.description ?? null,
     logoUrl: data.logo_url ?? null,
     teamImageUrl: data.team_image_url ?? null,
@@ -187,5 +193,18 @@ export async function saveTeamProfile(
     website_url: extras.websiteUrl,
     updated_by: auth.user?.id ?? null,
   });
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+
+  // Kurzname separat in `teams` (spaltengenaue RPC — Admin ODER Team-Kapitän).
+  // Solange Migration 0036 fehlt, Fallback auf direkten Update (greift für
+  // Admins via teams_admin_write).
+  const sn = extras.shortName ?? '';
+  const { error: snErr } = await supabase.rpc('set_team_short_name', { p_team_id: teamId, p_short_name: sn });
+  if (snErr) {
+    const rpcMissing = /PGRST202|could not find the function|does not exist/i.test(snErr.message);
+    if (!rpcMissing) return { error: `Kurzname konnte nicht gespeichert werden: ${snErr.message}` };
+    const { error: dErr } = await supabase.from('teams').update({ short_name: sn.trim() || null }).eq('id', teamId);
+    if (dErr) return { error: `Kurzname konnte nicht gespeichert werden: ${dErr.message}` };
+  }
+  return { error: null };
 }

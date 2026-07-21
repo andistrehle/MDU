@@ -63,6 +63,17 @@ export default function TeamBearbeitenPage() {
               }}>{msg.text}</div>
             )}
 
+            <Section title="Kurzname">
+              <Field label="Kurzname (Kürzel/Badge)">
+                <input value={extras.shortName ?? ''} onChange={e => set('shortName', e.target.value.toUpperCase())}
+                  maxLength={4} placeholder="z. B. FDM" style={{ ...inputStyle, maxWidth: 160, letterSpacing: '0.08em' }} />
+              </Field>
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 6, lineHeight: 1.45 }}>
+                Kurzes Kürzel (2–4 Zeichen), das z. B. in Tabellen als Badge genutzt wird. Leer lassen, um es
+                automatisch aus dem Teamnamen ableiten zu lassen (z. B. „Funny Darters Munich" → FDM).
+              </p>
+            </Section>
+
             <Section title="Beschreibung">
               <Field label="Kurzbeschreibung">
                 <textarea value={extras.description ?? ''} onChange={e => set('description', e.target.value)}
