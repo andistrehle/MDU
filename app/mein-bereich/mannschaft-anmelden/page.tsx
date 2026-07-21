@@ -366,6 +366,7 @@ export default function MannschaftAnmeldenPage() {
                 <Section title="2 · Teamdaten">
                   <Field label="Teamname *"><input value={draft.team_name} onChange={e => set('team_name', e.target.value)} style={inputStyle} /></Field>
                   <Field label="Kurzname (optional)"><input value={draft.short_name ?? ''} onChange={e => set('short_name', e.target.value)} maxLength={4} style={inputStyle} /></Field>
+                  <p style={hintStyle}>Frei lassen ist okay — dann vergeben wir automatisch ein 3-Buchstaben-Kürzel (z. B. „Funny Darters Munich" → FDM). Lässt sich später ändern.</p>
                   <Field label="Beschreibung (optional)"><textarea value={draft.description ?? ''} onChange={e => set('description', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
                   <Field label="Teamlogo">
                     <ImageUpload
@@ -378,6 +379,7 @@ export default function MannschaftAnmeldenPage() {
                       removable={!!draft.logo_url}
                     />
                   </Field>
+                  <p style={hintStyle}>Bitte möglichst ein Team-Logo hochladen — das macht euer Profil vollständig. Falls gerade keins zur Hand ist, kannst du es jederzeit später unter „Mein Team" nachreichen.</p>
                   <Field label="Mannschaftsbild (optional)">
                     <ImageUpload
                       value={draft.team_image_url || null}

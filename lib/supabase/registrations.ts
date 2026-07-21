@@ -203,9 +203,42 @@ export async function updateRegistrationAssignedCompetition(id: string, code: st
   return { error: error?.message ?? null };
 }
 
+/**
+ * Automatisches Team-Kürzel aus dem Namen (3 Großbuchstaben), im Stil der
+ * bestehenden Teams: Initialen der Wörter (Funny Darters Munich → FDM,
+ * DC Null Bull → DNB), bei zwei Wörtern erster Buchstabe + erste zwei des
+ * zweiten (Belfort Evolution → BEV), bei einem Wort die ersten drei (Spartans →
+ * SPA). Nur ein Vorschlag — die Ligaleitung/der Kapitän kann ihn überschreiben.
+ */
+export function deriveTeamShortName(name: string): string {
+  const words = (name ?? '').trim().split(/\s+/).map(w => w.replace(/[^A-Za-z0-9]/g, '')).filter(Boolean);
+  if (words.length === 0) return '';
+  let code: string;
+  if (words.length >= 3) code = words[0][0] + words[1][0] + words[2][0];
+  else if (words.length === 2) code = words[0][0] + words[1].slice(0, 2);
+  else code = words[0].slice(0, 3);
+  code = code.toUpperCase();
+  if (code.length < 3) code = (code + words.join('').toUpperCase()).slice(0, 3);
+  return code.slice(0, 3);
+}
+
+/** Für ein NEUES Team ohne Kurznamen automatisch eines setzen (idempotent). */
+async function ensureShortName(registrationId: string): Promise<void> {
+  if (!supabase) return;
+  const { data } = await supabase
+    .from('team_registrations')
+    .select('team_name, short_name, is_new_team').eq('id', registrationId).single();
+  const r = data as { team_name: string | null; short_name: string | null; is_new_team: boolean } | null;
+  if (r && r.is_new_team && !(r.short_name ?? '').trim() && (r.team_name ?? '').trim()) {
+    const short = deriveTeamShortName(r.team_name!);
+    if (short) await supabase.from('team_registrations').update({ short_name: short }).eq('id', registrationId);
+  }
+}
+
 /** Anmeldung einreichen (draft/changes_requested → submitted). */
 export async function submitRegistration(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
+  await ensureShortName(id);   // neues Team ohne Kürzel → automatisch vergeben
   const { error } = await supabase
     .from('team_registrations')
     .update({ status: 'submitted', submitted_at: new Date().toISOString() })
@@ -258,6 +291,10 @@ export async function applyApprovedTeamRegistration(
   opts: { reviewNote?: string; allowActiveSeason?: boolean } = {},
 ): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean }> {
   if (!supabase) return { error: NOT_CONFIGURED };
+
+  // Neues Team ohne Kürzel → vor der Übernahme automatisch eines setzen, damit
+  // das angelegte Team nicht ohne Kurzname bleibt (auch für früher eingereichte).
+  await ensureShortName(registrationId);
 
   // Begründung/Anmerkung vorab speichern (RPC kümmert sich um den Status).
   if (opts.reviewNote !== undefined) {
