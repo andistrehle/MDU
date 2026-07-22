@@ -119,13 +119,19 @@ export default function AdminUsersPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [editing, setEditing] = useState<ProfileRow | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  // Filter: alle ODER nur „zuzuweisen" (Konten ohne verknüpften Spieler).
-  const [filter, setFilter] = useState<'all' | 'unassigned'>('all');
-  const unassignedCount = useMemo(() => profiles.filter(p => !p.player_id).length, [profiles]);
-  const shown = useMemo(
-    () => filter === 'unassigned' ? profiles.filter(p => !p.player_id) : profiles,
-    [profiles, filter],
-  );
+  // Filter über match_status:
+  //   • „Zuzuweisen"     = noch ungeprüft (role player + pending) → löst den Badge aus.
+  //   • „Ohne Zuordnung" = bewusst ohne Spieler/Team gespeichert (no_player).
+  const [filter, setFilter] = useState<'all' | 'pending' | 'no_player'>('all');
+  const isPending = (p: ProfileRow) => p.role === 'player' && p.match_status === 'pending';
+  const isNoPlayer = (p: ProfileRow) => p.match_status === 'no_player';
+  const pendingCount = useMemo(() => profiles.filter(isPending).length, [profiles]);
+  const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
+  const shown = useMemo(() => {
+    if (filter === 'pending') return profiles.filter(isPending);
+    if (filter === 'no_player') return profiles.filter(isNoPlayer);
+    return profiles;
+  }, [profiles, filter]);
 
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
@@ -235,9 +241,9 @@ export default function AdminUsersPage() {
             {!canEdit && ' · Nur-Lese-Ansicht (Bearbeiten nur Super Admin)'}
           </div>
 
-          {/* Filter: alle / nur zuzuweisende (ohne Spieler-Verknüpfung) */}
+          {/* Filter: alle / zuzuweisen (offen) / bewusst ohne Zuordnung */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {([['all', `Alle (${profiles.length})`], ['unassigned', `Zuzuweisen (${unassignedCount})`]] as const).map(([key, label]) => (
+            {([['all', `Alle (${profiles.length})`], ['pending', `Zuzuweisen (${pendingCount})`], ['no_player', `Ohne Zuordnung (${noPlayerCount})`]] as const).map(([key, label]) => (
               <button
                 key={key}
                 type="button"
@@ -252,9 +258,14 @@ export default function AdminUsersPage() {
               >{label}</button>
             ))}
           </div>
-          {filter === 'unassigned' && (
+          {filter === 'pending' && (
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', margin: '0 0 14px' }}>
-              Konten, die noch mit keinem Spieler verknüpft sind — hier fehlt in der Regel noch die Zuordnung.
+              Noch ungeprüfte Konten — diese lösen den „offene Aufgaben"-Hinweis aus. Verknüpfe einen Spieler oder markiere das Konto beim Bearbeiten als „bewusst ohne Zuordnung".
+            </p>
+          )}
+          {filter === 'no_player' && (
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', margin: '0 0 14px' }}>
+              Konten, die du bewusst ohne Spieler-/Team-Profil abgelegt hast — kein offener Fall mehr, keine Benachrichtigung.
             </p>
           )}
 
@@ -295,7 +306,7 @@ export default function AdminUsersPage() {
                   </span>
                 </div>
               ))}
-              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{filter === 'unassigned' ? 'Keine zuzuweisenden Konten — alles verknüpft. 🎉' : 'Noch keine Benutzer registriert.'}</div>}
+              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</div>}
             </div>
           </div>
 
@@ -321,7 +332,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             ))}
-            {shown.length === 0 && <p style={muted}>{filter === 'unassigned' ? 'Keine zuzuweisenden Konten — alles verknüpft. 🎉' : 'Noch keine Benutzer registriert.'}</p>}
+            {shown.length === 0 && <p style={muted}>{filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</p>}
           </div>
         </>
       )}
@@ -356,6 +367,9 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   const [role, setRole] = useState<UserRole>(profile.role);
   const [playerId, setPlayerId] = useState(profile.player_id ?? '');
   const [teamId, setTeamId] = useState(profile.team_id ?? '');
+  // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
+  // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
+  const [noAssignment, setNoAssignment] = useState(profile.match_status === 'no_player');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   // Registrierungs-Kommentar (Team/Lokal/Liga) liegt in den Auth-Metadaten →
@@ -395,10 +409,14 @@ function EditModal({ actor, profile, onClose, onSaved }: {
     // Ein Konto gilt als „freigeschaltet", sobald ein Spieler verknüpft oder
     // eine Rolle über 'player' hinaus vergeben wird.
     const reviewed = !!playerId || role !== 'player';
-    // match_status: 'confirmed' wenn der Vorschlag übernommen wurde, sonst 'manual'
+    // match_status:
+    //   • Spieler verknüpft → 'confirmed' (Vorschlag übernommen) / 'manual'
+    //   • bewusst ohne Zuordnung (kein Spieler) → 'no_player'
+    //   • über Rolle freigeschaltet → 'confirmed'
+    //   • sonst unverändert (bleibt ggf. 'pending')
     const matchStatus = playerId
       ? (playerId === (profile.matched_player_id ?? '') ? 'confirmed' : 'manual')
-      : (reviewed ? 'confirmed' : (profile.match_status ?? 'pending'));
+      : (noAssignment ? 'no_player' : (role !== 'player' ? 'confirmed' : (profile.match_status ?? 'pending')));
     const wasPending = (profile.match_status ?? 'pending') === 'pending';
     const justActivated = wasPending && reviewed; // nur beim ersten Bestätigen mailen
     const newName = displayName.trim() || profile.email.split('@')[0];
@@ -543,6 +561,17 @@ function EditModal({ actor, profile, onClose, onSaved }: {
               {combinedTeamOptions().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           </Field>
+
+          {!playerId && (
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, cursor: 'pointer', padding: '2px 0' }}>
+              <input type="checkbox" checked={noAssignment} onChange={e => setNoAssignment(e.target.checked)}
+                style={{ marginTop: 2, width: 15, height: 15, accentColor: 'var(--th-accent)', flexShrink: 0, cursor: 'pointer' }} />
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.45 }}>
+                <strong style={{ color: 'var(--th-text-body)' }}>Bewusst ohne Spieler-/Team-Zuordnung.</strong>{' '}
+                Kein passender Spieler vorhanden — nimmt das Konto aus „Zuzuweisen" und aus dem „offene Aufgaben"-Hinweis. Sobald du später einen Spieler verknüpfst, hebt sich das automatisch auf.
+              </span>
+            </label>
+          )}
 
           <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
             <button type="button" onClick={onClose} style={{ ...editBtn, flex: 1, padding: '12px' }}>Abbrechen</button>
