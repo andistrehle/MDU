@@ -123,6 +123,7 @@ export default function AdminUsersPage() {
   //   • „Zuzuweisen"     = noch ungeprüft (role player + pending) → löst den Badge aus.
   //   • „Ohne Zuordnung" = bewusst ohne Spieler/Team gespeichert (no_player).
   const [filter, setFilter] = useState<'all' | 'pending' | 'no_player'>('all');
+  const [query, setQuery] = useState('');
   const isPending = (p: ProfileRow) => p.role === 'player' && p.match_status === 'pending';
   // „Ohne Zuordnung" = bewusst geprüft, aber kein Spieler verknüpft. Gespeichert
   // als 'rejected' (bereits erlaubter Constraint-Wert; heißt „geprüft, keine
@@ -131,10 +132,18 @@ export default function AdminUsersPage() {
   const pendingCount = useMemo(() => profiles.filter(isPending).length, [profiles]);
   const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
   const shown = useMemo(() => {
-    if (filter === 'pending') return profiles.filter(isPending);
-    if (filter === 'no_player') return profiles.filter(isNoPlayer);
-    return profiles;
-  }, [profiles, filter]);
+    const byCat = filter === 'pending' ? profiles.filter(isPending)
+      : filter === 'no_player' ? profiles.filter(isNoPlayer)
+      : profiles;
+    const q = query.trim().toLowerCase();
+    if (!q) return byCat;
+    // Volltext über alle sichtbaren Spalten + Passnummer.
+    return byCat.filter(p => {
+      const lic = p.player_id ? (LICENSE_BY_ID.get(p.player_id) ?? '') : '';
+      return [p.display_name, p.email, ROLE_LABELS[p.role], playerName(p.player_id), teamName(p.team_id), lic]
+        .join(' ').toLowerCase().includes(q);
+    });
+  }, [profiles, filter, query]);
 
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
@@ -240,8 +249,19 @@ export default function AdminUsersPage() {
       {status === 'idle' && (
         <>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginBottom: 12 }}>
-            {profiles.length} Benutzer · Quelle: Supabase <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>public.profiles</code>
+            {profiles.length} Benutzer{shown.length !== profiles.length ? ` · ${shown.length} angezeigt` : ''} · Quelle: Supabase <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>public.profiles</code>
             {!canEdit && ' · Nur-Lese-Ansicht (Bearbeiten nur Super Admin)'}
+          </div>
+
+          {/* Suche über alle Spalten (Name, E-Mail, Rolle, Spieler, Team, Passnr.) */}
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <input
+              type="search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Suche: Name, E-Mail, Rolle, Spieler, Team, Passnummer …"
+              style={{ width: '100%', padding: '10px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' }}
+            />
           </div>
 
           {/* Filter: alle / zuzuweisen (offen) / bewusst ohne Zuordnung */}
@@ -309,7 +329,7 @@ export default function AdminUsersPage() {
                   </span>
                 </div>
               ))}
-              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</div>}
+              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{query.trim() ? `Kein Treffer für „${query.trim()}".` : filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</div>}
             </div>
           </div>
 
@@ -335,7 +355,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             ))}
-            {shown.length === 0 && <p style={muted}>{filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</p>}
+            {shown.length === 0 && <p style={muted}>{query.trim() ? `Kein Treffer für „${query.trim()}".` : filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</p>}
           </div>
         </>
       )}
