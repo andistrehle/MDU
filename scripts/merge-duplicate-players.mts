@@ -55,14 +55,28 @@ for (const p of players) {
 
 const merges: { dup: P; canon: P }[] = [];
 const manual: { name: string; ids: string[] }[] = [];
-for (const [, g] of groups) {
-  if (g.length < 2) continue;
-  const dups = g.filter(isRegDup);
-  const canons = g.filter(p => !isRegDup(p));
-  if (dups.length >= 1 && canons.length === 1) {
-    for (const dup of dups) merges.push({ dup, canon: canons[0] });
-  } else {
-    manual.push({ name: nameOf(g[0]), ids: g.map(p => `${p.id}${isRegDup(p) ? ' (reg-dup)' : ''}`) });
+
+// Expliziter Modus: --dup=<id> --into=<id> führt genau EIN Paar zusammen (für
+// Fälle, die die Automatik wegen abweichender Schreibweise nicht findet, z. B.
+// „Franz Weiler" ↔ „Franz Weiller").
+const argVal = (name: string) => { const h = process.argv.find(a => a.startsWith(`--${name}=`)); return h ? h.slice(name.length + 3) : null; };
+const dupId = argVal('dup'), intoId = argVal('into');
+if (dupId || intoId) {
+  const dup = players.find(p => p.id === dupId);
+  const canon = players.find(p => p.id === intoId);
+  if (!dup) { console.error(`Dublette nicht gefunden: --dup=${dupId}`); process.exit(1); }
+  if (!canon) { console.error(`Stammprofil nicht gefunden: --into=${intoId}`); process.exit(1); }
+  merges.push({ dup, canon });
+} else {
+  for (const [, g] of groups) {
+    if (g.length < 2) continue;
+    const dups = g.filter(isRegDup);
+    const canons = g.filter(p => !isRegDup(p));
+    if (dups.length >= 1 && canons.length === 1) {
+      for (const dup of dups) merges.push({ dup, canon: canons[0] });
+    } else {
+      manual.push({ name: nameOf(g[0]), ids: g.map(p => `${p.id}${isRegDup(p) ? ' (reg-dup)' : ''}`) });
+    }
   }
 }
 
