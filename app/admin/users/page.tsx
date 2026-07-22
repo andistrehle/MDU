@@ -124,7 +124,10 @@ export default function AdminUsersPage() {
   //   • „Ohne Zuordnung" = bewusst ohne Spieler/Team gespeichert (no_player).
   const [filter, setFilter] = useState<'all' | 'pending' | 'no_player'>('all');
   const isPending = (p: ProfileRow) => p.role === 'player' && p.match_status === 'pending';
-  const isNoPlayer = (p: ProfileRow) => p.match_status === 'no_player';
+  // „Ohne Zuordnung" = bewusst geprüft, aber kein Spieler verknüpft. Gespeichert
+  // als 'rejected' (bereits erlaubter Constraint-Wert; heißt „geprüft, keine
+  // Verknüpfung") — so ist keine DB-Migration nötig.
+  const isNoPlayer = (p: ProfileRow) => p.match_status === 'rejected';
   const pendingCount = useMemo(() => profiles.filter(isPending).length, [profiles]);
   const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
   const shown = useMemo(() => {
@@ -369,7 +372,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   const [teamId, setTeamId] = useState(profile.team_id ?? '');
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
   // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
-  const [noAssignment, setNoAssignment] = useState(profile.match_status === 'no_player');
+  const [noAssignment, setNoAssignment] = useState(profile.match_status === 'rejected');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   // Registrierungs-Kommentar (Team/Lokal/Liga) liegt in den Auth-Metadaten →
@@ -411,12 +414,12 @@ function EditModal({ actor, profile, onClose, onSaved }: {
     const reviewed = !!playerId || role !== 'player';
     // match_status:
     //   • Spieler verknüpft → 'confirmed' (Vorschlag übernommen) / 'manual'
-    //   • bewusst ohne Zuordnung (kein Spieler) → 'no_player'
+    //   • bewusst ohne Zuordnung (kein Spieler) → 'rejected' (= geprüft, keine Verknüpfung)
     //   • über Rolle freigeschaltet → 'confirmed'
     //   • sonst unverändert (bleibt ggf. 'pending')
     const matchStatus = playerId
       ? (playerId === (profile.matched_player_id ?? '') ? 'confirmed' : 'manual')
-      : (noAssignment ? 'no_player' : (role !== 'player' ? 'confirmed' : (profile.match_status ?? 'pending')));
+      : (noAssignment ? 'rejected' : (role !== 'player' ? 'confirmed' : (profile.match_status ?? 'pending')));
     const wasPending = (profile.match_status ?? 'pending') === 'pending';
     const justActivated = wasPending && reviewed; // nur beim ersten Bestätigen mailen
     const newName = displayName.trim() || profile.email.split('@')[0];
