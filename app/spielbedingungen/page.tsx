@@ -248,10 +248,8 @@ export default function SpielbedingungenPage() {
           <li>Geht der Spielbericht nicht binnen <strong>zwei Werktagen</strong>{' '}nach beendeter Spielwoche
             (spätestens Dienstag, 24:00&nbsp;Uhr) ein, erhält das Heimteam automatisch eine Niederlage
             (0:3 Punkte / 0:18 Sätze).</li>
+          <li>Eine druckbare Vorlage des offiziellen Spielberichts findest du im Downloadbereich.</li>
         </ol>
-        <p style={hint}>
-          Eine druckbare Vorlage des offiziellen Spielberichts findest du im Downloadbereich.
-        </p>
       </LegalSection>
 
       <LegalSection title="16. Nichtantritt">
@@ -320,5 +318,4 @@ export default function SpielbedingungenPage() {
 
 const ol: React.CSSProperties = { margin: '6px 0 0', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 7 };
 const ul: React.CSSProperties = { margin: '6px 0 0', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 5 };
-const hint: React.CSSProperties = { fontSize: 12.5, color: 'var(--th-text-faint)', marginTop: 10, lineHeight: 1.6 };
 const link: React.CSSProperties = { color: 'var(--th-accent)', textDecoration: 'underline' };
