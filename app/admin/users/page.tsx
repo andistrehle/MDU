@@ -124,6 +124,14 @@ export default function AdminUsersPage() {
   //   • „Ohne Zuordnung" = bewusst ohne Spieler/Team gespeichert (no_player).
   const [filter, setFilter] = useState<'all' | 'pending' | 'no_player'>('all');
   const [query, setQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'' | UserRole>('');
+  const [teamFilter, setTeamFilter] = useState('');
+  // Spalten-Filter-Optionen: nur tatsächlich vorkommende Rollen/Teams.
+  const roleFilterOptions = useMemo(() => [...new Set(profiles.map(p => p.role))], [profiles]);
+  const teamFilterOptions = useMemo(() => {
+    const ids = [...new Set(profiles.map(p => p.team_id).filter((x): x is string => !!x))];
+    return ids.map(id => ({ id, name: teamName(id) })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  }, [profiles]);
   const isPending = (p: ProfileRow) => p.role === 'player' && p.match_status === 'pending';
   // „Ohne Zuordnung" = bewusst geprüft, aber kein Spieler verknüpft. Gespeichert
   // als 'rejected' (bereits erlaubter Constraint-Wert; heißt „geprüft, keine
@@ -132,18 +140,28 @@ export default function AdminUsersPage() {
   const pendingCount = useMemo(() => profiles.filter(isPending).length, [profiles]);
   const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
   const shown = useMemo(() => {
-    const byCat = filter === 'pending' ? profiles.filter(isPending)
+    let list = filter === 'pending' ? profiles.filter(isPending)
       : filter === 'no_player' ? profiles.filter(isNoPlayer)
       : profiles;
+    if (roleFilter) list = list.filter(p => p.role === roleFilter);
+    if (teamFilter) list = list.filter(p => p.team_id === teamFilter);
     const q = query.trim().toLowerCase();
-    if (!q) return byCat;
-    // Volltext über alle sichtbaren Spalten + Passnummer.
-    return byCat.filter(p => {
-      const lic = p.player_id ? (LICENSE_BY_ID.get(p.player_id) ?? '') : '';
-      return [p.display_name, p.email, ROLE_LABELS[p.role], playerName(p.player_id), teamName(p.team_id), lic]
-        .join(' ').toLowerCase().includes(q);
-    });
-  }, [profiles, filter, query]);
+    if (q) {
+      // Volltext über alle sichtbaren Spalten + Passnummer.
+      list = list.filter(p => {
+        const lic = p.player_id ? (LICENSE_BY_ID.get(p.player_id) ?? '') : '';
+        return [p.display_name, p.email, ROLE_LABELS[p.role], playerName(p.player_id), teamName(p.team_id), lic]
+          .join(' ').toLowerCase().includes(q);
+      });
+    }
+    return list;
+  }, [profiles, filter, query, roleFilter, teamFilter]);
+
+  const emptyMsg = query.trim() ? `Kein Treffer für „${query.trim()}".`
+    : (roleFilter || teamFilter) ? 'Kein Treffer für die aktuelle Filterauswahl.'
+    : filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉'
+    : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".'
+    : 'Noch keine Benutzer registriert.';
 
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
@@ -264,6 +282,25 @@ export default function AdminUsersPage() {
             />
           </div>
 
+          {/* Spalten-Filter: Rolle + Team (feste Werte) */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            {(() => {
+              const selStyle = { flex: '1 1 200px', minWidth: 150, padding: '9px 10px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' } as const;
+              return (
+                <>
+                  <select value={roleFilter} onChange={e => setRoleFilter(e.target.value as '' | UserRole)} style={selStyle} aria-label="Nach Rolle filtern">
+                    <option value="">Rolle: alle</option>
+                    {roleFilterOptions.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                  </select>
+                  <select value={teamFilter} onChange={e => setTeamFilter(e.target.value)} style={selStyle} aria-label="Nach Team filtern">
+                    <option value="">Team: alle</option>
+                    {teamFilterOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </>
+              );
+            })()}
+          </div>
+
           {/* Filter: alle / zuzuweisen (offen) / bewusst ohne Zuordnung */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
             {([['all', `Alle (${profiles.length})`], ['pending', `Zuzuweisen (${pendingCount})`], ['no_player', `Ohne Zuordnung (${noPlayerCount})`]] as const).map(([key, label]) => (
@@ -329,7 +366,7 @@ export default function AdminUsersPage() {
                   </span>
                 </div>
               ))}
-              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{query.trim() ? `Kein Treffer für „${query.trim()}".` : filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</div>}
+              {shown.length === 0 && <div style={{ padding: '24px 18px', ...muted }}>{emptyMsg}</div>}
             </div>
           </div>
 
@@ -355,7 +392,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             ))}
-            {shown.length === 0 && <p style={muted}>{query.trim() ? `Kein Treffer für „${query.trim()}".` : filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉' : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".' : 'Noch keine Benutzer registriert.'}</p>}
+            {shown.length === 0 && <p style={muted}>{emptyMsg}</p>}
           </div>
         </>
       )}
