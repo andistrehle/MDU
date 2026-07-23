@@ -230,12 +230,20 @@ export default function SpielbedingungenPage() {
 
       <LegalSection title="15. Spielende, Spielbericht & Ergebnismeldung">
         <ol style={ol}>
-          <li>Nach der letzten Paarung kontrollieren beide TCs den korrekten Eintrag aller Ergebnisse und
-            bestätigen ihn mit ihrer Unterschrift. Ein von beiden TCs unterschriebener Spielbericht ist gültig;
-            nachträglicher Protest ist dann nicht mehr möglich.</li>
-          <li>Der Spielbericht wird anschließend eigenständig im Login-Bereich der MDU-Plattform
-            hochgeladen (Foto/PDF des unterschriebenen Bogens). Bei Problemen kann er ersatzweise per E-Mail
-            oder WhatsApp an die Ligaleitung übermittelt werden.</li>
+          <li>Nach der letzten Paarung kontrollieren beide TCs den korrekten Eintrag aller Ergebnisse.
+            Unabhängig davon, ob die Ergebnisse direkt online eingegeben oder zunächst auf Papier festgehalten
+            werden, wird der Spielbericht am Ende digital über die MDU-Plattform erfasst und vom gegnerischen TC
+            online bestätigt. Ein von beiden TCs bestätigter Spielbericht – Eingabe durch den einen,
+            Online-Bestätigung durch den anderen – ist gültig; nachträglicher Protest ist dann nicht mehr
+            möglich. Wird der Papierbogen verwendet, ist er zusätzlich von beiden TCs zu unterschreiben.</li>
+          <li>Die Erfassung erfolgt eigenständig im Login-Bereich der MDU-Plattform auf einem von drei Wegen:
+            <ul style={ul}>
+              <li>direkte digitale Eingabe während des Spiels,</li>
+              <li>Ausfüllen auf Papier und anschließende manuelle Online-Eingabe, oder</li>
+              <li>Ausfüllen auf Papier und anschließende Digitalisierung per Foto (Foto/PDF des unterschriebenen Bogens).</li>
+            </ul>
+            Bei Problemen kann der Spielbericht ersatzweise per E-Mail oder WhatsApp an die Ligaleitung
+            übermittelt werden.</li>
           <li>Geht der Spielbericht nicht binnen <strong>zwei Werktagen</strong>{' '}nach beendeter Spielwoche
             (spätestens Dienstag, 24:00&nbsp;Uhr) ein, erhält das Heimteam automatisch eine Niederlage
             (0:3 Punkte / 0:18 Sätze).</li>
