@@ -28,6 +28,19 @@ function anon(): SupabaseClient | null {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
+/** Aktuelle Passnummern für eine Liste von Spieler-Ids (players.license_number).
+ *  Für die Kader-Anzeige, da season_roster_assignments.player_id keinen FK hat. */
+async function currentLicenses(c: SupabaseClient, playerIds: (string | null)[]): Promise<Map<string, string>> {
+  const ids = [...new Set(playerIds.filter((x): x is string => !!x))];
+  const map = new Map<string, string>();
+  if (!ids.length) return map;
+  const { data } = await c.from('players').select('id, license_number').in('id', ids);
+  for (const p of (data ?? []) as { id: string; license_number: string | null }[]) {
+    if (p.license_number) map.set(p.id, p.license_number);
+  }
+  return map;
+}
+
 export interface ActiveSeasonInfo {
   id: string;
   name: string;
@@ -119,25 +132,24 @@ export async function getSeasonRoster(seasonId: string, teamId: string): Promise
   if (!c || !seasonId || !teamId) return [];
   const { data } = await c
     .from('season_roster_assignments')
-    .select('first_name, last_name, license_number, is_captain, player_id, status, players:player_id(license_number)')
+    .select('first_name, last_name, license_number, is_captain, player_id, status')
     .eq('season_id', seasonId)
     .eq('team_id', teamId)
     .order('is_captain', { ascending: false });
 
-  type Row = { first_name: string; last_name: string; license_number: string | null; is_captain: boolean; player_id: string | null; status: string; players: { license_number: string | null } | { license_number: string | null }[] | null };
-  return ((data ?? []) as unknown as Row[]).map(r => {
-    // Aktuelle Passnummer des verknüpften Spielers hat Vorrang vor der bei der
-    // Anmeldung übernommenen (ggf. veralteten) Vorlagen-Nummer.
-    const pl = Array.isArray(r.players) ? r.players[0] : r.players;
-    return {
-      firstName: r.first_name,
-      lastName: r.last_name,
-      licenseNumber: (r.player_id && pl?.license_number) ? pl.license_number : r.license_number,
-      isCaptain: r.is_captain,
-      playerId: r.player_id,
-      status: r.status,
-    };
-  });
+  type Row = { first_name: string; last_name: string; license_number: string | null; is_captain: boolean; player_id: string | null; status: string };
+  const rows = (data ?? []) as Row[];
+  // Aktuelle Passnummern der verknüpften Spieler separat holen (season_roster_
+  // assignments.player_id hat keinen FK auf players → kein PostgREST-Embed möglich).
+  const licById = await currentLicenses(c, rows.map(r => r.player_id));
+  return rows.map(r => ({
+    firstName: r.first_name,
+    lastName: r.last_name,
+    licenseNumber: (r.player_id && licById.get(r.player_id)) || r.license_number,
+    isCaptain: r.is_captain,
+    playerId: r.player_id,
+    status: r.status,
+  }));
 }
 
 /** Eine einzelne Saison-Team-Zeile (für die Teamseite). */

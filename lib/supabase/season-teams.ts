@@ -11,6 +11,19 @@ import { supabase } from './client';
 import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
 import { normalizePersonName } from '@/lib/auth/player-match';
 
+/** Aktuelle Passnummern (players.license_number) für Spieler-Ids — separat, weil
+ *  season_roster_assignments.player_id keinen FK auf players hat (kein Embed). */
+async function currentLicensesClient(playerIds: (string | null)[]): Promise<Map<string, string>> {
+  const ids = [...new Set(playerIds.filter((x): x is string => !!x))];
+  const map = new Map<string, string>();
+  if (!supabase || !ids.length) return map;
+  const { data } = await supabase.from('players').select('id, license_number').in('id', ids);
+  for (const p of (data ?? []) as { id: string; license_number: string | null }[]) {
+    if (p.license_number) map.set(p.id, p.license_number);
+  }
+  return map;
+}
+
 export interface SeasonTeamRow {
   id: string;
   season_id: string;
@@ -259,19 +272,21 @@ export async function getCaptainTeamView(teamId: string): Promise<{
   if (!top) return null;
   const { data: roster } = await supabase
     .from('season_roster_assignments')
-    .select('first_name, last_name, license_number, is_captain, player_id, status, players:player_id(license_number)')
+    .select('first_name, last_name, license_number, is_captain, player_id, status')
     .eq('season_id', top.season_id).eq('team_id', teamId).order('is_captain', { ascending: false });
+  const rrows = (roster ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string }[];
+  const licById = await currentLicensesClient(rrows.map(r => r.player_id));
   return {
     seasonId: top.season_id,
     seasonName: top.seasons?.name ?? null,
     teamName: top.teams?.name ?? teamId,
     shortName: top.teams?.short_name ?? null,
     leagueId: top.assigned_competition_id ?? null,
-    roster: ((roster ?? []) as unknown as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string; players: { license_number: string | null } | { license_number: string | null }[] | null }[])
-      .map(r => {
-        const pl = Array.isArray(r.players) ? r.players[0] : r.players;
-        return { name: `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim(), license: (r.player_id && pl?.license_number) ? pl.license_number : r.license_number, isCaptain: r.is_captain, playerId: r.player_id, status: r.status };
-      }),
+    roster: rrows.map(r => ({
+      name: `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim(),
+      license: (r.player_id && licById.get(r.player_id)) || r.license_number,
+      isCaptain: r.is_captain, playerId: r.player_id, status: r.status,
+    })),
   };
 }
 
@@ -297,15 +312,12 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
   if (!supabase || !seasonId) return [];
   const { data } = await supabase
     .from('season_roster_assignments')
-    .select('id, season_id, team_id, player_id, first_name, last_name, license_number, is_captain, status, registration_id, players:player_id(license_number)')
+    .select('id, season_id, team_id, player_id, first_name, last_name, license_number, is_captain, status, registration_id')
     .eq('season_id', seasonId)
     .order('is_captain', { ascending: false });
+  const rows = (data ?? []) as SeasonRosterRow[];
   // Aktuelle Passnummer des verknüpften Spielers hat Vorrang vor der (ggf.
-  // veralteten) Vorlagen-Nummer aus der Anmeldung.
-  return ((data ?? []) as unknown as (SeasonRosterRow & { players: { license_number: string | null } | { license_number: string | null }[] | null })[])
-    .map(r => {
-      const pl = Array.isArray(r.players) ? r.players[0] : r.players;
-      const { players: _drop, ...row } = r;
-      return { ...row, license_number: (r.player_id && pl?.license_number) ? pl.license_number : r.license_number };
-    });
+  // veralteten) Vorlagen-Nummer — separat, da player_id keinen FK auf players hat.
+  const licById = await currentLicensesClient(rows.map(r => r.player_id));
+  return rows.map(r => ({ ...r, license_number: (r.player_id && licById.get(r.player_id)) || r.license_number }));
 }
