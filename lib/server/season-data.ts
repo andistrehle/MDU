@@ -119,20 +119,25 @@ export async function getSeasonRoster(seasonId: string, teamId: string): Promise
   if (!c || !seasonId || !teamId) return [];
   const { data } = await c
     .from('season_roster_assignments')
-    .select('first_name, last_name, license_number, is_captain, player_id, status')
+    .select('first_name, last_name, license_number, is_captain, player_id, status, players:player_id(license_number)')
     .eq('season_id', seasonId)
     .eq('team_id', teamId)
     .order('is_captain', { ascending: false });
 
-  type Row = { first_name: string; last_name: string; license_number: string | null; is_captain: boolean; player_id: string | null; status: string };
-  return ((data ?? []) as Row[]).map(r => ({
-    firstName: r.first_name,
-    lastName: r.last_name,
-    licenseNumber: r.license_number,
-    isCaptain: r.is_captain,
-    playerId: r.player_id,
-    status: r.status,
-  }));
+  type Row = { first_name: string; last_name: string; license_number: string | null; is_captain: boolean; player_id: string | null; status: string; players: { license_number: string | null } | { license_number: string | null }[] | null };
+  return ((data ?? []) as unknown as Row[]).map(r => {
+    // Aktuelle Passnummer des verknüpften Spielers hat Vorrang vor der bei der
+    // Anmeldung übernommenen (ggf. veralteten) Vorlagen-Nummer.
+    const pl = Array.isArray(r.players) ? r.players[0] : r.players;
+    return {
+      firstName: r.first_name,
+      lastName: r.last_name,
+      licenseNumber: (r.player_id && pl?.license_number) ? pl.license_number : r.license_number,
+      isCaptain: r.is_captain,
+      playerId: r.player_id,
+      status: r.status,
+    };
+  });
 }
 
 /** Eine einzelne Saison-Team-Zeile (für die Teamseite). */

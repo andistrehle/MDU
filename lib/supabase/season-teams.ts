@@ -259,7 +259,7 @@ export async function getCaptainTeamView(teamId: string): Promise<{
   if (!top) return null;
   const { data: roster } = await supabase
     .from('season_roster_assignments')
-    .select('first_name, last_name, license_number, is_captain, player_id, status')
+    .select('first_name, last_name, license_number, is_captain, player_id, status, players:player_id(license_number)')
     .eq('season_id', top.season_id).eq('team_id', teamId).order('is_captain', { ascending: false });
   return {
     seasonId: top.season_id,
@@ -267,8 +267,11 @@ export async function getCaptainTeamView(teamId: string): Promise<{
     teamName: top.teams?.name ?? teamId,
     shortName: top.teams?.short_name ?? null,
     leagueId: top.assigned_competition_id ?? null,
-    roster: ((roster ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string }[])
-      .map(r => ({ name: `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim(), license: r.license_number, isCaptain: r.is_captain, playerId: r.player_id, status: r.status })),
+    roster: ((roster ?? []) as unknown as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string; players: { license_number: string | null } | { license_number: string | null }[] | null }[])
+      .map(r => {
+        const pl = Array.isArray(r.players) ? r.players[0] : r.players;
+        return { name: `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim(), license: (r.player_id && pl?.license_number) ? pl.license_number : r.license_number, isCaptain: r.is_captain, playerId: r.player_id, status: r.status };
+      }),
   };
 }
 
@@ -294,8 +297,15 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
   if (!supabase || !seasonId) return [];
   const { data } = await supabase
     .from('season_roster_assignments')
-    .select('id, season_id, team_id, player_id, first_name, last_name, license_number, is_captain, status, registration_id')
+    .select('id, season_id, team_id, player_id, first_name, last_name, license_number, is_captain, status, registration_id, players:player_id(license_number)')
     .eq('season_id', seasonId)
     .order('is_captain', { ascending: false });
-  return (data ?? []) as SeasonRosterRow[];
+  // Aktuelle Passnummer des verknüpften Spielers hat Vorrang vor der (ggf.
+  // veralteten) Vorlagen-Nummer aus der Anmeldung.
+  return ((data ?? []) as unknown as (SeasonRosterRow & { players: { license_number: string | null } | { license_number: string | null }[] | null })[])
+    .map(r => {
+      const pl = Array.isArray(r.players) ? r.players[0] : r.players;
+      const { players: _drop, ...row } = r;
+      return { ...row, license_number: (r.player_id && pl?.license_number) ? pl.license_number : r.license_number };
+    });
 }
