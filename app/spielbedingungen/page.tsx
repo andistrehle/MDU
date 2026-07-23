@@ -237,12 +237,13 @@ export default function SpielbedingungenPage() {
             Online-Bestätigung durch den anderen – ist gültig; nachträglicher Protest ist dann nicht mehr
             möglich. Wird der Papierbogen verwendet, ist er zusätzlich von beiden TCs zu unterschreiben.</li>
           <li>Die Erfassung erfolgt eigenständig im Login-Bereich der MDU-Plattform auf einem von drei Wegen:
-            <ul style={ul}>
-              <li>direkte digitale Eingabe während des Spiels,</li>
-              <li>Ausfüllen auf Papier und anschließende manuelle Online-Eingabe, oder</li>
-              <li>Ausfüllen auf Papier und anschließende Digitalisierung per Foto (Foto/PDF des unterschriebenen Bogens).</li>
+            <ul style={{ margin: '6px 0 2px', paddingLeft: 22, listStyleType: 'disc' }}>
+              <li style={{ display: 'list-item', marginBottom: 4 }}>direkte digitale Eingabe während des Spiels,</li>
+              <li style={{ display: 'list-item', marginBottom: 4 }}>Ausfüllen auf Papier und anschließende manuelle Online-Eingabe, oder</li>
+              <li style={{ display: 'list-item' }}>Ausfüllen auf Papier und anschließende Digitalisierung per Foto (Foto/PDF des unterschriebenen Bogens).</li>
             </ul>
-            Bei Problemen kann der Spielbericht ersatzweise per E-Mail oder WhatsApp an die Ligaleitung
+          </li>
+          <li>Bei Problemen kann der Spielbericht ersatzweise per E-Mail oder WhatsApp an die Ligaleitung
             übermittelt werden.</li>
           <li>Geht der Spielbericht nicht binnen <strong>zwei Werktagen</strong>{' '}nach beendeter Spielwoche
             (spätestens Dienstag, 24:00&nbsp;Uhr) ein, erhält das Heimteam automatisch eine Niederlage
