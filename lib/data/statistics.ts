@@ -58,7 +58,7 @@ const A1_STATS: PlayerStatEntry[] = [
   { rank:  1, name: 'Stefan Piperea',     teamId: 'alptraum',       teamName: 'Alptraum',         pts: 110, wins: 37, losses: 17 },
   { rank:  2, name: 'Stefano Bernecker',  teamId: 'spartans-vi',    teamName: 'Spartans VI',      pts: 105, wins: 39, losses:  9 },
   { rank:  3, name: 'Hans Reinicke',      teamId: 'alptraum',       teamName: 'Alptraum',         pts: 103, wins: 39, losses:  1 },
-  { rank:  4, name: 'Jörg Konrad',        teamId: 'dc-animals-ii',  teamName: 'DC Animals II',    pts:  95, wins: 33, losses: 10 },
+  { rank:  4, name: 'Jörg Konrad',        teamId: 'dc-animals-ii',  teamName: 'DC Animals',    pts:  95, wins: 33, losses: 10 },
   { rank:  5, name: 'Thorsten Edelmann',  teamId: 'sound-warriors', teamName: "Sound Warrior's",  pts:  86, wins: 29, losses: 15 },
   { rank:  6, name: 'Markus Hecht',       teamId: 'spartans-vi',    teamName: 'Spartans VI',      pts:  65, wins: 23, losses: 20 },
   { rank:  7, name: 'Christian Rock',     teamId: 'sound-warriors', teamName: "Sound Warrior's",  pts:  65, wins: 21, losses: 23 },

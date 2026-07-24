@@ -260,7 +260,7 @@ const LA_LIGA_STANDINGS: StandingRow[] = [
 
 const A1_LIGA_STANDINGS: StandingRow[] = [
   { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 14, s: 11, u: 1, n: 2, legs: '368:241', diff: '+127', pts: 34, status: 'promo' },
-  { pos: 2, team: 'dc-animals-ii',      name: 'DC Animals II',      sp: 11, s: 7,  u: 0, n: 4, legs: '260:230', diff: '+30',  pts: 21, status: 'promo' },
+  { pos: 2, team: 'dc-animals-ii',      name: 'DC Animals',      sp: 11, s: 7,  u: 0, n: 4, legs: '260:230', diff: '+30',  pts: 21, status: 'promo' },
   { pos: 3, team: 'gambas',             name: 'Gambas',             sp: 10, s: 5,  u: 1, n: 4, legs: '217:232', diff: '-15',  pts: 16, status: 'promo' },
   { pos: 4, team: 'spartans-vi',        name: 'Spartans VI',        sp: 12, s: 4,  u: 3, n: 5, legs: '277:258', diff: '+19',  pts: 15, status: null },
   { pos: 5, team: 'sound-warriors',     name: "Sound Warrior's",    sp: 12, s: 4,  u: 0, n: 8, legs: '219:306', diff: '-87',  pts: 9,  status: null },
@@ -320,7 +320,7 @@ const PLAYOFFS_A_AUFSTIEG_STANDINGS: StandingRow[] = [
   { pos: 1, team: 'alptraum',           name: 'Alptraum',           sp: 6, s: 5, u: 0, n: 1, spiele: '69:39', legs: '158:106', diff: '+30', pts: 15, status: null },
   { pos: 2, team: 'gambas',             name: 'Gambas',             sp: 7, s: 4, u: 0, n: 3, spiele: '61:65', legs: '141:151', diff: '-4',  pts: 12, status: null },
   { pos: 3, team: 'silberpfeile-ii',    name: 'Silberpfeile II',    sp: 5, s: 3, u: 1, n: 1, spiele: '55:35', legs: '125:92',  diff: '+20', pts: 10, status: null },
-  { pos: 4, team: 'dc-animals-ii',      name: 'DC Animals II',      sp: 7, s: 3, u: 0, n: 4, spiele: '62:64', legs: '153:148', diff: '-2',  pts: 9,  status: null },
+  { pos: 4, team: 'dc-animals-ii',      name: 'DC Animals',      sp: 7, s: 3, u: 0, n: 4, spiele: '62:64', legs: '153:148', diff: '-2',  pts: 9,  status: null },
   { pos: 5, team: 'treff-nix-freimann', name: 'Treff Nix Freimann', sp: 6, s: 2, u: 0, n: 4, spiele: '49:59', legs: '120:136', diff: '-10', pts: 6,  status: null },
   { pos: 6, team: 'jolly-pirates-v',    name: 'Jolly Pirates V',    sp: 7, s: 1, u: 1, n: 5, spiele: '46:80', legs: '119:183', diff: '-34', pts: 4,  status: null },
 ];

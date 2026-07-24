@@ -59,7 +59,7 @@ export const TEAMS: Team[] = [
 
   // A1 Liga — 6 teams (treff-nix-freimann transferred to A2)
   { id: 'alptraum',           name: 'Alptraum',             short: 'ALT', color: '#D40000', status: 'active',   logoUrl: '/team-logos/alptraum.png' },
-  { id: 'dc-animals-ii',      name: 'DC Animals II',        short: 'DCA', color: '#3B82F6', status: 'active',   logoUrl: '/team-logos/dc-animals-ii.png' },
+  { id: 'dc-animals-ii',      name: 'DC Animals',        short: 'DCA', color: '#3B82F6', status: 'active',   logoUrl: '/team-logos/dc-animals-ii.png' },
   { id: 'gambas',             name: 'Gambas',               short: 'GMB', color: '#F59E0B', status: 'active',   logoUrl: '/team-logos/gambas.png' },
   { id: 'spartans-vi',        name: 'Spartans VI',          short: 'SP6', color: '#0EA5E9', status: 'active',   logoUrl: '/team-logos/spartans-vi.png' },
   { id: 'sound-warriors',     name: "Sound Warrior's",      short: 'SOW', color: '#8B5CF6', status: 'active',   logoUrl: '/team-logos/sound-warriors.png' },
