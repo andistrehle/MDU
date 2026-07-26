@@ -151,6 +151,20 @@ export async function finalizeNewRosterPlayers(
     if (p.display_name) indexName(p.display_name, p.id);
   }
 
+  // Kapitäns-Konto (captain_user_id) für die Auto-Verknüpfung Konto ↔ TC-Profil.
+  const { data: staRow } = await supabase.from('season_team_assignments')
+    .select('captain_user_id').eq('season_id', seasonId).eq('team_id', teamId).maybeSingle();
+  const captainUserId = (staRow as { captain_user_id: string | null } | null)?.captain_user_id ?? null;
+  // Verknüpft das Kapitäns-Konto mit dem TC-Spielerprofil — nur, wenn das Konto
+  // noch keinen Spieler hat (nichts überschreiben). Best effort, blockiert die
+  // Freigabe nicht. RLS: profiles_update_admin erlaubt das dem Admin.
+  const linkCaptain = async (playerId: string) => {
+    if (!captainUserId) return;
+    await supabase!.from('profiles')
+      .update({ player_id: playerId, team_id: teamId, match_status: 'confirmed' })
+      .eq('id', captainUserId).is('player_id', null);
+  };
+
   let created = 0, linked = 0;
   const ambiguous: string[] = [];
   for (const row of todo) {
@@ -178,6 +192,7 @@ export async function finalizeNewRosterPlayers(
       if (row.is_captain) {
         await supabase.from('season_team_assignments')
           .update({ captain_player_id: existingId }).eq('season_id', seasonId).eq('team_id', teamId);
+        await linkCaptain(existingId);
       }
       linked++;
       continue;
@@ -204,6 +219,7 @@ export async function finalizeNewRosterPlayers(
     if (row.is_captain) {
       await supabase.from('season_team_assignments')
         .update({ captain_player_id: slug }).eq('season_id', seasonId).eq('team_id', teamId);
+      await linkCaptain(slug);
     }
 
     // Neu angelegten Spieler indexieren (falls zwei gleiche Namen im selben Kader).
