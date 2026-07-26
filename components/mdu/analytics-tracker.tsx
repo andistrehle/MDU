@@ -47,13 +47,14 @@ export function AnalyticsTracker() {
       ? (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark')
       : null;
 
-    // Fire-and-forget; Fehler ignorieren (Statistik darf nie stören).
-    void supabase.from('analytics_events').insert({
-      path: pathname.slice(0, 300),
-      theme,
-      logged_in: !!user,
-      session_id: sessionId(),
-    });
+    // Ereignis über RPC melden (security definer) — kein Zurücklesen der Zeile,
+    // daher keine RLS-Select-Falle. Fehler nur loggen, nie den Nutzer stören.
+    supabase.rpc('track_event', {
+      p_path: pathname.slice(0, 300),
+      p_theme: theme,
+      p_logged_in: !!user,
+      p_session_id: sessionId(),
+    }).then(({ error }) => { if (error) console.warn('[analytics]', error.message); });
   }, [pathname, user, loading]);
 
   return null;

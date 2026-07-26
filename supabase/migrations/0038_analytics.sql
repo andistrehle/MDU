@@ -35,6 +35,19 @@ create policy "analytics_select_super" on public.analytics_events
 -- Besucher dürfen ein Ereignis schreiben. Lesen läuft nur über die RPCs.
 grant insert on public.analytics_events to anon, authenticated;
 
+-- Ereignis melden über RPC (security definer) — robust gegen das Zurücklesen
+-- der Zeile (RLS-Select ist nur Super-Admin). Der Tracker ruft diese Funktion.
+create or replace function public.track_event(
+  p_path text, p_theme text, p_logged_in boolean, p_session_id text
+) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.analytics_events (path, theme, logged_in, session_id)
+  values (left(coalesce(p_path, ''), 300), p_theme, coalesce(p_logged_in, false), p_session_id);
+end; $$;
+
+grant execute on function public.track_event(text, text, boolean, text) to anon, authenticated;
+
 -- ── Aggregat-RPCs (security definer, nur Super-Admin) ─────────
 create or replace function public.analytics_daily(p_days int default 30)
 returns table(day date, views bigint, sessions bigint)
