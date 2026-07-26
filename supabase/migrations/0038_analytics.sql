@@ -31,6 +31,10 @@ drop policy if exists "analytics_select_super" on public.analytics_events;
 create policy "analytics_select_super" on public.analytics_events
   for select using (public.is_super_admin());
 
+-- Tabellen-Privileg (RLS-Policy allein genügt nicht): anonyme + eingeloggte
+-- Besucher dürfen ein Ereignis schreiben. Lesen läuft nur über die RPCs.
+grant insert on public.analytics_events to anon, authenticated;
+
 -- ── Aggregat-RPCs (security definer, nur Super-Admin) ─────────
 create or replace function public.analytics_daily(p_days int default 30)
 returns table(day date, views bigint, sessions bigint)
