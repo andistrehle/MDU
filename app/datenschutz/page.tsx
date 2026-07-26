@@ -128,6 +128,16 @@ export default function DatenschutzPage() {
         bzw. in technisch notwendigen Cookies gespeichert und dienen nicht der Nachverfolgung.
         Es werden keine Tracking- oder Marketing-Cookies eingesetzt; eine Einwilligung
         (Cookie-Banner) ist hierfür nicht erforderlich.
+        <p style={{ marginTop: 12 }}>
+          Zur anonymen Reichweitenmessung erfassen wir zusätzlich einzelne Nutzungsereignisse:
+          die aufgerufene Seite, das gewählte Design (Hell/Dunkel), ein Kennzeichen, ob der Aufruf
+          eingeloggt oder ausgeloggt erfolgte, sowie eine zufällige, nur für die aktuelle
+          Browser-Sitzung gültige Kennung (im sessionStorage, kein Cookie). Diese Daten werden
+          ausschließlich aggregiert ausgewertet, enthalten keine IP-Adresse und lassen keinen
+          Rückschluss auf einzelne Personen oder Konten zu. Rechtsgrundlage ist unser berechtigtes
+          Interesse an einer bedarfsgerechten, stabilen Gestaltung der Plattform
+          (Art. 6 Abs. 1 lit. f DSGVO).
+        </p>
       </LegalSection>
 
       <LegalSection title="12. Speicherdauer">

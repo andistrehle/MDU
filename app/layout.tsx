@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/mdu/bottom-nav';
 import { DemoTour } from '@/components/mdu/demo-tour';
 import { DemoTourButton } from '@/components/mdu/tour-restart-link';
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { AnalyticsTracker } from '@/components/mdu/analytics-tracker';
 import { SITE_INDEXABLE } from '@/lib/site-config';
 
 const sairaCondensed = Saira_Condensed({
@@ -89,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomNav />
           <DemoTourButton />
           <DemoTour />
+          <AnalyticsTracker />
         </AuthProvider>
       </body>
     </html>

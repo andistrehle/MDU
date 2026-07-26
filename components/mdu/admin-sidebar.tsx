@@ -33,6 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: 'download', label: 'Downloads',     href: '/admin/downloads',     require: 'league' },
   { icon: 'upload',   label: 'Import',        href: '/admin/import',        require: 'league' },
   { icon: 'check',    label: 'Sicherheit',    href: '/admin/security',      require: 'league' },
+  { icon: 'bar',      label: 'Statistik',     href: '/admin/analytics',     require: 'super' },
   { icon: 'settings', label: 'Einstellungen', href: '/admin/settings',      require: 'super' },
 ];
 
