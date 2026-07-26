@@ -8,6 +8,10 @@
 // ============================================================
 
 import { supabase } from './client';
+import { finalizeNewRosterPlayers } from './season-teams';
+
+/** Zusammenfassung der automatischen Passnummern-Vergabe bei der Freigabe. */
+export interface FinalizeSummary { finalized: number; created?: number; linked?: number; ambiguous?: string[] }
 
 export type RegistrationStatus =
   | 'draft' | 'submitted' | 'in_review' | 'approved' | 'rejected' | 'changes_requested';
@@ -305,7 +309,7 @@ export async function reviewRegistration(
   id: string,
   status: Extract<RegistrationStatus, 'in_review' | 'approved' | 'rejected' | 'changes_requested'>,
   reviewNote?: string,
-): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean }> {
+): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean; finalize?: FinalizeSummary }> {
   if (!supabase) return { error: NOT_CONFIGURED };
 
   if (status === 'approved') {
@@ -333,7 +337,7 @@ export async function reviewRegistration(
 export async function applyApprovedTeamRegistration(
   registrationId: string,
   opts: { reviewNote?: string; allowActiveSeason?: boolean } = {},
-): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean }> {
+): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean; finalize?: FinalizeSummary }> {
   if (!supabase) return { error: NOT_CONFIGURED };
 
   // Neues Team ohne Kürzel → vor der Übernahme automatisch eines setzen, damit
@@ -360,7 +364,17 @@ export async function applyApprovedTeamRegistration(
     return { error: error.message };
   }
 
-  const res = (data ?? {}) as { ok?: boolean; error?: string; team_id?: string | null };
+  const res = (data ?? {}) as { ok?: boolean; error?: string; team_id?: string | null; season_id?: string | null };
   if (res.ok === false) return { error: res.error ?? 'Automatische Übernahme fehlgeschlagen.' };
-  return { error: null, resultTeamId: res.team_id ?? null };
+
+  // Direkt im Anschluss die neuen Spieler „scharf schalten": Profile anlegen und
+  // Passnummern vergeben bzw. bestehende wiederverwenden — kein separater Klick
+  // mehr nötig. Fehler hier lassen die Freigabe NICHT scheitern (Team ist angelegt);
+  // etwaige mehrdeutige Namen bleiben offen und können manuell zugeordnet werden.
+  let finalize: FinalizeSummary | undefined;
+  if (res.team_id && res.season_id) {
+    const f = await finalizeNewRosterPlayers(res.season_id, res.team_id);
+    if (!f.error) finalize = { finalized: f.finalized, created: f.created, linked: f.linked, ambiguous: f.ambiguous };
+  }
+  return { error: null, resultTeamId: res.team_id ?? null, finalize };
 }

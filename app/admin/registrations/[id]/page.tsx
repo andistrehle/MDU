@@ -162,9 +162,16 @@ export default function RegistrationDetailPage() {
     const hint = fresh ? await sendStatusEmail(fresh, 'approved', reason) : '';
     // Fenster schließen → zur Übersicht springen; Erfolgsmeldung dort via Flash anzeigen.
     const teamName = fresh?.team_name ?? reg?.team_name ?? 'Die Mannschaft';
+    // Automatische Passnummern-Vergabe zusammenfassen (kein separater Schritt mehr).
+    const f = r.finalize;
+    const parts: string[] = [];
+    if (f?.created) parts.push(`${f.created} neue Passnummer${f.created === 1 ? '' : 'n'}`);
+    if (f?.linked) parts.push(`${f.linked} mit bestehendem Profil verknüpft`);
+    let passInfo = parts.length ? ` Passnummern: ${parts.join(' · ')}.` : '';
+    if (f?.ambiguous?.length) passInfo += ` ⚠ ${f.ambiguous.length} mehrdeutig – bitte unter „Saison-Teams" manuell zuordnen: ${f.ambiguous.join(', ')}.`;
     try {
       sessionStorage.setItem('mdu_admin_flash',
-        `${teamName} freigegeben und für ${targetSeason?.name ?? 'die Ziel-Saison'} übernommen. ${hint}`.trim());
+        `${teamName} freigegeben und für ${targetSeason?.name ?? 'die Ziel-Saison'} übernommen.${passInfo} ${hint}`.trim());
     } catch { /* sessionStorage optional */ }
     router.push('/admin/registrations');
   }
