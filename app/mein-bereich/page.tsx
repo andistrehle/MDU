@@ -121,6 +121,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
   // Super Admin — exklusiv (im Kapitäns-Modus ausgeblendet)
   if (canManageUsers(user) && !inCaptainMode) {
     tiles.push(
+      { icon: 'bar',      label: 'Statistik',           description: 'Anonyme Nutzungsstatistik (Aufrufe, Top-Seiten, Dark/Classic, Login-Quote).', href: '/admin/analytics', ready: true },
       { icon: 'edit',     label: 'Rollenverwaltung',    description: 'Rollen vergeben (in der Benutzerverwaltung).', href: '/admin/users', ready: true },
       { icon: 'settings', label: 'Systemeinstellungen', description: 'Plattform-Einstellungen (folgt).', ready: false },
     );
