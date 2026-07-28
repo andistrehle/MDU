@@ -21,7 +21,9 @@ export function ShareNews({ article }: { article: NewsArticle }) {
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const caption = `${article.title}\n\n${article.teaser}\n\n👉 ${SITE}\n\n#münchnerdartunion #mdu #darts #münchen #dartsliga #steeldarts`;
+  // Direkt-Link auf genau diesen Artikel (öffnet ihn beim Aufruf automatisch).
+  const articleUrl = `${SITE}#${article.id}`;
+  const caption = `${article.title}\n\n${article.teaser}\n\n👉 ${articleUrl}\n\n#münchnerdartunion #mdu #darts #münchen #dartsliga #steeldarts`;
 
   const draw = useCallback(() => {
     const c = canvasRef.current;
@@ -130,7 +132,7 @@ export function ShareNews({ article }: { article: NewsArticle }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="button" onClick={download} style={actionBtn}>⬇ Bild herunterladen</button>
             <button type="button" onClick={copyCaption} style={actionBtn}>{copied ? '✓ Kopiert' : '📋 Text kopieren'}</button>
-            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE)}`} target="_blank" rel="noopener noreferrer" style={{ ...actionBtn, textDecoration: 'none' }}>
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`} target="_blank" rel="noopener noreferrer" style={{ ...actionBtn, textDecoration: 'none' }}>
               f  Auf Facebook teilen
             </a>
           </div>

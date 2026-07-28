@@ -24,6 +24,7 @@ function renderRich(text: string): ReactNode[] {
  */
 export function NewsArticleCard({ article }: { article: NewsArticle }) {
   const [open, setOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const { user } = useAuth();
   const isAdmin = hasMinRole(user, 'league_admin');
@@ -40,6 +41,37 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
       document.body.style.overflow = prevOverflow;
     };
   }, [open]);
+
+  // Deep-Link: Artikel per #<id> in der URL direkt öffnen (teilbarer Link).
+  useEffect(() => {
+    const applyHash = () => {
+      const id = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
+      if (id === article.id) setOpen(true);
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, [article.id]);
+
+  // URL-Hash mit dem Öffnungszustand spiegeln (ohne History-Einträge/Scroll-Sprung).
+  useEffect(() => {
+    const current = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
+    if (open && current !== article.id) {
+      history.replaceState(null, '', `#${article.id}`);
+    } else if (!open && current === article.id) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, [open, article.id]);
+
+  const articleUrl = `https://www.mdudarts.de/news#${article.id}`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(articleUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch { /* Clipboard nicht verfügbar */ }
+  };
 
   return (
     <>
@@ -156,12 +188,28 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
 
             <div style={{
               marginTop: 22, paddingTop: 16, borderTop: '1px solid var(--th-line-6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
               fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)',
             }}>
-              Quelle:{' '}
-              <span style={{ color: 'var(--th-text-muted)' }}>
-                {article.source}
+              <span>
+                Quelle:{' '}
+                <span style={{ color: 'var(--th-text-muted)' }}>
+                  {article.source}
+                </span>
               </span>
+              <button
+                type="button"
+                onClick={copyLink}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '7px 12px', borderRadius: 8, cursor: 'pointer',
+                  background: 'transparent', color: 'var(--th-accent)',
+                  border: '1.5px solid var(--th-accent)',
+                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12,
+                }}
+              >
+                {linkCopied ? '✓ Link kopiert' : '🔗 Link kopieren'}
+              </button>
             </div>
 
             {/* Publishing-Hilfe: News für FB-Gruppe + Instagram aufbereiten (nur Ligaleitung). */}
