@@ -13,8 +13,25 @@ import {
 } from '@/lib/supabase/registrations';
 import {
   MAIN_LEAGUE_LABELS, MAIN_LEAGUES, type MainLeague,
-  getPredeterminedLeagueForTeam, isLeagueDowngrade,
+  getPredeterminedLeagueForTeam, isLeagueDowngrade, findTeam,
 } from '@/lib/data';
+import { getTeamForPlayer } from '@/lib/auth/player-match';
+
+/**
+ * Hinweis hinter einem Kaderspieler: die 26/27-Liga gemäß Auf-/Abstieg (aus dem
+ * Vorsaison-Team abgeleitet) und – falls der Spieler letzte Saison bei einem
+ * ANDEREN Team war – „(war davor bei …)". Für neue Spieler leer.
+ */
+function rosterPlayerHint(playerId: string | null, isExisting: boolean, currentTeamId: string | null): string {
+  if (!playerId || !isExisting) return '';
+  const lastTeam = getTeamForPlayer(playerId);
+  if (!lastTeam) return '';
+  const league = getPredeterminedLeagueForTeam(lastTeam)?.label ?? null;
+  const changed = currentTeamId ? lastTeam !== currentTeamId : true;
+  let s = league ? `, ${league}` : '';
+  if (changed) s += ` (war davor bei ${findTeam(lastTeam)?.name ?? lastTeam})`;
+  return s;
+}
 import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
 import {
   getActiveSeason, listSeasons, canRegisterTeamsForSeason, SEASON_STATUS_LABELS, type DbSeason,
@@ -232,7 +249,11 @@ export default function RegistrationDetailPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {players.map((p, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                    <span style={{ flex: 1 }}>{p.display_name}{p.license_number ? ` · ${p.license_number}` : ''}{p.is_existing_player ? '' : ' · neu'}</span>
+                    <span style={{ flex: 1 }}>
+                      {p.display_name}{p.license_number ? ` · ${p.license_number}` : ''}
+                      <span style={{ color: 'var(--th-text-muted)' }}>{rosterPlayerHint(p.player_id, p.is_existing_player, reg.source_team_id ?? null)}</span>
+                      {p.is_existing_player ? '' : ' · neu'}
+                    </span>
                     {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
                   </div>
                 ))}
