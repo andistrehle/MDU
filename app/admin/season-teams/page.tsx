@@ -17,6 +17,27 @@ import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason
 import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { playerLeagueHint } from '@/lib/data/roster-hints';
 import { canManageUsers } from '@/lib/auth/roles';
+import {
+  MAIN_LEAGUE_LABELS, mainLeagueForSubCode, getPredeterminedLeagueForTeam,
+  type MainLeague,
+} from '@/lib/data';
+
+const LEAGUE_ORDER: MainLeague[] = ['la_liga', 'a_liga', 'b_liga', 'c_liga'];
+
+/** Code (Hauptliga oder Staffel wie b1/b2) → Hauptliga. */
+function toMainLeague(code: string | null | undefined): MainLeague | null {
+  if (!code) return null;
+  if (code === 'la_liga' || code === 'a_liga' || code === 'b_liga' || code === 'c_liga') return code;
+  return mainLeagueForSubCode(code) ?? null;
+}
+
+/** Beste verfügbare Liga-Zuordnung eines Saison-Teams für die Gruppierung. */
+function teamMainLeague(t: SeasonTeamRow): MainLeague | null {
+  return toMainLeague(t.assigned_competition_id)
+    ?? toMainLeague(t.requested_league)
+    ?? getPredeterminedLeagueForTeam(t.team_id)?.league
+    ?? null;
+}
 
 export default function AdminSeasonTeamsPage() {
   const { user } = useAuth();
@@ -107,6 +128,120 @@ export default function AdminSeasonTeamsPage() {
     setSwitchMsg({ kind: 'ok', text: `„${season.name}" ist jetzt die aktive Saison.` });
   }
 
+  // Aufklappbare Team-Karte (in beiden Gruppen-Rendern identisch).
+  const renderTeam = (t: SeasonTeamRow) => {
+    const r = rosterFor(t.team_id);
+    const isOpen = open === t.id;
+    const captain = r.find(p => p.is_captain);
+    return (
+      <div key={t.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, overflow: 'hidden' }}>
+        <button
+          type="button"
+          onClick={() => setOpen(isOpen ? null : t.id)}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 18px', cursor: 'pointer', background: 'transparent', border: 'none' }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>
+              {t.teams?.name ?? t.team_id}
+            </div>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
+              {r.length} Spieler{captain ? ` · Kapitän: ${captain.first_name} ${captain.last_name}` : ''}{t.venues?.name ? ` · ${t.venues.name}` : ''}
+            </div>
+          </div>
+          <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
+            {t.status}
+          </span>
+          <span style={{ color: 'var(--th-text-faint)', fontSize: 18, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>⌄</span>
+        </button>
+
+        {isOpen && (
+          <div style={{ padding: '4px 18px 16px', borderTop: '1px solid var(--th-line-4)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8, padding: '12px 0', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
+              <span style={{ color: 'var(--th-text-muted)' }}>Kurzname</span>
+              <span style={{ color: t.teams?.short_name ? 'var(--th-text-strong)' : 'var(--th-text-faint2)', letterSpacing: t.teams?.short_name ? '0.08em' : undefined }}>{t.teams?.short_name ?? '–'}</span>
+              <span style={{ color: 'var(--th-text-muted)' }}>Spielstätte</span>
+              <span style={{ color: 'var(--th-text-strong)' }}>{t.venues?.name ?? '–'}{t.venues?.address ? ` · ${t.venues.address}` : ''}</span>
+              <span style={{ color: 'var(--th-text-muted)' }}>Team-ID</span>
+              <span style={{ color: 'var(--th-text-strong)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>{t.team_id}</span>
+              <span style={{ color: 'var(--th-text-muted)' }}>Liga/Wettbewerb</span>
+              <span style={{ color: t.assigned_competition_id ? 'var(--th-text-strong)' : 'var(--th-text-faint2)' }}>{t.assigned_competition_id ?? 'noch nicht zugewiesen'}</span>
+            </div>
+
+            <Link href={`/mein-team/bearbeiten?team=${t.team_id}`}
+              style={{ display: 'inline-block', marginBottom: 10, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
+              Team-Profil bearbeiten (Logo, Beschreibung, Social) →
+            </Link>
+
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', margin: '6px 0 8px' }}>
+              Kader ({r.length})
+            </div>
+            {r.length === 0 ? (
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)' }}>Kein Kader übernommen.</span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {r.map(p => (
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                    <span style={{ flex: 1 }}>
+                      {p.first_name} {p.last_name}{p.license_number ? ` · ${p.license_number}` : ''}
+                      <span style={{ color: 'var(--th-text-muted)' }}>{playerLeagueHint(p.player_id, t.team_id)}</span>
+                      {p.status === 'pending_review' ? ' · neu (Prüfung)' : ''}
+                    </span>
+                    {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Neue Spieler freigeben + Passnummern vergeben */}
+            {(() => {
+              const pending = r.filter(p => p.status === 'pending_review').length;
+              if (pending === 0) return null;
+              return (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--th-line-4)' }}>
+                  <button
+                    type="button"
+                    onClick={() => onFinalize(t.team_id, t.teams?.name ?? t.team_id)}
+                    disabled={finalizing === t.team_id}
+                    style={{ padding: '9px 14px', borderRadius: 8, cursor: finalizing === t.team_id ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}
+                  >
+                    {finalizing === t.team_id ? 'Vergebe Passnummern …' : `${pending} neue${pending === 1 ? 'n' : ''} Spieler freigeben & Passnummer${pending === 1 ? '' : 'n'} vergeben`}
+                  </button>
+                  <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', margin: '8px 0 0', lineHeight: 1.5 }}>
+                    Legt für die als „neu (Prüfung)" markierten Spieler ein Spielerprofil an und vergibt eine Passnummer
+                    (Regel: höchste Teamkollegen-Nummer + 1, nächste freie). Danach sind sie im „Verknüpfter Spieler"-Feld auswählbar.
+                  </p>
+                  {finalizeMsg?.teamId === t.team_id && (
+                    <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, marginTop: 8, color: finalizeMsg.kind === 'ok' ? 'var(--th-win)' : '#E24B4A' }}>
+                      {finalizeMsg.text}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Teams nach Hauptliga gruppieren (La → A → B → C, dann „ohne Zuordnung").
+  const grouped = (() => {
+    if (!teams) return [] as { key: string; label: string; teams: SeasonTeamRow[] }[];
+    const buckets = new Map<string, SeasonTeamRow[]>();
+    for (const t of teams) {
+      const key = teamMainLeague(t) ?? '_none';
+      (buckets.get(key) ?? buckets.set(key, []).get(key)!).push(t);
+    }
+    const out: { key: string; label: string; teams: SeasonTeamRow[] }[] = [];
+    for (const lg of LEAGUE_ORDER) {
+      const arr = buckets.get(lg);
+      if (arr?.length) out.push({ key: lg, label: MAIN_LEAGUE_LABELS[lg], teams: arr });
+    }
+    const none = buckets.get('_none');
+    if (none?.length) out.push({ key: '_none', label: 'Noch keine Liga zugewiesen', teams: none });
+    return out;
+  })();
+
   return (
     <AdminGuard title="Saison-Teams" subtitle="Freigegebene Mannschaften je Saison (aus den Anmeldungen übernommen).">
       {/* Saison-Auswahl */}
@@ -160,101 +295,25 @@ export default function AdminSeasonTeamsPage() {
           Für diese Saison wurden noch keine Mannschaften freigegeben.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 900 }}>
-          {teams.map(t => {
-            const r = rosterFor(t.team_id);
-            const isOpen = open === t.id;
-            const captain = r.find(p => p.is_captain);
-            return (
-              <div key={t.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, overflow: 'hidden' }}>
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : t.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 18px', cursor: 'pointer', background: 'transparent', border: 'none' }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>
-                      {t.teams?.name ?? t.team_id}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
-                      {r.length} Spieler{captain ? ` · Kapitän: ${captain.first_name} ${captain.last_name}` : ''}{t.venues?.name ? ` · ${t.venues.name}` : ''}
-                    </div>
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
-                    {t.status}
-                  </span>
-                  <span style={{ color: 'var(--th-text-faint)', fontSize: 18, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>⌄</span>
-                </button>
-
-                {isOpen && (
-                  <div style={{ padding: '4px 18px 16px', borderTop: '1px solid var(--th-line-4)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8, padding: '12px 0', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
-                      <span style={{ color: 'var(--th-text-muted)' }}>Kurzname</span>
-                      <span style={{ color: t.teams?.short_name ? 'var(--th-text-strong)' : 'var(--th-text-faint2)', letterSpacing: t.teams?.short_name ? '0.08em' : undefined }}>{t.teams?.short_name ?? '–'}</span>
-                      <span style={{ color: 'var(--th-text-muted)' }}>Spielstätte</span>
-                      <span style={{ color: 'var(--th-text-strong)' }}>{t.venues?.name ?? '–'}{t.venues?.address ? ` · ${t.venues.address}` : ''}</span>
-                      <span style={{ color: 'var(--th-text-muted)' }}>Team-ID</span>
-                      <span style={{ color: 'var(--th-text-strong)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>{t.team_id}</span>
-                      <span style={{ color: 'var(--th-text-muted)' }}>Liga/Wettbewerb</span>
-                      <span style={{ color: t.assigned_competition_id ? 'var(--th-text-strong)' : 'var(--th-text-faint2)' }}>{t.assigned_competition_id ?? 'noch nicht zugewiesen'}</span>
-                    </div>
-
-                    <Link href={`/mein-team/bearbeiten?team=${t.team_id}`}
-                      style={{ display: 'inline-block', marginBottom: 10, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
-                      Team-Profil bearbeiten (Logo, Beschreibung, Social) →
-                    </Link>
-
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', margin: '6px 0 8px' }}>
-                      Kader ({r.length})
-                    </div>
-                    {r.length === 0 ? (
-                      <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)' }}>Kein Kader übernommen.</span>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {r.map(p => (
-                          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                            <span style={{ flex: 1 }}>
-                              {p.first_name} {p.last_name}{p.license_number ? ` · ${p.license_number}` : ''}
-                              <span style={{ color: 'var(--th-text-muted)' }}>{playerLeagueHint(p.player_id, t.team_id)}</span>
-                              {p.status === 'pending_review' ? ' · neu (Prüfung)' : ''}
-                            </span>
-                            {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Neue Spieler freigeben + Passnummern vergeben */}
-                    {(() => {
-                      const pending = r.filter(p => p.status === 'pending_review').length;
-                      if (pending === 0) return null;
-                      return (
-                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--th-line-4)' }}>
-                          <button
-                            type="button"
-                            onClick={() => onFinalize(t.team_id, t.teams?.name ?? t.team_id)}
-                            disabled={finalizing === t.team_id}
-                            style={{ padding: '9px 14px', borderRadius: 8, cursor: finalizing === t.team_id ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}
-                          >
-                            {finalizing === t.team_id ? 'Vergebe Passnummern …' : `${pending} neue${pending === 1 ? 'n' : ''} Spieler freigeben & Passnummer${pending === 1 ? '' : 'n'} vergeben`}
-                          </button>
-                          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', margin: '8px 0 0', lineHeight: 1.5 }}>
-                            Legt für die als „neu (Prüfung)" markierten Spieler ein Spielerprofil an und vergibt eine Passnummer
-                            (Regel: höchste Teamkollegen-Nummer + 1, nächste freie). Danach sind sie im „Verknüpfter Spieler"-Feld auswählbar.
-                          </p>
-                          {finalizeMsg?.teamId === t.team_id && (
-                            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, marginTop: 8, color: finalizeMsg.kind === 'ok' ? 'var(--th-win)' : '#E24B4A' }}>
-                              {finalizeMsg.text}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 900 }}>
+          {grouped.map(g => (
+            <div key={g.key}>
+              <div style={{
+                display: 'flex', alignItems: 'baseline', gap: 8, margin: '0 0 10px',
+                paddingBottom: 6, borderBottom: '2px solid var(--th-line-10)',
+              }}>
+                <h3 style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 16, color: 'var(--th-text-strong)' }}>
+                  {g.label}
+                </h3>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>
+                  {g.teams.length} Team{g.teams.length === 1 ? '' : 's'}
+                </span>
               </div>
-            );
-          })}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {g.teams.map(renderTeam)}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </AdminGuard>

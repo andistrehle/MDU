@@ -37,6 +37,8 @@ export interface SeasonTeamRow {
   created_at: string;
   teams: { name: string; short_name: string | null } | null;
   venues: { name: string; address: string | null } | null;
+  /** Vom Kapitän gewünschte Hauptliga aus der Anmeldung (Fallback für die Gruppierung). */
+  requested_league: string | null;
 }
 
 export interface SeasonRosterRow {
@@ -60,7 +62,22 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
     .select('id, season_id, team_id, status, captain_user_id, captain_player_id, venue_id, assigned_competition_id, registration_id, created_at, teams:team_id(name,short_name), venues:venue_id(name,address)')
     .eq('season_id', seasonId)
     .order('created_at', { ascending: true });
-  return (data ?? []) as unknown as SeasonTeamRow[];
+  const rows = (data ?? []) as unknown as SeasonTeamRow[];
+
+  // Gewünschte Liga separat nachladen (kein Embed-Join, da season_roster/-team
+  // teils keine FK auf team_registrations haben) und je Team einmischen.
+  const regIds = Array.from(new Set(rows.map(r => r.registration_id).filter(Boolean))) as string[];
+  if (regIds.length) {
+    const { data: regs } = await supabase
+      .from('team_registrations')
+      .select('id, requested_league')
+      .in('id', regIds);
+    const byId = new Map((regs ?? []).map(r => [r.id as string, (r.requested_league as string | null) ?? null]));
+    for (const row of rows) row.requested_league = row.registration_id ? byId.get(row.registration_id) ?? null : null;
+  } else {
+    for (const row of rows) row.requested_league = null;
+  }
+  return rows;
 }
 
 /** Schaltet die aktive Saison um (Admin-only RPC). Ziel → active, bisher aktive → archived. */
