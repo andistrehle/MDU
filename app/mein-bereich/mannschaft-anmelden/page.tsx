@@ -22,6 +22,7 @@ import {
 } from '@/lib/supabase/registrations';
 import { triggerRegistrationEmail } from '@/lib/supabase/notifications';
 import { getRegistrationSeason } from '@/lib/supabase/seasons';
+import { majorityHigherLeague } from '@/lib/data/roster-hints';
 
 const SEASON = getCurrentSeason();
 const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -437,6 +438,25 @@ export default function MannschaftAnmeldenPage() {
                           in der <strong>{predetermined.label}</strong> spielen. Du kannst die Anmeldung in der{' '}
                           <strong>{MAIN_LEAGUE_LABELS[chosen]}</strong> trotzdem absenden, musst aber mit einer Ablehnung
                           durch die Ligaleitung rechnen.
+                        </div>
+                      );
+                    })()}
+                    {(() => {
+                      const chosen = draft.requested_league as MainLeague | null;
+                      const majority = majorityHigherLeague(players, chosen);
+                      if (!majority) return null;
+                      return (
+                        <div role="alert" style={{
+                          marginTop: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)',
+                          borderRadius: 8, padding: '10px 14px',
+                          fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.55,
+                        }}>
+                          ⚠️ Mehr als die Hälfte des Kaders ({majority.count} von {majority.total}) sollte gemäß den
+                          Ergebnissen der {SEASON.name} eigentlich in einer höheren Liga spielen – überwiegend in der{' '}
+                          <strong>{majority.label}</strong>. Die Mannschaft müsste demnach vermutlich in der{' '}
+                          <strong>{majority.label}</strong> gemeldet werden. Du kannst die Anmeldung{chosen ? (
+                            <> in der <strong>{MAIN_LEAGUE_LABELS[chosen]}</strong></>
+                          ) : null} trotzdem absenden, musst aber mit einer Ablehnung durch die Ligaleitung rechnen.
                         </div>
                       );
                     })()}
