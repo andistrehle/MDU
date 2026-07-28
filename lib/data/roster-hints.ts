@@ -16,6 +16,15 @@ import {
 } from '@/lib/data';
 import { getTeamForPlayer } from '@/lib/auth/player-match';
 
+/**
+ * Neuer Spieler = keine Vorsaison-Zuordnung (oder noch gar kein Profil). Für diese
+ * gibt es keinen Liga-Hinweis; stattdessen kann „neu" angezeigt werden.
+ */
+export function isNewPlayer(playerId: string | null | undefined): boolean {
+  if (!playerId) return true;
+  return !getTeamForPlayer(playerId);
+}
+
 export function playerLeagueHint(playerId: string | null | undefined, currentTeamId: string | null | undefined): string {
   if (!playerId) return '';
   const lastTeam = getTeamForPlayer(playerId);

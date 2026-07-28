@@ -15,7 +15,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
 import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
-import { playerLeagueHint } from '@/lib/data/roster-hints';
+import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { canManageUsers } from '@/lib/auth/roles';
 import {
   MAIN_LEAGUE_LABELS, mainLeagueForSubCode, getPredeterminedLeagueForTeam,
@@ -183,8 +183,15 @@ export default function AdminSeasonTeamsPage() {
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                     <span style={{ flex: 1 }}>
                       {p.first_name} {p.last_name}{p.license_number ? ` · ${p.license_number}` : ''}
-                      <span style={{ color: 'var(--th-text-muted)' }}>{playerLeagueHint(p.player_id, t.team_id)}</span>
-                      {p.status === 'pending_review' ? ' · neu (Prüfung)' : ''}
+                      {p.status === 'pending_review' ? (
+                        ' · neu (Prüfung)'
+                      ) : (() => {
+                        const hint = playerLeagueHint(p.player_id, t.team_id);
+                        if (hint) return <span style={{ color: 'var(--th-text-muted)' }}>{hint}</span>;
+                        return isNewPlayer(p.player_id)
+                          ? <span style={{ color: 'var(--th-text-muted)' }}> · neu</span>
+                          : null;
+                      })()}
                     </span>
                     {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
                   </div>
