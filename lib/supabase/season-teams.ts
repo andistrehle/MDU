@@ -11,6 +11,15 @@ import { supabase } from './client';
 import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
 import { normalizePersonName } from '@/lib/auth/player-match';
 
+/** display_name → Vor-/Nachname (letztes Wort = Nachname). Lokal, um einen
+ *  Zyklus mit lib/supabase/registrations (importiert finalize von hier) zu meiden. */
+function splitName(display: string): { first: string; last: string } {
+  const parts = (display ?? '').trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts.slice(0, -1).join(' '), last: parts[parts.length - 1] };
+}
+
 /** Aktuelle Passnummern (players.license_number) für Spieler-Ids — separat, weil
  *  season_roster_assignments.player_id keinen FK auf players hat (kein Embed). */
 async function currentLicensesClient(playerIds: (string | null)[]): Promise<Map<string, string>> {
@@ -104,16 +113,34 @@ export async function finalizeNewRosterPlayers(
 
   const { data: rows, error: loadErr } = await supabase
     .from('season_roster_assignments')
-    .select('id, first_name, last_name, player_id, is_captain, license_number')
+    .select('id, first_name, last_name, player_id, is_captain, license_number, registration_player_id')
     .eq('season_id', seasonId).eq('team_id', teamId).eq('status', 'pending_review');
   if (loadErr) return { finalized: 0, error: loadErr.message };
-  const todo = ((rows ?? []) as { id: string; first_name: string; last_name: string; player_id: string | null; is_captain: boolean; license_number: string | null }[])
+  const todo = ((rows ?? []) as { id: string; first_name: string; last_name: string; player_id: string | null; is_captain: boolean; license_number: string | null; registration_player_id: string | null }[])
     .filter(r => !r.license_number);   // schon vergebene nicht doppelt behandeln
   if (todo.length === 0) return { finalized: 0, error: null };
 
-  // Schutz: niemals namenlose Profile anlegen. Fehlt bei einer Kaderzeile Vor-
-  // UND Nachname (z. B. Altbestand, bei dem nur display_name gesetzt war), lieber
-  // abbrechen und die Namen zuerst ergänzen lassen, statt Leer-Spieler zu erzeugen.
+  // Fehlt Vor- UND Nachname (Altbestand: in der Anmeldung war nur ein display_name
+  // gesetzt, der nie in Vor-/Nachname aufgeteilt wurde), den Namen aus dem
+  // display_name der Anmeldung ableiten und in der Kaderzeile nachtragen — statt
+  // die ganze Vergabe abzubrechen.
+  const missing = todo.filter(r => !`${r.first_name ?? ''} ${r.last_name ?? ''}`.trim() && r.registration_player_id);
+  if (missing.length) {
+    const regIds = missing.map(r => r.registration_player_id!) as string[];
+    const { data: rp } = await supabase.from('team_registration_players').select('id, display_name').in('id', regIds);
+    const dn = new Map(((rp ?? []) as { id: string; display_name: string | null }[]).map(r => [r.id, r.display_name ?? '']));
+    for (const r of missing) {
+      const s = splitName(dn.get(r.registration_player_id!) ?? '');
+      if (s.first || s.last) {
+        r.first_name = s.first; r.last_name = s.last;
+        await supabase.from('season_roster_assignments').update({ first_name: s.first, last_name: s.last }).eq('id', r.id);
+      }
+    }
+  }
+
+  // Schutz: niemals namenlose Profile anlegen. Bleibt eine Kaderzeile trotz
+  // display_name-Ableitung ohne Namen, lieber abbrechen und den Namen zuerst
+  // ergänzen lassen, statt einen Leer-Spieler zu erzeugen.
   const nameless = todo.filter(r => !`${r.first_name ?? ''} ${r.last_name ?? ''}`.trim());
   if (nameless.length) {
     return { finalized: 0, error: `${nameless.length} Kaderzeile(n) ohne Namen — bitte zuerst die Namen ergänzen, dann erneut freigeben.` };
