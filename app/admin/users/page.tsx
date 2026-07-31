@@ -23,7 +23,7 @@ import { PLAYERS, getPlayerDisplayName, TEAMS, getCaptainForTeamInSeason, getCur
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
-import { listDbPlayerOptions, listDbTeamOptions, listSeasonTeams } from '@/lib/supabase/season-teams';
+import { listDbPlayerOptions, listDbTeamOptions, listSeasonTeams, listSeasonRoster } from '@/lib/supabase/season-teams';
 import { getRegistrationSeason } from '@/lib/supabase/seasons';
 import { PhoneActions } from '@/components/mdu/phone-actions';
 
@@ -56,6 +56,9 @@ let NOMINATED_OPTIONS: { id: string; name: string }[] = [];
 // Aktuelle Passnummer je Spieler-Id (zur Laufzeit aus der DB) — hängt im Dropdown
 // einheitlich an jeden Namen an, statisch wie neu.
 let LICENSE_BY_ID = new Map<string, string>();
+// Team-Id je Spieler-Id aus dem Kader der offenen Anmelde-Saison (für den
+// Team-Vorschlag bei der Namens-Zuordnung). Zur Laufzeit aus der DB.
+let PLAYER_TEAM = new Map<string, string>();
 function combinedPlayerOptions(): { id: string; name: string }[] {
   return [...PLAYER_OPTIONS, ...NOMINATED_OPTIONS]
     .map(o => { const lic = LICENSE_BY_ID.get(o.id); return { id: o.id, name: lic ? `${o.name} · ${lic}` : o.name }; })
@@ -191,7 +194,12 @@ export default function AdminUsersPage() {
       listDbTeamOptions().catch(() => []),
       (async () => {
         const rs = await getRegistrationSeason().catch(() => null);
-        return rs ? listSeasonTeams(rs.id).catch(() => []) : [];
+        if (!rs) return { teams: [] as Awaited<ReturnType<typeof listSeasonTeams>>, roster: [] as Awaited<ReturnType<typeof listSeasonRoster>> };
+        const [teams, roster] = await Promise.all([
+          listSeasonTeams(rs.id).catch(() => []),
+          listSeasonRoster(rs.id).catch(() => []),
+        ]);
+        return { teams, roster };
       })(),
     ]);
     if (error) {
@@ -219,12 +227,17 @@ export default function AdminUsersPage() {
     DB_TEAM_OPTIONS = dbTeams ?? [];
     // Kapitäns-Kontaktdaten der offenen Anmelde-Saison je Konto-Id abbilden.
     const cmap = new Map<string, { phone: string | null; email: string | null; team: string }>();
-    for (const t of capTeams ?? []) {
+    for (const t of capTeams.teams ?? []) {
       if (t.captain_user_id && (t.contact_phone || t.contact_email)) {
         cmap.set(t.captain_user_id, { phone: t.contact_phone, email: t.contact_email, team: t.teams?.name ?? t.team_id });
       }
     }
     setCaptainContact(cmap);
+    // Spieler → Team (aus dem Kader) für den Team-Vorschlag bei der Namens-Zuordnung.
+    PLAYER_TEAM = new Map();
+    for (const r of capTeams.roster ?? []) {
+      if (r.player_id && r.team_id) PLAYER_TEAM.set(r.player_id, r.team_id);
+    }
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
   }, []);
@@ -469,8 +482,10 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   // als Empfehlung vorauswählen (der Admin bestätigt mit „Speichern").
   const nameSuggestion = (!profile.player_id && !profile.matched_player_id)
     ? suggestPlayerByName(profile.display_name) : null;
+  // Zum vorgeschlagenen Spieler auch dessen Team (aus dem Kader) vorschlagen.
+  const suggestedTeamId = nameSuggestion ? (PLAYER_TEAM.get(nameSuggestion.id) ?? '') : '';
   const [playerId, setPlayerId] = useState(profile.player_id ?? nameSuggestion?.id ?? '');
-  const [teamId, setTeamId] = useState(profile.team_id ?? '');
+  const [teamId, setTeamId] = useState(profile.team_id ?? (nameSuggestion ? suggestedTeamId : '') ?? '');
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
   // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
   const [noAssignment, setNoAssignment] = useState(profile.match_status === 'rejected');
