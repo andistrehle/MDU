@@ -89,6 +89,14 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
   return rows;
 }
 
+/** Namen einer Kaderzeile setzen/korrigieren (z. B. Altbestand ohne Vor-/Nachname). */
+export async function setRosterPlayerName(rowId: string, first: string, last: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const { error } = await supabase.from('season_roster_assignments')
+    .update({ first_name: first.trim(), last_name: last.trim() }).eq('id', rowId);
+  return { error: error?.message ?? null };
+}
+
 /** Schaltet die aktive Saison um (Admin-only RPC). Ziel → active, bisher aktive → archived. */
 export async function setActiveSeason(seasonId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };

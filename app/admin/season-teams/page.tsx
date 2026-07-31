@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { canManageUsers } from '@/lib/auth/roles';
 import {
@@ -85,6 +85,25 @@ export default function AdminSeasonTeamsPage() {
   // Neue Spieler eines Teams freigeben (Profil + Passnummer erzeugen).
   const [finalizing, setFinalizing] = useState<string | null>(null);
   const [finalizeMsg, setFinalizeMsg] = useState<{ teamId: string; kind: 'ok' | 'err'; text: string } | null>(null);
+
+  // Namenlose Kaderzeilen (Altbestand) direkt hier nachtragen.
+  const [nameEdit, setNameEdit] = useState<Record<string, string>>({});
+  const [savingName, setSavingName] = useState<string | null>(null);
+
+  async function onSaveName(rowId: string) {
+    const val = (nameEdit[rowId] ?? '').trim().replace(/\s+/g, ' ');
+    if (!val) return;
+    const parts = val.split(' ').filter(Boolean);
+    const first = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0] ?? '';
+    const last = parts.length > 1 ? parts[parts.length - 1] : '';
+    setSavingName(rowId);
+    const { error } = await setRosterPlayerName(rowId, first, last);
+    setSavingName(null);
+    if (!error) {
+      setRoster(await listSeasonRoster(seasonId));
+      setNameEdit(m => { const n = { ...m }; delete n[rowId]; return n; });
+    }
+  }
 
   async function onFinalize(teamId: string, teamName: string) {
     const pending = rosterFor(teamId).filter(p => p.status === 'pending_review');
@@ -179,23 +198,48 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)' }}>Kein Kader übernommen.</span>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {r.map(p => (
+                {r.map(p => {
+                  const hasName = `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim();
+                  return (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                    <span style={{ flex: 1 }}>
-                      {p.first_name} {p.last_name}{p.license_number ? ` · ${p.license_number}` : ''}
-                      {p.status === 'pending_review' ? (
-                        ' · neu (Prüfung)'
-                      ) : (() => {
-                        const hint = playerLeagueHint(p.player_id, t.team_id);
-                        if (hint) return <span style={{ color: 'var(--th-text-muted)' }}>{hint}</span>;
-                        return isNewPlayer(p.player_id)
-                          ? <span style={{ color: 'var(--th-text-muted)' }}> · neu</span>
-                          : null;
-                      })()}
-                    </span>
+                    {hasName ? (
+                      <span style={{ flex: 1 }}>
+                        {p.first_name} {p.last_name}{p.license_number ? ` · ${p.license_number}` : ''}
+                        {p.status === 'pending_review' ? (
+                          ' · neu (Prüfung)'
+                        ) : (() => {
+                          const hint = playerLeagueHint(p.player_id, t.team_id);
+                          if (hint) return <span style={{ color: 'var(--th-text-muted)' }}>{hint}</span>;
+                          return isNewPlayer(p.player_id)
+                            ? <span style={{ color: 'var(--th-text-muted)' }}> · neu</span>
+                            : null;
+                        })()}
+                      </span>
+                    ) : (
+                      <span style={{ flex: 1, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ color: '#E24B4A', fontWeight: 700 }}>⚠ ohne Namen:</span>
+                        <input
+                          value={nameEdit[p.id] ?? ''}
+                          onChange={e => setNameEdit(m => ({ ...m, [p.id]: e.target.value }))}
+                          onKeyDown={e => { if (e.key === 'Enter') onSaveName(p.id); }}
+                          placeholder="Vor- und Nachname"
+                          style={{ flex: 1, minWidth: 140, padding: '5px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => onSaveName(p.id)}
+                          disabled={savingName === p.id || !(nameEdit[p.id] ?? '').trim()}
+                          style={{ padding: '6px 12px', borderRadius: 7, cursor: savingName === p.id ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, opacity: (nameEdit[p.id] ?? '').trim() ? 1 : 0.6 }}
+                        >
+                          {savingName === p.id ? 'Speichere …' : 'Speichern'}
+                        </button>
+                        <span style={{ color: 'var(--th-text-faint)' }}>· neu (Prüfung)</span>
+                      </span>
+                    )}
                     {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
