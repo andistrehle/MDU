@@ -23,7 +23,8 @@ import { PLAYERS, getPlayerDisplayName, TEAMS, getCaptainForTeamInSeason, getCur
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
-import { listDbPlayerOptions, listDbTeamOptions } from '@/lib/supabase/season-teams';
+import { listDbPlayerOptions, listDbTeamOptions, listSeasonTeams } from '@/lib/supabase/season-teams';
+import { getRegistrationSeason } from '@/lib/supabase/seasons';
 
 interface ProfileRow {
   id: string;
@@ -115,6 +116,8 @@ export default function AdminUsersPage() {
   const canEdit = canEditUsers(user);      // Ligaleitung aufwärts darf bearbeiten (Super-Admin-Konten bleiben geschützt)
 
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  // Kapitäns-Kontakt (Telefon/E-Mail aus der Anmeldung) je Konto-Id — für Rückfragen.
+  const [captainContact, setCaptainContact] = useState<Map<string, { phone: string | null; email: string | null; team: string }>>(new Map());
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [editing, setEditing] = useState<ProfileRow | null>(null);
@@ -166,11 +169,15 @@ export default function AdminUsersPage() {
   const load = useCallback(async () => {
     if (!supabase) { setStatus('error'); setErrorMsg('Supabase ist nicht konfiguriert.'); return; }
     setStatus('loading');
-    const [{ data, error }, nominated, dbPlayers, dbTeams] = await Promise.all([
+    const [{ data, error }, nominated, dbPlayers, dbTeams, capTeams] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: true }),
       listApprovedNominatedPlayers().catch(() => []),
       listDbPlayerOptions().catch(() => []),
       listDbTeamOptions().catch(() => []),
+      (async () => {
+        const rs = await getRegistrationSeason().catch(() => null);
+        return rs ? listSeasonTeams(rs.id).catch(() => []) : [];
+      })(),
     ]);
     if (error) {
       setStatus('error');
@@ -195,6 +202,14 @@ export default function AdminUsersPage() {
     LICENSE_BY_ID = new Map((dbPlayers ?? []).filter(p => p.license).map(p => [p.id, p.license as string]));
     // Bei Anmeldung neu angelegte Teams zusätzlich auswählbar machen.
     DB_TEAM_OPTIONS = dbTeams ?? [];
+    // Kapitäns-Kontaktdaten der offenen Anmelde-Saison je Konto-Id abbilden.
+    const cmap = new Map<string, { phone: string | null; email: string | null; team: string }>();
+    for (const t of capTeams ?? []) {
+      if (t.captain_user_id && (t.contact_phone || t.contact_email)) {
+        cmap.set(t.captain_user_id, { phone: t.contact_phone, email: t.contact_email, team: t.teams?.name ?? t.team_id });
+      }
+    }
+    setCaptainContact(cmap);
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
   }, []);
@@ -351,7 +366,12 @@ export default function AdminUsersPage() {
                     <span style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
                     <IntentBadge profile={p} />
                   </span>
-                  <span style={{ color: 'var(--th-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</span>
+                  <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ color: 'var(--th-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</span>
+                    {captainContact.get(p.id)?.phone && (
+                      <a href={`tel:${captainContact.get(p.id)!.phone!.replace(/\s+/g, '')}`} style={{ color: 'var(--th-accent)', textDecoration: 'none', fontSize: 12, fontWeight: 700 }}>📞 {captainContact.get(p.id)!.phone}</a>
+                    )}
+                  </span>
                   <span><RoleBadge role={p.role} /></span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName(p.player_id)}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(p.team_id)}</span>
@@ -380,6 +400,11 @@ export default function AdminUsersPage() {
                   <RoleBadge role={p.role} />
                 </div>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</div>
+                {captainContact.get(p.id)?.phone && (
+                  <div style={{ marginBottom: 8 }}>
+                    <a href={`tel:${captainContact.get(p.id)!.phone!.replace(/\s+/g, '')}`} style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>📞 {captainContact.get(p.id)!.phone}</a>
+                  </div>
+                )}
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)', display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
                   <span>Spieler: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(p.player_id)}</strong></span>
                   <span>Team: <strong style={{ color: 'var(--th-text-strong)' }}>{teamName(p.team_id)}</strong></span>

@@ -184,6 +184,13 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ color: 'var(--th-text-strong)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>{t.team_id}</span>
               <span style={{ color: 'var(--th-text-muted)' }}>Liga/Wettbewerb</span>
               <span style={{ color: t.assigned_competition_id ? 'var(--th-text-strong)' : 'var(--th-text-faint2)' }}>{t.assigned_competition_id ?? 'noch nicht zugewiesen'}</span>
+              <span style={{ color: 'var(--th-text-muted)' }}>Kapitän/Kontakt</span>
+              <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                {t.contact_name ? <span>{t.contact_name}</span> : <span style={{ color: 'var(--th-text-faint2)' }}>–</span>}
+                {t.contact_phone && <a href={`tel:${t.contact_phone.replace(/\s+/g, '')}`} style={{ color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 700 }}>📞 {t.contact_phone}</a>}
+                {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
+                {!t.contact_phone && <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>(keine Telefonnummer angegeben)</span>}
+              </span>
             </div>
 
             <Link href={`/mein-team/bearbeiten?team=${t.team_id}`}

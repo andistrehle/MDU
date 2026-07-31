@@ -48,6 +48,10 @@ export interface SeasonTeamRow {
   venues: { name: string; address: string | null } | null;
   /** Vom Kapitän gewünschte Hauptliga aus der Anmeldung (Fallback für die Gruppierung). */
   requested_league: string | null;
+  /** Kontaktdaten des Ansprechpartners aus der Anmeldung (Kapitän). */
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
 }
 
 export interface SeasonRosterRow {
@@ -76,15 +80,22 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
   // Gewünschte Liga separat nachladen (kein Embed-Join, da season_roster/-team
   // teils keine FK auf team_registrations haben) und je Team einmischen.
   const regIds = Array.from(new Set(rows.map(r => r.registration_id).filter(Boolean))) as string[];
+  const setContact = (row: SeasonTeamRow, reg: { requested_league: string | null; contact_name: string | null; contact_phone: string | null; contact_email: string | null } | undefined) => {
+    row.requested_league = reg?.requested_league ?? null;
+    row.contact_name = reg?.contact_name ?? null;
+    row.contact_phone = reg?.contact_phone ?? null;
+    row.contact_email = reg?.contact_email ?? null;
+  };
   if (regIds.length) {
     const { data: regs } = await supabase
       .from('team_registrations')
-      .select('id, requested_league')
+      .select('id, requested_league, contact_name, contact_phone, contact_email')
       .in('id', regIds);
-    const byId = new Map((regs ?? []).map(r => [r.id as string, (r.requested_league as string | null) ?? null]));
-    for (const row of rows) row.requested_league = row.registration_id ? byId.get(row.registration_id) ?? null : null;
+    const byId = new Map(((regs ?? []) as { id: string; requested_league: string | null; contact_name: string | null; contact_phone: string | null; contact_email: string | null }[])
+      .map(r => [r.id, r]));
+    for (const row of rows) setContact(row, row.registration_id ? byId.get(row.registration_id) : undefined);
   } else {
-    for (const row of rows) row.requested_league = null;
+    for (const row of rows) setContact(row, undefined);
   }
   return rows;
 }
