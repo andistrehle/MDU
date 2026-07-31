@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
 import { canManageUsers } from '@/lib/auth/roles';
@@ -91,18 +91,40 @@ export default function AdminSeasonTeamsPage() {
   const [nameEdit, setNameEdit] = useState<Record<string, string>>({});
   const [savingName, setSavingName] = useState<string | null>(null);
 
+  // Einen „Vor- und Nachname"-String in Vor-/Nachname aufteilen (letztes Wort = Nachname).
+  function splitFullName(val: string): { first: string; last: string } {
+    const parts = val.trim().replace(/\s+/g, ' ').split(' ').filter(Boolean);
+    return {
+      first: parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0] ?? '',
+      last: parts.length > 1 ? parts[parts.length - 1] : '',
+    };
+  }
+
   async function onSaveName(rowId: string) {
-    const val = (nameEdit[rowId] ?? '').trim().replace(/\s+/g, ' ');
-    if (!val) return;
-    const parts = val.split(' ').filter(Boolean);
-    const first = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0] ?? '';
-    const last = parts.length > 1 ? parts[parts.length - 1] : '';
+    const { first, last } = splitFullName(nameEdit[rowId] ?? '');
+    if (!first && !last) return;
     setSavingName(rowId);
     const { error } = await setRosterPlayerName(rowId, first, last);
     setSavingName(null);
     if (!error) {
       setRoster(await listSeasonRoster(seasonId));
       setNameEdit(m => { const n = { ...m }; delete n[rowId]; return n; });
+    }
+  }
+
+  // Neuen Spieler zum Kader hinzufügen (nachgemeldete Spieler).
+  const [addName, setAddName] = useState<Record<string, string>>({});
+  const [addingTo, setAddingTo] = useState<string | null>(null);
+
+  async function onAddPlayer(teamId: string) {
+    const { first, last } = splitFullName(addName[teamId] ?? '');
+    if (!first && !last) return;
+    setAddingTo(teamId);
+    const { error } = await addRosterPlayer(seasonId, teamId, first, last);
+    setAddingTo(null);
+    if (!error) {
+      setRoster(await listSeasonRoster(seasonId));
+      setAddName(m => ({ ...m, [teamId]: '' }));
     }
   }
 
@@ -250,6 +272,25 @@ export default function AdminSeasonTeamsPage() {
                 })}
               </div>
             )}
+
+            {/* Spieler nachtragen (nachgemeldete Spieler zum Kader hinzufügen) */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+              <input
+                value={addName[t.team_id] ?? ''}
+                onChange={e => setAddName(m => ({ ...m, [t.team_id]: e.target.value }))}
+                onKeyDown={e => { if (e.key === 'Enter') onAddPlayer(t.team_id); }}
+                placeholder="Spieler nachtragen: Vor- und Nachname"
+                style={{ flex: 1, minWidth: 180, padding: '6px 10px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }}
+              />
+              <button
+                type="button"
+                onClick={() => onAddPlayer(t.team_id)}
+                disabled={addingTo === t.team_id || !(addName[t.team_id] ?? '').trim()}
+                style={{ padding: '7px 12px', borderRadius: 7, cursor: addingTo === t.team_id ? 'wait' : 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, opacity: (addName[t.team_id] ?? '').trim() ? 1 : 0.6 }}
+              >
+                {addingTo === t.team_id ? 'Füge hinzu …' : '+ Hinzufügen'}
+              </button>
+            </div>
 
             {/* Neue Spieler freigeben + Passnummern vergeben */}
             {(() => {

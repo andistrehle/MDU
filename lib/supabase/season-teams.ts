@@ -108,6 +108,19 @@ export async function setRosterPlayerName(rowId: string, first: string, last: st
   return { error: error?.message ?? null };
 }
 
+/** Neuen Spieler zum Kader eines freigegebenen Teams hinzufügen (Status
+ *  pending_review → bekommt beim nächsten Freigeben Profil + Passnummer). */
+export async function addRosterPlayer(seasonId: string, teamId: string, first: string, last: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  if (!first.trim() && !last.trim()) return { error: 'Bitte einen Namen angeben.' };
+  const { error } = await supabase.from('season_roster_assignments').insert({
+    season_id: seasonId, team_id: teamId,
+    first_name: first.trim(), last_name: last.trim(),
+    is_captain: false, status: 'pending_review',
+  });
+  return { error: error?.message ?? null };
+}
+
 /** Schaltet die aktive Saison um (Admin-only RPC). Ziel → active, bisher aktive → archived. */
 export async function setActiveSeason(seasonId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
