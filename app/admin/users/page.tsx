@@ -62,6 +62,20 @@ function combinedPlayerOptions(): { id: string; name: string }[] {
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 }
 
+/** Eindeutig namensgleichen Spieler zu einem Anzeigenamen finden — für die
+ *  automatische Zuordnungs-Empfehlung bei Konten ohne offiziellen Auto-Treffer
+ *  (z. B. Spieler, die erst per Team-Freigabe angelegt wurden). Null, wenn kein
+ *  oder mehr als ein Treffer (dann bewusst manuell). */
+function suggestPlayerByName(displayName: string): { id: string; label: string } | null {
+  const target = normalizePersonName(displayName ?? '');
+  if (!target) return null;
+  const matches = [...PLAYER_OPTIONS, ...NOMINATED_OPTIONS].filter(o => normalizePersonName(o.name) === target);
+  if (matches.length !== 1) return null;
+  const m = matches[0];
+  const lic = LICENSE_BY_ID.get(m.id);
+  return { id: m.id, label: lic ? `${m.name} · ${lic}` : m.name };
+}
+
 const TEAM_OPTIONS = [...TEAMS]
   .map(t => ({ id: t.id, name: t.name }))
   .sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -451,7 +465,11 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   const roleOptions = ROLE_OPTIONS.filter(r => canAssignRole(actor, r));
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [role, setRole] = useState<UserRole>(profile.role);
-  const [playerId, setPlayerId] = useState(profile.player_id ?? '');
+  // Kein offizieller Auto-Treffer, aber ein eindeutig namensgleicher Spieler? →
+  // als Empfehlung vorauswählen (der Admin bestätigt mit „Speichern").
+  const nameSuggestion = (!profile.player_id && !profile.matched_player_id)
+    ? suggestPlayerByName(profile.display_name) : null;
+  const [playerId, setPlayerId] = useState(profile.player_id ?? nameSuggestion?.id ?? '');
   const [teamId, setTeamId] = useState(profile.team_id ?? '');
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
   // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
@@ -618,6 +636,11 @@ function EditModal({ actor, profile, onClose, onSaved }: {
                     Vorschlag übernehmen
                   </button>
                 </>
+              ) : nameSuggestion ? (
+                <div style={{ color: 'var(--th-text-body)' }}>
+                  Kein offizieller Auto-Treffer aus der Registrierung, aber ein <strong>namensgleicher Spieler</strong> existiert:{' '}
+                  <strong style={{ color: 'var(--th-text-strong)' }}>{nameSuggestion.label}</strong>. Unten bereits vorausgewählt — bitte prüfen und speichern.
+                </div>
               ) : (
                 <div style={{ color: 'var(--th-text-faint)' }}>Kein eindeutiger Spieler erkannt — bitte manuell zuordnen.</div>
               )}
@@ -639,6 +662,11 @@ function EditModal({ actor, profile, onClose, onSaved }: {
               <option value="">— keine Verknüpfung —</option>
               {combinedPlayerOptions().map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
+            {nameSuggestion && playerId === nameSuggestion.id && (
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', margin: '6px 0 0', lineHeight: 1.5 }}>
+                🔎 Automatisch anhand des Namens vorgeschlagen — bitte prüfen und mit „Speichern" bestätigen.
+              </p>
+            )}
           </Field>
 
           <Field label="Verknüpftes Team">
