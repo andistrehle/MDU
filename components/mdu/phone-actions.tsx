@@ -25,13 +25,18 @@ export function PhoneActions({ phone }: { phone: string }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     const onDoc = (e: MouseEvent) => {
-      if (btnRef.current && !btnRef.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      // Klick auf Button oder INS Menü nicht als „außerhalb" behandeln — sonst
+      // verschwindet das Menü beim mousedown, bevor der Link-Klick ausgelöst wird.
+      if (btnRef.current?.contains(t) || menuRef.current?.contains(t)) return;
+      setOpen(false);
     };
     document.addEventListener('keydown', onKey);
     document.addEventListener('mousedown', onDoc);
@@ -74,6 +79,7 @@ export function PhoneActions({ phone }: { phone: string }) {
 
       {open && pos && (
         <div
+          ref={menuRef}
           role="menu"
           style={{
             position: 'fixed', top: pos.top, left: pos.left, zIndex: 300,
