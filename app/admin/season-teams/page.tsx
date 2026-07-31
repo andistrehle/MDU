@@ -16,6 +16,7 @@ import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
 import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
+import { PhoneActions } from '@/components/mdu/phone-actions';
 import { canManageUsers } from '@/lib/auth/roles';
 import {
   MAIN_LEAGUE_LABELS, mainLeagueForSubCode, getPredeterminedLeagueForTeam,
@@ -187,7 +188,7 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ color: 'var(--th-text-muted)' }}>Kapitän/Kontakt</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                 {t.contact_name ? <span>{t.contact_name}</span> : <span style={{ color: 'var(--th-text-faint2)' }}>–</span>}
-                {t.contact_phone && <a href={`tel:${t.contact_phone.replace(/\s+/g, '')}`} style={{ color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 700 }}>📞 {t.contact_phone}</a>}
+                {t.contact_phone && <PhoneActions phone={t.contact_phone} />}
                 {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
                 {!t.contact_phone && <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>(keine Telefonnummer angegeben)</span>}
               </span>

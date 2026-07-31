@@ -25,6 +25,7 @@ import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
 import { listDbPlayerOptions, listDbTeamOptions, listSeasonTeams } from '@/lib/supabase/season-teams';
 import { getRegistrationSeason } from '@/lib/supabase/seasons';
+import { PhoneActions } from '@/components/mdu/phone-actions';
 
 interface ProfileRow {
   id: string;
@@ -369,7 +370,7 @@ export default function AdminUsersPage() {
                   <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ color: 'var(--th-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</span>
                     {captainContact.get(p.id)?.phone && (
-                      <a href={`tel:${captainContact.get(p.id)!.phone!.replace(/\s+/g, '')}`} style={{ color: 'var(--th-accent)', textDecoration: 'none', fontSize: 12, fontWeight: 700 }}>📞 {captainContact.get(p.id)!.phone}</a>
+                      <span style={{ fontSize: 12 }}><PhoneActions phone={captainContact.get(p.id)!.phone!} /></span>
                     )}
                   </span>
                   <span><RoleBadge role={p.role} /></span>
@@ -401,8 +402,8 @@ export default function AdminUsersPage() {
                 </div>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</div>
                 {captainContact.get(p.id)?.phone && (
-                  <div style={{ marginBottom: 8 }}>
-                    <a href={`tel:${captainContact.get(p.id)!.phone!.replace(/\s+/g, '')}`} style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>📞 {captainContact.get(p.id)!.phone}</a>
+                  <div style={{ marginBottom: 8, fontSize: 12.5 }}>
+                    <PhoneActions phone={captainContact.get(p.id)!.phone!} />
                   </div>
                 )}
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)', display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>

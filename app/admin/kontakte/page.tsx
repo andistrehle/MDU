@@ -15,6 +15,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
 import { listSeasonTeams, type SeasonTeamRow } from '@/lib/supabase/season-teams';
+import { PhoneActions } from '@/components/mdu/phone-actions';
 
 export default function AdminKontaktePage() {
   const { user } = useAuth();
@@ -100,7 +101,7 @@ export default function AdminKontaktePage() {
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
                   {t.contact_phone
-                    ? <a href={`tel:${t.contact_phone.replace(/\s+/g, '')}`} style={{ color: 'var(--th-accent)', textDecoration: 'none', fontWeight: 800 }}>📞 {t.contact_phone}</a>
+                    ? <PhoneActions phone={t.contact_phone} />
                     : <span style={{ color: 'var(--th-text-faint2)' }}>📞 keine Nummer</span>}
                   {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
                 </div>
