@@ -408,6 +408,32 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
     .eq('season_id', seasonId)
     .order('is_captain', { ascending: false });
   const rows = (data ?? []) as SeasonRosterRow[];
+
+  // Bestätigte Nachmeldungen stehen in player_assignments (source 'nomination'),
+  // NICHT in season_roster_assignments — sonst fehlen sie im Kader. Ergänzen wir
+  // hier, dedupliziert nach player_id (Freigabe-Spieler stehen schon oben).
+  const existing = new Set(rows.map(r => r.player_id).filter(Boolean) as string[]);
+  const { data: nomAssign } = await supabase
+    .from('player_assignments')
+    .select('id, team_id, player_id, is_captain')
+    .eq('season_id', seasonId).eq('source', 'nomination').eq('status', 'active');
+  const nomNew = ((nomAssign ?? []) as { id: string; team_id: string; player_id: string | null; is_captain: boolean | null }[])
+    .filter(a => a.player_id && !existing.has(a.player_id));
+  if (nomNew.length) {
+    const ids = [...new Set(nomNew.map(a => a.player_id as string))];
+    const { data: pl } = await supabase.from('players').select('id, first_name, last_name, license_number').in('id', ids);
+    const pmap = new Map(((pl ?? []) as { id: string; first_name: string | null; last_name: string | null; license_number: string | null }[]).map(p => [p.id, p]));
+    for (const a of nomNew) {
+      const p = pmap.get(a.player_id as string);
+      rows.push({
+        id: a.id, season_id: seasonId, team_id: a.team_id, player_id: a.player_id,
+        first_name: p?.first_name ?? '', last_name: p?.last_name ?? '',
+        license_number: p?.license_number ?? null, is_captain: !!a.is_captain,
+        status: 'active', registration_id: null,
+      });
+    }
+  }
+
   // Aktuelle Passnummer des verknüpften Spielers hat Vorrang vor der (ggf.
   // veralteten) Vorlagen-Nummer — separat, da player_id keinen FK auf players hat.
   const licById = await currentLicensesClient(rows.map(r => r.player_id));
