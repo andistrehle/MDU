@@ -186,6 +186,64 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
   return { error: error?.message ?? null };
 }
 
+/**
+ * Bereits bestätigte Nachmeldung auf die Anmelde-Saison + korrektes Passnummer-
+ * Präfix/Block geraderücken (für Altfälle, die unter der aktiven Saison landeten).
+ * Idempotent: ist alles schon korrekt, ändert sich nichts.
+ */
+export async function reprocessNominationSeason(id: string): Promise<{ error: string | null; license?: string }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { data: nom } = await supabase.from('player_nominations')
+    .select('team_id, player_id, first_name, last_name, license_number, license_provisional, status').eq('id', id).single();
+  const n = nom as { team_id: string; player_id: string | null; first_name: string; last_name: string; license_number: string | null; license_provisional: boolean | null; status: string } | null;
+  if (!n) return { error: 'Nachmeldung nicht gefunden.' };
+  if (n.status !== 'approved') return { error: 'Nur bestätigte Nachmeldungen können korrigiert werden.' };
+
+  const regSeason = await getRegistrationSeason().catch(() => null);
+  const seasonId = regSeason?.id ?? getCurrentSeason().id;
+  const years = [...String(seasonId).matchAll(/\d{4}/g)].map(m => parseInt(m[0], 10)).filter(y => y >= 2000);
+  const seasonYear = years.length ? Math.max(...years) : undefined;
+  const yy = String((seasonYear ?? getCurrentSeason().year) % 100).padStart(2, '0');
+
+  let newLicense = n.license_number;
+  const ownNum = parseLicenseNumber(n.license_number);
+  if (n.license_provisional !== false) {
+    // Provisorische Nummer im Team-Block neu vergeben; eigene aktuelle Nummer NICHT
+    // als belegt zählen (sonst würde eine bereits korrekte Nummer unnötig wechseln).
+    const extraUsed: number[] = [];
+    const collect = (rows: { license_number: string | null }[] | null) => {
+      for (const r of rows ?? []) { const x = parseLicenseNumber(r.license_number); if (x != null && x !== ownNum) extraUsed.push(x); }
+    };
+    collect((await supabase.from('players').select('license_number').not('license_number', 'is', null)).data as { license_number: string | null }[] | null);
+    collect((await supabase.from('season_roster_assignments').select('license_number').not('license_number', 'is', null)).data as { license_number: string | null }[] | null);
+    collect((await supabase.from('player_nominations').select('license_number').eq('status', 'approved').not('license_number', 'is', null)).data as { license_number: string | null }[] | null);
+    const { data: teamRows } = await supabase.from('season_roster_assignments')
+      .select('license_number').eq('season_id', seasonId).eq('team_id', n.team_id).not('license_number', 'is', null);
+    const teamNums = ((teamRows ?? []) as { license_number: string | null }[])
+      .map(r => parseLicenseNumber(r.license_number)).filter((x): x is number => x != null && x >= 1000 && x < 10000);
+    let blockBase: number | undefined;
+    if (teamNums.length) {
+      const cnt = new Map<number, number>();
+      for (const x of teamNums) { const b = Math.floor(x / 100) * 100; cnt.set(b, (cnt.get(b) ?? 0) + 1); }
+      blockBase = [...cnt.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+    } else {
+      blockBase = staticTeamBlock(n.team_id) ?? nextFreeBlock(extraUsed.map(x => Math.floor(x / 100) * 100));
+    }
+    const gen = generateNextPassNumber(n.team_id, { extraUsed, seasonId, seasonYear, blockBase });
+    newLicense = gen.license;
+  } else if (n.license_number) {
+    newLicense = n.license_number.replace(/MDU\s*\d{2}/i, `MDU ${yy}`);
+  }
+
+  if (newLicense && newLicense !== n.license_number) {
+    const { error: ne } = await supabase.from('player_nominations').update({ license_number: newLicense }).eq('id', id);
+    if (ne) return { error: ne.message };
+    if (n.player_id) await supabase.from('players').update({ license_number: newLicense }).eq('id', n.player_id);
+  }
+  await supabase.from('player_assignments').update({ season_id: seasonId }).eq('id', `pa-nom-${id}`);
+  return { error: null, license: newLicense ?? undefined };
+}
+
 /** Passnummer manuell setzen/überschreiben (z. B. offizielle dartunion-Nummer). */
 export async function updateNominationLicense(id: string, license: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };

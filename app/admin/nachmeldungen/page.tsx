@@ -9,7 +9,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageLeague } from '@/lib/auth/roles';
 import {
-  listAllNominations, reviewNomination, updateNominationLicense, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
+  listAllNominations, reviewNomination, updateNominationLicense, reprocessNominationSeason, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
   type PlayerNomination, type NominationStatus,
 } from '@/lib/supabase/nominations';
 
@@ -50,6 +50,17 @@ export default function AdminNachmeldungenPage() {
     setBusy(false);
     if (error) { setMsg(error); return; }
     setRejectId(null); setNote('');
+    setRows(await listAllNominations());
+  }
+  async function reprocess(id: string) {
+    const nom = (rows ?? []).find(n => n.id === id);
+    const who = nom ? `${nom.first_name} ${nom.last_name}`.trim() : 'diesen Spieler';
+    if (!window.confirm(`Saison + Passnummer von „${who}" auf die aktuelle Anmelde-Saison (26/27) korrigieren?\n\nDie Passnummer wird auf „MDU 27" im richtigen Team-Block gesetzt und der Spieler in den 26/27-Kader übernommen.`)) return;
+    setBusy(true); setMsg(null);
+    const { error, license } = await reprocessNominationSeason(id);
+    setBusy(false);
+    if (error) { setMsg(error); return; }
+    setMsg(`Korrigiert${license ? ` → ${license}` : ''}.`);
     setRows(await listAllNominations());
   }
   async function saveLicense(id: string) {
@@ -127,6 +138,7 @@ export default function AdminNachmeldungenPage() {
                           <span title="Automatisch generiert – offizielle Nummer der dartunion später eintragen." style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--th-accent)', border: '1px solid var(--th-accent-a25)', borderRadius: 4, padding: '2px 6px' }}>vorläufig</span>
                         )}
                         <button onClick={() => { setLicenseEditId(r.id); setLicenseVal(r.license_number ?? ''); setMsg(null); }} disabled={busy} style={{ ...ghost, padding: '6px 12px' }}>Nummer ändern</button>
+                        <button onClick={() => reprocess(r.id)} disabled={busy} title="Saison + Passnummer auf die aktuelle Anmelde-Saison (26/27) geraderücken." style={{ ...ghost, padding: '6px 12px' }}>Saison korrigieren</button>
                       </>
                     )}
                   </div>
