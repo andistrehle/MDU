@@ -7,8 +7,9 @@
 // ============================================================
 
 import { supabase } from './client';
-import { generateNextPassNumber, nominationPlayerSlug, parseLicenseNumber } from '@/lib/data/pass-numbers';
+import { generateNextPassNumber, nominationPlayerSlug, parseLicenseNumber, staticTeamBlock, nextFreeBlock } from '@/lib/data/pass-numbers';
 import { getCurrentSeason } from '@/lib/data';
+import { getRegistrationSeason } from './seasons';
 import { normalizePersonName } from '@/lib/auth/player-match';
 
 export type NominationStatus = 'pending' | 'approved' | 'rejected';
@@ -103,20 +104,47 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
                     || (p.display_name ? normalizePersonName(p.display_name) === target : false));
         if (hits.length === 1 && hits[0].license_number) { slug = hits[0].id; license = hits[0].license_number!; provisional = false; }
       }
+      // Saison der Nachmeldung = offene Anmelde-Saison (z. B. 2026/2027), NICHT
+      // die noch aktive (25/26) — sonst falsches Präfix („MDU 26") und der Spieler
+      // landet in der falschen Saison (fehlt im 26/27-Kader).
+      const regSeason = await getRegistrationSeason().catch(() => null);
+      const seasonId = regSeason?.id ?? getCurrentSeason().id;
+      const seasonYears = [...String(seasonId).matchAll(/\d{4}/g)].map(m => parseInt(m[0], 10)).filter(y => y >= 2000);
+      const seasonYear = seasonYears.length ? Math.max(...seasonYears) : undefined;
+
       if (!license) {
-        // Neuer Spieler (oder ohne Nummer) → nächste freie Nummer vergeben. Schon
-        // vergebene generierte Nummern (andere Freigaben) berücksichtigen.
-        const { data: others } = await supabase.from('player_nominations')
-          .select('license_number').eq('status', 'approved').not('license_number', 'is', null);
-        const extraUsed = ((others ?? []) as { license_number: string }[])
-          .map(o => parseLicenseNumber(o.license_number))
-          .filter((x): x is number => x != null);
-        const gen = generateNextPassNumber(n.team_id, { extraUsed });
+        // Neuer Spieler (oder ohne Nummer) → Nummer im Team-Block der Saison
+        // vergeben. Alle bereits vergebenen Nummern (Spieler, Kader, andere
+        // Nachmeldungen) als belegt berücksichtigen, damit keine Dublette entsteht.
+        const extraUsed: number[] = [];
+        const collect = (rows: { license_number: string | null }[] | null) => {
+          for (const r of rows ?? []) { const x = parseLicenseNumber(r.license_number); if (x != null) extraUsed.push(x); }
+        };
+        const { data: dbP } = await supabase.from('players').select('license_number').not('license_number', 'is', null);
+        collect(dbP as { license_number: string | null }[] | null);
+        const { data: dbR } = await supabase.from('season_roster_assignments').select('license_number').not('license_number', 'is', null);
+        collect(dbR as { license_number: string | null }[] | null);
+        const { data: dbN } = await supabase.from('player_nominations').select('license_number').eq('status', 'approved').not('license_number', 'is', null);
+        collect(dbN as { license_number: string | null }[] | null);
+        // Team-Block aus den vorhandenen Saison-Nummern des Teams bestimmen (sonst
+        // statischer Block bzw. nächster freier Block).
+        const { data: teamRows } = await supabase.from('season_roster_assignments')
+          .select('license_number').eq('season_id', seasonId).eq('team_id', n.team_id).not('license_number', 'is', null);
+        const teamNums = ((teamRows ?? []) as { license_number: string | null }[])
+          .map(r => parseLicenseNumber(r.license_number)).filter((x): x is number => x != null && x >= 1000 && x < 10000);
+        let blockBase: number | undefined;
+        if (teamNums.length) {
+          const cnt = new Map<number, number>();
+          for (const x of teamNums) { const b = Math.floor(x / 100) * 100; cnt.set(b, (cnt.get(b) ?? 0) + 1); }
+          blockBase = [...cnt.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+        } else {
+          blockBase = staticTeamBlock(n.team_id) ?? nextFreeBlock(extraUsed.map(x => Math.floor(x / 100) * 100));
+        }
+        const gen = generateNextPassNumber(n.team_id, { extraUsed, seasonId, seasonYear, blockBase });
         license = gen.license;
         if (!slug) slug = nominationPlayerSlug(n.first_name, n.last_name, gen.number);
         provisional = true;
       }
-      const seasonId = getCurrentSeason().id;
 
       // Atomar über die RPC aus Migration 0033: Spieler + Kaderzuordnung +
       // Nominierungsstatus in EINER Transaktion — entweder alles oder nichts,
