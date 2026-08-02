@@ -40,13 +40,17 @@ export default function KaderPage() {
     return list;
   }, [dbSeasons, staticTeam, teamId, activeSeason.id, activeSeason.name]);
 
-  // Default = neueste Saison.
+  // Default = neueste Saison. Solange der Kapitän nicht selbst umschaltet, folgt
+  // die Auswahl der neuesten Saison — auch wenn die DB-Saison erst nachlädt
+  // (sonst bliebe der Default auf dem zuerst geladenen statischen Kader hängen).
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
+  const [userPicked, setUserPicked] = useState(false);
   useEffect(() => {
-    if (views.length && (!selectedSeason || !views.some(v => v.seasonId === selectedSeason))) {
-      setSelectedSeason(views[0].seasonId);
-    }
-  }, [views, selectedSeason]);
+    if (!views.length) return;
+    if (!userPicked) { setSelectedSeason(views[0].seasonId); return; }
+    if (!views.some(v => v.seasonId === selectedSeason)) setSelectedSeason(views[0].seasonId);
+  }, [views, userPicked, selectedSeason]);
+  const pickSeason = (id: string) => { setUserPicked(true); setSelectedSeason(id); };
 
   const currentView = views.find(v => v.seasonId === selectedSeason) ?? views[0] ?? null;
   // Nachmeldung nur in der NEUESTEN (aktuellen) DB-Saison — dort landen neue Spieler.
@@ -102,27 +106,27 @@ export default function KaderPage() {
           <>
             {/* Saison-Umschaltung (nur wenn mehr als eine Saison vorhanden). */}
             {views.length > 1 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                {views.map(v => {
-                  const active = v.seasonId === currentView?.seasonId;
-                  const newest = v.seasonId === views[0].seasonId;
-                  return (
-                    <button
-                      type="button"
-                      key={v.seasonId}
-                      onClick={() => setSelectedSeason(v.seasonId)}
-                      style={{
-                        padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
-                        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5,
-                        background: active ? 'var(--th-accent)' : 'transparent',
-                        color: active ? '#fff' : 'var(--th-accent)',
-                        border: `1.5px solid ${active ? 'var(--th-accent-hover)' : 'var(--th-accent)'}`,
-                      }}
-                    >
-                      {v.seasonName}{newest ? ' · aktuell' : ''}
-                    </button>
-                  );
-                })}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-text-muted)' }}>Saison</span>
+                <select
+                  value={currentView?.seasonId ?? ''}
+                  onChange={e => pickSeason(e.target.value)}
+                  style={{
+                    padding: '9px 34px 9px 12px', borderRadius: 8, cursor: 'pointer',
+                    background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
+                    color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, outline: 'none',
+                    appearance: 'none', WebkitAppearance: 'none',
+                    backgroundImage: 'linear-gradient(45deg, transparent 50%, var(--th-text-muted) 50%), linear-gradient(135deg, var(--th-text-muted) 50%, transparent 50%)',
+                    backgroundPosition: 'calc(100% - 18px) 50%, calc(100% - 13px) 50%',
+                    backgroundSize: '5px 5px, 5px 5px', backgroundRepeat: 'no-repeat',
+                  }}
+                >
+                  {views.map(v => (
+                    <option key={v.seasonId} value={v.seasonId}>
+                      {v.seasonName}{v.seasonId === views[0].seasonId ? ' (aktuell)' : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
