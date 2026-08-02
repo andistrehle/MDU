@@ -69,10 +69,14 @@ export default function KaderPage() {
   // Normalisierte Kaderzeilen der gewählten Saison (statisch ODER DB).
   const roster = useMemo<{ id: string; name: string; license: string | null; isCaptain: boolean }[]>(() => {
     if (!allowed || !teamId || !currentView) return [];
-    if (currentView.source === 'static') return getRankedRosterForTeam(teamId, currentView.seasonId)
-      .map(e => ({ id: e.player.id, name: getPlayerDisplayName(e.player), license: e.player.licenseNumber ?? null, isCaptain: e.isCaptain }));
-    return (dbView?.roster ?? [])
-      .map((r, i) => ({ id: r.playerId ?? `row-${i}`, name: r.name, license: r.license, isCaptain: r.isCaptain }));
+    const rows = currentView.source === 'static'
+      ? getRankedRosterForTeam(teamId, currentView.seasonId)
+          .map(e => ({ id: e.player.id, name: getPlayerDisplayName(e.player), license: e.player.licenseNumber ?? null, isCaptain: e.isCaptain }))
+      : (dbView?.roster ?? [])
+          .map((r, i) => ({ id: r.playerId ?? `row-${i}`, name: r.name, license: r.license, isCaptain: r.isCaptain }));
+    // Aufsteigend nach Passnummer sortieren (ohne Nummer ans Ende).
+    const num = (lic: string | null) => { const m = /(\d{3,5})\s*$/.exec(lic ?? ''); return m ? parseInt(m[1], 10) : Number.POSITIVE_INFINITY; };
+    return rows.sort((a, b) => num(a.license) - num(b.license) || a.name.localeCompare(b.name, 'de'));
   }, [allowed, teamId, currentView, dbView]);
 
   // Nachgemeldete Spieler dieses Teams (nur in der neuen Saison relevant).
@@ -157,12 +161,12 @@ export default function KaderPage() {
                   }}>
                     <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-faint)', width: 22, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
                     <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                    <span title="Pass-/Lizenznummer" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: lic ? 'var(--th-text-muted)' : 'var(--th-text-faint)' }}>
-                      {lic ?? '—'}
-                    </span>
                     {entry.isCaptain && (
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>Kapitän</span>
                     )}
+                    <span title="Pass-/Lizenznummer" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: lic ? 'var(--th-text-muted)' : 'var(--th-text-faint)' }}>
+                      {lic ?? '—'}
+                    </span>
                   </div>
                 );
               })}
