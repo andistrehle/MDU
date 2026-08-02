@@ -348,15 +348,36 @@ export async function listDbTeamOptions(): Promise<{ id: string; name: string }[
  * Kader. Liefert null, wenn das Team keine DB-Saisonzuordnung hat (dann greift
  * der statische Pfad wie bisher).
  */
-export async function getCaptainTeamView(teamId: string): Promise<{
+/** Saisons, für die dieses Team einen DB-Kader hat (neueste zuerst). */
+export async function listCaptainTeamSeasons(teamId: string): Promise<{ seasonId: string; seasonName: string | null }[]> {
+  if (!supabase || !teamId) return [];
+  const { data } = await supabase
+    .from('season_team_assignments')
+    .select('season_id, seasons:season_id(name)')
+    .eq('team_id', teamId).order('season_id', { ascending: false });
+  const seen = new Set<string>();
+  const out: { seasonId: string; seasonName: string | null }[] = [];
+  for (const r of (data ?? []) as unknown as { season_id: string; seasons: { name: string } | null }[]) {
+    if (seen.has(r.season_id)) continue;
+    seen.add(r.season_id);
+    out.push({ seasonId: r.season_id, seasonName: r.seasons?.name ?? null });
+  }
+  return out;
+}
+
+export async function getCaptainTeamView(teamId: string, seasonId?: string): Promise<{
   seasonId: string; seasonName: string | null; teamName: string; shortName: string | null; leagueId: string | null;
   roster: { name: string; license: string | null; isCaptain: boolean; playerId: string | null; status: string }[];
 } | null> {
   if (!supabase || !teamId) return null;
-  const { data: sta } = await supabase
+  const base = supabase
     .from('season_team_assignments')
     .select('season_id, assigned_competition_id, teams:team_id(name, short_name), seasons:season_id(name)')
-    .eq('team_id', teamId).order('season_id', { ascending: false }).limit(1);
+    .eq('team_id', teamId);
+  // Bestimmte Saison, sonst die neueste.
+  const { data: sta } = seasonId
+    ? await base.eq('season_id', seasonId).limit(1)
+    : await base.order('season_id', { ascending: false }).limit(1);
   const top = (sta ?? [])[0] as unknown as {
     season_id: string; assigned_competition_id: string | null;
     teams: { name: string; short_name: string | null } | null; seasons: { name: string } | null;

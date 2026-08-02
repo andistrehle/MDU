@@ -7,37 +7,71 @@ import { canManageTeamPlayers } from '@/lib/auth/roles';
 import { getRankedRosterForTeam, getCurrentSeason, getPlayerDisplayName, findTeam } from '@/lib/data';
 import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
 import { listMyNominations, NOMINATION_STATUS_LABELS, type PlayerNomination } from '@/lib/supabase/nominations';
-import { getCaptainTeamView } from '@/lib/supabase/season-teams';
+import { getCaptainTeamView, listCaptainTeamSeasons } from '@/lib/supabase/season-teams';
+
+type SeasonView = { seasonId: string; seasonName: string; source: 'static' | 'db' };
 
 export default function KaderPage() {
   const { user, loading } = useAuth();
   const teamId = user?.teamId ?? null;
   const allowed = !!teamId && canManageTeamPlayers(user, teamId);
   const staticTeam = teamId ? findTeam(teamId) : undefined;
-  const season = getCurrentSeason();
+  const activeSeason = getCurrentSeason();
 
-  // Neu angemeldete DB-Teams: Kader/Saison aus der DB (auch wenn die aktive
-  // Saison noch die alte ist). Statische Teams laufen wie bisher.
+  // DB-Saisons dieses Teams (aus season_team_assignments) — neueste zuerst.
+  const [dbSeasons, setDbSeasons] = useState<{ seasonId: string; seasonName: string | null }[] | null>(null);
+  useEffect(() => {
+    if (allowed && teamId) listCaptainTeamSeasons(teamId).then(setDbSeasons);
+    else setDbSeasons(null);
+  }, [allowed, teamId]);
+
+  // Auswählbare Saisons: DB-Saisons + (falls statisches Team) die aktive Saison
+  // mit dem statischen Kader. Neueste zuerst.
+  const views = useMemo<SeasonView[]>(() => {
+    const list: SeasonView[] = (dbSeasons ?? []).map(s => ({
+      seasonId: s.seasonId, seasonName: s.seasonName ?? s.seasonId, source: 'db',
+    }));
+    // Statische Saison (letzter Kader) nur, wenn dieses Team dort auch Spieler hat.
+    if (staticTeam && teamId && !list.some(v => v.seasonId === activeSeason.id)
+        && getRankedRosterForTeam(teamId, activeSeason.id).length > 0) {
+      list.push({ seasonId: activeSeason.id, seasonName: activeSeason.name, source: 'static' });
+    }
+    list.sort((a, b) => b.seasonId.localeCompare(a.seasonId));
+    return list;
+  }, [dbSeasons, staticTeam, teamId, activeSeason.id, activeSeason.name]);
+
+  // Default = neueste Saison.
+  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
+  useEffect(() => {
+    if (views.length && (!selectedSeason || !views.some(v => v.seasonId === selectedSeason))) {
+      setSelectedSeason(views[0].seasonId);
+    }
+  }, [views, selectedSeason]);
+
+  const currentView = views.find(v => v.seasonId === selectedSeason) ?? views[0] ?? null;
+  // Nachmeldung nur in der NEUESTEN (aktuellen) DB-Saison — dort landen neue Spieler.
+  const isNewSeason = !!currentView && currentView.source === 'db' && currentView.seasonId === views[0]?.seasonId;
+
+  // DB-Kader der gewählten Saison laden (statische Saison braucht keinen DB-Abruf).
   const [dbView, setDbView] = useState<Awaited<ReturnType<typeof getCaptainTeamView>> | null>(null);
   useEffect(() => {
-    if (allowed && teamId && !staticTeam) getCaptainTeamView(teamId).then(setDbView);
+    if (currentView?.source === 'db' && teamId) getCaptainTeamView(teamId, currentView.seasonId).then(setDbView);
     else setDbView(null);
-  }, [allowed, teamId, staticTeam]);
+  }, [currentView?.source, currentView?.seasonId, teamId]);
 
   const teamName = staticTeam?.name ?? dbView?.teamName ?? teamId ?? '';
-  const seasonLabel = staticTeam ? season.name : (dbView?.seasonName ?? season.name);
+  const seasonLabel = currentView?.seasonName ?? activeSeason.name;
 
-  // Normalisierte Kaderzeilen (statisch ODER DB) — eigene Referenz-Stabilität
-  // via useMemo, damit das `filtered`-useMemo nicht bei jedem Render neu rechnet.
+  // Normalisierte Kaderzeilen der gewählten Saison (statisch ODER DB).
   const roster = useMemo<{ id: string; name: string; license: string | null; isCaptain: boolean }[]>(() => {
-    if (!allowed || !teamId) return [];
-    if (staticTeam) return getRankedRosterForTeam(teamId, season.id)
+    if (!allowed || !teamId || !currentView) return [];
+    if (currentView.source === 'static') return getRankedRosterForTeam(teamId, currentView.seasonId)
       .map(e => ({ id: e.player.id, name: getPlayerDisplayName(e.player), license: e.player.licenseNumber ?? null, isCaptain: e.isCaptain }));
     return (dbView?.roster ?? [])
       .map((r, i) => ({ id: r.playerId ?? `row-${i}`, name: r.name, license: r.license, isCaptain: r.isCaptain }));
-  }, [allowed, teamId, staticTeam, season.id, dbView]);
+  }, [allowed, teamId, currentView, dbView]);
 
-  // Nachgemeldete Spieler dieses Teams (in Prüfung + freigegeben, mit Passnummer).
+  // Nachgemeldete Spieler dieses Teams (nur in der neuen Saison relevant).
   const [noms, setNoms] = useState<PlayerNomination[] | null>(null);
   const loadNoms = useCallback(() => {
     if (!allowed || !teamId) return;
@@ -66,11 +100,38 @@ export default function KaderPage() {
         : !allowed ? <Notice title="Keine Berechtigung">Du kannst nur den Kader deines eigenen Teams verwalten.</Notice>
         : (
           <>
+            {/* Saison-Umschaltung (nur wenn mehr als eine Saison vorhanden). */}
+            {views.length > 1 && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                {views.map(v => {
+                  const active = v.seasonId === currentView?.seasonId;
+                  const newest = v.seasonId === views[0].seasonId;
+                  return (
+                    <button
+                      type="button"
+                      key={v.seasonId}
+                      onClick={() => setSelectedSeason(v.seasonId)}
+                      style={{
+                        padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+                        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5,
+                        background: active ? 'var(--th-accent)' : 'transparent',
+                        color: active ? '#fff' : 'var(--th-accent)',
+                        border: `1.5px solid ${active ? 'var(--th-accent-hover)' : 'var(--th-accent)'}`,
+                      }}
+                    >
+                      {v.seasonName}{newest ? ' · aktuell' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
               <div style={{ flex: 1, minWidth: 200, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
                 {teamName} · {seasonLabel} · {roster.length} Spieler
+                {!isNewSeason && <span style={{ color: 'var(--th-text-faint)' }}> · Archiv (nur Ansicht)</span>}
               </div>
-              <NachmeldenButton teamId={teamId} teamName={teamName} onSuccess={loadNoms} />
+              {isNewSeason && <NachmeldenButton teamId={teamId} teamName={teamName} onSuccess={loadNoms} />}
             </div>
 
             <input
@@ -105,7 +166,7 @@ export default function KaderPage() {
               {roster.length > 0 && filtered.length === 0 && <div style={{ padding: '22px 16px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>Kein Spieler passt zu „{query}".</div>}
             </div>
 
-            {noms && noms.length > 0 && (
+            {isNewSeason && noms && noms.length > 0 && (
               <div style={{ marginTop: 20 }}>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', marginBottom: 8 }}>
                   Nachgemeldete Spieler
@@ -138,9 +199,12 @@ export default function KaderPage() {
               </div>
             )}
 
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 14 }}>
-              Neue Spieler über „＋ Spieler nachmelden" einreichen — die Ligaleitung prüft die Nachmeldung.
-            </p>
+            {isNewSeason && (
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 14 }}>
+                Neue Spieler über „＋ Spieler nachmelden" einreichen — die Ligaleitung prüft die Nachmeldung.
+                Nachmeldungen gelten immer für die aktuelle Saison ({views[0]?.seasonName}).
+              </p>
+            )}
           </>
         )}
     </MemberShell>
