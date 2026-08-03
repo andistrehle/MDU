@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* =====================================================
+   FoodPoints — Design-Tokens
+   Light (Default) / Dark via html[data-theme="dark"]
+   bzw. System-Präferenz (data-theme="system" + media query).
+   ===================================================== */
+
+:root {
+  --fp-bg:        #F7F8F6;
+  --fp-card:      #FFFFFF;
+  --fp-card2:     #F0F2EE;
+  --fp-inset:     #E9ECE6;
+  --fp-line:      rgba(20, 35, 25, 0.10);
+  --fp-line-soft: rgba(20, 35, 25, 0.06);
+  --fp-ink:       #17251C;
+  --fp-body:      #3D4A42;
+  --fp-mut:       #6C7A70;
+  --fp-brand:     #1E9E6A;
+  --fp-brand-soft:#DDF2E8;
+  --fp-brand-ink: #0E6B45;
+  --fp-accent:    #E8A13C;
+  --fp-accent-soft:#FBF0DC;
+  --fp-danger:    #D64545;
+  --fp-danger-soft:#FBE5E5;
+  --fp-ring-track:#E3E8E1;
+}
+
+html[data-theme="dark"] {
+  --fp-bg:        #0E1412;
+  --fp-card:      #161D1A;
+  --fp-card2:     #1B2420;
+  --fp-inset:     #212B26;
+  --fp-line:      rgba(255, 255, 255, 0.10);
+  --fp-line-soft: rgba(255, 255, 255, 0.06);
+  --fp-ink:       #F0F4F1;
+  --fp-body:      #C4CEC8;
+  --fp-mut:       #8B988F;
+  --fp-brand:     #34C285;
+  --fp-brand-soft:#173428;
+  --fp-brand-ink: #7ADDB4;
+  --fp-accent:    #EBB05C;
+  --fp-accent-soft:#33290F;
+  --fp-danger:    #E36868;
+  --fp-danger-soft:#3A1D1D;
+  --fp-ring-track:#243029;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]):not([data-theme="dark"]) {
+    --fp-bg:        #0E1412;
+    --fp-card:      #161D1A;
+    --fp-card2:     #1B2420;
+    --fp-inset:     #212B26;
+    --fp-line:      rgba(255, 255, 255, 0.10);
+    --fp-line-soft: rgba(255, 255, 255, 0.06);
+    --fp-ink:       #F0F4F1;
+    --fp-body:      #C4CEC8;
+    --fp-mut:      #8B988F;
+    --fp-brand:     #34C285;
+    --fp-brand-soft:#173428;
+    --fp-brand-ink: #7ADDB4;
+    --fp-accent:    #EBB05C;
+    --fp-accent-soft:#33290F;
+    --fp-danger:    #E36868;
+    --fp-danger-soft:#3A1D1D;
+    --fp-ring-track:#243029;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--fp-bg);
+  --color-card: var(--fp-card);
+  --color-card2: var(--fp-card2);
+  --color-inset: var(--fp-inset);
+  --color-line: var(--fp-line);
+  --color-line-soft: var(--fp-line-soft);
+  --color-ink: var(--fp-ink);
+  --color-body: var(--fp-body);
+  --color-mut: var(--fp-mut);
+  --color-brand: var(--fp-brand);
+  --color-brand-soft: var(--fp-brand-soft);
+  --color-brand-ink: var(--fp-brand-ink);
+  --color-accent: var(--fp-accent);
+  --color-accent-soft: var(--fp-accent-soft);
+  --color-danger: var(--fp-danger);
+  --color-danger-soft: var(--fp-danger-soft);
+  --color-ring-track: var(--fp-ring-track);
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  background: var(--fp-bg);
+}
+
+body {
+  background: var(--fp-bg);
+  color: var(--fp-ink);
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+/* Große Touch-Ziele auf Mobilgeräten */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Fokus-Sichtbarkeit (Tastaturbedienung) */
+:focus-visible {
+  outline: 2px solid var(--fp-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skeleton-Puls */
+@keyframes fp-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.fp-skeleton {
+  animation: fp-pulse 1.6s ease-in-out infinite;
+  background: var(--fp-inset);
+  border-radius: 8px;
+}
