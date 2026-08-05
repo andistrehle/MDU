@@ -160,6 +160,13 @@ export default function AdminUsersPage() {
   const isNoPlayer = (p: ProfileRow) => p.match_status === 'rejected';
   const pendingCount = useMemo(() => profiles.filter(isPending).length, [profiles]);
   const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
+  // Konten mit gleichem Namen (mögliche Doppel-Registrierung, andere E-Mail) markieren.
+  const dupNames = useMemo(() => {
+    const c = new Map<string, number>();
+    for (const p of profiles) { const n = normalizePersonName(p.display_name ?? ''); if (n) c.set(n, (c.get(n) ?? 0) + 1); }
+    return new Set([...c.entries()].filter(([, v]) => v > 1).map(([k]) => k));
+  }, [profiles]);
+  const isDupName = (p: ProfileRow) => dupNames.has(normalizePersonName(p.display_name ?? ''));
   const shown = useMemo(() => {
     let list = filter === 'pending' ? profiles.filter(isPending)
       : filter === 'no_player' ? profiles.filter(isNoPlayer)
@@ -392,6 +399,7 @@ export default function AdminUsersPage() {
                 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                     <span style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                    {isDupName(p) && <span title="Gleicher Name auch bei einem anderen Konto — mögliche Doppel-Anmeldung." style={dupBadge}>⚠ Name doppelt</span>}
                     <IntentBadge profile={p} />
                   </span>
                   <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -424,6 +432,7 @@ export default function AdminUsersPage() {
               <div key={p.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                  {isDupName(p) && <span title="Gleicher Name auch bei einem anderen Konto — mögliche Doppel-Anmeldung." style={dupBadge}>⚠</span>}
                   <IntentBadge profile={p} />
                   <RoleBadge role={p.role} />
                 </div>
@@ -781,6 +790,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
+const dupBadge: React.CSSProperties = { flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 9, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#E24B4A', border: '1px solid rgba(212,0,0,0.4)', borderRadius: 4, padding: '1px 5px' };
 
 const editBtn: React.CSSProperties = {
   padding: '7px 12px', borderRadius: 7, cursor: 'pointer',
