@@ -106,9 +106,14 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
 export async function setRosterPlayerName(rowId: string, first: string, last: string, playerId?: string | null): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const f = first.trim(), l = last.trim();
-  const { error } = await supabase.from('season_roster_assignments')
-    .update({ first_name: f, last_name: l }).eq('id', rowId);
-  if (error) return { error: error.message };
+  // Nachmeldungs-Zeilen (pa-…-Ids) sind KEINE echten Kaderzeilen — deren id ist
+  // keine UUID; die season_roster-Aktualisierung würde mit „invalid uuid" scheitern.
+  // Für sie zählt nur das Spielerprofil (players) unten.
+  if (!rowId.startsWith('pa-')) {
+    const { error } = await supabase.from('season_roster_assignments')
+      .update({ first_name: f, last_name: l }).eq('id', rowId);
+    if (error) return { error: error.message };
+  }
   if (playerId) {
     // Profil mitziehen; display_name nur überschreiben, wenn es kein Spitzname ist
     // (also leer war oder exakt dem bisherigen Vor-/Nachnamen entsprach).
@@ -120,6 +125,8 @@ export async function setRosterPlayerName(rowId: string, first: string, last: st
       if (!dn || dn === oldFull) patch.display_name = `${f} ${l}`.trim();
     }
     await supabase.from('players').update(patch).eq('id', playerId);
+    // Falls der Spieler aus einer Nachmeldung stammt, auch dort den Namen ziehen.
+    await supabase.from('player_nominations').update({ first_name: f, last_name: l }).eq('player_id', playerId);
   }
   return { error: null };
 }
