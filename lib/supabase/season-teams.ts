@@ -124,6 +124,37 @@ export async function setRosterPlayerName(rowId: string, first: string, last: st
   return { error: null };
 }
 
+/**
+ * Einen Spieler aus dem Kader entfernen (z. B. Dublette). Löscht die Kaderzeile
+ * und die Saison-Zuordnung; das Spielerprofil (players) wird nur gelöscht, wenn
+ * es nirgends sonst verwendet wird (kein Konto verknüpft, keine weitere
+ * Zuordnung/Kaderzeile, keine andere Nachmeldung) — sonst bleibt es erhalten.
+ */
+export async function deleteRosterPlayer(seasonId: string, teamId: string, rowId: string, playerId: string | null): Promise<{ error: string | null; warning?: string }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  // Kaderzeile (echte season_roster-Zeile; Nachmeldungs-Zeilen haben pa-…-Ids).
+  if (!rowId.startsWith('pa-')) {
+    const { error } = await supabase.from('season_roster_assignments').delete().eq('id', rowId);
+    if (error) return { error: error.message };
+  }
+  if (playerId) {
+    await supabase.from('player_assignments').delete().eq('season_id', seasonId).eq('team_id', teamId).eq('player_id', playerId);
+    const [{ data: prof }, { data: otherRoster }, { data: otherAssign }] = await Promise.all([
+      supabase.from('profiles').select('id').eq('player_id', playerId).limit(1),
+      supabase.from('season_roster_assignments').select('id').eq('player_id', playerId).limit(1),
+      supabase.from('player_assignments').select('id').eq('player_id', playerId).limit(1),
+    ]);
+    const stillUsed = (prof?.length ?? 0) > 0 || (otherRoster?.length ?? 0) > 0 || (otherAssign?.length ?? 0) > 0;
+    if (!stillUsed) {
+      await supabase.from('player_nominations').delete().eq('player_id', playerId);
+      await supabase.from('players').delete().eq('id', playerId);
+    } else if ((prof?.length ?? 0) > 0) {
+      return { error: null, warning: 'Aus dem Kader entfernt. Das Spielerprofil bleibt erhalten (ein Konto ist damit verknüpft).' };
+    }
+  }
+  return { error: null };
+}
+
 /** Neuen Spieler zum Kader eines freigegebenen Teams hinzufügen (Status
  *  pending_review → bekommt beim nächsten Freigeben Profil + Passnummer). */
 export async function addRosterPlayer(seasonId: string, teamId: string, first: string, last: string): Promise<{ error: string | null }> {

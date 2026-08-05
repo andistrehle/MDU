@@ -14,7 +14,8 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { normalizePersonName } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
 import { canManageUsers } from '@/lib/auth/roles';
@@ -117,6 +118,18 @@ export default function AdminSeasonTeamsPage() {
   // Neuen Spieler zum Kader hinzufügen (nachgemeldete Spieler).
   const [addName, setAddName] = useState<Record<string, string>>({});
   const [addingTo, setAddingTo] = useState<string | null>(null);
+
+  const [deletingRow, setDeletingRow] = useState<string | null>(null);
+  async function onDeletePlayer(teamId: string, row: SeasonRosterRow) {
+    const name = `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim() || 'diesen Spieler';
+    if (!confirm(`„${name}"${row.license_number ? ` (${row.license_number})` : ''} aus dem Kader entfernen?\n\nDie Kaderzuordnung wird gelöscht. Ein neu angelegtes Spielerprofil ohne weitere Verknüpfung wird ebenfalls entfernt.`)) return;
+    setDeletingRow(row.id);
+    const { error, warning } = await deleteRosterPlayer(seasonId, teamId, row.id, row.player_id);
+    setDeletingRow(null);
+    if (error) { setFinalizeMsg({ teamId, kind: 'err', text: error }); return; }
+    setRoster(await listSeasonRoster(seasonId));
+    if (warning) setFinalizeMsg({ teamId, kind: 'ok', text: warning });
+  }
 
   async function onAddPlayer(teamId: string) {
     const { first, last } = splitFullName(addName[teamId] ?? '');
@@ -230,9 +243,21 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)' }}>Kein Kader übernommen.</span>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {r.map(p => {
+                {(() => {
+                  // Dubletten im Kader erkennen: gleiche Passnummer oder gleicher Name.
+                  const numCount = new Map<string, number>();
+                  const nameCount = new Map<string, number>();
+                  for (const q of r) {
+                    const lic = (q.license_number ?? '').trim();
+                    if (lic) numCount.set(lic, (numCount.get(lic) ?? 0) + 1);
+                    const nm = normalizePersonName(`${q.first_name ?? ''} ${q.last_name ?? ''}`);
+                    if (nm) nameCount.set(nm, (nameCount.get(nm) ?? 0) + 1);
+                  }
+                  return r.map(p => {
                   const hasName = `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim();
                   const editing = !hasName || editingRow === p.id;
+                  const dupNum = !!p.license_number && (numCount.get(p.license_number.trim()) ?? 0) > 1;
+                  const dupName = !!hasName && (nameCount.get(normalizePersonName(`${p.first_name ?? ''} ${p.last_name ?? ''}`)) ?? 0) > 1;
                   return (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                     {!editing ? (
@@ -248,6 +273,11 @@ export default function AdminSeasonTeamsPage() {
                               ? <span style={{ color: 'var(--th-text-muted)' }}> · neu</span>
                               : null;
                           })()}
+                          {(dupNum || dupName) && (
+                            <span title={dupNum ? 'Passnummer doppelt vergeben' : 'Name doppelt im Kader'} style={{ marginLeft: 8, fontSize: 9, fontWeight: 800, color: '#E24B4A', textTransform: 'uppercase', border: '1px solid rgba(212,0,0,0.4)', borderRadius: 4, padding: '1px 5px' }}>
+                              ⚠ {dupNum ? 'Nummer doppelt' : 'Name doppelt'}
+                            </span>
+                          )}
                         </span>
                         {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
                         <button
@@ -256,6 +286,13 @@ export default function AdminSeasonTeamsPage() {
                           onClick={() => { setNameEdit(m => ({ ...m, [p.id]: `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() })); setEditingRow(p.id); }}
                           style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', fontSize: 12 }}
                         >✎</button>
+                        <button
+                          type="button"
+                          title="Aus dem Kader entfernen"
+                          onClick={() => onDeletePlayer(t.team_id, p)}
+                          disabled={deletingRow === p.id}
+                          style={{ padding: '3px 8px', borderRadius: 6, cursor: deletingRow === p.id ? 'wait' : 'pointer', background: 'transparent', color: '#E24B4A', border: '1px solid rgba(212,0,0,0.35)', fontSize: 12 }}
+                        >🗑</button>
                       </>
                     ) : (
                       <span style={{ flex: 1, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -288,7 +325,8 @@ export default function AdminSeasonTeamsPage() {
                     )}
                   </div>
                   );
-                })}
+                  });
+                })()}
               </div>
             )}
 
