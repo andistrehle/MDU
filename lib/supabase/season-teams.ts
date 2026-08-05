@@ -100,12 +100,28 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
   return rows;
 }
 
-/** Namen einer Kaderzeile setzen/korrigieren (z. B. Altbestand ohne Vor-/Nachname). */
-export async function setRosterPlayerName(rowId: string, first: string, last: string): Promise<{ error: string | null }> {
+/** Namen einer Kaderzeile setzen/korrigieren (z. B. Altbestand ohne Vor-/Nachname
+ *  oder Tippfehler). Aktualisiert bei verknüpftem Spieler auch das Spielerprofil
+ *  (players), damit der Name überall konsistent ist. */
+export async function setRosterPlayerName(rowId: string, first: string, last: string, playerId?: string | null): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const f = first.trim(), l = last.trim();
   const { error } = await supabase.from('season_roster_assignments')
-    .update({ first_name: first.trim(), last_name: last.trim() }).eq('id', rowId);
-  return { error: error?.message ?? null };
+    .update({ first_name: f, last_name: l }).eq('id', rowId);
+  if (error) return { error: error.message };
+  if (playerId) {
+    // Profil mitziehen; display_name nur überschreiben, wenn es kein Spitzname ist
+    // (also leer war oder exakt dem bisherigen Vor-/Nachnamen entsprach).
+    const { data: p } = await supabase.from('players').select('first_name, last_name, display_name').eq('id', playerId).maybeSingle();
+    const patch: { first_name: string; last_name: string; display_name?: string } = { first_name: f, last_name: l };
+    if (p) {
+      const oldFull = `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim();
+      const dn = (p.display_name ?? '').trim();
+      if (!dn || dn === oldFull) patch.display_name = `${f} ${l}`.trim();
+    }
+    await supabase.from('players').update(patch).eq('id', playerId);
+  }
+  return { error: null };
 }
 
 /** Neuen Spieler zum Kader eines freigegebenen Teams hinzufügen (Status
