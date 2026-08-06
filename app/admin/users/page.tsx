@@ -147,7 +147,9 @@ export default function AdminUsersPage() {
   // Konten ohne bestätigte E-Mail (Registrierung nicht abgeschlossen) — aus der
   // Auth ermittelt (email_confirmed_at is null). Zählen nicht als offene Aufgabe.
   const [unconfirmed, setUnconfirmed] = useState<Set<string>>(new Set());
-  const isUnconfirmed = (p: ProfileRow) => unconfirmed.has(p.id);
+  // Nur wirklich unfertige Konten: nie bestätigt/eingeloggt UND weder mit einem
+  // Spieler verknüpft noch bewusst ohne Zuordnung markiert.
+  const isUnconfirmed = (p: ProfileRow) => unconfirmed.has(p.id) && !p.player_id && p.match_status !== 'rejected';
   const [query, setQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'' | UserRole>('');
   const [teamFilter, setTeamFilter] = useState('');

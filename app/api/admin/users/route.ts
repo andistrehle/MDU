@@ -30,11 +30,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Keine Berechtigung.' }, { status: 403 });
   }
 
+  // „Nicht abgeschlossen" = E-Mail NIE bestätigt UND NIE eingeloggt. Nur das trifft
+  // echte Karteileichen (z. B. Anmeldung mit falscher/nicht existierender Adresse).
+  // Bloßes email_confirmed_at=null ist zu grob — viele legitime (admin-/importierte)
+  // Konten haben nie eine Bestätigung durchlaufen.
   const unconfirmed: string[] = [];
   for (let page = 1; page <= 50; page++) {
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    for (const u of data.users) if (!u.email_confirmed_at) unconfirmed.push(u.id);
+    for (const u of data.users) if (!u.email_confirmed_at && !u.last_sign_in_at) unconfirmed.push(u.id);
     if (data.users.length < 200) break;
   }
   return NextResponse.json({ unconfirmed }, { status: 200 });
