@@ -165,27 +165,15 @@ export default function AdminUsersPage() {
   // als 'rejected' (bereits erlaubter Constraint-Wert; heißt „geprüft, keine
   // Verknüpfung") — so ist keine DB-Migration nötig.
   const isNoPlayer = (p: ProfileRow) => p.match_status === 'rejected';
-  // „Zuzuweisen" nur für bestätigte Konten — unbestätigte sind keine offene Aufgabe.
-  const pendingCount = useMemo(() => profiles.filter(p => isPending(p) && !isUnconfirmed(p)).length, [profiles, unconfirmed]);
-  const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
-  const unconfirmedCount = useMemo(() => profiles.filter(isUnconfirmed).length, [profiles, unconfirmed]);
-  // Konten mit gleichem Namen (mögliche Doppel-Registrierung, andere E-Mail) markieren.
-  const dupNames = useMemo(() => {
-    const c = new Map<string, number>();
-    for (const p of profiles) { const n = normalizePersonName(p.display_name ?? ''); if (n) c.set(n, (c.get(n) ?? 0) + 1); }
-    return new Set([...c.entries()].filter(([, v]) => v > 1).map(([k]) => k));
-  }, [profiles]);
-  const isDupName = (p: ProfileRow) => dupNames.has(normalizePersonName(p.display_name ?? ''));
-  const shown = useMemo(() => {
-    let list = filter === 'pending' ? profiles.filter(p => isPending(p) && !isUnconfirmed(p))
-      : filter === 'no_player' ? profiles.filter(isNoPlayer)
-      : filter === 'unconfirmed' ? profiles.filter(isUnconfirmed)
-      : profiles;
+  // Basis-Liste = Rollen-/Team-Filter + Suche (OHNE den Status-Tab). Alle
+  // Tab-Zähler und die angezeigte Liste bauen darauf auf — so passen sich die
+  // Zähler („Alle/Zuzuweisen/…") der Rollen-/Team-/Suche-Auswahl an.
+  const base = useMemo(() => {
+    let list = profiles;
     if (roleFilter) list = list.filter(p => p.role === roleFilter);
     if (teamFilter) list = list.filter(p => p.team_id === teamFilter);
     const q = query.trim().toLowerCase();
     if (q) {
-      // Volltext über alle sichtbaren Spalten + Passnummer.
       list = list.filter(p => {
         const lic = p.player_id ? (LICENSE_BY_ID.get(p.player_id) ?? '') : '';
         return [p.display_name, p.email, ROLE_LABELS[p.role], playerName(p.player_id), teamName(p.team_id), lic]
@@ -193,7 +181,24 @@ export default function AdminUsersPage() {
       });
     }
     return list;
-  }, [profiles, filter, query, roleFilter, teamFilter, unconfirmed]);
+  }, [profiles, roleFilter, teamFilter, query]);
+  // „Zuzuweisen" nur für bestätigte Konten — unbestätigte sind keine offene Aufgabe.
+  const pendingCount = useMemo(() => base.filter(p => isPending(p) && !isUnconfirmed(p)).length, [base, unconfirmed]);
+  const noPlayerCount = useMemo(() => base.filter(isNoPlayer).length, [base]);
+  const unconfirmedCount = useMemo(() => base.filter(isUnconfirmed).length, [base, unconfirmed]);
+  // Konten mit gleichem Namen (mögliche Doppel-Registrierung, andere E-Mail) markieren.
+  const dupNames = useMemo(() => {
+    const c = new Map<string, number>();
+    for (const p of profiles) { const n = normalizePersonName(p.display_name ?? ''); if (n) c.set(n, (c.get(n) ?? 0) + 1); }
+    return new Set([...c.entries()].filter(([, v]) => v > 1).map(([k]) => k));
+  }, [profiles]);
+  const isDupName = (p: ProfileRow) => dupNames.has(normalizePersonName(p.display_name ?? ''));
+  const shown = useMemo(() =>
+    filter === 'pending' ? base.filter(p => isPending(p) && !isUnconfirmed(p))
+      : filter === 'no_player' ? base.filter(isNoPlayer)
+      : filter === 'unconfirmed' ? base.filter(isUnconfirmed)
+      : base
+  , [base, filter, unconfirmed]);
 
   const emptyMsg = query.trim() ? `Kein Treffer für „${query.trim()}".`
     : (roleFilter || teamFilter) ? 'Kein Treffer für die aktuelle Filterauswahl.'
@@ -373,7 +378,7 @@ export default function AdminUsersPage() {
 
           {/* Filter: alle / zuzuweisen (offen) / bewusst ohne Zuordnung */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {([['all', `Alle (${profiles.length})`], ['pending', `Zuzuweisen (${pendingCount})`], ['no_player', `Ohne Zuordnung (${noPlayerCount})`], ['unconfirmed', `Unbestätigt (${unconfirmedCount})`]] as const).map(([key, label]) => (
+            {([['all', `Alle (${base.length})`], ['pending', `Zuzuweisen (${pendingCount})`], ['no_player', `Ohne Zuordnung (${noPlayerCount})`], ['unconfirmed', `Unbestätigt (${unconfirmedCount})`]] as const).map(([key, label]) => (
               <button
                 key={key}
                 type="button"

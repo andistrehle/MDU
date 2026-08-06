@@ -57,12 +57,21 @@ export async function GET(request: Request) {
   const sentFriendly = new Set((logs ?? []).filter(l => l.type === 'draft_reminder').map(l => l.related_entity_id));
   const sentFinal = new Set((logs ?? []).filter(l => l.type === 'draft_reminder_final').map(l => l.related_entity_id));
 
+  // Teams, die NICHT automatisch erinnert werden sollen (z. B. bereits manuell
+  // angeschrieben). Komma-getrennte Teamnamen in ENV DRAFT_REMINDER_SKIP.
+  const skip = new Set(
+    (process.env.DRAFT_REMINDER_SKIP ?? '')
+      .split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+  );
+
   const now = new Date();
   const finalPhase = now >= FINAL_DATE;
   const sent: { team: string; type: string; status: string }[] = [];
+  const skipped: string[] = [];
 
   for (const r of rows) {
     if (!r.contact_email) continue;
+    if (skip.has((r.team_name ?? '').trim().toLowerCase())) { skipped.push(r.team_name); continue; }
     let type: 'draft_reminder' | 'draft_reminder_final' | null = null;
     if (finalPhase) {
       if (!sentFinal.has(r.id)) type = 'draft_reminder_final';
@@ -83,5 +92,5 @@ export async function GET(request: Request) {
     sent.push({ team: r.team_name, type, status: res.status });
   }
 
-  return NextResponse.json({ ok: true, drafts: rows.length, finalPhase, sent });
+  return NextResponse.json({ ok: true, drafts: rows.length, finalPhase, sent, skipped });
 }
