@@ -34,7 +34,9 @@ export type EmailType =
   | 'account_activated'
   | 'new_user_admin'
   | 'link_reset_request'
-  | 'login_help_request';
+  | 'login_help_request'
+  | 'draft_reminder'
+  | 'draft_reminder_final';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
@@ -187,6 +189,39 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `Zuordnung von Rolle und Spielerprofil:\n\n` +
           `${lines}\n\n` +
           `Bitte in der Benutzerverwaltung prüfen und zuordnen:\n${input.actionUrl ?? ''}` + SIGNATURE,
+      };
+    }
+    case 'draft_reminder': {
+      const link = input.actionUrl ? `\n\nDirekt zur Anmeldung: ${input.actionUrl}` : '';
+      return {
+        subject: 'Eure MDU-Anmeldung 26/27 ist noch ein Entwurf',
+        text:
+          `Servus ${name},\n\n` +
+          `ich wollte nur kurz nachhaken: Eure Mannschaftsanmeldung für die Saison 2026/2027 ` +
+          `(${team}) liegt bei uns aktuell noch als Entwurf – also noch nicht endgültig abgeschickt.\n\n` +
+          `Kann natürlich sein, dass ihr noch mittendrin seid – kein Stress, ihr habt ja noch bis ` +
+          `Mitte September Zeit. Ich wollte nur sichergehen, dass ihr nicht aus Versehen auf halbem ` +
+          `Weg stecken geblieben seid.\n\n` +
+          `Falls ihr die Anmeldung abschließen wollt: einfach unter „Mein Bereich → Mannschaft ` +
+          `anmelden" den Entwurf öffnen, vervollständigen und absenden. Danach steht der Status ` +
+          `auf „eingereicht" und wir kümmern uns um die Freigabe.\n\n` +
+          `Wenn du Fragen hast, meld dich einfach kurz.` + link + SIGNATURE,
+      };
+    }
+    case 'draft_reminder_final': {
+      const link = input.actionUrl ? `\n\nDirekt zur Anmeldung: ${input.actionUrl}` : '';
+      return {
+        subject: 'Wichtig: Eure MDU-Anmeldung 26/27 ist noch nicht abgeschickt',
+        text:
+          `Servus ${name},\n\n` +
+          `eine wichtige Erinnerung: Eure Mannschaftsanmeldung für die Saison 2026/2027 ` +
+          `(${team}) liegt bei uns immer noch als Entwurf – also noch nicht endgültig abgeschickt.\n\n` +
+          `Jetzt drängt die Zeit: Bitte schließt die Anmeldung zeitnah ab, damit wir eure ` +
+          `Mannschaft sicher für die neue Saison einplanen können. Ohne abgeschickte Anmeldung ` +
+          `können wir euch leider nicht berücksichtigen.\n\n` +
+          `So geht's: unter „Mein Bereich → Mannschaft anmelden" den Entwurf öffnen, ` +
+          `vervollständigen und absenden. Danach steht der Status auf „eingereicht".\n\n` +
+          `Wenn etwas unklar ist oder ihr Hilfe braucht, meld dich bitte kurz – wir helfen gern.` + link + SIGNATURE,
       };
     }
   }
