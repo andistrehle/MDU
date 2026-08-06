@@ -56,10 +56,12 @@ interface AuthContextValue {
   user: UserProfile | null;
   /** True bis die Session beim ersten Render geprüft wurde. */
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null; needsEmailConfirmation?: boolean }>;
   signUp: (params: SignUpParams) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  /** Bestätigungsmail (Signup) erneut senden — für unbestätigte Konten. */
+  resendConfirmation: (email: string) => Promise<{ error: string | null }>;
   /** Neues Passwort setzen (Reset-Flow, Seite /passwort-zuruecksetzen). */
   updatePassword: (password: string) => Promise<{ error: string | null }>;
 }
@@ -281,7 +283,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) return { error: NOT_CONFIGURED_ERROR };
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: germanAuthError(error.message) };
+    if (error) {
+      const needsEmailConfirmation = /email not confirmed/i.test(error.message);
+      return { error: germanAuthError(error.message), needsEmailConfirmation };
+    }
 
     const profile = await loadProfile(
       data.user.id,
@@ -371,6 +376,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: null };
   }, []);
 
+  const resendConfirmation = useCallback(async (email: string) => {
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 400));
+      if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
+      return { error: null };
+    }
+    if (!supabase) return { error: NOT_CONFIGURED_ERROR };
+    // Frische Bestätigungsmail (Signup) senden — alte Links sind ggf. abgelaufen.
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/mein-bereich` },
+    });
+    if (error) return { error: germanAuthError(error.message) };
+    return { error: null };
+  }, []);
+
   const updatePassword = useCallback(async (password: string) => {
     if (USE_MOCK) return { error: 'Im Mock-Modus nicht verfügbar.' };
     if (!supabase) return { error: NOT_CONFIGURED_ERROR };
@@ -381,7 +403,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword, resendConfirmation, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
