@@ -143,7 +143,11 @@ export default function AdminUsersPage() {
   // Filter über match_status:
   //   • „Zuzuweisen"     = noch ungeprüft (role player + pending) → löst den Badge aus.
   //   • „Ohne Zuordnung" = bewusst ohne Spieler/Team gespeichert (no_player).
-  const [filter, setFilter] = useState<'all' | 'pending' | 'no_player'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'no_player' | 'unconfirmed'>('all');
+  // Konten ohne bestätigte E-Mail (Registrierung nicht abgeschlossen) — aus der
+  // Auth ermittelt (email_confirmed_at is null). Zählen nicht als offene Aufgabe.
+  const [unconfirmed, setUnconfirmed] = useState<Set<string>>(new Set());
+  const isUnconfirmed = (p: ProfileRow) => unconfirmed.has(p.id);
   const [query, setQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'' | UserRole>('');
   const [teamFilter, setTeamFilter] = useState('');
@@ -158,8 +162,10 @@ export default function AdminUsersPage() {
   // als 'rejected' (bereits erlaubter Constraint-Wert; heißt „geprüft, keine
   // Verknüpfung") — so ist keine DB-Migration nötig.
   const isNoPlayer = (p: ProfileRow) => p.match_status === 'rejected';
-  const pendingCount = useMemo(() => profiles.filter(isPending).length, [profiles]);
+  // „Zuzuweisen" nur für bestätigte Konten — unbestätigte sind keine offene Aufgabe.
+  const pendingCount = useMemo(() => profiles.filter(p => isPending(p) && !isUnconfirmed(p)).length, [profiles, unconfirmed]);
   const noPlayerCount = useMemo(() => profiles.filter(isNoPlayer).length, [profiles]);
+  const unconfirmedCount = useMemo(() => profiles.filter(isUnconfirmed).length, [profiles, unconfirmed]);
   // Konten mit gleichem Namen (mögliche Doppel-Registrierung, andere E-Mail) markieren.
   const dupNames = useMemo(() => {
     const c = new Map<string, number>();
@@ -168,8 +174,9 @@ export default function AdminUsersPage() {
   }, [profiles]);
   const isDupName = (p: ProfileRow) => dupNames.has(normalizePersonName(p.display_name ?? ''));
   const shown = useMemo(() => {
-    let list = filter === 'pending' ? profiles.filter(isPending)
+    let list = filter === 'pending' ? profiles.filter(p => isPending(p) && !isUnconfirmed(p))
       : filter === 'no_player' ? profiles.filter(isNoPlayer)
+      : filter === 'unconfirmed' ? profiles.filter(isUnconfirmed)
       : profiles;
     if (roleFilter) list = list.filter(p => p.role === roleFilter);
     if (teamFilter) list = list.filter(p => p.team_id === teamFilter);
@@ -183,10 +190,11 @@ export default function AdminUsersPage() {
       });
     }
     return list;
-  }, [profiles, filter, query, roleFilter, teamFilter]);
+  }, [profiles, filter, query, roleFilter, teamFilter, unconfirmed]);
 
   const emptyMsg = query.trim() ? `Kein Treffer für „${query.trim()}".`
     : (roleFilter || teamFilter) ? 'Kein Treffer für die aktuelle Filterauswahl.'
+    : filter === 'unconfirmed' ? 'Keine unbestätigten Konten. 🎉'
     : filter === 'pending' ? 'Keine offenen Konten — alles zugeordnet. 🎉'
     : filter === 'no_player' ? 'Keine Konten „ohne Zuordnung".'
     : 'Noch keine Benutzer registriert.';
@@ -247,6 +255,15 @@ export default function AdminUsersPage() {
     }
     setProfiles((data ?? []) as ProfileRow[]);
     setStatus('idle');
+    // Unbestätigte Konten (E-Mail nicht bestätigt) aus der Auth nachladen.
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (token) {
+        const res = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) { const j = await res.json(); setUnconfirmed(new Set((j.unconfirmed ?? []) as string[])); }
+      }
+    } catch { /* Status optional — Liste funktioniert auch ohne */ }
   }, []);
 
   useEffect(() => {
@@ -353,7 +370,7 @@ export default function AdminUsersPage() {
 
           {/* Filter: alle / zuzuweisen (offen) / bewusst ohne Zuordnung */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {([['all', `Alle (${profiles.length})`], ['pending', `Zuzuweisen (${pendingCount})`], ['no_player', `Ohne Zuordnung (${noPlayerCount})`]] as const).map(([key, label]) => (
+            {([['all', `Alle (${profiles.length})`], ['pending', `Zuzuweisen (${pendingCount})`], ['no_player', `Ohne Zuordnung (${noPlayerCount})`], ['unconfirmed', `Unbestätigt (${unconfirmedCount})`]] as const).map(([key, label]) => (
               <button
                 key={key}
                 type="button"
@@ -399,6 +416,7 @@ export default function AdminUsersPage() {
                 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                     <span style={{ fontWeight: 700, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                    {isUnconfirmed(p) && <span title="E-Mail nicht bestätigt — Registrierung nicht abgeschlossen." style={unconfBadge}>E-Mail unbestätigt</span>}
                     {isDupName(p) && <span title="Gleicher Name auch bei einem anderen Konto — mögliche Doppel-Anmeldung." style={dupBadge}>⚠ Name doppelt</span>}
                     <IntentBadge profile={p} />
                   </span>
@@ -432,6 +450,7 @@ export default function AdminUsersPage() {
               <div key={p.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name}</span>
+                  {isUnconfirmed(p) && <span title="E-Mail nicht bestätigt." style={unconfBadge}>unbestätigt</span>}
                   {isDupName(p) && <span title="Gleicher Name auch bei einem anderen Konto — mögliche Doppel-Anmeldung." style={dupBadge}>⚠</span>}
                   <IntentBadge profile={p} />
                   <RoleBadge role={p.role} />
@@ -791,6 +810,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
 const dupBadge: React.CSSProperties = { flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 9, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#E24B4A', border: '1px solid rgba(212,0,0,0.4)', borderRadius: 4, padding: '1px 5px' };
+const unconfBadge: React.CSSProperties = { flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 9, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-gold)', border: '1px solid rgba(232,184,74,0.45)', borderRadius: 4, padding: '1px 5px' };
 
 const editBtn: React.CSSProperties = {
   padding: '7px 12px', borderRadius: 7, cursor: 'pointer',
