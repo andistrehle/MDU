@@ -108,6 +108,18 @@ export default function LoginPage() {
         <Link href="/passwort-vergessen" style={{ ...linkStyle, fontWeight: 600, color: 'var(--th-text-muted)', textDecoration: 'underline' }}>
           Passwort vergessen?
         </Link>
+        {resendState === 'sent' ? (
+          <span style={{ color: 'var(--th-win)', fontWeight: 700 }}>✅ Bestätigungsmail an {email} gesendet – bitte Postfach (auch Spam) prüfen.</span>
+        ) : (
+          <span>
+            E-Mail noch nicht bestätigt?{' '}
+            <button type="button" onClick={onResend} disabled={resendState === 'sending' || !email}
+              style={{ ...linkStyle, fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: email ? 'pointer' : 'not-allowed', textDecoration: 'underline', opacity: email ? 1 : 0.6, font: 'inherit' }}>
+              {resendState === 'sending' ? 'Sende …' : 'Bestätigungsmail erneut senden'}
+            </button>
+            {!email && <span style={{ display: 'block', fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 2 }}>(oben E-Mail-Adresse eintragen)</span>}
+          </span>
+        )}
       </div>
     </AuthShell>
   );
