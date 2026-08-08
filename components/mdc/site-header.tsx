@@ -38,11 +38,6 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
   const isActive = (href: string) =>
     href === '/mdc' ? pathname === '/mdc' : pathname.startsWith(href);
 
-  // Erst nach dem Einhängen im Browser darf portalisiert werden — auf dem
-  // Server gibt es kein `document`.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   // Solange das Menü offen ist, soll der Hintergrund nicht mitscrollen.
   // (Geschlossen wird es beim Klick auf einen Eintrag — kein Effekt nötig.)
   useEffect(() => {
@@ -108,7 +103,9 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
           Glas-Effekt: In Safari kippte das Menü auf Kopfzeilenhöhe, in
           Chromium nicht (dort ist `backdrop-filter` headless inaktiv).
           Am <body> kann kein Vorfahre mehr dazwischenfunken. */}
-      {mounted && menuOpen && createPortal((
+      {/* `document` ist hier immer da: Das Menü geht nur per Klick auf, also
+          niemals beim Rendern auf dem Server. */}
+      {menuOpen && createPortal((
         <div className="mdc-mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
             <MdcMark size={40} />
