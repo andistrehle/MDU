@@ -62,7 +62,7 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
           <div style={{ position: 'relative' }}>
             <Search
               size={16}
-              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--mdc-text-faint)' }}
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--mdc-ink-dim)' }}
             />
             <input
               id="mdc-player-search"
@@ -83,7 +83,7 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
         </div>
       </div>
 
-      <p style={{ fontSize: '0.82rem', color: 'var(--mdc-text-faint)', marginBottom: 14 }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--mdc-ink-dim)', marginBottom: 14 }}>
         {formatNumber(filtered.length)} Spieler
         {filtered.length > shown.length && ` · ${formatNumber(shown.length)} angezeigt`}
       </p>
@@ -100,10 +100,10 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
                 style={{
                   width: 42, height: 42, flexShrink: 0, borderRadius: '50%',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  background: `linear-gradient(145deg, hsl(${entry.hue} 18% 22%), hsl(${entry.hue} 22% 13%))`,
+                  background: `linear-gradient(145deg, hsl(${entry.hue} 62% 96%), hsl(${entry.hue} 42% 88%))`,
                   border: '1px solid var(--mdc-line-hard)',
                   fontFamily: 'var(--mdc-font-display)', fontWeight: 800, fontSize: 17,
-                  color: 'var(--mdc-white)',
+                  color: `hsl(${entry.hue} 45% 28%)`,
                 }}
               >
                 {entry.firstName.charAt(0)}{entry.lastName.charAt(0)}
@@ -123,18 +123,18 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
                     </span>
                   )}
                 </div>
-                <p style={{ fontSize: '0.86rem', color: 'var(--mdc-text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: '0.86rem', color: 'var(--mdc-ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {entry.firstName}
-                  {entry.nickname && <span style={{ color: 'var(--mdc-text-faint)' }}> „{entry.nickname}“</span>}
+                  {entry.nickname && <span style={{ color: 'var(--mdc-ink-dim)' }}> „{entry.nickname}“</span>}
                 </p>
-                <p className="mdc-num" style={{ marginTop: 7, fontSize: '0.76rem', color: 'var(--mdc-text-faint)' }}>
+                <p className="mdc-num" style={{ marginTop: 7, fontSize: '0.76rem', color: 'var(--mdc-ink-dim)' }}>
                   Passnr. {entry.passNr}
                   {entry.tournaments > 0 && (
                     <> · {formatNumber(entry.points)} Pkt · Ø {formatAverage(entry.average)}</>
                   )}
                 </p>
                 {entry.venueName && (
-                  <p style={{ marginTop: 4, fontSize: '0.76rem', color: 'var(--mdc-text-faint)' }}>
+                  <p style={{ marginTop: 4, fontSize: '0.76rem', color: 'var(--mdc-ink-dim)' }}>
                     {entry.venueName}
                   </p>
                 )}

@@ -107,8 +107,8 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
               className="mdc-chip"
               style={{
                 borderColor: active ? 'var(--mdc-red)' : undefined,
-                background: active ? 'var(--mdc-red-a10)' : undefined,
-                color: active ? '#FF7A7A' : done ? 'var(--mdc-white)' : undefined,
+                background: active ? 'var(--mdc-red-a08)' : undefined,
+                color: active ? 'var(--mdc-red-deep)' : done ? 'var(--mdc-navy)' : undefined,
               }}
             >
               {done ? <Check size={13} /> : <span className="mdc-num">{index + 1}</span>}
@@ -190,7 +190,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
             </div>
           </div>
 
-          <p style={{ marginTop: 16, fontSize: '0.84rem', color: 'var(--mdc-text-dim)' }}>
+          <p style={{ marginTop: 16, fontSize: '0.84rem', color: 'var(--mdc-ink-soft)' }}>
             Turnierbaum: bis {bracketSizeFor(maxPlayers)} Plätze · Doppel-K.-o.
           </p>
 
@@ -205,7 +205,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
       {step === 'field' && (
         <div className="mdc-card" style={{ padding: '22px 20px' }}>
           <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>Spieler melden</h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--mdc-text-dim)', marginBottom: 18 }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--mdc-ink-soft)', marginBottom: 18 }}>
             {venue?.name} · {date} · {field.length} von {maxPlayers} gemeldet
           </p>
 
@@ -213,7 +213,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
           <div style={{ position: 'relative', maxWidth: 460 }}>
             <Search
               size={16}
-              style={{ position: 'absolute', left: 12, top: 15, color: 'var(--mdc-text-faint)' }}
+              style={{ position: 'absolute', left: 12, top: 15, color: 'var(--mdc-ink-dim)' }}
             />
             <input
               id="admin-search"
@@ -241,17 +241,17 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                         padding: '9px 10px', borderRadius: 6, background: 'transparent',
-                        border: 'none', color: 'var(--mdc-text)', cursor: 'pointer', textAlign: 'left',
+                        border: 'none', color: 'var(--mdc-ink)', cursor: 'pointer', textAlign: 'left',
                       }}
                     >
                       <Plus size={15} style={{ color: 'var(--mdc-red)' }} />
                       <span style={{ flex: 1 }}>
                         {player.name}
                         {player.nickname && (
-                          <span style={{ color: 'var(--mdc-text-faint)' }}> „{player.nickname}“</span>
+                          <span style={{ color: 'var(--mdc-ink-dim)' }}> „{player.nickname}“</span>
                         )}
                       </span>
-                      <span className="mdc-num" style={{ color: 'var(--mdc-text-faint)', fontSize: '0.8rem' }}>
+                      <span className="mdc-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.8rem' }}>
                         {player.passNr}
                       </span>
                     </button>
@@ -268,21 +268,21 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
                   key={player.id}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
-                    borderRadius: 8, background: 'var(--mdc-surface-3)',
+                    borderRadius: 8, background: 'var(--mdc-tint-2)',
                   }}
                 >
-                  <span className="mdc-num" style={{ width: 26, color: 'var(--mdc-text-faint)' }}>
+                  <span className="mdc-num" style={{ width: 26, color: 'var(--mdc-ink-dim)' }}>
                     {index + 1}
                   </span>
-                  <span style={{ flex: 1, color: 'var(--mdc-white)' }}>{player.name}</span>
-                  <span className="mdc-num" style={{ color: 'var(--mdc-text-faint)', fontSize: '0.8rem' }}>
+                  <span style={{ flex: 1, color: 'var(--mdc-ink)' }}>{player.name}</span>
+                  <span className="mdc-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.8rem' }}>
                     Passnr. {player.passNr}
                   </span>
                   <button
                     type="button"
                     aria-label={`${player.name} entfernen`}
                     onClick={() => removePlayer(player.id)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--mdc-text-faint)', cursor: 'pointer', padding: 6 }}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--mdc-ink-dim)', cursor: 'pointer', padding: 6 }}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -308,7 +308,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
           </div>
 
           {!canStart && (
-            <p style={{ marginTop: 10, fontSize: '0.82rem', color: 'var(--mdc-text-faint)' }}>
+            <p style={{ marginTop: 10, fontSize: '0.82rem', color: 'var(--mdc-ink-dim)' }}>
               Mindestens vier Starter — darunter läuft kein Ranglistenturnier.
             </p>
           )}
@@ -319,7 +319,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
       {step === 'results' && (
         <div className="mdc-card" style={{ padding: '22px 20px' }}>
           <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>Ergebnis eintragen</h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--mdc-text-dim)', marginBottom: 18 }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--mdc-ink-soft)', marginBottom: 18 }}>
             Reihenfolge = Endplatzierung. Die Punkte rechnet die Serie selbst aus —
             aus Platz und Teilnehmerzahl ({field.length} Starter).
           </p>
@@ -340,11 +340,11 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
                     <td className="mdc-num" style={{ fontWeight: 700 }}>{index + 1}.</td>
                     <td>
                       {player.name}
-                      <span className="mdc-num" style={{ color: 'var(--mdc-text-faint)', fontSize: '0.78rem' }}>
+                      <span className="mdc-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.78rem' }}>
                         {' '}· {player.passNr}
                       </span>
                     </td>
-                    <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-white)' }}>
+                    <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
                       {formatNumber(pointsFor(index + 1, field.length))}
                     </td>
                     <td>
@@ -392,17 +392,17 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
         <div className="mdc-card mdc-card-accent" style={{ padding: '26px 20px' }}>
           <Trophy size={26} style={{ color: 'var(--mdc-red)' }} />
           <h2 className="mdc-display mdc-h3" style={{ marginTop: 12 }}>Turnier abgeschlossen</h2>
-          <p style={{ marginTop: 8, color: 'var(--mdc-text-dim)', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: 640 }}>
+          <p style={{ marginTop: 8, color: 'var(--mdc-ink-soft)', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: 640 }}>
             {venue?.name} am {date}, {field.length} Starter, {entryFee} € Startgeld.
-            Sieger: <strong style={{ color: 'var(--mdc-white)' }}>{field[0]?.name}</strong> mit{' '}
+            Sieger: <strong style={{ color: 'var(--mdc-ink)' }}>{field[0]?.name}</strong> mit{' '}
             {formatNumber(pointsFor(1, field.length))} Punkten.
           </p>
 
           <p
             style={{
               marginTop: 16, padding: '12px 14px', borderRadius: 8,
-              background: 'var(--mdc-red-a10)', border: '1px solid var(--mdc-red-a35)',
-              fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-text-dim)',
+              background: 'var(--mdc-red-a08)', border: '1px solid var(--mdc-red-a35)',
+              fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)',
             }}
           >
             In dieser Vorschau wurde nichts gespeichert. Im späteren Betrieb würde

@@ -38,11 +38,11 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
         <h3 className="mdc-display mdc-h3" style={{ lineHeight: 1 }}>
           {venue?.name ?? 'Spielort offen'}
         </h3>
-        <p style={{ marginTop: 6, fontSize: '0.86rem', color: 'var(--mdc-text-dim)' }}>
+        <p style={{ marginTop: 6, fontSize: '0.86rem', color: 'var(--mdc-ink-soft)' }}>
           {tournament.name} · {formatDate(tournament.date)}
         </p>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 14, fontSize: '0.82rem', color: 'var(--mdc-text-faint)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 14, fontSize: '0.82rem', color: 'var(--mdc-ink-dim)' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <Users size={14} />
             {finished
@@ -79,10 +79,10 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
                 >
                   {result.rank}
                 </span>
-                <span style={{ color: 'var(--mdc-white)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ color: 'var(--mdc-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {playerName(player)}
                 </span>
-                <span className="mdc-num" style={{ marginLeft: 'auto', color: 'var(--mdc-text-dim)' }}>
+                <span className="mdc-num" style={{ marginLeft: 'auto', color: 'var(--mdc-ink-soft)' }}>
                   {formatNumber(result.points)}
                 </span>
               </li>

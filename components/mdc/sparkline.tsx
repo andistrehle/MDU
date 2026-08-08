@@ -58,7 +58,7 @@ export function Sparkline({ values, label, width = 320, height = 64 }: Sparkline
           cx={x}
           cy={y}
           r={index === points.length - 1 ? 4 : 2.5}
-          fill={index === points.length - 1 ? '#FF2E2E' : '#E5E5E5'}
+          fill={index === points.length - 1 ? '#D61A1A' : '#1F3B73'}
         />
       ))}
     </svg>

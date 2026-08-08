@@ -2,74 +2,88 @@
 // MDC — Zeichen und Schriftzug
 // ============================================================
 //
-// Angelehnt an das vorhandene MDC-Logo (ovaler Rahmen, Münchner Skyline,
-// Dart-Motiv, rote Initialen M · D · C), aber neu gezeichnet: eigene Proportionen,
-// ruhigere Formen, ohne Spiegelung — damit es klein im Kopfbereich funktioniert
-// und auf dunklem Grund sauber steht.
+// Aufgeräumte Fassung des vorhandenen MDC-Logos. Wiedererkennbar bleiben die
+// vier Merkmale, an denen man es festmacht:
+//
+//   • das blau gerahmte Oval,
+//   • die Münchner Skyline darin (Olympiaturm, Frauenkirche, Riesenrad),
+//   • die roten Initialen M · D · C im Schriftzug,
+//   • der Dartpfeil.
+//
+// Neu ist die Ausführung: klare Kanten statt Schlagschatten, keine
+// Spiegelung, ruhigere Proportionen — damit es auch 40 Pixel hoch in der
+// Kopfleiste steht und auf Weiß sauber wirkt.
 // ============================================================
 
 interface MarkProps {
   className?: string;
-  /** Größe in Pixeln (Höhe des Ovals). */
+  /** Höhe des Ovals in Pixeln. */
   size?: number;
 }
 
 /** Ovales Zeichen mit Münchner Skyline und Dartpfeil. */
-export function MdcMark({ className, size = 40 }: MarkProps) {
+export function MdcMark({ className, size = 44 }: MarkProps) {
   return (
     <svg
-      viewBox="0 0 120 96"
-      width={(size * 120) / 96}
+      viewBox="0 0 128 96"
+      width={(size * 128) / 96}
       height={size}
       className={className}
       role="img"
       aria-label="Munich Dart Challenge"
     >
       <defs>
-        <linearGradient id="mdc-mark-ring" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#D61A1A" stopOpacity="0.9" />
+        <linearGradient id="mdc-ring" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0%" stopColor="#8FB6DE" />
+          <stop offset="100%" stopColor="#1F3B73" />
         </linearGradient>
       </defs>
 
-      <ellipse cx="60" cy="48" rx="57" ry="45" fill="#111111" />
-      <ellipse
-        cx="60" cy="48" rx="57" ry="45"
-        fill="none" stroke="url(#mdc-mark-ring)" strokeWidth="3"
-      />
+      <ellipse cx="64" cy="48" rx="61" ry="45" fill="#FFFFFF" />
+      <ellipse cx="64" cy="48" rx="61" ry="45" fill="none" stroke="url(#mdc-ring)" strokeWidth="3.5" />
 
-      {/* Skyline: Olympiaturm, Frauenkirche, Rathausturm */}
-      <g fill="#E5E5E5">
+      {/* Münchner Skyline */}
+      <g fill="#16233D">
         {/* Olympiaturm */}
-        <rect x="25" y="34" width="3" height="30" />
-        <ellipse cx="26.5" cy="35" rx="7" ry="3.6" />
-        <rect x="24" y="24" width="5" height="9" rx="2" />
+        <rect x="25.5" y="36" width="3" height="28" />
+        <ellipse cx="27" cy="37" rx="7.5" ry="3.8" />
+        <rect x="24.5" y="25" width="5" height="10" rx="2.5" />
+
+        {/* Riesenrad */}
+        <circle cx="45" cy="49" r="9.5" fill="none" stroke="#16233D" strokeWidth="1.6" />
+        <g stroke="#16233D" strokeWidth="1.1">
+          <line x1="45" y1="39.5" x2="45" y2="58.5" />
+          <line x1="35.5" y1="49" x2="54.5" y2="49" />
+          <line x1="38.3" y1="42.3" x2="51.7" y2="55.7" />
+          <line x1="51.7" y1="42.3" x2="38.3" y2="55.7" />
+        </g>
+        <path d="M41.5 64l3.5-9 3.5 9z" />
 
         {/* Frauenkirche — zwei Türme mit Zwiebelhauben */}
-        <rect x="49" y="40" width="9" height="24" />
-        <rect x="63" y="40" width="9" height="24" />
-        <path d="M49 40c0-6 2-7 4.5-11 2.5 4 4.5 5 4.5 11z" />
-        <path d="M63 40c0-6 2-7 4.5-11 2.5 4 4.5 5 4.5 11z" />
+        <rect x="63" y="42" width="8.5" height="22" />
+        <rect x="76" y="42" width="8.5" height="22" />
+        <path d="M63 42c0-5.6 2-6.6 4.25-10.4C69.5 35.4 71.5 36.4 71.5 42z" />
+        <path d="M76 42c0-5.6 2-6.6 4.25-10.4C82.5 35.4 84.5 36.4 84.5 42z" />
 
         {/* Rathausturm */}
-        <rect x="86" y="42" width="7" height="22" />
-        <path d="M86 42l3.5-13 3.5 13z" />
+        <rect x="95" y="44" width="6.5" height="20" />
+        <path d="M95 44l3.25-12 3.25 12z" />
 
         {/* Häuserzeile */}
-        <rect x="34" y="52" width="11" height="12" />
-        <rect x="76" y="55" width="7" height="9" />
-        <rect x="96" y="50" width="9" height="14" />
-        <rect x="14" y="56" width="8" height="8" />
+        <rect x="88" y="54" width="5.5" height="10" />
+        <rect x="104" y="52" width="8" height="12" />
+        <rect x="15" y="56" width="7.5" height="8" />
       </g>
 
-      <rect x="12" y="64" width="96" height="1.6" fill="#D61A1A" />
+      {/* Rote Grundlinie — die Trennlinie aus dem Logo */}
+      <rect x="14" y="64" width="100" height="2.4" fill="#D61A1A" />
 
-      {/* Dartpfeil, der auf die Mitte zeigt */}
+      {/* Dartpfeil auf die Mitte */}
       <g>
-        <circle cx="60" cy="78" r="6.5" fill="none" stroke="#E5E5E5" strokeWidth="1.4" />
-        <circle cx="60" cy="78" r="2" fill="#D61A1A" />
-        <path d="M66 78h22" stroke="#E5E5E5" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M88 74l8 4-8 4z" fill="#D61A1A" />
+        <circle cx="64" cy="78" r="7" fill="none" stroke="#1F3B73" strokeWidth="1.6" />
+        <circle cx="64" cy="78" r="2.2" fill="#D61A1A" />
+        <path d="M71 78h20" stroke="#1F3B73" strokeWidth="2" strokeLinecap="round" />
+        <path d="M91 73.5l8 4.5-8 4.5z" fill="#D61A1A" />
       </g>
     </svg>
   );
@@ -77,11 +91,11 @@ export function MdcMark({ className, size = 40 }: MarkProps) {
 
 interface WordmarkProps {
   className?: string;
-  /** Kompakt = einzeilig „MDC" für sehr enge Stellen. */
+  /** Kompakt = „MDC" für sehr enge Stellen. */
   compact?: boolean;
 }
 
-/** Schriftzug „Munich Dart Challenge" mit roten Initialen. */
+/** Schriftzug „Munich Dart Challenge" mit roten Initialen — wie im Oval. */
 export function MdcWordmark({ className, compact = false }: WordmarkProps) {
   if (compact) {
     return (
@@ -92,16 +106,21 @@ export function MdcWordmark({ className, compact = false }: WordmarkProps) {
           fontWeight: 900,
           letterSpacing: '0.04em',
           fontSize: '1.5rem',
-          color: 'var(--mdc-white)',
+          color: 'var(--mdc-red)',
           lineHeight: 1,
         }}
       >
-        <span style={{ color: 'var(--mdc-red)' }}>M</span>
-        <span style={{ color: 'var(--mdc-red)' }}>D</span>
-        <span style={{ color: 'var(--mdc-red)' }}>C</span>
+        MDC
       </span>
     );
   }
+
+  const lineStyle: React.CSSProperties = {
+    fontWeight: 900,
+    fontSize: '1.2rem',
+    letterSpacing: '0.015em',
+    color: 'var(--mdc-navy-deep)',
+  };
 
   return (
     <span
@@ -114,11 +133,11 @@ export function MdcWordmark({ className, compact = false }: WordmarkProps) {
         textTransform: 'uppercase',
       }}
     >
-      <span style={{ fontWeight: 900, fontSize: '1.18rem', letterSpacing: '0.02em', color: 'var(--mdc-white)' }}>
+      <span style={lineStyle}>
         <span style={{ color: 'var(--mdc-red)' }}>M</span>unich{' '}
         <span style={{ color: 'var(--mdc-red)' }}>D</span>art
       </span>
-      <span style={{ fontWeight: 900, fontSize: '1.18rem', letterSpacing: '0.02em', color: 'var(--mdc-white)' }}>
+      <span style={lineStyle}>
         <span style={{ color: 'var(--mdc-red)' }}>C</span>hallenge
       </span>
     </span>

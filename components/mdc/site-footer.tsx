@@ -55,11 +55,11 @@ export function SiteFooter() {
         >
           <div style={{ minWidth: 220 }}>
             <MdcMark size={52} />
-            <p style={{ marginTop: 16, color: 'var(--mdc-text-dim)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: 300 }}>
+            <p style={{ marginTop: 16, color: '#C9D6EA', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: 300 }}>
               Münchens Ranking-Serie für Einzelspieler. Gespielt wird in zehn
               Lokalen quer durch die Stadt — mehrmals pro Woche, das ganze Jahr.
             </p>
-            <p style={{ marginTop: 14, fontSize: '0.78rem', color: 'var(--mdc-text-faint)' }}>
+            <p style={{ marginTop: 14, fontSize: '0.78rem', color: '#8FA3C4' }}>
               Stand: {formatDate(season.asOf)}
             </p>
           </div>
@@ -73,7 +73,7 @@ export function SiteFooter() {
                   letterSpacing: '0.14em',
                   fontSize: '0.76rem',
                   fontWeight: 700,
-                  color: 'var(--mdc-white)',
+                  color: '#FFFFFF',
                   marginBottom: 14,
                 }}
               >
@@ -97,13 +97,13 @@ export function SiteFooter() {
                 letterSpacing: '0.14em',
                 fontSize: '0.76rem',
                 fontWeight: 700,
-                color: 'var(--mdc-white)',
+                color: '#FFFFFF',
                 marginBottom: 14,
               }}
             >
               Ligadart in München
             </h3>
-            <p style={{ fontSize: '0.88rem', color: 'var(--mdc-text-dim)', lineHeight: 1.6, marginBottom: 12 }}>
+            <p style={{ fontSize: '0.88rem', color: '#C9D6EA', lineHeight: 1.6, marginBottom: 12 }}>
               Du willst im Team spielen statt einzeln? Die Münchner Dart Union
               organisiert den Ligabetrieb — ein eigenständiges Projekt mit
               eigenen Pässen.
@@ -111,7 +111,7 @@ export function SiteFooter() {
             <a
               href="https://www.mdudarts.de"
               className="mdc-chip"
-              style={{ color: 'var(--mdc-white)' }}
+              style={{ color: '#FFFFFF' }}
             >
               Münchner Dart Union
               <ExternalLink size={13} />
@@ -123,13 +123,13 @@ export function SiteFooter() {
           style={{
             marginTop: 44,
             paddingTop: 22,
-            borderTop: '1px solid var(--mdc-line)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.14)',
             display: 'flex',
             flexWrap: 'wrap',
             gap: 12,
             justifyContent: 'space-between',
             fontSize: '0.8rem',
-            color: 'var(--mdc-text-faint)',
+            color: '#8FA3C4',
           }}
         >
           <span>© {new Date(season.endDate).getUTCFullYear()} Munich Dart Challenge</span>

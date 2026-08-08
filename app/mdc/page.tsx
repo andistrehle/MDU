@@ -56,7 +56,7 @@ export default function MdcHomePage() {
     <>
       {/* ── Bühne ── */}
       <section className="mdc-hero">
-        <Dartboard className="mdc-hero-board mdc-spin-slow" />
+        <Dartboard className="mdc-hero-board mdc-spin-slow" tone="brand" />
         <div
           className="mdc-shell"
           style={{ position: 'relative', zIndex: 2, paddingBlock: 'clamp(56px, 10vw, 112px)' }}
@@ -72,7 +72,7 @@ export default function MdcHomePage() {
             className="mdc-display mdc-rise mdc-rise-2"
             style={{
               marginTop: 20, fontSize: 'clamp(1.1rem, 2.4vw, 1.6rem)',
-              fontWeight: 700, color: 'var(--mdc-grey)', letterSpacing: '0.01em',
+              fontWeight: 700, color: 'var(--mdc-ink-soft)', letterSpacing: '0.01em',
             }}
           >
             Münchens Ranking-Serie für Einzelspieler.
@@ -97,7 +97,7 @@ export default function MdcHomePage() {
             className="mdc-rise mdc-rise-4"
             style={{
               display: 'flex', flexWrap: 'wrap', gap: '10px 28px', marginTop: 40,
-              fontSize: '0.84rem', color: 'var(--mdc-text-faint)',
+              fontSize: '0.84rem', color: 'var(--mdc-ink-dim)',
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
@@ -129,7 +129,7 @@ export default function MdcHomePage() {
             <div>
               <h3
                 className="mdc-display"
-                style={{ fontSize: '1.05rem', letterSpacing: '0.12em', marginBottom: 12, color: 'var(--mdc-text-dim)' }}
+                style={{ fontSize: '1.05rem', letterSpacing: '0.12em', marginBottom: 12, color: 'var(--mdc-ink-soft)' }}
               >
                 Männer · Top 8
               </h3>
@@ -139,7 +139,7 @@ export default function MdcHomePage() {
             <div>
               <h3
                 className="mdc-display"
-                style={{ fontSize: '1.05rem', letterSpacing: '0.12em', marginBottom: 12, color: 'var(--mdc-text-dim)' }}
+                style={{ fontSize: '1.05rem', letterSpacing: '0.12em', marginBottom: 12, color: 'var(--mdc-ink-soft)' }}
               >
                 Frauen · Top 5
               </h3>
@@ -201,7 +201,7 @@ export default function MdcHomePage() {
                   <h3 className="mdc-display" style={{ fontSize: '1.4rem' }}>
                     {weekdayName(day.date)}
                   </h3>
-                  <span className="mdc-num" style={{ fontSize: '0.84rem', color: 'var(--mdc-text-faint)' }}>
+                  <span className="mdc-num" style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)' }}>
                     {formatDate(day.date)}
                   </span>
                 </div>
@@ -222,10 +222,10 @@ export default function MdcHomePage() {
                             {tournament.time}
                           </span>
                         </div>
-                        <p style={{ fontSize: '0.84rem', color: 'var(--mdc-text-dim)', lineHeight: 1.5 }}>
+                        <p style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-soft)', lineHeight: 1.5 }}>
                           {venueAddress(venue)}
                         </p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--mdc-text-faint)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', display: 'flex', alignItems: 'center', gap: 7 }}>
                           <Target size={13} />
                           {venue.boards} Dartautomaten · {tournament.participantIds.length} gemeldet
                         </p>
@@ -248,7 +248,7 @@ export default function MdcHomePage() {
       </section>
 
       {/* ── Letzte Turniere ── */}
-      <section className="mdc-section" style={{ background: 'var(--mdc-black)', borderBlock: '1px solid var(--mdc-line)' }}>
+      <section className="mdc-section mdc-section-tint">
         <div className="mdc-shell">
           <SectionHeading
             kicker="Ergebnisse"
@@ -290,13 +290,13 @@ export default function MdcHomePage() {
                   <span style={{ color: 'var(--mdc-red)' }}>{step.icon}</span>
                   <span
                     className="mdc-display"
-                    style={{ fontSize: '2.6rem', color: 'var(--mdc-surface-3)', lineHeight: 1 }}
+                    style={{ fontSize: '2.6rem', color: 'var(--mdc-tint-2)', lineHeight: 1 }}
                   >
                     {index + 1}
                   </span>
                 </div>
                 <h3 className="mdc-display" style={{ fontSize: '1.25rem', marginTop: 10 }}>{step.title}</h3>
-                <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--mdc-text-dim)' }}>
+                <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)' }}>
                   {step.text}
                 </p>
               </li>

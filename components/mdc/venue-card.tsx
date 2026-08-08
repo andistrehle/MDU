@@ -23,7 +23,7 @@ export function VenueCard({ venue, compact = false }: VenueCardProps) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <h3 className="mdc-display mdc-h3" style={{ lineHeight: 1 }}>{venue.name}</h3>
-          <p style={{ marginTop: 6, fontSize: '0.84rem', color: 'var(--mdc-text-dim)' }}>
+          <p style={{ marginTop: 6, fontSize: '0.84rem', color: 'var(--mdc-ink-soft)' }}>
             {venue.district}
           </p>
         </div>
@@ -33,7 +33,7 @@ export function VenueCard({ venue, compact = false }: VenueCardProps) {
       </div>
 
       {!compact && (
-        <p style={{ marginTop: 14, fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--mdc-text-dim)' }}>
+        <p style={{ marginTop: 14, fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)' }}>
           {venue.description}
         </p>
       )}
@@ -42,18 +42,18 @@ export function VenueCard({ venue, compact = false }: VenueCardProps) {
         <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
           <dt style={{ color: 'var(--mdc-red)', marginTop: 1 }}><MapPin size={15} /></dt>
           <dd>
-            <a href={venueMapsUrl(venue)} target="_blank" rel="noreferrer noopener" style={{ color: 'var(--mdc-text-dim)' }}>
+            <a href={venueMapsUrl(venue)} target="_blank" rel="noreferrer noopener" style={{ color: 'var(--mdc-ink-soft)' }}>
               {venueAddress(venue)}
             </a>
           </dd>
         </div>
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           <dt style={{ color: 'var(--mdc-red)' }}><Phone size={15} /></dt>
-          <dd style={{ color: 'var(--mdc-text-dim)' }}>{venue.phone}</dd>
+          <dd style={{ color: 'var(--mdc-ink-soft)' }}>{venue.phone}</dd>
         </div>
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           <dt style={{ color: 'var(--mdc-red)' }}><Target size={15} /></dt>
-          <dd style={{ color: 'var(--mdc-text-dim)' }}>
+          <dd style={{ color: 'var(--mdc-ink-soft)' }}>
             {venue.boards} Dartautomaten · Start {formatTime(venue.time)}
           </dd>
         </div>

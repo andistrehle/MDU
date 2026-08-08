@@ -19,8 +19,8 @@ export default function ImpressumPage() {
             Vertretungsberechtigte und Kontaktdaten sind Pflichtangaben nach § 5 DDG.
           </DemoNotice>
 
-          <div style={{ color: 'var(--mdc-text-dim)', lineHeight: 1.8, fontSize: '0.95rem' }}>
-            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-white)', marginBottom: 10 }}>
+          <div style={{ color: 'var(--mdc-ink-soft)', lineHeight: 1.8, fontSize: '0.95rem' }}>
+            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-ink)', marginBottom: 10 }}>
               Angaben gemäß § 5 DDG
             </h2>
             <p>
@@ -30,7 +30,7 @@ export default function ImpressumPage() {
               [PLZ] München
             </p>
 
-            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-white)', margin: '28px 0 10px' }}>
+            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-ink)', margin: '28px 0 10px' }}>
               Kontakt
             </h2>
             <p>
@@ -38,12 +38,12 @@ export default function ImpressumPage() {
               Telefon: [Telefonnummer]
             </p>
 
-            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-white)', margin: '28px 0 10px' }}>
+            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-ink)', margin: '28px 0 10px' }}>
               Verantwortlich für den Inhalt
             </h2>
             <p>[Name], Anschrift wie oben</p>
 
-            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-white)', margin: '28px 0 10px' }}>
+            <h2 className="mdc-display mdc-h3" style={{ color: 'var(--mdc-ink)', margin: '28px 0 10px' }}>
               Haftung für Inhalte und Links
             </h2>
             <p>

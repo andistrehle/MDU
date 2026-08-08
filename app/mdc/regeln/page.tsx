@@ -79,7 +79,7 @@ export default function RegelnPage() {
               <article key={block.title} className="mdc-card" style={{ padding: '22px 20px' }}>
                 <span style={{ color: 'var(--mdc-red)' }}>{block.icon}</span>
                 <h2 className="mdc-display" style={{ fontSize: '1.2rem', marginTop: 12 }}>{block.title}</h2>
-                <p style={{ marginTop: 9, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-text-dim)' }}>
+                <p style={{ marginTop: 9, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
                   {block.text}
                 </p>
               </article>
@@ -105,7 +105,7 @@ export default function RegelnPage() {
                     {stage.step}
                   </span>
                   <h3 className="mdc-display" style={{ fontSize: '1.1rem', marginTop: 10 }}>{stage.title}</h3>
-                  <p style={{ marginTop: 7, fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--mdc-text-dim)' }}>
+                  <p style={{ marginTop: 7, fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)' }}>
                     {stage.text}
                   </p>
                 </li>
@@ -140,7 +140,7 @@ export default function RegelnPage() {
                         <td
                           key={EXAMPLE_FIELD_SIZES[index]}
                           className="mdc-td-num mdc-num"
-                          style={{ color: points ? 'var(--mdc-white)' : 'var(--mdc-text-faint)' }}
+                          style={{ color: points ? 'var(--mdc-ink)' : 'var(--mdc-ink-dim)' }}
                         >
                           {points ? formatNumber(points) : '—'}
                         </td>
@@ -151,7 +151,7 @@ export default function RegelnPage() {
               </table>
             </div>
 
-            <p style={{ marginTop: 12, fontSize: '0.82rem', color: 'var(--mdc-text-faint)', lineHeight: 1.6 }}>
+            <p style={{ marginTop: 12, fontSize: '0.82rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.6 }}>
               „—“ heißt: Diesen Platz gibt es in einem Feld dieser Größe nicht.
             </p>
           </div>

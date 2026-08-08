@@ -38,7 +38,7 @@ export default async function SpielortDetailPage(
   return (
     <>
       <section className="mdc-hero">
-        <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} />
+        <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '36px 44px' }}>
           <Link href="/mdc/spielorte" className="mdc-chip" style={{ marginBottom: 18 }}>
             <ArrowLeft size={13} />
@@ -67,7 +67,7 @@ export default async function SpielortDetailPage(
             <div className="mdc-card" style={{ padding: '20px' }}>
               <MapPin size={19} style={{ color: 'var(--mdc-red)' }} />
               <h2 className="mdc-display" style={{ fontSize: '1.05rem', marginTop: 10 }}>Adresse</h2>
-              <p style={{ marginTop: 7, color: 'var(--mdc-text-dim)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              <p style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.9rem', lineHeight: 1.6 }}>
                 {venue.street}<br />{venue.zip} {venue.city}
               </p>
               <a
@@ -85,10 +85,10 @@ export default async function SpielortDetailPage(
             <div className="mdc-card" style={{ padding: '20px' }}>
               <Phone size={19} style={{ color: 'var(--mdc-red)' }} />
               <h2 className="mdc-display" style={{ fontSize: '1.05rem', marginTop: 10 }}>Kontakt</h2>
-              <p className="mdc-num" style={{ marginTop: 7, color: 'var(--mdc-text-dim)', fontSize: '0.95rem' }}>
+              <p className="mdc-num" style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.95rem' }}>
                 {venue.phone}
               </p>
-              <p style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--mdc-text-faint)', lineHeight: 1.55 }}>
+              <p style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.55 }}>
                 Platzhalternummer für diese Vorschau — die echten Nummern kommen
                 vom Betreiber.
               </p>
@@ -97,7 +97,7 @@ export default async function SpielortDetailPage(
             <div className="mdc-card" style={{ padding: '20px' }}>
               <Target size={19} style={{ color: 'var(--mdc-red)' }} />
               <h2 className="mdc-display" style={{ fontSize: '1.05rem', marginTop: 10 }}>Spielbetrieb</h2>
-              <p style={{ marginTop: 7, color: 'var(--mdc-text-dim)', fontSize: '0.9rem', lineHeight: 1.7 }}>
+              <p style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.9rem', lineHeight: 1.7 }}>
                 {venue.boards} Dartautomaten<br />
                 {WEEKDAY_NAMES[venue.weekday]}, Start {formatTime(venue.time)}<br />
                 {finished.length} gespielte Turniere in dieser Serie
