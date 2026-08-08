@@ -27,6 +27,9 @@ export default function robots(): MetadataRoute.Robots {
         '/mein-team',
         '/admin',
         '/api/',
+        // Demo der Munich Dart Challenge: erreichbar, wer den Link hat —
+        // aber nicht crawlen, nicht indexieren (zusätzlich noindex im Layout).
+        '/mdc',
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
