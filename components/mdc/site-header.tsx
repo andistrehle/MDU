@@ -97,14 +97,19 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
         </div>
       </header>
 
-      {/* Das Menü hängt per Portal direkt am <body>.
-          Grund: Ein Vorfahre mit `filter`, `backdrop-filter`, `transform`
-          oder `perspective` wird zum Bezugsrahmen für `position: fixed` —
-          das Menü wäre dann nur so hoch wie dieser Vorfahre statt
-          bildschirmfüllend. Genau das passierte im Kopfbereich mit seinem
-          Glas-Effekt: In Safari kippte das Menü auf Kopfzeilenhöhe, in
-          Chromium nicht (dort ist `backdrop-filter` headless inaktiv).
-          Am <body> kann kein Vorfahre mehr dazwischenfunken. */}
+      {/* Das Menü hängt per Portal an `.mdc-root` — und zwar aus zwei Gründen
+          gleichzeitig, die sich fast widersprechen:
+
+          • NICHT im <header>: Der trägt `backdrop-filter` (Glas-Effekt), und
+            ein Element mit Filter wird zum Bezugsrahmen für `position: fixed`.
+            Im Kopfbereich wäre das Menü nur kopfzeilenhoch statt
+            bildschirmfüllend (Safari setzt das um, Chromium nicht).
+          • NICHT am <body>: Sämtliche Farb- und Schriftvariablen sind auf
+            `.mdc-root` definiert. Außerhalb fehlen sie — die Schrift fiele auf
+            System-Sans zurück und `background: var(--mdc-red)` würde
+            durchsichtig.
+
+          `.mdc-root` erfüllt beides: kein Filter, aber alle Variablen. */}
       {/* `document` ist hier immer da: Das Menü geht nur per Klick auf, also
           niemals beim Rendern auf dem Server. */}
       {menuOpen && createPortal((
@@ -144,7 +149,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
             Nächstes Ranking · {nextRankingLabel}
           </Link>
         </div>
-      ), document.body)}
+      ), document.querySelector('.mdc-root') ?? document.body)}
     </>
   );
 }
