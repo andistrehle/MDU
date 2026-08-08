@@ -480,15 +480,14 @@ body:has(.mdc-root) {
   background: var(--mdc-red);
 }
 
-/* Der Werfer steht kurz hinter dem Schriftzug und steht mit den Füßen auf
-   dessen Grundlinie — nicht mittig schwebend. Er soll begleiten, nicht
-   auffallen; deshalb klein und eng angesetzt. Der negative Abstand hebt
-   den 20-px-Abstand der Kopfzeile teilweise wieder auf. */
+/* Der Werfer steht kurz hinter dem Schriftzug, auf gleicher Mittelachse wie
+   dieser. Er soll begleiten, nicht auffallen; deshalb klein und eng
+   angesetzt. Der negative Abstand hebt den 20-px-Abstand der Kopfzeile
+   teilweise wieder auf. */
 .mdc-header-figure {
   flex-shrink: 0;
   margin-left: -10px;
-  align-self: flex-end;
-  margin-bottom: 18px;
+  align-self: center;
 }
 @media (max-width: 359px) {
   .mdc-header-figure { display: none; }
