@@ -121,8 +121,8 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
 
           <Link
             href={nextRankingHref}
-            className="mdc-btn mdc-btn-primary"
-            style={{ marginTop: 26, width: '100%' }}
+            className="mdc-btn mdc-btn-primary mdc-btn-block"
+            style={{ marginTop: 26 }}
             onClick={() => setMenuOpen(false)}
           >
             <CalendarClock size={18} strokeWidth={2.4} />
