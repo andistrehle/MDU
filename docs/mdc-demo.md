@@ -95,6 +95,24 @@ besser Platzierte. Podium, Ergebnisliste und Baum widersprechen sich dadurch
 nie. Sobald echte Match-Daten vorliegen, ersetzt man die Simulation — die
 Struktur (`Match` in `data/types.ts`) steht schon.
 
+## Eigene Skyline-Grafik einsetzen
+
+Das Zeichen (`components/mdc/logo.tsx`) zeichnet die Münchner Silhouette
+selbst. Liegt eine lizenzierte Grafikdatei vor, ersetzt sie die Zeichnung in
+zwei Schritten:
+
+1. Datei nach `public/mdc/skyline.svg` legen (SVG bevorzugt; PNG mit
+   durchsichtigem Hintergrund geht auch)
+2. In `components/mdc/logo.tsx` ganz oben eintragen:
+   `const SKYLINE_IMAGE: string | null = '/mdc/skyline.svg';`
+
+Oval, rote Linie und alle Größen bleiben unverändert. Ohne Eintrag greift die
+gezeichnete Fassung.
+
+Die Datei erscheint eins zu eins auf der Seite — also nur eine lizenzierte
+Fassung ablegen. Stock-Vorschauen tragen ein Wasserzeichen quer über der
+Grafik und sind dafür nicht geeignet.
+
 ## Vorbereitet, aber bewusst nicht gebaut
 
 Die Datentypen sind so geschnitten, dass sie sich auf Supabase-Tabellen

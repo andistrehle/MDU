@@ -18,6 +18,21 @@
 
 const SKYLINE = '#16233D';
 
+/**
+ * Eigene Skyline-Grafik statt der gezeichneten Silhouette.
+ *
+ * Sobald eine lizenzierte Datei vorliegt (SVG bevorzugt, PNG mit
+ * durchsichtigem Hintergrund geht auch), hier den Pfad eintragen:
+ *
+ *   1. Datei nach `public/mdc/skyline.svg` legen
+ *   2. hier `'/mdc/skyline.svg'` eintragen
+ *
+ * Mehr ist nicht nötig — das Oval, die rote Linie und alle Größen bleiben.
+ * Wichtig: Nur Dateien einsetzen, für die eine Lizenz vorliegt. Eine
+ * Stock-Vorschau trägt ein Wasserzeichen und ist dafür nicht geeignet.
+ */
+const SKYLINE_IMAGE: string | null = null;
+
 interface MarkProps {
   className?: string;
   /** Höhe des Ovals in Pixeln. */
@@ -45,6 +60,26 @@ export function MdcMark({ className, size = 46 }: MarkProps) {
       <ellipse cx="84" cy="52" rx="82" ry="50" fill="#FFFFFF" />
       <ellipse cx="84" cy="52" rx="82" ry="50" fill="none" stroke="url(#mdc-ring)" strokeWidth="3.5" />
 
+      {SKYLINE_IMAGE ? (
+        <image
+          href={SKYLINE_IMAGE}
+          x="16" y="22" width="136" height="54"
+          preserveAspectRatio="xMidYMax meet"
+        />
+      ) : (
+        <DrawnSkyline />
+      )}
+
+      {/* Rote Grundlinie */}
+      <rect x="14" y="76" width="142" height="2.8" fill="#D61A1A" />
+    </svg>
+  );
+}
+
+/** Gezeichnete Münchner Silhouette — Rückfallebene ohne eigene Grafikdatei. */
+function DrawnSkyline() {
+  return (
+    <>
       <g fill={SKYLINE}>
         {/* Durchgehendes Häuserband — es trägt die Wahrzeichen und macht aus
             einzelnen Bauwerken eine Stadtsilhouette. */}
@@ -118,10 +153,7 @@ export function MdcMark({ className, size = 46 }: MarkProps) {
         <path d="M89 76l6-20M101 76l-6-20" strokeWidth="1.9" />
       </g>
       <circle cx="95" cy="56" r="2.3" fill={SKYLINE} />
-
-      {/* Rote Grundlinie */}
-      <rect x="14" y="76" width="142" height="2.8" fill="#D61A1A" />
-    </svg>
+    </>
   );
 }
 
