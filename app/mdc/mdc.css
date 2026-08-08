@@ -1,0 +1,633 @@
+/* ============================================================
+   Munich Dart Challenge — Design-System
+   ============================================================
+
+   Bewusst komplett getrennt von der MDU-Oberfläche: Alle Regeln hängen unter
+   `.mdc-root`, damit sich die beiden Projekte nicht ins Gehege kommen. Die
+   MDU-Seite bleibt umschaltbar hell/dunkel — die MDC ist immer dunkel, das
+   gehört zur Bühne.
+
+   Farbwelt aus dem MDC-Logo: Schwarz, Anthrazit, ein kräftiges Rot, dazu
+   Hellgrau und Weiß. Rot wird sparsam eingesetzt — als Akzent, nicht als
+   Fläche.
+   ============================================================ */
+
+.mdc-root {
+  /* Basisfarben */
+  --mdc-black:      #111111;
+  --mdc-anthracite: #1A1A1A;
+  --mdc-red:        #D61A1A;
+  --mdc-grey:       #E5E5E5;
+  --mdc-white:      #FFFFFF;
+
+  /* Abstufungen */
+  --mdc-void:       #0B0B0B;
+  --mdc-surface:    #161616;
+  --mdc-surface-2:  #1E1E1E;
+  --mdc-surface-3:  #232323;
+  --mdc-red-bright: #FF2E2E;
+  --mdc-red-deep:   #8E0F0F;
+  --mdc-gold:       #E7B84B;
+  --mdc-silver:     #C6CBD2;
+  --mdc-bronze:     #C08457;
+  --mdc-green:      #4ADE80;
+
+  --mdc-text:       #E5E5E5;
+  --mdc-text-dim:   #A6A6A6;
+  --mdc-text-faint: #7A7A7A;
+
+  --mdc-line:       rgba(255, 255, 255, 0.08);
+  --mdc-line-soft:  rgba(255, 255, 255, 0.05);
+  --mdc-line-hard:  rgba(255, 255, 255, 0.16);
+  --mdc-red-a10:    rgba(214, 26, 26, 0.10);
+  --mdc-red-a20:    rgba(214, 26, 26, 0.20);
+  --mdc-red-a35:    rgba(214, 26, 26, 0.35);
+
+  --mdc-font-display: var(--font-saira-condensed), 'Archivo Narrow', system-ui, sans-serif;
+  --mdc-font-body:    var(--font-manrope), system-ui, sans-serif;
+  --mdc-font-mono:    var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --mdc-shell: 1240px;
+
+  color-scheme: dark;
+  background: var(--mdc-void);
+  color: var(--mdc-text);
+  font-family: var(--mdc-font-body);
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Der Rahmen der MDU-Seite (Bottom-Nav-Abstand, helles Grundblatt) darf hier
+   nicht durchschlagen. `:has` greift auf der Seite, die die MDC enthält. */
+html:has(.mdc-root),
+body:has(.mdc-root) {
+  background: var(--mdc-void, #0B0B0B);
+}
+body:has(.mdc-root) {
+  padding-bottom: 0 !important;
+}
+
+.mdc-root ::selection {
+  background: var(--mdc-red);
+  color: #fff;
+}
+
+.mdc-root a { color: inherit; text-decoration: none; }
+
+.mdc-root :focus-visible {
+  outline: 2px solid var(--mdc-red-bright);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------
+   Layout
+   ------------------------------------------------------------ */
+
+.mdc-shell {
+  width: 100%;
+  max-width: var(--mdc-shell);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (max-width: 640px) {
+  .mdc-shell { padding-inline: 16px; }
+}
+
+.mdc-section { padding-block: 72px; }
+@media (max-width: 768px) {
+  .mdc-section { padding-block: 48px; }
+}
+
+/* ------------------------------------------------------------
+   Typografie
+   ------------------------------------------------------------ */
+
+.mdc-display {
+  font-family: var(--mdc-font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  color: var(--mdc-white);
+}
+
+.mdc-h1 { font-size: clamp(2.75rem, 8vw, 5.5rem); }
+.mdc-h2 { font-size: clamp(1.9rem, 4.6vw, 3rem); }
+.mdc-h3 { font-size: clamp(1.35rem, 2.6vw, 1.85rem); }
+
+.mdc-kicker {
+  font-family: var(--mdc-font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  color: var(--mdc-red);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.mdc-kicker::before {
+  content: '';
+  width: 26px;
+  height: 2px;
+  background: var(--mdc-red);
+}
+
+.mdc-lead {
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.65;
+  color: var(--mdc-text-dim);
+}
+
+.mdc-num {
+  font-family: var(--mdc-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* ------------------------------------------------------------
+   Karten
+   ------------------------------------------------------------ */
+
+.mdc-card {
+  background: linear-gradient(180deg, var(--mdc-surface-2) 0%, var(--mdc-surface) 100%);
+  border: 1px solid var(--mdc-line);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.mdc-card-hover:hover {
+  border-color: var(--mdc-red-a35);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Dezenter roter Lichtstreifen an der Oberkante — der einzige „Neon"-Effekt. */
+.mdc-card-accent::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--mdc-red), transparent);
+  opacity: 0.7;
+}
+
+/* Sehr dezentes Glas — nur für schwebende Leisten. */
+.mdc-glass {
+  background: rgba(17, 17, 17, 0.82);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+/* ------------------------------------------------------------
+   Schaltflächen
+   ------------------------------------------------------------ */
+
+.mdc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: var(--mdc-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+  padding: 13px 24px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  min-height: 46px;
+  white-space: nowrap;
+}
+.mdc-btn:active { transform: translateY(1px); }
+
+.mdc-btn-primary {
+  background: var(--mdc-red);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(214, 26, 26, 0.25);
+}
+.mdc-btn-primary:hover { background: var(--mdc-red-bright); }
+
+.mdc-btn-ghost {
+  border-color: var(--mdc-line-hard);
+  color: var(--mdc-white);
+  background: rgba(255, 255, 255, 0.03);
+}
+.mdc-btn-ghost:hover {
+  border-color: var(--mdc-red);
+  color: var(--mdc-red-bright);
+}
+
+.mdc-btn-sm {
+  font-size: 0.85rem;
+  padding: 9px 16px;
+  min-height: 38px;
+}
+
+/* ------------------------------------------------------------
+   Chips, Badges, Trend
+   ------------------------------------------------------------ */
+
+.mdc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--mdc-line);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mdc-text-dim);
+  white-space: nowrap;
+}
+.mdc-chip-red {
+  border-color: var(--mdc-red-a35);
+  background: var(--mdc-red-a10);
+  color: #FF7A7A;
+}
+
+.mdc-trend-up   { color: var(--mdc-green); }
+.mdc-trend-down { color: #FF6B6B; }
+.mdc-trend-same { color: var(--mdc-text-faint); }
+
+/* ------------------------------------------------------------
+   Tabellen
+   ------------------------------------------------------------ */
+
+.mdc-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mdc-line-hard) transparent;
+}
+.mdc-scroll-x::-webkit-scrollbar { height: 8px; }
+.mdc-scroll-x::-webkit-scrollbar-thumb {
+  background: var(--mdc-line-hard);
+  border-radius: 4px;
+}
+
+.mdc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.mdc-table th {
+  font-family: var(--mdc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--mdc-text-faint);
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--mdc-line);
+  white-space: nowrap;
+  background: var(--mdc-surface);
+}
+.mdc-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--mdc-line-soft);
+  white-space: nowrap;
+}
+.mdc-table tbody tr { transition: background 0.15s ease; }
+.mdc-table tbody tr:hover { background: rgba(255, 255, 255, 0.035); }
+.mdc-table .mdc-td-num { text-align: right; }
+
+/* Erste Spalte (Platz) beim seitlichen Scrollen stehen lassen. */
+.mdc-table .mdc-sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--mdc-surface);
+}
+.mdc-table tbody tr:hover .mdc-sticky-col { background: #1c1c1c; }
+
+/* Top 3 hervorheben */
+.mdc-row-1 { background: linear-gradient(90deg, rgba(231, 184, 75, 0.14), transparent 45%); }
+.mdc-row-2 { background: linear-gradient(90deg, rgba(198, 203, 210, 0.11), transparent 45%); }
+.mdc-row-3 { background: linear-gradient(90deg, rgba(192, 132, 87, 0.11), transparent 45%); }
+.mdc-row-1 .mdc-sticky-col,
+.mdc-row-2 .mdc-sticky-col,
+.mdc-row-3 .mdc-sticky-col { background: #1b1a17; }
+
+/* ------------------------------------------------------------
+   Formularfelder
+   ------------------------------------------------------------ */
+
+.mdc-input,
+.mdc-select {
+  width: 100%;
+  background: var(--mdc-surface);
+  border: 1px solid var(--mdc-line);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: var(--mdc-white);
+  font-family: var(--mdc-font-body);
+  font-size: 0.95rem;
+  min-height: 44px;
+  transition: border-color 0.2s ease;
+}
+.mdc-input::placeholder { color: var(--mdc-text-faint); }
+.mdc-input:focus,
+.mdc-select:focus { border-color: var(--mdc-red); }
+
+.mdc-label {
+  display: block;
+  font-family: var(--mdc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mdc-text-faint);
+  margin-bottom: 7px;
+}
+
+/* Segment-Umschalter (Männer / Frauen, Saison) */
+.mdc-segment {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  background: var(--mdc-surface);
+  border: 1px solid var(--mdc-line);
+  border-radius: 10px;
+}
+.mdc-segment button {
+  font-family: var(--mdc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 9px 18px;
+  border-radius: 7px;
+  color: var(--mdc-text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  min-height: 40px;
+}
+.mdc-segment button:hover { color: var(--mdc-white); }
+.mdc-segment button[data-active='true'] {
+  background: var(--mdc-red);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------
+   Kopfzeile
+   ------------------------------------------------------------ */
+
+.mdc-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  border-bottom: 1px solid var(--mdc-line);
+}
+.mdc-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 72px;
+}
+.mdc-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.mdc-nav-link {
+  font-family: var(--mdc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--mdc-text-dim);
+  padding: 9px 12px;
+  border-radius: 6px;
+  position: relative;
+  transition: color 0.18s ease;
+}
+.mdc-nav-link:hover { color: var(--mdc-white); }
+.mdc-nav-link[data-active='true'] { color: var(--mdc-white); }
+.mdc-nav-link[data-active='true']::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+  height: 2px;
+  background: var(--mdc-red);
+}
+
+.mdc-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--mdc-line-hard);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--mdc-white);
+  cursor: pointer;
+  margin-left: auto;
+}
+
+/* Mobile Navigation */
+.mdc-mobile-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(11, 11, 11, 0.97);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+}
+.mdc-mobile-nav a {
+  font-family: var(--mdc-font-display);
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--mdc-white);
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--mdc-line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mdc-mobile-nav a[data-active='true'] { color: var(--mdc-red); }
+
+@media (max-width: 1080px) {
+  .mdc-nav { display: none; }
+  .mdc-header-cta { display: none; }
+  .mdc-burger { display: inline-flex; }
+}
+
+/* ------------------------------------------------------------
+   Bühne / Hero
+   ------------------------------------------------------------ */
+
+.mdc-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--mdc-line);
+  background:
+    radial-gradient(1100px 620px at 78% 12%, rgba(214, 26, 26, 0.22), transparent 62%),
+    radial-gradient(760px 480px at 8% 92%, rgba(214, 26, 26, 0.10), transparent 65%),
+    linear-gradient(180deg, #141414 0%, var(--mdc-void) 100%);
+}
+
+/* Scheinwerfer-Streifen wie über einer Turnierbühne */
+.mdc-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    115deg,
+    transparent 0 38px,
+    rgba(255, 255, 255, 0.014) 38px 39px
+  );
+  pointer-events: none;
+}
+
+.mdc-hero-board {
+  position: absolute;
+  right: -140px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(760px, 78vw);
+  aspect-ratio: 1;
+  opacity: 0.3;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 42%, transparent 78%);
+  mask-image: radial-gradient(circle closest-side, #000 42%, transparent 78%);
+}
+@media (max-width: 900px) {
+  .mdc-hero-board {
+    right: -32%;
+    top: 8%;
+    transform: none;
+    width: 118vw;
+    opacity: 0.17;
+  }
+}
+
+/* ------------------------------------------------------------
+   Bewegung
+   ------------------------------------------------------------ */
+
+@keyframes mdc-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mdc-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes mdc-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+.mdc-rise { animation: mdc-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.mdc-rise-1 { animation-delay: 0.08s; }
+.mdc-rise-2 { animation-delay: 0.16s; }
+.mdc-rise-3 { animation-delay: 0.24s; }
+.mdc-rise-4 { animation-delay: 0.32s; }
+
+.mdc-spin-slow { animation: mdc-spin 90s linear infinite; transform-origin: 50% 50%; }
+.mdc-live-dot { animation: mdc-pulse 2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mdc-root *,
+  .mdc-root *::before,
+  .mdc-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   Turnierbaum
+   ------------------------------------------------------------ */
+
+.mdc-bracket {
+  display: flex;
+  gap: 26px;
+  min-width: min-content;
+  padding-bottom: 10px;
+}
+.mdc-bracket-round {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 216px;
+}
+.mdc-bracket-head {
+  font-family: var(--mdc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mdc-text-faint);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--mdc-line);
+  margin-bottom: 4px;
+}
+.mdc-match {
+  border: 1px solid var(--mdc-line);
+  border-radius: 8px;
+  background: var(--mdc-surface);
+  overflow: hidden;
+  font-size: 0.82rem;
+}
+.mdc-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  color: var(--mdc-text-dim);
+}
+.mdc-match-row + .mdc-match-row { border-top: 1px solid var(--mdc-line-soft); }
+.mdc-match-row[data-winner='true'] {
+  color: var(--mdc-white);
+  font-weight: 700;
+  background: rgba(214, 26, 26, 0.10);
+  box-shadow: inset 3px 0 0 var(--mdc-red);
+}
+.mdc-match-row[data-empty='true'] {
+  color: var(--mdc-text-faint);
+  font-style: italic;
+}
+.mdc-match-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------
+   Fußzeile
+   ------------------------------------------------------------ */
+
+.mdc-footer {
+  border-top: 1px solid var(--mdc-line);
+  background: var(--mdc-black);
+  padding-block: 56px 32px;
+}
+.mdc-footer a { color: var(--mdc-text-dim); transition: color 0.18s ease; }
+.mdc-footer a:hover { color: var(--mdc-red-bright); }
+
+/* Zweispaltige Ranglisten-Ansicht auf der Startseite bricht früh um. */
+@media (max-width: 980px) {
+  .mdc-grid-2 { grid-template-columns: minmax(0, 1fr) !important; }
+}

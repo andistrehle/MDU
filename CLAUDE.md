@@ -60,6 +60,15 @@ auf www.mdudarts.de + Testuser löschen + externe anwaltliche Freigabe (Banner i
 entfernen) + AVV mit Dienstleistern. Einführungsvideo: Konzept/Runsheet in
 `docs/einfuehrungsvideo-*.md` (Aufnahme erfolgt, Schnitt in HeyGen/CapCut läuft).
 
+## Zweites Projekt im Repo: Munich Dart Challenge (MDC)
+Unter **`/mdc`** liegt eine eigenständige Demo-Web-App der Munich Dart Challenge
+(Einzelspieler-Ranglistenserie, eigene Passnummern). **Keine Verknüpfung zur MDU** —
+eigene Datenschicht (`data/`), eigene Komponenten (`components/mdc/`), eigene Helfer
+(`lib/mdc/`), eigenes Design (`app/mdc/mdc.css`), noindex. Die MDU-Chrome (Bottom-Nav,
+Demo-Tour, Analytics) blendet sich dort über `components/mdu/global-chrome.tsx` aus.
+Details, Datenherkunft und offene Punkte: **`docs/mdc-demo.md`**.
+Wichtig: Endrangliste 2025/26 = echte Daten (echte Personen), Turniere = Demo-Daten.
+
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der
   **Suppression-Liste** und bekommt nichts mehr → im Resend-Dashboard entfernen.

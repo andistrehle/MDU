@@ -1,0 +1,90 @@
+// ============================================================
+// MDC — Rohzeilen der Endrangliste einlesen
+// ============================================================
+//
+// Eine Zeile der offiziellen Auswertung sieht so aus:
+//
+//   'Platz|Name|Vorname|Anzahl TN|Punkte|%|Trend'
+//
+// Hier wird sie in Strukturen übersetzt, aus denen sich BEIDES speist:
+// der Spielerstamm (`players.ts`) und die Endrangliste (`ranking-final.ts`).
+// Beide greifen auf dieselbe Quelle zu — ein Spieler kann also gar nicht in
+// der Rangliste stehen und im Stamm fehlen.
+//
+// Abgeleitet statt gepflegt (und damit nicht falsch pflegbar):
+//   • Schnitt   = Punkte / Anzahl TN
+//   • Euro      = EZR-Betrag × Prozentsatz
+//   • Spieler-ID = Slug aus Vor- und Nachname (bei Namensgleichheit + Passnr.)
+// ============================================================
+
+import type { Division, Trend } from './types';
+import { slugify, titleCase, venueFromSurname } from '@/lib/mdc/names';
+
+export interface ParsedRow {
+  rank: number;
+  sharedRank: boolean;
+  passNr: number;
+  lastName: string;
+  firstName: string;
+  nickname: string | null;
+  tournaments: number;
+  points: number;
+  payoutPercent: number | null;
+  trend: Trend;
+  division: Division;
+  playerId: string;
+  homeVenueId: string | null;
+}
+
+function parseTrend(raw: string | undefined): Trend {
+  if (raw === 'u') return 'up';
+  if (raw === 'd') return 'down';
+  return 'same';
+}
+
+/** „MARKUS (JACKY)" → { firstName: 'Markus', nickname: 'Jacky' } */
+function splitFirstName(raw: string): { firstName: string; nickname: string | null } {
+  const match = raw.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (!match) return { firstName: titleCase(raw), nickname: null };
+  return { firstName: titleCase(match[1]), nickname: titleCase(match[2]) };
+}
+
+export function parseRankingRows(rawLines: string[], division: Division): ParsedRow[] {
+  const usedIds = new Set<string>();
+  let lastRank = 0;
+
+  return rawLines.map(line => {
+    const [rankRaw, passRaw, nameRaw, firstRaw, tnRaw, pointsRaw, percentRaw, trendRaw] =
+      line.split('|');
+
+    // Leerer Platz = punktgleich mit der Zeile darüber.
+    const sharedRank = rankRaw.trim() === '';
+    const rank = sharedRank ? lastRank : Number(rankRaw);
+    lastRank = rank;
+
+    const lastName = titleCase(nameRaw);
+    const { firstName, nickname } = splitFirstName(firstRaw);
+
+    // ID aus dem Namen; nur bei echter Namensgleichheit kommt die Passnummer dazu.
+    const base = slugify(`${firstName} ${lastName}`);
+    const passNr = Number(passRaw);
+    const playerId = usedIds.has(base) ? `${base}-${passNr}` : base;
+    usedIds.add(playerId);
+
+    return {
+      rank,
+      sharedRank,
+      passNr,
+      lastName,
+      firstName,
+      nickname,
+      tournaments: Number(tnRaw),
+      points: Number(pointsRaw),
+      payoutPercent: percentRaw ? Number(percentRaw) : null,
+      trend: parseTrend(trendRaw),
+      division,
+      playerId,
+      homeVenueId: venueFromSurname(nameRaw),
+    };
+  });
+}
