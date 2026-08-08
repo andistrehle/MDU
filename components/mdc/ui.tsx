@@ -61,7 +61,7 @@ interface PageHeroProps {
 export function PageHero({ kicker, title, description, children }: PageHeroProps) {
   return (
     <section className="mdc-hero">
-      <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} />
+      <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
       <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '56px 44px' }}>
         <span className="mdc-kicker mdc-rise">{kicker}</span>
         <h1 className="mdc-display mdc-h2 mdc-rise mdc-rise-1" style={{ marginTop: 14 }}>{title}</h1>
@@ -100,7 +100,7 @@ export function StatCard({ label, value, sub, icon, href }: StatCardProps) {
             letterSpacing: '0.14em',
             fontSize: '0.72rem',
             fontWeight: 700,
-            color: 'var(--mdc-text-faint)',
+            color: 'var(--mdc-ink-dim)',
           }}
         >
           {label}
@@ -113,7 +113,7 @@ export function StatCard({ label, value, sub, icon, href }: StatCardProps) {
         {value}
       </div>
       {sub && (
-        <div style={{ marginTop: 6, fontSize: '0.84rem', color: 'var(--mdc-text-dim)' }}>{sub}</div>
+        <div style={{ marginTop: 6, fontSize: '0.84rem', color: 'var(--mdc-ink-soft)' }}>{sub}</div>
       )}
     </div>
   );
@@ -168,10 +168,10 @@ export function DemoNotice({ children }: { children: ReactNode }) {
         gap: 12,
         padding: '14px 16px',
         borderColor: 'var(--mdc-red-a35)',
-        background: 'var(--mdc-red-a10)',
+        background: 'var(--mdc-red-a08)',
         fontSize: '0.86rem',
         lineHeight: 1.6,
-        color: 'var(--mdc-text-dim)',
+        color: 'var(--mdc-ink-soft)',
       }}
     >
       <Info size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />

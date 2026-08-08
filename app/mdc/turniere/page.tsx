@@ -46,8 +46,7 @@ export default function TurnierePage() {
       </section>
 
       <section
-        className="mdc-section"
-        style={{ background: 'var(--mdc-black)', borderBlock: '1px solid var(--mdc-line)' }}
+        className="mdc-section mdc-section-tint"
         id="vergangene"
       >
         <div className="mdc-shell">

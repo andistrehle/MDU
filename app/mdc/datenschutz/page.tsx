@@ -59,7 +59,7 @@ export default function DatenschutzPage() {
             {SECTIONS.map(section => (
               <div key={section.title}>
                 <h2 className="mdc-display mdc-h3" style={{ marginBottom: 8 }}>{section.title}</h2>
-                <p style={{ color: 'var(--mdc-text-dim)', lineHeight: 1.75, fontSize: '0.95rem' }}>
+                <p style={{ color: 'var(--mdc-ink-soft)', lineHeight: 1.75, fontSize: '0.95rem' }}>
                   {section.body}
                 </p>
               </div>

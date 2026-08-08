@@ -36,13 +36,13 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
       <div
         style={{
           fontFamily: 'var(--mdc-font-display)', textTransform: 'uppercase',
-          letterSpacing: '0.12em', fontSize: '0.7rem', fontWeight: 700, color: 'var(--mdc-text-faint)',
+          letterSpacing: '0.12em', fontSize: '0.7rem', fontWeight: 700, color: 'var(--mdc-ink-dim)',
         }}
       >
         {label}
       </div>
       <div className="mdc-display" style={{ fontSize: '1.6rem', marginTop: 8 }}>{value}</div>
-      {sub && <div style={{ marginTop: 4, fontSize: '0.78rem', color: 'var(--mdc-text-dim)' }}>{sub}</div>}
+      {sub && <div style={{ marginTop: 4, fontSize: '0.78rem', color: 'var(--mdc-ink-soft)' }}>{sub}</div>}
     </div>
   );
 }
@@ -80,7 +80,7 @@ export default async function SpielerProfilPage(
   return (
     <>
       <section className="mdc-hero">
-        <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} />
+        <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '36px 40px' }}>
           <Link href="/mdc/spieler" className="mdc-chip" style={{ marginBottom: 18 }}>
             <ArrowLeft size={13} />
@@ -115,7 +115,7 @@ export default async function SpielerProfilPage(
             <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
               Endstand Saison {FINAL_SEASON.label}
             </h2>
-            <p style={{ color: 'var(--mdc-text-dim)', fontSize: '0.88rem', marginBottom: 16 }}>
+            <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
               Offizieller Stand vom {formatDate(FINAL_SEASON.asOf)} ·{' '}
               {DIVISION_LABEL[player.division]}wertung
             </p>
@@ -148,7 +148,7 @@ export default async function SpielerProfilPage(
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
                 {summerSeason.label}
               </h2>
-              <p style={{ color: 'var(--mdc-text-dim)', fontSize: '0.88rem', marginBottom: 16 }}>
+              <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
                 Zwischenstand vom {formatDate(summerSeason.asOf)}
               </p>
 
@@ -180,7 +180,7 @@ export default async function SpielerProfilPage(
                   <div
                     style={{
                       display: 'flex', justifyContent: 'space-between', marginTop: 8,
-                      fontSize: '0.74rem', color: 'var(--mdc-text-faint)',
+                      fontSize: '0.74rem', color: 'var(--mdc-ink-dim)',
                     }}
                   >
                     <span>{formatDate(chronological[0].tournament.date)}</span>
@@ -207,22 +207,22 @@ export default async function SpielerProfilPage(
                       const venue = getVenue(tournament.venueId);
                       return (
                         <tr key={tournament.id}>
-                          <td className="mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>
+                          <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
                             {formatDate(tournament.date)}
                           </td>
                           <td>
-                            <Link href={`/mdc/turniere/${tournament.id}`} style={{ color: 'var(--mdc-white)' }}>
+                            <Link href={`/mdc/turniere/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
                               {tournament.name}
                             </Link>
                           </td>
-                          <td style={{ color: 'var(--mdc-text-dim)' }}>{venue?.name ?? '—'}</td>
+                          <td style={{ color: 'var(--mdc-ink-soft)' }}>{venue?.name ?? '—'}</td>
                           <td
                             className="mdc-td-num mdc-num"
-                            style={{ fontWeight: 700, color: result.rank <= 3 ? 'var(--mdc-gold)' : 'var(--mdc-white)' }}
+                            style={{ fontWeight: 700, color: result.rank <= 3 ? 'var(--mdc-gold)' : 'var(--mdc-ink)' }}
                           >
                             {result.rank}.
                           </td>
-                          <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>
+                          <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
                             {result.legsWon}:{result.legsLost}
                           </td>
                           <td className="mdc-td-num mdc-num" style={{ fontWeight: 700 }}>
@@ -246,7 +246,7 @@ export default async function SpielerProfilPage(
                   <Trophy size={22} style={{ color: 'var(--mdc-red)', flexShrink: 0 }} />
                   <div>
                     <div className="mdc-display" style={{ fontSize: '1.3rem' }}>{favouriteVenue.name}</div>
-                    <p style={{ marginTop: 5, fontSize: '0.86rem', color: 'var(--mdc-text-dim)' }}>
+                    <p style={{ marginTop: 5, fontSize: '0.86rem', color: 'var(--mdc-ink-soft)' }}>
                       {player.homeVenueId
                         ? 'Stammlokal — unter diesem Namen läuft der Spieler in der MDC-Wertung.'
                         : `Hier wurde in dieser Serie am häufigsten gespielt (${venueCounts.get(favouriteVenue.id)}×).`}

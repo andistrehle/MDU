@@ -44,19 +44,28 @@ function ringSegment(rInner: number, rOuter: number, from: number, to: number): 
   ].join(' ');
 }
 
-const BLACK = '#141414';
-const CREAM = '#DED3B4';
-const RED = '#D61A1A';
-const GREEN = '#1E7A3C';
+/**
+ * Zwei Fassungen:
+ *  • `classic` — echte Scheibenfarben (Schwarz/Creme, Rot/Grün).
+ *  • `brand`   — in den MDC-Farben: Dunkelblau statt Schwarz, Rot und Blau
+ *                statt Rot und Grün. Auf weißem Grund wirkt sie damit als
+ *                gestaltetes Element statt als blasses Foto.
+ */
+const TONES = {
+  classic: { dark: '#141414', light: '#DED3B4', ringA: '#D61A1A', ringB: '#1E7A3C', wire: 'rgba(255,255,255,0.22)' },
+  brand:   { dark: '#1F3B73', light: '#F1F5FA', ringA: '#D61A1A', ringB: '#3D6FB5', wire: 'rgba(255,255,255,0.55)' },
+} as const;
 
 interface DartboardProps {
   className?: string;
   /** Zahlenring mitzeichnen — bei kleinen Größen besser aus. */
   showNumbers?: boolean;
   title?: string;
+  tone?: keyof typeof TONES;
 }
 
-export function Dartboard({ className, showNumbers = true, title }: DartboardProps) {
+export function Dartboard({ className, showNumbers = true, title, tone = 'classic' }: DartboardProps) {
+  const { dark: BLACK, light: CREAM, ringA: RED, ringB: GREEN, wire: WIRE } = TONES[tone];
   return (
     <svg
       viewBox="0 0 200 200"
@@ -67,7 +76,7 @@ export function Dartboard({ className, showNumbers = true, title }: DartboardPro
     >
       {title && <title>{title}</title>}
 
-      <circle cx="100" cy="100" r={R_OUTER} fill="#0D0D0D" />
+      <circle cx="100" cy="100" r={R_OUTER} fill={tone === 'brand' ? '#DCE6F2' : '#0D0D0D'} />
       <circle cx="100" cy="100" r={R_BOARD} fill={BLACK} />
 
       {SEGMENTS.map((value, index) => {
@@ -87,7 +96,7 @@ export function Dartboard({ className, showNumbers = true, title }: DartboardPro
       })}
 
       {/* Spinnennetz — die Drahtstege */}
-      <g stroke="rgba(255,255,255,0.22)" strokeWidth="0.5" fill="none">
+      <g stroke={WIRE} strokeWidth="0.5" fill="none">
         {SEGMENTS.map((value, index) => {
           const angle = index * STEP - STEP / 2;
           const [x1, y1] = polar(R_BULL_OUT, angle);
@@ -104,7 +113,7 @@ export function Dartboard({ className, showNumbers = true, title }: DartboardPro
 
       {showNumbers && (
         <g
-          fill="#E5E5E5"
+          fill={tone === 'brand' ? '#1F3B73' : '#E5E5E5'}
           fontFamily="var(--mdc-font-display, sans-serif)"
           fontSize="10"
           fontWeight="700"

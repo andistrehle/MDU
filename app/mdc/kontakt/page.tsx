@@ -58,7 +58,7 @@ export default function KontaktPage() {
               <article key={topic.title} className="mdc-card" style={{ padding: '22px 20px', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ color: 'var(--mdc-red)' }}>{topic.icon}</span>
                 <h2 className="mdc-display" style={{ fontSize: '1.2rem', marginTop: 12 }}>{topic.title}</h2>
-                <p style={{ marginTop: 9, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-text-dim)' }}>
+                <p style={{ marginTop: 9, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
                   {topic.text}
                 </p>
                 {topic.action && (
@@ -76,7 +76,7 @@ export default function KontaktPage() {
 
           <div className="mdc-card mdc-card-accent" style={{ padding: '22px 20px' }}>
             <h2 className="mdc-display mdc-h3">Lieber im Team spielen?</h2>
-            <p style={{ marginTop: 10, color: 'var(--mdc-text-dim)', lineHeight: 1.7, fontSize: '0.95rem', maxWidth: 640 }}>
+            <p style={{ marginTop: 10, color: 'var(--mdc-ink-soft)', lineHeight: 1.7, fontSize: '0.95rem', maxWidth: 640 }}>
               Die Münchner Dart Union organisiert den Ligabetrieb in München — Mannschaften,
               Spielpläne, Tabellen. Ein eigenständiges Projekt mit eigenen Pässen; MDC-Punkte
               und MDU-Ligaspiele haben nichts miteinander zu tun.

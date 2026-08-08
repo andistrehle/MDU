@@ -55,7 +55,7 @@ export default async function TurnierDetailPage(
   return (
     <>
       <section className="mdc-hero">
-        <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} />
+        <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '40px 44px' }}>
           <Link
             href="/mdc/turniere"
@@ -74,7 +74,7 @@ export default async function TurnierDetailPage(
           <div
             style={{
               display: 'flex', flexWrap: 'wrap', gap: '10px 22px', marginTop: 16,
-              fontSize: '0.9rem', color: 'var(--mdc-text-dim)',
+              fontSize: '0.9rem', color: 'var(--mdc-ink-soft)',
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
@@ -131,7 +131,7 @@ export default async function TurnierDetailPage(
                       >
                         {playerName(player)}
                       </Link>
-                      <div className="mdc-num" style={{ fontSize: '0.82rem', color: 'var(--mdc-text-dim)', marginTop: 4 }}>
+                      <div className="mdc-num" style={{ fontSize: '0.82rem', color: 'var(--mdc-ink-soft)', marginTop: 4 }}>
                         {formatNumber(result.points)} Punkte
                       </div>
                       <div
@@ -194,17 +194,17 @@ export default async function TurnierDetailPage(
                         <td>
                           <Link href={`/mdc/spieler/${player.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <PlayerAvatar player={player} size={28} />
-                            <span style={{ color: 'var(--mdc-white)', fontWeight: 600 }}>{playerName(player)}</span>
+                            <span style={{ color: 'var(--mdc-ink)', fontWeight: 600 }}>{playerName(player)}</span>
                           </Link>
                         </td>
-                        <td className="mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>{player.passNr}</td>
-                        <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>
+                        <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>{player.passNr}</td>
+                        <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
                           {result.legsWon}:{result.legsLost}
                         </td>
-                        <td className="mdc-td-num" style={{ color: 'var(--mdc-text-faint)', fontSize: '0.82rem' }}>
+                        <td className="mdc-td-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.82rem' }}>
                           {rankGroupLabel(result.rank)}
                         </td>
-                        <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-white)' }}>
+                        <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
                           {formatNumber(result.points)}
                         </td>
                       </tr>
@@ -227,10 +227,10 @@ export default async function TurnierDetailPage(
                     >
                       <PlayerAvatar player={player} size={30} />
                       <span>
-                        <span style={{ display: 'block', color: 'var(--mdc-white)', fontSize: '0.9rem' }}>
+                        <span style={{ display: 'block', color: 'var(--mdc-ink)', fontSize: '0.9rem' }}>
                           {playerName(player)}
                         </span>
-                        <span className="mdc-num" style={{ fontSize: '0.75rem', color: 'var(--mdc-text-faint)' }}>
+                        <span className="mdc-num" style={{ fontSize: '0.75rem', color: 'var(--mdc-ink-dim)' }}>
                           Passnr. {player.passNr}
                         </span>
                       </span>
@@ -238,7 +238,7 @@ export default async function TurnierDetailPage(
                   );
                 })}
               </div>
-              <p style={{ marginTop: 18, fontSize: '0.86rem', color: 'var(--mdc-text-dim)' }}>
+              <p style={{ marginTop: 18, fontSize: '0.86rem', color: 'var(--mdc-ink-soft)' }}>
                 Nachmelden ist bis zum Turnierstart im Lokal möglich, solange Plätze frei sind.
               </p>
             </div>
@@ -249,8 +249,7 @@ export default async function TurnierDetailPage(
       {/* ── Turnierbaum ── */}
       {bracket && (
         <section
-          className="mdc-section"
-          style={{ background: 'var(--mdc-black)', borderBlock: '1px solid var(--mdc-line)' }}
+          className="mdc-section mdc-section-tint"
         >
           <div className="mdc-shell">
             <h2 className="mdc-display mdc-h3" style={{ marginBottom: 8 }}>Turnierbaum</h2>

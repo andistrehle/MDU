@@ -49,21 +49,21 @@ export function RankingWidget({ entries, division, compact = false }: RankingWid
                     style={{ display: 'flex', alignItems: 'center', gap: 10 }}
                   >
                     <PlayerAvatar player={player} size={30} highlight={entry.rank === 1} />
-                    <span style={{ fontWeight: 600, color: 'var(--mdc-white)' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--mdc-ink)' }}>
                       {playerName(player)}
                     </span>
                   </Link>
                 </td>
                 {!compact && (
-                  <td className="mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>{player.passNr}</td>
+                  <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>{player.passNr}</td>
                 )}
                 {!compact && (
                   <td className="mdc-td-num mdc-num">{entry.tournaments}</td>
                 )}
-                <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-white)' }}>
+                <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
                   {formatNumber(entry.points)}
                 </td>
-                <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>
+                <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
                   {formatAverage(entry.average)}
                 </td>
               </tr>

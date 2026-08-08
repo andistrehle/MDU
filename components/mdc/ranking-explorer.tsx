@@ -63,7 +63,7 @@ export function RankingExplorer({
         </div>
       </div>
 
-      <p style={{ color: 'var(--mdc-text-dim)', fontSize: '0.9rem', marginBottom: 20, maxWidth: 720, lineHeight: 1.6 }}>
+      <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.9rem', marginBottom: 20, maxWidth: 720, lineHeight: 1.6 }}>
         {scope === 'final' ? (
           <>
             Offizieller Saison-Endstand vom {formatDate(finalAsOf)}. Gespielt haben
@@ -106,7 +106,7 @@ function PayoutBox({ payout }: { payout: PayoutSummary }) {
         <h3
           style={{
             fontFamily: 'var(--mdc-font-display)', textTransform: 'uppercase',
-            letterSpacing: '0.13em', fontSize: '0.8rem', fontWeight: 700, color: 'var(--mdc-white)',
+            letterSpacing: '0.13em', fontSize: '0.8rem', fontWeight: 700, color: 'var(--mdc-ink)',
           }}
         >
           Ausschüttung Saison 2025/26
@@ -116,7 +116,7 @@ function PayoutBox({ payout }: { payout: PayoutSummary }) {
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
         {items.map(item => (
           <div key={item.label}>
-            <div style={{ fontSize: '0.74rem', color: 'var(--mdc-text-faint)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <div style={{ fontSize: '0.74rem', color: 'var(--mdc-ink-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               {item.label}
             </div>
             <div
@@ -125,7 +125,7 @@ function PayoutBox({ payout }: { payout: PayoutSummary }) {
                 marginTop: 5,
                 fontSize: item.strong ? '1.35rem' : '1.1rem',
                 fontWeight: 700,
-                color: item.strong ? 'var(--mdc-gold)' : 'var(--mdc-white)',
+                color: item.strong ? 'var(--mdc-gold)' : 'var(--mdc-ink)',
               }}
             >
               {item.value}
@@ -134,7 +134,7 @@ function PayoutBox({ payout }: { payout: PayoutSummary }) {
         ))}
       </div>
 
-      <p style={{ marginTop: 14, fontSize: '0.8rem', color: 'var(--mdc-text-faint)', lineHeight: 1.6 }}>
+      <p style={{ marginTop: 14, fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.6 }}>
         <Trophy size={13} style={{ display: 'inline', verticalAlign: -2, marginRight: 6 }} />
         Vom Jackpot gehen {payout.ezrPercent} % an die Einzelrangliste, der Rest fließt
         in das folgende Turnier. Der Euro-Betrag je Platz ergibt sich aus dem Prozentsatz

@@ -106,7 +106,7 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
               size={16}
               style={{
                 position: 'absolute', left: 12, top: '50%',
-                transform: 'translateY(-50%)', color: 'var(--mdc-text-faint)',
+                transform: 'translateY(-50%)', color: 'var(--mdc-ink-dim)',
               }}
             />
             <input
@@ -151,7 +151,7 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
         </div>
       </div>
 
-      <p style={{ fontSize: '0.82rem', color: 'var(--mdc-text-faint)', marginBottom: 10 }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--mdc-ink-dim)', marginBottom: 10 }}>
         {visible.length === rows.length
           ? `${formatNumber(rows.length)} Spieler in der Wertung`
           : `${formatNumber(visible.length)} von ${formatNumber(rows.length)} Spielern`}
@@ -186,7 +186,7 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={showPayout ? 10 : 8} style={{ padding: '28px 14px', color: 'var(--mdc-text-dim)' }}>
+                <td colSpan={showPayout ? 10 : 8} style={{ padding: '28px 14px', color: 'var(--mdc-ink-soft)' }}>
                   Kein Spieler gefunden. Andere Schreibweise oder Passnummer probieren.
                 </td>
               </tr>
@@ -217,7 +217,7 @@ function RowGroup({
             colSpan={colSpan}
             style={{
               padding: '14px', textAlign: 'center', fontSize: '0.82rem',
-              color: 'var(--mdc-text-faint)', background: 'rgba(255,255,255,0.02)',
+              color: 'var(--mdc-ink-dim)', background: 'var(--mdc-tint)',
             }}
           >
             Plätze {gap.from}–{gap.to}: Auswertungsseiten liegen noch nicht vor.
@@ -229,32 +229,32 @@ function RowGroup({
           {row.sharedRank ? '' : row.rank}
         </td>
         <td><TrendIcon trend={row.trend} /></td>
-        <td className="mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>{row.passNr}</td>
+        <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>{row.passNr}</td>
         <td style={{ fontWeight: 600 }}>
           <Link href={`/mdc/spieler/${row.playerId}`} style={{ borderBottom: '1px solid transparent' }}>
             {row.lastName}
           </Link>
         </td>
-        <td style={{ color: 'var(--mdc-text-dim)' }}>
+        <td style={{ color: 'var(--mdc-ink-soft)' }}>
           {row.firstName}
           {row.nickname && (
-            <span style={{ color: 'var(--mdc-text-faint)' }}> „{row.nickname}“</span>
+            <span style={{ color: 'var(--mdc-ink-dim)' }}> „{row.nickname}“</span>
           )}
         </td>
         <td className="mdc-td-num mdc-num">{row.tournaments}</td>
-        <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-white)' }}>
+        <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
           {formatNumber(row.points)}
         </td>
-        <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>
+        <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
           {formatAverage(row.average)}
         </td>
         {showPayout && (
-          <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-text-dim)' }}>
+          <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
             {row.payoutPercent ? `${formatAverage(row.payoutPercent)} %` : '—'}
           </td>
         )}
         {showPayout && (
-          <td className="mdc-td-num mdc-num" style={{ color: row.payoutEuro ? 'var(--mdc-gold)' : 'var(--mdc-text-faint)' }}>
+          <td className="mdc-td-num mdc-num" style={{ color: row.payoutEuro ? 'var(--mdc-gold)' : 'var(--mdc-ink-dim)' }}>
             {row.payoutEuro ? EURO(row.payoutEuro) : '—'}
           </td>
         )}
