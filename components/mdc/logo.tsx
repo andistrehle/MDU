@@ -158,38 +158,43 @@ function DrawnSkyline() {
 }
 
 /**
- * Dartwerfer aus dem MDC-Logo — Silhouette im Wurf, roter Pfeil in der Hand.
- * Dieselben Farben wie das übrige Zeichen: Marineblau für die Figur, Rot für
- * den Pfeil. Bewusst kräftige, runde Glieder, damit die Figur auch klein
- * neben dem Schriftzug noch als Werfer zu erkennen ist.
+ * Dartwerfer aus dem MDC-Logo — Silhouette im Wurf, Dartpfeil in der Hand.
+ *
+ * Nah am Original: aufrechte Haltung, Wurfarm angewinkelt mit der Hand auf
+ * Kopfhöhe, Stützarm vor dem Körper, Standschritt mit gebeugtem vorderem
+ * Bein. Der Pfeil ist kurz und gedrungen wie ein echter Dart — Schaft plus
+ * rotes Flight —, nicht der lange Pfeil von vorher.
  */
-export function MdcThrower({ className, size = 46 }: MarkProps) {
+export function MdcThrower({ className, size = 34 }: MarkProps) {
   return (
     <svg
-      viewBox="0 0 68 96"
-      width={(size * 68) / 96}
+      viewBox="0 0 62 96"
+      width={(size * 62) / 96}
       height={size}
       className={className}
       role="img"
       aria-label="Dartwerfer"
     >
-      <g stroke={SKYLINE} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <g stroke={SKYLINE} strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
         {/* Rumpf */}
-        <path d="M42 32v26" />
-        {/* Wurfarm: Schulter, Ellbogen, Hand am Ohr */}
-        <path d="M42 36L27 33l-6-11" />
-        {/* Stützarm */}
-        <path d="M42 41l12 7-6 10" />
-        {/* Beine im Standschritt */}
-        <path d="M42 58L31 90" />
-        <path d="M42 58l10 32" />
+        <path d="M38 30v26" />
+        {/* Wurfarm: Schulter, Ellbogen, Hand auf Kopfhöhe */}
+        <path d="M38 34l-12-3-4-10" />
+        {/* Stützarm vor dem Körper */}
+        <path d="M38 39l11 7-5 9" />
+        {/* Standschritt: vorderes Bein gebeugt, hinteres gestreckt */}
+        <path d="M38 56l-9 18 2 16" />
+        <path d="M38 56l9 34" />
       </g>
-      <circle cx="44" cy="17" r="11" fill={SKYLINE} />
+      <circle cx="40" cy="17" r="10.5" fill={SKYLINE} />
 
-      {/* Pfeil in der Wurfhand */}
-      <g>
-        <path d="M21 22L10 14" stroke="#D61A1A" strokeWidth="3.6" strokeLinecap="round" />
-        <path d="M10.5 14.5L3 9l1.5 9z" fill="#D61A1A" />
+      {/* Dartpfeil in der Wurfhand: Spitze nach vorn, schlanker Schaft,
+          kleines Flight hinter der Faust. Erst das Flight macht aus dem
+          roten Strich erkennbar einen Dart. */}
+      <g fill="#D61A1A">
+        <path d="M22.8 21.8L14.5 16" stroke="#D61A1A" strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M15 16.6L7.6 11.4l1 6.6z" />
+        <path d="M23.4 22.6l4.6 3.2-1.2-4z" />
       </g>
     </svg>
   );

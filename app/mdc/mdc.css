@@ -480,12 +480,15 @@ body:has(.mdc-root) {
   background: var(--mdc-red);
 }
 
-/* Der Werfer steht neben dem Schriftzug. Ab 360 px ist Platz dafür
-   (gemessen: Logo + Schriftzug + Figur + Menü-Knopf = 343 px); darunter
-   tritt er zugunsten von Logo und Menü-Knopf zurück. */
+/* Der Werfer steht kurz hinter dem Schriftzug und steht mit den Füßen auf
+   dessen Grundlinie — nicht mittig schwebend. Er soll begleiten, nicht
+   auffallen; deshalb klein und eng angesetzt. Der negative Abstand hebt
+   den 20-px-Abstand der Kopfzeile teilweise wieder auf. */
 .mdc-header-figure {
   flex-shrink: 0;
-  margin-left: 4px;
+  margin-left: -10px;
+  align-self: flex-end;
+  margin-bottom: 18px;
 }
 @media (max-width: 359px) {
   .mdc-header-figure { display: none; }

@@ -56,7 +56,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
             <MdcWordmark />
           </Link>
 
-          <MdcThrower className="mdc-header-figure" size={46} />
+          <MdcThrower className="mdc-header-figure" size={34} />
 
           <nav className="mdc-nav" aria-label="Hauptnavigation">
             {NAV.map(item => (
