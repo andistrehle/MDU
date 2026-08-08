@@ -6,7 +6,7 @@ import { VENUES, venuesByWeekday, WEEKDAY_NAMES } from '@/data/venues';
 export const metadata: Metadata = {
   title: 'Spielorte',
   description:
-    'Die zehn Spielorte der Munich Dart Challenge — mit Spieltag, Startzeit, Adresse und Anzahl der Dartautomaten.',
+    'Die zehn Spielorte der Munich Darts Challenge — mit Spieltag, Startzeit, Adresse und Anzahl der Dartautomaten.',
 };
 
 export default function SpielortePage() {

@@ -60,8 +60,8 @@ auf www.mdudarts.de + Testuser löschen + externe anwaltliche Freigabe (Banner i
 entfernen) + AVV mit Dienstleistern. Einführungsvideo: Konzept/Runsheet in
 `docs/einfuehrungsvideo-*.md` (Aufnahme erfolgt, Schnitt in HeyGen/CapCut läuft).
 
-## Zweites Projekt im Repo: Munich Dart Challenge (MDC)
-Unter **`/mdc`** liegt eine eigenständige Demo-Web-App der Munich Dart Challenge
+## Zweites Projekt im Repo: Munich Darts Challenge (MDC)
+Unter **`/mdc`** liegt eine eigenständige Demo-Web-App der Munich Darts Challenge
 (Einzelspieler-Ranglistenserie, eigene Passnummern). **Keine Verknüpfung zur MDU** —
 eigene Datenschicht (`data/`), eigene Komponenten (`components/mdc/`), eigene Helfer
 (`lib/mdc/`), eigenes Design (`app/mdc/mdc.css`), noindex. Die MDU-Chrome (Bottom-Nav,

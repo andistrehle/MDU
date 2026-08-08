@@ -8,7 +8,7 @@ import { formatNumber } from '@/lib/mdc/format';
 export const metadata: Metadata = {
   title: 'Regeln',
   description:
-    'Spielprinzip der Munich Dart Challenge: Einzelrangliste, Doppel-K.-o., Punkte nach ' +
+    'Spielprinzip der Munich Darts Challenge: Einzelrangliste, Doppel-K.-o., Punkte nach ' +
     'Platzierung und Teilnehmerzahl.',
 };
 
@@ -17,7 +17,7 @@ const BLOCKS = [
     icon: <Users size={20} />,
     title: 'Einzelrangliste, keine Mannschaften',
     text:
-      'Die Munich Dart Challenge ist eine reine Einzelwertung. Jede und jeder spielt für sich, ' +
+      'Die Munich Darts Challenge ist eine reine Einzelwertung. Jede und jeder spielt für sich, ' +
       'mit eigener MDC-Passnummer. Es gibt keine Teams, keine Aufstellungen und keine Vereinsbindung.',
   },
   {

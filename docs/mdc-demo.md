@@ -1,6 +1,6 @@
-# Munich Dart Challenge (MDC) — Demo-Web-App
+# Munich Darts Challenge (MDC) — Demo-Web-App
 
-Eigenständige Demo-Anwendung für die **Munich Dart Challenge**, Münchens
+Eigenständige Demo-Anwendung für die **Munich Darts Challenge**, Münchens
 Ranking-Serie für Einzelspieler. Liegt im MDU-Repo, ist aber inhaltlich und
 technisch ein getrenntes Projekt: eigene Datenschicht, eigene Navigation,
 eigenes Erscheinungsbild, eigene Passnummern. Verbunden sind MDC und MDU nur

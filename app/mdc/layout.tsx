@@ -1,5 +1,5 @@
 // ============================================================
-// Munich Dart Challenge — Rahmen der Demo-Anwendung
+// Munich Darts Challenge — Rahmen der Demo-Anwendung
 // ============================================================
 //
 // Eigenständiges Projekt neben der MDU: eigene Navigation, eigenes
@@ -21,11 +21,11 @@ import { formatDateShort } from '@/lib/mdc/format';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Munich Dart Challenge (MDC) — Münchens Ranking-Serie für Einzelspieler',
-    template: '%s · Munich Dart Challenge',
+    default: 'Munich Darts Challenge (MDC) — Münchens Ranking-Serie für Einzelspieler',
+    template: '%s · Munich Darts Challenge',
   },
   description:
-    'Die Munich Dart Challenge ist Münchens Ranking-Serie für Einzelspieler: ' +
+    'Die Munich Darts Challenge ist Münchens Ranking-Serie für Einzelspieler: ' +
     'Turniere im Doppel-K.-o. in zehn Münchner Lokalen, Punkte für die Saisonrangliste.',
   robots: { index: false, follow: false },
 };

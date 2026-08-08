@@ -64,7 +64,7 @@ export default function MdcHomePage() {
           <span className="mdc-kicker mdc-rise">München · Einzelrangliste</span>
 
           <h1 className="mdc-display mdc-h1 mdc-rise mdc-rise-1" style={{ marginTop: 18, maxWidth: 900 }}>
-            Munich Dart<br />
+            Munich Darts<br />
             <span style={{ color: 'var(--mdc-red)' }}>Challenge</span>
           </h1>
 
