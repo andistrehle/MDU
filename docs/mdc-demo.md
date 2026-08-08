@@ -95,19 +95,22 @@ besser Platzierte. Podium, Ergebnisliste und Baum widersprechen sich dadurch
 nie. Sobald echte Match-Daten vorliegen, ersetzt man die Simulation — die
 Struktur (`Match` in `data/types.ts`) steht schon.
 
-## Eigene Skyline-Grafik einsetzen
+## Eigene Grafiken einsetzen (Skyline, Werfer)
 
-Das Zeichen (`components/mdc/logo.tsx`) zeichnet die Münchner Silhouette
-selbst. Liegt eine lizenzierte Grafikdatei vor, ersetzt sie die Zeichnung in
-zwei Schritten:
+`components/mdc/logo.tsx` zeichnet Skyline und Dartwerfer selbst. Liegen
+eigene Grafikdateien vor, ersetzen sie die Zeichnungen in zwei Schritten:
 
-1. Datei nach `public/mdc/skyline.svg` legen (SVG bevorzugt; PNG mit
-   durchsichtigem Hintergrund geht auch)
-2. In `components/mdc/logo.tsx` ganz oben eintragen:
-   `const SKYLINE_IMAGE: string | null = '/mdc/skyline.svg';`
+1. Datei nach `public/mdc/` legen (SVG bevorzugt; PNG mit durchsichtigem
+   Hintergrund geht auch)
+2. In `components/mdc/logo.tsx` ganz oben den Pfad eintragen:
 
-Oval, rote Linie und alle Größen bleiben unverändert. Ohne Eintrag greift die
-gezeichnete Fassung.
+```ts
+const SKYLINE_IMAGE: string | null = '/mdc/skyline.svg';
+const THROWER_IMAGE: string | null = '/mdc/werfer.svg';
+```
+
+Oval, rote Linie, Größen und Ausrichtung in der Kopfzeile bleiben unverändert.
+Ohne Eintrag greift jeweils die gezeichnete Fassung.
 
 Die Datei erscheint eins zu eins auf der Seite — also nur eine lizenzierte
 Fassung ablegen. Stock-Vorschauen tragen ein Wasserzeichen quer über der

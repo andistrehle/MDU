@@ -33,6 +33,13 @@ const SKYLINE = '#16233D';
  */
 const SKYLINE_IMAGE: string | null = null;
 
+/**
+ * Eigene Werfer-Grafik statt der gezeichneten Figur — gleicher Weg wie bei
+ * der Skyline: Datei nach `public/mdc/werfer.svg` legen und hier den Pfad
+ * eintragen. Größe und Ausrichtung in der Kopfzeile bleiben unverändert.
+ */
+const THROWER_IMAGE: string | null = null;
+
 interface MarkProps {
   className?: string;
   /** Höhe des Ovals in Pixeln. */
@@ -175,6 +182,19 @@ export function MdcThrower({ className, size = 34 }: MarkProps) {
       role="img"
       aria-label="Dartwerfer"
     >
+      {THROWER_IMAGE ? (
+        <image href={THROWER_IMAGE} x="0" y="0" width="62" height="96" preserveAspectRatio="xMidYMid meet" />
+      ) : (
+        <DrawnThrower />
+      )}
+    </svg>
+  );
+}
+
+/** Gezeichneter Werfer — Rückfallebene ohne eigene Grafikdatei. */
+function DrawnThrower() {
+  return (
+    <>
       <g stroke={SKYLINE} strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
         {/* Rumpf */}
         <path d="M38 30v26" />
@@ -188,15 +208,21 @@ export function MdcThrower({ className, size = 34 }: MarkProps) {
       </g>
       <circle cx="40" cy="17" r="10.5" fill={SKYLINE} />
 
-      {/* Dartpfeil in der Wurfhand: Spitze nach vorn, schlanker Schaft,
-          kleines Flight hinter der Faust. Erst das Flight macht aus dem
-          roten Strich erkennbar einen Dart. */}
-      <g fill="#D61A1A">
-        <path d="M22.8 21.8L14.5 16" stroke="#D61A1A" strokeWidth="2.8" strokeLinecap="round" />
-        <path d="M15 16.6L7.6 11.4l1 6.6z" />
-        <path d="M23.4 22.6l4.6 3.2-1.2-4z" />
+      {/* Ein echter Dart, in seine vier Teile gezeichnet — von der Spitze
+          nach hinten: Nadel, Barrel (dick, in der Faust), Schaft, Flight.
+          Genau diese Abstufung macht die Form als Dart lesbar; ein
+          gleichmäßiger Strich mit Dreieck sieht aus wie ein Wimpel. */}
+      <g strokeLinecap="round">
+        {/* Nadel */}
+        <path d="M4 7.5L9.4 11.6" stroke={SKYLINE} strokeWidth="1.8" />
+        {/* Barrel — liegt in der Wurfhand */}
+        <path d="M9.8 11.9L17 17.3" stroke="#D61A1A" strokeWidth="5" />
+        {/* Schaft */}
+        <path d="M17.4 17.6L21.6 20.8" stroke="#D61A1A" strokeWidth="2.2" />
+        {/* Flight */}
+        <path d="M21.5 20.6l3.6 6.7 3.8-5.1z" fill="#D61A1A" />
       </g>
-    </svg>
+    </>
   );
 }
 
