@@ -1,5 +1,5 @@
 // ============================================================
-// Munich Dart Challenge (MDC) — Typen der Demo-Datenschicht
+// Munich Darts Challenge (MDC) — Typen der Demo-Datenschicht
 // ============================================================
 //
 // Die MDC ist ein EIGENSTÄNDIGES Projekt neben der Münchner Dart Union:

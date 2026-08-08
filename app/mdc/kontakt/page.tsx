@@ -6,7 +6,7 @@ import { VENUES } from '@/data/venues';
 
 export const metadata: Metadata = {
   title: 'Kontakt',
-  description: 'Kontakt zur Munich Dart Challenge — mitspielen, Spielort werden, Fragen zur Wertung.',
+  description: 'Kontakt zur Munich Darts Challenge — mitspielen, Spielort werden, Fragen zur Wertung.',
 };
 
 const TOPICS = [

@@ -3,7 +3,7 @@ import { PageHero, DemoNotice } from '@/components/mdc/ui';
 
 export const metadata: Metadata = {
   title: 'Datenschutz',
-  description: 'Datenschutzhinweise der Munich Dart Challenge (Platzhalter der Demo-Fassung).',
+  description: 'Datenschutzhinweise der Munich Darts Challenge (Platzhalter der Demo-Fassung).',
 };
 
 const SECTIONS = [

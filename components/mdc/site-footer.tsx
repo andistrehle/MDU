@@ -132,7 +132,7 @@ export function SiteFooter() {
             color: '#8FA3C4',
           }}
         >
-          <span>© {new Date(season.endDate).getUTCFullYear()} Munich Dart Challenge</span>
+          <span>© {new Date(season.endDate).getUTCFullYear()} Munich Darts Challenge</span>
           <span>Demo-Fassung — Inhalte und Rechtstexte sind Platzhalter.</span>
         </div>
       </div>

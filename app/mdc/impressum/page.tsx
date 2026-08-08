@@ -3,7 +3,7 @@ import { PageHero, DemoNotice } from '@/components/mdc/ui';
 
 export const metadata: Metadata = {
   title: 'Impressum',
-  description: 'Impressum der Munich Dart Challenge (Platzhalter der Demo-Fassung).',
+  description: 'Impressum der Munich Darts Challenge (Platzhalter der Demo-Fassung).',
 };
 
 export default function ImpressumPage() {
@@ -24,7 +24,7 @@ export default function ImpressumPage() {
               Angaben gemäß § 5 DDG
             </h2>
             <p>
-              Munich Dart Challenge<br />
+              Munich Darts Challenge<br />
               [Vor- und Nachname der verantwortlichen Person]<br />
               [Straße und Hausnummer]<br />
               [PLZ] München
