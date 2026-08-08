@@ -14,7 +14,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CalendarClock, ChevronRight, Menu, X } from 'lucide-react';
-import { MdcMark, MdcWordmark } from './logo';
+import { MdcMark, MdcThrower, MdcWordmark } from './logo';
 
 const NAV = [
   { href: '/mdc', label: 'Start' },
@@ -55,6 +55,8 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
             <MdcMark size={40} />
             <MdcWordmark />
           </Link>
+
+          <MdcThrower className="mdc-header-figure" size={46} />
 
           <nav className="mdc-nav" aria-label="Hauptnavigation">
             {NAV.map(item => (

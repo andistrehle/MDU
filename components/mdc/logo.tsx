@@ -157,6 +157,44 @@ function DrawnSkyline() {
   );
 }
 
+/**
+ * Dartwerfer aus dem MDC-Logo — Silhouette im Wurf, roter Pfeil in der Hand.
+ * Dieselben Farben wie das übrige Zeichen: Marineblau für die Figur, Rot für
+ * den Pfeil. Bewusst kräftige, runde Glieder, damit die Figur auch klein
+ * neben dem Schriftzug noch als Werfer zu erkennen ist.
+ */
+export function MdcThrower({ className, size = 46 }: MarkProps) {
+  return (
+    <svg
+      viewBox="0 0 68 96"
+      width={(size * 68) / 96}
+      height={size}
+      className={className}
+      role="img"
+      aria-label="Dartwerfer"
+    >
+      <g stroke={SKYLINE} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* Rumpf */}
+        <path d="M42 32v26" />
+        {/* Wurfarm: Schulter, Ellbogen, Hand am Ohr */}
+        <path d="M42 36L27 33l-6-11" />
+        {/* Stützarm */}
+        <path d="M42 41l12 7-6 10" />
+        {/* Beine im Standschritt */}
+        <path d="M42 58L31 90" />
+        <path d="M42 58l10 32" />
+      </g>
+      <circle cx="44" cy="17" r="11" fill={SKYLINE} />
+
+      {/* Pfeil in der Wurfhand */}
+      <g>
+        <path d="M21 22L10 14" stroke="#D61A1A" strokeWidth="3.6" strokeLinecap="round" />
+        <path d="M10.5 14.5L3 9l1.5 9z" fill="#D61A1A" />
+      </g>
+    </svg>
+  );
+}
+
 interface WordmarkProps {
   className?: string;
   /** Kompakt = „MDC" für sehr enge Stellen. */

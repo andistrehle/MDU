@@ -480,6 +480,17 @@ body:has(.mdc-root) {
   background: var(--mdc-red);
 }
 
+/* Der Werfer steht neben dem Schriftzug. Ab 360 px ist Platz dafür
+   (gemessen: Logo + Schriftzug + Figur + Menü-Knopf = 343 px); darunter
+   tritt er zugunsten von Logo und Menü-Knopf zurück. */
+.mdc-header-figure {
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+@media (max-width: 359px) {
+  .mdc-header-figure { display: none; }
+}
+
 .mdc-burger {
   display: none;
   align-items: center;
