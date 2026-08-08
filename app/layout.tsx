@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-import { BottomNav } from '@/components/mdu/bottom-nav';
-import { DemoTour } from '@/components/mdu/demo-tour';
-import { DemoTourButton } from '@/components/mdu/tour-restart-link';
+import { GlobalChrome } from '@/components/mdu/global-chrome';
 import { AuthProvider } from '@/lib/auth/auth-context';
-import { AnalyticsTracker } from '@/components/mdu/analytics-tracker';
 import { SITE_INDEXABLE } from '@/lib/site-config';
 
 const sairaCondensed = Saira_Condensed({
@@ -87,10 +84,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <AuthProvider>
           {children}
-          <BottomNav />
-          <DemoTourButton />
-          <DemoTour />
-          <AnalyticsTracker />
+          {/* Bottom-Nav, Demo-Tour und Analytics gehören zur MDU-Seite und
+              blenden sich unter /mdc (Munich Dart Challenge) selbst aus. */}
+          <GlobalChrome />
         </AuthProvider>
       </body>
     </html>
