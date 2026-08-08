@@ -4,12 +4,13 @@
 // MDC — Kopfzeile mit mobiler Navigation
 // ============================================================
 //
-// Klebt oben, dunkles Glas, roter Unterstrich beim aktiven Punkt. Ab Tablet
+// Klebt oben, helles Glas, roter Unterstrich beim aktiven Punkt. Ab Tablet
 // abwärts klappt die Navigation als Vollbildmenü auf — große Ziele, damit man
 // sie in der Kneipe auch mit einer Hand trifft.
 // ============================================================
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CalendarClock, ChevronRight, Menu, X } from 'lucide-react';
@@ -47,52 +48,64 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
   }, [menuOpen]);
 
   return (
-    <header className="mdc-header mdc-glass">
-      <div className="mdc-shell mdc-header-inner">
-        <Link href="/mdc" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <MdcMark size={40} />
-          <MdcWordmark />
-        </Link>
+    <>
+      <header className="mdc-header mdc-glass">
+        <div className="mdc-shell mdc-header-inner">
+          <Link href="/mdc" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <MdcMark size={40} />
+            <MdcWordmark />
+          </Link>
 
-        <nav className="mdc-nav" aria-label="Hauptnavigation">
-          {NAV.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="mdc-nav-link"
-              data-active={isActive(item.href)}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+          <nav className="mdc-nav" aria-label="Hauptnavigation">
+            {NAV.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="mdc-nav-link"
+                data-active={isActive(item.href)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
 
-        <Link
-          href={nextRankingHref}
-          className="mdc-btn mdc-btn-primary mdc-btn-sm mdc-header-cta"
-          style={{ marginLeft: 8 }}
-        >
-          <CalendarClock size={16} strokeWidth={2.4} />
-          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
-            <span>Nächstes Ranking</span>
-            <span style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', opacity: 0.85 }}>
-              {nextRankingLabel}
+          <Link
+            href={nextRankingHref}
+            className="mdc-btn mdc-btn-primary mdc-btn-sm mdc-header-cta"
+            style={{ marginLeft: 8 }}
+          >
+            <CalendarClock size={16} strokeWidth={2.4} />
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
+              <span>Nächstes Ranking</span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', opacity: 0.85 }}>
+                {nextRankingLabel}
+              </span>
             </span>
-          </span>
-        </Link>
+          </Link>
 
-        <button
-          type="button"
-          className="mdc-burger"
-          aria-label="Menü öffnen"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(true)}
-        >
-          <Menu size={22} />
-        </button>
-      </div>
+          <button
+            type="button"
+            className="mdc-burger"
+            aria-label="Menü öffnen"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(true)}
+          >
+            <Menu size={22} />
+          </button>
+        </div>
+      </header>
 
-      {menuOpen && (
+      {/* Das Menü hängt per Portal direkt am <body>.
+          Grund: Ein Vorfahre mit `filter`, `backdrop-filter`, `transform`
+          oder `perspective` wird zum Bezugsrahmen für `position: fixed` —
+          das Menü wäre dann nur so hoch wie dieser Vorfahre statt
+          bildschirmfüllend. Genau das passierte im Kopfbereich mit seinem
+          Glas-Effekt: In Safari kippte das Menü auf Kopfzeilenhöhe, in
+          Chromium nicht (dort ist `backdrop-filter` headless inaktiv).
+          Am <body> kann kein Vorfahre mehr dazwischenfunken. */}
+      {/* `document` ist hier immer da: Das Menü geht nur per Klick auf, also
+          niemals beim Rendern auf dem Server. */}
+      {menuOpen && createPortal((
         <div className="mdc-mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
             <MdcMark size={40} />
@@ -129,7 +142,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
             Nächstes Ranking · {nextRankingLabel}
           </Link>
         </div>
-      )}
-    </header>
+      ), document.body)}
+    </>
   );
 }
