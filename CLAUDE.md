@@ -67,6 +67,10 @@ eigene Datenschicht (`data/`), eigene Komponenten (`components/mdc/`), eigene He
 (`lib/mdc/`), eigenes Design (`app/mdc/mdc.css`), noindex. Die MDU-Chrome (Bottom-Nav,
 Demo-Tour, Analytics) blendet sich dort über `components/mdu/global-chrome.tsx` aus.
 Details, Datenherkunft und offene Punkte: **`docs/mdc-demo.md`**.
+**Arbeitsweise auch hier: direkt auf `main` committen und pushen — keine Pull
+Requests.** Jeder PR erzeugt einen Vercel-Kommentar und damit eine E-Mail an den
+Betreiber; bei kleinen Anpassungen (Farbe, Logo, neuer Spielort) steht das in
+keinem Verhältnis. Ein PR nur, wenn es wirklich etwas zu prüfen gibt.
 Wichtig: Endrangliste 2025/26 = echte Daten (echte Personen), Turniere = Demo-Daten.
 
 ## Stolperfallen
