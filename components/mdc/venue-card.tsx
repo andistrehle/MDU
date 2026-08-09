@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import { ArrowRight, MapPin, Phone, Target } from 'lucide-react';
 import type { Venue } from '@/data/types';
-import { venueAddress, venueMapsUrl, WEEKDAY_NAMES } from '@/data/venues';
+import { venueAddress, venueMapsUrl, venueWeekdayShort } from '@/data/venues';
 import { formatTime } from '@/lib/mdc/format';
 
 interface VenueCardProps {
@@ -28,7 +28,7 @@ export function VenueCard({ venue, compact = false }: VenueCardProps) {
           </p>
         </div>
         <span className="mdc-chip mdc-chip-red" style={{ flexShrink: 0 }}>
-          {WEEKDAY_NAMES[venue.weekday].slice(0, 2)} · {venue.time}
+          {venueWeekdayShort(venue)} · {venue.time}
         </span>
       </div>
 

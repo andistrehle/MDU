@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, MapPin, Phone, Target } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { TournamentCard } from '@/components/mdc/tournament-card';
-import { VENUES, getVenue, venueMapsUrl, WEEKDAY_NAMES } from '@/data/venues';
+import { VENUES, getVenue, venueMapsUrl, venueWeekdayLabel } from '@/data/venues';
 import { tournamentsAtVenue } from '@/data/tournaments';
 import { formatTime } from '@/lib/mdc/format';
 
@@ -20,7 +20,7 @@ export async function generateMetadata(
   if (!venue) return { title: 'Spielort' };
   return {
     title: venue.name,
-    description: `MDC-Spielort ${venue.name} in ${venue.district}: ${WEEKDAY_NAMES[venue.weekday]} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
+    description: `MDC-Spielort ${venue.name} in ${venue.district}: ${venueWeekdayLabel(venue)} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
   };
 }
 
@@ -32,7 +32,11 @@ export default async function SpielortDetailPage(
   if (!venue) notFound();
 
   const tournaments = tournamentsAtVenue(venue.id);
-  const upcoming = tournaments.filter(t => t.status !== 'finished');
+  // Kommende Termine aufsteigend (der nächste zuerst), gespielte absteigend
+  // (das letzte zuerst) — `tournamentsAtVenue` sortiert für den zweiten Fall.
+  const upcoming = tournaments
+    .filter(t => t.status !== 'finished')
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
   const finished = tournaments.filter(t => t.status === 'finished');
 
   return (
@@ -51,7 +55,7 @@ export default async function SpielortDetailPage(
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>
             <span className="mdc-chip mdc-chip-red">
-              {WEEKDAY_NAMES[venue.weekday]} · {formatTime(venue.time)}
+              {venueWeekdayLabel(venue)} · {formatTime(venue.time)}
             </span>
             {venue.tags.map(tag => (
               <span key={tag} className="mdc-chip">{tag}</span>
@@ -99,7 +103,7 @@ export default async function SpielortDetailPage(
               <h2 className="mdc-display" style={{ fontSize: '1.05rem', marginTop: 10 }}>Spielbetrieb</h2>
               <p style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.9rem', lineHeight: 1.7 }}>
                 {venue.boards} Dartautomaten<br />
-                {WEEKDAY_NAMES[venue.weekday]}, Start {formatTime(venue.time)}<br />
+                {venueWeekdayLabel(venue)}, Start {formatTime(venue.time)}<br />
                 {finished.length} gespielte Turniere in dieser Serie
               </p>
             </div>

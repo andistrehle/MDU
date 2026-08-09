@@ -76,6 +76,16 @@ nicht gepflegt.
 - Spielerstamm = alle Spieler beider Endranglisten
 - Turnierpunkte = `lib/mdc/points.ts`
 
+## Spielorte
+
+`data/venues.ts`. Ein Lokal kann mehrere Spieltage haben (`weekdays: Weekday[]`) —
+das Ambasador spielt dienstags und freitags. Die Wochenübersicht auf der
+Startseite und die Spielorte-Seite gruppieren danach automatisch.
+
+| Lokal | Spieltag | Hinweis |
+| --- | --- | --- |
+| Ambasador, Bodenseestraße 19, 81241 München | Di & Fr, 20:00 | vormals Keko, davor Lumis; Heimat von Illuminati und Darts Vaders |
+
 ## Punkteschlüssel
 
 `Punkte = round(Teilnehmer × Punktwert(Platz) / 100)`, Punktwert je 100
