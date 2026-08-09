@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
@@ -119,6 +119,21 @@ export default function AdminSeasonTeamsPage() {
   const [addName, setAddName] = useState<Record<string, string>>({});
   const [addingTo, setAddingTo] = useState<string | null>(null);
 
+  // Spielstätte eines Teams ändern.
+  const [venueEditTeam, setVenueEditTeam] = useState<string | null>(null);
+  const [venueName, setVenueName] = useState('');
+  const [venueAddr, setVenueAddr] = useState('');
+  const [savingVenue, setSavingVenue] = useState(false);
+  async function onSaveVenue(teamId: string) {
+    if (!venueName.trim()) return;
+    setSavingVenue(true);
+    const { error } = await setSeasonTeamVenue(seasonId, teamId, venueName, venueAddr);
+    setSavingVenue(false);
+    if (error) { setFinalizeMsg({ teamId, kind: 'err', text: error }); return; }
+    setTeams(await listSeasonTeams(seasonId));
+    setVenueEditTeam(null);
+  }
+
   const [deletingRow, setDeletingRow] = useState<string | null>(null);
   async function onDeletePlayer(teamId: string, row: SeasonRosterRow) {
     const name = `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim() || 'diesen Spieler';
@@ -217,7 +232,30 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ color: 'var(--th-text-muted)' }}>Kurzname</span>
               <span style={{ color: t.teams?.short_name ? 'var(--th-text-strong)' : 'var(--th-text-faint2)', letterSpacing: t.teams?.short_name ? '0.08em' : undefined }}>{t.teams?.short_name ?? '–'}</span>
               <span style={{ color: 'var(--th-text-muted)' }}>Spielstätte</span>
-              <span style={{ color: 'var(--th-text-strong)' }}>{t.venues?.name ?? '–'}{t.venues?.address ? ` · ${t.venues.address}` : ''}</span>
+              {venueEditTeam === t.team_id ? (
+                <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input value={venueName} onChange={e => setVenueName(e.target.value)} placeholder="Name (z. B. Ambasador)"
+                    style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
+                  <input value={venueAddr} onChange={e => setVenueAddr(e.target.value)} placeholder="Adresse (z. B. Bodenseestr. 19, 81241 München)"
+                    style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
+                  <span style={{ display: 'flex', gap: 6 }}>
+                    <button type="button" onClick={() => onSaveVenue(t.team_id)} disabled={savingVenue || !venueName.trim()}
+                      style={{ padding: '6px 12px', borderRadius: 7, cursor: savingVenue ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
+                      {savingVenue ? 'Speichere …' : 'Speichern'}
+                    </button>
+                    <button type="button" onClick={() => setVenueEditTeam(null)}
+                      style={{ padding: '6px 10px', borderRadius: 7, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-muted)', border: '1px solid var(--th-line-10)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>Abbrechen</button>
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--th-text-faint)' }}>Ändert die Spielstätte nur für dieses Team.</span>
+                </span>
+              ) : (
+                <span style={{ color: 'var(--th-text-strong)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span>{t.venues?.name ?? '–'}{t.venues?.address ? ` · ${t.venues.address}` : ''}</span>
+                  <button type="button" title="Spielstätte ändern"
+                    onClick={() => { setVenueEditTeam(t.team_id); setVenueName(t.venues?.name ?? ''); setVenueAddr(t.venues?.address ?? ''); }}
+                    style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', fontSize: 12 }}>✎</button>
+                </span>
+              )}
               <span style={{ color: 'var(--th-text-muted)' }}>Team-ID</span>
               <span style={{ color: 'var(--th-text-strong)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>{t.team_id}</span>
               <span style={{ color: 'var(--th-text-muted)' }}>Liga/Wettbewerb</span>

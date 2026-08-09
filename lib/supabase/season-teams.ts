@@ -162,6 +162,28 @@ export async function deleteRosterPlayer(seasonId: string, teamId: string, rowId
   return { error: null };
 }
 
+/** Spielstätte eines Saison-Teams ändern. Sucht eine passende Venue (Name +
+ *  Adresse, tolerant) und verwendet sie wieder – sonst wird eine neue angelegt.
+ *  Danach zeigt das Team auf diese Venue (kein Umbenennen der alten). */
+export async function setSeasonTeamVenue(seasonId: string, teamId: string, name: string, address: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const nm = name.trim(), addr = address.trim();
+  if (!nm) return { error: 'Bitte einen Namen für die Spielstätte angeben.' };
+  const norm = (s: string | null) => (s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const { data: venues } = await supabase.from('venues').select('id, name, address');
+  let venueId = ((venues ?? []) as { id: string; name: string; address: string | null }[])
+    .find(v => norm(v.name) === norm(nm) && norm(v.address) === norm(addr))?.id ?? null;
+  if (!venueId) {
+    const rnd = (globalThis.crypto?.randomUUID?.() ?? `${Math.random()}${Math.random()}`).replace(/[^a-z0-9]/gi, '').slice(0, 10);
+    venueId = `venue-${rnd}`;
+    const { error: ve } = await supabase.from('venues').insert({ id: venueId, name: nm, address: addr || null });
+    if (ve) return { error: ve.message };
+  }
+  const { error } = await supabase.from('season_team_assignments')
+    .update({ venue_id: venueId }).eq('season_id', seasonId).eq('team_id', teamId);
+  return { error: error?.message ?? null };
+}
+
 /** Neuen Spieler zum Kader eines freigegebenen Teams hinzufügen (Status
  *  pending_review → bekommt beim nächsten Freigeben Profil + Passnummer). */
 export async function addRosterPlayer(seasonId: string, teamId: string, first: string, last: string): Promise<{ error: string | null }> {
