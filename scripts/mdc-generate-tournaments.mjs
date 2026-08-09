@@ -308,6 +308,10 @@ const UPCOMING = [
   { id: 'sr-21', nr: 21, venueId: 'siebziger',          date: '2026-08-12', time: '19:00', max: 32, meldungen: 17 },
   { id: 'sr-22', nr: 22, venueId: 'fiakerstueberl',     date: '2026-08-13', time: '19:30', max: 24, meldungen: 13 },
   { id: 'sr-23', nr: 23, venueId: 'lustiger-bauer',     date: '2026-08-13', time: '20:00', max: 24, meldungen: 15 },
+  // Ambasador (vormals Keko, davor Lumis) — neuer Spielort mit zwei
+  // Spieltagen: Dienstag und Freitag, jeweils ab 20 Uhr.
+  { id: 'sr-24', nr: 24, venueId: 'ambasador',          date: '2026-08-11', time: '20:00', max: 24, meldungen: 10 },
+  { id: 'sr-25', nr: 25, venueId: 'ambasador',          date: '2026-08-14', time: '20:00', max: 24, meldungen: 7  },
 ];
 
 const bracketSizeFor = n => (n <= 8 ? 8 : n <= 16 ? 16 : 32);

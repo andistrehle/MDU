@@ -63,8 +63,11 @@ export interface Venue {
   zip: string;
   city: string;
   district: string;
-  /** Spieltag des wöchentlichen Turniers. */
-  weekday: Weekday;
+  /**
+   * Spieltage des Lokals. Meist einer, manche Lokale spielen mehrmals pro
+   * Woche (Ambasador: Dienstag und Freitag).
+   */
+  weekdays: Weekday[];
   /** Startzeit „HH:MM". */
   time: string;
   phone: string;

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
-import { VENUES, WEEKDAY_SHORT } from '@/data/venues';
+import { VENUES, venueWeekdayShort } from '@/data/venues';
 import { PLAYERS, playerName } from '@/data/players';
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function AdminPage() {
   const venues = VENUES.map(venue => ({
     id: venue.id,
     name: venue.name,
-    weekday: WEEKDAY_SHORT[venue.weekday],
+    weekday: venueWeekdayShort(venue),
     time: venue.time,
   }));
 

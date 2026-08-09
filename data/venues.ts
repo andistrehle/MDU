@@ -18,7 +18,7 @@ export const VENUES: Venue[] = [
     zip: '80331',
     city: 'München',
     district: 'Ludwigsvorstadt',
-    weekday: 1,
+    weekdays: [1],
     time: '20:00',
     phone: '089 5555 01',
     boards: 4,
@@ -32,7 +32,7 @@ export const VENUES: Venue[] = [
     zip: '81669',
     city: 'München',
     district: 'Haidhausen',
-    weekday: 1,
+    weekdays: [1],
     time: '20:00',
     phone: '089 5555 02',
     boards: 3,
@@ -46,7 +46,7 @@ export const VENUES: Venue[] = [
     zip: '80992',
     city: 'München',
     district: 'Moosach',
-    weekday: 1,
+    weekdays: [1],
     time: '20:00',
     phone: '089 5555 03',
     boards: 3,
@@ -60,7 +60,7 @@ export const VENUES: Venue[] = [
     zip: '80339',
     city: 'München',
     district: 'Westend',
-    weekday: 2,
+    weekdays: [2],
     time: '19:00',
     phone: '089 5555 04',
     boards: 2,
@@ -74,7 +74,7 @@ export const VENUES: Venue[] = [
     zip: '81371',
     city: 'München',
     district: 'Sendling',
-    weekday: 2,
+    weekdays: [2],
     time: '19:00',
     phone: '089 5555 05',
     boards: 2,
@@ -88,7 +88,7 @@ export const VENUES: Venue[] = [
     zip: '82166',
     city: 'Gräfelfing',
     district: 'Würmtal',
-    weekday: 3,
+    weekdays: [3],
     time: '19:30',
     phone: '089 5555 06',
     boards: 6,
@@ -102,7 +102,7 @@ export const VENUES: Venue[] = [
     zip: '80797',
     city: 'München',
     district: 'Schwabing-West',
-    weekday: 3,
+    weekdays: [3],
     time: '19:00',
     phone: '089 5555 07',
     boards: 3,
@@ -116,7 +116,7 @@ export const VENUES: Venue[] = [
     zip: '81541',
     city: 'München',
     district: 'Giesing',
-    weekday: 3,
+    weekdays: [3],
     time: '19:00',
     phone: '089 5555 08',
     boards: 4,
@@ -130,7 +130,7 @@ export const VENUES: Venue[] = [
     zip: '80337',
     city: 'München',
     district: 'Isarvorstadt',
-    weekday: 4,
+    weekdays: [4],
     time: '19:30',
     phone: '089 5555 09',
     boards: 3,
@@ -144,12 +144,26 @@ export const VENUES: Venue[] = [
     zip: '80686',
     city: 'München',
     district: 'Laim',
-    weekday: 4,
+    weekdays: [4],
     time: '20:00',
     phone: '089 5555 10',
     boards: 4,
     description: 'Laimer Eckkneipe mit eigener Dartliga-Historie. Donnerstags wird es hier immer voll.',
     tags: ['Eckkneipe', 'Laim', 'Stammpublikum'],
+  },
+  {
+    id: 'ambasador',
+    name: 'Ambasador',
+    street: 'Bodenseestraße 19',
+    zip: '81241',
+    city: 'München',
+    district: 'Pasing',
+    weekdays: [2, 5],
+    time: '20:00',
+    phone: '089 5555 11',
+    boards: 3,
+    description: 'Neues Zuhause der Illuminati und der Darts Vaders — vormals Keko, davor Lumis. Gespielt wird dienstags und freitags.',
+    tags: ['Sportsbar', 'Pasing', 'zwei Spieltage'],
   },
 ];
 
@@ -180,11 +194,21 @@ export const WEEKDAY_SHORT: Record<Weekday, string> = {
 
 /** Spielorte nach Wochentag gruppiert — Basis für „Diese Woche bei der MDC". */
 export function venuesByWeekday(): { weekday: Weekday; venues: Venue[] }[] {
-  const days = [...new Set(VENUES.map(v => v.weekday))].sort((a, b) => a - b);
+  const days = [...new Set(VENUES.flatMap(v => v.weekdays))].sort((a, b) => a - b);
   return days.map(weekday => ({
     weekday,
-    venues: VENUES.filter(v => v.weekday === weekday),
+    venues: VENUES.filter(v => v.weekdays.includes(weekday)),
   }));
+}
+
+/** „Montag" oder „Dienstag & Freitag" — je nach Zahl der Spieltage. */
+export function venueWeekdayLabel(venue: Venue): string {
+  return venue.weekdays.map(d => WEEKDAY_NAMES[d]).join(' & ');
+}
+
+/** Kurzform für enge Stellen: „Mo" oder „Di & Fr". */
+export function venueWeekdayShort(venue: Venue): string {
+  return venue.weekdays.map(d => WEEKDAY_SHORT[d]).join(' & ');
 }
 
 /** Vollständige Adresse in einer Zeile. */
