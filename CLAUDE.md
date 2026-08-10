@@ -73,28 +73,6 @@ Betreiber; bei kleinen Anpassungen (Farbe, Logo, neuer Spielort) steht das in
 keinem Verhältnis. Ein PR nur, wenn es wirklich etwas zu prüfen gibt.
 Wichtig: Endrangliste 2025/26 = echte Daten (echte Personen), Turniere = Demo-Daten.
 
-## Drittes Projekt im Repo: Tennis Kail (Demo-Entwurf)
-Unter **`/tk`** liegt eine eigenständige Premium-Demo für die Münchner Tennisanlage
-**Tennis Kail** (tennis-kail.de) — Platzbuchung, Trainerbuchung, Wetter-/Platzstatus,
-Camps, Events, Kundenkonto, Betreiber-Dashboard. **Keine Verknüpfung zu MDU oder MDC**:
-eigene Datenschicht (`data/tk/`), eigene Logik (`lib/tk/`), eigene Komponenten
-(`components/tk/`), eigenes Designsystem (`app/tk/tk.css`), eigene Schriften, noindex
-(Layout + `app/robots.ts`). Die MDU-Chrome blendet sich dort über
-`components/mdu/global-chrome.tsx` aus — wie bei `/mdc`.
-- **Fremde Marke**: `noindex` und der `/tk`-Eintrag in `robots.ts` bleiben, bis der
-  Betreiber freigibt. Nicht ohne Anlass ändern.
-- **Ehrlichkeitsprinzip gilt hier besonders**: Jede Angabe trägt `provenance:
-  'belegt' | 'demo'`; die Seite `/tk/datenherkunft` listet beides vollständig auf.
-  Keine erfundene Angabe ohne Kennzeichnung.
-- **Bilder**: `scripts/tk-fetch-images.mjs` lädt Originalbilder von tennis-kail.de nach
-  `public/tk/original/` und schreibt `data/tk/original-images.json`. Beim Bau der Demo
-  war die Domain vom Egress-Proxy blockiert (403) — deshalb ist das Manifest leer und es
-  greifen gezeichnete SVG-Ersatzbilder. Skript erneut ausführen, sobald Netzzugang da ist;
-  danach erscheinen die Fotos ohne Codeänderung. **Keine Stockfotos.**
-- Neue Abhängigkeit dafür: `motion` (Framer Motion). shadcn/ui ist bewusst NICHT
-  installiert — die Bausteine liegen als eigene Komponenten in `components/tk/ui/`.
-- Details, Konzept und Roadmap zu allen Bereichen: **`docs/tennis-kail-demo.md`**.
-
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der
   **Suppression-Liste** und bekommt nichts mehr → im Resend-Dashboard entfernen.
