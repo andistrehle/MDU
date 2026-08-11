@@ -50,15 +50,45 @@ export async function getPendingRegistrationCount(user: UserProfile | null): Pro
  * Neue/ungeprüfte Benutzer. Ein Profil gilt als offen, solange es noch nicht
  * von einem Admin bestätigt wurde (match_status = 'pending'). Bestätigte,
  * manuell verknüpfte oder abgelehnte Profile zählen nicht mehr.
+ *
+ * Ausgenommen sind unbestätigte Konten (E-Mail nie bestätigt UND nie
+ * eingeloggt) — diese Registrierungen sind gar nicht abgeschlossen und tauchen
+ * in der Benutzerverwaltung auch nicht unter „Zuzuweisen" auf. Sonst würde die
+ * rote Zahl an der Kachel „Benutzer verwalten" (z. B. 1) nicht zur Liste (0)
+ * passen. Die Ids der unbestätigten Konten kommen serverseitig aus
+ * /api/admin/users (nur per service_role lesbar).
  */
 export async function getNewUserCount(user: UserProfile | null): Promise<number> {
   if (!supabase || !canViewUsers(user)) return 0;
-  const { count } = await supabase
+  const { data } = await supabase
     .from('profiles')
-    .select('id', { count: 'exact', head: true })
+    .select('id')
     .eq('role', 'player')
     .eq('match_status', 'pending');
-  return count ?? 0;
+  const pendingIds = (data ?? []).map(r => r.id as string);
+  if (pendingIds.length === 0) return 0;
+
+  // Unbestätigte Konten herausrechnen (konsistent mit der Benutzerverwaltung).
+  const unconfirmed = await getUnconfirmedUserIds();
+  return pendingIds.filter(id => !unconfirmed.has(id)).length;
+}
+
+/** Ids der Auth-Konten, deren Registrierung nicht abgeschlossen ist (nie
+ *  bestätigt UND nie eingeloggt). Fehlerfälle → leeres Set (dann zählt es wie
+ *  bisher, statt die Kachel ganz auszublenden). */
+async function getUnconfirmedUserIds(): Promise<Set<string>> {
+  try {
+    if (!supabase) return new Set();
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    if (!token) return new Set();
+    const res = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return new Set();
+    const json = await res.json();
+    return new Set((json.unconfirmed ?? []) as string[]);
+  } catch {
+    return new Set();
+  }
 }
 
 /** Alle Admin-Zähler in einem Rutsch (parallele Count-Queries). */
