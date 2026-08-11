@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { GlobalChrome } from '@/components/mdu/global-chrome';
 import { AuthProvider } from '@/lib/auth/auth-context';
@@ -88,6 +89,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               blenden sich unter /mdc (Munich Dart Challenge) selbst aus. */}
           <GlobalChrome />
         </AuthProvider>
+        {/* Vercel Web Analytics: cookielose, anonyme Seitenaufrufe. Erfasst erst,
+            wenn im Vercel-Dashboard „Web Analytics" aktiviert ist. */}
+        <Analytics />
       </body>
     </html>
   );
