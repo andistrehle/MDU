@@ -10,7 +10,7 @@ export default function DatenschutzPage() {
   return (
     <LegalPage
       title="Datenschutzerklärung"
-      updated="Juni 2026"
+      updated="August 2026"
       notice={null}
     >
       <LegalSection title="1. Verantwortlicher">
@@ -140,7 +140,24 @@ export default function DatenschutzPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Speicherdauer">
+      <LegalSection title="12. Reichweitenmessung (Vercel Web Analytics)">
+        Zur anonymen, aggregierten Reichweitenmessung setzen wir zusätzlich „Vercel Web
+        Analytics“ der Vercel Inc. ein (zugleich unser Hoster, siehe Ziffer 2). Der Dienst
+        erfasst Seitenaufrufe und daraus abgeleitete Kennzahlen (u. a. aufgerufene Seite,
+        verweisende Seite/Referrer, ungefähre Herkunftsregion sowie Geräte-/Browsertyp)
+        <strong> ohne Cookies</strong> und ohne dauerhafte Wiedererkennungskennung. Es werden
+        keine Cookies gesetzt und keine IP-Adressen dauerhaft gespeichert; die Auswertung
+        erfolgt ausschließlich anonym und aggregiert und lässt keinen Rückschluss auf einzelne
+        Personen oder Konten zu. Erfasst werden ausschließlich Aufruf-/Nutzungsdaten – keine
+        Formular-, Nachrichten- oder Profilinhalte. Rechtsgrundlage ist unser berechtigtes
+        Interesse an einer bedarfsgerechten, stabilen Gestaltung der Plattform
+        (Art. 6 Abs. 1 lit. f DSGVO). Auftragsverarbeitung und geeignete Garantien für eine
+        etwaige Drittlandübermittlung (USA) wie unter Ziffer 2. Da keine Cookies eingesetzt und
+        keine personenbezogenen Kennungen gebildet werden, ist hierfür keine Einwilligung
+        (Cookie-Banner) erforderlich.
+      </LegalSection>
+
+      <LegalSection title="13. Speicherdauer">
         Personenbezogene Daten werden nur so lange gespeichert, wie es für die genannten Zwecke
         erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen. Benutzerkonten und
         Profildaten werden bis zur Löschung des Kontos gespeichert. Hochgeladene
@@ -148,7 +165,7 @@ export default function DatenschutzPage() {
         (siehe Ziffer 7).
       </LegalSection>
 
-      <LegalSection title="13. Telefonnummern (Spieler/Kapitäne & Spielstätten)">
+      <LegalSection title="14. Telefonnummern (Spieler/Kapitäne & Spielstätten)">
         Telefonnummern dienen ausschließlich der direkten Absprache im Spielbetrieb
         (z. B. Spielabsagen oder -verschiebungen).<br /><br />
         <strong>Kapitäns-/Spieler-Telefonnummern</strong> werden zugriffsgeschützt gespeichert und
@@ -166,7 +183,7 @@ export default function DatenschutzPage() {
         Kontaktdaten der Lokale, nicht um private Daten der Spieler (Art. 6 Abs. 1 lit. f DSGVO).
       </LegalSection>
 
-      <LegalSection title="14. Eindeutigkeitsprüfungen & Hilfe-Anfragen">
+      <LegalSection title="15. Eindeutigkeitsprüfungen & Hilfe-Anfragen">
         Bei der Registrierung und der Mannschaftsanmeldung prüft das System, ob ein Spieler bereits
         mit einem Konto verknüpft ist, ob eine Mannschaft bereits einen Kapitän hat oder bereits für
         die Saison gemeldet wurde, um versehentliche Doppelanlagen zu vermeiden. Forderst du das
@@ -176,7 +193,7 @@ export default function DatenschutzPage() {
         Vertrag/Nutzung bzw. berechtigtes Interesse (Art. 6 Abs. 1 lit. b/f DSGVO).
       </LegalSection>
 
-      <LegalSection title="15. Rechte der betroffenen Personen">
+      <LegalSection title="16. Rechte der betroffenen Personen">
         Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
         Verarbeitung, Datenübertragbarkeit und Widerspruch. Erteilte Einwilligungen können Sie
         jederzeit mit Wirkung für die Zukunft widerrufen. Zur Wahrnehmung Ihrer Rechte wenden Sie
@@ -187,19 +204,19 @@ export default function DatenschutzPage() {
         Aufsichtsbehörde Ihres üblichen Aufenthaltsorts wenden.
       </LegalSection>
 
-      <LegalSection title="16. Server-Logs">
+      <LegalSection title="17. Server-Logs">
         Zur Sicherstellung des Betriebs werden Server-Logfiles automatisch erfasst und nach den
         Vorgaben der eingesetzten Anbieter (Vercel, Cloudflare, Supabase) gespeichert.
       </LegalSection>
 
-      <LegalSection title="17. Keine automatisierte Entscheidungsfindung">
+      <LegalSection title="18. Keine automatisierte Entscheidungsfindung">
         Eine ausschließlich automatisierte Entscheidungsfindung mit rechtlicher Wirkung oder
         vergleichbar erheblicher Beeinträchtigung im Sinne des Art. 22 DSGVO findet nicht statt.
         Die automatische Texterkennung der Spielberichte (Ziffer 8) dient lediglich der
         Vorerfassung; das Ergebnis wird stets von einer berechtigten Person geprüft und bestätigt.
       </LegalSection>
 
-      <LegalSection title="18. Minderjährige">
+      <LegalSection title="19. Minderjährige">
         Personen unter 16 Jahren dürfen ein Benutzerkonto nur mit Einwilligung der
         Erziehungsberechtigten anlegen. Beruht eine Verarbeitung auf einer Einwilligung
         (insb. die Veröffentlichung des Spitznamens nach Ziffer 6), ist diese bei Minderjährigen
