@@ -207,6 +207,27 @@ async function replacePlayers(registrationId: string, players: RegistrationPlaye
   return error?.message ?? null;
 }
 
+/**
+ * Anmeldung endgültig löschen (Admin per RLS, oder eigener Entwurf).
+ *
+ * Verweigert bereits freigegebene/übernommene Anmeldungen: dort wurde ein Team +
+ * Saisonzuordnung + Kader erzeugt, die separat entfernt werden müssten
+ * (scripts/delete-registration.mts). Für Entwürfe & abgelehnte/offene Anmeldungen
+ * ist das Löschen gefahrlos — es hängt nur die Anmeldung selbst + der gemeldete
+ * Kader dran (team_registration_players via ON DELETE CASCADE).
+ */
+export async function deleteRegistration(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { data } = await supabase
+    .from('team_registrations').select('applied_at, status').eq('id', id).maybeSingle();
+  const r = data as { applied_at: string | null; status: RegistrationStatus } | null;
+  if (r && (r.applied_at || r.status === 'approved')) {
+    return { error: 'Freigegebene bzw. übernommene Anmeldungen können hier nicht gelöscht werden – dafür müsste auch das erzeugte Team samt Kader entfernt werden.' };
+  }
+  const { error } = await supabase.from('team_registrations').delete().eq('id', id);
+  return { error: error?.message ?? null };
+}
+
 /** Ziel-Saison einer Anmeldung setzen (nur Admin per RLS). */
 export async function updateRegistrationSeason(id: string, seasonId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };

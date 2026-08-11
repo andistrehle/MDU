@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import {
   getRegistration, getRegistrationPlayers, reviewRegistration, applyApprovedTeamRegistration,
-  updateRegistrationSeason, updateRegistrationAssignedCompetition,
+  updateRegistrationSeason, updateRegistrationAssignedCompetition, deleteRegistration,
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
 import {
@@ -125,6 +125,17 @@ export default function RegistrationDetailPage() {
     setOkMsg(`Status gespeichert. ${hint}`);
     setBusy(false);
     setNote('');
+  }
+
+  /** Anmeldung löschen (nur nicht-übernommene, z. B. ein doppelter Entwurf). */
+  async function handleDelete() {
+    if (!reg) return;
+    if (!confirm(`Anmeldung „${reg.team_name}" (${REGISTRATION_STATUS_LABELS[reg.status]}) endgültig löschen?\n\nDamit verschwindet nur diese eine Anmeldung samt gemeldetem Kader – bereits freigegebene Mannschaften bleiben unberührt. Das kann nicht rückgängig gemacht werden.`)) return;
+    setBusy(true); setMsg(null); setOkMsg(null);
+    const { error } = await deleteRegistration(id);
+    if (error) { setMsg(error); setBusy(false); return; }
+    try { sessionStorage.setItem('mdu_admin_flash', `Anmeldung „${reg.team_name}" wurde gelöscht.`); } catch { /* optional */ }
+    router.push('/admin/registrations');
   }
 
   /** Freigeben + automatische Übernahme (atomar, idempotent, saisongetrennt). */
@@ -416,6 +427,18 @@ export default function RegistrationDetailPage() {
                   </div>
                 </div>
               )}
+            </Card>
+          )}
+
+          {/* Anmeldung entfernen (nur nicht-übernommene, z. B. doppelter Entwurf) */}
+          {!reg.applied_at && reg.status !== 'approved' && (
+            <Card title="Anmeldung entfernen">
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', margin: '0 0 12px', lineHeight: 1.55 }}>
+                Löscht diese Anmeldung samt gemeldetem Kader endgültig – sinnvoll z. B. bei einem
+                versehentlich doppelt angelegten Entwurf. Bereits freigegebene Mannschaften bleiben
+                davon unberührt.
+              </p>
+              <button onClick={handleDelete} disabled={busy} style={btn('red')}>Anmeldung löschen</button>
             </Card>
           )}
         </div>
