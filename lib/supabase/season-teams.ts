@@ -382,6 +382,52 @@ export async function finalizeNewRosterPlayers(
   return { finalized: created + linked, created, linked, ambiguous: ambiguous.length ? ambiguous : undefined, error: null };
 }
 
+/** Ergebnis des Namensabgleichs eines Anmelde-Kadereintrags gegen den Bestand. */
+export type RosterNameMatch = {
+  status: 'known' | 'ambiguous' | 'new';
+  playerId?: string;
+  licenseNumber?: string | null;
+};
+
+/**
+ * Gleicht eingetippte Anmelde-Kadernamen gegen den echten Spieler-Bestand (DB
+ * `players`) ab — mit EXAKT derselben Namenslogik wie finalizeNewRosterPlayers.
+ * So lässt sich schon VOR der Freigabe ehrlich anzeigen, wer bereits bekannt ist
+ * (→ wird wiederverwendet), wer mehrdeutig ist und wer wirklich neu.
+ *
+ * Rückgabe ist index-gleich zur Eingabe. Nur DB-Zugriff, kein Schreiben.
+ */
+export async function matchRegistrationRosterToDbPlayers(
+  rows: { first_name?: string | null; last_name?: string | null; display_name?: string | null }[],
+): Promise<RosterNameMatch[]> {
+  if (!supabase || rows.length === 0) return rows.map(() => ({ status: 'new' as const }));
+
+  const { data: allP } = await supabase.from('players')
+    .select('id, first_name, last_name, display_name, license_number');
+  const byName = new Map<string, string[]>();
+  const licById = new Map<string, string | null>();
+  const indexName = (name: string, id: string) => {
+    const key = normalizePersonName(name); if (!key) return;
+    const arr = byName.get(key) ?? []; if (!arr.includes(id)) arr.push(id); byName.set(key, arr);
+  };
+  for (const p of (allP ?? []) as { id: string; first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null }[]) {
+    licById.set(p.id, p.license_number ?? null);
+    indexName(`${p.first_name ?? ''} ${p.last_name ?? ''}`, p.id);
+    if (p.display_name) indexName(p.display_name, p.id);
+  }
+
+  return rows.map(r => {
+    // Wie finalize: primär Vor-/Nachname, ersatzweise der Anzeigename.
+    const candidates = [`${r.first_name ?? ''} ${r.last_name ?? ''}`, r.display_name ?? '']
+      .map(normalizePersonName).filter(Boolean);
+    let ids: string[] = [];
+    for (const key of candidates) { const m = byName.get(key); if (m && m.length) { ids = m; break; } }
+    if (ids.length === 1) return { status: 'known', playerId: ids[0], licenseNumber: licById.get(ids[0]) ?? null };
+    if (ids.length > 1) return { status: 'ambiguous' };
+    return { status: 'new' };
+  });
+}
+
 /**
  * Alle aktiven Spieler aus der DB-Tabelle `players` als Zuordnungs-Optionen
  * (id, Anzeigename, Passnummer) — inkl. der per Team-Freigabe/Nachmeldung neu

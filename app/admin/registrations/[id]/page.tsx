@@ -16,6 +16,8 @@ import {
   getPredeterminedLeagueForTeam, isLeagueDowngrade,
 } from '@/lib/data';
 import { playerLeagueHint } from '@/lib/data/roster-hints';
+import { getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
+import { matchRegistrationRosterToDbPlayers, type RosterNameMatch } from '@/lib/supabase/season-teams';
 import { triggerRegistrationEmail, EMAIL_STATUS_HINT } from '@/lib/supabase/notifications';
 import {
   getActiveSeason, listSeasons, canRegisterTeamsForSeason, SEASON_STATUS_LABELS, type DbSeason,
@@ -37,6 +39,7 @@ export default function RegistrationDetailPage() {
 
   const [reg, setReg] = useState<TeamRegistration | null>(null);
   const [players, setPlayers] = useState<RegistrationPlayer[]>([]);
+  const [nameMatches, setNameMatches] = useState<RosterNameMatch[]>([]);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -64,7 +67,11 @@ export default function RegistrationDetailPage() {
       setReg(r);
       // Zugewiesene Liga vorbelegen: gespeicherte Zuweisung, sonst der Ligawunsch des Teams.
       setAssignedCompetition(r?.assigned_competition_id ?? r?.requested_league ?? '');
-      setPlayers(await getRegistrationPlayers(id));
+      const pls = await getRegistrationPlayers(id);
+      setPlayers(pls);
+      // Eingetippte Namen gegen den Spieler-Bestand abgleichen (wie bei der Freigabe),
+      // damit „bereits bekannt / mehrdeutig / neu" ehrlich statt pauschal „neu" steht.
+      setNameMatches(await matchRegistrationRosterToDbPlayers(pls));
       const all = await listSeasons();
       setSeasons(all);
       setActiveSeason(await getActiveSeason());
@@ -242,16 +249,36 @@ export default function RegistrationDetailPage() {
           <Card title={`Kader (${players.length})`}>
             {players.length === 0 ? <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)' }}>Kein Kader angegeben.</span> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {players.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                    <span style={{ flex: 1 }}>
-                      {p.display_name}{p.license_number ? ` · ${p.license_number}` : ''}
-                      <span style={{ color: 'var(--th-text-muted)' }}>{playerLeagueHint(p.player_id, reg.source_team_id ?? null)}</span>
-                      {p.is_existing_player ? '' : ' · neu'}
-                    </span>
-                    {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
-                  </div>
-                ))}
+                {players.map((p, i) => {
+                  const hasName = (p.display_name ?? '').trim().length > 0;
+                  // Eingetippten Namen auf einen bekannten Spieler auflösen, damit der
+                  // gewohnte „…, B-Liga (war davor bei X)"-Hinweis auch OHNE verknüpftes
+                  // player_id greift (bei neuen Mannschaften ist jeder Name frei getippt).
+                  const sug = hasName ? getRegistrationMatchSuggestion(p.first_name ?? '', p.last_name ?? '') : null;
+                  const effectiveId = p.player_id ?? (sug && (sug.confidence === 'exact' || sug.confidence === 'likely') ? sug.matchedPlayerId : null);
+                  const hint = playerLeagueHint(effectiveId, reg.source_team_id ?? null);
+                  // DB-Abgleich für Konten OHNE Vorsaison-Team (z. B. frisch registrierte Kapitäne).
+                  const m = nameMatches[i];
+                  const ambiguous = sug?.confidence === 'ambiguous' || m?.status === 'ambiguous';
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                      <span style={{ flex: 1 }}>
+                        {hasName ? p.display_name : <em style={{ color: 'var(--th-text-faint2)' }}>ohne Namen</em>}
+                        {p.license_number ? ` · ${p.license_number}` : ''}
+                        {hint
+                          ? <span style={{ color: 'var(--th-text-muted)' }}>{hint}</span>
+                          : hasName && effectiveId == null && ambiguous
+                            ? <span style={{ color: 'var(--th-gold)' }}> · ⚠ mehrdeutig</span>
+                            : hasName && effectiveId == null && m?.status === 'known'
+                              ? <span style={{ color: 'var(--th-win)' }}> · bereits bekannt{m.licenseNumber ? ` (${m.licenseNumber})` : ''}</span>
+                              : hasName
+                                ? <span style={{ color: 'var(--th-text-muted)' }}> · neu</span>
+                                : null}
+                      </span>
+                      {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </Card>
