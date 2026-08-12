@@ -216,7 +216,7 @@ export async function setActiveSeason(seasonId: string): Promise<{ error: string
 export async function finalizeNewRosterPlayers(
   seasonId: string,
   teamId: string,
-): Promise<{ finalized: number; created?: number; linked?: number; ambiguous?: string[]; error: string | null }> {
+): Promise<{ finalized: number; created?: number; linked?: number; ambiguous?: string[]; nameless?: number; error: string | null }> {
   if (!supabase || !seasonId || !teamId) return { finalized: 0, error: 'Supabase ist nicht konfiguriert.' };
 
   const { data: rows, error: loadErr } = await supabase
@@ -246,12 +246,16 @@ export async function finalizeNewRosterPlayers(
     }
   }
 
-  // Schutz: niemals namenlose Profile anlegen. Bleibt eine Kaderzeile trotz
-  // display_name-Ableitung ohne Namen, lieber abbrechen und den Namen zuerst
-  // ergänzen lassen, statt einen Leer-Spieler zu erzeugen.
+  // Schutz: niemals namenlose Profile anlegen. Namenlose Zeilen werden hier NUR
+  // übersprungen (nicht mehr die ganze Vergabe blockiert!) — sonst hätte eine
+  // einzige leere Zeile früher verhindert, dass ALLE anderen Spieler bei der
+  // Freigabe automatisch ihre Passnummer bekommen. Die benannten Spieler werden
+  // verarbeitet; die namenlosen bleiben „in Prüfung" und werden am Ende gemeldet.
   const nameless = todo.filter(r => !`${r.first_name ?? ''} ${r.last_name ?? ''}`.trim());
-  if (nameless.length) {
-    return { finalized: 0, error: `${nameless.length} Kaderzeile(n) ohne Namen — bitte zuerst die Namen ergänzen, dann erneut freigeben.` };
+  const work = todo.filter(r => `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim());
+  if (work.length === 0) {
+    return { finalized: 0, nameless: nameless.length || undefined,
+      error: nameless.length ? `${nameless.length} Kaderzeile(n) ohne Namen — bitte zuerst die Namen ergänzen, dann erneut freigeben.` : null };
   }
 
   // Bereits vergebene Passnummern aus der DB einsammeln (players + Kader), damit
@@ -319,7 +323,7 @@ export async function finalizeNewRosterPlayers(
 
   let created = 0, linked = 0;
   const ambiguous: string[] = [];
-  for (const row of todo) {
+  for (const row of work) {
     const fullName = `${row.first_name} ${row.last_name}`.trim();
 
     // Bestehenden Spieler bestimmen: explizit verknüpft ODER eindeutiger Namenstreffer.
@@ -379,7 +383,7 @@ export async function finalizeNewRosterPlayers(
     extraUsed.push(gen.number);
     created++;
   }
-  return { finalized: created + linked, created, linked, ambiguous: ambiguous.length ? ambiguous : undefined, error: null };
+  return { finalized: created + linked, created, linked, ambiguous: ambiguous.length ? ambiguous : undefined, nameless: nameless.length || undefined, error: null };
 }
 
 /** Ergebnis des Namensabgleichs eines Anmelde-Kadereintrags gegen den Bestand. */

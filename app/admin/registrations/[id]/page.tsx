@@ -188,6 +188,7 @@ export default function RegistrationDetailPage() {
     if (f?.linked) parts.push(`${f.linked} mit bestehendem Profil verknüpft`);
     let passInfo = parts.length ? ` Passnummern: ${parts.join(' · ')}.` : '';
     if (f?.ambiguous?.length) passInfo += ` ⚠ ${f.ambiguous.length} mehrdeutig – bitte unter „Saison-Teams" manuell zuordnen: ${f.ambiguous.join(', ')}.`;
+    if (f?.nameless) passInfo += ` ⚠ ${f.nameless} Kaderzeile(n) ohne Namen übersprungen – bitte unter „Saison-Teams" den Namen ergänzen und freigeben.`;
     try {
       sessionStorage.setItem('mdu_admin_flash',
         `${teamName} freigegeben und für ${targetSeason?.name ?? 'die Ziel-Saison'} übernommen.${passInfo} ${hint}`.trim());

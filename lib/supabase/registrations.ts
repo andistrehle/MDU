@@ -11,7 +11,7 @@ import { supabase } from './client';
 import { finalizeNewRosterPlayers } from './season-teams';
 
 /** Zusammenfassung der automatischen Passnummern-Vergabe bei der Freigabe. */
-export interface FinalizeSummary { finalized: number; created?: number; linked?: number; ambiguous?: string[] }
+export interface FinalizeSummary { finalized: number; created?: number; linked?: number; ambiguous?: string[]; nameless?: number }
 
 export type RegistrationStatus =
   | 'draft' | 'submitted' | 'in_review' | 'approved' | 'rejected' | 'changes_requested';
@@ -395,7 +395,7 @@ export async function applyApprovedTeamRegistration(
   let finalize: FinalizeSummary | undefined;
   if (res.team_id && res.season_id) {
     const f = await finalizeNewRosterPlayers(res.season_id, res.team_id);
-    if (!f.error) finalize = { finalized: f.finalized, created: f.created, linked: f.linked, ambiguous: f.ambiguous };
+    if (!f.error) finalize = { finalized: f.finalized, created: f.created, linked: f.linked, ambiguous: f.ambiguous, nameless: f.nameless };
   }
   return { error: null, resultTeamId: res.team_id ?? null, finalize };
 }
