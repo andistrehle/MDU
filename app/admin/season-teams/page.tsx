@@ -15,7 +15,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
 import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
-import { normalizePersonName } from '@/lib/auth/player-match';
+import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
 import { canManageUsers } from '@/lib/auth/roles';
@@ -25,6 +25,18 @@ import {
 } from '@/lib/data';
 
 const LEAGUE_ORDER: MainLeague[] = ['la_liga', 'a_liga', 'b_liga', 'c_liga'];
+
+/**
+ * Effektive Spieler-Id einer Kaderzeile: das verknüpfte player_id, sonst ein
+ * eindeutiger Namenstreffer im Vorsaison-Bestand. So greift der „…, Liga (war
+ * davor bei X)"-Hinweis auch bei noch nicht verknüpften „Prüfung"-Zeilen, und
+ * die Freigabe-Zusammenfassung kann bekannte von wirklich neuen unterscheiden.
+ */
+function effectiveRosterPlayerId(p: { player_id: string | null; first_name: string | null; last_name: string | null }): string | null {
+  if (p.player_id) return p.player_id;
+  const s = getRegistrationMatchSuggestion(p.first_name ?? '', p.last_name ?? '');
+  return (s.confidence === 'exact' || s.confidence === 'likely') ? s.matchedPlayerId : null;
+}
 
 /** Code (Hauptliga oder Staffel wie b1/b2) → Hauptliga. */
 function toMainLeague(code: string | null | undefined): MainLeague | null {
@@ -302,9 +314,14 @@ export default function AdminSeasonTeamsPage() {
                       <>
                         <span style={{ flex: 1 }}>
                           {p.first_name} {p.last_name}{p.license_number ? ` · ${p.license_number}` : ''}
-                          {p.status === 'pending_review' ? (
-                            ' · neu (Prüfung)'
-                          ) : (() => {
+                          {p.status === 'pending_review' ? (() => {
+                            // Auch „in Prüfung" den gewohnten Hinweis zeigen: bekannte Rückkehrer
+                            // werden bei der Freigabe wiederverwendet, nicht neu angelegt.
+                            const effId = effectiveRosterPlayerId(p);
+                            const hint = playerLeagueHint(effId, t.team_id);
+                            if (effId) return <span style={{ color: 'var(--th-text-muted)' }}>{hint || ' · bereits bekannt'} · in Prüfung</span>;
+                            return <span style={{ color: 'var(--th-text-muted)' }}> · neu (Prüfung)</span>;
+                          })() : (() => {
                             const hint = playerLeagueHint(p.player_id, t.team_id);
                             if (hint) return <span style={{ color: 'var(--th-text-muted)' }}>{hint}</span>;
                             return isNewPlayer(p.player_id)
@@ -389,8 +406,13 @@ export default function AdminSeasonTeamsPage() {
 
             {/* Neue Spieler freigeben + Passnummern vergeben */}
             {(() => {
-              const pending = r.filter(p => p.status === 'pending_review').length;
+              const pendingRows = r.filter(p => p.status === 'pending_review');
+              const pending = pendingRows.length;
               if (pending === 0) return null;
+              // Bekannte Rückkehrer werden bei der Freigabe wiederverwendet (Nummer/Historie
+              // bleiben), nur wirklich neue bekommen ein frisches Profil + Passnummer.
+              const known = pendingRows.filter(p => effectiveRosterPlayerId(p) != null).length;
+              const fresh = pending - known;
               return (
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--th-line-4)' }}>
                   <button
@@ -399,11 +421,13 @@ export default function AdminSeasonTeamsPage() {
                     disabled={finalizing === t.team_id}
                     style={{ padding: '9px 14px', borderRadius: 8, cursor: finalizing === t.team_id ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}
                   >
-                    {finalizing === t.team_id ? 'Vergebe Passnummern …' : `${pending} neue${pending === 1 ? 'n' : ''} Spieler freigeben & Passnummer${pending === 1 ? '' : 'n'} vergeben`}
+                    {finalizing === t.team_id ? 'Vergebe Passnummern …' : `${pending} Spieler freigeben & Passnummer${pending === 1 ? '' : 'n'} vergeben`}
                   </button>
                   <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', margin: '8px 0 0', lineHeight: 1.5 }}>
-                    Legt für die als „neu (Prüfung)" markierten Spieler ein Spielerprofil an und vergibt eine Passnummer
-                    (Regel: höchste Teamkollegen-Nummer + 1, nächste freie). Danach sind sie im „Verknüpfter Spieler"-Feld auswählbar.
+                    {known > 0
+                      ? `Davon sind mind. ${known} bereits bekannt – diese werden mit ihrem vorhandenen Profil verknüpft (Passnummer & Historie bleiben, keine neue Nummer). Für die ${fresh > 0 ? `${fresh} wirklich neuen` : 'neuen'} Spieler wird ein Profil angelegt und eine Passnummer vergeben (Regel: höchste Teamkollegen-Nummer + 1, nächste freie). `
+                      : 'Legt für die als „neu (Prüfung)" markierten Spieler ein Spielerprofil an und vergibt eine Passnummer (Regel: höchste Teamkollegen-Nummer + 1, nächste freie). '}
+                    Danach sind sie im „Verknüpfter Spieler"-Feld auswählbar.
                   </p>
                   {finalizeMsg?.teamId === t.team_id && (
                     <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, marginTop: 8, color: finalizeMsg.kind === 'ok' ? 'var(--th-win)' : '#E24B4A' }}>
