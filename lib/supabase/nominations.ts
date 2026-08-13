@@ -146,6 +146,16 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
         provisional = true;
       }
 
+      // Konto (falls vorhanden) automatisch diesem Team zuordnen – wie bei der
+      // Team-Freigabe. Damit wandert die Konto-↔-Team-Verknüpfung mit, wenn ein
+      // Spieler mit Konto in eine (andere) Mannschaft nachgemeldet wird. Neue
+      // Spieler ohne Konto → No-op.
+      const linkAccountToTeam = async () => {
+        await supabase!.from('profiles')
+          .update({ team_id: n.team_id, match_status: 'confirmed' })
+          .eq('player_id', slug);
+      };
+
       // Atomar über die RPC aus Migration 0033: Spieler + Kaderzuordnung +
       // Nominierungsstatus in EINER Transaktion — entweder alles oder nichts,
       // kein „approved" ohne Spieler/Kader mehr (REV-047).
@@ -159,7 +169,7 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
         p_last_name: n.last_name,
         p_provisional: provisional,
       });
-      if (!rpcError) return { error: null };
+      if (!rpcError) { await linkAccountToTeam(); return { error: null }; }
 
       // Fallback NUR, solange Migration 0033 noch nicht eingespielt ist (Funktion
       // fehlt) — dann der bisherige, nicht-atomare Pfad, damit nichts blockiert.
@@ -179,6 +189,7 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
         status: 'active', is_captain: false, source: 'nomination',
       }, { onConflict: 'id' });
       if (ae) console.warn('player_assignments upsert (Migration 0032/0033 nötig?):', ae.message);
+      await linkAccountToTeam();
     }
   }
 
