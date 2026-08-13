@@ -567,7 +567,11 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
     .select('id, season_id, team_id, player_id, first_name, last_name, license_number, is_captain, status, registration_id')
     .eq('season_id', seasonId)
     .order('is_captain', { ascending: false });
-  const rows = (data ?? []) as SeasonRosterRow[];
+  // Leere Platzhalterzeilen (kein Name, nie verknüpft) ausblenden — kein „ohne
+  // Namen" mehr. Solche Zeilen entstanden früher durch versehentliche Leerzeilen
+  // in der Anmeldung; sie blockieren nichts und werden hier einfach ignoriert.
+  const rows = ((data ?? []) as SeasonRosterRow[])
+    .filter(r => `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim() || r.player_id);
 
   // Bestätigte Nachmeldungen stehen in player_assignments (source 'nomination'),
   // NICHT in season_roster_assignments — sonst fehlen sie im Kader. Ergänzen wir

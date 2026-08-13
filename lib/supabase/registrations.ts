@@ -86,6 +86,12 @@ export type RegistrationDraft = Pick<TeamRegistration,
 
 const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 
+/** Hat die Kaderzeile überhaupt einen Namen? Leerzeilen (versehentlich beim
+ *  Anmelden erzeugt) werden überall ignoriert — kein „ohne Namen" mehr. */
+function hasPlayerName(p: { first_name?: string | null; last_name?: string | null; display_name?: string | null }): boolean {
+  return !!(`${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || (p.display_name ?? '').trim());
+}
+
 // ── Lesen ─────────────────────────────────────────────────────
 
 /**
@@ -130,7 +136,8 @@ export async function getRegistrationPlayers(registrationId: string): Promise<Re
     .select('*')
     .eq('registration_id', registrationId)
     .order('created_at', { ascending: true });
-  return (data ?? []) as RegistrationPlayer[];
+  // Leerzeilen ausblenden (keine „ohne Namen"-Einträge mehr).
+  return ((data ?? []) as RegistrationPlayer[]).filter(hasPlayerName);
 }
 
 // ── Schreiben ─────────────────────────────────────────────────
@@ -182,8 +189,10 @@ export function splitDisplayName(display: string): { first: string; last: string
 async function replacePlayers(registrationId: string, players: RegistrationPlayer[]): Promise<string | null> {
   if (!supabase) return NOT_CONFIGURED;
   await supabase.from('team_registration_players').delete().eq('registration_id', registrationId);
-  if (players.length === 0) return null;
-  const rows = players.map(p => {
+  // Leerzeilen (versehentlich beim Anmelden erzeugt) gar nicht erst speichern.
+  const named = players.filter(hasPlayerName);
+  if (named.length === 0) return null;
+  const rows = named.map(p => {
     let first = (p.first_name ?? '').trim();
     let last = (p.last_name ?? '').trim();
     // Neuer Spieler nur über display_name erfasst → Vor-/Nachname ableiten.
