@@ -3,9 +3,11 @@
 // ============================================================
 //
 // Vergleicht die bereits eingegangenen Mannschaftsanmeldungen der neuen Saison
-// mit den Teams aus 25/26 (Baseline unten fest eingebaut, Quelle: lib/data).
-// Ausgabe je Liga: wie viele der 25/26-Teams schon gemeldet sind, welche noch
-// fehlen, plus neu gegründete Mannschaften.
+// mit den Teams aus 25/26. Die Teams sind nach ihrer 26/27-Liga LAUT AUF-/ABSTIEG
+// einsortiert (getPredeterminedLeagueForTeam, einmalig ausgewertet und unten fest
+// eingebaut) — also dort, wo sie sich in der neuen Saison anmelden würden.
+// Ausgabe je Liga: wie viele Teams schon gemeldet sind, welche noch fehlen, plus
+// neu gegründete Mannschaften.
 //
 // Nur LESEND (team_registrations). Ändert nichts.
 //
@@ -21,27 +23,34 @@ import { readFileSync } from 'fs';
 
 const seasonArg = process.argv.find(a => a.startsWith('--season='))?.slice('--season='.length);
 
-// ── 25/26-Baseline (aus lib/data): [teamId, Name, Liga, withdrawn?] ──
+// ── Baseline: die 35 Teams aus 25/26, einsortiert nach der 26/27-Liga LAUT
+//    AUF-/ABSTIEG (getPredeterminedLeagueForTeam) — also dort, wo sie sich in
+//    der neuen Saison anmelden würden. [teamId, Name, Liga26/27, withdrawn?]
 const BASE = [
+  // La-Liga (26/27)
   ['spartans', 'Spartans', 'La'], ['ohne-jackie', 'Ohne Jackie', 'La'],
-  ['jolly-pirates-kts', "Jolly Pirates KT's", 'La'], ['dc-null-bull', 'DC Null Bull', 'La'],
-  ['no-maam', "No Ma'am", 'La'], ['les-dartagnons', 'Les Dartagnons', 'La'],
+  ['jolly-pirates-kts', "Jolly Pirates KT's", 'La'], ['no-maam', "No Ma'am", 'La'],
+  ['alptraum', 'Alptraum', 'La'], ['gambas', 'Gambas', 'La'], ['silberpfeile-ii', 'Silberpfeile II', 'La'],
 
-  ['alptraum', 'Alptraum', 'A'], ['dc-animals-ii', 'DC Animals', 'A'], ['gambas', 'Gambas', 'A'],
-  ['spartans-vi', 'Spartans VI', 'A'], ['sound-warriors', "Sound Warrior's", 'A'], ['game-over', 'Game Over', 'A'],
-  ['treff-nix-freimann', 'Treff Nix Freimann', 'A'], ['silberpfeile-ii', 'Silberpfeile II', 'A'],
-  ['jolly-pirates-v', 'Jolly Pirates V', 'A'], ['oldies-co', 'Oldies & Co', 'A'],
-  ['de-wolperdinga', 'De Wolperdinga', 'A', true],
+  // A-Liga (26/27)
+  ['dc-null-bull', 'DC Null Bull', 'A'], ['les-dartagnons', 'Les Dartagnons', 'A'],
+  ['dc-animals-ii', 'DC Animals', 'A'], ['spartans-vi', 'Spartans VI', 'A'],
+  ['treff-nix-freimann', 'Treff Nix Freimann', 'A'], ['jolly-pirates-v', 'Jolly Pirates V', 'A'],
+  ['oldies-co', 'Oldies & Co', 'A'], ['de-wolperdinga', 'De Wolperdinga', 'A', true],
+  ['belfort-evolution', 'Belfort Evolution', 'A'], ['fiaker-deife', 'Fiaker Deife', 'A'],
+  ['freibad-bazis', 'Freibad Bazis', 'A'],
 
+  // B-Liga (26/27)
+  ['sound-warriors', "Sound Warrior's", 'B'], ['game-over', 'Game Over', 'B'],
   ['flying-fighters', 'Flying Fighters', 'B'], ['master-of-desaster', 'Master of Desaster', 'B'],
   ['flying-seven', 'Flying Seven', 'B'], ['lucky-darts-one', 'Lucky Darts One', 'B'],
-  ['de-hutzeldarter', 'De Hutzeldarter', 'B'], ['massl-ghabt', 'Massl Ghabt', 'B'],
-  ['belfort-evolution', 'Belfort Evolution', 'B'], ['fiaker-deife', 'Fiaker Deife', 'B'],
-  ['freibad-bazis', 'Freibad Bazis', 'B'], ['team-desaster', 'Team Desaster', 'B'],
-  ['dc-dark-angels', 'DC Dark Angels', 'B'], ['de-vogelwuidn', "De Vogelwuid'n", 'B'],
+  ['team-desaster', 'Team Desaster', 'B'], ['de-vogelwuidn', "De Vogelwuid'n", 'B'],
+  ['wild-indians', 'Wild Indians', 'B'], ['muenchen-0815', 'München 08/15', 'B'],
+  ['lucky-darts-two', 'Lucky Darts Two', 'B'],
 
-  ['wild-indians', 'Wild Indians', 'C'], ['muenchen-0815', 'München 08/15', 'C'],
-  ['lucky-darts-two', 'Lucky Darts Two', 'C'], ['funny-darters', 'Funny Darters Munich', 'C'],
+  // C-Liga (26/27)
+  ['de-hutzeldarter', 'De Hutzeldarter', 'C'], ['massl-ghabt', 'Massl Ghabt', 'C'],
+  ['dc-dark-angels', 'DC Dark Angels', 'C'], ['funny-darters', 'Funny Darters Munich', 'C'],
   ['black-devils', 'Black Devils', 'C'], ['fuenf-sterne-boazn', '5 Sterne Boazn Team', 'C'],
 ];
 const LIGA_ORDER = ['La', 'A', 'B', 'C'];
@@ -91,7 +100,7 @@ for (const r of regs ?? []) {
 const isMeldung = (st) => (RANK[st] ?? 0) >= RANK.submitted; // eingereicht oder freigegeben
 const stLabel = { approved: 'freigegeben', in_review: 'in Prüfung', submitted: 'eingereicht', changes_requested: 'Nachbesserung', draft: 'nur Entwurf', rejected: 'abgelehnt' };
 
-console.log(`\n=== Anmeldungen ${seasonId}  vs.  Teams 25/26 ===\n`);
+console.log(`\n=== Anmeldungen ${seasonId}  vs.  Teams 25/26 (Liga = 26/27 laut Auf-/Abstieg) ===\n`);
 
 let totExpect = 0, totDone = 0, totDraft = 0, totMissing = 0;
 for (const liga of LIGA_ORDER) {
