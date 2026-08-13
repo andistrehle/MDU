@@ -520,8 +520,12 @@ function EditModal({ actor, profile, onClose, onSaved }: {
     ? suggestPlayerByName(profile.display_name) : null;
   // Zum vorgeschlagenen Spieler auch dessen Team (aus dem Kader) vorschlagen.
   const suggestedTeamId = nameSuggestion ? (PLAYER_TEAM.get(nameSuggestion.id) ?? '') : '';
+  // Konto schon mit einem Spieler verknüpft, aber ohne Team? → Team aus dem Kader
+  // dieses Spielers vorbelegen (z. B. frisch freigegebene TCs eines neuen Teams,
+  // deren Konto-Team-Verknüpfung noch fehlt). Der Admin bestätigt mit „Speichern".
+  const linkedPlayerTeam = profile.player_id ? (PLAYER_TEAM.get(profile.player_id) ?? '') : '';
   const [playerId, setPlayerId] = useState(profile.player_id ?? nameSuggestion?.id ?? '');
-  const [teamId, setTeamId] = useState(profile.team_id ?? (nameSuggestion ? suggestedTeamId : '') ?? '');
+  const [teamId, setTeamId] = useState(profile.team_id ?? (nameSuggestion ? suggestedTeamId : linkedPlayerTeam) ?? '');
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
   // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
   const [noAssignment, setNoAssignment] = useState(profile.match_status === 'rejected');

@@ -311,14 +311,22 @@ export async function finalizeNewRosterPlayers(
   const { data: staRow } = await supabase.from('season_team_assignments')
     .select('captain_user_id').eq('season_id', seasonId).eq('team_id', teamId).maybeSingle();
   const captainUserId = (staRow as { captain_user_id: string | null } | null)?.captain_user_id ?? null;
-  // Verknüpft das Kapitäns-Konto mit dem TC-Spielerprofil — nur, wenn das Konto
-  // noch keinen Spieler hat (nichts überschreiben). Best effort, blockiert die
-  // Freigabe nicht. RLS: profiles_update_admin erlaubt das dem Admin.
+  // Verknüpft das Kapitäns-Konto mit TC-Spielerprofil UND Team. Best effort,
+  // blockiert die Freigabe nicht. RLS: profiles_update_admin erlaubt das dem Admin.
   const linkCaptain = async (playerId: string) => {
     if (!captainUserId) return;
+    // 1) Spieler-Verknüpfung nur setzen, wenn noch keine da ist (nichts überschreiben).
     await supabase!.from('profiles')
       .update({ player_id: playerId, team_id: teamId, match_status: 'confirmed' })
       .eq('id', captainUserId).is('player_id', null);
+    // 2) Team-Verknüpfung AUCH nachziehen, wenn das Konto schon mit (genau diesem)
+    //    Spieler verknüpft ist, aber noch kein Team hat — sonst bliebe „kein Team"
+    //    stehen, obwohl der Kapitän eindeutig zu diesem Team gehört. Ein bereits
+    //    gesetztes (evtl. anderes) Team wird nicht überschrieben.
+    await supabase!.from('profiles')
+      .update({ team_id: teamId, match_status: 'confirmed' })
+      .eq('id', captainUserId).is('team_id', null)
+      .or(`player_id.is.null,player_id.eq.${playerId}`);
   };
 
   let created = 0, linked = 0;
