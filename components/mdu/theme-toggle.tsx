@@ -58,20 +58,12 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
       const current = getStoredTheme();
       setTheme(current);
       setMounted(true);
-      // Migration: Wer noch kein Theme-Cookie hat, aber früher schon per
-      // localStorage eine Wahl getroffen hat, bekommt jetzt das Cookie gesetzt
-      // (damit der Server das Theme künftig direkt richtig ausliefert).
-      const hasCookie = /(?:^|;\s*)mdu-theme=/.test(document.cookie);
-      if (!hasCookie) {
-        let pref: Theme = current;
-        try { const ls = localStorage.getItem(STORAGE_KEY); if (ls === 'dark' || ls === 'light') pref = ls; } catch { /* ignore */ }
-        writeThemeCookie(pref);
-        if (pref !== current) {
-          if (pref === 'light') document.documentElement.dataset.theme = 'light';
-          else delete document.documentElement.dataset.theme;
-          setTheme(pref);
-        }
-      }
+      // localStorage als maßgebliche Quelle spiegeln (das Inline-Script liest es
+      // zuerst) und das kanonische path=/-Cookie an die aufgelöste Wahl angleichen.
+      // Damit wird ein evtl. veraltetes/abweichendes Theme-Cookie geheilt, das sonst
+      // beim nächsten Öffnen fälschlich „gewinnen" könnte.
+      try { localStorage.setItem(STORAGE_KEY, current); } catch { /* ignore */ }
+      writeThemeCookie(current);
     });
     // Keep every switch instance in sync (e.g. header + /mehr) and across tabs.
     const onChange = (e: Event) => setTheme((e as CustomEvent<Theme>).detail);

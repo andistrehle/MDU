@@ -72,15 +72,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body>
-        {/* Theme VOR dem ersten Paint aus dem Cookie (Fallback localStorage) setzen.
+        {/* Theme VOR dem ersten Paint setzen. Quelle: ZUERST localStorage
+            (eindeutig, ohne Pfad-Probleme), Cookie nur als Fallback. Grund: ein
+            evtl. veraltetes zweites „mdu-theme"-Cookie mit tieferem Pfad konnte
+            sonst das (per path=/ gesetzte) aktuelle Cookie überstimmen und die
+            Seite beim Neuöffnen fälschlich auf Dark zurückwerfen.
             Bewusst ein rohes, synchrones Inline-Script als erstes im <body> — es
             läuft beim HTML-Parsen, bevor der Body gezeichnet wird. So bleiben die
             Seiten statisch/ISR (kein cookies() im Layout → kein dynamisches
             Rendering, echtes 404) UND das Theme hält über Reloads. Default
-            (kein Cookie) = „Old School" (light); nur ausdrückliches „dark" bleibt dunkel. */}
+            (keine Wahl) = „Old School" (light); nur ausdrückliches „dark" bleibt dunkel. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{var m=document.cookie.match(/(?:^|;\\s*)mdu-theme=([^;]*)/);var t=m?m[1]:null;if(!t){try{t=localStorage.getItem('mdu-theme')}catch(e){}}if(t!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
+            __html: "try{var t=null;try{t=localStorage.getItem('mdu-theme')}catch(e){}if(t!=='dark'&&t!=='light'){var m=document.cookie.match(/(?:^|;\\s*)mdu-theme=([^;]*)/);t=m?m[1]:null}if(t!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
           }}
         />
         <AuthProvider>
