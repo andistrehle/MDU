@@ -99,7 +99,7 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
   const isDark = !mounted || theme === 'dark'; // true = New Design active
 
   // ── Sizing (Variante 2 proportions) ─────────────────────────
-  const W       = mini ? 118 : compact ? 220 : 288;
+  const W       = mini ? 104 : compact ? 220 : 288;
   const H       = mini ? 34  : compact ? 46  : 54;
   const pad     = mini ? 2 : 4;
   // Kleiner runder Griff — bewusst mit etwas Luft (−8 statt −2), damit er den
