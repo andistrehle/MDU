@@ -259,6 +259,7 @@ export default function AdminSeasonTeamsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span style={colLabel}>Saisonbeitrag</span>
             <span title={`${memberCount} × ${PLAYER_FEE_EUR} € = ${fee} €`} style={{
+              display: 'inline-flex', alignItems: 'center',
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase',
               padding: '2px 9px', borderRadius: 20,
               background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
@@ -267,7 +268,7 @@ export default function AdminSeasonTeamsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span style={colLabel}>Status</span>
-            <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 9px', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
               {t.status}
             </span>
           </div>
@@ -573,27 +574,28 @@ export default function AdminSeasonTeamsPage() {
         }}>{switchMsg.text}</div>
       )}
 
-      {/* Startgeld-Summenzeile */}
+      {/* Startgeld-Summe */}
       {teams && teams.length > 0 && (
         <div style={{
-          maxWidth: 900, marginBottom: 16, padding: '12px 16px', borderRadius: 12,
+          maxWidth: 900, marginBottom: 16, borderRadius: 12, overflow: 'hidden',
           background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 16px',
-          fontFamily: 'var(--font-manrope)', fontSize: 13,
         }}>
-          <span style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>Startgeld</span>
-          <span style={{ color: paySummary.paidCount === paySummary.total ? 'var(--th-win)' : 'var(--th-text-body)' }}>
-            <strong>{paySummary.paidCount}/{paySummary.total}</strong> Teams bezahlt
-          </span>
-          <span style={{ color: paySummary.openFee > 0 ? '#c0392b' : 'var(--th-text-muted)' }}>
-            offen: <strong>{paySummary.openFee} €</strong>
-          </span>
-          <span style={{ color: 'var(--th-text-muted)' }}>
-            gesamt: <strong style={{ color: 'var(--th-text-strong)' }}>{paySummary.totalFee} €</strong>
-          </span>
-          <span style={{ marginLeft: 'auto', color: 'var(--th-text-faint)', fontSize: 11.5 }}>
-            {PLAYER_FEE_EUR} € / Spieler
-          </span>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, padding: '12px 16px 0' }}>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Startgeld · Saisonbeiträge</span>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler</span>
+          </div>
+          <div style={{ display: 'flex', padding: '10px 6px 14px' }}>
+            {([
+              { label: 'Teams bezahlt', value: `${paySummary.paidCount}/${paySummary.total}`, color: paySummary.total > 0 && paySummary.paidCount === paySummary.total ? 'var(--th-win)' : 'var(--th-text-strong)' },
+              { label: 'offen', value: `${paySummary.openFee} €`, color: paySummary.openFee > 0 ? '#c0392b' : 'var(--th-win)' },
+              { label: 'gesamt', value: `${paySummary.totalFee} €`, color: 'var(--th-text-strong)' },
+            ] as const).map((c, i) => (
+              <div key={c.label} style={{ flex: 1, textAlign: 'center', padding: '2px 8px', borderLeft: i > 0 ? '1px solid var(--th-line-6)' : 'none' }}>
+                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 23, lineHeight: 1.1, color: c.color }}>{c.value}</div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--th-text-muted)', marginTop: 3 }}>{c.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
