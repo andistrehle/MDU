@@ -7,7 +7,7 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam, findLeague } from '@/lib/data';
-import { getCaptainTeamView } from '@/lib/supabase/season-teams';
+import { getCaptainTeamView, getTeamPaid, teamFeeEuro, PLAYER_FEE_EUR } from '@/lib/supabase/season-teams';
 
 export default function MeinTeamPage() {
   const { user, loading } = useAuth();
@@ -20,9 +20,20 @@ export default function MeinTeamPage() {
   // auch wenn die aktive Saison noch die alte ist). Fällt auf statisch zurück.
   const [dbView, setDbView] = useState<Awaited<ReturnType<typeof getCaptainTeamView>> | null>(null);
   useEffect(() => {
-    if (teamId && !staticTeam) getCaptainTeamView(teamId).then(setDbView);
+    // Immer laden: liefert Name/Kürzel/Liga für neue Teams UND den Kader der
+    // (neuesten) DB-Saison für die Startgeld-Berechnung.
+    if (teamId) getCaptainTeamView(teamId).then(setDbView);
     else setDbView(null);
-  }, [teamId, staticTeam]);
+  }, [teamId]);
+
+  // Startgeld-Status der (neuesten) DB-Saison — nur für Kapitäne/Ligaleitung,
+  // eingeloggt sichtbar (RLS lässt genau diese lesen), nie öffentlich.
+  const [paid, setPaid] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (canEdit && dbView?.seasonId && teamId) getTeamPaid(dbView.seasonId, teamId).then(setPaid);
+    else setPaid(null);
+  }, [canEdit, dbView?.seasonId, teamId]);
+  const feeCount = (dbView?.roster ?? []).filter(m => m.name.trim()).length;
 
   const team = staticTeam;
   const teamName = staticTeam?.name ?? dbView?.teamName ?? teamId;
@@ -70,6 +81,33 @@ export default function MeinTeamPage() {
             </div>
             <Link href={`/teams/${teamId}`} style={ghostBtn}>Öffentliches Profil ansehen</Link>
           </div>
+
+          {/* Startgeld — nur für Kapitän/Ligaleitung, nur im eingeloggten Bereich */}
+          {canEdit && dbView && feeCount > 0 && (
+            <div style={{
+              background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
+              borderRadius: 14, padding: '16px 20px', marginBottom: 18,
+              display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)', marginBottom: 3 }}>
+                  Startgeld {dbView.seasonName ? `· ${dbView.seasonName}` : ''}
+                </div>
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+                  {feeCount} Spieler × {PLAYER_FEE_EUR} € = <strong style={{ color: 'var(--th-text-strong)' }}>{teamFeeEuro(feeCount)} €</strong>
+                </div>
+              </div>
+              <span style={{
+                fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.02em',
+                padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap',
+                background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
+                color: paid ? 'var(--th-win)' : '#c0392b',
+                border: `1px solid ${paid ? 'rgba(34,197,94,0.45)' : 'rgba(212,0,0,0.35)'}`,
+              }}>
+                {paid == null ? '…' : paid ? '✓ Bezahlt' : 'Zahlung noch offen'}
+              </span>
+            </div>
+          )}
 
           {/* Aktionen — nur für Teamkapitäne/Ligaleitung */}
           {canEdit ? (

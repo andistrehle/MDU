@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
@@ -62,6 +62,9 @@ export default function AdminSeasonTeamsPage() {
   const [teams, setTeams] = useState<SeasonTeamRow[] | null>(null);
   const [roster, setRoster] = useState<SeasonRosterRow[]>([]);
   const [open, setOpen] = useState<string | null>(null);
+  // Startgeld: Team-Ids mit „bezahlt" + laufende Umschaltung.
+  const [paidTeams, setPaidTeams] = useState<Set<string>>(new Set());
+  const [savingPay, setSavingPay] = useState<string | null>(null);
 
   // Saisons laden + Standard = Anmelde-Saison (sonst erste).
   useEffect(() => {
@@ -80,15 +83,25 @@ export default function AdminSeasonTeamsPage() {
     let cancelled = false;
     (async () => {
       setTeams(null);
-      const [t, r] = await Promise.all([listSeasonTeams(seasonId), listSeasonRoster(seasonId)]);
+      const [t, r, paid] = await Promise.all([listSeasonTeams(seasonId), listSeasonRoster(seasonId), listPaidTeams(seasonId)]);
       if (cancelled) return;
       setTeams(t);
       setRoster(r);
+      setPaidTeams(paid);
     })();
     return () => { cancelled = true; };
   }, [canView, seasonId]);
 
   const rosterFor = (teamId: string) => roster.filter(p => p.team_id === teamId);
+
+  // Startgeld eines Teams umschalten (bezahlt / offen) — nur Admin per RLS.
+  async function onTogglePaid(teamId: string, paid: boolean) {
+    setSavingPay(teamId);
+    const { error } = await setTeamPaid(seasonId, teamId, paid);
+    setSavingPay(null);
+    if (error) return;
+    setPaidTeams(prev => { const n = new Set(prev); if (paid) n.add(teamId); else n.delete(teamId); return n; });
+  }
   const season = seasons.find(s => s.id === seasonId) ?? null;
   const activeSeason = seasons.find(s => s.status === 'active') ?? null;
   const canSwitch = canManageUsers(user); // Saison aktivieren: nur Super Admin
@@ -218,6 +231,9 @@ export default function AdminSeasonTeamsPage() {
     const r = rosterFor(t.team_id);
     const isOpen = open === t.id;
     const captain = r.find(p => p.is_captain);
+    const paid = paidTeams.has(t.team_id);
+    const memberCount = r.length;
+    const fee = teamFeeEuro(memberCount);
     return (
       <div key={t.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, overflow: 'hidden' }}>
         <button
@@ -233,6 +249,12 @@ export default function AdminSeasonTeamsPage() {
               {r.length} Spieler{captain ? ` · Kapitän: ${captain.first_name} ${captain.last_name}` : ''}{t.venues?.name ? ` · ${t.venues.name}` : ''}
             </div>
           </div>
+          <span title={`Startgeld: ${memberCount} × ${PLAYER_FEE_EUR} € = ${fee} €`} style={{
+            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase',
+            padding: '2px 8px', borderRadius: 20, flexShrink: 0,
+            background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
+            color: paid ? 'var(--th-win)' : '#c0392b',
+          }}>{paid ? 'bezahlt' : 'offen'}</span>
           <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
             {t.status}
           </span>
@@ -279,6 +301,24 @@ export default function AdminSeasonTeamsPage() {
                 {t.contact_phone && <PhoneActions phone={t.contact_phone} />}
                 {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
                 {!t.contact_phone && <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>(keine Telefonnummer angegeben)</span>}
+              </span>
+              <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
+              <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                <span>{memberCount} × {PLAYER_FEE_EUR} € = <strong>{fee} €</strong></span>
+                <button
+                  type="button"
+                  onClick={() => onTogglePaid(t.team_id, !paid)}
+                  disabled={savingPay === t.team_id}
+                  style={{
+                    padding: '5px 12px', borderRadius: 20, cursor: savingPay === t.team_id ? 'wait' : 'pointer',
+                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, border: '1px solid',
+                    background: paid ? 'rgba(34,197,94,0.12)' : 'transparent',
+                    color: paid ? 'var(--th-win)' : '#c0392b',
+                    borderColor: paid ? 'rgba(34,197,94,0.5)' : 'rgba(212,0,0,0.4)',
+                  }}
+                >
+                  {savingPay === t.team_id ? '…' : paid ? '✓ Bezahlt (auf „offen" setzen)' : 'Als bezahlt markieren'}
+                </button>
               </span>
             </div>
 

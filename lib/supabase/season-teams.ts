@@ -542,6 +542,44 @@ export async function getCaptainTeamView(teamId: string, seasonId?: string): Pro
   };
 }
 
+// ── Startgeld / Zahlungsstatus (Bezahlt / offen) ──────────────
+
+/** Startgeld pro Spieler in Euro. Betrag eines Teams = Kadergröße × dieser Wert. */
+export const PLAYER_FEE_EUR = 20;
+
+/** Betrag aus Kadergröße berechnen (Anzahl Mitglieder × 20 €). */
+export function teamFeeEuro(memberCount: number): number {
+  return memberCount * PLAYER_FEE_EUR;
+}
+
+/** Ist das Startgeld dieses Teams für die Saison als bezahlt markiert? */
+export async function getTeamPaid(seasonId: string, teamId: string): Promise<boolean> {
+  if (!supabase || !seasonId || !teamId) return false;
+  const { data } = await supabase.from('season_team_payments')
+    .select('paid').eq('season_id', seasonId).eq('team_id', teamId).maybeSingle();
+  return !!(data as { paid: boolean } | null)?.paid;
+}
+
+/** Zahlungsstatus setzen (nur Admin per RLS). */
+export async function setTeamPaid(seasonId: string, teamId: string, paid: boolean): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from('season_team_payments').upsert({
+    season_id: seasonId, team_id: teamId, paid,
+    paid_at: paid ? new Date().toISOString() : null,
+    updated_by: auth.user?.id ?? null, updated_at: new Date().toISOString(),
+  }, { onConflict: 'season_id,team_id' });
+  return { error: error?.message ?? null };
+}
+
+/** Team-Ids, deren Startgeld für die Saison bezahlt ist (für die Admin-Übersicht). */
+export async function listPaidTeams(seasonId: string): Promise<Set<string>> {
+  if (!supabase || !seasonId) return new Set();
+  const { data } = await supabase.from('season_team_payments')
+    .select('team_id').eq('season_id', seasonId).eq('paid', true);
+  return new Set(((data ?? []) as { team_id: string }[]).map(r => r.team_id));
+}
+
 /** Einzelner DB-Teamname (Fallback, wenn nicht im statischen Stamm). */
 export async function getDbTeamName(teamId: string): Promise<{ name: string; shortName: string | null } | null> {
   if (!supabase || !teamId) return null;
