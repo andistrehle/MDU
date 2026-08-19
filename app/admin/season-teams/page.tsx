@@ -8,7 +8,7 @@
 // Supabase. Read-only-Übersicht; Standard-Saison ist die Anmelde-Saison.
 // ============================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -25,6 +25,13 @@ import {
 } from '@/lib/data';
 
 const LEAGUE_ORDER: MainLeague[] = ['la_liga', 'a_liga', 'b_liga', 'c_liga'];
+
+/** Kleine Spaltenüberschrift über den Badges der Team-Zeile. */
+const colLabel: CSSProperties = {
+  fontFamily: 'var(--font-manrope)', fontSize: 8.5, fontWeight: 700,
+  letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-faint)',
+  whiteSpace: 'nowrap',
+};
 
 /**
  * Effektive Spieler-Id einer Kaderzeile: das verknüpfte player_id, sonst ein
@@ -249,16 +256,22 @@ export default function AdminSeasonTeamsPage() {
               {r.length} Spieler{captain ? ` · Kapitän: ${captain.first_name} ${captain.last_name}` : ''}{t.venues?.name ? ` · ${t.venues.name}` : ''}
             </div>
           </div>
-          <span title={`Startgeld: ${memberCount} × ${PLAYER_FEE_EUR} € = ${fee} €`} style={{
-            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase',
-            padding: '2px 8px', borderRadius: 20, flexShrink: 0,
-            background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
-            color: paid ? 'var(--th-win)' : '#c0392b',
-          }}>{paid ? 'bezahlt' : 'offen'}</span>
-          <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
-            {t.status}
-          </span>
-          <span style={{ color: 'var(--th-text-faint)', fontSize: 18, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>⌄</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <span style={colLabel}>Saisonbeitrag</span>
+            <span title={`${memberCount} × ${PLAYER_FEE_EUR} € = ${fee} €`} style={{
+              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase',
+              padding: '2px 9px', borderRadius: 20,
+              background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
+              color: paid ? 'var(--th-win)' : '#c0392b',
+            }}>{paid ? 'bezahlt' : 'offen'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <span style={colLabel}>Status</span>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-win)' }}>
+              {t.status}
+            </span>
+          </div>
+          <span style={{ color: 'var(--th-text-faint)', fontSize: 18, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms', flexShrink: 0 }}>⌄</span>
         </button>
 
         {isOpen && (
