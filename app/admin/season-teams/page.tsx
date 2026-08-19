@@ -502,6 +502,18 @@ export default function AdminSeasonTeamsPage() {
     return out;
   })();
 
+  // Startgeld-Summe über alle Teams der Saison.
+  const paySummary = (() => {
+    const list = teams ?? [];
+    let paidCount = 0, totalFee = 0, openFee = 0;
+    for (const t of list) {
+      const fee = rosterFor(t.team_id).length * PLAYER_FEE_EUR;
+      totalFee += fee;
+      if (paidTeams.has(t.team_id)) paidCount += 1; else openFee += fee;
+    }
+    return { total: list.length, paidCount, totalFee, openFee };
+  })();
+
   return (
     <AdminGuard title="Saison-Teams" subtitle="Freigegebene Mannschaften je Saison (aus den Anmeldungen übernommen).">
       {/* Saison-Auswahl */}
@@ -546,6 +558,30 @@ export default function AdminSeasonTeamsPage() {
           border: `1px solid ${switchMsg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`,
           color: switchMsg.kind === 'err' ? '#E24B4A' : 'var(--th-win)',
         }}>{switchMsg.text}</div>
+      )}
+
+      {/* Startgeld-Summenzeile */}
+      {teams && teams.length > 0 && (
+        <div style={{
+          maxWidth: 900, marginBottom: 16, padding: '12px 16px', borderRadius: 12,
+          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 16px',
+          fontFamily: 'var(--font-manrope)', fontSize: 13,
+        }}>
+          <span style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>Startgeld</span>
+          <span style={{ color: paySummary.paidCount === paySummary.total ? 'var(--th-win)' : 'var(--th-text-body)' }}>
+            <strong>{paySummary.paidCount}/{paySummary.total}</strong> Teams bezahlt
+          </span>
+          <span style={{ color: paySummary.openFee > 0 ? '#c0392b' : 'var(--th-text-muted)' }}>
+            offen: <strong>{paySummary.openFee} €</strong>
+          </span>
+          <span style={{ color: 'var(--th-text-muted)' }}>
+            gesamt: <strong style={{ color: 'var(--th-text-strong)' }}>{paySummary.totalFee} €</strong>
+          </span>
+          <span style={{ marginLeft: 'auto', color: 'var(--th-text-faint)', fontSize: 11.5 }}>
+            {PLAYER_FEE_EUR} € / Spieler
+          </span>
+        </div>
       )}
 
       {teams === null ? (
