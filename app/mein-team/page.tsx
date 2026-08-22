@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam, findLeague } from '@/lib/data';
 import { getCaptainTeamView, getTeamPaid, teamFeeEuro, PLAYER_FEE_EUR } from '@/lib/supabase/season-teams';
+import { StartgeldPay } from '@/components/mdu/startgeld-pay';
 
 export default function MeinTeamPage() {
   const { user, loading } = useAuth();
@@ -87,25 +88,37 @@ export default function MeinTeamPage() {
             <div style={{
               background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
               borderRadius: 14, padding: '16px 20px', marginBottom: 18,
-              display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12,
             }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)', marginBottom: 3 }}>
-                  Startgeld {dbView.seasonName ? `· ${dbView.seasonName}` : ''}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)', marginBottom: 3 }}>
+                    Startgeld {dbView.seasonName ? `· ${dbView.seasonName}` : ''}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
+                    {feeCount} Spieler × {PLAYER_FEE_EUR} € = <strong style={{ color: 'var(--th-text-strong)' }}>{teamFeeEuro(feeCount)} €</strong>
+                  </div>
                 </div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-                  {feeCount} Spieler × {PLAYER_FEE_EUR} € = <strong style={{ color: 'var(--th-text-strong)' }}>{teamFeeEuro(feeCount)} €</strong>
-                </div>
+                <span style={{
+                  fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.02em',
+                  padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap',
+                  background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
+                  color: paid ? 'var(--th-win)' : '#c0392b',
+                  border: `1px solid ${paid ? 'rgba(34,197,94,0.45)' : 'rgba(212,0,0,0.35)'}`,
+                }}>
+                  {paid == null ? '…' : paid ? '✓ Bezahlt' : 'Zahlung noch offen'}
+                </span>
               </div>
-              <span style={{
-                fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.02em',
-                padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap',
-                background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
-                color: paid ? 'var(--th-win)' : '#c0392b',
-                border: `1px solid ${paid ? 'rgba(34,197,94,0.45)' : 'rgba(212,0,0,0.35)'}`,
-              }}>
-                {paid == null ? '…' : paid ? '✓ Bezahlt' : 'Zahlung noch offen'}
-              </span>
+              {paid === false && (
+                <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--th-line-4)' }}>
+                  <StartgeldPay
+                    amount={teamFeeEuro(feeCount)}
+                    reference={`${teamName} – Startgeld ${dbView.seasonName ?? ''}`.trim()}
+                  />
+                  <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                    Die Freigabe als „bezahlt" erfolgt durch die Ligaleitung, sobald das Geld eingegangen ist.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
