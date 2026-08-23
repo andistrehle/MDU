@@ -22,9 +22,11 @@ export function StartgeldPay({ amount, reference }: { amount: number; reference:
   };
 
   const hasMe = !!STARTGELD_PAYPAL_ME;
-  // PayPal.me öffnet direkt mit vorausgefülltem Betrag (One-Click).
+  // PayPal.me mit Betrag. Kurzes paypal.me-Format — die PayPal-App parst den
+  // Betrag daraus am ehesten (fängt die App den Link ab, zeigt sie teils nur
+  // das Profil; im Browser wird der Betrag zuverlässig vorbelegt).
   const paypalUrl = hasMe
-    ? `https://www.paypal.com/paypalme/${STARTGELD_PAYPAL_ME}/${amount}EUR`
+    ? `https://paypal.me/${STARTGELD_PAYPAL_ME}/${amount}`
     : 'https://www.paypal.com/';
 
   const rows: { key: string; label: string; value: string }[] = [
@@ -49,7 +51,8 @@ export function StartgeldPay({ amount, reference }: { amount: number; reference:
             {amount} € per PayPal bezahlen ↗
           </a>
           <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '10px 0 0' }}>
-            Öffnet PayPal mit vorausgefülltem Betrag. Bitte als <strong>„Freunde &amp; Familie"</strong> senden
+            Öffnet Tonis PayPal. Falls der Betrag nicht schon eingetragen ist, bitte
+            <strong> {amount} €</strong> eingeben. Als <strong>„Freunde &amp; Familie"</strong> senden
             (dann gebührenfrei). Alternativ <strong>bar an {STARTGELD_RECIPIENT}</strong>.
           </p>
           <button
