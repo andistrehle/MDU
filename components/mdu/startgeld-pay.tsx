@@ -5,7 +5,7 @@
 // eigener Checkout (kein PayPal-Business nötig): Zahlung „Freunde & Familie" an
 // die hinterlegte Adresse. Barzahlung als Alternative genannt.
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { STARTGELD_PAYPAL_EMAIL, STARTGELD_PAYPAL_ME, STARTGELD_RECIPIENT } from '@/lib/payment-config';
 
 export function StartgeldPay({ amount, reference }: { amount: number; reference: string }) {
@@ -21,7 +21,9 @@ export function StartgeldPay({ amount, reference }: { amount: number; reference:
     } catch { /* Clipboard nicht verfügbar */ }
   };
 
-  const paypalUrl = STARTGELD_PAYPAL_ME
+  const hasMe = !!STARTGELD_PAYPAL_ME;
+  // PayPal.me öffnet direkt mit vorausgefülltem Betrag (One-Click).
+  const paypalUrl = hasMe
     ? `https://www.paypal.com/paypalme/${STARTGELD_PAYPAL_ME}/${amount}EUR`
     : 'https://www.paypal.com/';
 
@@ -31,21 +33,48 @@ export function StartgeldPay({ amount, reference }: { amount: number; reference:
     { key: 'ref', label: 'Verwendungszweck', value: reference },
   ];
 
+  const payButton: CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    padding: '11px 18px', borderRadius: 8, textDecoration: 'none', cursor: 'pointer',
+    background: '#0070BA', color: '#fff', border: 'none',
+    fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13.5,
+  };
+
   return (
     <div style={{ width: '100%' }}>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        style={{
-          padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
-          background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)',
-          fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-        }}
-      >
-        Per PayPal bezahlen
-        <span style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms', fontSize: 12 }}>⌄</span>
-      </button>
+      {hasMe ? (
+        <>
+          {/* One-Click: öffnet PayPal direkt mit dem Betrag */}
+          <a href={paypalUrl} target="_blank" rel="noopener noreferrer" style={payButton}>
+            {amount} € per PayPal bezahlen ↗
+          </a>
+          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '10px 0 0' }}>
+            Öffnet PayPal mit vorausgefülltem Betrag. Bitte als <strong>„Freunde &amp; Familie"</strong> senden
+            (dann gebührenfrei). Alternativ <strong>bar an {STARTGELD_RECIPIENT}</strong>.
+          </p>
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            style={{ marginTop: 8, padding: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}
+          >
+            {open ? 'Empfänger-Daten ausblenden' : 'Empfänger-Daten anzeigen'}
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          style={{
+            padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
+            background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)',
+            fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+          }}
+        >
+          Per PayPal bezahlen
+          <span style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms', fontSize: 12 }}>⌄</span>
+        </button>
+      )}
 
       {open && (
         <div style={{
@@ -75,24 +104,15 @@ export function StartgeldPay({ amount, reference }: { amount: number; reference:
             ))}
           </div>
 
-          <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '12px 0 12px' }}>
-            Bitte als <strong>„Freunde &amp; Familie"</strong> senden, dann kommt der Betrag ohne Gebühren an.
-            Alternativ geht auch <strong>bar an {STARTGELD_RECIPIENT}</strong>.
-          </p>
-
-          <a
-            href={paypalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '9px 16px', borderRadius: 8, textDecoration: 'none',
-              background: '#0070BA', color: '#fff',
-              fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
-            }}
-          >
-            PayPal öffnen ↗
-          </a>
+          {!hasMe && (
+            <>
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '12px 0 12px' }}>
+                Bitte als <strong>„Freunde &amp; Familie"</strong> senden, dann kommt der Betrag ohne Gebühren an.
+                Alternativ geht auch <strong>bar an {STARTGELD_RECIPIENT}</strong>.
+              </p>
+              <a href={paypalUrl} target="_blank" rel="noopener noreferrer" style={payButton}>PayPal öffnen ↗</a>
+            </>
+          )}
         </div>
       )}
     </div>

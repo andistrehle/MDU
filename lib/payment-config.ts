@@ -19,4 +19,4 @@ export const STARTGELD_RECIPIENT = 'Anton Bauer (Toni)';
  * Betrag (One-Tap). Ist er leer, führt der Button zu paypal.com und der Kapitän
  * gibt Empfänger/Betrag aus den kopierbaren Feldern ein.
  */
-export const STARTGELD_PAYPAL_ME = '';
+export const STARTGELD_PAYPAL_ME = 'AntonBauer855';
