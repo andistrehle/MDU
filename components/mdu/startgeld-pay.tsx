@@ -22,11 +22,12 @@ export function StartgeldPay({ amount, reference }: { amount: number; reference:
   };
 
   const hasMe = !!STARTGELD_PAYPAL_ME;
-  // PayPal.me mit Betrag. Kurzes paypal.me-Format — die PayPal-App parst den
-  // Betrag daraus am ehesten (fängt die App den Link ab, zeigt sie teils nur
-  // das Profil; im Browser wird der Betrag zuverlässig vorbelegt).
+  // Lange paypal.me-URL: landet in der PayPal-App zuverlässig auf DER Profilseite
+  // des Empfängers (mit „Senden") — anders als das kurze paypal.me/…, das die App
+  // teils nur auf die Startseite wirft. Betrag wird in der App leider nicht immer
+  // vorbelegt (PayPal-Eigenheit); im Browser schon.
   const paypalUrl = hasMe
-    ? `https://paypal.me/${STARTGELD_PAYPAL_ME}/${amount}`
+    ? `https://www.paypal.com/paypalme/${STARTGELD_PAYPAL_ME}/${amount}EUR`
     : 'https://www.paypal.com/';
 
   const rows: { key: string; label: string; value: string }[] = [
