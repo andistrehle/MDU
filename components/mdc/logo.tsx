@@ -1,3 +1,6 @@
+import Image from 'next/image';
+import type { BrandImage } from '@/lib/mdc/brand';
+
 // ============================================================
 // MDC — Zeichen und Schriftzug
 // ============================================================
@@ -36,29 +39,33 @@ interface BadgeProps extends MarkProps {
    */
   withText?: boolean;
   /**
-   * Pfad zur Original-Logodatei. Ist er gesetzt, wird sie unverändert
-   * angezeigt — die Zeichnung tritt vollständig zurück.
+   * Original-Logodatei. Ist sie gesetzt, wird sie unverändert angezeigt —
+   * die Zeichnung tritt vollständig zurück.
    */
-  src?: string | null;
+  src?: BrandImage | null;
 }
 
 /** Rundes Zeichen: blauer Ring, roter Innenbogen, Skyline, Schriftzug. */
 export function MdcMark({ className, size = 46, withText, src }: BadgeProps) {
   const showText = withText ?? size >= 64;
-  const LOGO_IMAGE = src ?? null;
 
-  if (LOGO_IMAGE) {
+  // Originaldatei vorhanden: unverändert anzeigen, auf die gewünschte Höhe
+  // gerechnet. Ein Banner behält dabei sein Seitenverhältnis, statt in ein
+  // Quadrat gequetscht zu werden. `next/image` liefert eine passend
+  // verkleinerte Fassung aus — die Originaldatei kann ruhig groß sein.
+  if (src) {
+    const height = size;
+    const width = Math.round((height * src.width) / src.height);
     return (
-      <svg
-        viewBox="0 0 120 120"
-        width={size}
-        height={size}
+      <Image
+        src={src.src}
+        alt="Munich Darts Challenge"
+        width={width}
+        height={height}
         className={className}
-        role="img"
-        aria-label="Munich Darts Challenge"
-      >
-        <image href={LOGO_IMAGE} x="0" y="0" width="120" height="120" preserveAspectRatio="xMidYMid meet" />
-      </svg>
+        priority
+        style={{ height, width: 'auto', maxWidth: '100%' }}
+      />
     );
   }
 
@@ -161,7 +168,7 @@ function DrawnSkyline() {
  * Bein. Der Pfeil ist kurz und gedrungen wie ein echter Dart — Schaft plus
  * rotes Flight —, nicht der lange Pfeil von vorher.
  */
-export function MdcThrower({ className, size = 34, src }: MarkProps & { src?: string | null }) {
+export function MdcThrower({ className, size = 34, src }: MarkProps & { src?: BrandImage | null }) {
   return (
     <svg
       viewBox="0 0 62 96"
@@ -172,7 +179,7 @@ export function MdcThrower({ className, size = 34, src }: MarkProps & { src?: st
       aria-label="Dartwerfer"
     >
       {src ? (
-        <image href={src} x="0" y="0" width="62" height="96" preserveAspectRatio="xMidYMid meet" />
+        <image href={src.src} x="0" y="0" width="62" height="96" preserveAspectRatio="xMidYMid meet" />
       ) : (
         <DrawnThrower />
       )}

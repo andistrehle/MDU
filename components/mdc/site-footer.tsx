@@ -41,7 +41,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   },
 ];
 
-export function SiteFooter({ logo }: { logo?: string | null }) {
+import type { BrandImage } from '@/lib/mdc/brand';
+
+export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
   const season = getCurrentSeason();
 
   return (
@@ -55,7 +57,21 @@ export function SiteFooter({ logo }: { logo?: string | null }) {
           }}
         >
           <div style={{ minWidth: 220 }}>
-            <MdcMark size={104} withText src={logo} />
+            {logo ? (
+              // Das Logo steht auf Weiß. Auf dem dunkelblauen Grund bekommt es
+              // deshalb eine eigene weiße Fläche — sonst klebte ein weißer
+              // Kasten mit harter Kante in der Fußzeile.
+              <span
+                style={{
+                  display: 'inline-flex', background: '#FFFFFF',
+                  borderRadius: 12, padding: '12px 16px',
+                }}
+              >
+                <MdcMark size={logo.wide ? 64 : 96} withText src={logo} />
+              </span>
+            ) : (
+              <MdcMark size={104} withText />
+            )}
             <p style={{ marginTop: 16, color: '#C9D6EA', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: 300 }}>
               Münchens Ranking-Serie für Einzelspieler. Gespielt wird in{' '}
               {VENUES.length} Lokalen quer durch die Stadt — mehrmals pro Woche,

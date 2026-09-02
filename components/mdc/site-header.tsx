@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CalendarClock, ChevronRight, Menu, X } from 'lucide-react';
 import { MdcMark, MdcThrower, MdcWordmark } from './logo';
+import type { BrandImage } from '@/lib/mdc/brand';
 
 const NAV = [
   { href: '/mdc', label: 'Start' },
@@ -30,8 +31,8 @@ interface SiteHeaderProps {
   nextRankingLabel: string;
   nextRankingHref: string;
   /** Originaldateien, falls hinterlegt — sonst greift die Zeichnung. */
-  logo?: string | null;
-  thrower?: string | null;
+  logo?: BrandImage | null;
+  thrower?: BrandImage | null;
 }
 
 export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }: SiteHeaderProps) {
@@ -54,12 +55,14 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
     <>
       <header className="mdc-header mdc-glass">
         <div className="mdc-shell mdc-header-inner">
+          {/* Ein breiter Banner trägt den Schriftzug bereits — dann steht er
+              nicht noch einmal daneben. */}
           <Link href="/mdc" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <MdcMark size={40} src={logo} />
-            <MdcWordmark />
+            <MdcMark size={logo?.wide ? 54 : 40} src={logo} />
+            {!logo?.wide && <MdcWordmark />}
           </Link>
 
-          <MdcThrower className="mdc-header-figure" size={34} src={thrower} />
+          {!logo?.wide && <MdcThrower className="mdc-header-figure" size={34} src={thrower} />}
 
           <nav className="mdc-nav" aria-label="Hauptnavigation">
             {NAV.map(item => (
