@@ -223,22 +223,30 @@ besser Platzierte. Podium, Ergebnisliste und Baum widersprechen sich dadurch
 nie. Sobald echte Match-Daten vorliegen, ersetzt man die Simulation — die
 Struktur (`Match` in `data/types.ts`) steht schon.
 
-## Eigene Grafiken einsetzen (Skyline, Werfer)
+## Eigene Grafiken einsetzen (Logo, Bühnenfoto, Skyline, Werfer)
 
-`components/mdc/logo.tsx` zeichnet Skyline und Dartwerfer selbst. Liegen
-eigene Grafikdateien vor, ersetzen sie die Zeichnungen in zwei Schritten:
+`components/mdc/logo.tsx` zeichnet Logo, Skyline und Dartwerfer selbst; die
+Startseite zeichnet ihre eigene Dartscheibe. Liegt eine echte Datei vor, tritt
+die Zeichnung dafür zurück. Dazu genügt es, die Datei abzulegen —
+`lib/mdc/brand.ts` sucht sie beim Bauen, es ist keine Codezeile einzutragen:
 
-1. Datei nach `public/mdc/` legen (SVG bevorzugt; PNG mit durchsichtigem
-   Hintergrund geht auch)
-2. In `components/mdc/logo.tsx` ganz oben den Pfad eintragen:
+| Datei in `public/mdc/` | ersetzt |
+| --- | --- |
+| `logo.svg` · `logo.png` · `logo.webp` · `logo.jpg` | gezeichnetes Logo in Kopf- und Fußzeile |
+| `hero.webp` · `hero.jpg` · `hero.png` · `hero.avif` | gezeichnete Dartscheibe auf der Startseite |
+| `skyline.svg` · `skyline.png` | nur die Skyline im Logo |
+| `werfer.svg` · `werfer.png` | nur der Dartwerfer |
 
-```ts
-const SKYLINE_IMAGE: string | null = '/mdc/skyline.svg';
-const THROWER_IMAGE: string | null = '/mdc/werfer.svg';
-```
+Fürs **Bühnenfoto** JPG oder WebP nehmen, nicht PNG — ein Foto als PNG wiegt
+schnell das Zehnfache. Querformat ab 1600 Pixel Breite; das Motiv darf rechts
+der Mitte sitzen, dorthin schaut der Ausschnitt (`object-position: 89 %`).
+Die Bühne schneidet das Foto rund aus und löst den Rand nach außen auf, damit
+keine dunkle Kante im weißen Layout steht. Am Handy steht das Foto über der
+Schrift statt dahinter — halbdurchsichtig hinter dem Text wäre es matschig.
 
-Oval, rote Linie, Größen und Ausrichtung in der Kopfzeile bleiben unverändert.
-Ohne Eintrag greift jeweils die gezeichnete Fassung.
+Größen und Ausrichtung in der Kopfzeile bleiben unverändert. Ist eine Logodatei
+breiter als 1,6 : 1, gilt sie als Banner: Sie trägt den Schriftzug dann selbst,
+und der gezeichnete Schriftzug daneben entfällt.
 
 Die Datei erscheint eins zu eins auf der Seite — also nur eine lizenzierte
 Fassung ablegen. Stock-Vorschauen tragen ein Wasserzeichen quer über der

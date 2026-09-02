@@ -606,34 +606,54 @@ body:has(.mdc-root) {
   }
 }
 
-/* Bühnenfoto statt gezeichneter Scheibe. Sitzt rechts, ragt bewusst über
-   den Inhaltsrand hinaus und wird zum Rand hin weich ausgeblendet — so
-   schneidet keine harte Kante ins Weiß. Der Verlauf aus `.mdc-hero::before`
-   sorgt links weiterhin für ruhigen Grund unter der Schrift. */
+/* Bühnenfoto statt gezeichneter Scheibe.
+   ---------------------------------------
+   Das Foto ist dunkel, die Seite ist hell — eine gerade Bildkante würde als
+   schwarzer Block im Weiß stehen. Deshalb ein quadratischer Ausschnitt mit
+   rundem Verlauf: Der Rahmen zeigt genau die Scheibe (Bildausschnitt 89 %,
+   dort sitzt das Bull), und der Verlauf löst den schwarzen Außenring nach
+   außen hin auf. Weil der Verlauf erst bei 86 % einsetzt, bleibt die
+   Spielfläche selbst voll deckend; verschwimmen tut nur der Ring.
+   Die dunklen Bildecken fallen dabei ganz weg. */
 .mdc-hero-photo {
   position: absolute;
-  right: max(0px, calc((100vw - 1240px) / 2 - 60px));
+  right: max(-40px, calc((100vw - 1240px) / 2 - 90px));
   top: 50%;
   transform: translateY(-50%);
-  width: min(860px, 64vw);
-  aspect-ratio: 16 / 9;
+  width: min(580px, 44vw);
+  aspect-ratio: 1;
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(circle closest-side at 62% 50%, #000 0%, #000 58%, transparent 88%);
-  mask-image: radial-gradient(circle closest-side at 62% 50%, #000 0%, #000 58%, transparent 88%);
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, #000 86%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, #000 0%, #000 86%, transparent 100%);
 }
 .mdc-hero-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 62% 50%;
+  /* 89 % waagerecht rückt das Bull in die Mitte des Ausschnitts. */
+  object-position: 89% 50%;
 }
+/* Zwischen 900 und 1200 Pixeln wird die Bühne schmal: Die Scheibe rückt hoch
+   und wird kleiner, damit die Kennzahlenzeile darunter frei bleibt. */
+@media (max-width: 1199px) {
+  .mdc-hero-photo {
+    top: 42%;
+    width: 38vw;
+  }
+}
+
+/* Am Handy ist neben der Schrift kein Platz — eine halbdurchsichtige Scheibe
+   hinter dem Text wäre matschig und würde die Lesbarkeit kosten. Deshalb
+   steht das Foto dort nicht hinter, sondern über dem Text: rechts angesetzt,
+   ein Stück über den Bildschirmrand hinaus. */
 @media (max-width: 900px) {
   .mdc-hero-photo {
-    right: -22%;
-    top: 4%;
+    position: static;
     transform: none;
-    width: 118vw;
-    opacity: 0.5;
+    width: 54vw;
+    /* Der Innenrahmen darunter bringt schon Luft mit — die wird hier
+       zurückgenommen, sonst klafft eine Lücke zwischen Scheibe und Schrift. */
+    margin: 0 -12% -34px auto;
   }
 }
 

@@ -69,7 +69,7 @@ export default function MdcHomePage() {
               width={hero.width}
               height={hero.height}
               priority
-              sizes="(max-width: 900px) 120vw, 62vw"
+              sizes="(max-width: 900px) 56vw, 46vw"
             />
           </div>
         ) : (
