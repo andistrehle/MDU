@@ -1,6 +1,20 @@
 // ============================================================
-// MDC — Punkteschlüssel
+// MDC — Punkteschlüssel (NUR für die Demo-Turniere!)
 // ============================================================
+//
+// ACHTUNG: Dieser Schlüssel ist NICHT der echte der MDC. Er wurde aus den
+// Beispielzahlen des Briefings zurückgerechnet (20 Starter → 221/211/200/190)
+// und trifft die Wirklichkeit nachweislich nicht:
+//
+//   Gegenprobe an den echten Ranglisten — alle Spieler mit genau einer
+//   Teilnahme, deren Punktzahl also ein einzelnes Turnier ist: 29
+//   verschiedene Werte kommen vor, neun davon kann dieser Schlüssel gar
+//   nicht erzeugen (46, 61, 65, 79, 82, 103, 107, 112, 202). Ausgerechnet
+//   82 ist mit neun Vorkommen der häufigste Einzelwert.
+//
+// Er dient deshalb ausschließlich dazu, die Demo-Turniere mit plausiblen
+// Zahlen zu füllen. Sobald der echte Schlüssel vorliegt, wird er hier
+// ersetzt — und erst dann darf er wieder öffentlich erklärt werden.
 //
 // Grundgedanke der Serie: Ein Sieg in einem großen Feld ist mehr wert als
 // einer in einem kleinen. Deshalb skalieren die Punkte linear mit der Zahl

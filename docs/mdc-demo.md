@@ -139,13 +139,26 @@ jedes genau einen.
 Nicht gespeichert, weil nicht in der Vorlage: Stadtteile, Beschreibungstexte,
 Schlagworte. Die wären erfunden.
 
-## Punkteschlüssel
+## Punkteschlüssel — offen
 
-`Punkte = round(Teilnehmer × Punktwert(Platz) / 100)`, Punktwert je 100
-gemeldeter Spieler. Bei 20 Startern ergibt das 221 / 211 / 200 / 190 für die
-Plätze 1 bis 4. Plätze, die im selben Durchgang ausscheiden, sind zu Gruppen
-zusammengefasst (5.–6., 7.–8., 9.–12. …). Siehe `lib/mdc/points.ts`, angezeigt
-auf `/mdc/regeln`.
+`lib/mdc/points.ts` enthält einen Schlüssel, der **nicht der echte ist**. Er
+wurde aus den Beispielzahlen des Briefings zurückgerechnet (20 Starter →
+221/211/200/190).
+
+Die Gegenprobe zeigt, dass er die Wirklichkeit verfehlt: Nimmt man alle
+Spieler mit genau einer Teilnahme — deren Punktzahl ist also das Ergebnis
+eines einzelnen Turniers —, kommen 29 verschiedene Werte vor. Neun davon kann
+der Schlüssel gar nicht erzeugen: 46, 61, 65, 79, 82, 103, 107, 112, 202.
+Ausgerechnet **82** ist mit neun Vorkommen der häufigste Einzelwert.
+
+Deshalb:
+
+- Der Schlüssel dient **nur** dazu, die Demo-Turniere mit plausiblen Zahlen zu
+  füllen.
+- Auf `/mdc/regeln` steht **keine** Punktetabelle mehr, sondern der Hinweis,
+  dass der genaue Schlüssel noch fehlt.
+- Sobald der offizielle Schlüssel vorliegt: `POINT_TABLE` ersetzen und die
+  Tabelle auf der Regeln-Seite wieder einblenden.
 
 ## Turnierbaum
 
