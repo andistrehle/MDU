@@ -194,11 +194,11 @@ export default async function SpielerProfilPage(
                 <table className="mdc-table">
                   <thead>
                     <tr>
-                      <th>Datum</th>
+                      <th className="mdc-hide-narrow">Datum</th>
                       <th>Turnier</th>
-                      <th>Spielort</th>
+                      <th className="mdc-hide-narrow">Spielort</th>
                       <th className="mdc-td-num">Platz</th>
-                      <th className="mdc-td-num">Legs</th>
+                      <th className="mdc-td-num mdc-hide-narrow">Legs</th>
                       <th className="mdc-td-num">Punkte</th>
                     </tr>
                   </thead>
@@ -207,22 +207,28 @@ export default async function SpielerProfilPage(
                       const venue = getVenue(tournament.venueId);
                       return (
                         <tr key={tournament.id}>
-                          <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
+                          <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
                             {formatDate(tournament.date)}
                           </td>
-                          <td>
+                          <td className="mdc-cell-name">
                             <Link href={`/mdc/turniere/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
                               {tournament.name}
                             </Link>
+                            {/* Am Handy fallen Datum, Spielort und Legs als Spalten weg. */}
+                            <span className="mdc-narrow-only mdc-row-meta">
+                              {formatDate(tournament.date)}
+                              {venue ? ` · ${venue.name}` : ''}
+                              {' · '}{result.legsWon}:{result.legsLost} Legs
+                            </span>
                           </td>
-                          <td style={{ color: 'var(--mdc-ink-soft)' }}>{venue?.name ?? '—'}</td>
+                          <td className="mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{venue?.name ?? '—'}</td>
                           <td
                             className="mdc-td-num mdc-num"
                             style={{ fontWeight: 700, color: result.rank <= 3 ? 'var(--mdc-gold)' : 'var(--mdc-ink)' }}
                           >
                             {result.rank}.
                           </td>
-                          <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
+                          <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
                             {result.legsWon}:{result.legsLost}
                           </td>
                           <td className="mdc-td-num mdc-num" style={{ fontWeight: 700 }}>

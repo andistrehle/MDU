@@ -23,12 +23,12 @@ export function RankingWidget({ entries, division, compact = false }: RankingWid
         <thead>
           <tr>
             <th className="mdc-sticky-col">Platz</th>
-            <th style={{ width: 40 }}><span className="sr-only">Trend</span></th>
+            <th className="mdc-hide-narrow" style={{ width: 40 }}><span className="sr-only">Trend</span></th>
             <th>{division === 'men' ? 'Spieler' : 'Spielerin'}</th>
-            {!compact && <th>Passnr.</th>}
-            {!compact && <th className="mdc-td-num">Anzahl TN</th>}
+            {!compact && <th className="mdc-hide-narrow">Passnr.</th>}
+            {!compact && <th className="mdc-td-num mdc-hide-narrow">Anzahl TN</th>}
             <th className="mdc-td-num">Punkte</th>
-            <th className="mdc-td-num">Schnitt</th>
+            <th className="mdc-td-num mdc-hide-narrow">Schnitt</th>
           </tr>
         </thead>
         <tbody>
@@ -42,8 +42,8 @@ export function RankingWidget({ entries, division, compact = false }: RankingWid
                 <td className={`mdc-sticky-col mdc-num ${podium}`} style={{ fontWeight: 700 }}>
                   {entry.rank}
                 </td>
-                <td><TrendIcon trend={entry.trend} /></td>
-                <td>
+                <td className="mdc-hide-narrow"><TrendIcon trend={entry.trend} /></td>
+                <td className="mdc-cell-name">
                   <Link
                     href={`/mdc/spieler/${player.id}`}
                     style={{ display: 'flex', alignItems: 'center', gap: 10 }}
@@ -53,17 +53,21 @@ export function RankingWidget({ entries, division, compact = false }: RankingWid
                       {playerName(player)}
                     </span>
                   </Link>
+                  {/* Am Handy fallen TN und Schnitt als Spalten weg. */}
+                  <span className="mdc-narrow-only mdc-row-meta">
+                    {entry.tournaments} TN · Ø {formatAverage(entry.average)}
+                  </span>
                 </td>
                 {!compact && (
-                  <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>{player.passNr}</td>
+                  <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{player.passNr}</td>
                 )}
                 {!compact && (
-                  <td className="mdc-td-num mdc-num">{entry.tournaments}</td>
+                  <td className="mdc-td-num mdc-num mdc-hide-narrow">{entry.tournaments}</td>
                 )}
                 <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
                   {formatNumber(entry.points)}
                 </td>
-                <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
+                <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
                   {formatAverage(entry.average)}
                 </td>
               </tr>

@@ -8,7 +8,9 @@
 // Passnummer, Name, Vorname, Anzahl TN, Punkte, Schnitt — bei der
 // Endrangliste zusätzlich Anteil und Auszahlung.
 //
-// Auf dem Handy scrollt die Tabelle waagerecht, der Platz bleibt stehen.
+// Am Handy fallen die Nebenspalten weg (`mdc-hide-narrow`) und ihr Inhalt
+// rückt als kleine Zeile unter den Namen. Seitliches Schieben gibt es nicht:
+// Man sähe immer nur einen Ausschnitt, und die Wischgeste stört das Scrollen.
 // Die Zeilen bekommt die Komponente fertig vom Server; sie zieht sich keine
 // Spielerdaten selbst, damit nicht der halbe Stamm im Browser landet.
 // ============================================================
@@ -162,15 +164,15 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
           <thead>
             <tr>
               <th className="mdc-sticky-col">Platz</th>
-              <th style={{ width: 44 }}><span className="sr-only">Trend</span></th>
-              <th>Passnr.</th>
+              <th className="mdc-hide-narrow" style={{ width: 44 }}><span className="sr-only">Trend</span></th>
+              <th className="mdc-hide-narrow">Passnr.</th>
               <th>Name</th>
-              <th>Vorname</th>
-              <th className="mdc-td-num">Anzahl TN</th>
+              <th className="mdc-hide-narrow">Vorname</th>
+              <th className="mdc-td-num mdc-hide-narrow">Anzahl TN</th>
               <th className="mdc-td-num">Punkte</th>
-              <th className="mdc-td-num">Schnitt</th>
-              {showPayout && <th className="mdc-td-num">%</th>}
-              {showPayout && <th className="mdc-td-num">Auszahlung</th>}
+              <th className="mdc-td-num mdc-hide-narrow">Schnitt</th>
+              {showPayout && <th className="mdc-td-num mdc-hide-narrow">%</th>}
+              {showPayout && <th className="mdc-td-num mdc-hide-narrow">Auszahlung</th>}
             </tr>
           </thead>
           <tbody>
@@ -186,7 +188,10 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={showPayout ? 10 : 8} style={{ padding: '28px 14px', color: 'var(--mdc-ink-soft)' }}>
+                <td
+                  colSpan={showPayout ? 10 : 8}
+                  style={{ padding: '28px 14px', color: 'var(--mdc-ink-soft)', whiteSpace: 'normal' }}
+                >
                   Kein Spieler gefunden. Andere Schreibweise oder Passnummer probieren.
                 </td>
               </tr>
@@ -218,6 +223,9 @@ function RowGroup({
             style={{
               padding: '14px', textAlign: 'center', fontSize: '0.82rem',
               color: 'var(--mdc-ink-dim)', background: 'var(--mdc-tint)',
+              // Über alle Spalten hinweg — ohne Umbruch würde diese eine Zeile
+              // die Mindestbreite der ganzen Tabelle bestimmen.
+              whiteSpace: 'normal',
             }}
           >
             Plätze {gap.from}–{gap.to}: Auswertungsseiten liegen noch nicht vor.
@@ -228,33 +236,44 @@ function RowGroup({
         <td className={`mdc-sticky-col mdc-num ${podium}`} style={{ fontWeight: 700 }}>
           {row.sharedRank ? '' : row.rank}
         </td>
-        <td><TrendIcon trend={row.trend} /></td>
-        <td className="mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>{row.passNr}</td>
-        <td style={{ fontWeight: 600 }}>
+        <td className="mdc-hide-narrow"><TrendIcon trend={row.trend} /></td>
+        <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{row.passNr}</td>
+        <td className="mdc-cell-name" style={{ fontWeight: 600 }}>
           <Link href={`/mdc/spieler/${row.playerId}`} style={{ borderBottom: '1px solid transparent' }}>
             {row.lastName}
+            {/* Am Handy fällt die Vornamenspalte weg — dann steht er hier mit. */}
+            <span className="mdc-narrow-only"> {row.firstName}</span>
           </Link>
+          {row.nickname && (
+            <span className="mdc-narrow-only" style={{ color: 'var(--mdc-ink-dim)' }}> „{row.nickname}“</span>
+          )}
+          <span className="mdc-narrow-only mdc-row-meta">
+            Nr. {row.passNr} · {row.tournaments} TN · Ø {formatAverage(row.average)}
+            {showPayout && row.payoutEuro
+              ? ` · ${formatAverage(row.payoutPercent ?? 0)} % · ${EURO(row.payoutEuro)}`
+              : ''}
+          </span>
         </td>
-        <td style={{ color: 'var(--mdc-ink-soft)' }}>
+        <td className="mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
           {row.firstName}
           {row.nickname && (
             <span style={{ color: 'var(--mdc-ink-dim)' }}> „{row.nickname}“</span>
           )}
         </td>
-        <td className="mdc-td-num mdc-num">{row.tournaments}</td>
+        <td className="mdc-td-num mdc-num mdc-hide-narrow">{row.tournaments}</td>
         <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
           {formatNumber(row.points)}
         </td>
-        <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
+        <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
           {formatAverage(row.average)}
         </td>
         {showPayout && (
-          <td className="mdc-td-num mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
+          <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
             {row.payoutPercent ? `${formatAverage(row.payoutPercent)} %` : '—'}
           </td>
         )}
         {showPayout && (
-          <td className="mdc-td-num mdc-num" style={{ color: row.payoutEuro ? 'var(--mdc-gold)' : 'var(--mdc-ink-dim)' }}>
+          <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: row.payoutEuro ? 'var(--mdc-gold)' : 'var(--mdc-ink-dim)' }}>
             {row.payoutEuro ? EURO(row.payoutEuro) : '—'}
           </td>
         )}

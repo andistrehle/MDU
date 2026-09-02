@@ -347,6 +347,32 @@ body:has(.mdc-root) {
 .mdc-table tbody tr:hover { background: var(--mdc-blue-a08); }
 .mdc-table .mdc-td-num { text-align: right; }
 
+/* Tabellen am Handy: nicht schieben, sondern falten
+   ---------------------------------------------------
+   Eine zehnspaltige Rangliste ist auf 390 Pixeln nicht zu gebrauchen — auch
+   nicht mit seitlichem Schieben: Man sieht immer nur einen Ausschnitt, und
+   die Wischgeste kollidiert mit dem Scrollen der Seite. Deshalb fallen die
+   Nebenspalten am Handy weg und ihr Inhalt rückt als Zeile unter den Namen.
+   Es geht dabei nichts verloren, es steht nur woanders. */
+.mdc-narrow-only { display: none; }
+
+@media (max-width: 900px) {
+  .mdc-hide-narrow { display: none; }
+  .mdc-narrow-only { display: revert; }
+  .mdc-row-meta {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.76rem;
+    font-weight: 400;
+    color: var(--mdc-ink-dim);
+    white-space: normal;
+  }
+  /* Der Name darf umbrechen, sonst schiebt er die Tabelle doch wieder auf. */
+  .mdc-table td.mdc-cell-name { white-space: normal; }
+  .mdc-table th,
+  .mdc-table td { padding: 11px 10px; }
+}
+
 /* Erste Spalte (Platz) beim seitlichen Scrollen stehen lassen. */
 .mdc-table .mdc-sticky-col {
   position: sticky;
