@@ -265,9 +265,11 @@ export default function MdcHomePage() {
 
           <div style={{ marginTop: 22 }}>
             <DemoNotice>
-              Die Endrangliste 2025/26 ist der echte Saison-Endstand der MDC. Die
-              hier gezeigten Sommerturniere samt Ergebnissen, Meldeständen und
-              Turnierbäumen sind Demo-Material für diese Vorschau.
+              Echt sind die Ranglisten: der Saison-Endstand 2025/26 und der
+              Endstand des Sommer-Rankings vom 01.09.2026. Die hier gezeigten
+              einzelnen Turniere samt Ergebnissen, Meldeständen und
+              Turnierbäumen sind Demo-Material — sie zahlen auf keine der
+              beiden Ranglisten ein.
             </DemoNotice>
           </div>
         </div>

@@ -27,7 +27,7 @@ export const SEASONS: Season[] = [
     label: 'Sommer-Ranking 2026',
     startDate: '2026-07-27',
     endDate: '2026-08-30',
-    asOf: '2026-08-03',
+    asOf: '2026-09-01',
     current: false,
   },
   {

@@ -71,8 +71,8 @@ export function RankingExplorer({
           </>
         ) : (
           <>
-            Zwischenstand der laufenden Sommerturniere, Stand {formatDate(summerAsOf)}.
-            Die Punkte fließen in die Sommerwertung, nicht in die abgeschlossene Saison 2025/26.
+            Endstand der Sommerserie zwischen den beiden Saisons, vom {formatDate(summerAsOf)}.
+            Eine eigene Wertung ohne Ausschüttung — die Punkte zählen nicht zur Saison 2025/26.
           </>
         )}
       </p>

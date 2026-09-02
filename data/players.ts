@@ -20,49 +20,58 @@ import type { Division, Player } from './types';
 import { parseRankingRows } from './parse-ranking';
 import { RANKING_MEN_2025_26_RAW } from './ranking-2025-26-men';
 import { RANKING_WOMEN_2025_26_RAW } from './ranking-2025-26-women';
+import { RANKING_SOMMER_MEN_RAW } from './ranking-sommer-2026-men';
+import { RANKING_SOMMER_WOMEN_RAW } from './ranking-sommer-2026-women';
 
 export const PARSED_MEN = parseRankingRows(RANKING_MEN_2025_26_RAW, 'men');
 export const PARSED_WOMEN = parseRankingRows(RANKING_WOMEN_2025_26_RAW, 'women');
+export const PARSED_SOMMER_MEN = parseRankingRows(RANKING_SOMMER_MEN_RAW, 'men');
+export const PARSED_SOMMER_WOMEN = parseRankingRows(RANKING_SOMMER_WOMEN_RAW, 'women');
 
 /**
- * Spieler, die (noch) in keiner vorliegenden Ranglistenseite stehen, aber im
- * Spielbetrieb auftauchen. Aktuell nur Patrick Müller: Er spielt das
- * Sommer-Ranking mit, seine Saisonplatzierung liegt in den noch fehlenden
- * Plätzen 199–280 der Männer-Auswertung.
+ * Der Stamm wird über die Spieler-ID zusammengeführt, NICHT über die
+ * Passnummer. Grund: Zwei Passnummern (84 und 303) zeigen in den beiden
+ * Auswertungen auf verschiedene Menschen. Über die Nummer zusammengeführt
+ * würde einer den anderen überschreiben; über den Namen bleiben beide
+ * erhalten und die Doppelbelegung wird sichtbar statt still aufgelöst.
  */
-const EXTRA_PLAYERS: Player[] = [
-  {
-    id: 'patrick-mueller',
-    passNr: 56,
-    firstName: 'Patrick',
-    lastName: 'Müller',
-    nickname: null,
-    division: 'men',
-    photoUrl: null,
-    homeVenueId: null,
-  },
-];
-
 function buildPlayers(): Player[] {
-  const players = new Map<number, Player>();
+  const players = new Map<string, Player>();
 
-  for (const row of [...PARSED_MEN, ...PARSED_WOMEN]) {
-    players.set(row.passNr, {
+  for (const row of [...PARSED_MEN, ...PARSED_WOMEN, ...PARSED_SOMMER_MEN, ...PARSED_SOMMER_WOMEN]) {
+    const existing = players.get(row.playerId);
+    players.set(row.playerId, {
       id: row.playerId,
       passNr: row.passNr,
       firstName: row.firstName,
       lastName: row.lastName,
-      nickname: row.nickname,
+      // Spitzname und Stammlokal stehen mal in der einen, mal in der anderen
+      // Auswertung — der erste bekannte Wert gewinnt.
+      nickname: existing?.nickname ?? row.nickname,
       division: row.division,
       photoUrl: null,
-      homeVenueId: row.homeVenueId,
+      homeVenueId: existing?.homeVenueId ?? row.homeVenueId,
     });
   }
-  for (const extra of EXTRA_PLAYERS) {
-    if (!players.has(extra.passNr)) players.set(extra.passNr, extra);
-  }
 
-  return [...players.values()].sort((a, b) => a.passNr - b.passNr);
+  return [...players.values()].sort((a, b) => a.passNr - b.passNr || a.id.localeCompare(b.id));
+}
+
+/**
+ * Passnummern, die mehr als einen Spieler tragen. Aktuell 84 und 303 — in der
+ * Saison-Endrangliste und im Sommer-Ranking steht dort jeweils ein anderer
+ * Mensch. Wird auf der Spielerseite ausgewiesen, damit es auffällt und
+ * geklärt werden kann.
+ */
+export function passNumberConflicts(): { passNr: number; players: Player[] }[] {
+  const byPass = new Map<number, Player[]>();
+  for (const player of PLAYERS) {
+    byPass.set(player.passNr, [...(byPass.get(player.passNr) ?? []), player]);
+  }
+  return [...byPass.entries()]
+    .filter(([, list]) => list.length > 1)
+    .map(([passNr, players]) => ({ passNr, players }))
+    .sort((a, b) => a.passNr - b.passNr);
 }
 
 export const PLAYERS: Player[] = buildPlayers();

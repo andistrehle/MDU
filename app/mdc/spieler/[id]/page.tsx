@@ -149,7 +149,7 @@ export default async function SpielerProfilPage(
                 {summerSeason.label}
               </h2>
               <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
-                Zwischenstand vom {formatDate(summerSeason.asOf)}
+                Endstand vom {formatDate(summerSeason.asOf)}
               </p>
 
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(158px, 1fr))' }}>
@@ -258,10 +258,12 @@ export default async function SpielerProfilPage(
           )}
 
           <DemoNotice>
-            Platzierung, Punkte und Schnitt der Saison 2025/26 stammen aus der
-            offiziellen MDC-Auswertung. Turnierverlauf und Formkurve gehören zu
-            den Demo-Turnieren dieser Vorschau. Fotos und persönliche Angaben
-            werden bewusst nicht gezeigt — dafür liegt nichts vor.
+            Platzierung, Punkte und Schnitt stammen in beiden Wertungen aus
+            der offiziellen MDC-Auswertung — Saison 2025/26 und Sommer-Ranking.
+            Turnierverlauf und Formkurve gehören dagegen zu den Demo-Turnieren
+            dieser Vorschau; sie summieren sich nicht auf die Punkte oben.
+            Fotos und persönliche Angaben werden bewusst nicht gezeigt — dafür
+            liegt nichts vor.
           </DemoNotice>
         </div>
       </section>

@@ -58,8 +58,9 @@ export default function TurnierePage() {
 
           <div style={{ marginBottom: 22 }}>
             <DemoNotice>
-              Diese Turnierergebnisse sind Demo-Material für die Vorschau. Echt und
-              vollständig ist die Endrangliste 2025/26 unter „Rangliste“.
+              Diese Turnierergebnisse sind Demo-Material und zahlen auf keine
+              Rangliste ein. Echt sind die beiden Wertungen unter „Rangliste“:
+              der Saison-Endstand 2025/26 und der Endstand des Sommer-Rankings.
             </DemoNotice>
           </div>
 

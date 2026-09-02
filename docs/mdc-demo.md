@@ -49,32 +49,61 @@ echte Spielernamen und sind zur internen Abstimmung gedacht, nicht als
 
 ## Woher die Daten kommen
 
-Zwei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
+Drei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
 
-**Echt** ist die offizielle MDC-Endrangliste vom 27.07.2026, aus den
-Auswertungsbildern des Betreibers übertragen:
+**Echt** sind die drei Auswertungen des Betreibers:
 
-- `data/ranking-2025-26-men.ts` — Plätze 1–198 und 281–323
-- `data/ranking-2025-26-women.ts` — Plätze 1–76 (vollständig)
-- Ausschüttung (Jackpot, EZR 65 %, folgendes Turnier, Übertrag) in `data/ranking-final.ts`
+| Wertung | Stand | Dateien |
+| --- | --- | --- |
+| Endrangliste 2025/26, Männer + Frauen | 27.07.2026 | `ranking-2025-26-men.ts`, `-women.ts` |
+| Sommer-Ranking 2026, Männer + Frauen | 01.09.2026 | `ranking-sommer-2026-men.ts`, `-women.ts` |
+| Spielorte 2026/2027 | Aug. 2026 | `venues.ts` |
 
-> **Offen:** Die Männer-Plätze **199–280** liegen noch nicht vor (zwei fehlende
-> Auswertungsseiten). Sie werden in der Tabelle als Lücke ausgewiesen, statt
-> geraten zu werden. Nachtragen: Zeilen in `data/ranking-2025-26-men.ts`
-> ergänzen und `RANKING_MEN_GAP` entfernen.
+> **Offen:** Die Männer-Plätze **199–280** der Saison 2025/26 liegen noch nicht
+> vor (zwei fehlende Auswertungsseiten). Sie werden in der Tabelle als Lücke
+> ausgewiesen, statt geraten zu werden.
 
-**Demo** ist der laufende Spielbetrieb: das Sommer-Ranking 2026 mit 13
-gespielten und 10 kommenden Turnieren (`data/tournaments.generated.ts`),
-erzeugt von `scripts/mdc-generate-tournaments.mjs`.
+**Demo** sind allein die einzelnen Turniere (`tournaments.generated.ts`,
+erzeugt von `scripts/mdc-generate-tournaments.mjs`). Sie zeigen, wie
+Turnierseiten, Ergebnislisten, Meldestände und Turnierbäume aussehen —
+**sie zahlen auf keine Rangliste ein.**
+
+Der Spielerstamm entsteht aus allen vier Ranglisten-Dateien. Zusammengeführt
+wird über die Spieler-ID (Namens-Slug), nicht über die Passnummer — siehe den
+Abschnitt „Passnummern" unten.
 
 Gegen Tippfehler abgesichert: Was sich ausrechnen lässt, wird ausgerechnet und
 nicht gepflegt.
 
 - `Schnitt` = Punkte / Anzahl TN
 - `Auszahlung` = EZR-Betrag × Prozentsatz
-- Sommer-Ranking = Summe der Turnierergebnisse
-- Spielerstamm = alle Spieler beider Endranglisten
+- Spielerstamm = alle Spieler aller Ranglisten
 - Turnierpunkte = `lib/mdc/points.ts`
+
+## Passnummern: drei Auffälligkeiten
+
+Beim Abgleich der Saison-Endrangliste mit dem Sommer-Ranking sind drei Dinge
+aufgefallen. Alle drei sind in `data/parse-ranking.ts` festgehalten:
+
+**Dieselbe Person, andere Schreibweise** — zusammengeführt über
+`CANONICAL_NAMES`, sonst würde aus einem Menschen zwei:
+
+| Passnr. | Saison 2025/26 | Sommer-Ranking | übernommen |
+| --- | --- | --- | --- |
+| 53 | Schul Micky | Schul Mikky | Micky |
+| 153 | Pogremino Jimmy | Pogremno Jimmy | Pogremino |
+| 312 | Machete Reinhold | Behrend Reinhold | Behrend (echter Nachname) |
+
+**Dieselbe Passnummer, offenbar zwei verschiedene Menschen** — NICHT
+zusammengeführt, beide bleiben eigene Spieler:
+
+| Passnr. | Saison 2025/26 | Sommer-Ranking |
+| --- | --- | --- |
+| 84 | Legende Uli | Harlekin Erna |
+| 303 | Obstqi Harry | Friedl Lena |
+
+Was dort richtig ist, muss der Betreiber klären. `passNumberConflicts()` in
+`data/players.ts` listet solche Fälle auf.
 
 ## Spielorte
 

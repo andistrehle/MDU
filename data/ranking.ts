@@ -8,98 +8,47 @@
 //     getrennt nach Männern und Frauen, mit Ausschüttung.
 //     Quelle: `ranking-final.ts`.
 //
-//  2. SOMMER-RANKING 2026 — die laufende Wertung der Sommerturniere. Sie wird
-//     NICHT gepflegt, sondern aus den Turnierergebnissen aufaddiert. Ändert
-//     sich ein Ergebnis, ändert sich die Wertung automatisch mit.
+//  2. SOMMER-RANKING 2026 — der Endstand der Zwischenserie vom 01.09.2026,
+//     ebenfalls echt. Quelle: `ranking-sommer-2026-*.ts`.
 //
-// Der Trendpfeil im Sommer-Ranking entsteht ebenso ehrlich: Er vergleicht den
-// aktuellen Stand mit dem Stand vor dem jeweils letzten Spieltag.
+// BEIDE Wertungen sind gepflegte Auswertungen des Betreibers. Die Turniere in
+// `tournaments.generated.ts` sind dagegen weiterhin Demo-Material und zahlen
+// NICHT auf diese Ranglisten ein — sie zeigen nur, wie Turnierseiten,
+// Ergebnislisten und Turnierbäume aussehen.
 // ============================================================
 
-import type { Division, RankingEntry, Tournament, Trend } from './types';
-import { finishedTournaments } from './tournaments';
-import { getPlayer, PLAYERS } from './players';
+import type { Division, RankingEntry } from './types';
+import { PLAYERS, PARSED_SOMMER_MEN, PARSED_SOMMER_WOMEN } from './players';
 import { FINAL_RANKING_2025_26 } from './ranking-final';
 import { VENUES } from './venues';
 
-interface Tally {
-  points: number;
-  tournaments: number;
-  bestFinish: number;
-  wins: number;
+function toEntries(rows: typeof PARSED_SOMMER_MEN): RankingEntry[] {
+  return rows.map(row => ({
+    rank: row.rank,
+    sharedRank: row.sharedRank,
+    previousRank: null,
+    trend: row.trend,
+    playerId: row.playerId,
+    points: row.points,
+    tournaments: row.tournaments,
+    average: Math.round((row.points / row.tournaments) * 100) / 100,
+    // Beste Platzierung und Turniersiege gehen aus der Auswertung nicht
+    // hervor — hier wird nichts geraten.
+    bestFinish: 0,
+    wins: 0,
+  }));
 }
 
-function tally(tournaments: Tournament[]): Map<string, Tally> {
-  const map = new Map<string, Tally>();
-  for (const tournament of tournaments) {
-    for (const result of tournament.results) {
-      const cur = map.get(result.playerId)
-        ?? { points: 0, tournaments: 0, bestFinish: Infinity, wins: 0 };
-      map.set(result.playerId, {
-        points: cur.points + result.points,
-        tournaments: cur.tournaments + 1,
-        bestFinish: Math.min(cur.bestFinish, result.rank),
-        wins: cur.wins + (result.rank === 1 ? 1 : 0),
-      });
-    }
-  }
-  return map;
-}
+const SUMMER_BY_DIVISION: Record<Division, RankingEntry[]> = {
+  men: toEntries(PARSED_SOMMER_MEN),
+  women: toEntries(PARSED_SOMMER_WOMEN),
+};
 
-/**
- * Sortierung: Punkte, dann Schnitt, dann beste Platzierung, zuletzt der Name —
- * damit die Reihenfolge bei Gleichstand stabil und nicht zufällig ist.
- */
-function sortTallies(map: Map<string, Tally>): { playerId: string; t: Tally }[] {
-  return [...map.entries()]
-    .map(([playerId, t]) => ({ playerId, t }))
-    .sort((a, b) =>
-      b.t.points - a.t.points ||
-      b.t.points / b.t.tournaments - a.t.points / a.t.tournaments ||
-      a.t.bestFinish - b.t.bestFinish ||
-      a.playerId.localeCompare(b.playerId),
-    );
-}
-
-function trendOf(rank: number, previousRank: number | null): Trend {
-  if (previousRank === null) return 'new';
-  if (rank < previousRank) return 'up';
-  if (rank > previousRank) return 'down';
-  return 'same';
-}
-
-/** Alle Turniere außer denen des jüngsten Spieltags. */
-function beforeLastMatchday(): Tournament[] {
-  const all = finishedTournaments();
-  const latestDate = all[0]?.date;
-  return all.filter(t => t.date !== latestDate);
-}
-
-function buildSummerRanking(): RankingEntry[] {
-  const previous = new Map(
-    sortTallies(tally(beforeLastMatchday())).map((e, i) => [e.playerId, i + 1]),
-  );
-
-  return sortTallies(tally(finishedTournaments())).map((entry, index) => {
-    const rank = index + 1;
-    const previousRank = previous.get(entry.playerId) ?? null;
-    return {
-      rank,
-      sharedRank: false,
-      previousRank,
-      trend: trendOf(rank, previousRank),
-      playerId: entry.playerId,
-      points: entry.t.points,
-      tournaments: entry.t.tournaments,
-      average: Math.round((entry.t.points / entry.t.tournaments) * 100) / 100,
-      bestFinish: entry.t.bestFinish,
-      wins: entry.t.wins,
-    };
-  });
-}
-
-/** Laufende Wertung des Sommer-Rankings 2026 (Männer und Frauen gemeinsam). */
-export const SUMMER_RANKING: RankingEntry[] = buildSummerRanking();
+/** Endstand des Sommer-Rankings 2026, Männer und Frauen zusammen. */
+export const SUMMER_RANKING: RankingEntry[] = [
+  ...SUMMER_BY_DIVISION.men,
+  ...SUMMER_BY_DIVISION.women,
+].sort((a, b) => b.points - a.points);
 
 const SUMMER_BY_PLAYER = new Map(SUMMER_RANKING.map(e => [e.playerId, e]));
 
@@ -107,14 +56,9 @@ export function getSummerEntry(playerId: string): RankingEntry | undefined {
   return SUMMER_BY_PLAYER.get(playerId);
 }
 
-/**
- * Sommer-Ranking einer Wertungsklasse. Die Plätze werden neu durchgezählt —
- * gespielt wird gemeinsam, gewertet getrennt (wie am Saisonende).
- */
+/** Sommer-Ranking einer Wertungsklasse — gespielt gemeinsam, gewertet getrennt. */
 export function summerRankingOf(division: Division): RankingEntry[] {
-  return SUMMER_RANKING
-    .filter(e => getPlayer(e.playerId)?.division === division)
-    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  return SUMMER_BY_DIVISION[division];
 }
 
 /** Endrangliste 2025/26 einer Wertungsklasse. */
@@ -135,7 +79,7 @@ export interface MdcStats {
   mostAppearancesPlayerId: string | null;
   players: number;
   venues: number;
-  /** Turniere des laufenden Sommer-Rankings. */
+  /** Turniere, die das Sommer-Ranking gewertet hat (meiste Teilnahmen). */
   summerTournaments: number;
 }
 
@@ -154,7 +98,9 @@ function computeStats(): MdcStats {
     mostAppearancesPlayerId: top?.playerId ?? null,
     players: PLAYERS.length,
     venues: VENUES.length,
-    summerTournaments: finishedTournaments().length,
+    // Untergrenze: So oft war der fleißigste Spieler dabei — mehr Turniere
+    // hatte die Serie mindestens.
+    summerTournaments: Math.max(0, ...SUMMER_RANKING.map(e => e.tournaments)),
   };
 }
 
