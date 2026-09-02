@@ -59,24 +59,22 @@ export interface Player {
 export interface Venue {
   id: string;
   name: string;
+  /** Straße und Hausnummer. */
   street: string;
   zip: string;
   city: string;
-  district: string;
   /**
-   * Spieltage des Lokals. Meist einer, manche Lokale spielen mehrmals pro
-   * Woche (Ambasador: Dienstag und Freitag).
+   * Spieltage des Lokals. Meist einer; zusätzlich kann sonntags sowie
+   * freitags oder samstags in jedem Lokal gespielt werden (siehe
+   * `FLEXIBLE_RANKING_DAYS` in `venues.ts`).
    */
   weekdays: Weekday[];
   /** Startzeit „HH:MM". */
   time: string;
-  phone: string;
+  /** Kontaktnummern des Lokals — manche Lokale nennen zwei. */
+  phones: string[];
   /** Anzahl Dartautomaten. */
   boards: number;
-  /** Kurzbeschreibung fürs Karten-Layout. */
-  description: string;
-  /** Schlagworte („Boazn", „Sportsbar", …). */
-  tags: string[];
 }
 
 // ------------------------------------------------------------

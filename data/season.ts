@@ -22,11 +22,20 @@ export const SEASONS: Season[] = [
     current: false,
   },
   {
+    // Zwischenserie im Sommerloch zwischen den beiden Saisons.
     id: 'sommer-2026',
     label: 'Sommer-Ranking 2026',
     startDate: '2026-07-27',
-    endDate: '2026-08-31',
-    asOf: '2026-08-08',
+    endDate: '2026-08-30',
+    asOf: '2026-08-03',
+    current: false,
+  },
+  {
+    id: '2026-27',
+    label: '2026/27',
+    startDate: '2026-08-31',
+    endDate: '2027-07-25',
+    asOf: '2026-09-02',
     current: true,
   },
 ];
@@ -41,6 +50,9 @@ export function getCurrentSeason(): Season {
 
 /** Die abgeschlossene Saison mit der offiziellen Endrangliste. */
 export const FINAL_SEASON = SEASONS[0];
+
+/** Die Zwischenserie im Sommerloch — deren Turniere zeigt der Spielbetrieb. */
+export const SUMMER_SEASON = SEASONS[1];
 
 /**
  * Stichtag der Demo. Was davor liegt, gilt als gespielt; was danach kommt, als

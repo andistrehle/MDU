@@ -4,7 +4,7 @@ import { RankingExplorer } from '@/components/mdc/ranking-explorer';
 import { toRankingRows } from '@/lib/mdc/rows';
 import { finalRankingOf, summerRankingOf } from '@/data/ranking';
 import { PAYOUTS, RANKING_MEN_GAP } from '@/data/ranking-final';
-import { FINAL_SEASON, getCurrentSeason } from '@/data/season';
+import { FINAL_SEASON, SUMMER_SEASON } from '@/data/season';
 
 export const metadata: Metadata = {
   title: 'Rangliste',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default function RanglistePage() {
-  const summerSeason = getCurrentSeason();
+  const summerSeason = SUMMER_SEASON;
 
   return (
     <>

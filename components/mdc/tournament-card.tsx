@@ -52,7 +52,7 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
           {venue && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <MapPin size={14} />
-              {venue.district}
+              {venue.zip} {venue.city}
             </span>
           )}
         </div>

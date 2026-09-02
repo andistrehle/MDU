@@ -101,19 +101,19 @@ const PLAYER_IDS = [...new Set([
 // Gespielte Turniere des Sommer-Rankings 2026. Wochentag und Uhrzeit passen
 // jeweils zum Spieltag des Lokals in data/venues.ts.
 const FINISHED = [
-  { id: 'sr-01', nr: 1,  venueId: 'legendary',          date: '2026-07-27', time: '20:00', size: 20 },
+  { id: 'sr-01', nr: 1,  venueId: 'legendary',          date: '2026-07-27', time: '20:00', size: 18 },
   { id: 'sr-02', nr: 2,  venueId: 'harlekin',           date: '2026-07-27', time: '20:00', size: 28 },
-  { id: 'sr-03', nr: 3,  venueId: 'tonys-wirtshaus',    date: '2026-07-27', time: '20:00', size: 18 },
-  { id: 'sr-04', nr: 4,  venueId: 'rg-bar',             date: '2026-07-28', time: '19:00', size: 14 },
-  { id: 'sr-05', nr: 5,  venueId: 'fuenf-sterne-boazn', date: '2026-07-28', time: '19:00', size: 14 },
-  { id: 'sr-06', nr: 6,  venueId: 'djk-wuermtal',       date: '2026-07-29', time: '19:30', size: 30 },
-  { id: 'sr-07', nr: 7,  venueId: 'machete-1',          date: '2026-07-29', time: '19:00', size: 22 },
-  { id: 'sr-08', nr: 8,  venueId: 'siebziger',          date: '2026-07-29', time: '19:00', size: 26 },
-  { id: 'sr-09', nr: 9,  venueId: 'fiakerstueberl',     date: '2026-07-30', time: '19:30', size: 24 },
-  { id: 'sr-10', nr: 10, venueId: 'lustiger-bauer',     date: '2026-07-30', time: '20:00', size: 28 },
-  { id: 'sr-11', nr: 11, venueId: 'legendary',          date: '2026-08-03', time: '20:00', size: 22 },
+  { id: 'sr-03', nr: 3,  venueId: 'tonys-wirtshaus',    date: '2026-07-27', time: '20:00', size: 16 },
+  { id: 'sr-04', nr: 4,  venueId: 'bistro-118',         date: '2026-07-27', time: '20:00', size: 14 },
+  { id: 'sr-05', nr: 5,  venueId: 'ambasador',          date: '2026-07-28', time: '20:00', size: 30 },
+  { id: 'sr-06', nr: 6,  venueId: 'fuenf-sterne-boazn', date: '2026-07-28', time: '19:00', size: 14 },
+  { id: 'sr-07', nr: 7,  venueId: 'djk-wuermtal',       date: '2026-07-29', time: '19:30', size: 20 },
+  { id: 'sr-08', nr: 8,  venueId: 'machete-1',          date: '2026-07-29', time: '19:00', size: 18 },
+  { id: 'sr-09', nr: 9,  venueId: 'siebziger',          date: '2026-07-29', time: '19:00', size: 22 },
+  { id: 'sr-10', nr: 10, venueId: 'fiakerstueberl',     date: '2026-07-30', time: '19:30', size: 26 },
+  { id: 'sr-11', nr: 11, venueId: 'lustiger-bauer',     date: '2026-07-30', time: '20:00', size: 24 },
   { id: 'sr-12', nr: 12, venueId: 'harlekin',           date: '2026-08-03', time: '20:00', size: 20 },
-  { id: 'sr-13', nr: 13, venueId: 'tonys-wirtshaus',    date: '2026-08-03', time: '20:00', size: 18 },
+  { id: 'sr-13', nr: 13, venueId: 'legendary',          date: '2026-08-03', time: '20:00', size: 22 },
 ];
 
 // Vom Auftraggeber vorgegebene Ranglistenwerte (Punkte / gewertete Turniere).
@@ -297,21 +297,20 @@ function legsFor(rank, size) {
 // ------------------------------------------------------------
 // Kommende Turniere (Meldestand) — die Woche nach dem 08.08.2026
 // ------------------------------------------------------------
+// Kommende Termine der Saison 2026/27 (Start 31.08.2026). Wochentag und
+// Uhrzeit folgen dem festen Spieltag des jeweiligen Lokals.
 const UPCOMING = [
-  { id: 'sr-14', nr: 14, venueId: 'legendary',          date: '2026-08-10', time: '20:00', max: 24, meldungen: 14 },
-  { id: 'sr-15', nr: 15, venueId: 'harlekin',           date: '2026-08-10', time: '20:00', max: 32, meldungen: 19 },
-  { id: 'sr-16', nr: 16, venueId: 'tonys-wirtshaus',    date: '2026-08-10', time: '20:00', max: 24, meldungen: 9  },
-  { id: 'sr-17', nr: 17, venueId: 'rg-bar',             date: '2026-08-11', time: '19:00', max: 16, meldungen: 11 },
-  { id: 'sr-18', nr: 18, venueId: 'fuenf-sterne-boazn', date: '2026-08-11', time: '19:00', max: 16, meldungen: 8  },
-  { id: 'sr-19', nr: 19, venueId: 'djk-wuermtal',       date: '2026-08-12', time: '19:30', max: 32, meldungen: 21 },
-  { id: 'sr-20', nr: 20, venueId: 'machete-1',          date: '2026-08-12', time: '19:00', max: 24, meldungen: 12 },
-  { id: 'sr-21', nr: 21, venueId: 'siebziger',          date: '2026-08-12', time: '19:00', max: 32, meldungen: 17 },
-  { id: 'sr-22', nr: 22, venueId: 'fiakerstueberl',     date: '2026-08-13', time: '19:30', max: 24, meldungen: 13 },
-  { id: 'sr-23', nr: 23, venueId: 'lustiger-bauer',     date: '2026-08-13', time: '20:00', max: 24, meldungen: 15 },
-  // Ambasador (vormals Keko, davor Lumis) — neuer Spielort mit zwei
-  // Spieltagen: Dienstag und Freitag, jeweils ab 20 Uhr.
-  { id: 'sr-24', nr: 24, venueId: 'ambasador',          date: '2026-08-11', time: '20:00', max: 24, meldungen: 10 },
-  { id: 'sr-25', nr: 25, venueId: 'ambasador',          date: '2026-08-14', time: '20:00', max: 24, meldungen: 7  },
+  { id: 'sr-14', nr: 14, venueId: 'fiakerstueberl',     date: '2026-09-03', time: '19:30', max: 24, meldungen: 15 },
+  { id: 'sr-15', nr: 15, venueId: 'lustiger-bauer',     date: '2026-09-03', time: '20:00', max: 24, meldungen: 15 },
+  { id: 'sr-16', nr: 16, venueId: 'legendary',          date: '2026-09-07', time: '20:00', max: 24, meldungen: 14 },
+  { id: 'sr-17', nr: 17, venueId: 'harlekin',           date: '2026-09-07', time: '20:00', max: 32, meldungen: 19 },
+  { id: 'sr-18', nr: 18, venueId: 'bistro-118',         date: '2026-09-07', time: '20:00', max: 16, meldungen: 8  },
+  { id: 'sr-19', nr: 19, venueId: 'tonys-wirtshaus',    date: '2026-09-07', time: '20:00', max: 24, meldungen: 9  },
+  { id: 'sr-20', nr: 20, venueId: 'ambasador',          date: '2026-09-08', time: '20:00', max: 32, meldungen: 17 },
+  { id: 'sr-21', nr: 21, venueId: 'fuenf-sterne-boazn', date: '2026-09-08', time: '19:00', max: 16, meldungen: 11 },
+  { id: 'sr-22', nr: 22, venueId: 'djk-wuermtal',       date: '2026-09-09', time: '19:30', max: 24, meldungen: 13 },
+  { id: 'sr-23', nr: 23, venueId: 'machete-1',          date: '2026-09-09', time: '19:00', max: 24, meldungen: 12 },
+  { id: 'sr-24', nr: 24, venueId: 'siebziger',          date: '2026-09-09', time: '19:00', max: 32, meldungen: 16 },
 ];
 
 const bracketSizeFor = n => (n <= 8 ? 8 : n <= 16 ? 16 : 32);

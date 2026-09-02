@@ -1,171 +1,176 @@
 // ============================================================
-// MDC — Spielorte (Demo-Daten)
+// MDC — Spielorte
 // ============================================================
 //
-// Die Lokalnamen stammen aus der Münchner Kneipen-Dartszene, alle weiteren
-// Angaben (Adresse, Telefon, Automatenzahl) sind für die Demo erfunden und
-// als Platzhalter zu verstehen. Telefonnummern nutzen bewusst den
-// Blindnummern-Block 089 5555 xx, damit niemand versehentlich angerufen wird.
+// ECHTE DATEN. Quelle: Spielorte-Übersicht der MDC für die Saison 2026/2027
+// (Betreiber, Stand August 2026). Tag, Lokal, PLZ/Ort, Straße, Uhrzeit,
+// Telefon und Anzahl der Dartautomaten stehen genau so in der Vorlage.
+//
+// BEWUSST NICHT GESPEICHERT: Stadtteile, Beschreibungstexte und Schlagworte.
+// Die standen nicht in der Vorlage — sie wären erfunden. Die Oberfläche zeigt
+// stattdessen PLZ und Ort.
+//
+// TELEFONNUMMERN: Die Vorlage führt sie als Kontakt des jeweiligen Lokals.
+// Mehrere davon sind Mobilnummern; ob die alle öffentlich auf die Seite
+// dürfen, muss der Betreiber entscheiden (siehe `PHONES_PUBLIC`).
 // ============================================================
 
 import type { Venue, Weekday } from './types';
 
+/**
+ * Sollen die Telefonnummern öffentlich angezeigt werden?
+ *
+ * Die Vorlage enthält überwiegend Mobilnummern. Solange nicht geklärt ist, ob
+ * die veröffentlicht werden dürfen, bleiben sie gespeichert, aber verborgen —
+ * lieber eine Angabe zu wenig als eine private Nummer zu viel.
+ * Auf `true` stellen, sobald der Betreiber zugestimmt hat.
+ */
+export const PHONES_PUBLIC = false;
+
 export const VENUES: Venue[] = [
+  // ── Montag ────────────────────────────────────────────────
   {
     id: 'legendary',
     name: 'Legendary',
-    street: 'Sonnenstraße 12',
-    zip: '80331',
+    street: 'Kurfürstenstraße 11',
+    zip: '80799',
     city: 'München',
-    district: 'Ludwigsvorstadt',
     weekdays: [1],
     time: '20:00',
-    phone: '089 5555 01',
-    boards: 4,
-    description: 'Späte Kneipe mitten in der Stadt, vier Automaten im Nebenraum. Der Klassiker zum Wochenstart.',
-    tags: ['Sportsbar', 'Innenstadt', 'spät geöffnet'],
+    phones: ['0157 87178850'],
+    boards: 2,
   },
   {
     id: 'harlekin',
     name: 'Harlekin',
-    street: 'Rosenheimer Straße 48',
-    zip: '81669',
+    street: 'Oefelestraße 21',
+    zip: '81543',
     city: 'München',
-    district: 'Haidhausen',
     weekdays: [1],
     time: '20:00',
-    phone: '089 5555 02',
+    phones: ['089 65113113'],
     boards: 3,
-    description: 'Haidhauser Institution mit voller Bude. Hier werden die größten Felder der Serie gemeldet.',
-    tags: ['Kneipe', 'Haidhausen', 'großes Feld'],
+  },
+  {
+    id: 'bistro-118',
+    name: 'Bistro 118',
+    street: 'Drygalskiallee 118',
+    zip: '81477',
+    city: 'München',
+    weekdays: [1],
+    time: '20:00',
+    phones: ['01522 7547784'],
+    boards: 2,
   },
   {
     id: 'tonys-wirtshaus',
     name: 'Tonys Wirtshaus',
-    street: 'Dachauer Straße 176',
-    zip: '80992',
+    street: 'Arnulfstraße 130',
+    zip: '80634',
     city: 'München',
-    district: 'Moosach',
     weekdays: [1],
     time: '20:00',
-    phone: '089 5555 03',
-    boards: 3,
-    description: 'Wirtshaus mit Biergarten und eigenem Dartraum. Küche bis 22 Uhr, gespielt wird trotzdem pünktlich.',
-    tags: ['Wirtshaus', 'Biergarten', 'Küche'],
-  },
-  {
-    id: 'rg-bar',
-    name: 'RG Bar',
-    street: 'Landsberger Straße 89',
-    zip: '80339',
-    city: 'München',
-    district: 'Westend',
-    weekdays: [2],
-    time: '19:00',
-    phone: '089 5555 04',
+    phones: ['089 165341'],
     boards: 2,
-    description: 'Kleine Bar im Westend, zwei Automaten, kurze Wege zur Theke. Enge Felder, schnelle Turniere.',
-    tags: ['Bar', 'Westend', 'klein & schnell'],
   },
-  {
-    id: 'fuenf-sterne-boazn',
-    name: '5 Sterne Boazn',
-    street: 'Implerstraße 22',
-    zip: '81371',
-    city: 'München',
-    district: 'Sendling',
-    weekdays: [2],
-    time: '19:00',
-    phone: '089 5555 05',
-    boards: 2,
-    description: 'Echte Boazn mit Neonlicht und Automatenmusik. Klein, laut, legendär.',
-    tags: ['Boazn', 'Sendling', 'Kult'],
-  },
-  {
-    id: 'djk-wuermtal',
-    name: 'DJK Würmtal',
-    street: 'Am Sportplatz 3',
-    zip: '82166',
-    city: 'Gräfelfing',
-    district: 'Würmtal',
-    weekdays: [3],
-    time: '19:30',
-    phone: '089 5555 06',
-    boards: 6,
-    description: 'Vereinsheim mit sechs Automaten — der größte Spielort der Serie. Parkplätze direkt davor.',
-    tags: ['Vereinsheim', 'Würmtal', '6 Automaten'],
-  },
-  {
-    id: 'machete-1',
-    name: 'Machete 1',
-    street: 'Schleißheimer Straße 214',
-    zip: '80797',
-    city: 'München',
-    district: 'Schwabing-West',
-    weekdays: [3],
-    time: '19:00',
-    phone: '089 5555 07',
-    boards: 3,
-    description: 'Schwabinger Szeneladen, spätes Publikum. Wer im Halbfinale steht, spielt hier gern lange.',
-    tags: ['Szenebar', 'Schwabing', 'spät'],
-  },
-  {
-    id: 'siebziger',
-    name: '70er',
-    street: 'Tegernseer Landstraße 61',
-    zip: '81541',
-    city: 'München',
-    district: 'Giesing',
-    weekdays: [3],
-    time: '19:00',
-    phone: '089 5555 08',
-    boards: 4,
-    description: 'Holzvertäfelung, Röhrenradio, vier Automaten. Nostalgie pur und ein sehr starkes Stammfeld.',
-    tags: ['Kult', 'Giesing', 'Nostalgie'],
-  },
-  {
-    id: 'fiakerstueberl',
-    name: 'Fiakerstüberl',
-    street: 'Zenettistraße 9',
-    zip: '80337',
-    city: 'München',
-    district: 'Isarvorstadt',
-    weekdays: [4],
-    time: '19:30',
-    phone: '089 5555 09',
-    boards: 3,
-    description: 'Traditionsstüberl an der Isar. Kleine Karte, große Turniere, freundliche Wirtsleute.',
-    tags: ['Stüberl', 'Isarvorstadt', 'Tradition'],
-  },
-  {
-    id: 'lustiger-bauer',
-    name: 'Lustiger Bauer',
-    street: 'Fürstenrieder Straße 133',
-    zip: '80686',
-    city: 'München',
-    district: 'Laim',
-    weekdays: [4],
-    time: '20:00',
-    phone: '089 5555 10',
-    boards: 4,
-    description: 'Laimer Eckkneipe mit eigener Dartliga-Historie. Donnerstags wird es hier immer voll.',
-    tags: ['Eckkneipe', 'Laim', 'Stammpublikum'],
-  },
+
+  // ── Dienstag ──────────────────────────────────────────────
   {
     id: 'ambasador',
     name: 'Ambasador',
     street: 'Bodenseestraße 19',
     zip: '81241',
     city: 'München',
-    district: 'Pasing',
-    weekdays: [2, 5],
+    weekdays: [2],
     time: '20:00',
-    phone: '089 5555 11',
-    boards: 3,
-    description: 'Neues Zuhause der Illuminati und der Darts Vaders — vormals Keko, davor Lumis. Gespielt wird dienstags und freitags.',
-    tags: ['Sportsbar', 'Pasing', 'zwei Spieltage'],
+    phones: ['0176 80349674'],
+    boards: 4,
+  },
+  {
+    id: 'fuenf-sterne-boazn',
+    name: '5 Sterne Boazn',
+    street: 'Trappentreustraße 31',
+    zip: '80339',
+    city: 'München',
+    weekdays: [2],
+    time: '19:00',
+    phones: ['0174 4444642'],
+    boards: 2,
+  },
+
+  // ── Mittwoch ──────────────────────────────────────────────
+  {
+    id: 'djk-wuermtal',
+    name: 'DJK Würmtal',
+    street: 'Georgenstraße 35',
+    zip: '82852',
+    city: 'Planegg',
+    weekdays: [3],
+    time: '19:30',
+    phones: ['0173 3600690'],
+    boards: 2,
+  },
+  {
+    id: 'machete-1',
+    name: 'Machete 1',
+    street: 'Heimeranplatz 1',
+    zip: '80339',
+    city: 'München',
+    weekdays: [3],
+    time: '19:00',
+    phones: ['0173 3837850', '0157 76846659'],
+    boards: 2,
+  },
+  {
+    id: 'siebziger',
+    name: '70er',
+    street: 'Tegernseer Landstraße 34',
+    zip: '81541',
+    city: 'München',
+    weekdays: [3],
+    time: '19:00',
+    phones: ['0151 40001860'],
+    boards: 2,
+  },
+
+  // ── Donnerstag ────────────────────────────────────────────
+  {
+    id: 'fiakerstueberl',
+    name: 'Fiakerstüberl',
+    street: 'Zenettistraße 30',
+    zip: '80337',
+    city: 'München',
+    weekdays: [4],
+    time: '19:30',
+    phones: ['0179 5210987'],
+    boards: 4,
+  },
+  {
+    id: 'lustiger-bauer',
+    name: 'Lustiger Bauer',
+    street: 'Kantstraße 29',
+    zip: '80809',
+    city: 'München',
+    weekdays: [4],
+    time: '20:00',
+    phones: ['089 3508571'],
+    boards: 4,
   },
 ];
+
+/**
+ * Zusätzlich zu den festen Spieltagen kann an diesen Tagen in JEDEM
+ * MDC-Lokal ein Ranking stattfinden — sofern genug Leute da sind und der
+ * Wirt mitspielt. Steht so in der Spielorte-Übersicht.
+ */
+export const FLEXIBLE_RANKING_DAYS: { label: string; weekdays: Weekday[] }[] = [
+  { label: 'Sonntag', weekdays: [7] },
+  { label: 'Jeden Freitag oder Samstag', weekdays: [5, 6] },
+];
+
+/** Bedingung für die flexiblen Ranking-Tage — wörtlich aus der Vorlage. */
+export const FLEXIBLE_RANKING_NOTE =
+  'Möglich ab mindestens 4 Personen — die Wirte entscheiden.';
 
 const BY_ID = new Map(VENUES.map(v => [v.id, v]));
 

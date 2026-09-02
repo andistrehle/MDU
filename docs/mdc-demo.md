@@ -78,13 +78,37 @@ nicht gepflegt.
 
 ## Spielorte
 
-`data/venues.ts`. Ein Lokal kann mehrere Spieltage haben (`weekdays: Weekday[]`) —
-das Ambasador spielt dienstags und freitags. Die Wochenübersicht auf der
-Startseite und die Spielorte-Seite gruppieren danach automatisch.
+**Echte Daten** aus der MDC-Spielorte-Übersicht für die Saison 2026/2027
+(`data/venues.ts`). Elf Lokale mit festem Spieltag:
 
-| Lokal | Spieltag | Hinweis |
-| --- | --- | --- |
-| Ambasador, Bodenseestraße 19, 81241 München | Di & Fr, 20:00 | vormals Keko, davor Lumis; Heimat von Illuminati und Darts Vaders |
+| Tag | Lokal | Adresse | Zeit | Automaten |
+| --- | --- | --- | --- | --- |
+| Mo | Legendary | Kurfürstenstraße 11, 80799 München | 20:00 | 2 |
+| Mo | Harlekin | Oefelestraße 21, 81543 München | 20:00 | 3 |
+| Mo | Bistro 118 | Drygalskiallee 118, 81477 München | 20:00 | 2 |
+| Mo | Tonys Wirtshaus | Arnulfstraße 130, 80634 München | 20:00 | 2 |
+| Di | Ambasador | Bodenseestraße 19, 81241 München | 20:00 | 4 |
+| Di | 5 Sterne Boazn | Trappentreustraße 31, 80339 München | 19:00 | 2 |
+| Mi | DJK Würmtal | Georgenstraße 35, 82852 Planegg | 19:30 | 2 |
+| Mi | Machete 1 | Heimeranplatz 1, 80339 München | 19:00 | 2 |
+| Mi | 70er | Tegernseer Landstraße 34, 81541 München | 19:00 | 2 |
+| Do | Fiakerstüberl | Zenettistraße 30, 80337 München | 19:30 | 4 |
+| Do | Lustiger Bauer | Kantstraße 29, 80809 München | 20:00 | 4 |
+
+Zusätzlich kann **sonntags sowie freitags oder samstags in jedem MDC-Lokal**
+ein Ranking stattfinden — ab mindestens vier Personen, die Wirte entscheiden
+(`FLEXIBLE_RANKING_DAYS`, angezeigt auf der Spielorte-Seite).
+
+Ein Lokal kann mehrere Spieltage haben (`weekdays: Weekday[]`); zurzeit hat
+jedes genau einen.
+
+> **Offen: Telefonnummern.** Die Vorlage nennt für jedes Lokal eine Nummer,
+> überwiegend Mobilnummern. Sie sind gespeichert, werden aber **nicht
+> angezeigt** — `PHONES_PUBLIC = false` in `data/venues.ts`. Auf `true`
+> stellen, sobald geklärt ist, dass sie öffentlich stehen dürfen.
+
+Nicht gespeichert, weil nicht in der Vorlage: Stadtteile, Beschreibungstexte,
+Schlagworte. Die wären erfunden.
 
 ## Punkteschlüssel
 

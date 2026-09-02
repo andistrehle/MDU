@@ -12,7 +12,7 @@ import { getSummerEntry } from '@/data/ranking';
 import { tournamentsOfPlayer } from '@/data/tournaments';
 import { getVenue } from '@/data/venues';
 import { formatAverage, formatDate, formatNumber } from '@/lib/mdc/format';
-import { FINAL_SEASON, getCurrentSeason } from '@/data/season';
+import { FINAL_SEASON, SUMMER_SEASON } from '@/data/season';
 
 export function generateStaticParams() {
   return PLAYERS.map(player => ({ id: player.id }));
@@ -57,7 +57,7 @@ export default async function SpielerProfilPage(
   const final = getFinalEntry(player.id);
   const summer = getSummerEntry(player.id);
   const history = tournamentsOfPlayer(player.id);
-  const summerSeason = getCurrentSeason();
+  const summerSeason = SUMMER_SEASON;
 
   // Lieblingslokal: das Lokal, in dem am häufigsten gespielt wurde. Kommt der
   // Nachname aus einem Lokalnamen, gilt dieses als Stammlokal.

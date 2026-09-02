@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { PageHero, SectionHeading } from '@/components/mdc/ui';
 import { VenueCard } from '@/components/mdc/venue-card';
-import { VENUES, venuesByWeekday, WEEKDAY_NAMES } from '@/data/venues';
+import {
+  FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE, VENUES,
+  venuesByWeekday, WEEKDAY_NAMES,
+} from '@/data/venues';
 
 export const metadata: Metadata = {
   title: 'Spielorte',
@@ -23,6 +26,21 @@ export default function SpielortePage() {
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 44 }}>
+          {/* Zusätzlich zu den festen Spieltagen: An diesen Tagen kann in jedem
+              MDC-Lokal gespielt werden, wenn genug Leute da sind. */}
+          <div className="mdc-card mdc-card-accent" style={{ padding: '22px 20px' }}>
+            <h2 className="mdc-display mdc-h3">Ranking in allen Lokalen möglich</h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+              {FLEXIBLE_RANKING_DAYS.map(day => (
+                <span key={day.label} className="mdc-chip mdc-chip-red">{day.label}</span>
+              ))}
+            </div>
+            <p style={{ marginTop: 14, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
+              {FLEXIBLE_RANKING_NOTE} An den Tagen unten gibt es feste Termine —
+              an diesen zusätzlich, wenn sich genug Leute finden.
+            </p>
+          </div>
+
           {byDay.map(day => (
             <div key={day.weekday}>
               <SectionHeading

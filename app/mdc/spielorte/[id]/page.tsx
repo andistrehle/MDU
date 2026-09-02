@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, MapPin, Phone, Target } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { TournamentCard } from '@/components/mdc/tournament-card';
-import { VENUES, getVenue, venueMapsUrl, venueWeekdayLabel } from '@/data/venues';
+import {
+  PHONES_PUBLIC, VENUES, getVenue, venueMapsUrl, venueWeekdayLabel,
+} from '@/data/venues';
 import { tournamentsAtVenue } from '@/data/tournaments';
 import { formatTime } from '@/lib/mdc/format';
 
@@ -20,7 +22,7 @@ export async function generateMetadata(
   if (!venue) return { title: 'Spielort' };
   return {
     title: venue.name,
-    description: `MDC-Spielort ${venue.name} in ${venue.district}: ${venueWeekdayLabel(venue)} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
+    description: `MDC-Spielort ${venue.name} in ${venue.zip} ${venue.city}: ${venueWeekdayLabel(venue)} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
   };
 }
 
@@ -49,17 +51,13 @@ export default async function SpielortDetailPage(
             Alle Spielorte
           </Link>
 
-          <span className="mdc-kicker">{venue.district}</span>
+          <span className="mdc-kicker">{venue.zip} {venue.city}</span>
           <h1 className="mdc-display mdc-h2" style={{ marginTop: 12 }}>{venue.name}</h1>
-          <p className="mdc-lead" style={{ marginTop: 14, maxWidth: 640 }}>{venue.description}</p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>
             <span className="mdc-chip mdc-chip-red">
               {venueWeekdayLabel(venue)} · {formatTime(venue.time)}
             </span>
-            {venue.tags.map(tag => (
-              <span key={tag} className="mdc-chip">{tag}</span>
-            ))}
           </div>
         </div>
       </section>
@@ -89,13 +87,21 @@ export default async function SpielortDetailPage(
             <div className="mdc-card" style={{ padding: '20px' }}>
               <Phone size={19} style={{ color: 'var(--mdc-red)' }} />
               <h2 className="mdc-display" style={{ fontSize: '1.05rem', marginTop: 10 }}>Kontakt</h2>
-              <p className="mdc-num" style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.95rem' }}>
-                {venue.phone}
-              </p>
-              <p style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.55 }}>
-                Platzhalternummer für diese Vorschau — die echten Nummern kommen
-                vom Betreiber.
-              </p>
+              {PHONES_PUBLIC ? (
+                <ul style={{ marginTop: 7 }}>
+                  {venue.phones.map(phone => (
+                    <li key={phone} className="mdc-num" style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.95rem' }}>
+                      <a href={`tel:${phone.replace(/\s/g, '')}`}>{phone}</a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ marginTop: 7, fontSize: '0.88rem', color: 'var(--mdc-ink-soft)', lineHeight: 1.6 }}>
+                  Die Nummern des Lokals liegen vor, sind aber noch nicht
+                  freigegeben — überwiegend Mobilnummern. Der Betreiber
+                  entscheidet, ob sie öffentlich stehen.
+                </p>
+              )}
             </div>
 
             <div className="mdc-card" style={{ padding: '20px' }}>
