@@ -29,9 +29,12 @@ interface SiteHeaderProps {
   /** Kurztext fürs nächste Ranking-Turnier, z. B. „Mo, 10.08. · Legendary". */
   nextRankingLabel: string;
   nextRankingHref: string;
+  /** Originaldateien, falls hinterlegt — sonst greift die Zeichnung. */
+  logo?: string | null;
+  thrower?: string | null;
 }
 
-export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProps) {
+export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }: SiteHeaderProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -52,11 +55,11 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
       <header className="mdc-header mdc-glass">
         <div className="mdc-shell mdc-header-inner">
           <Link href="/mdc" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <MdcMark size={40} />
+            <MdcMark size={40} src={logo} />
             <MdcWordmark />
           </Link>
 
-          <MdcThrower className="mdc-header-figure" size={34} />
+          <MdcThrower className="mdc-header-figure" size={34} src={thrower} />
 
           <nav className="mdc-nav" aria-label="Hauptnavigation">
             {NAV.map(item => (
@@ -115,7 +118,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref }: SiteHeaderProp
       {menuOpen && createPortal((
         <div className="mdc-mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-            <MdcMark size={40} />
+            <MdcMark size={40} src={logo} />
             <button
               type="button"
               className="mdc-burger"

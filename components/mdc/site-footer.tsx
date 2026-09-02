@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 import { MdcMark } from './logo';
 import { getCurrentSeason } from '@/data/season';
+import { VENUES } from '@/data/venues';
 import { formatDate } from '@/lib/mdc/format';
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
@@ -40,7 +41,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ logo }: { logo?: string | null }) {
   const season = getCurrentSeason();
 
   return (
@@ -54,10 +55,11 @@ export function SiteFooter() {
           }}
         >
           <div style={{ minWidth: 220 }}>
-            <MdcMark size={52} />
+            <MdcMark size={104} withText src={logo} />
             <p style={{ marginTop: 16, color: '#C9D6EA', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: 300 }}>
-              Münchens Ranking-Serie für Einzelspieler. Gespielt wird in zehn
-              Lokalen quer durch die Stadt — mehrmals pro Woche, das ganze Jahr.
+              Münchens Ranking-Serie für Einzelspieler. Gespielt wird in{' '}
+              {VENUES.length} Lokalen quer durch die Stadt — mehrmals pro Woche,
+              das ganze Jahr.
             </p>
             <p style={{ marginTop: 14, fontSize: '0.78rem', color: '#8FA3C4' }}>
               Stand: {formatDate(season.asOf)}
@@ -132,7 +134,7 @@ export function SiteFooter() {
             color: '#8FA3C4',
           }}
         >
-          <span>© {new Date(season.endDate).getUTCFullYear()} Munich Darts Challenge</span>
+          <span>© {season.asOf.slice(0, 4)} Munich Darts Challenge</span>
           <span>Demo-Fassung — Inhalte und Rechtstexte sind Platzhalter.</span>
         </div>
       </div>

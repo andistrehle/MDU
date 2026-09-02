@@ -18,6 +18,7 @@ import { SiteFooter } from '@/components/mdc/site-footer';
 import { nextTournament } from '@/data/tournaments';
 import { getVenue } from '@/data/venues';
 import { formatDateShort } from '@/lib/mdc/format';
+import { logoSrc, throwerSrc } from '@/lib/mdc/brand';
 
 export const metadata: Metadata = {
   title: {
@@ -42,9 +43,11 @@ export default function MdcLayout({ children }: { children: React.ReactNode }) {
       <SiteHeader
         nextRankingLabel={nextLabel}
         nextRankingHref={next ? `/mdc/turniere/${next.id}` : '/mdc/turniere'}
+        logo={logoSrc()}
+        thrower={throwerSrc()}
       />
       <main>{children}</main>
-      <SiteFooter />
+      <SiteFooter logo={logoSrc()} />
     </div>
   );
 }

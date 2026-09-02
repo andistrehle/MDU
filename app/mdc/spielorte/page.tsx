@@ -9,7 +9,7 @@ import {
 export const metadata: Metadata = {
   title: 'Spielorte',
   description:
-    'Die zehn Spielorte der Munich Darts Challenge — mit Spieltag, Startzeit, Adresse und Anzahl der Dartautomaten.',
+    'Die Spielorte der Munich Darts Challenge — mit Spieltag, Startzeit, Adresse und Anzahl der Dartautomaten.',
 };
 
 export default function SpielortePage() {
@@ -21,7 +21,7 @@ export default function SpielortePage() {
       <PageHero
         kicker="Wo gespielt wird"
         title="Spielorte"
-        description={`Zehn Lokale von Giesing bis ins Würmtal, zusammen ${boards} Dartautomaten. Jeder Spielort hat seinen festen Wochentag — wer weiß, wo Montag gespielt wird, braucht keinen Kalender.`}
+        description={`${VENUES.length} Lokale in München und im Würmtal, zusammen ${boards} Dartautomaten. Jeder Spielort hat seinen festen Wochentag — wer weiß, wo Montag gespielt wird, braucht keinen Kalender.`}
       />
 
       <section className="mdc-section">
