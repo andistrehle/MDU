@@ -29,6 +29,17 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
+  // ── Munich Darts Challenge (`/mdc`) ──
+  // Eigenständiges Projekt: Weder der Coming-Soon-Schalter der MDU noch ihr
+  // Anmelde-Guard dürfen dort greifen. Sonst würde ein MDU-Wartungsmodus die
+  // MDC gleich mit abschalten — und `/mdc/admin` fiele unter den Guard für
+  // `/admin`, obwohl es damit nichts zu tun hat.
+  // Die Sicherheits-Header bekommt die MDC weiterhin; die gelten für jede
+  // Seite, die von hier ausgeliefert wird.
+  if (pathname === '/mdc' || pathname.startsWith('/mdc/')) {
+    return withSecurityHeaders(NextResponse.next());
+  }
+
   // ── Coming-Soon-/Wartungsmodus (lib/site-config.ts) ──
   // Bei aktivem COMING_SOON wird JEDER Aufruf auf die Holding-Seite
   // umgeschrieben. Ausnahme: eine Vorschau-Sitzung (Cookie), damit man sich

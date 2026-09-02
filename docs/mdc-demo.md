@@ -10,25 +10,77 @@ Einstieg: **`/mdc`**
 
 ## Warum unter `/mdc` und nicht unter `/`
 
-Die MDC soll später eine eigene Domain bekommen. Für die Abstimmung mit dem
-Betreiber läuft sie vorerst als Unterpfad derselben Next.js-Anwendung — das
-spart ein zweites Deployment. Der Umzug ist vorbereitet: Alles, was zur MDC
-gehört, liegt in vier Ordnern (`app/mdc`, `components/mdc`, `data`, `lib/mdc`)
-und greift auf nichts aus dem MDU-Teil zu.
+Die MDC bekommt eine eigene Homepage mit eigener Domain; beide Seiten
+verlinken dann aufeinander. Bis dahin läuft sie als Unterpfad derselben
+Next.js-Anwendung — das spart ein zweites Deployment.
 
 Zwei Stellen sind dadurch anders als in der Aufgabenstellung beschrieben:
 
-| Aufgabenstellung | Hier                | Grund                                   |
-| ---------------- | ------------------- | --------------------------------------- |
-| `/admin`         | `/mdc/admin`        | `/admin` gehört zur MDU-Verwaltung       |
-| eigene Domain    | Unterpfad `/mdc`    | eine Anwendung, ein Deployment           |
+| Aufgabenstellung | Hier | Grund |
+| --- | --- | --- |
+| `/admin` | `/mdc/admin` | `/admin` gehört zur MDU-Verwaltung |
+| eigene Domain | Unterpfad `/mdc` | eine Anwendung, ein Deployment |
 
-Die MDU-Oberflächenelemente (Bottom-Nav, Demo-Tour, Analytics) blenden sich
-unter `/mdc` selbst aus — siehe `components/mdu/global-chrome.tsx`.
+## Was von der MDU getrennt ist — und was noch nicht
 
-Die MDC-Seiten sind auf **noindex** gesetzt (`app/mdc/layout.tsx`). Sie zeigen
-echte Spielernamen und sind zur internen Abstimmung gedacht, nicht als
-öffentliche Seite.
+**Getrennt:**
+
+- **Datenschicht.** Kein einziger MDC-Baustein importiert etwas aus dem
+  MDU-Teil. Nachprüfbar:
+  `grep -rn "from '@/lib/data" app/mdc components/mdc data lib/mdc` → leer.
+- **Anmeldung.** Der MDU-Anmeldekontext wird auf MDC-Seiten nicht mehr
+  eingehängt (`components/mdu/app-providers.tsx`). Vorher baute er dort beim
+  Seitenaufruf eine Verbindung zur MDU-Supabase auf — eine Abfrage an ein
+  fremdes Konto-System, die niemand braucht.
+- **Oberflächenelemente.** Bottom-Nav, Demo-Tour und Analytics der MDU
+  blenden sich unter `/mdc` aus (`components/mdu/global-chrome.tsx`).
+- **Middleware.** `/mdc` läuft an Coming-Soon-Schalter und Anmelde-Guard der
+  MDU vorbei (`proxy.ts`). Sonst hätte ein MDU-Wartungsmodus die MDC gleich
+  mit abgeschaltet, und `/mdc/admin` wäre unter den Guard für `/admin`
+  gefallen. Die Sicherheits-Header gelten weiterhin.
+- **Suchmaschinen.** `/mdc` ist auf noindex gesetzt und in der robots.txt
+  gesperrt.
+
+**Noch nicht getrennt** — beides verschwindet beim Umzug in ein eigenes
+Repo von selbst, deshalb hier bewusst nicht angefasst:
+
+- **Gemeinsames Grundgerüst.** `app/layout.tsx` und `app/globals.css` (836
+  Zeilen MDU-Design) laden auf MDC-Seiten mit. Die MDC hält mit eigenen
+  Regeln unter `.mdc-root` dagegen. Sauber trennen ließe sich das nur, indem
+  alle MDU-Routen in eine Route-Gruppe wandern — ein Eingriff in jede Seite
+  der Live-MDU, dessen Ergebnis beim Umzug ohnehin weggeworfen würde.
+- **Gemeinsames JS-Bündel.** Der Anmeldecode läuft auf MDC-Seiten nicht mehr,
+  wird aber weiterhin geladen: vier Bündel, zusammen rund 630 KB ungepackt.
+  Herausbekommen ließe er sich über einen dynamischen Import — der birgt
+  aber das Risiko, dass MDU-Seiten beim ersten Rendern kurz ohne
+  Anmeldekontext dastehen. Das Risiko lohnt für einen Vorteil nicht, der
+  beim Umzug gratis kommt.
+
+## Umzug in ein eigenes Repo
+
+Alles Nötige liegt in fünf Ordnern und ist dann nur noch Kopieren:
+
+```
+app/mdc  →  app/          components/mdc  →  components/
+data/    →  data/         lib/mdc         →  lib/
+public/mdc → public/
+```
+
+Dazu neu: eigenes `app/layout.tsx` (Schriften direkt laden), eigenes
+`globals.css` mit nur den MDC-Tokens (die `:has`-Behelfe fallen ersatzlos
+weg), schlanke Middleware nur für Sicherheits-Header, eigene `robots.ts`.
+Im MDU-Repo: die fünf Ordner löschen, `GlobalChrome` und `AppProviders`
+zurückbauen, die MDC-Weiche aus `proxy.ts` entfernen, im Footer auf die neue
+Domain zeigen.
+
+**Konten später verknüpfen:** Dass ein MDU-Spieler sich einmal mit beiden
+Konten anmelden können soll, spricht nicht gegen die Trennung — im
+Gegenteil. Zwei Systeme mit einer Verknüpfungstabelle dazwischen ist der
+übliche Aufbau. Die Voraussetzung dafür ist schon da: Jeder MDC-Spieler hat
+eine stabile Kennung (Spieler-ID plus MDC-Passnummer), an der eine
+Verknüpfung andocken kann. Vorher zu klären sind die beiden doppelt
+vergebenen Passnummern (84 und 303) — genau solche Fälle machen beim
+Verknüpfen Ärger.
 
 ## Seiten
 

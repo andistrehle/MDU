@@ -3,7 +3,7 @@ import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { GlobalChrome } from '@/components/mdu/global-chrome';
-import { AuthProvider } from '@/lib/auth/auth-context';
+import { AppProviders } from '@/components/mdu/app-providers';
 import { SITE_INDEXABLE } from '@/lib/site-config';
 
 const sairaCondensed = Saira_Condensed({
@@ -87,12 +87,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: "try{var t=null;try{t=localStorage.getItem('mdu-theme')}catch(e){}if(t!=='dark'&&t!=='light'){var m=document.cookie.match(/(?:^|;\\s*)mdu-theme=([^;]*)/);t=m?m[1]:null}if(t!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
           }}
         />
-        <AuthProvider>
+        <AppProviders>
           {children}
           {/* Bottom-Nav, Demo-Tour und Analytics gehören zur MDU-Seite und
               blenden sich unter /mdc (Munich Dart Challenge) selbst aus. */}
           <GlobalChrome />
-        </AuthProvider>
+        </AppProviders>
         {/* Vercel Web Analytics: cookielose, anonyme Seitenaufrufe. Erfasst erst,
             wenn im Vercel-Dashboard „Web Analytics" aktiviert ist. */}
         <Analytics />
