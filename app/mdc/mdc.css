@@ -642,18 +642,37 @@ body:has(.mdc-root) {
   }
 }
 
-/* Am Handy ist neben der Schrift kein Platz — eine halbdurchsichtige Scheibe
-   hinter dem Text wäre matschig und würde die Lesbarkeit kosten. Deshalb
-   steht das Foto dort nicht hinter, sondern über dem Text: rechts angesetzt,
-   ein Stück über den Bildschirmrand hinaus. */
+/* Am Handy liegt das Foto hinter der Schrift — wie auf der MDU-Startseite.
+   Damit das trägt, wird der weiße Schleier links deutlich kräftiger: Er hellt
+   das Foto genau dort auf, wo Text darüber steht, und lässt es erst zum
+   rechten Rand hin voll durch. Die Kontrastwerte sind nachgemessen, siehe
+   Commit-Nachricht. */
 @media (max-width: 900px) {
   .mdc-hero-photo {
-    position: static;
-    transform: none;
-    width: 54vw;
-    /* Der Innenrahmen darunter bringt schon Luft mit — die wird hier
-       zurückgenommen, sonst klafft eine Lücke zwischen Scheibe und Schrift. */
-    margin: 0 -12% -34px auto;
+    /* Höher als mittig, damit die Scheibe hinter dem Schriftzug sitzt und die
+       Kennzahlenzeile darunter auf freiem Grund steht. Der feste Deckel greift
+       auf Tablets: Dort ist die Bühne breit, die Zeile läuft weit nach rechts
+       und geriete sonst doch unter die Scheibe. */
+    top: 36%;
+    right: -24%;
+    width: min(480px, 100vw);
+  }
+  .mdc-hero::before {
+    background: linear-gradient(
+      104deg,
+      #FFFFFF 0%,
+      rgba(255, 255, 255, 0.97) 45%,
+      rgba(255, 255, 255, 0.90) 70%,
+      rgba(255, 255, 255, 0.68) 88%,
+      rgba(255, 255, 255, 0.40) 100%
+    );
+  }
+  /* Die Zeilen enden vor dem rechten Fünftel. Dort darf das Foto kräftig
+     bleiben, ohne dass Text darüber steht — sonst müsste der Schleier so
+     stark sein, dass von der Scheibe nichts übrig bleibt. */
+  .mdc-hero h1,
+  .mdc-hero .mdc-shell > p {
+    max-width: 80%;
   }
 }
 
