@@ -11,6 +11,8 @@
 // Am Handy fallen die Nebenspalten weg (`mdc-hide-narrow`) und ihr Inhalt
 // rückt als kleine Zeile unter den Namen. Seitliches Schieben gibt es nicht:
 // Man sähe immer nur einen Ausschnitt, und die Wischgeste stört das Scrollen.
+// Die eine verbleibende Zahlenspalte folgt der Sortierung — wer nach
+// Teilnahmen sortiert, sieht dort die Teilnahmen (siehe NARROW_COLUMN).
 // Die Zeilen bekommt die Komponente fertig vom Server; sie zieht sich keine
 // Spielerdaten selbst, damit nicht der halbe Stamm im Browser landet.
 // ============================================================
@@ -45,6 +47,19 @@ const SORT_LABEL: Record<SortKey, string> = {
   points: 'Punkte',
   average: 'Schnitt',
   tournaments: 'Anzahl TN',
+};
+
+/**
+ * Am Handy bleibt neben Platz und Name nur eine Zahlenspalte übrig. Welche das
+ * ist, richtet sich nach der Sortierung: Wer nach Teilnahmen sortiert, will
+ * die Teilnahmen sehen und nicht die Punkte. Was dadurch aus der Spalte
+ * fällt, steht weiterhin in der kleinen Zeile unter dem Namen.
+ */
+const NARROW_COLUMN: Record<SortKey, { label: string; value: (row: RankingRow) => string }> = {
+  rank:        { label: 'Punkte',    value: row => formatNumber(row.points) },
+  points:      { label: 'Punkte',    value: row => formatNumber(row.points) },
+  tournaments: { label: 'Anzahl TN', value: row => String(row.tournaments) },
+  average:     { label: 'Schnitt',   value: row => formatAverage(row.average) },
 };
 
 const EURO = (value: number) =>
@@ -169,7 +184,10 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
               <th>Name</th>
               <th className="mdc-hide-narrow">Vorname</th>
               <th className="mdc-td-num mdc-hide-narrow">Anzahl TN</th>
-              <th className="mdc-td-num">Punkte</th>
+              <th className="mdc-td-num">
+                <span className="mdc-hide-narrow">Punkte</span>
+                <span className="mdc-narrow-only">{NARROW_COLUMN[sort].label}</span>
+              </th>
               <th className="mdc-td-num mdc-hide-narrow">Schnitt</th>
               {showPayout && <th className="mdc-td-num mdc-hide-narrow">%</th>}
               {showPayout && <th className="mdc-td-num mdc-hide-narrow">Auszahlung</th>}
@@ -184,6 +202,7 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
                 showGapBefore={index === showGapAt}
                 gap={gap}
                 colSpan={showPayout ? 10 : 8}
+                sort={sort}
               />
             ))}
             {visible.length === 0 && (
@@ -204,15 +223,26 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
 }
 
 function RowGroup({
-  row, showPayout, showGapBefore, gap, colSpan,
+  row, showPayout, showGapBefore, gap, colSpan, sort,
 }: {
   row: RankingRow;
   showPayout: boolean;
   showGapBefore: boolean;
   gap?: { from: number; to: number };
   colSpan: number;
+  sort: SortKey;
 }) {
   const podium = row.rank <= 3 ? `mdc-row-${row.rank}` : '';
+
+  // Was am Handy nicht in der Zahlenspalte steht, steht unter dem Namen.
+  const meta = [
+    `Nr. ${row.passNr}`,
+    sort === 'tournaments' ? null : `${row.tournaments} TN`,
+    sort === 'average' ? null : `Ø ${formatAverage(row.average)}`,
+    sort === 'tournaments' || sort === 'average' ? `${formatNumber(row.points)} Punkte` : null,
+    showPayout && row.payoutEuro ? `${formatAverage(row.payoutPercent ?? 0)} %` : null,
+    showPayout && row.payoutEuro ? EURO(row.payoutEuro) : null,
+  ].filter(Boolean).join(' · ');
 
   return (
     <>
@@ -247,12 +277,7 @@ function RowGroup({
           {row.nickname && (
             <span className="mdc-narrow-only" style={{ color: 'var(--mdc-ink-dim)' }}> „{row.nickname}“</span>
           )}
-          <span className="mdc-narrow-only mdc-row-meta">
-            Nr. {row.passNr} · {row.tournaments} TN · Ø {formatAverage(row.average)}
-            {showPayout && row.payoutEuro
-              ? ` · ${formatAverage(row.payoutPercent ?? 0)} % · ${EURO(row.payoutEuro)}`
-              : ''}
-          </span>
+          <span className="mdc-narrow-only mdc-row-meta">{meta}</span>
         </td>
         <td className="mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
           {row.firstName}
@@ -262,7 +287,8 @@ function RowGroup({
         </td>
         <td className="mdc-td-num mdc-num mdc-hide-narrow">{row.tournaments}</td>
         <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>
-          {formatNumber(row.points)}
+          <span className="mdc-hide-narrow">{formatNumber(row.points)}</span>
+          <span className="mdc-narrow-only">{NARROW_COLUMN[sort].value(row)}</span>
         </td>
         <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
           {formatAverage(row.average)}
