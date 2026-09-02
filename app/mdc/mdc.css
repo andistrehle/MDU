@@ -606,6 +606,37 @@ body:has(.mdc-root) {
   }
 }
 
+/* Bühnenfoto statt gezeichneter Scheibe. Sitzt rechts, ragt bewusst über
+   den Inhaltsrand hinaus und wird zum Rand hin weich ausgeblendet — so
+   schneidet keine harte Kante ins Weiß. Der Verlauf aus `.mdc-hero::before`
+   sorgt links weiterhin für ruhigen Grund unter der Schrift. */
+.mdc-hero-photo {
+  position: absolute;
+  right: max(0px, calc((100vw - 1240px) / 2 - 60px));
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(860px, 64vw);
+  aspect-ratio: 16 / 9;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle closest-side at 62% 50%, #000 0%, #000 58%, transparent 88%);
+  mask-image: radial-gradient(circle closest-side at 62% 50%, #000 0%, #000 58%, transparent 88%);
+}
+.mdc-hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 50%;
+}
+@media (max-width: 900px) {
+  .mdc-hero-photo {
+    right: -22%;
+    top: 4%;
+    transform: none;
+    width: 118vw;
+    opacity: 0.5;
+  }
+}
+
 /* ------------------------------------------------------------
    Bewegung
    ------------------------------------------------------------ */

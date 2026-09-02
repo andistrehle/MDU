@@ -3,6 +3,7 @@
 // ============================================================
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight, Building2, CalendarClock, Crown, MapPin, Target,
   Trophy, Users,
@@ -17,6 +18,7 @@ import { finishedTournaments, tournamentsThisWeek } from '@/data/tournaments';
 import { getVenue, VENUES, venueAddress } from '@/data/venues';
 import { FINAL_SEASON } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
+import { heroSrc } from '@/lib/mdc/brand';
 
 const STEPS = [
   {
@@ -42,6 +44,9 @@ const STEPS = [
 ];
 
 export default function MdcHomePage() {
+  // Liegt ein Bühnenfoto unter `public/mdc/` (siehe lib/mdc/brand.ts), tritt
+  // die gezeichnete Dartscheibe dafür zurück.
+  const hero = heroSrc();
   const menTop = finalRankingOf('men').slice(0, 8);
   const womenTop = finalRankingOf('women').slice(0, 5);
   const leader = MDC_STATS.leaderId ? getPlayer(MDC_STATS.leaderId) : undefined;
@@ -56,7 +61,20 @@ export default function MdcHomePage() {
     <>
       {/* ── Bühne ── */}
       <section className="mdc-hero">
-        <Dartboard className="mdc-hero-board mdc-spin-slow" tone="brand" />
+        {hero ? (
+          <div className="mdc-hero-photo" aria-hidden>
+            <Image
+              src={hero.src}
+              alt=""
+              width={hero.width}
+              height={hero.height}
+              priority
+              sizes="(max-width: 900px) 120vw, 62vw"
+            />
+          </div>
+        ) : (
+          <Dartboard className="mdc-hero-board mdc-spin-slow" tone="brand" />
+        )}
         <div
           className="mdc-shell"
           style={{ position: 'relative', zIndex: 2, paddingBlock: 'clamp(56px, 10vw, 112px)' }}

@@ -75,6 +75,15 @@ export function skylineSrc(): BrandImage | null {
   return findInPublic(['skyline.svg', 'skyline.png']);
 }
 
+/**
+ * Hintergrundfoto für die Bühne der Startseite.
+ * `public/mdc/hero.webp` (oder .jpg/.png/.avif). Ohne Datei zeichnet die
+ * Seite ihre eigene Dartscheibe.
+ */
+export function heroSrc(): BrandImage | null {
+  return findInPublic(['hero.webp', 'hero.jpg', 'hero.jpeg', 'hero.png', 'hero.avif']);
+}
+
 /** Nur der Dartwerfer, falls er einzeln vorliegt. */
 export function throwerSrc(): BrandImage | null {
   return findInPublic(['werfer.svg', 'werfer.png', 'thrower.svg']);
