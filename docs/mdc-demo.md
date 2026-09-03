@@ -118,6 +118,24 @@ Drei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
 > vor (zwei fehlende Auswertungsseiten). Sie werden in der Tabelle als Lücke
 > ausgewiesen, statt geraten zu werden.
 
+Nachgezählt, mit geteilten Plätzen verrechnet (punktgleiche Spieler teilen den
+Platz, die nächste Nummer überspringt die Gruppe — eine fehlende Platznummer
+ist deshalb nicht automatisch eine Lücke):
+
+| Auswertung | Zeilen | letzter Platz | Lücke |
+| --- | --- | --- | --- |
+| Endrangliste Männer 2025/26 | 241 | 317 | **82 Plätze: 199–280** |
+| Endrangliste Frauen 2025/26 | 76 | 76 | lückenlos |
+| Sommer-Ranking Männer 2026 | 54 | 53 | lückenlos |
+| Sommer-Ranking Frauen 2026 | 14 | 14 | lückenlos |
+
+Diese eine Lücke ist auch der Grund, warum im Spielerstamm Passnummern
+fehlen: 82 Männer, die 2025/26 gespielt haben, stehen in keiner Datei. Kommen
+die beiden Seiten nach, lösen sie voraussichtlich die offenen Nummern aus den
+Ergebnislisten der neuen Saison mit auf — jedenfalls die männlichen. Bei den
+Frauen hilft das nicht: Deren Endrangliste ist vollständig, eine dort
+fehlende Nummer war letzte Saison also nicht dabei.
+
 **Demo** sind allein die einzelnen Turniere (`tournaments.generated.ts`,
 erzeugt von `scripts/mdc-generate-tournaments.mjs`). Sie zeigen, wie
 Turnierseiten, Ergebnislisten, Meldestände und Turnierbäume aussehen —

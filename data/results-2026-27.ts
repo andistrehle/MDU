@@ -42,10 +42,17 @@
 //
 // ── Was noch zu bestätigen ist (`unsure: true`) ──────────────
 //
-// Drei Nummern stehen im Stamm nicht. Das muss kein Lesefehler sein: Der
-// Stamm enthält nur Spieler, die 2025/26 oder im Sommer 2026 Punkte geholt
-// haben — wer letzte Saison nicht dabei war, fehlt dort zwangsläufig.
-// Solange es nicht geklärt ist, laufen diese drei als eigene, neue Spieler.
+// Fünf Nummern stehen im Stamm nicht. Das muss kein Lesefehler sein, und
+// dafür gibt es einen konkreten Grund: In der Männer-Endrangliste 2025/26
+// fehlen die Plätze 199–280 — 82 Spieler, die gespielt haben und in keiner
+// Datei stehen (nachgezählt, siehe `docs/mdc-demo.md`). Genau dort dürften
+// die männlichen der offenen Nummern zu finden sein.
+//
+// Bei den Frauen greift die Erklärung nicht: Deren Endrangliste ist
+// lückenlos, ebenso beide Sommer-Ranglisten. Eine dort fehlende Nummer war
+// letzte Saison also wirklich nicht dabei.
+//
+// Solange es nicht geklärt ist, laufen diese Zeilen als eigene, neue Spieler.
 // Sie holen sich damit keine Punkte, die jemand anderem gehören.
 //
 //   156  „Thomas Schmid"  — im Stamm ist 156 nicht belegt
