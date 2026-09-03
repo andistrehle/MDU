@@ -36,6 +36,7 @@
 //      427 → 428   „Enrico"  (427 ist Johannes Schmidt, 428 Enrico Skarupski)
 //      337 → 338   „Chris"   (337 ist Alexander Bloms, 338 Chris Schmidt)
 //      412 → 482   „Klausi"  (482 ist „Klausi 5Sterne" — im eigenen Lokal)
+//      650 → 550   „Sandy"   (vom Betreiber bestätigt: Sandy Poller)
 //      „Mechi"  → „Hechi"    (232 ist Marcus Hechenberger „Hechi")
 //      „Ilev"   → „Oli"      (421 ist Oli Rödig)
 //      „Iediko" → „Ildiko"   (204 ist Ildiko Molnar)
@@ -50,17 +51,28 @@
 //   531  „Hubsi"  → Platz 212, WÜRMTAL HUBSI. Passt auch zum Lokal: Der
 //                   Zettel kommt aus dem DJK Würmtal. Erledigt.
 //
-// Vier bleiben offen. Bei den Frauen greift die Lücken-Erklärung ohnehin
+// Eine zweite hat der Betreiber bestätigt:
+//
+//   650  „Sandy"  → 550, Sandy Poller. Der Bereich 600–659 ist in keiner
+//                   Auswertung belegt, und „Sandy" gibt es im Stamm genau
+//                   einmal — die 5 war als 6 gelesen. Erledigt.
+//
+// Drei bleiben offen. Bei den Frauen greift die Lücken-Erklärung ohnehin
 // nicht: Deren Endrangliste ist lückenlos, ebenso beide Sommer-Ranglisten.
 //
 //   156  „Thomas Schmid"  — auch nach der Nachlieferung nicht belegt
 //   243  „Michi"          — dito; es gibt 223 Michi Kronbichler und
 //                            252 Michi Moch
-//   650  „Sandy"          — dito, und ohne M/F-Kreuz
 //   280  „Moni" (F)       — WIDERSPRUCH: 280 ist laut Nachlieferung
 //                            STEPHAN, THADEUS (Platz 243, Männer). Entweder
 //                            ist die Nummer auf dem Zettel verlesen oder
 //                            zweimal vergeben.
+//
+// Dass 156 und 243 fehlen, muss kein Lesefehler sein: Die Ranglisten sind
+// Ergebnislisten, kein Mitgliederverzeichnis. Wer einen Pass hat und letzte
+// Saison keine Punkte holte, steht in keiner dieser Dateien — von 660
+// möglichen Nummern kommen 255 nirgends vor. Beide Zeilen sind auf dem Zettel
+// auch nicht als „neu" angekreuzt, haben also eine Nummer.
 //
 // Solange das nicht geklärt ist, laufen diese Zeilen als eigene, neue
 // Spieler. Sie holen sich damit keine Punkte, die jemand anderem gehören.
@@ -253,7 +265,7 @@ export const RESULT_SHEETS: ResultSheet[] = [
     date: '2026-09-02',
     rows: rows(`
        1| |558|221|Alex
-       2| |650|211|Sandy|?
+       2| |550|211|Sandy
        3| | 13|200|Michi
        4| |517|190|Freddy
        5| |527|179|Udo
