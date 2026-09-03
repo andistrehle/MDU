@@ -653,10 +653,14 @@ body:has(.mdc-root) {
    aufzulösen. */
 .mdc-hero-photo {
   position: absolute;
+  /* Bündig an drei Seiten. Ein Einzug wäre hier keine Verbesserung: Die
+     Maske löst nur die linke Flanke auf, oben, unten und rechts endet das
+     Foto am Bühnenrand — eingerückt stünden dort sichtbare gerade Kanten.
+     Die Größe der Scheibe hängt deshalb an der Höhe der Bühne. */
   top: 0;
-  right: 0;
   bottom: 0;
-  width: min(1120px, 64vw);
+  right: 0;
+  width: min(1040px, 64vw);
   pointer-events: none;
   -webkit-mask-image: radial-gradient(ellipse 78% 90% at 76% 50%, #000 0 46%, transparent 100%);
   mask-image: radial-gradient(ellipse 78% 90% at 76% 50%, #000 0 46%, transparent 100%);
@@ -665,8 +669,9 @@ body:has(.mdc-root) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Hält das Bull im Bild, auch wenn der Ausschnitt hochkant beschnitten wird. */
-  object-position: 74% 50%;
+  /* Weit rechts angeschnitten: Das rückt die Scheibe im sichtbaren
+     Ausschnitt so weit nach links, wie es ohne weißen Rand geht. */
+  object-position: 92% 50%;
 }
 
 /* Am Handy liegt das Foto hinter der Schrift — wie auf der MDU-Startseite.
@@ -681,10 +686,10 @@ body:has(.mdc-root) {
        Kennzahlenzeile darunter auf freiem Grund bleibt. Der feste Deckel
        greift auf Tablets: Dort ist die Bühne breit, die Zeile läuft weit nach
        rechts und geriete sonst doch unter die Scheibe. */
-    top: 36%;
+    top: 34%;
     bottom: auto;
     right: -24%;
-    width: min(480px, 100vw);
+    width: min(430px, 100vw);
     aspect-ratio: 1;
     transform: translateY(-50%);
     -webkit-mask-image: radial-gradient(circle closest-side, #000 0 86%, transparent 100%);

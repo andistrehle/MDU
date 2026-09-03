@@ -81,8 +81,8 @@ export default function MdcHomePage() {
             position: 'relative', zIndex: 2,
             // Unten weniger als oben: Darunter folgt schon der Abstand des
             // nächsten Abschnitts, sonst klafft dazwischen eine Lücke.
-            paddingTop: 'clamp(48px, 7vw, 84px)',
-            paddingBottom: 'clamp(36px, 5vw, 60px)',
+            paddingTop: 'clamp(28px, 3.8vw, 46px)',
+            paddingBottom: 'clamp(24px, 3vw, 36px)',
           }}
         >
           <span className="mdc-kicker mdc-rise">München · Einzelrangliste</span>
