@@ -15,8 +15,8 @@ import type { Metadata } from 'next';
 import './mdc.css';
 import { SiteHeader } from '@/components/mdc/site-header';
 import { SiteFooter } from '@/components/mdc/site-footer';
-import { nextTournament } from '@/data/tournaments';
-import { getVenue } from '@/data/venues';
+import { VENUES, nextPlayDay } from '@/data/venues';
+import { DEMO_TODAY } from '@/data/season';
 import { formatDateShort } from '@/lib/mdc/format';
 import { logoSrc, throwerSrc } from '@/lib/mdc/brand';
 
@@ -27,22 +27,29 @@ export const metadata: Metadata = {
   },
   description:
     'Die Munich Darts Challenge ist Münchens Ranking-Serie für Einzelspieler: ' +
-    'Turniere im Doppel-K.-o. in zehn Münchner Lokalen, Punkte für die Saisonrangliste.',
+    `Turniere im Doppel-K.-o. in ${VENUES.length} Münchner Lokalen, Punkte für die Saisonrangliste.`,
   robots: { index: false, follow: false },
 };
 
 export default function MdcLayout({ children }: { children: React.ReactNode }) {
-  const next = nextTournament();
-  const venue = next ? getVenue(next.venueId) : undefined;
-  const nextLabel = next && venue
-    ? `${formatDateShort(next.date)} · ${venue.name}`
-    : 'Termine ansehen';
+  // Der nächste Spieltag ergibt sich aus den Spielorten (fester Wochentag je
+  // Lokal), nicht aus einer Terminliste — damit stimmt der Knopf immer mit
+  // dem Wochenplan auf der Startseite überein.
+  const next = nextPlayDay(DEMO_TODAY);
+  const nextLabel = next
+    ? `${formatDateShort(next.date)} · ${
+        next.venues.length === 1 ? next.venues[0].name : `${next.venues.length} Lokale`
+      }`
+    : 'Spielorte ansehen';
+  const nextHref = next && next.venues.length === 1
+    ? `/mdc/spielorte/${next.venues[0].id}`
+    : '/mdc/spielorte';
 
   return (
     <div className="mdc-root">
       <SiteHeader
         nextRankingLabel={nextLabel}
-        nextRankingHref={next ? `/mdc/turniere/${next.id}` : '/mdc/turniere'}
+        nextRankingHref={nextHref}
         logo={logoSrc()}
         thrower={throwerSrc()}
       />

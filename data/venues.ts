@@ -206,6 +206,45 @@ export function venuesByWeekday(): { weekday: Weekday; venues: Venue[] }[] {
   }));
 }
 
+/**
+ * Spieltage ab einem Datum, aus den Spielorten abgeleitet.
+ *
+ * Der Wochenplan der MDC steht nicht in einer Terminliste, sondern in den
+ * Spielorten selbst: Jedes Lokal hat seinen festen Wochentag und seine
+ * Uhrzeit. Daraus lässt sich der Plan für jede Woche ausrechnen — und er
+ * kann gar nicht veralten oder der Spielorte-Seite widersprechen.
+ *
+ * Nur die festen Tage. Die flexiblen Ranking-Tage (Sonntag sowie Freitag
+ * oder Samstag) hängen davon ab, ob genug Leute da sind und der Wirt
+ * mitmacht — die stehen in `FLEXIBLE_RANKING_DAYS` und werden getrennt
+ * ausgewiesen, statt sie als Termin zu behaupten.
+ */
+export function playDaysFrom(fromIso: string, days = 7): {
+  date: string; weekday: Weekday; venues: Venue[];
+}[] {
+  const start = new Date(`${fromIso}T00:00:00Z`);
+  const plan: { date: string; weekday: Weekday; venues: Venue[] }[] = [];
+
+  for (let i = 0; i < days; i++) {
+    const tag = new Date(start);
+    tag.setUTCDate(tag.getUTCDate() + i);
+    // getUTCDay(): 0 = Sonntag. Die MDC zählt 1 = Montag … 7 = Sonntag.
+    const weekday = (tag.getUTCDay() === 0 ? 7 : tag.getUTCDay()) as Weekday;
+    const offene = VENUES
+      .filter(v => v.weekdays.includes(weekday))
+      .sort((a, b) => a.time.localeCompare(b.time) || a.name.localeCompare(b.name));
+    if (offene.length) plan.push({ date: tag.toISOString().slice(0, 10), weekday, venues: offene });
+  }
+
+  return plan;
+}
+
+/** Der nächste Spieltag ab einem Datum — für den Knopf in der Kopfzeile. */
+export function nextPlayDay(fromIso: string): { date: string; weekday: Weekday; venues: Venue[] } | undefined {
+  // 8 Tage schauen, damit auch von einem Freitag aus der Montag gefunden wird.
+  return playDaysFrom(fromIso, 8)[0];
+}
+
 /** „Montag" oder „Dienstag & Freitag" — je nach Zahl der Spieltage. */
 export function venueWeekdayLabel(venue: Venue): string {
   return venue.weekdays.map(d => WEEKDAY_NAMES[d]).join(' & ');

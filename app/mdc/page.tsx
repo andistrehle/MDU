@@ -14,9 +14,12 @@ import { TournamentCard } from '@/components/mdc/tournament-card';
 import { SectionHeading, StatCard, DemoNotice, EmptyRanking } from '@/components/mdc/ui';
 import { finalRankingOf, runningRankingOf, MDC_STATS, RUNNING_HAS_RESULTS } from '@/data/ranking';
 import { getPlayer, playerName, PLAYERS } from '@/data/players';
-import { finishedTournaments, tournamentsThisWeek } from '@/data/tournaments';
-import { getVenue, VENUES, venueAddress } from '@/data/venues';
-import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
+import { finishedTournaments } from '@/data/tournaments';
+import {
+  getVenue, VENUES, venueAddress, playDaysFrom,
+  FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE,
+} from '@/data/venues';
+import { DEMO_TODAY, FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
 
@@ -54,7 +57,9 @@ export default function MdcHomePage() {
   const recordHolder = MDC_STATS.mostAppearancesPlayerId
     ? getPlayer(MDC_STATS.mostAppearancesPlayerId)
     : undefined;
-  const week = tournamentsThisWeek();
+  // Der Wochenplan kommt aus den echten Spielorten (Wochentag + Uhrzeit),
+  // nicht aus den Demo-Turnieren.
+  const woche = playDaysFrom(DEMO_TODAY);
   const latest = finishedTournaments().slice(0, 3);
 
   return (
@@ -132,8 +137,8 @@ export default function MdcHomePage() {
                 className="mdc-live-dot"
                 style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--mdc-red)' }}
               />
-              {week[0]?.tournaments.length ?? 0} Turniere am{' '}
-              {week[0] ? weekdayName(week[0].date) : 'Spieltag'}
+              {woche[0]?.venues.length ?? 0} Turniere am{' '}
+              {woche[0] ? weekdayName(woche[0].date) : 'Spieltag'}
             </span>
             <span>{VENUES.length} Spielorte in München</span>
             <span>{formatNumber(PLAYERS.length)} Spieler mit MDC-Pass</span>
@@ -263,58 +268,69 @@ export default function MdcHomePage() {
             kicker="Spielplan"
             title="Diese Woche bei der MDC"
             description="Von Montag bis Donnerstag wird gespielt — anmelden kann man sich direkt im Lokal, bis kurz vor Turnierstart."
-            action={{ label: 'Alle Termine', href: '/mdc/turniere' }}
+            action={{ label: 'Alle Spielorte', href: '/mdc/spielorte' }}
           />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-            {week.map(day => (
-              <div key={day.date}>
+            {woche.map(tag => (
+              <div key={tag.date}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
                   <h3 className="mdc-display" style={{ fontSize: '1.4rem' }}>
-                    {weekdayName(day.date)}
+                    {weekdayName(tag.date)}
                   </h3>
                   <span className="mdc-num" style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)' }}>
-                    {formatDate(day.date)}
+                    {formatDate(tag.date)}
                   </span>
                 </div>
 
                 <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-                  {day.tournaments.map(tournament => {
-                    const venue = getVenue(tournament.venueId);
-                    if (!venue) return null;
-                    return (
-                      <div
-                        key={tournament.id}
-                        className="mdc-card mdc-card-hover"
-                        style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                          <h4 className="mdc-display" style={{ fontSize: '1.15rem' }}>{venue.name}</h4>
-                          <span className="mdc-num" style={{ color: 'var(--mdc-red)', fontWeight: 700 }}>
-                            {tournament.time}
-                          </span>
-                        </div>
-                        <p style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-soft)', lineHeight: 1.5 }}>
-                          {venueAddress(venue)}
-                        </p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <Target size={13} />
-                          {venue.boards} Dartautomaten · {tournament.participantIds.length} gemeldet
-                        </p>
-                        <Link
-                          href={`/mdc/turniere/${tournament.id}`}
-                          className="mdc-btn mdc-btn-ghost mdc-btn-sm"
-                          style={{ marginTop: 'auto', alignSelf: 'flex-start' }}
-                        >
-                          Details
-                          <ArrowRight size={14} />
-                        </Link>
+                  {tag.venues.map(venue => (
+                    <div
+                      key={venue.id}
+                      className="mdc-card mdc-card-hover"
+                      style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
+                        <h4 className="mdc-display" style={{ fontSize: '1.15rem' }}>{venue.name}</h4>
+                        <span className="mdc-num" style={{ color: 'var(--mdc-red)', fontWeight: 700 }}>
+                          {venue.time}
+                        </span>
                       </div>
-                    );
-                  })}
+                      <p style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-soft)', lineHeight: 1.5 }}>
+                        {venueAddress(venue)}
+                      </p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <Target size={13} />
+                        {venue.boards} Dartautomaten
+                      </p>
+                      <Link
+                        href={`/mdc/spielorte/${venue.id}`}
+                        className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                        style={{ marginTop: 'auto', alignSelf: 'flex-start' }}
+                      >
+                        Spielort
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Die flexiblen Tage sind keine Termine, sondern eine Möglichkeit —
+              deshalb stehen sie als Hinweis und nicht als Karte im Plan. */}
+          <div className="mdc-card" style={{ marginTop: 26, padding: '16px 18px', display: 'flex', gap: 12 }}>
+            <CalendarClock size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
+            <p style={{ fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)' }}>
+              Dazu kann an diesen Tagen in <strong>jedem</strong> MDC-Lokal ein Ranking
+              stattfinden:{' '}
+              {/* Nur das erste Label groß — sonst stünde „und Jeden Freitag" im Satz. */}
+              {FLEXIBLE_RANKING_DAYS
+                .map((d, i) => (i === 0 ? d.label : d.label.charAt(0).toLowerCase() + d.label.slice(1)))
+                .join(' und ')}.{' '}
+              {FLEXIBLE_RANKING_NOTE}
+            </p>
           </div>
         </div>
       </section>
