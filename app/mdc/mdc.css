@@ -587,10 +587,10 @@ body:has(.mdc-root) {
   z-index: 1;
   background: linear-gradient(
     100deg,
-    #FFFFFF 0 50%,
-    rgba(255, 255, 255, 0.78) 62%,
-    rgba(255, 255, 255, 0.28) 74%,
-    transparent 86%
+    #FFFFFF 0 42%,
+    rgba(255, 255, 255, 0.72) 52%,
+    rgba(255, 255, 255, 0.24) 64%,
+    transparent 76%
   );
   pointer-events: none;
 }
@@ -600,7 +600,7 @@ body:has(.mdc-root) {
    stand sie bei 1,6:1 und war praktisch unlesbar. Am Handy gilt stattdessen
    die eigene Grenze weiter unten. */
 @media (min-width: 901px) {
-  .mdc-hero-stats { max-width: 46%; }
+  .mdc-hero-stats { max-width: 40%; }
 }
 
 /* Feine diagonale Struktur, wie das Raster einer Anzeigetafel. */
@@ -648,37 +648,30 @@ body:has(.mdc-root) {
 
    Der Unterschied zur MDU: Dort blendet ein dunkles Foto in einen dunklen
    Grund, jede Kante verschwindet von selbst. Hier steht es auf Weiß, deshalb
-   löst eine ovale Maske die Ränder auf — nach links, oben und unten. Nach
-   rechts bleibt sie voll: Dort ist der Bildschirmrand, da gibt es nichts
-   aufzulösen. */
+   löst ein Verlauf die linke Flanke auf. Oben, unten und rechts endet das
+   Foto an den Kanten der Bühne — da gibt es nichts aufzulösen. */
 .mdc-hero-photo {
   position: absolute;
-  /* Oben und unten bündig: Dort endet das Foto an den Kanten der Bühne, wie
-     auf der MDU-Startseite — das braucht keinen Verlauf.
+  /* Oben und unten bündig, rechts bis an den Bildschirmrand — wie auf der
+     MDU-Startseite. Der Ausschnitt ist bewusst groß gewählt: Nur so rücken
+     die Pfeile bis an die Schrift heran. Dass die Scheibe dabei oben und
+     unten von der Bühnenkante beschnitten wird, ist gewollt.
 
-     Rechts ist es um 3 % eingerückt, damit die Scheibe weiter nach links
-     rückt. Das Foto endet dadurch vor dem Bildschirmrand, deshalb blendet der
-     Verlauf auch dort aus — aber nur im letzten Zwanzigstel, so knapp, dass
-     der Außenring der Scheibe noch davor liegt und nicht anfängt, sich
-     aufzulösen.
-
-     Warum nicht einfach der Bildausschnitt? Der ist ausgereizt: Bei 100 %
-     liegt die rechte Bildkante schon auf der Rahmenkante. Weiter links geht
-     nur, indem der Rahmen selbst wandert. */
+     Zusammenhang zum Merken: Solange das Foto rechts bündig endet, sitzt die
+     Scheibe immer etwa eine halbe Scheibenbreite von dieser Kante entfernt.
+     Weiter links geht deshalb nur über einen größeren Ausschnitt. */
   top: 0;
   bottom: 0;
-  right: 3%;
-  width: min(1040px, 64vw);
+  right: 0;
+  width: min(1300px, 88vw);
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(100deg, transparent 0%, #000 54%, #000 88%, transparent 100%);
-  mask-image: linear-gradient(100deg, transparent 0%, #000 54%, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(100deg, transparent 4%, #000 42%);
+  mask-image: linear-gradient(100deg, transparent 4%, #000 42%);
 }
 .mdc-hero-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Ganz rechts angeschnitten — die rechte Bildkante liegt auf der
-     Rahmenkante, links wird beschnitten. */
   object-position: 100% 50%;
 }
 
