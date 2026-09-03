@@ -17,7 +17,8 @@ import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { RankingTable } from '@/components/mdc/ranking-table';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows } from '@/lib/mdc/rows';
-import { runningRankingOf, RUNNING_HAS_RESULTS } from '@/data/ranking';
+import { runningRankingOf, RUNNING_HAS_RESULTS, openSheetRows } from '@/data/ranking';
+import { DemoNotice } from '@/components/mdc/ui';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
 
@@ -29,6 +30,8 @@ export const metadata: Metadata = {
 };
 
 export default function RanglistePage() {
+  const offen = openSheetRows();
+
   return (
     <>
       <PageHero
@@ -40,11 +43,28 @@ export default function RanglistePage() {
       <section className="mdc-section">
         <div className="mdc-shell">
           {RUNNING_HAS_RESULTS ? (
-            <DivisionSwitch
-              men={toRankingRows(runningRankingOf('men'))}
-              women={toRankingRows(runningRankingOf('women'))}
-              asOf={RUNNING_SEASON.asOf}
-            />
+            <>
+              <DivisionSwitch
+                men={toRankingRows(runningRankingOf('men'))}
+                women={toRankingRows(runningRankingOf('women'))}
+                asOf={RUNNING_SEASON.asOf}
+              />
+
+              {/* Zeilen, die (noch) in keiner der beiden Wertungen stehen
+                  können — offen ausweisen statt stillschweigend weglassen. */}
+              {offen.length > 0 && (
+                <div style={{ marginTop: 22 }}>
+                  <DemoNotice>
+                    {offen.length === 1 ? 'Eine Zeile wartet' : `${offen.length} Zeilen warten`} noch
+                    auf die Wertungsklasse:{' '}
+                    {offen.map(o => o.row.writtenName).join(', ')}. Auf der Ergebnisliste war die
+                    Spalte M/F nicht angekreuzt, und die Passnummer steht noch in keiner
+                    Auswertung. Die Punkte sind erfasst, sobald geklärt ist, in welche Wertung
+                    sie gehören.
+                  </DemoNotice>
+                </div>
+              )}
+            </>
           ) : (
             <>
               {/* Kein Verweis im Kasten selbst — der Abschnitt darunter führt

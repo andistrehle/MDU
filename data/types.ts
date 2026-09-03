@@ -32,8 +32,12 @@ export type Division = 'men' | 'women';
 export interface Player {
   /** Stabile Slug-ID, wird in URLs benutzt: /mdc/spieler/<id> */
   id: string;
-  /** MDC-Passnummer — eigenständig, hat nichts mit MDU-Nummern zu tun. */
-  passNr: number;
+  /**
+   * MDC-Passnummer — eigenständig, hat nichts mit MDU-Nummern zu tun.
+   * `null` bei Spielern, die auf einer Ergebnisliste als „neu" stehen und
+   * noch keine Nummer haben. Eine Nummer wird nicht erfunden.
+   */
+  passNr: number | null;
   firstName: string;
   lastName: string;
   /** Spitzname aus der Rangliste (steht dort in Klammern). `null` = keiner. */

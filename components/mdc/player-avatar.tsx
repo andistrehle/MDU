@@ -21,7 +21,11 @@ interface PlayerAvatarProps {
 
 export function PlayerAvatar({ player, size = 40, highlight = false }: PlayerAvatarProps) {
   // Fester Farbton je Spieler: gedeckte Töne, damit die roten Akzente führen.
-  const hue = (player.passNr * 47) % 360;
+  // Ohne Passnummer (neuer Spieler) aus dem Namen abgeleitet, damit der Ton
+  // trotzdem gleich bleibt.
+  const seed = player.passNr
+    ?? [...player.id].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  const hue = (seed * 47) % 360;
 
   return (
     <span

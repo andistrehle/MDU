@@ -17,7 +17,8 @@ import { formatAverage, formatNumber } from '@/lib/mdc/format';
 
 export interface DirectoryEntry {
   id: string;
-  passNr: number;
+  /** `null` = noch keine Nummer vergeben. */
+  passNr: number | null;
   firstName: string;
   lastName: string;
   nickname: string | null;
@@ -47,7 +48,7 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
         `${entry.firstName} ${entry.lastName}`.toLowerCase().includes(q) ||
         `${entry.lastName} ${entry.firstName}`.toLowerCase().includes(q) ||
         (entry.nickname?.toLowerCase().includes(q) ?? false) ||
-        String(entry.passNr).includes(q)
+        (entry.passNr !== null && String(entry.passNr).includes(q))
       );
     });
   }, [entries, query, division]);
@@ -128,7 +129,7 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
                   {entry.nickname && <span style={{ color: 'var(--mdc-ink-dim)' }}> „{entry.nickname}“</span>}
                 </p>
                 <p className="mdc-num" style={{ marginTop: 7, fontSize: '0.76rem', color: 'var(--mdc-ink-dim)' }}>
-                  Passnr. {entry.passNr}
+                  {entry.passNr === null ? 'noch keine Passnr.' : `Passnr. ${entry.passNr}`}
                   {entry.tournaments > 0 && (
                     <> · {formatNumber(entry.points)} Pkt · Ø {formatAverage(entry.average)}</>
                   )}

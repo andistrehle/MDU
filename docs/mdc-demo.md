@@ -104,12 +104,14 @@ Verknüpfen Ärger.
 
 Drei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
 
-**Echt** sind die drei Auswertungen des Betreibers:
+**Echt** sind die Unterlagen des Betreibers:
 
 | Wertung | Stand | Dateien |
 | --- | --- | --- |
 | Endrangliste 2025/26, Männer + Frauen | 27.07.2026 | `ranking-2025-26-men.ts`, `-women.ts` |
 | Sommer-Ranking 2026, Männer + Frauen | 01.09.2026 | `ranking-sommer-2026-men.ts`, `-women.ts` |
+| Ergebnislisten Saison 2026/27 | laufend | `results-2026-27.ts` |
+| Punkteschlüssel, 4–32 Starter | — | `lib/mdc/points.ts` |
 | Spielorte 2026/2027 | Aug. 2026 | `venues.ts` |
 
 > **Offen:** Die Männer-Plätze **199–280** der Saison 2025/26 liegen noch nicht
@@ -130,8 +132,9 @@ nicht gepflegt.
 
 - `Schnitt` = Punkte / Anzahl TN
 - `Auszahlung` = EZR-Betrag × Prozentsatz
-- Spielerstamm = alle Spieler aller Ranglisten
-- Turnierpunkte = `lib/mdc/points.ts`
+- Spielerstamm = alle Spieler aller Ranglisten **und** aller Ergebnislisten
+- Wertung 2026/27 = Summe der Ergebnislisten
+- Turnierpunkte = `lib/mdc/points.ts` (offizielle Tabelle des Betreibers)
 
 ## Passnummern: drei Auffälligkeiten
 
@@ -238,25 +241,44 @@ Gepflegt wird das in `data/season.ts` über das Feld `current`. Wer dort eine
 Saison auf `current: false` setzt und eine neue anlegt, verschiebt sie damit
 automatisch ins Archiv (`ARCHIVED_SEASONS`).
 
-**Die Wertung der laufenden Saison steht in `data/ranking.ts` unter
-`RUNNING_BY_DIVISION` und ist absichtlich leer.** Es wird nichts aus der
-Vorsaison fortgeschrieben und nichts geschätzt. Solange dort nichts steht,
-ist `RUNNING_HAS_RESULTS` falsch, und die Seiten zeigen einen Hinweis statt
-einer leeren Tabelle:
+**Die Wertung der laufenden Saison wird aus den Ergebnislisten gerechnet**
+(`data/results-2026-27.ts`), nicht von Hand gepflegt: Punkte je Spieler
+summiert, Teilnahmen gezählt, Schnitt = Punkte / Teilnahmen. Kommt eine Liste
+dazu, ändert sich die Rangliste von selbst. Liegt keine Liste vor, ist
+`RUNNING_HAS_RESULTS` falsch und die Seiten zeigen einen Hinweis statt einer
+leeren Tabelle:
 
 - `/mdc/rangliste` — laufende Saison; bei leerer Wertung Hinweis plus Weg ins Archiv
 - `/mdc/rangliste/archiv` — Endstand 2025/26 (mit Ausschüttung) und Sommer-Ranking 2026
 - Startseite — Abschnitt „Saison 2026/27" mit Hinweis, darunter „Archiv · Endstand 2025/26"
 
-Sobald die Einzelergebnisse eintreffen, kommen sie im gleichen Format wie
-`data/ranking-sommer-2026-*.ts` ins Repo, werden über `toEntries` eingelesen
-und in `RUNNING_BY_DIVISION` gehängt. **An den Seiten ist dafür nichts zu
-ändern** — Tabelle, Umschalter Männer/Frauen und die Top-Listen der Startseite
-erscheinen von selbst.
+### Eine neue Ergebnisliste eintragen
 
-Was noch fehlt, wenn die Saison Ergebnisse hat: die Ausschüttung. Sie steht
-erst am Saisonende fest, deshalb zeigt die laufende Wertung sie bewusst nicht
-(siehe `components/mdc/division-switch.tsx`).
+1. Zeile für Zeile in `data/results-2026-27.ts` abtippen, Format wie auf dem
+   Formular: `Platz | M/F | Passnr | Punkte | Name`. M/F leer lassen, wenn es
+   auf dem Zettel nicht angekreuzt ist; Passnr leer lassen bei „neu".
+2. `npx tsx scripts/mdc-check-results.ts` laufen lassen.
+
+Das Skript findet genau die Fehler, die beim Abtippen von Handschrift
+passieren:
+
+- **Punkte gegen Feldgröße.** Der Punkteschlüssel hängt an Platz und
+  Teilnehmerzahl, also lässt sich aus den Punkten ableiten, wie groß das Feld
+  war — und das muss zur Zahl der Zeilen passen. Eine übersehene Zeile oder
+  ein verlesener Platz fällt auf. (Bei DJK Würmtal war die Feldgröße wegen
+  durchgestrichener Zeilen nicht abzählbar; die Punkte ließen nur n = 19 zu.)
+- **Passnummer gegen Namen.** Steht die Nummer im Stamm, muss der dortige Name
+  zum Zettelnamen passen. So sind sechs verlesene Ziffern aufgefallen, etwa
+  427 statt 428 („Enrico") und 412 statt 482 („Klausi").
+- **Summenprobe.** Punkte und Teilnahmen der Rangliste gegen die Zettel.
+
+Was das Skript nicht kann: eine Nummer bestätigen, die im Stamm gar nicht
+steht. Der enthält nur Spieler, die vorher schon Punkte hatten — wer neu ist,
+fehlt dort zwangsläufig. Solche Zeilen laufen als eigene, neue Spieler und
+stehen unter „beim Betreiber nachfragen".
+
+Was der laufenden Wertung bewusst fehlt: die Ausschüttung. Sie steht erst am
+Saisonende fest (siehe `components/mdc/division-switch.tsx`).
 
 ## Eigene Grafiken einsetzen (Logo, Bühnenfoto, Skyline, Werfer)
 

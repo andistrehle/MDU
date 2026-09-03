@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Target, Trophy, Users } from 'lucide-react';
 import { PageHero } from '@/components/mdc/ui';
+import {
+  EXAMPLE_FIELD_SIZES, MIN_POINTS, TABLE_RANGE, pointsTableRows,
+} from '@/lib/mdc/points';
 
 export const metadata: Metadata = {
   title: 'Regeln',
@@ -114,24 +117,44 @@ export default function RegelnPage() {
             <h2 className="mdc-display mdc-h2" style={{ marginBottom: 10 }}>Punkte</h2>
             <p className="mdc-lead" style={{ marginBottom: 18, maxWidth: 760 }}>
               Die Punkte hängen an zwei Dingen: wie weit man kommt und wie groß das Feld war.
-              Ein Sieg gegen 31 Gegner ist mehr wert als einer gegen sieben. Spieler, die im
-              selben Durchgang ausscheiden, bekommen dieselbe Punktzahl. Auch wer früh
-              ausscheidet, geht nicht leer aus — für die Teilnahme gibt es Punkte.
+              Ein Sieg gegen 31 Gegner ist mehr wert als einer gegen drei. Spieler, die im
+              selben Durchgang ausscheiden, bekommen dieselbe Punktzahl — deshalb stehen ab
+              Platz 9 Gruppen in der Tabelle. Auch wer früh ausscheidet, geht nicht leer aus:
+              Für die Teilnahme gibt es {MIN_POINTS} Punkte.
             </p>
 
-            <div className="mdc-card" style={{ padding: '20px', maxWidth: 760 }}>
-              <h3 className="mdc-display" style={{ fontSize: '1.1rem' }}>
-                Der genaue Schlüssel steht hier noch nicht
-              </h3>
-              <p style={{ marginTop: 10, fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-                An dieser Stelle stand eine Punktetabelle, die wir aus Beispielzahlen
-                zurückgerechnet hatten. Die Gegenprobe an den echten Ranglisten hat
-                gezeigt, dass sie nicht stimmt: Von den Punktzahlen, die bei genau
-                einer Teilnahme vorkommen, lassen sich neun mit ihr gar nicht
-                erklären. Deshalb ist sie hier raus — lieber keine Tabelle als eine
-                falsche. Sobald der offizielle Schlüssel vorliegt, steht er hier.
-              </p>
+            <div className="mdc-card mdc-scroll-x" style={{ maxWidth: 760 }}>
+              <table className="mdc-table">
+                <thead>
+                  <tr>
+                    <th>Platz</th>
+                    {EXAMPLE_FIELD_SIZES.map(size => (
+                      <th key={size} className="mdc-td-num">{size} TN</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pointsTableRows().map(row => (
+                    <tr key={row.group}>
+                      <td style={{ fontWeight: 600 }}>{row.group}</td>
+                      {row.points.map((value, index) => (
+                        <td key={EXAMPLE_FIELD_SIZES[index]} className="mdc-td-num mdc-num">
+                          {value === 0 ? '—' : value}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+
+            <p style={{ marginTop: 14, fontSize: '0.86rem', color: 'var(--mdc-ink-dim)', maxWidth: 760, lineHeight: 1.7 }}>
+              Auszug aus dem offiziellen Schlüssel der Serie, der für jede Feldgröße von
+              {' '}{TABLE_RANGE.from} bis {TABLE_RANGE.to} Startern eigene Werte führt.
+              Zwischen zwei Plätzen liegen etwa 200 / Teilnehmer Punkte — im kleinen Feld
+              wiegt ein Platz weiter vorn also schwerer. Nach unten ist bei
+              {' '}{MIN_POINTS} Punkten Schluss.
+            </p>
           </div>
 
           {/* ── Saisonwertung ── */}

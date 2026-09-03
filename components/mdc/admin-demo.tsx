@@ -22,7 +22,7 @@ import { formatNumber } from '@/lib/mdc/format';
 
 export interface AdminPlayerOption {
   id: string;
-  passNr: number;
+  passNr: number | null;
   name: string;
   nickname: string | null;
 }
@@ -68,7 +68,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
       .filter(p =>
         p.name.toLowerCase().includes(q) ||
         (p.nickname?.toLowerCase().includes(q) ?? false) ||
-        String(p.passNr).startsWith(q),
+        (p.passNr !== null && String(p.passNr).startsWith(q)),
       )
       .slice(0, 8);
   }, [query, players, field]);
@@ -252,7 +252,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
                         )}
                       </span>
                       <span className="mdc-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.8rem' }}>
-                        {player.passNr}
+                        {player.passNr ?? '—'}
                       </span>
                     </button>
                   </li>
@@ -276,7 +276,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
                   </span>
                   <span style={{ flex: 1, color: 'var(--mdc-ink)' }}>{player.name}</span>
                   <span className="mdc-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.8rem' }}>
-                    Passnr. {player.passNr}
+                    {player.passNr === null ? 'noch keine Passnr.' : `Passnr. ${player.passNr}`}
                   </span>
                   <button
                     type="button"
@@ -341,7 +341,7 @@ export function AdminDemo({ venues, players }: AdminDemoProps) {
                     <td>
                       {player.name}
                       <span className="mdc-num" style={{ color: 'var(--mdc-ink-dim)', fontSize: '0.78rem' }}>
-                        {' '}· {player.passNr}
+                        {' '}· {player.passNr ?? 'neu'}
                       </span>
                     </td>
                     <td className="mdc-td-num mdc-num" style={{ fontWeight: 700, color: 'var(--mdc-ink)' }}>

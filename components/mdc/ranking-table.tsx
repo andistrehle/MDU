@@ -29,7 +29,8 @@ export interface RankingRow {
   sharedRank: boolean;
   trend: Trend;
   playerId: string;
-  passNr: number;
+  /** `null` = Spieler hat noch keine Nummer. */
+  passNr: number | null;
   firstName: string;
   lastName: string;
   nickname: string | null;
@@ -87,7 +88,7 @@ export function RankingTable({ rows, showPayout = false, gap }: RankingTableProp
         `${row.firstName} ${row.lastName}`.toLowerCase().includes(q) ||
         `${row.lastName} ${row.firstName}`.toLowerCase().includes(q) ||
         (row.nickname?.toLowerCase().includes(q) ?? false) ||
-        String(row.passNr).includes(q)
+        (row.passNr !== null && String(row.passNr).includes(q))
       );
     });
 
@@ -236,7 +237,7 @@ function RowGroup({
 
   // Was am Handy nicht in der Zahlenspalte steht, steht unter dem Namen.
   const meta = [
-    `Nr. ${row.passNr}`,
+    row.passNr === null ? 'noch keine Nr.' : `Nr. ${row.passNr}`,
     sort === 'tournaments' ? null : `${row.tournaments} TN`,
     sort === 'average' ? null : `Ø ${formatAverage(row.average)}`,
     sort === 'tournaments' || sort === 'average' ? `${formatNumber(row.points)} Punkte` : null,
@@ -267,7 +268,7 @@ function RowGroup({
           {row.sharedRank ? '' : row.rank}
         </td>
         <td className="mdc-hide-narrow"><TrendIcon trend={row.trend} /></td>
-        <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{row.passNr}</td>
+        <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{row.passNr ?? '—'}</td>
         <td className="mdc-cell-name" style={{ fontWeight: 600 }}>
           <Link href={`/mdc/spieler/${row.playerId}`} style={{ borderBottom: '1px solid transparent' }}>
             {row.lastName}

@@ -27,7 +27,7 @@ export default function SpielerPage() {
       points: final?.points ?? 0,
       tournaments: final?.tournaments ?? 0,
       average: final?.average ?? 0,
-      hue: (player.passNr * 47) % 360,
+      hue: ((player.passNr ?? [...player.id].reduce((s, c) => s + c.charCodeAt(0), 0)) * 47) % 360,
     };
   }).sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999) || a.lastName.localeCompare(b.lastName));
 
