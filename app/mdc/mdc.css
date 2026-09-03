@@ -653,25 +653,33 @@ body:has(.mdc-root) {
    aufzulösen. */
 .mdc-hero-photo {
   position: absolute;
-  /* Bündig an drei Seiten. Ein Einzug wäre hier keine Verbesserung: Die
-     Maske löst nur die linke Flanke auf, oben, unten und rechts endet das
-     Foto am Bühnenrand — eingerückt stünden dort sichtbare gerade Kanten.
-     Die Größe der Scheibe hängt deshalb an der Höhe der Bühne. */
+  /* Oben und unten bündig: Dort endet das Foto an den Kanten der Bühne, wie
+     auf der MDU-Startseite — das braucht keinen Verlauf.
+
+     Rechts ist es um 3 % eingerückt, damit die Scheibe weiter nach links
+     rückt. Das Foto endet dadurch vor dem Bildschirmrand, deshalb blendet der
+     Verlauf auch dort aus — aber nur im letzten Zwanzigstel, so knapp, dass
+     der Außenring der Scheibe noch davor liegt und nicht anfängt, sich
+     aufzulösen.
+
+     Warum nicht einfach der Bildausschnitt? Der ist ausgereizt: Bei 100 %
+     liegt die rechte Bildkante schon auf der Rahmenkante. Weiter links geht
+     nur, indem der Rahmen selbst wandert. */
   top: 0;
   bottom: 0;
-  right: 0;
+  right: 3%;
   width: min(1040px, 64vw);
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(ellipse 78% 90% at 76% 50%, #000 0 46%, transparent 100%);
-  mask-image: radial-gradient(ellipse 78% 90% at 76% 50%, #000 0 46%, transparent 100%);
+  -webkit-mask-image: linear-gradient(100deg, transparent 0%, #000 54%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(100deg, transparent 0%, #000 54%, #000 88%, transparent 100%);
 }
 .mdc-hero-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Weit rechts angeschnitten: Das rückt die Scheibe im sichtbaren
-     Ausschnitt so weit nach links, wie es ohne weißen Rand geht. */
-  object-position: 92% 50%;
+  /* Ganz rechts angeschnitten — die rechte Bildkante liegt auf der
+     Rahmenkante, links wird beschnitten. */
+  object-position: 100% 50%;
 }
 
 /* Am Handy liegt das Foto hinter der Schrift — wie auf der MDU-Startseite.
