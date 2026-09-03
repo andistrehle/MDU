@@ -86,12 +86,13 @@ Verknüpfen Ärger.
 
 | Route                    | Inhalt                                                            |
 | ------------------------ | ----------------------------------------------------------------- |
-| `/mdc`                   | Bühne, Ranking-Widget, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
-| `/mdc/rangliste`         | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + laufendes Sommer-Ranking |
+| `/mdc`                   | Bühne, laufende Saison, Archiv-Top-Listen, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
+| `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27 (noch ohne Ergebnisse) |
+| `/mdc/rangliste/archiv`  | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + Sommer-Ranking 2026 |
 | `/mdc/turniere`          | Kommende Termine mit Meldestand, gespielte Turniere                |
 | `/mdc/turniere/[id]`     | Podium, Ergebnisliste, Punkte, Turnierbaum                         |
 | `/mdc/spieler`           | Spielerübersicht mit Suche über Name, Spitzname und Passnummer     |
-| `/mdc/spieler/[id]`      | Profil: Saison-Endstand, Sommerwertung, Formkurve, Turnierhistorie |
+| `/mdc/spieler/[id]`      | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve, Turnierhistorie (alles Archiv) |
 | `/mdc/spielorte`         | Spielorte nach Wochentag                                           |
 | `/mdc/spielorte/[id]`    | Adresse, Automaten, Termine, letzte Turniere                       |
 | `/mdc/regeln`            | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
@@ -222,6 +223,40 @@ Gesetzt wird nach Endplatzierung, und in jeder Partie gewinnt der am Ende
 besser Platzierte. Podium, Ergebnisliste und Baum widersprechen sich dadurch
 nie. Sobald echte Match-Daten vorliegen, ersetzt man die Simulation — die
 Struktur (`Match` in `data/types.ts`) steht schon.
+
+## Saisons: eine laufende Wertung, ein Archiv
+
+Stand dieser Fassung:
+
+| Wertung | Zeitraum | Status |
+| --- | --- | --- |
+| Saison 2026/27 | seit 31.08.2026 | **laufend, noch ohne Ergebnisse** |
+| Sommer-Ranking 2026 | 27.07.–30.08.2026 | abgeschlossen, im Archiv |
+| Saison 2025/26 | 01.09.2025–26.07.2026 | abgeschlossen, im Archiv (mit Ausschüttung) |
+
+Gepflegt wird das in `data/season.ts` über das Feld `current`. Wer dort eine
+Saison auf `current: false` setzt und eine neue anlegt, verschiebt sie damit
+automatisch ins Archiv (`ARCHIVED_SEASONS`).
+
+**Die Wertung der laufenden Saison steht in `data/ranking.ts` unter
+`RUNNING_BY_DIVISION` und ist absichtlich leer.** Es wird nichts aus der
+Vorsaison fortgeschrieben und nichts geschätzt. Solange dort nichts steht,
+ist `RUNNING_HAS_RESULTS` falsch, und die Seiten zeigen einen Hinweis statt
+einer leeren Tabelle:
+
+- `/mdc/rangliste` — laufende Saison; bei leerer Wertung Hinweis plus Weg ins Archiv
+- `/mdc/rangliste/archiv` — Endstand 2025/26 (mit Ausschüttung) und Sommer-Ranking 2026
+- Startseite — Abschnitt „Saison 2026/27" mit Hinweis, darunter „Archiv · Endstand 2025/26"
+
+Sobald die Einzelergebnisse eintreffen, kommen sie im gleichen Format wie
+`data/ranking-sommer-2026-*.ts` ins Repo, werden über `toEntries` eingelesen
+und in `RUNNING_BY_DIVISION` gehängt. **An den Seiten ist dafür nichts zu
+ändern** — Tabelle, Umschalter Männer/Frauen und die Top-Listen der Startseite
+erscheinen von selbst.
+
+Was noch fehlt, wenn die Saison Ergebnisse hat: die Ausschüttung. Sie steht
+erst am Saisonende fest, deshalb zeigt die laufende Wertung sie bewusst nicht
+(siehe `components/mdc/division-switch.tsx`).
 
 ## Eigene Grafiken einsetzen (Logo, Bühnenfoto, Skyline, Werfer)
 

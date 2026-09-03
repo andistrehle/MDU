@@ -2,18 +2,23 @@
 // MDC — Wertungen
 // ============================================================
 //
-// Es gibt zwei Ranglisten in der Demo:
+// LAUFEND — Saison 2026/27
+//   `RUNNING_RANKING` ist absichtlich leer. Die Saison läuft seit dem
+//   31.08.2026, die Einzelergebnisse liefert der Betreiber nach. Solange
+//   nichts vorliegt, steht dort nichts: keine fortgeschriebenen Punkte aus
+//   der Vorsaison, keine Schätzungen, keine Platzhalterspieler. Die
+//   Oberfläche fragt `RUNNING_HAS_RESULTS` und zeigt bis dahin einen
+//   ehrlichen Hinweis. Sobald die Zeilen hier eintreffen, füllt sich die
+//   Rangliste von selbst — an den Seiten ist dann nichts zu ändern.
 //
-//  1. ENDRANGLISTE 2025/26 — der echte Saison-Endstand vom 27.07.2026,
-//     getrennt nach Männern und Frauen, mit Ausschüttung.
-//     Quelle: `ranking-final.ts`.
+// ARCHIV — zwei abgeschlossene Wertungen, beide echt:
+//   1. ENDRANGLISTE 2025/26 — Saison-Endstand vom 27.07.2026, getrennt nach
+//      Männern und Frauen, mit Ausschüttung. Quelle: `ranking-final.ts`.
+//   2. SOMMER-RANKING 2026 — Endstand der Zwischenserie vom 01.09.2026.
+//      Quelle: `ranking-sommer-2026-*.ts`.
 //
-//  2. SOMMER-RANKING 2026 — der Endstand der Zwischenserie vom 01.09.2026,
-//     ebenfalls echt. Quelle: `ranking-sommer-2026-*.ts`.
-//
-// BEIDE Wertungen sind gepflegte Auswertungen des Betreibers. Die Turniere in
-// `tournaments.generated.ts` sind dagegen weiterhin Demo-Material und zahlen
-// NICHT auf diese Ranglisten ein — sie zeigen nur, wie Turnierseiten,
+// Die Turniere in `tournaments.generated.ts` sind weiterhin Demo-Material und
+// zahlen auf KEINE dieser Ranglisten ein — sie zeigen nur, wie Turnierseiten,
 // Ergebnislisten und Turnierbäume aussehen.
 // ============================================================
 
@@ -61,20 +66,52 @@ export function summerRankingOf(division: Division): RankingEntry[] {
   return SUMMER_BY_DIVISION[division];
 }
 
-/** Endrangliste 2025/26 einer Wertungsklasse. */
+/** Endrangliste 2025/26 einer Wertungsklasse (Archiv). */
 export function finalRankingOf(division: Division): RankingEntry[] {
   return FINAL_RANKING_2025_26[division];
 }
+
+// ------------------------------------------------------------
+// Laufende Saison 2026/27
+// ------------------------------------------------------------
+
+/**
+ * Wertung der laufenden Saison. Noch keine Ergebnisse — hier kommen die
+ * Zeilen des Betreibers hinein, sobald er sie liefert (gleiche Form wie
+ * `ranking-sommer-2026-*.ts`, dann über `toEntries` einlesen).
+ */
+const RUNNING_BY_DIVISION: Record<Division, RankingEntry[]> = {
+  men: [],
+  women: [],
+};
+
+/** Wertung der laufenden Saison einer Wertungsklasse. */
+export function runningRankingOf(division: Division): RankingEntry[] {
+  return RUNNING_BY_DIVISION[division];
+}
+
+/**
+ * Liegt für die laufende Saison überhaupt schon eine Wertung vor?
+ * Wird abgefragt, statt irgendwo ein Datum hart einzutragen — die Seiten
+ * schalten dadurch von selbst um, wenn die Ergebnisse eintreffen.
+ */
+export const RUNNING_HAS_RESULTS =
+  RUNNING_BY_DIVISION.men.length > 0 || RUNNING_BY_DIVISION.women.length > 0;
 
 // ------------------------------------------------------------
 // Kennzahlen für die Statistik-Karten der Startseite
 // ------------------------------------------------------------
 
 export interface MdcStats {
-  /** Spitzenreiter der Männer-Endrangliste 2025/26. */
-  leaderId: string | null;
-  leaderPoints: number;
-  /** Meiste Turnierteilnahmen der Saison — und wer sie hat. */
+  /**
+   * Spitzenreiter der Männer-Endrangliste 2025/26 — also des Archivs, nicht
+   * der laufenden Saison. Der Name sagt das ausdrücklich: In der Oberfläche
+   * darf daraus keine „aktuelle Nummer 1" werden, solange 2026/27 ohne
+   * Ergebnisse ist.
+   */
+  archivedLeaderId: string | null;
+  archivedLeaderPoints: number;
+  /** Meiste Turnierteilnahmen der archivierten Saison — und wer sie hat. */
   mostAppearances: number;
   mostAppearancesPlayerId: string | null;
   players: number;
@@ -92,8 +129,8 @@ function computeStats(): MdcStats {
   const leader = FINAL_RANKING_2025_26.men[0] ?? null;
 
   return {
-    leaderId: leader?.playerId ?? null,
-    leaderPoints: leader?.points ?? 0,
+    archivedLeaderId: leader?.playerId ?? null,
+    archivedLeaderPoints: leader?.points ?? 0,
     mostAppearances: top?.tournaments ?? 0,
     mostAppearancesPlayerId: top?.playerId ?? null,
     players: PLAYERS.length,

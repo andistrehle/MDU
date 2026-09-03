@@ -4,7 +4,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { ArrowRight, Info, Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { Archive, ArrowRight, Info, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import type { Trend } from '@/data/types';
 import { Dartboard } from './dartboard';
 
@@ -176,6 +176,47 @@ export function DemoNotice({ children }: { children: ReactNode }) {
     >
       <Info size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
       <p>{children}</p>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------
+// Wertung ohne Ergebnisse
+// ------------------------------------------------------------
+
+/**
+ * Steht dort, wo eine Rangliste hingehört, für die es noch keine Ergebnisse
+ * gibt. Bewusst kein Skelett und keine grauen Platzhalterzeilen: Die sehen
+ * aus wie Daten, die gerade laden, und hier lädt nichts — es gibt sie noch
+ * nicht. Der Kasten sagt stattdessen, woran es liegt und wo etwas steht.
+ */
+export function EmptyRanking({
+  title, children, action,
+}: {
+  title: string;
+  children: ReactNode;
+  action?: { label: string; href: string };
+}) {
+  return (
+    <div
+      className="mdc-card"
+      style={{ padding: 'clamp(22px, 4vw, 34px)', display: 'grid', gap: 12, justifyItems: 'start' }}
+    >
+      <span
+        className="mdc-display"
+        style={{ fontSize: '1.25rem', color: 'var(--mdc-navy-deep)' }}
+      >
+        {title}
+      </span>
+      <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.94rem', lineHeight: 1.65, maxWidth: 620 }}>
+        {children}
+      </p>
+      {action && (
+        <Link href={action.href} className="mdc-btn mdc-btn-ghost mdc-btn-sm" style={{ marginTop: 4 }}>
+          <Archive size={16} />
+          {action.label}
+        </Link>
+      )}
     </div>
   );
 }

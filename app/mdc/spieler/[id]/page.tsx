@@ -113,7 +113,7 @@ export default async function SpielerProfilPage(
           {/* ── Saison-Endstand ── */}
           <div>
             <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
-              Endstand Saison {FINAL_SEASON.label}
+              Endstand Saison {FINAL_SEASON.label} · Archiv
             </h2>
             <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
               Offizieller Stand vom {formatDate(FINAL_SEASON.asOf)} ·{' '}
@@ -142,11 +142,11 @@ export default async function SpielerProfilPage(
             )}
           </div>
 
-          {/* ── Laufende Sommerwertung ── */}
+          {/* ── Sommer-Ranking (Archiv) ── */}
           {summer && (
             <div>
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
-                {summerSeason.label}
+                {summerSeason.label} · Archiv
               </h2>
               <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
                 Endstand vom {formatDate(summerSeason.asOf)}

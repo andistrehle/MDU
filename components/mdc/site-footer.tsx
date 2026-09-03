@@ -19,6 +19,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: 'Spielbetrieb',
     links: [
       { label: 'Rangliste', href: '/mdc/rangliste' },
+      { label: 'Archiv', href: '/mdc/rangliste/archiv' },
       { label: 'Turniere', href: '/mdc/turniere' },
       { label: 'Spieler', href: '/mdc/spieler' },
       { label: 'Spielorte', href: '/mdc/spielorte' },

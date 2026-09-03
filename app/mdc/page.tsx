@@ -11,12 +11,12 @@ import {
 import { Dartboard } from '@/components/mdc/dartboard';
 import { RankingWidget } from '@/components/mdc/ranking-widget';
 import { TournamentCard } from '@/components/mdc/tournament-card';
-import { SectionHeading, StatCard, DemoNotice } from '@/components/mdc/ui';
-import { finalRankingOf, MDC_STATS } from '@/data/ranking';
+import { SectionHeading, StatCard, DemoNotice, EmptyRanking } from '@/components/mdc/ui';
+import { finalRankingOf, runningRankingOf, MDC_STATS, RUNNING_HAS_RESULTS } from '@/data/ranking';
 import { getPlayer, playerName, PLAYERS } from '@/data/players';
 import { finishedTournaments, tournamentsThisWeek } from '@/data/tournaments';
 import { getVenue, VENUES, venueAddress } from '@/data/venues';
-import { FINAL_SEASON } from '@/data/season';
+import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
 
@@ -49,7 +49,7 @@ export default function MdcHomePage() {
   const hero = heroSrc();
   const menTop = finalRankingOf('men').slice(0, 8);
   const womenTop = finalRankingOf('women').slice(0, 5);
-  const leader = MDC_STATS.leaderId ? getPlayer(MDC_STATS.leaderId) : undefined;
+  const leader = MDC_STATS.archivedLeaderId ? getPlayer(MDC_STATS.archivedLeaderId) : undefined;
   const womenLeader = getPlayer(finalRankingOf('women')[0]?.playerId ?? '');
   const recordHolder = MDC_STATS.mostAppearancesPlayerId
     ? getPlayer(MDC_STATS.mostAppearancesPlayerId)
@@ -112,7 +112,7 @@ export default function MdcHomePage() {
           <div className="mdc-rise mdc-rise-3" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 32 }}>
             <Link href="/mdc/rangliste" className="mdc-btn mdc-btn-primary">
               <Trophy size={18} />
-              Aktuelle Rangliste
+              Zur Rangliste
             </Link>
             <Link href="/mdc/turniere" className="mdc-btn mdc-btn-ghost">
               <CalendarClock size={18} />
@@ -146,10 +146,55 @@ export default function MdcHomePage() {
       <section className="mdc-section">
         <div className="mdc-shell">
           <SectionHeading
-            kicker={`Endstand ${FINAL_SEASON.label}`}
+            kicker={`Saison ${RUNNING_SEASON.label}`}
             title="MDC-Ranking"
-            description={`Der offizielle Saison-Endstand vom ${formatDate(FINAL_SEASON.asOf)}. Männer und Frauen spielen dieselben Turniere und werden getrennt gewertet.`}
-            action={{ label: 'Komplette Rangliste', href: '/mdc/rangliste' }}
+            description={`Die neue Saison läuft seit dem ${formatDate(RUNNING_SEASON.startDate)}. Männer und Frauen spielen dieselben Turniere und werden getrennt gewertet.`}
+            action={{ label: 'Zur Rangliste', href: '/mdc/rangliste' }}
+          />
+
+          {RUNNING_HAS_RESULTS ? (
+            <div style={{ display: 'grid', gap: 26, gridTemplateColumns: 'minmax(0, 1.65fr) minmax(0, 1fr)' }} className="mdc-grid-2">
+              <div>
+                <h3
+                  className="mdc-display"
+                  style={{ fontSize: '1.05rem', letterSpacing: '0.12em', marginBottom: 12, color: 'var(--mdc-ink-soft)' }}
+                >
+                  Männer · Top 8
+                </h3>
+                <RankingWidget entries={runningRankingOf('men').slice(0, 8)} division="men" />
+              </div>
+
+              <div>
+                <h3
+                  className="mdc-display"
+                  style={{ fontSize: '1.05rem', letterSpacing: '0.12em', marginBottom: 12, color: 'var(--mdc-ink-soft)' }}
+                >
+                  Frauen · Top 5
+                </h3>
+                <RankingWidget entries={runningRankingOf('women').slice(0, 5)} division="women" compact />
+              </div>
+            </div>
+          ) : (
+            <EmptyRanking
+              title="Noch keine Wertung"
+              action={{ label: 'Endstand 2025/26 ansehen', href: '/mdc/rangliste/archiv' }}
+            >
+              Die Einzelergebnisse der Ranking-Turniere werden nachgetragen, sobald sie
+              vorliegen. Bis dahin steht hier bewusst nichts — nichts wird aus der
+              Vorsaison fortgeschrieben, nichts geschätzt.
+            </EmptyRanking>
+          )}
+        </div>
+      </section>
+
+      {/* ── Archiv ── */}
+      <section className="mdc-section mdc-section-tint">
+        <div className="mdc-shell">
+          <SectionHeading
+            kicker="Archiv"
+            title={`Endstand ${FINAL_SEASON.label}`}
+            description={`Abgeschlossen am ${formatDate(FINAL_SEASON.asOf)}, mit Ausschüttung. Diese Wertung wird nicht mehr verändert.`}
+            action={{ label: 'Komplettes Archiv', href: '/mdc/rangliste/archiv' }}
           />
 
           <div style={{ display: 'grid', gap: 26, gridTemplateColumns: 'minmax(0, 1.65fr) minmax(0, 1fr)' }} className="mdc-grid-2">
@@ -182,9 +227,9 @@ export default function MdcHomePage() {
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))' }}>
             <StatCard
               icon={<Crown size={17} />}
-              label="Aktuelle Nummer 1"
+              label={`Nummer 1 · ${FINAL_SEASON.label}`}
               value={leader ? playerName(leader) : '—'}
-              sub={`${formatNumber(MDC_STATS.leaderPoints)} Punkte · Frauen: ${womenLeader ? playerName(womenLeader) : '—'}`}
+              sub={`${formatNumber(MDC_STATS.archivedLeaderPoints)} Punkte · Frauen: ${womenLeader ? playerName(womenLeader) : '—'}`}
               href={leader ? `/mdc/spieler/${leader.id}` : undefined}
             />
             <StatCard
