@@ -173,7 +173,7 @@ aufgefallen. Alle drei sind in `data/parse-ranking.ts` festgehalten:
 | Passnr. | Saison 2025/26 | Sommer-Ranking | übernommen |
 | --- | --- | --- | --- |
 | 53 | Schul Micky | Schul Mikky | Micky |
-| 153 | Pogremino Jimmy | Pogremno Jimmy | Pogremino |
+| 153 | Pogremino Jimmy | Pogremno Jimmy | Pogremno (vom Betreiber bestätigt) |
 | 312 | Machete Reinhold | Behrend Reinhold | Behrend (echter Nachname) |
 
 **Dieselbe Passnummer, offenbar zwei verschiedene Menschen** — NICHT

@@ -45,12 +45,16 @@ export interface ParsedRow {
  *  153  „Pogremino Jimmy" (25/26) ↔ „Pogremno Jimmy" (Sommer)
  *  312  „Machete Reinhold" (25/26, unter dem Lokalnamen) ↔ „Behrend Reinhold"
  *
- * Für 53 und 153 gilt die Schreibweise der großen Saison-Auswertung, für 312
- * der echte Nachname aus dem Sommer-Ranking.
+ * Für 53 gilt die Schreibweise der großen Saison-Auswertung, für 312 der echte
+ * Nachname aus dem Sommer-Ranking.
+ *
+ * Für 153 galt bisher ebenfalls die Saison-Auswertung („Pogremino"). Der
+ * Betreiber hat die richtige Schreibweise genannt: POGREMNO — also die des
+ * Sommer-Rankings, ohne das i. So steht der Name auch im MDU-Spielerstamm.
  */
 const CANONICAL_NAMES: Record<number, { lastName: string; firstName: string }> = {
   53: { lastName: 'SCHUL', firstName: 'MICKY' },
-  153: { lastName: 'POGREMINO', firstName: 'JIMMY' },
+  153: { lastName: 'POGREMNO', firstName: 'JIMMY' },  // vom Betreiber bestätigt
   312: { lastName: 'BEHREND', firstName: 'REINHOLD' },
 };
 
