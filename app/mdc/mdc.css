@@ -587,12 +587,20 @@ body:has(.mdc-root) {
   z-index: 1;
   background: linear-gradient(
     100deg,
-    #FFFFFF 0%,
-    rgba(255, 255, 255, 0.94) 34%,
-    rgba(255, 255, 255, 0.55) 56%,
-    transparent 74%
+    #FFFFFF 0 50%,
+    rgba(255, 255, 255, 0.78) 62%,
+    rgba(255, 255, 255, 0.28) 74%,
+    transparent 86%
   );
   pointer-events: none;
+}
+
+/* Die Kennzahlenzeile bleibt in der linken Hälfte. Ohne diese Grenze läuft
+   sie bei schmalen Fenstern (rund 940 bis 1200 Pixel) weit ins Foto — dort
+   stand sie bei 1,6:1 und war praktisch unlesbar. Am Handy gilt stattdessen
+   die eigene Grenze weiter unten. */
+@media (min-width: 901px) {
+  .mdc-hero-stats { max-width: 46%; }
 }
 
 /* Feine diagonale Struktur, wie das Raster einer Anzeigetafel. */
@@ -634,38 +642,31 @@ body:has(.mdc-root) {
 
 /* Bühnenfoto statt gezeichneter Scheibe.
    ---------------------------------------
-   Das Foto ist dunkel, die Seite ist hell — eine gerade Bildkante würde als
-   schwarzer Block im Weiß stehen. Deshalb ein quadratischer Ausschnitt mit
-   rundem Verlauf: Der Rahmen zeigt genau die Scheibe (Bildausschnitt 89 %,
-   dort sitzt das Bull), und der Verlauf löst den schwarzen Außenring nach
-   außen hin auf. Weil der Verlauf erst bei 86 % einsetzt, bleibt die
-   Spielfläche selbst voll deckend; verschwimmen tut nur der Ring.
-   Die dunklen Bildecken fallen dabei ganz weg. */
+   Wie auf der MDU-Startseite: Das Foto füllt die rechte Hälfte der Bühne über
+   die volle Höhe und läuft bis zum Bildschirmrand — kein freistehendes Bild
+   mit Rand drumherum, sondern Hintergrund.
+
+   Der Unterschied zur MDU: Dort blendet ein dunkles Foto in einen dunklen
+   Grund, jede Kante verschwindet von selbst. Hier steht es auf Weiß, deshalb
+   löst eine ovale Maske die Ränder auf — nach links, oben und unten. Nach
+   rechts bleibt sie voll: Dort ist der Bildschirmrand, da gibt es nichts
+   aufzulösen. */
 .mdc-hero-photo {
   position: absolute;
-  right: max(-40px, calc((100vw - 1240px) / 2 - 90px));
-  top: 50%;
-  transform: translateY(-50%);
-  width: min(580px, 44vw);
-  aspect-ratio: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(1120px, 64vw);
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, #000 86%, transparent 100%);
-  mask-image: radial-gradient(circle closest-side, #000 0%, #000 86%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 90% at 76% 50%, #000 0 46%, transparent 100%);
+  mask-image: radial-gradient(ellipse 78% 90% at 76% 50%, #000 0 46%, transparent 100%);
 }
 .mdc-hero-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* 89 % waagerecht rückt das Bull in die Mitte des Ausschnitts. */
-  object-position: 89% 50%;
-}
-/* Zwischen 900 und 1200 Pixeln wird die Bühne schmal: Die Scheibe rückt hoch
-   und wird kleiner, damit die Kennzahlenzeile darunter frei bleibt. */
-@media (max-width: 1199px) {
-  .mdc-hero-photo {
-    top: 42%;
-    width: 38vw;
-  }
+  /* Hält das Bull im Bild, auch wenn der Ausschnitt hochkant beschnitten wird. */
+  object-position: 74% 50%;
 }
 
 /* Am Handy liegt das Foto hinter der Schrift — wie auf der MDU-Startseite.
@@ -675,14 +676,21 @@ body:has(.mdc-root) {
    Commit-Nachricht. */
 @media (max-width: 900px) {
   .mdc-hero-photo {
-    /* Höher als mittig, damit die Scheibe hinter dem Schriftzug sitzt und die
-       Kennzahlenzeile darunter auf freiem Grund steht. Der feste Deckel greift
-       auf Tablets: Dort ist die Bühne breit, die Zeile läuft weit nach rechts
-       und geriete sonst doch unter die Scheibe. */
+    /* Am Handy trägt die volle Breite nicht — dort steht die Scheibe als
+       runder Ausschnitt hinter dem Schriftzug. Höher als mittig, damit die
+       Kennzahlenzeile darunter auf freiem Grund bleibt. Der feste Deckel
+       greift auf Tablets: Dort ist die Bühne breit, die Zeile läuft weit nach
+       rechts und geriete sonst doch unter die Scheibe. */
     top: 36%;
+    bottom: auto;
     right: -24%;
     width: min(480px, 100vw);
+    aspect-ratio: 1;
+    transform: translateY(-50%);
+    -webkit-mask-image: radial-gradient(circle closest-side, #000 0 86%, transparent 100%);
+    mask-image: radial-gradient(circle closest-side, #000 0 86%, transparent 100%);
   }
+  .mdc-hero-photo img { object-position: 89% 50%; }
   .mdc-hero::before {
     background: linear-gradient(
       104deg,

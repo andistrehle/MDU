@@ -69,7 +69,7 @@ export default function MdcHomePage() {
               width={hero.width}
               height={hero.height}
               priority
-              sizes="(max-width: 900px) 56vw, 46vw"
+              sizes="(max-width: 900px) 56vw, 66vw"
             />
           </div>
         ) : (
@@ -112,7 +112,7 @@ export default function MdcHomePage() {
           </div>
 
           <div
-            className="mdc-rise mdc-rise-4"
+            className="mdc-hero-stats mdc-rise mdc-rise-4"
             style={{
               display: 'flex', flexWrap: 'wrap', gap: '10px 28px', marginTop: 40,
               fontSize: '0.84rem', color: 'var(--mdc-ink-dim)',
