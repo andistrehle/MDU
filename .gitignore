@@ -41,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ausdrucke der Rangliste (scripts/mdc-ranking-pdf.ts) — Datenstand, kein Quelltext
+out/
