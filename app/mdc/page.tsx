@@ -81,9 +81,12 @@ export default function MdcHomePage() {
         >
           <span className="mdc-kicker mdc-rise">München · Einzelrangliste</span>
 
+          {/* Rot nur auf den Initialen M, D, C — der Rest steht im Dunkelblau
+              des Schriftzugs, wie im Logo. */}
           <h1 className="mdc-display mdc-h1 mdc-rise mdc-rise-1" style={{ marginTop: 18, maxWidth: 900 }}>
-            Munich Darts<br />
-            <span style={{ color: 'var(--mdc-red)' }}>Challenge</span>
+            <span style={{ color: 'var(--mdc-red)' }}>M</span>unich{' '}
+            <span style={{ color: 'var(--mdc-red)' }}>D</span>arts<br />
+            <span style={{ color: 'var(--mdc-red)' }}>C</span>hallenge
           </h1>
 
           <p
