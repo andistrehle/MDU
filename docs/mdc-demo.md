@@ -79,15 +79,15 @@ Gegenteil. Zwei Systeme mit einer Verknüpfungstabelle dazwischen ist der
 übliche Aufbau. Die Voraussetzung dafür ist schon da: Jeder MDC-Spieler hat
 eine stabile Kennung (Spieler-ID plus MDC-Passnummer), an der eine
 Verknüpfung andocken kann. Vorher zu klären sind die beiden doppelt
-vergebenen Passnummern (84 und 303) — genau solche Fälle machen beim
-Verknüpfen Ärger.
+vergebenen Passnummern (inzwischen sechs Fälle, siehe unten) — genau solche
+Fälle machen beim Verknüpfen Ärger.
 
 ## Seiten
 
 | Route                    | Inhalt                                                            |
 | ------------------------ | ----------------------------------------------------------------- |
 | `/mdc`                   | Bühne, laufende Saison, Archiv-Top-Listen, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
-| `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27 (noch ohne Ergebnisse) |
+| `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27, gerechnet aus den Ergebnislisten |
 | `/mdc/rangliste/archiv`  | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + Sommer-Ranking 2026 |
 | `/mdc/turniere`          | Kommende Termine mit Meldestand, gespielte Turniere                |
 | `/mdc/turniere/[id]`     | Podium, Ergebnisliste, Punkte, Turnierbaum                         |
@@ -114,27 +114,35 @@ Drei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
 | Punkteschlüssel, 4–32 Starter | — | `lib/mdc/points.ts` |
 | Spielorte 2026/2027 | Aug. 2026 | `venues.ts` |
 
-> **Offen:** Die Männer-Plätze **199–280** der Saison 2025/26 liegen noch nicht
-> vor (zwei fehlende Auswertungsseiten). Sie werden in der Tabelle als Lücke
-> ausgewiesen, statt geraten zu werden.
+Die Männer-Endrangliste 2025/26 war lange unvollständig: Die Plätze **199–280**
+fehlten, weil zwei Auswertungsseiten nicht vorlagen. Sie sind nachgeliefert und
+eingetragen — 82 Zeilen, jede gegen die Schnitt-Spalte des Blattes gerechnet
+(`Punkte / Anzahl TN`), die Platzfolge gegen die geteilten Plätze geprüft und
+der Anschluss nach oben (Platz 198, 360 Punkte) wie nach unten (Platz 281, 94
+Punkte) kontrolliert. Alle vier Auswertungen sind damit lückenlos.
 
-Nachgezählt, mit geteilten Plätzen verrechnet (punktgleiche Spieler teilen den
-Platz, die nächste Nummer überspringt die Gruppe — eine fehlende Platznummer
-ist deshalb nicht automatisch eine Lücke):
+`RANKING_MEN_GAP` steht jetzt auf `null`. Die Mechanik bleibt: Fehlt später
+wieder eine Seite, trägt man dort einen Bereich ein und die Tabelle weist ihn
+von selbst aus.
 
-| Auswertung | Zeilen | letzter Platz | Lücke |
-| --- | --- | --- | --- |
-| Endrangliste Männer 2025/26 | 241 | 317 | **82 Plätze: 199–280** |
-| Endrangliste Frauen 2025/26 | 76 | 76 | lückenlos |
-| Sommer-Ranking Männer 2026 | 54 | 53 | lückenlos |
-| Sommer-Ranking Frauen 2026 | 14 | 14 | lückenlos |
+Nachgezählt, mit geteilten Plätzen verrechnet — punktgleiche Spieler teilen den
+Platz, und die nächste Nummer überspringt die Gruppe. **Eine fehlende
+Platznummer ist deshalb nicht automatisch eine Lücke**: In der Männerliste
+fehlen 40 einzelne Nummern, und trotzdem ist sie lückenlos. Richtig prüft man
+über die Gruppengröße (Platz + Gruppengröße = nächster Platz):
 
-Diese eine Lücke ist auch der Grund, warum im Spielerstamm Passnummern
-fehlen: 82 Männer, die 2025/26 gespielt haben, stehen in keiner Datei. Kommen
-die beiden Seiten nach, lösen sie voraussichtlich die offenen Nummern aus den
-Ergebnislisten der neuen Saison mit auf — jedenfalls die männlichen. Bei den
-Frauen hilft das nicht: Deren Endrangliste ist vollständig, eine dort
-fehlende Nummer war letzte Saison also nicht dabei.
+| Auswertung | Zeilen | Platzgruppen | letzter Platz | Lücken |
+| --- | --- | --- | --- | --- |
+| Endrangliste Männer 2025/26 | 323 | 277 | 323 | lückenlos |
+| Endrangliste Frauen 2025/26 | 76 | 76 | 76 | lückenlos |
+| Sommer-Ranking Männer 2026 | 54 | 52 | 54 | lückenlos |
+| Sommer-Ranking Frauen 2026 | 14 | 14 | 14 | lückenlos |
+
+Die Nachlieferung hat eine der offenen Passnummern aus den neuen
+Ergebnislisten geklärt: **531 „Hubsi" = WÜRMTAL HUBSI**, Platz 212 — passend
+dazu kam der Zettel aus dem DJK Würmtal. Vier bleiben offen (156, 243, 650 und
+der Widerspruch bei 280); bei den Frauen half die Nachlieferung ohnehin nicht,
+deren Endrangliste war schon vorher vollständig.
 
 **Demo** sind allein die einzelnen Turniere (`tournaments.generated.ts`,
 erzeugt von `scripts/mdc-generate-tournaments.mjs`). Sie zeigen, wie
@@ -171,10 +179,18 @@ aufgefallen. Alle drei sind in `data/parse-ranking.ts` festgehalten:
 **Dieselbe Passnummer, offenbar zwei verschiedene Menschen** — NICHT
 zusammengeführt, beide bleiben eigene Spieler:
 
-| Passnr. | Saison 2025/26 | Sommer-Ranking |
+| Passnr. | einmal | ein andermal |
 | --- | --- | --- |
 | 84 | Legende Uli | Harlekin Erna |
 | 303 | Obstqi Harry | Friedl Lena |
+| 281 | Hundseder Markus | Roll Morris |
+| 282 | Grimm Nicole | Leschinski Luca |
+| 302 | Aust Daniel | P Stefan |
+| 280 | Stephan Thadeus (Rangliste) | „Moni", Zettel Ambasador |
+
+Die unteren vier sind mit den nachgelieferten Seiten dazugekommen: 281, 282 und
+302 stehen dort mit anderen Namen als in den übrigen Auswertungen. 280 ist ein
+Widerspruch zwischen Rangliste und Ergebniszettel.
 
 Was dort richtig ist, muss der Betreiber klären. `passNumberConflicts()` in
 `data/players.ts` listet solche Fälle auf.

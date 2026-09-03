@@ -42,27 +42,28 @@
 //
 // ── Was noch zu bestätigen ist (`unsure: true`) ──────────────
 //
-// Fünf Nummern stehen im Stamm nicht. Das muss kein Lesefehler sein, und
-// dafür gibt es einen konkreten Grund: In der Männer-Endrangliste 2025/26
-// fehlen die Plätze 199–280 — 82 Spieler, die gespielt haben und in keiner
-// Datei stehen (nachgezählt, siehe `docs/mdc-demo.md`). Genau dort dürften
-// die männlichen der offenen Nummern zu finden sein.
+// Fünf Nummern standen anfangs in keiner Auswertung. Der Verdacht lag bei der
+// Lücke in der Männer-Endrangliste 2025/26 (Plätze 199–280 fehlten). Die
+// beiden Seiten sind inzwischen nachgeliefert und eingetragen — und haben
+// eine der fünf geklärt:
 //
-// Bei den Frauen greift die Erklärung nicht: Deren Endrangliste ist
-// lückenlos, ebenso beide Sommer-Ranglisten. Eine dort fehlende Nummer war
-// letzte Saison also wirklich nicht dabei.
+//   531  „Hubsi"  → Platz 212, WÜRMTAL HUBSI. Passt auch zum Lokal: Der
+//                   Zettel kommt aus dem DJK Würmtal. Erledigt.
 //
-// Solange es nicht geklärt ist, laufen diese Zeilen als eigene, neue Spieler.
-// Sie holen sich damit keine Punkte, die jemand anderem gehören.
+// Vier bleiben offen. Bei den Frauen greift die Lücken-Erklärung ohnehin
+// nicht: Deren Endrangliste ist lückenlos, ebenso beide Sommer-Ranglisten.
 //
-//   156  „Thomas Schmid"  — im Stamm ist 156 nicht belegt
-//   650  „Sandy"          — nicht belegt, und ohne M/F-Kreuz
-//   531  „Hubsi"          — nicht belegt, ohne M/F-Kreuz, Zeile teils
-//                            durchgestrichen
-//   280  „Moni"           — nicht belegt; es gibt 249 „Moni Singh"
-//                            (dort in der Männerwertung geführt)
-//   243  „Michi"          — nicht belegt; es gibt 223 Michi Kronbichler
-//                            und 252 Michi Moch
+//   156  „Thomas Schmid"  — auch nach der Nachlieferung nicht belegt
+//   243  „Michi"          — dito; es gibt 223 Michi Kronbichler und
+//                            252 Michi Moch
+//   650  „Sandy"          — dito, und ohne M/F-Kreuz
+//   280  „Moni" (F)       — WIDERSPRUCH: 280 ist laut Nachlieferung
+//                            STEPHAN, THADEUS (Platz 243, Männer). Entweder
+//                            ist die Nummer auf dem Zettel verlesen oder
+//                            zweimal vergeben.
+//
+// Solange das nicht geklärt ist, laufen diese Zeilen als eigene, neue
+// Spieler. Sie holen sich damit keine Punkte, die jemand anderem gehören.
 //
 // Zwei weitere Zeilen tragen eine Initiale, die nicht zum Stamm passt. Die
 // Passnummer ist dort aber eindeutig zu lesen, deshalb gilt sie:
@@ -269,7 +270,7 @@ export const RESULT_SHEETS: ResultSheet[] = [
       13| |510| 95|Timon
       17| |523| 53|Davidsen
       17| |537| 53|Angie
-      17| |531| 53|Hubsi|?
+      17| |531| 53|Hubsi
     `),
   },
   {

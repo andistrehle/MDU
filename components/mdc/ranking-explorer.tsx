@@ -26,7 +26,8 @@ interface RankingExplorerProps {
   payouts: Record<Division, PayoutSummary>;
   finalAsOf: string;
   summerAsOf: string;
-  gap: { from: number; to: number };
+  /** Nur setzen, wenn Auswertungsseiten fehlen. */
+  gap?: { from: number; to: number };
 }
 
 const euro = (value: number) =>

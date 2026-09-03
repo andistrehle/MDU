@@ -13,9 +13,11 @@
 // • Trend       → 'u' = ▲ gestiegen, 'd' = ▼ gefallen, leer = unverändert.
 // • Schnitt     → wird als Punkte / Anzahl TN berechnet, nicht gepflegt.
 //
-// LÜCKE: Die Plätze 199–280 liegen noch nicht vor (zwei fehlende Seiten der
-// Auswertung). Sie fehlen bewusst, statt sie zu erfinden — die Ranglisten-
-// Seite weist die Lücke sichtbar aus.
+// VOLLSTÄNDIG. Die Plätze 199–280 fehlten lange (zwei Seiten der Auswertung
+// lagen nicht vor) und wurden nachgeliefert. Jede der 82 Zeilen ist gegen die
+// Schnitt-Spalte des Blattes gerechnet (Punkte / Anzahl TN), die Platzfolge
+// gegen die geteilten Plätze geprüft und der Anschluss nach oben (Platz 198,
+// 360 Punkte) wie nach unten (Platz 281, 94 Punkte) kontrolliert.
 // ============================================================
 
 export const RANKING_MEN_2025_26_RAW: string[] = [
@@ -217,7 +219,89 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '196|506|BAUMANN|MARCUS (EXITUS)|2|385',
   '197|20|HASLER|CHRISTIAN|4|361',
   '198|433|BÜTTNER|DIRK|2|360',
-  // ── Plätze 199–280: Auswertungsseiten liegen noch nicht vor ──
+  // ── Plätze 199–280: die zwei nachgelieferten Auswertungsseiten ──
+  '199|183|MINTCHEV|NIKOLAY|3|357',
+  '200|139|KULIK|CHRISTIAN|2|342',
+  '201|28|F|AXEL|3|337',
+  '202|269|KAISER|MICHAEL|2|330',
+  '203|59|HARLEKIN|MAX|2|328',
+  '204|418|GISI|DAVID|4|326',
+  '205|272|BREUER|JAN|2|325',
+  '206|459|DOSPIL|GERD|2|315',
+  '207|261|MIKULECKY|RAINER|3|305',
+  '208|19|ROSINUS|CHRIS (ROSI)|2|291',
+  '209|416|TREICHEL|ROMAN|4|283',
+  '210|176|FEISAL|OLOL|3|273',
+  '211|170|MEMET|ERDAL|3|268',
+  '212|531|WÜRMTAL|HUBSI|2|255',
+  '|302|P|STEFAN|2|255',
+  '214|148|RÖHL|LUKAS|2|241',
+  '215|388|Ö|MR|4|238',
+  '216|309|VIDICEVIC|MILAN|3|222',
+  '|308|MACHETE|KEVIN|2|222',
+  '218|193|ABRAHAM|ARMIN|2|220',
+  '219|496|WÜRMTAL|CHRISTIAN|3|219',
+  '220|575|SCHABOS|ALESSIO|2|218',
+  '221|103|STIEGELE|ALEX|2|216',
+  '222|96|KERN|ANDI|2|214',
+  '223|567|SCHABOS|JUSTIN|1|213',
+  '224|35|EISEB|RICKEY|1|211',
+  '225|137|GILBERT|NICO|1|209',
+  '|36|GRAMÜLLER|STEFAN|2|209',
+  '227|568|SCHABOS|RABE|1|207',
+  '|464|KOVAJIN|DARIO|2|207',
+  '229|539|LEITSCHUH|SVEN|1|206',
+  '230|556|OBRSTAR|MLADEN (GRISU)|1|205',
+  '231|397|BAUMANN|LUKAS|1|203',
+  '232|423|KEIL|PETER|1|199',
+  '233|473|STEFANEK|KAI|1|197',
+  '234|173|RAUCH|MANUEL (PELLE)|1|195',
+  '235|401|GASHI|ALBAN|1|188',
+  '|371|NETZER|ANDI|1|188',
+  '237|570|SCHABOS|KILLE|1|176',
+  '|569|SCHABOS|ALEX|1|176',
+  '|31|MEYER|PATRICK|1|176',
+  '240|18|ZORKO|FRANC|1|175',
+  '241|513|GEWITSCH|ANDI|2|174',
+  '242|70|MOHR|MARTIN|1|168',
+  '243|483|SCHÖNHERR|SASCHA|1|165',
+  '|280|STEPHAN|THADEUS|1|165',
+  '|7|DIMO|DIMO|1|165',
+  '246|138|OTTEN|OLLI|1|163',
+  '247|274|PLÖTZ|LUCKY|1|162',
+  '248|205|RG|MORITZ|1|161',
+  '249|240|PANKRATZ|RICHI|1|160',
+  '250|488|GROSS|TIMO|1|159',
+  '251|207|RG|MARCEL|2|157',
+  '252|538|GLASHAUSER|HERMANN|1|154',
+  '|209|KUNZE|STEFAN|1|154',
+  '254|571|SCHABOS|GABRIEL|1|151',
+  '255|310|LANGEN|DANIEL (JIMMY)|1|149',
+  '256|380|LEGENDARY|KEVIN|2|143',
+  '257|95|HARLEKIN|KARL|2|142',
+  '258|455|KUGLER|STEFAN|1|132',
+  '|405|FISCHER|STEFAN|1|132',
+  '|298|BEMBUCH|VIKTOR|2|132',
+  '|281|ROLL|MORRIS|1|132',
+  '262|432|BÜTTNER|YANNICK|2|128',
+  '263|574|SCHABOS|MAGGI|1|126',
+  '|573|SCHABOS|KOTTE|1|126',
+  '|572|SCHABOS|JAN|1|126',
+  '|48|FIAKER|RALF|1|126',
+  '267|254|ISLAMI|YETON|1|125',
+  '268|11|WASL|MANE|1|119',
+  '269|106|RODRIQUE|STEFAN|1|118',
+  '270|408|KILIAN|RALF|1|112',
+  '|289|MAY|MARKUS|2|112',
+  '|256|ISLAMI|ALBAN|1|112',
+  '|255|REXHEPI|PUTO|1|112',
+  '274|91|HÖLLRIGL|MAX|1|111',
+  '275|276|WISNIEWSKE|HERBERT|1|108',
+  '276|239|RG|NIHAT|1|107',
+  '277|121|CREME|BAS|1|106',
+  '278|141|AUGUSTIN|ANTON|1|101',
+  '279|484|HOFFMEISTER|ANDRE|1|99',
+  '|282|LESCHINSKI|LUCA|1|99',
   '281|249|SINGH|MONI|1|94',
   '|84|LEGENDE|ULI|1|94',
   '283|472|WEGENER|MAX|1|82',
@@ -263,5 +347,10 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '|87|A|JULIAN|1|40',
 ];
 
-/** Plätze, deren Auswertungsseiten noch fehlen — wird in der Tabelle ausgewiesen. */
-export const RANKING_MEN_GAP = { from: 199, to: 280 } as const;
+/**
+ * Plätze, deren Auswertungsseiten fehlen — wird in der Tabelle ausgewiesen.
+ * `null` = keine Lücke. Die frühere Lücke 199–280 ist nachgeliefert und
+ * eingetragen. Die Plumbing bleibt: Fehlt später wieder eine Seite, steht
+ * hier ein Bereich und die Tabelle weist ihn von selbst aus.
+ */
+export const RANKING_MEN_GAP: { from: number; to: number } | null = null;

@@ -59,7 +59,7 @@ export default function ArchivPage() {
             payouts={PAYOUTS}
             finalAsOf={FINAL_SEASON.asOf}
             summerAsOf={SUMMER_SEASON.asOf}
-            gap={RANKING_MEN_GAP}
+            gap={RANKING_MEN_GAP ?? undefined}
           />
         </div>
       </section>
