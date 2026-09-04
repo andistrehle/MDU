@@ -78,8 +78,19 @@ export const ARCHIVED_SEASONS: Season[] = SEASONS
   .sort((a, b) => b.asOf.localeCompare(a.asOf));
 
 /**
- * Stichtag der Demo. Was davor liegt, gilt als gespielt; was danach kommt, als
- * „kommend". Bewusst ein fester Wert statt `new Date()` — sonst wären die
- * „kommenden Turniere" irgendwann Vergangenheit und die Demo kaputt.
+ * Das heutige Datum in München, als `JJJJ-MM-TT`.
+ *
+ * Warum nicht `new Date().toISOString()`: Der Server läuft in UTC. Ab 22 bzw.
+ * 23 Uhr deutscher Zeit wäre dort schon der nächste Tag — der Wochenplan
+ * spränge also am Abend um einen Tag vor. `sv-SE` ist der kürzeste Weg zum
+ * Format JJJJ-MM-TT.
+ *
+ * Früher stand hier ein fester Stichtag. Der war nötig, solange der
+ * Wochenplan aus erfundenen Turnieren kam: Mit echtem Datum wären die
+ * „kommenden Turniere" irgendwann Vergangenheit gewesen. Seit der Plan aus
+ * den Spielorten kommt (fester Wochentag je Lokal), kann er nicht mehr
+ * veralten — und das echte Datum ist das richtige.
  */
-export const DEMO_TODAY = getCurrentSeason().asOf;
+export function todayInMunich(): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+}

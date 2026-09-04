@@ -9,7 +9,6 @@
 
 import type { Tournament, TournamentResult } from './types';
 import { TOURNAMENTS } from './tournaments.generated';
-import { DEMO_TODAY } from './season';
 import { getVenue } from './venues';
 
 export { TOURNAMENTS };
@@ -42,26 +41,6 @@ export function nextTournament(): Tournament | undefined {
 /** Das zuletzt gespielte Turnier. */
 export function latestTournament(): Tournament | undefined {
   return finishedTournaments()[0];
-}
-
-/**
- * Kommende Turniere der nächsten sieben Tage, nach Wochentag gruppiert —
- * Grundlage für „Diese Woche bei der MDC".
- */
-export function tournamentsThisWeek(): { date: string; tournaments: Tournament[] }[] {
-  const start = new Date(`${DEMO_TODAY}T00:00:00Z`);
-  const end = new Date(start);
-  end.setUTCDate(end.getUTCDate() + 7);
-  const endIso = end.toISOString().slice(0, 10);
-
-  const inRange = upcomingTournaments().filter(t => t.date >= DEMO_TODAY && t.date <= endIso);
-  const dates = [...new Set(inRange.map(t => t.date))].sort();
-  return dates.map(date => ({
-    date,
-    tournaments: inRange
-      .filter(t => t.date === date)
-      .sort((a, b) => a.time.localeCompare(b.time) || a.venueId.localeCompare(b.venueId)),
-  }));
 }
 
 /** Turniere eines Spielorts, neueste zuerst. */

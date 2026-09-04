@@ -16,7 +16,7 @@ import './mdc.css';
 import { SiteHeader } from '@/components/mdc/site-header';
 import { SiteFooter } from '@/components/mdc/site-footer';
 import { VENUES, nextPlayDay } from '@/data/venues';
-import { DEMO_TODAY } from '@/data/season';
+import { todayInMunich } from '@/data/season';
 import { formatDateShort } from '@/lib/mdc/format';
 import { logoSrc, throwerSrc } from '@/lib/mdc/brand';
 
@@ -31,13 +31,23 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * Die MDC-Seiten sind statisch — ohne diese Zeile würde „heute" beim Bauen
+ * eingefroren und der Wochenplan zeigte für immer den Tag des letzten
+ * Deployments. Halbstündlich neu rendern reicht: Der Plan ändert sich nur
+ * zum Tageswechsel.
+ */
+export const revalidate = 1800;
+
 export default function MdcLayout({ children }: { children: React.ReactNode }) {
   // Der nächste Spieltag ergibt sich aus den Spielorten (fester Wochentag je
   // Lokal), nicht aus einer Terminliste — damit stimmt der Knopf immer mit
   // dem Wochenplan auf der Startseite überein.
-  const next = nextPlayDay(DEMO_TODAY);
+  const heute = todayInMunich();
+  const next = nextPlayDay(heute);
+  // Wird heute gespielt, ist „Heute" die klarere Angabe als das Datum.
   const nextLabel = next
-    ? `${formatDateShort(next.date)} · ${
+    ? `${next.date === heute ? 'Heute' : formatDateShort(next.date)} · ${
         next.venues.length === 1 ? next.venues[0].name : `${next.venues.length} Lokale`
       }`
     : 'Spielorte ansehen';

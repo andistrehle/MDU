@@ -19,7 +19,7 @@ import {
   getVenue, VENUES, venueAddress, playDaysFrom,
   FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE,
 } from '@/data/venues';
-import { DEMO_TODAY, FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
+import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
 
@@ -57,9 +57,10 @@ export default function MdcHomePage() {
   const recordHolder = MDC_STATS.mostAppearancesPlayerId
     ? getPlayer(MDC_STATS.mostAppearancesPlayerId)
     : undefined;
-  // Der Wochenplan kommt aus den echten Spielorten (Wochentag + Uhrzeit),
-  // nicht aus den Demo-Turnieren.
-  const woche = playDaysFrom(DEMO_TODAY);
+  // Der Wochenplan kommt aus den echten Spielorten (Wochentag + Uhrzeit) und
+  // rechnet ab heute. Wie oft „heute" neu bestimmt wird, steht in `revalidate`.
+  const heute = todayInMunich();
+  const woche = playDaysFrom(heute);
   const latest = finishedTournaments().slice(0, 3);
 
   return (
@@ -137,8 +138,12 @@ export default function MdcHomePage() {
                 className="mdc-live-dot"
                 style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--mdc-red)' }}
               />
-              {woche[0]?.venues.length ?? 0} Turniere am{' '}
-              {woche[0] ? weekdayName(woche[0].date) : 'Spieltag'}
+              {woche[0]?.venues.length ?? 0} Turniere{' '}
+              {woche[0]
+                ? woche[0].date === heute
+                  ? 'heute'
+                  : `am ${weekdayName(woche[0].date)}`
+                : 'am Spieltag'}
             </span>
             <span>{VENUES.length} Spielorte in München</span>
             <span>{formatNumber(PLAYERS.length)} Spieler mit MDC-Pass</span>
@@ -276,9 +281,10 @@ export default function MdcHomePage() {
               <div key={tag.date}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
                   <h3 className="mdc-display" style={{ fontSize: '1.4rem' }}>
-                    {weekdayName(tag.date)}
+                    {tag.date === heute ? 'Heute' : weekdayName(tag.date)}
                   </h3>
                   <span className="mdc-num" style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)' }}>
+                    {tag.date === heute ? `${weekdayName(tag.date)}, ` : ''}
                     {formatDate(tag.date)}
                   </span>
                 </div>

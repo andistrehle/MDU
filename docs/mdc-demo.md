@@ -221,6 +221,16 @@ ein Ranking stattfinden — ab mindestens vier Personen, die Wirte entscheiden
 Ein Lokal kann mehrere Spieltage haben (`weekdays: Weekday[]`); zurzeit hat
 jedes genau einen.
 
+**Der Wochenplan wird aus diesen Spieltagen gerechnet**, nicht aus einer
+Terminliste: `playDaysFrom(datum)` in `data/venues.ts` läuft sieben Tage ab
+heute durch und sammelt je Tag die Lokale, die dann spielen; `nextPlayDay()`
+liefert den nächsten davon für den Knopf „Nächstes Ranking" in der Kopfzeile.
+„Heute" kommt aus `todayInMunich()` (`data/season.ts`) — bewusst über die
+Zeitzone Europe/Berlin, weil der Server in UTC läuft und der Plan sonst
+abends einen Tag zu früh umspränge. Damit das Datum nicht beim Bauen
+einfriert, rendern die MDC-Seiten halbstündlich neu (`export const
+revalidate` in `app/mdc/layout.tsx`).
+
 > **Offen: Telefonnummern.** Die Vorlage nennt für jedes Lokal eine Nummer,
 > überwiegend Mobilnummern. Sie sind gespeichert, werden aber **nicht
 > angezeigt** — `PHONES_PUBLIC = false` in `data/venues.ts`. Auf `true`
