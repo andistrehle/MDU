@@ -84,67 +84,16 @@ export interface Venue {
 // ------------------------------------------------------------
 // Turniere
 // ------------------------------------------------------------
-
-/** Turnierbaum-Größen, die die MDC ausspielt. */
-export type BracketSize = 8 | 16 | 32;
-
-export type TournamentStatus = 'upcoming' | 'running' | 'finished';
-
-/** Seite des Turnierbaums. */
-export type BracketSide = 'winner' | 'loser' | 'final';
-
-export interface Match {
-  id: string;
-  tournamentId: string;
-  side: BracketSide;
-  /** Runde innerhalb der Seite, 1-basiert. */
-  round: number;
-  /** Position innerhalb der Runde, 0-basiert (von oben). */
-  position: number;
-  /** Spieler-ID oder null (Freilos / noch nicht qualifiziert). */
-  playerAId: string | null;
-  playerBId: string | null;
-  legsA: number | null;
-  legsB: number | null;
-  winnerId: string | null;
-  /** Freilos: Spieler A kommt kampflos weiter. */
-  bye: boolean;
-}
-
-export interface TournamentResult {
-  /** Endplatzierung, 1-basiert. Geteilte Plätze bekommen den besseren Wert. */
-  rank: number;
-  playerId: string;
-  /** Punkte fürs Saisonranking. */
-  points: number;
-  /** Gewonnene / verlorene Legs über das gesamte Turnier. */
-  legsWon: number;
-  legsLost: number;
-}
-
-export interface Tournament {
-  id: string;
-  /** Turnierserie, z. B. „Sommer-Ranking". */
-  series: string;
-  /** Anzeigename, z. B. „Sommer-Ranking #12". */
-  name: string;
-  venueId: string;
-  /** ISO-Datum „YYYY-MM-DD". */
-  date: string;
-  /** Startzeit „HH:MM". */
-  time: string;
-  status: TournamentStatus;
-  /** Meldeschluss-Kapazität (4–32). */
-  maxPlayers: number;
-  /** Gemeldete Spieler-IDs. Bei `upcoming` = aktueller Meldestand. */
-  participantIds: string[];
-  /** Endergebnis — leer, solange das Turnier nicht beendet ist. */
-  results: TournamentResult[];
-  /** Baumgröße (nächste Zweierpotenz über der Teilnehmerzahl). */
-  bracketSize: BracketSize;
-  /** Startgeld in Euro. */
-  entryFee: number;
-}
+//
+// Die Turniere der Saison 2025/26 stehen als Rohzeilen in
+// `archive-2025-26.generated.ts`; ihre Typen (`ArchiveTournament`,
+// `ArchiveResult`) liegen bei den Zugriffsfunktionen in
+// `archive-2025-26.ts`, weil sie genau die Form der Auswertung haben:
+// Platz, Passnummer, Punkte.
+//
+// Hier stand früher ein größerer Turniertyp mit Meldestand, Legs und
+// Turnierbaum. Den brauchte nur die Demo mit erfundenen Turnieren; die ist
+// entfernt. Was die MDC-Auswertung nicht führt, steht auch nicht im Typ.
 
 // ------------------------------------------------------------
 // Ranking

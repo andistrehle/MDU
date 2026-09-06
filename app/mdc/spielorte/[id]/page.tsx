@@ -3,15 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, MapPin, Phone, Target } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
-import { TournamentCard } from '@/components/mdc/tournament-card';
 import {
-  PHONES_PUBLIC, VENUES, getVenue, venueMapsUrl, venueWeekdayLabel,
+  PHONES_PUBLIC, VENUES, getVenue, nextDatesForVenue, venueMapsUrl, venueWeekdayLabel,
 } from '@/data/venues';
-import { tournamentsAtVenue } from '@/data/tournaments';
 import { archiveTournamentsAtVenue } from '@/data/archive-2025-26';
 import { getPlayer, playerName } from '@/data/players';
-import { FINAL_SEASON } from '@/data/season';
-import { formatDate, formatNumber, formatTime } from '@/lib/mdc/format';
+import { FINAL_SEASON, todayInMunich } from '@/data/season';
+import { formatDate, formatNumber, formatTime, weekdayName } from '@/lib/mdc/format';
 
 export function generateStaticParams() {
   return VENUES.map(venue => ({ id: venue.id }));
@@ -36,15 +34,12 @@ export default async function SpielortDetailPage(
   const venue = getVenue(id);
   if (!venue) notFound();
 
-  const tournaments = tournamentsAtVenue(venue.id);
-  // Kommende Termine aufsteigend (der nächste zuerst), gespielte absteigend
-  // (das letzte zuerst) — `tournamentsAtVenue` sortiert für den zweiten Fall.
-  const upcoming = tournaments
-    .filter(t => t.status !== 'finished')
-    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  const finished = tournaments.filter(t => t.status === 'finished');
+  // Kommende Termine ergeben sich aus dem festen Spieltag des Lokals —
+  // eine Terminliste führt die MDC nicht.
+  const heute = todayInMunich();
+  const termine = nextDatesForVenue(venue.id, heute, 4);
 
-  // Echte Turniere dieses Lokals aus der abgeschlossenen Saison.
+  // Gespielte Turniere dieses Lokals aus der abgeschlossenen Saison.
   const archiv = archiveTournamentsAtVenue(venue.id);
   const archivStarts = archiv.reduce((sum, t) => sum + t.participants, 0);
 
@@ -124,12 +119,27 @@ export default async function SpielortDetailPage(
             </div>
           </div>
 
-          {upcoming.length > 0 && (
+          {termine.length > 0 && (
             <div>
-              <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Nächste Termine</h2>
-              <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
-                {upcoming.map(tournament => (
-                  <TournamentCard key={tournament.id} tournament={tournament} />
+              <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>Nächste Termine</h2>
+              <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
+                {venueWeekdayLabel(venue)}, jeweils ab {formatTime(venue.time)}. Anmelden
+                im Lokal bis kurz vor dem Start — einen Meldestand führt die MDC nicht.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {termine.map(datum => (
+                  <span
+                    key={datum}
+                    className="mdc-card"
+                    style={{ padding: '10px 14px', display: 'inline-flex', gap: 8, alignItems: 'baseline' }}
+                  >
+                    <span className="mdc-display" style={{ fontSize: '0.95rem' }}>
+                      {datum === heute ? 'Heute' : weekdayName(datum)}
+                    </span>
+                    <span className="mdc-num" style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)' }}>
+                      {formatDate(datum)}
+                    </span>
+                  </span>
                 ))}
               </div>
             </div>
@@ -187,17 +197,6 @@ export default async function SpielortDetailPage(
               >
                 Alle {archiv.length} Turniere im Archiv
               </Link>
-            </div>
-          )}
-
-          {finished.length > 0 && (
-            <div>
-              <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Turniere dieser Vorschau</h2>
-              <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
-                {finished.map(tournament => (
-                  <TournamentCard key={tournament.id} tournament={tournament} />
-                ))}
-              </div>
             </div>
           )}
         </div>

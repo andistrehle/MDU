@@ -259,6 +259,17 @@ export function playDaysFrom(fromIso: string, days = 7): {
   return plan;
 }
 
+/**
+ * Die nächsten Termine EINES Lokals, aus seinem festen Spieltag gerechnet.
+ * Kein Meldestand: Angemeldet wird im Lokal, die MDC führt keine Liste.
+ */
+export function nextDatesForVenue(venueId: string, fromIso: string, count = 4): string[] {
+  return playDaysFrom(fromIso, count * 7 + 7)
+    .filter(tag => tag.venues.some(v => v.id === venueId))
+    .slice(0, count)
+    .map(tag => tag.date);
+}
+
 /** Der nächste Spieltag ab einem Datum — für den Knopf in der Kopfzeile. */
 export function nextPlayDay(fromIso: string): { date: string; weekday: Weekday; venues: Venue[] } | undefined {
   // 8 Tage schauen, damit auch von einem Freitag aus der Montag gefunden wird.

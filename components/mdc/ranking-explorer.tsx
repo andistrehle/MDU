@@ -5,7 +5,7 @@
 // ============================================================
 //
 // Zwei Umschalter:
-//   • Wertung: Saison-Endstand 2025/26 ↔ laufendes Sommer-Ranking 2026
+//   • Wertung: Saison-Endstand 2025/26 ↔ Sommer-Ranking 2026 (beide beendet)
 //   • Klasse:  Männer ↔ Frauen
 //
 // Männer und Frauen spielen dieselben Turniere, gewertet wird am Saisonende
