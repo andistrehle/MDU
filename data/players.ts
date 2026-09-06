@@ -25,6 +25,7 @@ import { RANKING_MEN_2026_27_RAW } from './ranking-2026-27-men';
 import { RANKING_WOMEN_2026_27_RAW } from './ranking-2026-27-women';
 import { RANKING_SOMMER_MEN_RAW } from './ranking-sommer-2026-men';
 import { RANKING_SOMMER_WOMEN_RAW } from './ranking-sommer-2026-women';
+import { PLAYERS_UPLOADED_MEN_RAW, PLAYERS_UPLOADED_WOMEN_RAW } from './players-uploaded';
 
 export const PARSED_MEN = parseRankingRows(RANKING_MEN_2025_26_RAW, 'men');
 export const PARSED_WOMEN = parseRankingRows(RANKING_WOMEN_2025_26_RAW, 'women');
@@ -32,6 +33,15 @@ export const PARSED_RUNNING_MEN = parseRankingRows(RANKING_MEN_2026_27_RAW, 'men
 export const PARSED_RUNNING_WOMEN = parseRankingRows(RANKING_WOMEN_2026_27_RAW, 'women');
 export const PARSED_SOMMER_MEN = parseRankingRows(RANKING_SOMMER_MEN_RAW, 'men');
 export const PARSED_SOMMER_WOMEN = parseRankingRows(RANKING_SOMMER_WOMEN_RAW, 'women');
+
+/**
+ * Spieler, die über einen hochgeladenen Ergebniszettel dazugekommen sind und
+ * noch in keiner Wertung stehen (`players-uploaded.ts`). Sie werden im Stamm
+ * geführt wie alle anderen — sonst hätte ihr Ergebnis niemanden, zu dem es
+ * gehört.
+ */
+export const PARSED_UPLOADED_MEN = parseRankingRows(PLAYERS_UPLOADED_MEN_RAW, 'men');
+export const PARSED_UPLOADED_WOMEN = parseRankingRows(PLAYERS_UPLOADED_WOMEN_RAW, 'women');
 
 /**
  * Der Stamm wird über die Spieler-ID zusammengeführt, NICHT über die
@@ -46,6 +56,9 @@ function buildPlayers(): Player[] {
   const alle = [
     ...PARSED_MEN, ...PARSED_WOMEN,
     ...PARSED_SOMMER_MEN, ...PARSED_SOMMER_WOMEN,
+    // Beim Hochladen erfasste Neulinge stehen VOR der laufenden Wertung:
+    // Taucht die Person später in der Mappe auf, gilt deren Schreibweise.
+    ...PARSED_UPLOADED_MEN, ...PARSED_UPLOADED_WOMEN,
     // Zuletzt die laufende Saison: Wer dort steht, ist aktuell dabei — seine
     // Wertungsklasse und Schreibweise gelten.
     ...PARSED_RUNNING_MEN, ...PARSED_RUNNING_WOMEN,

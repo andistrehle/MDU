@@ -37,6 +37,60 @@ const PREVIEW_COOKIE = 'mdu-preview';
 const REDIRECT_HOSTS = new Set(['mdu-darts.de', 'www.mdu-darts.de']);
 const CANONICAL_ORIGIN = 'https://www.mdudarts.de';
 
+/**
+ * Passwort für den Verwaltungsbereich der MDC (`/admin`). Server-only, kein
+ * `NEXT_PUBLIC_` — es darf nicht im Browser-Bündel landen.
+ *
+ * Ist es NICHT gesetzt, bleibt `/admin` die reine Oberflächen-Demo: Der
+ * Ergebnis-Upload meldet sich dann selbst als nicht eingerichtet, es gibt also
+ * nichts zu schützen. Sobald es gesetzt ist, verlangt die Seite es — über die
+ * Passwortabfrage des Browsers (HTTP Basic).
+ *
+ * Warum Basic und keine Anmeldeseite: Eine Anmeldung bräuchte eine Sitzung und
+ * damit ein Cookie. Die MDC setzt keine Cookies, und das steht so in den
+ * Datenschutzhinweisen. Die Passwortabfrage des Browsers kommt ohne aus — sie
+ * schickt die Zugangsdaten bei jedem Aufruf selbst mit.
+ */
+const MDC_ADMIN_PASSWORD = (process.env.MDC_ADMIN_PASSWORD ?? '').trim();
+
+/** Vergleich ohne frühen Abbruch — gleiche Laufzeit bei gleicher Länge. */
+function gleich(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * Prüft den Zugang zum MDC-Verwaltungsbereich.
+ * Gibt `null` zurück, wenn durchgelassen werden darf.
+ */
+function mdcAdminGuard(request: NextRequest): NextResponse | null {
+  if (!MDC_ADMIN_PASSWORD) return null;   // nicht eingerichtet → nur die Demo
+
+  const header = request.headers.get('authorization') ?? '';
+  if (header.startsWith('Basic ')) {
+    try {
+      const entschluesselt = atob(header.slice('Basic '.length));
+      // Benutzername ist gleichgültig — es gibt nur ein Passwort.
+      const passwort = entschluesselt.slice(entschluesselt.indexOf(':') + 1);
+      if (gleich(passwort, MDC_ADMIN_PASSWORD)) return null;
+    } catch {
+      // Kaputte Kodierung → wie ein falsches Passwort behandeln.
+    }
+  }
+
+  return withSecurityHeaders(new NextResponse('Zugang nur für die Turnierverwaltung.', {
+    status: 401,
+    headers: {
+      'WWW-Authenticate': 'Basic realm="MDC Turnierverwaltung", charset="UTF-8"',
+      'Content-Type': 'text/plain; charset=utf-8',
+      // Nichts davon gehört in einen Zwischenspeicher.
+      'Cache-Control': 'no-store',
+    },
+  }));
+}
+
 function withSecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-Frame-Options', 'SAMEORIGIN');
   res.headers.set('X-Content-Type-Options', 'nosniff');
@@ -63,6 +117,12 @@ export function proxy(request: NextRequest) {
       url.pathname = pathname.slice('/mdc'.length) || '/';
       return withSecurityHeaders(NextResponse.redirect(url, 308));
     }
+    // Verwaltung: vor dem Umschreiben prüfen. Die Abfrage gilt auch für die
+    // Formularsendungen der Upload-Seite — die laufen über dieselbe Adresse.
+    if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+      const abweisung = mdcAdminGuard(request);
+      if (abweisung) return abweisung;
+    }
     const url = request.nextUrl.clone();
     url.pathname = `/mdc${pathname === '/' ? '' : pathname}`;
     return withSecurityHeaders(NextResponse.rewrite(url));
@@ -87,6 +147,12 @@ export function proxy(request: NextRequest) {
     if (MDC_MOVED) {
       const ziel = new URL((pathname.slice('/mdc'.length) || '/') + search, MDC_ORIGIN);
       return withSecurityHeaders(NextResponse.redirect(ziel, 308));
+    }
+    // Solange die MDC hier noch ausgeliefert wird, gilt für ihre Verwaltung
+    // dieselbe Abfrage wie auf der eigenen Domain.
+    if (pathname === '/mdc/admin' || pathname.startsWith('/mdc/admin/')) {
+      const abweisung = mdcAdminGuard(request);
+      if (abweisung) return abweisung;
     }
     return withSecurityHeaders(NextResponse.next());
   }

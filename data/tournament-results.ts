@@ -24,11 +24,12 @@ import { pointsFor } from '@/lib/mdc/points';
 import { correctionsFor } from './corrections';
 import { RESULTS_2025_26_RAW } from './results-2025-26.generated';
 import { RESULTS_2026_27_RAW } from './results-2026-27.generated';
+import { RESULTS_UPLOADED_RAW } from './results-uploaded';
 import {
   PARSED_MEN, PARSED_WOMEN, PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN, getPlayerByPassNr,
 } from './players';
 import { isFormerVenue, venueName } from './venues';
-import { FINAL_SEASON, RUNNING_SEASON } from './season';
+import { FINAL_SEASON, RUNNING_SEASON, SEASONS } from './season';
 
 export interface TournamentResultRow {
   /** Endplatzierung, 1-basiert. Die Mappe führt jeden Platz genau einmal. */
@@ -58,6 +59,17 @@ export interface TournamentRecord {
   corrected: boolean;
   /** Starterzahl, die die Arbeitsmappe führt — ohne Berichtigung dieselbe. */
   participantsInWorkbook: number;
+  /**
+   * Woher das Turnier kommt:
+   *
+   *   'workbook'  aus der Auswertung des Betreibers (`results-*.generated.ts`)
+   *   'upload'    direkt vom Ergebniszettel hochgeladen und freigegeben
+   *               (`results-uploaded.ts`) — die Mappe kennt es noch nicht
+   *
+   * Die Oberfläche sagt es beim Turnier dazu. Nicht, weil das eine weniger
+   * wert wäre, sondern weil man wissen soll, woher die Zahlen stammen.
+   */
+  source: 'workbook' | 'upload';
 }
 
 /**
@@ -91,7 +103,7 @@ function playerFor(passNr: number, seasonId: string): string | null {
     ?? null;
 }
 
-function parse(raw: string, seasonId: string): TournamentRecord {
+function parse(raw: string, seasonId: string, source: 'workbook' | 'upload'): TournamentRecord {
   const [date, venueId, results] = raw.split('|');
   const id = `${date}-${venueId}`;
 
@@ -122,6 +134,7 @@ function parse(raw: string, seasonId: string): TournamentRecord {
     participants,
     corrected: korrekturen.length > 0,
     participantsInWorkbook: zeilen.length - korrekturen.length,
+    source,
     results: zeilen.map((zeile, index) => ({
       rank: index + 1,
       passNr: zeile.passNr,
@@ -131,12 +144,67 @@ function parse(raw: string, seasonId: string): TournamentRecord {
   };
 }
 
+/**
+ * Saison zu einem Datum. Hochgeladene Turniere bringen keine Saison mit — sie
+ * ergibt sich aus dem Datum, so wie in `data/season.ts` festgelegt.
+ */
+function seasonOfDate(date: string): string | null {
+  return SEASONS.find(s => date >= s.startDate && date <= s.endDate)?.id ?? null;
+}
+
+/**
+ * Turniere aus hochgeladenen Ergebniszetteln, nach Saison sortiert.
+ *
+ * Übersprungen wird eine Zeile, wenn
+ *   • ihr Datum in keine Saison fällt (dann gehört sie in keine Wertung), oder
+ *   • dasselbe Turnier schon in der Arbeitsmappe steht — die Mappe ist die
+ *     maßgebliche Quelle, sobald sie das Turnier führt.
+ *
+ * Beides still zu übergehen ist hier richtig: Die Datei wird von der Seite
+ * geschrieben, ein Abbruch beim Bauen würde den ganzen Auftritt lahmlegen.
+ * `scripts/mdc-check-saison.ts` meldet solche Zeilen dafür ausdrücklich.
+ */
+function uploadedBySeason(bekannteIds: Set<string>): Record<string, string[]> {
+  const je: Record<string, string[]> = {};
+  for (const raw of RESULTS_UPLOADED_RAW) {
+    const [date, venueId] = raw.split('|');
+    const seasonId = seasonOfDate(date);
+    if (!seasonId || bekannteIds.has(`${date}-${venueId}`)) continue;
+    (je[seasonId] ??= []).push(raw);
+  }
+  return je;
+}
+
 /** Alle Turniere einer Saison, ältestes zuerst (so wie in der Mappe). */
-const BY_SEASON: Record<string, TournamentRecord[]> = Object.fromEntries(
-  Object.entries(RAW).map(([seasonId, rows]) => [
-    seasonId, rows.map(raw => parse(raw, seasonId)),
-  ]),
-);
+const BY_SEASON: Record<string, TournamentRecord[]> = (() => {
+  const ausMappe = Object.fromEntries(
+    Object.entries(RAW).map(([seasonId, rows]) => [
+      seasonId, rows.map(raw => parse(raw, seasonId, 'workbook')),
+    ]),
+  );
+
+  const bekannt = new Set(Object.values(ausMappe).flat().map(t => t.id));
+  for (const [seasonId, rows] of Object.entries(uploadedBySeason(bekannt))) {
+    const liste = [
+      ...(ausMappe[seasonId] ?? []),
+      ...rows.map(raw => parse(raw, seasonId, 'upload')),
+    ];
+    // Nach Datum sortieren: Sonst hinge ein hochgeladenes Turnier immer hinten,
+    // auch wenn es älter ist als das letzte aus der Mappe.
+    liste.sort((a, b) => a.date.localeCompare(b.date) || a.venueName.localeCompare(b.venueName));
+    ausMappe[seasonId] = liste;
+  }
+
+  return ausMappe;
+})();
+
+/** Turniere, die vom Ergebniszettel kommen und (noch) nicht in der Mappe stehen. */
+export const UPLOADED_TOURNAMENTS: TournamentRecord[] = Object.values(BY_SEASON)
+  .flat()
+  .filter(t => t.source === 'upload');
+
+/** Steht in der Wertung etwas, das die Arbeitsmappe noch nicht kennt? */
+export const HAS_UPLOADED_RESULTS = UPLOADED_TOURNAMENTS.length > 0;
 
 export function tournamentsOfSeason(seasonId: string): TournamentRecord[] {
   return BY_SEASON[seasonId] ?? [];

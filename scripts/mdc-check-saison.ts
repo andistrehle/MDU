@@ -25,22 +25,28 @@
 // Rückgabe: Code 1, sobald eine Prüfung scheitert.
 // ============================================================
 
-import {
-  tournamentsOfSeason, playerSeasonStats, seasonStats, getTournamentRecord,
-} from '../data/tournament-results';
+import { tournamentsOfSeason, seasonStats, getTournamentRecord } from '../data/tournament-results';
 import { CORRECTIONS } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
-import { runningRankingOf } from '../data/ranking';
-import { getPlayer, playerName } from '../data/players';
+import {
+  getPlayer, playerName, PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN,
+} from '../data/players';
 import { pointsFor, TABLE_RANGE } from '../lib/mdc/points';
 import { FINAL_SEASON, RUNNING_SEASON } from '../data/season';
 import { getVenue, isFormerVenue } from '../data/venues';
-import type { Division, RankingEntry, Season } from '../data/types';
+import type { Division, Season } from '../data/types';
+
+/** Was die Summenprobe von einer Ranglistenzeile braucht. */
+interface WertungsZeile {
+  playerId: string;
+  points: number;
+  tournaments: number;
+}
 
 let fehler = 0;
 const meldung = (text: string) => { console.log('  FEHLER  ' + text); fehler++; };
 
-function pruefe(saison: Season, wertung: Record<Division, RankingEntry[]>) {
+function pruefe(saison: Season, wertung: Record<Division, WertungsZeile[]>) {
   const stats = seasonStats(saison.id);
   console.log(`\nSaison ${saison.label}`);
   console.log(`  ${stats.tournaments} Turniere, ${stats.entries} Ergebniszeilen, ` +
@@ -79,28 +85,71 @@ function pruefe(saison: Season, wertung: Record<Division, RankingEntry[]>) {
   }
   console.log(`  ${zeilen} Zeilen gegen den Punkteschlüssel gerechnet`);
 
+  // ── Summenprobe gegen die Wertung der Arbeitsmappe ──
+  //
+  // Verglichen werden die Turniere AUS DER MAPPE gegen die Wertung AUS DER
+  // MAPPE — beides derselbe Stand, beides muss aufgehen. Hochgeladene Turniere
+  // bleiben außen vor: Die Mappe kennt sie noch nicht, ihre Punkte dürfen die
+  // dortige Wertung also übersteigen. Würde man sie mitzählen, meldete diese
+  // Probe jeden hochgeladenen Abend als Abweichung und wäre wertlos.
+  const konten = new Map<string, { points: number; starts: number }>();
+  for (const t of tournamentsOfSeason(saison.id)) {
+    if (t.source !== 'workbook') continue;
+    for (const r of t.results) {
+      if (!r.playerId) continue;
+      const konto = konten.get(r.playerId) ?? { points: 0, starts: 0 };
+      konto.points += r.points;
+      konto.starts += 1;
+      konten.set(r.playerId, konto);
+    }
+  }
+
+  // Berichtigte Turniere weichen absichtlich von der Mappe ab (siehe
+  // `data/corrections.ts`). Wer in einem steckt, wird übergangen statt falsch
+  // gemeldet — die Berichtigung selbst wird weiter unten eigens geprüft.
+  const berichtigt = new Set<string>();
+  for (const t of tournamentsOfSeason(saison.id)) {
+    if (!t.corrected) continue;
+    for (const r of t.results) if (r.playerId) berichtigt.add(r.playerId);
+  }
+
   let abgeglichen = 0;
+  let uebergangen = 0;
   for (const division of ['men', 'women'] as const) {
     for (const eintrag of wertung[division]) {
-      const stats = playerSeasonStats(eintrag.playerId, saison.id);
       const spieler = getPlayer(eintrag.playerId);
       const name = spieler ? playerName(spieler) : eintrag.playerId;
-      if (!stats) { meldung(`${name}: steht in der Wertung, aber in keinem Turnier`); continue; }
-      if (stats.points !== eintrag.points) {
-        meldung(`${name}: Einzelergebnisse ${stats.points} Punkte, Wertung ${eintrag.points}`);
+      if (berichtigt.has(eintrag.playerId)) { uebergangen++; continue; }
+      const konto = konten.get(eintrag.playerId);
+      if (!konto) { meldung(`${name}: steht in der Wertung, aber in keinem Turnier`); continue; }
+      if (konto.points !== eintrag.points) {
+        meldung(`${name}: Einzelergebnisse ${konto.points} Punkte, Wertung ${eintrag.points}`);
       }
-      if (stats.starts !== eintrag.tournaments) {
-        meldung(`${name}: ${stats.starts} Starts in den Ergebnissen, ${eintrag.tournaments} in der Wertung`);
+      if (konto.starts !== eintrag.tournaments) {
+        meldung(`${name}: ${konto.starts} Starts in den Ergebnissen, ${eintrag.tournaments} in der Wertung`);
       }
       abgeglichen++;
     }
   }
-  console.log(`  ${abgeglichen} Ranglistenzeilen gegen die Einzelergebnisse abgeglichen`);
+  console.log(`  ${abgeglichen} Ranglistenzeilen gegen die Einzelergebnisse abgeglichen`
+    + (uebergangen ? `, ${uebergangen} wegen einer Berichtigung übergangen` : ''));
+
+  const hochgeladen = tournamentsOfSeason(saison.id).filter(t => t.source === 'upload');
+  if (hochgeladen.length) {
+    console.log(`  davon ${hochgeladen.length} vom Ergebniszettel hochgeladen ` +
+      '(noch nicht in der Arbeitsmappe):');
+    for (const t of hochgeladen) {
+      console.log(`    ${t.date}  ${t.venueName} — ${t.participants} Starter`);
+    }
+  }
 }
 
 console.log('\nMDC — Einzelergebnisse und Wertungen');
 pruefe(FINAL_SEASON, FINAL_RANKING_2025_26);
-pruefe(RUNNING_SEASON, { men: runningRankingOf('men'), women: runningRankingOf('women') });
+// Für die laufende Saison wird gegen die Wertung DER MAPPE geprüft, nicht
+// gegen die gerechnete: Die entsteht selbst aus den Einzelergebnissen, ein
+// Vergleich damit wäre eine Probe gegen sich selbst.
+pruefe(RUNNING_SEASON, { men: PARSED_RUNNING_MEN, women: PARSED_RUNNING_WOMEN });
 
 // ── Berichtigungen: noch nötig oder erledigt? ───────────────
 if (CORRECTIONS.length > 0) {

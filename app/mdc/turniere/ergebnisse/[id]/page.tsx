@@ -10,7 +10,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AlertTriangle, ArrowLeft, ArrowRight, CalendarClock, MapPin, Users } from 'lucide-react';
+import {
+  AlertTriangle, ArrowLeft, ArrowRight, CalendarClock, FileCheck2, MapPin, Users,
+} from 'lucide-react';
 import { PlayerAvatar } from '@/components/mdc/player-avatar';
 import { Dartboard } from '@/components/mdc/dartboard';
 import {
@@ -189,6 +191,24 @@ export default async function ArchivTurnierPage(
               </p>
             </div>
           ))}
+
+          {turnier.source === 'upload' && (
+            <div
+              className="mdc-card"
+              style={{
+                display: 'flex', gap: 12, padding: '14px 16px', marginBottom: 22,
+                fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)',
+              }}
+            >
+              <FileCheck2 size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-navy)' }} />
+              <p>
+                <strong>Direkt vom Ergebniszettel.</strong> Dieses Turnier wurde am
+                Turnierabend erfasst und freigegeben; in der Auswertung des Betreibers steht
+                es noch nicht. Die Punkte kommen wie überall aus dem Punkteschlüssel. Sobald
+                die Auswertung nachzieht, gilt sie.
+              </p>
+            </div>
+          )}
 
           <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Ergebnisliste</h2>
 

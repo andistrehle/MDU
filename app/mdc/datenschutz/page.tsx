@@ -2,11 +2,17 @@
 // MDC — Datenschutzhinweise
 // ============================================================
 //
-// Beschrieben ist, was diese Seite TATSÄCHLICH tut. Sie ist eine reine
-// Leseseite: keine Anmeldung, kein Formular, keine Cookies, kein lokaler
+// Beschrieben ist, was diese Seite TATSÄCHLICH tut. Für Besucher ist sie eine
+// reine Leseseite: keine Anmeldung, kein Formular, keine Cookies, kein lokaler
 // Speicher, keine Inhalte von fremden Servern. Was sie dagegen sehr wohl tut:
 // Namen echter Personen samt Ergebnissen veröffentlichen — genau das ist der
 // erklärungsbedürftige Teil und steht deshalb weit oben.
+//
+// Dazu kommt seit dem Ergebnis-Upload ein zweiter erklärungsbedürftiger Teil:
+// ein passwortgeschützter Bereich, in dem der Zettel fotografiert und gelesen
+// wird (Ziffer 9). Wird an diesem Ablauf etwas geändert — ein anderer
+// Erkennungsdienst, ein Zwischenspeicher für die Fotos, eine Datenbank —, MUSS
+// dieser Text mitgeändert werden. Er beschreibt keinen Wunschzustand.
 //
 // Die Anbieterangaben kommen aus `data/mdc-legal.ts`.
 // ============================================================
@@ -123,13 +129,45 @@ export default function DatenschutzPage() {
         </LegalSection>
 
         <LegalSection title="8. Keine Anmeldung, keine Cookies">
-          Diese Seite ist eine reine Leseseite: Es gibt kein Benutzerkonto, kein Formular und
-          keinen Warenkorb. Sie setzt <strong>keine Cookies</strong> und legt nichts im
-          lokalen Speicher des Browsers ab. Auch eine Einwilligungsabfrage (Cookie-Banner) ist
-          deshalb nicht nötig — es gibt nichts einzuwilligen.
+          Für Besucherinnen und Besucher ist diese Seite eine reine Leseseite: Es gibt kein
+          Benutzerkonto, kein Formular und keinen Warenkorb. Sie setzt{' '}
+          <strong>keine Cookies</strong> und legt nichts im lokalen Speicher des Browsers ab.
+          Auch eine Einwilligungsabfrage (Cookie-Banner) ist deshalb nicht nötig — es gibt
+          nichts einzuwilligen.
+          <br /><br />
+          Einen geschlossenen Bereich gibt es dennoch: Die Turnierverwaltung, über die
+          Ergebnisse eingetragen werden (Ziffer 9). Sie ist mit einem Passwort gesichert und
+          nur den Personen zugänglich, die die Serie organisieren. Auch dieser Bereich kommt
+          ohne Cookie aus — er nutzt die Passwortabfrage des Browsers.
         </LegalSection>
 
-        <LegalSection title="9. Reichweitenmessung">
+        <LegalSection title="9. Ergebnisse vom Zettel">
+          Am Ende eines Turnierabends wird die handgeschriebene Ergebnisliste fotografiert und
+          in der Turnierverwaltung hochgeladen. Was dabei passiert:
+          <br /><br />
+          <strong>Das Foto</strong> wird an den Anbieter{' '}
+          <strong>Anthropic PBC</strong> übermittelt, der die Liste liest (Platzierungen und
+          Namen). Dort wird es nur für diesen einen Vorgang verarbeitet und weder gespeichert
+          noch zum Training von Modellen verwendet. Auf dieser Seite wird das Foto ebenfalls
+          nicht gespeichert — es verlässt den Browser nur für die Erkennung und ist danach weg.
+          <br /><br />
+          <strong>Übernommen</strong> wird ausschließlich, was eine Person danach am Bildschirm
+          geprüft und freigegeben hat: Platzierung, MDC-Passnummer und die daraus gerechneten
+          Punkte. Namen werden dabei nicht aus dem Foto übernommen, sondern der bestehenden
+          Spielerliste zugeordnet. Nichts geht ungeprüft online.
+          <br /><br />
+          <strong>Abgelegt</strong> werden diese Zeilen im Quellcode-Speicher der Seite bei der{' '}
+          <strong>GitHub, Inc.</strong> — dort liegt die Seite ohnehin. Eine Datenbank gibt es
+          nicht. Rechtsgrundlage ist wie für die Veröffentlichung selbst das berechtigte
+          Interesse (Art. 6 Abs. 1 lit. f DSGVO, Ziffer 5). Mit beiden Anbietern bestehen die
+          erforderlichen Vereinbarungen zur Auftragsverarbeitung (Art. 28 DSGVO); soweit Daten
+          in die USA übermittelt werden, geschieht das auf Grundlage geeigneter Garantien.
+          <br /><br />
+          Wer der Veröffentlichung widersprochen hat (Ziffer 6), wird auch auf diesem Weg nicht
+          aufgenommen.
+        </LegalSection>
+
+        <LegalSection title="10. Reichweitenmessung">
           Sofern beim Hoster (Vercel) die Funktion {'„Web Analytics“'} aktiviert ist, werden
           Seitenaufrufe anonym gezählt. Diese Messung arbeitet <strong>ohne Cookies</strong>,
           ohne geräteübergreifende Wiedererkennung und ohne Profilbildung; die IP-Adresse wird
@@ -138,7 +176,7 @@ export default function DatenschutzPage() {
           aktiviert, findet gar keine Messung statt.
         </LegalSection>
 
-        <LegalSection title="10. Schriften und externe Inhalte">
+        <LegalSection title="11. Schriften und externe Inhalte">
           Die verwendeten Schriften werden vom eigenen Server ausgeliefert; beim Seitenaufruf
           entsteht <strong>keine Verbindung zu Google Fonts</strong> oder anderen
           Fremdservern. Karten werden nicht eingebettet — der Verweis auf einen Kartendienst
@@ -151,14 +189,14 @@ export default function DatenschutzPage() {
           Schaltflächen sozialer Netzwerke (Like-Buttons und dergleichen) gibt es hier nicht.
         </LegalSection>
 
-        <LegalSection title="11. Kontaktaufnahme">
+        <LegalSection title="12. Kontaktaufnahme">
           Wer per E-Mail schreibt, dessen Adresse und Nachricht werden ausschließlich zur
           Bearbeitung des Anliegens verarbeitet (Art. 6 Abs. 1 lit. f DSGVO, bei
           vertragsähnlichen Anliegen lit. b). Die Nachrichten werden gelöscht, sobald sie
           erledigt sind und keine gesetzlichen Aufbewahrungsfristen entgegenstehen.
         </LegalSection>
 
-        <LegalSection title="12. Speicherdauer">
+        <LegalSection title="13. Speicherdauer">
           Ranglisten und Turnierergebnisse bleiben dauerhaft abrufbar, auch als Archiv
           abgeschlossener Saisons (derzeit die Saison {FINAL_SEASON.label}) — eine Rangliste,
           die nach Saisonende verschwindet, verlöre ihren Zweck. Nach einem Widerspruch
@@ -166,7 +204,7 @@ export default function DatenschutzPage() {
           kurzer Zeit; E-Mails werden nach Erledigung gelöscht.
         </LegalSection>
 
-        <LegalSection title="13. Rechte der betroffenen Personen">
+        <LegalSection title="14. Rechte der betroffenen Personen">
           Es bestehen die Rechte auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung
           (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20)
           und Widerspruch (Art. 21 DSGVO). Zur Wahrnehmung genügt eine E-Mail an {kontakt}.
@@ -177,20 +215,20 @@ export default function DatenschutzPage() {
           Behörde des eigenen Aufenthaltsorts wenden.
         </LegalSection>
 
-        <LegalSection title="14. Keine automatisierte Entscheidungsfindung">
+        <LegalSection title="15. Keine automatisierte Entscheidungsfindung">
           Eine automatisierte Entscheidungsfindung mit rechtlicher Wirkung im Sinne des
           Art. 22 DSGVO findet nicht statt. Punkte und Plätze ergeben sich aus dem
           veröffentlichten Punkteschlüssel und dem sportlichen Ergebnis; die Auswertung führt
           der Betreiber der Serie.
         </LegalSection>
 
-        <LegalSection title="15. Minderjährige">
+        <LegalSection title="16. Minderjährige">
           Nehmen Minderjährige am Spielbetrieb teil, gelten für die Veröffentlichung ihrer
           Ergebnisse dieselben Grundsätze; ein Widerspruch (Ziffer 6) kann durch die
           Erziehungsberechtigten erklärt werden und wird ohne Rückfrage umgesetzt.
         </LegalSection>
 
-        <LegalSection title="16. Änderungen dieser Hinweise">
+        <LegalSection title="17. Änderungen dieser Hinweise">
           Ändert sich etwas an der Seite oder an den eingesetzten Diensten, werden diese
           Hinweise angepasst. Es gilt jeweils die hier veröffentlichte Fassung; der Stand steht
           oben. Die Anbieterangaben stehen im{' '}

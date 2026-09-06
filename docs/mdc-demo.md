@@ -28,6 +28,14 @@ Eine Abweichung von der ursprünglichen Aufgabenstellung bleibt: Die
 Turnierverwaltung liegt unter `app/mdc/admin`, weil `/admin` im MDU-Teil
 bereits vergeben ist. Auf mdc-ranking.de ist sie als `/admin` erreichbar.
 
+## Nicht mehr nur eine Leseseite
+
+Seit dem **Ergebnis-Upload** hat die MDC einen Teil, der etwas verändert: Die
+Turnierleitung fotografiert den Ergebniszettel, prüft die erkannte Liste und
+gibt sie frei; das Turnier landet als Commit im Repository und ist zwei Minuten
+später online. Alles andere bleibt eine reine Leseseite. Ablauf, Grenzen und
+Einrichtung: **`docs/mdc-ergebnis-upload.md`**.
+
 ## Was von der MDU getrennt ist — und was noch nicht
 
 **Getrennt:**
@@ -114,7 +122,8 @@ Adressen wie auf mdc-ranking.de; im Code liegen sie jeweils unter `app/mdc/…`.
 | `/spielorte`             | Spielorte nach Wochentag                                           |
 | `/spielorte/[id]`        | Adresse, Automaten, Termine, Turniere der Saison 2025/26           |
 | `/regeln`                | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
-| `/admin`                 | Oberflächen-Demo der Turnierverwaltung (ohne Anmeldung, ohne Speichern) |
+| `/admin`                 | Turnierverwaltung — passwortgeschützt; darin der echte Ergebnis-Upload, der Rest Oberflächen-Demo |
+| `/admin/ergebnis`        | **Ergebniszettel fotografieren, prüfen, freigeben** (`docs/mdc-ergebnis-upload.md`) |
 | `/kontakt`               | Mitspielen, Spielort werden, Fragen zur Wertung                    |
 | `/impressum`, `/datenschutz` | Vollständige Rechtstexte (Anbieter wie bei der MDU), anwaltlich nicht geprüft |
 

@@ -141,10 +141,12 @@ ohne Search Console aber nichts.
 - **Rechtstexte prüfen lassen.** Impressum und Datenschutz sind sorgfältig auf
   das geschrieben, was die Seite tut, aber nicht anwaltlich geprüft. Die DSB,
   die schon die MDU-Texte gesehen hat, sollte einmal drüberschauen.
-- **Admin-Ansicht.** `/admin` ist im MDC-Bereich weiterhin erreichbar und zeigt
-  nur eine Oberfläche ohne Funktion. Für Suchmaschinen ist sie gesperrt
-  (`robots.ts`), wer die Adresse errät, sieht sie trotzdem — entweder entfernen
-  oder bewusst so lassen.
+- **Ergebnis-Upload einrichten.** `/admin` beherbergt jetzt den echten
+  Ergebnis-Upload. Er ist abgeschaltet, solange `MDC_ADMIN_PASSWORD`,
+  `MDC_OCR_API_KEY` und `MDC_GITHUB_TOKEN` im MDC-Projekt fehlen — siehe
+  `docs/mdc-ergebnis-upload.md`. Ohne Passwort bleibt `/admin` die alte
+  Oberflächen-Demo und ist für jeden erreichbar, der die Adresse errät (für
+  Suchmaschinen ist sie gesperrt).
 - **Telefonnummern der Spielorte** stehen als Platzhalter in den Daten und
   werden deshalb nicht öffentlich gezeigt (so steht es auch im Datenschutz).
 

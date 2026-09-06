@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowRight, Camera } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
 import { VENUES, venueWeekdayShort } from '@/data/venues';
 import { PLAYERS, playerName } from '@/data/players';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   // Oberflächen-Demo ohne Daten — gehört nicht in den Suchindex.
@@ -38,11 +41,37 @@ export default function AdminPage() {
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          {/* Der echte Weg steht vor der Demo — wer hierher kommt, will in aller
+              Regel ein Ergebnis eintragen, nicht eine Oberfläche ansehen. */}
+          <div
+            className="mdc-card mdc-card-accent"
+            style={{
+              padding: '22px 20px', display: 'flex', flexWrap: 'wrap', gap: 16,
+              alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 560 }}>
+              <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Camera size={19} style={{ color: 'var(--mdc-red)' }} />
+                Ergebnis vom Zettel eintragen
+              </h2>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Das ist der einzige Teil dieser Seite, der wirklich etwas tut: Zettel
+                fotografieren, erkannte Liste prüfen, freigeben. Die Punkte rechnet die Serie
+                selbst, das Turnier steht ein bis zwei Minuten später online.
+              </p>
+            </div>
+            <Link href={mdcPath('/admin/ergebnis')} className="mdc-btn mdc-btn-primary">
+              Ergebnis hochladen
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
           <DemoNotice>
-            Diese Seite ist bewusst ungeschützt und ohne Anmeldung — es gibt nichts
-            zu schützen: Kein Eintrag wird gespeichert oder verschickt, alles lebt
-            nur im Browser und ist nach dem Neuladen weg. Im echten Betrieb säße
-            hier eine Anmeldung mit Rollen (Turnierleitung, Lokalbetreuung, Verwaltung).
+            Alles Weitere auf dieser Seite ist reine Oberfläche: Kein Eintrag wird
+            gespeichert oder verschickt, alles lebt nur im Browser und ist nach dem
+            Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut ist
+            davon bisher nur der Ergebnis-Upload oben.
           </DemoNotice>
 
           <AdminDemo venues={venues} players={players} />

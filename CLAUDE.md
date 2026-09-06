@@ -92,6 +92,21 @@ vollständig sind). Ablauf, Abnahme und offene Punkte:
 `docs/mdc-domain-umzug.md`.
 Rechtstexte der MDC: `data/mdc-legal.ts` (Anbieter = wie MDU); ohne
 vollständige Angaben bleibt die Seite automatisch noindex.
+**Ergebnis-Upload:** Unter `/admin/ergebnis` kann die Turnierleitung den
+Ergebniszettel fotografieren; Claude Vision liest ihn, die erkannte Liste
+wird am Bildschirm geprüft und erst dann freigegeben. Die Punkte kommen
+immer aus `pointsFor`, nie vom Zettel. Freigegebene Turniere landen als
+Commit in `data/results-uploaded.ts` (neue Spieler in
+`data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form
+aber ganz normal von Hand änderbar. **Die Arbeitsmappe hat Vorrang:** Steht
+dasselbe Turnier später dort, wird die hochgeladene Zeile ignoriert.
+`/admin` ist per Passwortabfrage des Browsers geschützt (HTTP Basic in
+`proxy.ts`, KEIN Cookie — die Zusage „keine Cookies" im Datenschutz gilt
+weiter). Nötige ENV im MDC-Projekt: `MDC_ADMIN_PASSWORD`, `MDC_OCR_API_KEY`,
+`MDC_GITHUB_TOKEN` (fehlt eine, sagt die Seite das und schaltet ab).
+Ablauf, Grenzen und Einrichtung: `docs/mdc-ergebnis-upload.md`. Ändert sich
+etwas am Ablauf (anderer Dienst, Fotos speichern, Datenbank), MUSS Ziffer 9
+der Datenschutzhinweise mitgeändert werden.
 
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der

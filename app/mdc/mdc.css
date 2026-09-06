@@ -750,6 +750,8 @@ body:has(.mdc-root) {
 .mdc-rise-4 { animation-delay: 0.32s; }
 
 .mdc-spin-slow { animation: mdc-spin 90s linear infinite; transform-origin: 50% 50%; }
+/* Wartekringel — nur in der Turnierverwaltung, während der Zettel gelesen wird. */
+.mdc-spin { animation: mdc-spin 1s linear infinite; transform-origin: 50% 50%; }
 .mdc-live-dot { animation: mdc-pulse 2s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
