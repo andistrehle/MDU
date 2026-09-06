@@ -176,11 +176,13 @@ ersetzt. Der Abgleich Zeile für Zeile:
   (nicht 280), „Michi" ist **223 Michi Kronbichler** (nicht 243). Damit sind
   die beiden Widersprüche erledigt.
 - **Eine Abweichung bleibt offen:** Im Harlekin am 31.08.2026 stand auf dem
-  Zettel eine Person mehr (27 Starter, Passnr. 53 Micky Schul). Die Auswertung
-  führt 26 Starter ohne ihn — und damit für alle anderen ein bis vier Punkte
-  weniger, weil der Punkteschlüssel an der Feldgröße hängt. Micky kommt in der
-  ganzen Mappe 2026/27 nicht vor, steht aber im Teilnehmerregister. Der
-  Betreiber geht von einem Übertragungsfehler aus.
+  Zettel eine Person mehr (27 Starter, Passnr. 53 Micky Schul, Platzgruppe
+  13–16). Die Auswertung führt 26 Starter ohne ihn. Mit ihm verschiebt sich
+  jeder nach ihm um einen Platz, und weil der Punkteschlüssel an der Feldgröße
+  hängt, hätten 24 Starter null bis fünf Punkte mehr — zwei aber weniger
+  (Samy Minic −26, Stephan Brunner −54), weil sie eine Platzgruppe tiefer
+  rutschen. Micky kommt in der ganzen Mappe 2026/27 nicht vor, steht aber im
+  Teilnehmerregister. Der Betreiber geht von einem Übertragungsfehler aus.
 
   **Die Webseite rechnet das nicht um.** Sie zeigt weiter den Stand der Mappe
   und weist die Abweichung beim Turnier aus (`data/corrections.ts`). Sonst

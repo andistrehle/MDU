@@ -34,10 +34,12 @@ export const OPEN_CORRECTIONS: OpenCorrection[] = [
     participantsOnSheet: 27,
     note:
       'Auf dem handschriftlichen Ergebniszettel stand ein Starter mehr: Micky Schul ' +
-      '(Passnr. 53) auf Platz 13. Die Auswertung führt das Turnier mit 26 Startern — ' +
-      'und damit für alle anderen ein bis vier Punkte weniger, weil der Punkteschlüssel ' +
-      'an der Feldgröße hängt. Der Betreiber geht von einem Übertragungsfehler aus; ' +
-      'bis die Auswertung nachgezogen ist, steht hier ihr Stand.',
+      '(Passnr. 53) in der Platzgruppe 13–16. Die Auswertung führt das Turnier mit 26 ' +
+      'Startern. Weil der Punkteschlüssel an der Feldgröße hängt und Micky alle nach ' +
+      'ihm um einen Platz verschiebt, hätten mit ihm 24 Starter null bis fünf Punkte ' +
+      'mehr und zwei weniger — sie rutschten eine Platzgruppe tiefer. Der Betreiber ' +
+      'geht von einem Übertragungsfehler aus; bis die Auswertung nachgezogen ist, steht ' +
+      'hier ihr Stand.',
   },
 ];
 
