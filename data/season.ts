@@ -8,10 +8,10 @@
 //
 // Es gibt genau eine laufende Wertung und ein Archiv:
 //
-//   LAUFEND    Saison 2026/27 — gestartet am 31.08.2026, noch ohne Ergebnisse.
-//              Die Einzelergebnisse trägt der Betreiber nach, sobald sie
-//              vorliegen. Bis dahin steht dort nichts — es wird nichts
-//              geschätzt und nichts fortgeschrieben.
+//   LAUFEND    Saison 2026/27 — gestartet am 31.08.2026. Ergebnisse und
+//              Wertung kommen aus der Arbeitsmappe des Betreibers und werden
+//              mit jeder neuen Fassung neu eingelesen. Es wird nichts
+//              geschätzt und nichts aus der Vorsaison fortgeschrieben.
 //
 //   ARCHIV     Saison 2025/26 (Endstand mit Ausschüttung) und das
 //              Sommer-Ranking 2026. Beide sind abgeschlossen und werden nicht
@@ -46,7 +46,9 @@ export const SEASONS: Season[] = [
     label: '2026/27',
     startDate: '2026-08-31',
     endDate: '2027-07-25',
-    asOf: '2026-09-03',
+    // Stand der Wertung — steht in der Kopfzeile der Arbeitsmappe und wird
+    // beim Import mitgeliefert.
+    asOf: '2026-09-05',
     current: true,
   },
 ];

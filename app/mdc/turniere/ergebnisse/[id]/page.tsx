@@ -1,11 +1,10 @@
 // ============================================================
-// MDC — ein Turnier aus dem Archiv 2025/26
+// MDC — ein einzelnes Turnier
 // ============================================================
 //
 // Zeigt genau das, was in der Auswertung des Betreibers steht: Platzierung,
 // Passnummer und Punkte. Legs, Turnierbaum und Meldestand führt die Mappe
-// nicht — hier steht deshalb auch keiner. Bei den Demo-Turnieren
-// (`/mdc/turniere/[id]`) ist das anders, die sind erfunden.
+// nicht — hier steht deshalb auch keiner.
 // ============================================================
 
 import type { Metadata } from 'next';
@@ -15,23 +14,23 @@ import { ArrowLeft, ArrowRight, CalendarClock, MapPin, Users } from 'lucide-reac
 import { PlayerAvatar } from '@/components/mdc/player-avatar';
 import { Dartboard } from '@/components/mdc/dartboard';
 import {
-  ARCHIVE_TOURNAMENTS, archiveTournamentsAtVenue, getArchiveTournament,
-} from '@/data/archive-2025-26';
+  ALL_TOURNAMENTS, getTournamentRecord, tournamentsAtVenue,
+} from '@/data/tournament-results';
 import { getVenue, venueAddress } from '@/data/venues';
 import { getPlayer, playerName } from '@/data/players';
 import { rankGroupLabel } from '@/lib/mdc/points';
 import { formatDateLong, formatNumber } from '@/lib/mdc/format';
-import { FINAL_SEASON } from '@/data/season';
+import { getSeason } from '@/data/season';
 
 export function generateStaticParams() {
-  return ARCHIVE_TOURNAMENTS.map(t => ({ id: t.id }));
+  return ALL_TOURNAMENTS.map(t => ({ id: t.id }));
 }
 
 export async function generateMetadata(
   props: { params: Promise<{ id: string }> },
 ): Promise<Metadata> {
   const { id } = await props.params;
-  const turnier = getArchiveTournament(id);
+  const turnier = getTournamentRecord(id);
   if (!turnier) return { title: 'Turnier' };
   return {
     title: `${turnier.venueName}, ${formatDateLong(turnier.date)}`,
@@ -48,7 +47,7 @@ export default async function ArchivTurnierPage(
   props: { params: Promise<{ id: string }> },
 ) {
   const { id } = await props.params;
-  const turnier = getArchiveTournament(id);
+  const turnier = getTournamentRecord(id);
   if (!turnier) notFound();
 
   const venue = getVenue(turnier.venueId);
@@ -56,7 +55,7 @@ export default async function ArchivTurnierPage(
   const punkteGesamt = turnier.results.reduce((sum, r) => sum + r.points, 0);
 
   // Nachbarn im selben Lokal — so kann man sich durch die Saison klicken.
-  const amOrt = archiveTournamentsAtVenue(turnier.venueId);
+  const amOrt = tournamentsAtVenue(turnier.venueId, turnier.seasonId);
   const index = amOrt.findIndex(t => t.id === turnier.id);
   const neuer = index > 0 ? amOrt[index - 1] : undefined;
   const aelter = index >= 0 && index < amOrt.length - 1 ? amOrt[index + 1] : undefined;
@@ -67,13 +66,15 @@ export default async function ArchivTurnierPage(
         <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '40px 44px' }}>
           <div style={{ marginBottom: 18 }}>
-            <Link href="/mdc/turniere/archiv" className="mdc-chip">
+            <Link href="/mdc/turniere/ergebnisse" className="mdc-chip">
               <ArrowLeft size={13} />
-              Turnierarchiv {FINAL_SEASON.label}
+              Alle Turniere
             </Link>
           </div>
 
-          <span className="mdc-kicker">Ranking-Turnier</span>
+          <span className="mdc-kicker">
+            Ranking-Turnier · Saison {getSeason(turnier.seasonId)?.label ?? turnier.seasonId}
+          </span>
           <h1 className="mdc-display mdc-h2" style={{ marginTop: 12 }}>
             {turnier.venueName}
           </h1>
@@ -233,13 +234,13 @@ export default async function ArchivTurnierPage(
           {(neuer || aelter) && (
             <div style={{ marginTop: 26, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {aelter && (
-                <Link href={`/mdc/turniere/archiv/${aelter.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+                <Link href={`/mdc/turniere/ergebnisse/${aelter.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
                   <ArrowLeft size={15} />
                   Vorheriges im {turnier.venueName}
                 </Link>
               )}
               {neuer && (
-                <Link href={`/mdc/turniere/archiv/${neuer.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+                <Link href={`/mdc/turniere/ergebnisse/${neuer.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
                   Nächstes im {turnier.venueName}
                   <ArrowRight size={15} />
                 </Link>

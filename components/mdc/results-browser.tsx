@@ -1,11 +1,11 @@
 'use client';
 
 // ============================================================
-// MDC — Turnierarchiv durchsehen
+// MDC — Turnierergebnisse durchsehen
 // ============================================================
 //
-// 744 Turniere einer Saison sind zu viele für eine reine Liste. Deshalb hier
-// zwei Filter (Spielort, Monat), eine Sortierung und eine Anzeige, die
+// Weit über 700 Turniere sind zu viele für eine reine Liste. Deshalb hier drei
+// Filter (Saison, Spielort, Monat), eine Sortierung und eine Anzeige, die
 // stückweise nachlädt — statt eines Suchfelds, das nur Sieger fände und damit
 // mehr verspricht, als es einlöst.
 //
@@ -22,7 +22,8 @@ import Link from 'next/link';
 import { ArrowRight, Trophy, Users } from 'lucide-react';
 import { formatDate, formatMonth, weekdayName } from '@/lib/mdc/format';
 
-export interface ArchiveRow {
+export interface ResultRow {
+  seasonId: string;
   id: string;
   date: string;
   venueId: string;
@@ -42,29 +43,43 @@ const SORT_LABEL: Record<SortKey, string> = {
 
 const SCHRITT = 60;
 
-export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
+export function ResultsBrowser(
+  { rows, seasons, initialSeason }: {
+    rows: ResultRow[];
+    seasons: { id: string; label: string }[];
+    initialSeason: string;
+  },
+) {
+  const [season, setSeason] = useState(initialSeason);
   const [venue, setVenue] = useState('alle');
   const [month, setMonth] = useState('alle');
   const [sort, setSort] = useState<SortKey>('newest');
   const [limit, setLimit] = useState(SCHRITT);
 
+  // Spielorte und Monate richten sich nach der gewählten Saison — sonst stünde
+  // in den Listen etwas, das die Auswahl gar nicht enthalten kann.
+  const inSaison = useMemo(
+    () => rows.filter(row => season === 'alle' || row.seasonId === season),
+    [rows, season],
+  );
+
   const venues = useMemo(() => {
     const map = new Map<string, { id: string; name: string; count: number }>();
-    for (const row of rows) {
+    for (const row of inSaison) {
       const eintrag = map.get(row.venueId) ?? { id: row.venueId, name: row.venue, count: 0 };
       eintrag.count += 1;
       map.set(row.venueId, eintrag);
     }
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  }, [rows]);
+  }, [inSaison]);
 
   const months = useMemo(
-    () => [...new Set(rows.map(row => row.date.slice(0, 7)))].sort((a, b) => b.localeCompare(a)),
-    [rows],
+    () => [...new Set(inSaison.map(row => row.date.slice(0, 7)))].sort((a, b) => b.localeCompare(a)),
+    [inSaison],
   );
 
   const visible = useMemo(() => {
-    const gefiltert = rows.filter(row =>
+    const gefiltert = inSaison.filter(row =>
       (venue === 'alle' || row.venueId === venue) &&
       (month === 'alle' || row.date.startsWith(month)),
     );
@@ -73,7 +88,7 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
       if (sort === 'field') return b.participants - a.participants || b.date.localeCompare(a.date);
       return b.date.localeCompare(a.date) || a.venue.localeCompare(b.venue);
     });
-  }, [rows, venue, month, sort]);
+  }, [inSaison, venue, month, sort]);
 
   // Filterwechsel: wieder von vorn anzeigen, sonst steht man mitten in einer
   // Liste, die es so gar nicht mehr gibt.
@@ -83,10 +98,29 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
   return (
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end', marginBottom: 18 }}>
-        <div style={{ flex: '1 1 220px', minWidth: 190 }}>
-          <label className="mdc-label" htmlFor="mdc-archiv-ort">Spielort</label>
+        <div style={{ flex: '0 1 190px' }}>
+          <label className="mdc-label" htmlFor="mdc-erg-saison">Saison</label>
           <select
-            id="mdc-archiv-ort"
+            id="mdc-erg-saison"
+            className="mdc-select"
+            value={season}
+            onChange={event => setFilter(() => {
+              setSeason(event.target.value);
+              setVenue('alle');
+              setMonth('alle');
+            })}
+          >
+            {seasons.map(s => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+            <option value="alle">Beide Saisons</option>
+          </select>
+        </div>
+
+        <div style={{ flex: '1 1 220px', minWidth: 190 }}>
+          <label className="mdc-label" htmlFor="mdc-erg-ort">Spielort</label>
+          <select
+            id="mdc-erg-ort"
             className="mdc-select"
             value={venue}
             onChange={event => setFilter(() => setVenue(event.target.value))}
@@ -99,9 +133,9 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
         </div>
 
         <div style={{ flex: '0 1 200px' }}>
-          <label className="mdc-label" htmlFor="mdc-archiv-monat">Monat</label>
+          <label className="mdc-label" htmlFor="mdc-erg-monat">Monat</label>
           <select
-            id="mdc-archiv-monat"
+            id="mdc-erg-monat"
             className="mdc-select"
             value={month}
             onChange={event => setFilter(() => setMonth(event.target.value))}
@@ -114,9 +148,9 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
         </div>
 
         <div style={{ flex: '0 1 200px' }}>
-          <label className="mdc-label" htmlFor="mdc-archiv-sort">Sortierung</label>
+          <label className="mdc-label" htmlFor="mdc-erg-sort">Sortierung</label>
           <select
-            id="mdc-archiv-sort"
+            id="mdc-erg-sort"
             className="mdc-select"
             value={sort}
             onChange={event => setFilter(() => setSort(event.target.value as SortKey))}
@@ -129,9 +163,9 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
       </div>
 
       <p style={{ fontSize: '0.82rem', color: 'var(--mdc-ink-dim)', marginBottom: 10 }}>
-        {visible.length === rows.length
-          ? `${rows.length} Turniere der Saison`
-          : `${visible.length} von ${rows.length} Turnieren`}
+        {visible.length === inSaison.length
+          ? `${visible.length} Turniere`
+          : `${visible.length} von ${inSaison.length} Turnieren`}
       </p>
 
       <div className="mdc-card">
@@ -151,7 +185,7 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
             {zeige.map(row => (
               <tr key={row.id}>
                 <td className="mdc-cell-name">
-                  <Link href={`/mdc/turniere/archiv/${row.id}`}>
+                  <Link href={`/mdc/turniere/ergebnisse/${row.id}`}>
                     <span className="mdc-num">{formatDate(row.date)}</span>
                   </Link>
                   <span className="mdc-row-meta mdc-narrow-only">
@@ -167,7 +201,7 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
                     : row.winner}
                 </td>
                 <td className="mdc-hide-narrow mdc-td-num">
-                  <Link href={`/mdc/turniere/archiv/${row.id}`} aria-label="Ergebnisliste öffnen">
+                  <Link href={`/mdc/turniere/ergebnisse/${row.id}`} aria-label="Ergebnisliste öffnen">
                     <ArrowRight size={15} />
                   </Link>
                 </td>
@@ -176,7 +210,7 @@ export function ArchiveBrowser({ rows }: { rows: ArchiveRow[] }) {
             {zeige.length === 0 && (
               <tr>
                 <td colSpan={5} style={{ whiteSpace: 'normal', color: 'var(--mdc-ink-soft)' }}>
-                  Für diese Auswahl steht kein Turnier im Archiv.
+                  Für diese Auswahl gibt es kein Turnier.
                 </td>
               </tr>
             )}

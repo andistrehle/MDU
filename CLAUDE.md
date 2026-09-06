@@ -71,11 +71,13 @@ Details, Datenherkunft und offene Punkte: **`docs/mdc-demo.md`**.
 Requests.** Jeder PR erzeugt einen Vercel-Kommentar und damit eine E-Mail an den
 Betreiber; bei kleinen Anpassungen (Farbe, Logo, neuer Spielort) steht das in
 keinem Verhältnis. Ein PR nur, wenn es wirklich etwas zu prüfen gibt.
-Wichtig: Echte Daten (echte Personen) sind die Endranglisten UND die
-Einzelergebnisse der Saison 2025/26 — alle 744 Turniere unter `/mdc/turniere/archiv`,
-importiert aus der Excel-Mappe des Betreibers (`scripts/mdc-import-saison-2025-26.py`;
-die Mappe selbst gehört nicht ins Repo). Demo sind nur noch die Turniere unter
-`/mdc/turniere` (Meldestände, Legs, Turnierbäume).
+Wichtig: **Alle Daten sind echt** (echte Personen) — Ranglisten und
+Einzelergebnisse beider Saisons, importiert aus den Excel-Mappen des Betreibers
+(`scripts/mdc-import-saison.py <mappe> <saison>`; die Mappen selbst gehören
+nicht ins Repo, sie enthalten das komplette Teilnehmerregister). Erzeugt werden
+je Saison `data/results-<saison>.generated.ts` und `data/ranking-<saison>-*.ts`
+— diese Dateien nie von Hand ändern. Prüfen mit
+`npx tsx scripts/mdc-check-saison.ts`. Demo-Turniere gibt es nicht mehr.
 
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der

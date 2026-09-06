@@ -3,14 +3,15 @@
 // ============================================================
 //
 // LAUFEND — Saison 2026/27
-//   Die Wertung wird aus den Ergebnislisten der Lokale gerechnet
-//   (`results-2026-27.ts`), nicht von Hand gepflegt: Punkte je Spieler
-//   summiert, Teilnahmen gezählt, Schnitt = Punkte / Teilnahmen. Kommt eine
-//   Liste dazu, ändert sich die Rangliste von selbst — und kann gar nicht
-//   erst zur Summe darunter im Widerspruch stehen.
+//   Die Wertung kommt aus der Arbeitsmappe des Betreibers
+//   (`ranking-2026-27-*.ts`), genau wie die Einzelergebnisse derselben Saison.
+//   Beim Import wird beides gegeneinander gerechnet: Die Turnierpunkte je
+//   Spieler ergeben die Punktzahl der Wertung, die Zahl der Starts die Spalte
+//   „Anzahl TN". Beste Platzierung und Turniersiege kommen aus den
+//   Einzelergebnissen — die Wertung selbst führt sie nicht.
 //
 //   Was die Wertung NICHT tut: Punkte aus der Vorsaison mitschleppen, fehlende
-//   Listen schätzen oder Spieler erfinden. Liegt keine Liste vor, ist die
+//   Turniere schätzen oder Spieler erfinden. Liegt noch nichts vor, ist die
 //   Wertung leer und `RUNNING_HAS_RESULTS` falsch; die Seiten zeigen dann
 //   einen Hinweis statt einer leeren Tabelle.
 //
@@ -18,40 +19,44 @@
 //   1. ENDRANGLISTE 2025/26 — Saison-Endstand vom 27.07.2026, getrennt nach
 //      Männern und Frauen, mit Ausschüttung. Quelle: `ranking-final.ts`.
 //   2. SOMMER-RANKING 2026 — Endstand der Zwischenserie vom 01.09.2026.
-//      Quelle: `ranking-sommer-2026-*.ts`.
-//
-// Die Turniere in `tournaments.generated.ts` sind weiterhin Demo-Material und
-// zahlen auf KEINE dieser Ranglisten ein — sie zeigen nur, wie Turnierseiten,
-// Ergebnislisten und Turnierbäume aussehen.
+//      Quelle: `ranking-sommer-2026-*.ts`. Die Serie ist beendet.
 // ============================================================
 
 import type { Division, RankingEntry } from './types';
 import {
   PLAYERS, PARSED_SOMMER_MEN, PARSED_SOMMER_WOMEN,
-  playerIdForSheetRow, getPlayerByPassNr,
+  PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN,
 } from './players';
-import { RESULT_SHEETS, type SheetRow } from './results-2026-27';
 import { FINAL_RANKING_2025_26 } from './ranking-final';
+import { playerSeasonStats, RUNNING_STATS } from './tournament-results';
+import { RUNNING_SEASON } from './season';
 import { VENUES } from './venues';
 
-function toEntries(rows: typeof PARSED_SOMMER_MEN): RankingEntry[] {
-  return rows.map(row => ({
-    rank: row.rank,
-    sharedRank: row.sharedRank,
-    previousRank: null,
-    trend: row.trend,
-    playerId: row.playerId,
-    points: row.points,
-    tournaments: row.tournaments,
-    average: Math.round((row.points / row.tournaments) * 100) / 100,
-    // Beste Platzierung und Turniersiege gehen aus der Auswertung nicht
-    // hervor — hier wird nichts geraten.
-    bestFinish: 0,
-    wins: 0,
-  }));
+/**
+ * Ranglistenzeilen aus den geparsten Rohzeilen. Liegt für die Saison eine
+ * Turnierliste vor (`seasonId`), kommen beste Platzierung und Turniersiege
+ * von dort — sonst bleiben sie auf 0, statt geschätzt zu werden.
+ */
+function toEntries(rows: typeof PARSED_SOMMER_MEN, seasonId?: string): RankingEntry[] {
+  return rows.map(row => {
+    const stats = seasonId ? playerSeasonStats(row.playerId, seasonId) : undefined;
+    return {
+      rank: row.rank,
+      sharedRank: row.sharedRank,
+      previousRank: null,
+      trend: row.trend,
+      playerId: row.playerId,
+      points: row.points,
+      tournaments: row.tournaments,
+      average: Math.round((row.points / row.tournaments) * 100) / 100,
+      bestFinish: stats?.bestFinish ?? 0,
+      wins: stats?.wins ?? 0,
+    };
+  });
 }
 
 const SUMMER_BY_DIVISION: Record<Division, RankingEntry[]> = {
+  // Für das Sommer-Ranking liegen nur die Endstände vor, keine Einzelturniere.
   men: toEntries(PARSED_SOMMER_MEN),
   women: toEntries(PARSED_SOMMER_WOMEN),
 };
@@ -83,102 +88,17 @@ export function finalRankingOf(division: Division): RankingEntry[] {
 // ------------------------------------------------------------
 
 /**
- * Wertung der laufenden Saison, gerechnet aus den Ergebnislisten.
+ * Wertung der laufenden Saison, aus der Arbeitsmappe des Betreibers.
  *
- * Geteilte Plätze entstehen von selbst: Wer punktgleich ist, bekommt
- * denselben Platz, und die nächste Platznummer überspringt die Gruppe —
- * genauso wie in der offiziellen Auswertung.
- *
- * Der Trend bleibt „gleich": Ein Auf oder Ab bräuchte den Stand der
- * Vorwoche, und den gibt es hier noch nicht. Erfunden wird er nicht.
+ * Geteilte Plätze stehen schon in den Rohzeilen: Wer punktgleich ist, bekommt
+ * denselben Platz, und die nächste Platznummer überspringt die Gruppe. Der
+ * Trend (▲/▼) ist der der Auswertung — er vergleicht mit dem Stand der
+ * Vorwoche, den nur die Mappe kennt.
  */
-/**
- * Wertungsklasse einer Zettelzeile: erst das Kreuz auf dem Zettel, sonst die
- * Klasse aus dem Spielerstamm über die Passnummer. Ist beides unbekannt,
- * `null` — dann bleibt die Zeile offen.
- */
-function divisionOfRow(row: { division: Division | null; passNr: number | null }): Division | null {
-  if (row.division) return row.division;
-  if (row.passNr === null) return null;
-  return getPlayerByPassNr(row.passNr)?.division ?? null;
-}
-
-/**
- * Zeilen, die keiner Wertungsklasse zugeordnet werden konnten: Auf dem Zettel
- * war M/F nicht angekreuzt UND die Passnummer steht nicht im Stamm. Die
- * Oberfläche weist sie aus, statt sie zu verschweigen.
- */
-export function openSheetRows(): { sheetId: string; row: SheetRow }[] {
-  return RESULT_SHEETS.flatMap(sheet =>
-    sheet.rows
-      .filter(row => !divisionOfRow(row))
-      .map(row => ({ sheetId: sheet.id, row })),
-  );
-}
-
-function buildRunningRanking(): Record<Division, RankingEntry[]> {
-  const konten = new Map<string, {
-    division: Division; points: number; tournaments: number; bestFinish: number; wins: number;
-  }>();
-
-  for (const sheet of RESULT_SHEETS) {
-    for (const row of sheet.rows) {
-      const division = divisionOfRow(row);
-      // Ohne Wertungsklasse kann die Zeile in keiner der beiden Ranglisten
-      // stehen. Sie fällt hier heraus und wird über `openSheetRows()`
-      // ausgewiesen, damit sie nicht einfach verschwindet.
-      if (!division) continue;
-
-      const id = playerIdForSheetRow(row);
-      const konto = konten.get(id) ?? {
-        division, points: 0, tournaments: 0, bestFinish: Infinity, wins: 0,
-      };
-      konto.points += row.points;
-      konto.tournaments += 1;
-      konto.bestFinish = Math.min(konto.bestFinish, row.place);
-      if (row.place === 1) konto.wins += 1;
-      konten.set(id, konto);
-    }
-  }
-
-  const je: Record<Division, RankingEntry[]> = { men: [], women: [] };
-
-  for (const division of ['men', 'women'] as Division[]) {
-    const liste = [...konten.entries()]
-      .filter(([, k]) => k.division === division)
-      .sort((a, b) => b[1].points - a[1].points || a[0].localeCompare(b[0]));
-
-    let platz = 0;
-    let vorherPunkte: number | null = null;
-    let vorherPlatz = 0;
-
-    je[division] = liste.map(([playerId, k], index) => {
-      platz = index + 1;
-      const geteilt = k.points === vorherPunkte;
-      const eigenerPlatz = geteilt ? vorherPlatz : platz;
-      if (!geteilt) { vorherPunkte = k.points; vorherPlatz = platz; }
-
-      return {
-        rank: eigenerPlatz,
-        // „geteilt" markiert die zweite und jede weitere Zeile einer Gruppe —
-        // dort bleibt die Platzspalte leer, wie in der Auswertung.
-        sharedRank: geteilt,
-        previousRank: null,
-        trend: 'same',
-        playerId,
-        points: k.points,
-        tournaments: k.tournaments,
-        average: Math.round((k.points / k.tournaments) * 100) / 100,
-        bestFinish: Number.isFinite(k.bestFinish) ? k.bestFinish : 0,
-        wins: k.wins,
-      };
-    });
-  }
-
-  return je;
-}
-
-const RUNNING_BY_DIVISION: Record<Division, RankingEntry[]> = buildRunningRanking();
+const RUNNING_BY_DIVISION: Record<Division, RankingEntry[]> = {
+  men: toEntries(PARSED_RUNNING_MEN, RUNNING_SEASON.id),
+  women: toEntries(PARSED_RUNNING_WOMEN, RUNNING_SEASON.id),
+};
 
 /** Wertung der laufenden Saison einer Wertungsklasse. */
 export function runningRankingOf(division: Division): RankingEntry[] {
@@ -213,6 +133,8 @@ export interface MdcStats {
   venues: number;
   /** Turniere, die das Sommer-Ranking gewertet hat (meiste Teilnahmen). */
   summerTournaments: number;
+  /** Turniere der laufenden Saison — gezählt, nicht geschätzt. */
+  runningTournaments: number;
 }
 
 function computeStats(): MdcStats {
@@ -233,6 +155,7 @@ function computeStats(): MdcStats {
     // Untergrenze: So oft war der fleißigste Spieler dabei — mehr Turniere
     // hatte die Serie mindestens.
     summerTournaments: Math.max(0, ...SUMMER_RANKING.map(e => e.tournaments)),
+    runningTournaments: RUNNING_STATS.tournaments,
   };
 }
 

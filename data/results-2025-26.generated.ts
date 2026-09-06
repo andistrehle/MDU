@@ -3,11 +3,11 @@
 // ============================================================
 //
 // ERZEUGT aus der Arbeitsmappe des Betreibers durch
-// `scripts/mdc-import-saison-2025-26.py` (Blatt „Einzelergebnisse").
+// `scripts/mdc-import-saison.py` (Blatt „Einzelergebnisse").
 // Nicht von Hand bearbeiten.
 //
-// Alle 744 Turniere der Saison vom 2025-09-01 bis 2026-07-26,
-// zusammen 9411 Ergebniszeilen und 1234138 vergebene Punkte.
+// 744 Turniere vom 2025-09-01 bis 2026-07-26, zusammen
+// 9411 Ergebniszeilen und 1234138 vergebene Punkte.
 //
 // Eine Zeile je Turnier:
 //
@@ -19,15 +19,11 @@
 //
 // Die Punkte stehen mit dabei, obwohl sie sich aus Platz und Feldgröße
 // ergeben würden (`lib/mdc/points.ts`): Sie sind das, was der Betreiber
-// tatsächlich verbucht hat. `scripts/mdc-check-archiv.ts` rechnet beides
-// gegeneinander — über alle 9411 Zeilen stimmt es exakt überein.
-//
-// Spielorte, die es in der Saison 2026/27 nicht mehr gibt (RG Bar, Gisi,
-// Flair), stehen als `FORMER_VENUES` in `data/venues.ts` — nur mit Namen,
-// ohne erfundene Adresse.
+// tatsächlich verbucht hat. `scripts/mdc-check-saison.ts` rechnet beides
+// gegeneinander.
 // ============================================================
 
-export const ARCHIVE_2025_26_RAW: string[] = [
+export const RESULTS_2025_26_RAW: string[] = [
   '2025-09-01|harlekin|75:221,68:211,83:200,71:190,153:179,140:169,69:158,117:148,9:137,102:137,340:137,476:137,54:95,119:95,327:95,58:95,124:53,422:53,85:53',
   '2025-09-01|legendary|25:212,377:192,338:172,394:152,389:132,365:112,370:92,369:72,375:52,374:52',
   '2025-09-01|tonys-wirtshaus|428:215,145:199,431:182,241:165,212:149,166:132,152:115,430:99,143:82,501:82,198:82,500:82',

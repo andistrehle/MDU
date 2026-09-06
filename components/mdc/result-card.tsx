@@ -1,21 +1,21 @@
 // ============================================================
-// MDC — Turnierkarte fürs Archiv
+// MDC — Turnierkarte
 // ============================================================
 //
-// Wie die Turnierkarte der Demo-Turniere, aber für die echten Ergebnisse der
-// Saison 2025/26: Datum, Lokal, Feldgröße und das Podium. Kein Meldestand,
-// keine Uhrzeit, keine Legs — das führt die Auswertung nicht.
+// Ein gespieltes Turnier in Kurzform: Datum, Lokal, Feldgröße und das Podium.
+// Kein Meldestand, keine Uhrzeit, keine Legs — das führt die Auswertung des
+// Betreibers nicht, also steht es hier auch nicht.
 // ============================================================
 
 import Link from 'next/link';
 import { ArrowRight, Target } from 'lucide-react';
-import type { ArchiveTournament } from '@/data/archive-2025-26';
+import type { TournamentRecord } from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
 import { formatDate, formatDateShort, formatNumber } from '@/lib/mdc/format';
 
 const MEDAL = ['var(--mdc-gold)', 'var(--mdc-silver)', 'var(--mdc-bronze)'];
 
-export function ArchiveTournamentCard({ tournament }: { tournament: ArchiveTournament }) {
+export function TournamentCard({ tournament }: { tournament: TournamentRecord }) {
   const top3 = tournament.results.slice(0, 3);
 
   return (
@@ -75,7 +75,7 @@ export function ArchiveTournamentCard({ tournament }: { tournament: ArchiveTourn
       </ol>
 
       <div style={{ padding: '18px 20px 20px', marginTop: 'auto' }}>
-        <Link href={`/mdc/turniere/archiv/${tournament.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+        <Link href={`/mdc/turniere/ergebnisse/${tournament.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
           Ergebnisliste
           <ArrowRight size={15} />
         </Link>

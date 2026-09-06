@@ -87,12 +87,11 @@ Fälle machen beim Verknüpfen Ärger.
 | Route                    | Inhalt                                                            |
 | ------------------------ | ----------------------------------------------------------------- |
 | `/mdc`                   | Bühne, laufende Saison, Archiv-Top-Listen, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
-| `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27, gerechnet aus den Ergebnislisten |
+| `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27 aus der Arbeitsmappe |
 | `/mdc/rangliste/archiv`  | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + Sommer-Ranking 2026 |
-| `/mdc/turniere`          | Kommende Termine mit Meldestand, Demo-Turniere                     |
-| `/mdc/turniere/archiv`   | **Alle 744 echten Turniere der Saison 2025/26**, filterbar nach Lokal und Monat |
-| `/mdc/turniere/archiv/[id]` | Podium und komplette Ergebnisliste eines echten Turniers         |
-| `/mdc/turniere/[id]`     | Demo-Turnier: Podium, Ergebnisliste, Meldestand, Turnierbaum       |
+| `/mdc/turniere`          | Kommende Termine (aus den Spielorten gerechnet) und zuletzt Gespieltes |
+| `/mdc/turniere/ergebnisse` | **Alle ausgewerteten Turniere beider Saisons**, filterbar nach Saison, Lokal und Monat |
+| `/mdc/turniere/ergebnisse/[id]` | Podium und komplette Ergebnisliste eines Turniers          |
 | `/mdc/spieler`           | Spielerübersicht mit Suche über Name, Spitzname und Passnummer     |
 | `/mdc/spieler/[id]`      | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve und jedes gespielte Turnier der Saison |
 | `/mdc/spielorte`         | Spielorte nach Wochentag                                           |
@@ -111,36 +110,44 @@ Drei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
 | Wertung | Stand | Dateien |
 | --- | --- | --- |
 | Endrangliste 2025/26, Männer + Frauen | 27.07.2026 | `ranking-2025-26-men.ts`, `-women.ts` |
-| **Einzelergebnisse 2025/26 — alle 744 Turniere** | 26.07.2026 | `archive-2025-26.generated.ts` |
+| **Einzelergebnisse 2025/26 — alle 744 Turniere** | 26.07.2026 | `results-2025-26.generated.ts` |
 | Sommer-Ranking 2026, Männer + Frauen | 01.09.2026 | `ranking-sommer-2026-men.ts`, `-women.ts` |
-| Ergebnislisten Saison 2026/27 | laufend | `results-2026-27.ts` |
+| **Wertung 2026/27, Männer + Frauen** | 05.09.2026 | `ranking-2026-27-men.ts`, `-women.ts` |
+| **Einzelergebnisse 2026/27** | laufend | `results-2026-27.generated.ts` |
 | Punkteschlüssel, 4–32 Starter | — | `lib/mdc/points.ts` |
 | Spielorte 2026/2027 | Aug. 2026 | `venues.ts` |
 
-### Die Arbeitsmappe der Saison 2025/26
+### Die Arbeitsmappen des Betreibers
 
-Im September 2026 hat der Betreiber die Excel-Mappe geliefert, mit der er die
-Saison führt (`MDC_2025_2026.xlsm`). Sie liegt **nicht** im Repository: 9,6 MB
-und darin das komplette Teilnehmerregister mit allen Namen. Eingelesen wird sie
-mit `scripts/mdc-import-saison-2025-26.py`, das drei Dateien erzeugt:
-`archive-2025-26.generated.ts` und die beiden Endranglisten.
+Im September 2026 hat der Betreiber die beiden Excel-Mappen geliefert, mit
+denen er die Saisons führt (`MDC_2025_2026.xlsm`, `MDC_2026_2027.xlsm`). Sie
+liegen **nicht** im Repository: je rund 9 MB und darin das komplette
+Teilnehmerregister mit allen Namen. Eingelesen werden sie mit
+`scripts/mdc-import-saison.py <mappe> <saison>`, das je Saison drei Dateien
+erzeugt: die Einzelergebnisse und die beiden Ranglisten.
 
-Damit stehen die **Einzelergebnisse der ganzen Saison** auf der Seite: 744
-Turniere vom 01.09.2025 bis 26.07.2026, 9.411 Ergebniszeilen, 1.234.138
-vergebene Punkte, 400 Spieler, 12 Lokale. Zu sehen unter
-`/mdc/turniere/archiv`, dazu auf jedem Spieler- und Spielort-Profil.
+Damit stehen die **Einzelergebnisse beider Saisons** auf der Seite:
 
-Der Import prüft und bricht bei Widersprüchen ab; `scripts/mdc-check-archiv.ts`
-prüft dieselben Daten noch einmal auf der TypeScript-Seite. Was dabei
-herauskam:
+| Saison | Turniere | Ergebniszeilen | Punkte | Spieler | Lokale |
+| --- | --- | --- | --- | --- | --- |
+| 2025/26 (abgeschlossen) | 744 | 9.411 | 1.234.138 | 400 | 12 |
+| 2026/27 (laufend, Stand 05.09.2026) | 12 | 179 | 24.048 | 111 | 8 |
+
+Zu sehen unter `/mdc/turniere/ergebnisse`, dazu auf jedem Spieler- und
+Spielort-Profil. Auch die **Wertung der laufenden Saison** kommt aus der
+Mappe — nicht mehr aus abgetippten Zetteln.
+
+Der Import prüft und bricht bei Widersprüchen ab; `scripts/mdc-check-saison.ts`
+prüft dieselben Daten noch einmal auf der TypeScript-Seite, für beide Saisons.
+Was dabei herauskam:
 
 - **Die Summenprobe geht exakt auf.** Die Turnierpunkte je Passnummer ergeben
-  Punktzahl *und* Startanzahl der Endrangliste — für alle 400 Spieler, ohne
-  eine einzige Abweichung. Damit ist der Import nachweislich vollständig.
-- **Der Punkteschlüssel stimmt.** Alle 9.411 Zeilen wurden gegen
-  `pointsFor(Platz, Feldgröße)` gerechnet: 522 belegte Kombinationen aus
-  Feldgröße und Platz, null Abweichungen. Damit ist auch die letzte offene
-  Zelle bestätigt (26 TN, Platz 25 → 43 Punkte, nicht 40).
+  Punktzahl *und* Startanzahl der Rangliste — in beiden Saisons, für alle 400
+  bzw. 111 Spieler, ohne eine einzige Abweichung. Damit ist der Import
+  nachweislich vollständig.
+- **Der Punkteschlüssel stimmt.** Alle 9.590 Ergebniszeilen wurden gegen
+  `pointsFor(Platz, Feldgröße)` gerechnet: null Abweichungen. Damit ist auch
+  die letzte offene Zelle bestätigt (26 TN, Platz 25 → 43 Punkte, nicht 40).
 - **Die abgetippten Endranglisten hatten Lesefehler.** Sie stammten aus Fotos
   der gedruckten Auswertung. Der Abgleich hat 13 Fehler bei den Männern und 2
   bei den Frauen berichtigt (u. a. `POZDERCEC` → `POZDEREC`, `OBSTQI` →
@@ -152,20 +159,44 @@ herauskam:
 Die Endranglisten werden seither **erzeugt, nicht gepflegt** — sonst laufen
 Wertung und Einzelergebnisse auseinander.
 
+### Die abgetippten Zettel — und was die Mappe daraus machte
+
+Bis zum Import der Saison 2026/27 standen deren erste acht Ergebnislisten als
+abgetippte Handschrift in `data/results-2026-27.ts` (114 Zeilen). Die Mappe
+enthält dieselben acht Turniere plus vier weitere und hat die Abtipperei
+ersetzt. Der Abgleich Zeile für Zeile:
+
+- **107 von 114 Zeilen stimmten überein** (Platz, Passnummer, Punkte,
+  Wertungsklasse). Die Zettel führen geteilte Plätze als 9/9/9/9, die Mappe
+  nummeriert jede Zeile durch — dieselbe Sache, andere Schreibweise.
+- **Sechs fehlende Passnummern sind jetzt bekannt:** Christoph Löb = 132,
+  Steven Gnade = 146, Jakob (Ambasador) = 207, Mario Barac = 277,
+  Markus Böttcher (BIBO) = 314, Artur Opalko = 315.
+- **Zwei verlesene Nummern:** „Moni" im Ambasador ist **220 Moni Struck**
+  (nicht 280), „Michi" ist **223 Michi Kronbichler** (nicht 243). Damit sind
+  die beiden Widersprüche erledigt.
+- **Eine echte Abweichung bleibt:** Im Harlekin am 31.08.2026 stand auf dem
+  Zettel eine Person mehr (27 Starter, Passnr. 53 Micky Schul). Die Auswertung
+  des Betreibers führt 26 Starter ohne ihn — und damit andere Punkte. Es gilt
+  die Mappe.
+
 ### Was das Register geklärt hat
 
-Die Mappe enthält auch das Teilnehmerregister (528 vergebene Nummern bis 660).
-Zu den offenen Fragen aus den Ergebnislisten 2026/27:
+Beide Mappen enthalten auch das Teilnehmerregister (528 vergebene Nummern bis
+660). Zu den lange offenen Fragen:
 
 | Nummer | Register sagt | Damit |
 | --- | --- | --- |
-| 156 „Thomas Schmid" | Nummer ist **nicht vergeben** | Zettel-Nummer stimmt nicht |
-| 243 „Michi" | 243 = **TONYS ALEX** | Widerspruch zum Zettel |
+| 156 „Thomas Schmid" | 156 = **SCHMID THOMAS** — im Register 2026/27 neu vergeben | Zettel stimmte |
+| 243 „Michi" | 243 = **TONYS ALEX**; gemeint war 223 Michi Kronbichler | erledigt |
 | 650 „Sandy" | Nummer ist **nicht vergeben** | bestätigt die Korrektur auf 550 Sandy Poller |
-| 280 „Moni" (F) | 280 = **STEPHAN THADEUS** (m) | Widerspruch zum Zettel bleibt |
+| 280 „Moni" (F) | 280 = **STEPHAN THADEUS** (m); gemeint war 220 Moni Struck | erledigt |
+
+Zwischen den beiden Registern sind genau vier Nummern dazugekommen: 146, 156,
+314 und 315 — alle vier tauchen in den ersten Turnieren der neuen Saison auf.
 
 Namen und Geschlechtskennzeichen sind in Register, Ergebnissen und Ranglisten
-durchgehend identisch — geprüft über alle 9.411 Zeilen.
+durchgehend identisch — geprüft über alle 9.590 Zeilen.
 
 Die Männer-Endrangliste 2025/26 war lange unvollständig: Die Plätze **199–280**
 fehlten, weil zwei Auswertungsseiten nicht vorlagen. Sie wurden zuerst von Hand
@@ -191,13 +222,13 @@ Die Nachlieferung hat eine der offenen Passnummern aus den neuen
 Ergebnislisten geklärt: **531 „Hubsi" = WÜRMTAL HUBSI**, Platz 212 — passend
 dazu kam der Zettel aus dem DJK Würmtal.
 
-**Demo** sind nur noch die Turniere unter `/mdc/turniere`
-(`tournaments.generated.ts`, erzeugt von
-`scripts/mdc-generate-tournaments.mjs`). Sie zeigen, was die echten Ergebnisse
-nicht hergeben: Meldestände, Legs und Turnierbäume — **sie zahlen auf keine
-Rangliste ein.** Die echten Turniere stehen unter `/mdc/turniere/archiv`.
+**Demo-Daten gibt es keine mehr.** Bis September 2026 lagen unter
+`/mdc/turniere` erfundene Turniere mit Meldeständen, Legs und Turnierbäumen;
+sie sind entfernt, seit die echten Ergebnisse vorliegen. Was die Auswertung
+des Betreibers nicht führt — Legs, Turnierbäume, Meldestände —, zeigt die
+Seite nicht mehr.
 
-Der Spielerstamm entsteht aus allen vier Ranglisten-Dateien. Zusammengeführt
+Der Spielerstamm entsteht aus allen sechs Ranglisten-Dateien. Zusammengeführt
 wird über die Spieler-ID (Namens-Slug), nicht über die Passnummer — siehe den
 Abschnitt „Passnummern" unten.
 
@@ -206,8 +237,8 @@ nicht gepflegt.
 
 - `Schnitt` = Punkte / Anzahl TN
 - `Auszahlung` = EZR-Betrag × Prozentsatz
-- Spielerstamm = alle Spieler aller Ranglisten **und** aller Ergebnislisten
-- Wertung 2026/27 = Summe der Ergebnislisten
+- Spielerstamm = alle Spieler aller Ranglisten (2025/26, Sommer 2026, 2026/27)
+- Beste Platzierung und Turniersiege = aus den Einzelergebnissen gerechnet
 - Turnierpunkte = `lib/mdc/points.ts` (offizielle Tabelle des Betreibers)
 
 ## Passnummern: drei Auffälligkeiten
@@ -234,7 +265,7 @@ zusammengeführt, beide bleiben eigene Spieler:
 | 281 | Roll Morris | Hundseder Markus (Sommer-Ranking) |
 | 282 | Leschinski Luca | Grimm Nicole (Sommer-Ranking) |
 | 302 | P Stefan | Aust Daniel (Sommer-Ranking) |
-| 280 | Stephan Thadeus (m) | „Moni" (w), Zettel Ambasador 2026/27 |
+| 280 | Stephan Thadeus (m) | — (erledigt: der Zettel meinte 220 Moni Struck) |
 
 Das Teilnehmerregister der Arbeitsmappe ist eindeutig: Es nennt für alle sechs
 Nummern die Person aus der linken Spalte, und Register, Einzelergebnisse und
@@ -327,7 +358,7 @@ Stand dieser Fassung:
 
 | Wertung | Zeitraum | Status |
 | --- | --- | --- |
-| Saison 2026/27 | seit 31.08.2026 | **laufend, noch ohne Ergebnisse** |
+| Saison 2026/27 | seit 31.08.2026 | **laufend**, Stand 05.09.2026 |
 | Sommer-Ranking 2026 | 27.07.–30.08.2026 | abgeschlossen, im Archiv |
 | Saison 2025/26 | 01.09.2025–26.07.2026 | abgeschlossen, im Archiv (mit Ausschüttung) |
 
@@ -335,41 +366,27 @@ Gepflegt wird das in `data/season.ts` über das Feld `current`. Wer dort eine
 Saison auf `current: false` setzt und eine neue anlegt, verschiebt sie damit
 automatisch ins Archiv (`ARCHIVED_SEASONS`).
 
-**Die Wertung der laufenden Saison wird aus den Ergebnislisten gerechnet**
-(`data/results-2026-27.ts`), nicht von Hand gepflegt: Punkte je Spieler
-summiert, Teilnahmen gezählt, Schnitt = Punkte / Teilnahmen. Kommt eine Liste
-dazu, ändert sich die Rangliste von selbst. Liegt keine Liste vor, ist
+**Die Wertung der laufenden Saison kommt aus der Arbeitsmappe**
+(`data/ranking-2026-27-*.ts`) — genau wie ihre Einzelergebnisse, und beim
+Import gegeneinander gerechnet. Liegt noch nichts vor, ist
 `RUNNING_HAS_RESULTS` falsch und die Seiten zeigen einen Hinweis statt einer
 leeren Tabelle:
 
 - `/mdc/rangliste` — laufende Saison; bei leerer Wertung Hinweis plus Weg ins Archiv
 - `/mdc/rangliste/archiv` — Endstand 2025/26 (mit Ausschüttung) und Sommer-Ranking 2026
-- Startseite — Abschnitt „Saison 2026/27" mit Hinweis, darunter „Archiv · Endstand 2025/26"
+- Startseite — Abschnitt „Saison 2026/27", darunter „Archiv · Endstand 2025/26"
 
-### Eine neue Ergebnisliste eintragen
+### Eine neue Fassung der Mappe einlesen
 
-1. Zeile für Zeile in `data/results-2026-27.ts` abtippen, Format wie auf dem
-   Formular: `Platz | M/F | Passnr | Punkte | Name`. M/F leer lassen, wenn es
-   auf dem Zettel nicht angekreuzt ist; Passnr leer lassen bei „neu".
-2. `npx tsx scripts/mdc-check-results.ts` laufen lassen.
+```bash
+python3 scripts/mdc-import-saison.py MDC_2026_2027.xlsm 2026-27
+npx tsx scripts/mdc-check-saison.ts
+npx tsc --noEmit && npm run build
+```
 
-Das Skript findet genau die Fehler, die beim Abtippen von Handschrift
-passieren:
-
-- **Punkte gegen Feldgröße.** Der Punkteschlüssel hängt an Platz und
-  Teilnehmerzahl, also lässt sich aus den Punkten ableiten, wie groß das Feld
-  war — und das muss zur Zahl der Zeilen passen. Eine übersehene Zeile oder
-  ein verlesener Platz fällt auf. (Bei DJK Würmtal war die Feldgröße wegen
-  durchgestrichener Zeilen nicht abzählbar; die Punkte ließen nur n = 19 zu.)
-- **Passnummer gegen Namen.** Steht die Nummer im Stamm, muss der dortige Name
-  zum Zettelnamen passen. So sind sechs verlesene Ziffern aufgefallen, etwa
-  427 statt 428 („Enrico") und 412 statt 482 („Klausi").
-- **Summenprobe.** Punkte und Teilnahmen der Rangliste gegen die Zettel.
-
-Was das Skript nicht kann: eine Nummer bestätigen, die im Stamm gar nicht
-steht. Der enthält nur Spieler, die vorher schon Punkte hatten — wer neu ist,
-fehlt dort zwangsläufig. Solche Zeilen laufen als eigene, neue Spieler und
-stehen unter „beim Betreiber nachfragen".
+Der Import überschreibt die drei erzeugten Dateien der Saison komplett. Er
+bricht ab, sobald etwas nicht zusammenpasst — eine halb eingelesene Saison
+gibt es nicht. Von Hand ist an den erzeugten Dateien nichts zu tun.
 
 Was der laufenden Wertung bewusst fehlt: die Ausschüttung. Sie steht erst am
 Saisonende fest (siehe `components/mdc/division-switch.tsx`).
@@ -427,22 +444,19 @@ das Stammlokal bei Spielern, die die MDC unter ihrem Lokalnamen führt:
 
 - Impressum und Datenschutz mit echten Angaben füllen und prüfen lassen
 - Telefonnummern der Spielorte durch echte ersetzen (`data/venues.ts`, aktuell Blindnummern `089 5555 xx`)
-- Klären, ob die Turnier-Demodaten unter `/mdc/turniere` bestehen bleiben — die
-  echten Ergebnisse stehen seit dem Import unter `/mdc/turniere/archiv`
 - `robots` in `app/mdc/layout.tsx` freigeben
 
 ## Daten neu erzeugen
 
 ```bash
-# Saison 2025/26 aus der Arbeitsmappe des Betreibers (braucht openpyxl)
-python3 scripts/mdc-import-saison-2025-26.py MDC_2025_2026.xlsm
-npx tsx scripts/mdc-check-archiv.ts         # prüft das Ergebnis gegen den Punkteschlüssel
+# aus den Arbeitsmappen des Betreibers (braucht openpyxl)
+python3 scripts/mdc-import-saison.py MDC_2025_2026.xlsm 2025-26
+python3 scripts/mdc-import-saison.py MDC_2026_2027.xlsm 2026-27
 
-# Demo-Turniere
-node scripts/mdc-generate-tournaments.mjs   # schreibt data/tournaments.generated.ts
+npx tsx scripts/mdc-check-saison.ts   # prüft beide Saisons gegen den Punkteschlüssel
 npx tsc --noEmit && npm run build
 ```
 
-Das Skript sucht Platzierungen, die exakt die vorgegebenen Ranglistenwerte
-ergeben, und gibt am Ende eine Kontrolltabelle aus (Ziel „OK“ je Zielspieler).
-Es läuft deterministisch — gleicher Lauf, gleiche Datei.
+Der Import ist deterministisch und überschreibt je Saison drei Dateien
+vollständig: `results-<saison>.generated.ts` und die beiden `ranking-<saison>-*`.
+Er bricht ab, sobald etwas nicht zusammenpasst.

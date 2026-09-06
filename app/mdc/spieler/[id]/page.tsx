@@ -8,11 +8,11 @@ import { Sparkline } from '@/components/mdc/sparkline';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { PLAYERS, getPlayer, playerName } from '@/data/players';
 import { getFinalEntry, DIVISION_LABEL } from '@/data/ranking-final';
-import { getSummerEntry } from '@/data/ranking';
-import { archiveAppearances } from '@/data/archive-2025-26';
+import { getSummerEntry, runningRankingOf } from '@/data/ranking';
+import { appearancesOf } from '@/data/tournament-results';
 import { getVenue, venueName } from '@/data/venues';
 import { formatAverage, formatDate, formatNumber } from '@/lib/mdc/format';
-import { FINAL_SEASON, SUMMER_SEASON } from '@/data/season';
+import { FINAL_SEASON, RUNNING_SEASON, SUMMER_SEASON, getSeason } from '@/data/season';
 
 export function generateStaticParams() {
   return PLAYERS.map(player => ({ id: player.id }));
@@ -61,9 +61,13 @@ export default async function SpielerProfilPage(
 
   const final = getFinalEntry(player.id);
   const summer = getSummerEntry(player.id);
-  // Echte Turniere der Saison 2025/26 aus der Auswertung des Betreibers.
-  // Genau diese Punkte ergeben aufaddiert den Endstand oben.
-  const history = archiveAppearances(player.id);
+  // Stand in der laufenden Wertung — beide Klassen durchsuchen, weil die
+  // Wertungsklasse des Stamms nicht die dieser Saison sein muss.
+  const running = runningRankingOf('men').find(e => e.playerId === player.id)
+    ?? runningRankingOf('women').find(e => e.playerId === player.id);
+  // Jedes Turnier, bei dem der Spieler angetreten ist — beide Saisons, neueste
+  // zuerst. Genau diese Punkte ergeben aufaddiert die Wertungen oben.
+  const history = appearancesOf(player.id);
   const summerSeason = SUMMER_SEASON;
 
   // Lieblingslokal: das Lokal, in dem am häufigsten gespielt wurde. Kommt der
@@ -120,6 +124,31 @@ export default async function SpielerProfilPage(
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+
+          {/* ── Laufende Saison ── */}
+          {running && (
+            <div>
+              <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
+                Saison {RUNNING_SEASON.label} · laufend
+              </h2>
+              <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
+                Stand vom {formatDate(RUNNING_SEASON.asOf)} ·{' '}
+                {DIVISION_LABEL[player.division]}wertung
+              </p>
+
+              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(158px, 1fr))' }}>
+                <Tile label="Platz" value={`${running.rank}.`} />
+                <Tile label="Punkte" value={formatNumber(running.points)} />
+                <Tile label="Anzahl TN" value={String(running.tournaments)} />
+                <Tile label="Schnitt" value={formatAverage(running.average)} />
+                <Tile
+                  label="Beste Platzierung"
+                  value={`${running.bestFinish}.`}
+                  sub={running.wins > 0 ? `${running.wins} Turniersieg${running.wins > 1 ? 'e' : ''}` : undefined}
+                />
+              </div>
+            </div>
+          )}
 
           {/* ── Saison-Endstand ── */}
           <div>
@@ -182,13 +211,12 @@ export default async function SpielerProfilPage(
           {history.length > 0 && (
             <div>
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
-                Turniere {FINAL_SEASON.label}
+                Gespielte Turniere
               </h2>
               <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
-                {history.length === 1
-                  ? 'Ein Start in der Saison'
-                  : `${history.length} Starts in der Saison`} · zusammen{' '}
-                {formatNumber(history.reduce((sum, h) => sum + h.result.points, 0))} Punkte
+                {history.length === 1 ? 'Ein Start' : `${history.length} Starts`} · zusammen{' '}
+                {formatNumber(history.reduce((sum, h) => sum + h.result.points, 0))} Punkte ·
+                neueste zuerst
               </p>
 
               {formValues.length >= 2 && (
@@ -216,7 +244,7 @@ export default async function SpielerProfilPage(
                     <tr>
                       <th className="mdc-hide-narrow">Datum</th>
                       <th>Turnier</th>
-                      <th className="mdc-hide-narrow">Spielort</th>
+                      <th className="mdc-hide-narrow">Saison</th>
                       <th className="mdc-td-num">Platz</th>
                       <th className="mdc-td-num mdc-hide-narrow">Feld</th>
                       <th className="mdc-td-num">Punkte</th>
@@ -229,7 +257,7 @@ export default async function SpielerProfilPage(
                           {formatDate(tournament.date)}
                         </td>
                         <td className="mdc-cell-name">
-                          <Link href={`/mdc/turniere/archiv/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
+                          <Link href={`/mdc/turniere/ergebnisse/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
                             Ranking im {tournament.venueName}
                           </Link>
                           {/* Am Handy fallen Datum, Spielort und Feldgröße als Spalten weg. */}
@@ -237,8 +265,8 @@ export default async function SpielerProfilPage(
                             {formatDate(tournament.date)} · {tournament.participants} Starter
                           </span>
                         </td>
-                        <td className="mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
-                          {tournament.venueName}
+                        <td className="mdc-hide-narrow mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
+                          {getSeason(tournament.seasonId)?.label ?? tournament.seasonId}
                         </td>
                         <td
                           className="mdc-td-num mdc-num"
@@ -272,7 +300,7 @@ export default async function SpielerProfilPage(
                     <p style={{ marginTop: 5, fontSize: '0.86rem', color: 'var(--mdc-ink-soft)' }}>
                       {player.homeVenueId
                         ? 'Stammlokal — unter diesem Namen läuft der Spieler in der MDC-Wertung.'
-                        : `Hier wurde in der Saison ${FINAL_SEASON.label} am häufigsten gespielt (${venueCounts.get(favouriteVenue.id)}×).`}
+                        : `Hier wurde am häufigsten gespielt (${venueCounts.get(favouriteVenue.id)}×).`}
                     </p>
                   </div>
                 </div>
@@ -281,13 +309,13 @@ export default async function SpielerProfilPage(
           )}
 
           <p style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.65, maxWidth: 680 }}>
-            Alles auf dieser Seite kommt aus der Auswertung des Betreibers:
-            Platzierung, Punkte und Schnitt beider Wertungen, dazu jedes einzelne
-            Turnier der Saison {FINAL_SEASON.label}. Die Punkte der Turnierliste
-            ergeben aufaddiert genau die Punktzahl im Endstand. Wie viele Legs
-            gespielt wurden, führt die Auswertung nicht — deshalb steht hier
-            keine Leg-Statistik. Fotos und persönliche Angaben werden bewusst
-            nicht gezeigt; dafür liegt nichts vor.
+            Alles auf dieser Seite kommt aus den Auswertungen des Betreibers:
+            Platzierung, Punkte und Schnitt jeder Wertung, dazu jedes einzelne
+            Turnier. Die Punkte der Turnierliste ergeben aufaddiert genau die
+            Punktzahl der jeweiligen Saison. Wie viele Legs gespielt wurden,
+            führt die Auswertung nicht — deshalb steht hier keine Leg-Statistik.
+            Fotos und persönliche Angaben werden bewusst nicht gezeigt; dafür
+            liegt nichts vor.
           </p>
         </div>
       </section>

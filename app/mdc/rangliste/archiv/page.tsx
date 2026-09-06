@@ -19,7 +19,7 @@ import { toRankingRows } from '@/lib/mdc/rows';
 import { finalRankingOf, summerRankingOf } from '@/data/ranking';
 import { PAYOUTS, RANKING_MEN_GAP } from '@/data/ranking-final';
 import { FINAL_SEASON, RUNNING_SEASON, SUMMER_SEASON } from '@/data/season';
-import { ARCHIVE_STATS } from '@/data/archive-2025-26';
+import { ARCHIVE_STATS } from '@/data/tournament-results';
 
 export const metadata: Metadata = {
   title: 'Archiv',
@@ -46,7 +46,7 @@ export default function ArchivPage() {
             </Link>
             {/* Die Wertung unten entsteht aus diesen Turnieren — ein Klick
                 weiter steht jede einzelne Ergebnisliste. */}
-            <Link href="/mdc/turniere/archiv" className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+            <Link href="/mdc/turniere/ergebnisse" className="mdc-btn mdc-btn-ghost mdc-btn-sm">
               <ListOrdered size={16} />
               Die {ARCHIVE_STATS.tournaments} Turniere dazu
             </Link>

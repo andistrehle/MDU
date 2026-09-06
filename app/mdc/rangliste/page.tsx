@@ -16,8 +16,8 @@ import { Archive } from 'lucide-react';
 import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows } from '@/lib/mdc/rows';
-import { runningRankingOf, RUNNING_HAS_RESULTS, openSheetRows } from '@/data/ranking';
-import { DemoNotice } from '@/components/mdc/ui';
+import { runningRankingOf, RUNNING_HAS_RESULTS } from '@/data/ranking';
+import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
 
@@ -29,8 +29,6 @@ export const metadata: Metadata = {
 };
 
 export default function RanglistePage() {
-  const offen = openSheetRows();
-
   return (
     <>
       <PageHero
@@ -49,20 +47,13 @@ export default function RanglistePage() {
                 asOf={RUNNING_SEASON.asOf}
               />
 
-              {/* Zeilen, die (noch) in keiner der beiden Wertungen stehen
-                  können — offen ausweisen statt stillschweigend weglassen. */}
-              {offen.length > 0 && (
-                <div style={{ marginTop: 22 }}>
-                  <DemoNotice>
-                    {offen.length === 1 ? 'Eine Zeile wartet' : `${offen.length} Zeilen warten`} noch
-                    auf die Wertungsklasse:{' '}
-                    {offen.map(o => o.row.writtenName).join(', ')}. Auf der Ergebnisliste war die
-                    Spalte M/F nicht angekreuzt, und die Passnummer steht noch in keiner
-                    Auswertung. Die Punkte sind erfasst, sobald geklärt ist, in welche Wertung
-                    sie gehören.
-                  </DemoNotice>
-                </div>
-              )}
+              <p style={{ marginTop: 20, fontSize: '0.84rem', color: 'var(--mdc-ink-dim)', maxWidth: 700, lineHeight: 1.65 }}>
+                Gerechnet aus {RUNNING_STATS.tournaments} Turnieren seit dem{' '}
+                {formatDate(RUNNING_SEASON.startDate)} — {RUNNING_STATS.entries} Starts,{' '}
+                {RUNNING_STATS.points.toLocaleString('de-DE')} vergebene Punkte. Jedes einzelne
+                Turnier steht im{' '}
+                <Link href="/mdc/turniere/ergebnisse">Turnierarchiv</Link>.
+              </p>
             </>
           ) : (
             <>

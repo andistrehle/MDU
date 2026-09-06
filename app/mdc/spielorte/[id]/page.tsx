@@ -6,9 +6,9 @@ import { Dartboard } from '@/components/mdc/dartboard';
 import {
   PHONES_PUBLIC, VENUES, getVenue, nextDatesForVenue, venueMapsUrl, venueWeekdayLabel,
 } from '@/data/venues';
-import { archiveTournamentsAtVenue } from '@/data/archive-2025-26';
+import { tournamentsAtVenue } from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
-import { FINAL_SEASON, todayInMunich } from '@/data/season';
+import { RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, formatTime, weekdayName } from '@/lib/mdc/format';
 
 export function generateStaticParams() {
@@ -39,9 +39,10 @@ export default async function SpielortDetailPage(
   const heute = todayInMunich();
   const termine = nextDatesForVenue(venue.id, heute, 4);
 
-  // Gespielte Turniere dieses Lokals aus der abgeschlossenen Saison.
-  const archiv = archiveTournamentsAtVenue(venue.id);
-  const archivStarts = archiv.reduce((sum, t) => sum + t.participants, 0);
+  // Gespielte Turniere dieses Lokals — beide Saisons, neueste zuerst.
+  const gespielt = tournamentsAtVenue(venue.id);
+  const starts = gespielt.reduce((sum, t) => sum + t.participants, 0);
+  const laufend = gespielt.filter(t => t.seasonId === RUNNING_SEASON.id).length;
 
   return (
     <>
@@ -112,9 +113,9 @@ export default async function SpielortDetailPage(
               <p style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.9rem', lineHeight: 1.7 }}>
                 {venue.boards} Dartautomaten<br />
                 {venueWeekdayLabel(venue)}, Start {formatTime(venue.time)}<br />
-                {archiv.length > 0
-                  ? `${archiv.length} Ranking-Turniere in der Saison ${FINAL_SEASON.label}`
-                  : `keine Turniere in der Saison ${FINAL_SEASON.label}`}
+                {gespielt.length > 0
+                  ? `${gespielt.length} ausgewertete Ranking-Turniere`
+                  : 'noch keine ausgewerteten Turniere'}
               </p>
             </div>
           </div>
@@ -145,14 +146,15 @@ export default async function SpielortDetailPage(
             </div>
           )}
 
-          {archiv.length > 0 && (
+          {gespielt.length > 0 && (
             <div>
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
-                Turniere {FINAL_SEASON.label}
+                Gespielte Turniere
               </h2>
               <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
-                {archiv.length} Ranking-Turniere mit {formatNumber(archivStarts)} Starts —
-                die letzten zehn. Alle stehen im Turnierarchiv.
+                {gespielt.length} Ranking-Turniere mit {formatNumber(starts)} Starts, davon{' '}
+                {laufend} in der laufenden Saison {RUNNING_SEASON.label} — hier die
+                letzten zehn.
               </p>
 
               <div className="mdc-card">
@@ -165,12 +167,12 @@ export default async function SpielortDetailPage(
                     </tr>
                   </thead>
                   <tbody>
-                    {archiv.slice(0, 10).map(t => {
+                    {gespielt.slice(0, 10).map(t => {
                       const sieger = t.results[0].playerId ? getPlayer(t.results[0].playerId) : undefined;
                       return (
                         <tr key={t.id}>
                           <td className="mdc-cell-name">
-                            <Link href={`/mdc/turniere/archiv/${t.id}`} className="mdc-num">
+                            <Link href={`/mdc/turniere/ergebnisse/${t.id}`} className="mdc-num">
                               {formatDate(t.date)}
                             </Link>
                             <span className="mdc-row-meta mdc-narrow-only">
@@ -191,11 +193,11 @@ export default async function SpielortDetailPage(
               </div>
 
               <Link
-                href="/mdc/turniere/archiv"
+                href="/mdc/turniere/ergebnisse"
                 className="mdc-btn mdc-btn-ghost mdc-btn-sm"
                 style={{ marginTop: 16 }}
               >
-                Alle {archiv.length} Turniere im Archiv
+                Alle {gespielt.length} Turniere ansehen
               </Link>
             </div>
           )}

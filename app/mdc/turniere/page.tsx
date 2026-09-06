@@ -7,7 +7,8 @@
 //   1. Kommende Termine — gerechnet aus den Spielorten (fester Wochentag,
 //      feste Uhrzeit je Lokal). Keine Meldestände: Angemeldet wird im Lokal,
 //      die MDC führt darüber keine Liste, also behauptet die Seite auch keine.
-//   2. Der Weg ins Turnierarchiv der abgeschlossenen Saison.
+//   2. Die zuletzt gespielten Turniere und der Weg zur vollständigen
+//      Ergebnisübersicht beider Saisons.
 //
 // Hier standen früher erfundene Demo-Turniere mit Meldestand, Legs und
 // Turnierbaum. Die sind raus, seit die echten Ergebnisse vorliegen.
@@ -17,25 +18,26 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, CalendarClock, ListOrdered, Target, Users } from 'lucide-react';
 import { PageHero, SectionHeading, StatCard } from '@/components/mdc/ui';
-import { ArchiveTournamentCard } from '@/components/mdc/archive-card';
+import { TournamentCard } from '@/components/mdc/result-card';
 import {
   FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE, playDaysFrom, venueAddress,
 } from '@/data/venues';
-import { ARCHIVE_STATS, ARCHIVE_TOURNAMENTS_DESC } from '@/data/archive-2025-26';
+import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, formatTime, weekdayName } from '@/lib/mdc/format';
 
 export const metadata: Metadata = {
   title: 'Turniere',
   description:
-    'Die nächsten MDC-Ranking-Termine in den Münchner Lokalen — dazu das ' +
-    `Turnierarchiv mit allen ${ARCHIVE_STATS.tournaments} Turnieren der Saison ${FINAL_SEASON.label}.`,
+    'Die nächsten MDC-Ranking-Termine in den Münchner Lokalen — dazu die zuletzt ' +
+    `gespielten Turniere und das Archiv mit allen ${ARCHIVE_STATS.tournaments} Turnieren ` +
+    `der Saison ${FINAL_SEASON.label}.`,
 };
 
 export default function TurnierePage() {
   const heute = todayInMunich();
   const termine = playDaysFrom(heute, 14);
-  const letzte = ARCHIVE_TOURNAMENTS_DESC.slice(0, 3);
+  const letzte = tournamentsOfSeasonDesc(RUNNING_SEASON.id).slice(0, 3);
 
   return (
     <>
@@ -113,8 +115,8 @@ export default function TurnierePage() {
 
           <p style={{ marginTop: 18, fontSize: '0.84rem', color: 'var(--mdc-ink-dim)', maxWidth: 700, lineHeight: 1.65 }}>
             Wie viele schon da sind, steht hier nicht: Gemeldet wird im Lokal, und
-            einen Meldestand führt die MDC nicht. Die Ergebnisse der Saison{' '}
-            {RUNNING_SEASON.label} werden nachgetragen, sobald die Listen vorliegen.
+            einen Meldestand führt die MDC nicht. Gespielte Turniere kommen dazu,
+            sobald der Betreiber sie ausgewertet hat.
           </p>
         </div>
       </section>
@@ -122,10 +124,10 @@ export default function TurnierePage() {
       <section className="mdc-section mdc-section-tint" id="archiv">
         <div className="mdc-shell">
           <SectionHeading
-            kicker="Archiv"
-            title={`Gespielte Turniere · ${FINAL_SEASON.label}`}
-            description="Jedes Ranking-Turnier der abgeschlossenen Saison mit Podium, kompletter Ergebnisliste und den vergebenen Punkten. Diese Punkte aufaddiert ergeben die Endrangliste."
-            action={{ label: 'Alle ansehen', href: '/mdc/turniere/archiv' }}
+            kicker="Ergebnisse"
+            title="Zuletzt gespielt"
+            description={`Jedes ausgewertete Turnier mit Podium, kompletter Ergebnisliste und den vergebenen Punkten. Diese Punkte aufaddiert ergeben die Rangliste der Saison ${RUNNING_SEASON.label}.`}
+            action={{ label: 'Alle ansehen', href: '/mdc/turniere/ergebnisse' }}
           />
 
           <div
@@ -136,35 +138,36 @@ export default function TurnierePage() {
           >
             <StatCard
               icon={<CalendarClock size={17} />}
-              label="Turniere"
-              value={formatNumber(ARCHIVE_STATS.tournaments)}
-              sub={`${formatDate(ARCHIVE_STATS.firstDate)} bis ${formatDate(ARCHIVE_STATS.lastDate)}`}
-              href="/mdc/turniere/archiv"
+              label={`Turniere ${RUNNING_SEASON.label}`}
+              value={formatNumber(RUNNING_STATS.tournaments)}
+              sub={`seit ${formatDate(RUNNING_STATS.firstDate)}`}
+              href="/mdc/turniere/ergebnisse"
             />
             <StatCard
               icon={<Users size={17} />}
               label="Starts"
-              value={formatNumber(ARCHIVE_STATS.entries)}
-              sub={`von ${ARCHIVE_STATS.players} Spielern`}
+              value={formatNumber(RUNNING_STATS.entries)}
+              sub={`von ${RUNNING_STATS.players} Spielern`}
             />
             <StatCard
               icon={<Target size={17} />}
-              label="Vergebene Punkte"
-              value={formatNumber(ARCHIVE_STATS.points)}
-              sub="ergeben die Endrangliste"
+              label={`Archiv ${FINAL_SEASON.label}`}
+              value={formatNumber(ARCHIVE_STATS.tournaments)}
+              sub={`Turniere, ${formatNumber(ARCHIVE_STATS.entries)} Starts`}
+              href="/mdc/turniere/ergebnisse"
             />
           </div>
 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
             {letzte.map(tournament => (
-              <ArchiveTournamentCard key={tournament.id} tournament={tournament} />
+              <TournamentCard key={tournament.id} tournament={tournament} />
             ))}
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <Link href="/mdc/turniere/archiv" className="mdc-btn mdc-btn-primary">
+            <Link href="/mdc/turniere/ergebnisse" className="mdc-btn mdc-btn-primary">
               <ListOrdered size={18} />
-              Turnierarchiv {FINAL_SEASON.label}
+              Alle Turnierergebnisse
             </Link>
           </div>
         </div>

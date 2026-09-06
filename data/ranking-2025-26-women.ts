@@ -1,9 +1,9 @@
 // ============================================================
-// MDC — Endrangliste Frauen, Saison 2025/26 (Stand 27.07.2026)
+// MDC — Rangliste Frauen, Saison 2025/26 (Stand 2026-07-27)
 // ============================================================
 //
 // ERZEUGT aus der Arbeitsmappe des Betreibers durch
-// `scripts/mdc-import-saison-2025-26.py` (Blatt „Frauen"). Nicht von Hand
+// `scripts/mdc-import-saison.py` (Blatt „Frauen"). Nicht von Hand
 // bearbeiten — sonst laufen Rangliste und Einzelergebnisse auseinander.
 //
 // Format je Zeile:
@@ -13,7 +13,7 @@
 // • Platz leer  → punktgleich mit der Zeile darüber (geteilter Platz).
 //                 2 der 77 Zeilen teilen sich so einen Platz.
 // • %           → Anteil an der Einzelranglisten-Ausschüttung (EZR).
-//                 Der Euro-Betrag wird daraus berechnet (siehe payout.ts),
+//                 Der Euro-Betrag wird daraus berechnet (siehe ranking-final.ts),
 //                 damit Prozent und Euro nicht auseinanderlaufen können.
 // • Trend       → 'u' = ▲ gestiegen, 'd' = ▼ gefallen, leer = unverändert.
 // • Schnitt     → wird als Punkte / Anzahl TN berechnet, nicht gepflegt.

@@ -1,37 +1,39 @@
 // ============================================================
-// MDC — Turnierarchiv der Saison 2025/26
+// MDC — alle Turnierergebnisse
 // ============================================================
 //
-// Alle Einzelergebnisse der abgeschlossenen Saison: echte Turniere, echte
-// Personen, direkt aus der Arbeitsmappe des Betreibers. Aus genau diesen
-// Ergebnissen entsteht die Endrangliste im Ranglisten-Archiv — die Punkte
-// hier aufaddiert ergeben dort die Punktzahl.
+// Jedes Turnier, das der Betreiber ausgewertet hat: die laufende Saison und
+// die abgeschlossene. Echte Turniere, echte Personen, direkt aus seinen
+// Arbeitsmappen. Aus genau diesen Ergebnissen entsteht die Rangliste der
+// jeweiligen Saison — die Punkte hier aufaddiert ergeben sie.
 // ============================================================
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Archive, Building2, CalendarDays, Trophy, Users } from 'lucide-react';
+import { Archive, Building2, CalendarDays, Target, Users } from 'lucide-react';
 import { PageHero, SectionHeading, StatCard } from '@/components/mdc/ui';
-import { ArchiveBrowser, type ArchiveRow } from '@/components/mdc/archive-browser';
+import { ResultsBrowser, type ResultRow } from '@/components/mdc/results-browser';
 import {
-  ARCHIVE_STATS, ARCHIVE_TOURNAMENTS_DESC, archiveVenues,
-} from '@/data/archive-2025-26';
+  ALL_TOURNAMENTS, ARCHIVE_STATS, RUNNING_STATS, venuesOfSeason,
+} from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
-import { FINAL_SEASON } from '@/data/season';
+import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate, formatNumber } from '@/lib/mdc/format';
 
 export const metadata: Metadata = {
-  title: `Turnierarchiv ${FINAL_SEASON.label}`,
+  title: 'Turnierergebnisse',
   description:
-    `Alle ${ARCHIVE_STATS.tournaments} Ranking-Turniere der MDC-Saison ${FINAL_SEASON.label} ` +
-    'mit vollständiger Ergebnisliste, Feldgröße und vergebenen Punkten.',
+    `Alle ausgewerteten MDC-Turniere: die laufende Saison ${RUNNING_SEASON.label} und ` +
+    `die ${ARCHIVE_STATS.tournaments} Turniere der Saison ${FINAL_SEASON.label} — ` +
+    'jeweils mit vollständiger Ergebnisliste, Feldgröße und vergebenen Punkten.',
 };
 
-function rows(): ArchiveRow[] {
-  return ARCHIVE_TOURNAMENTS_DESC.map(t => {
+function rows(): ResultRow[] {
+  return ALL_TOURNAMENTS.map(t => {
     const sieger = t.results[0].playerId ? getPlayer(t.results[0].playerId) : undefined;
     return {
       id: t.id,
+      seasonId: t.seasonId,
       date: t.date,
       venueId: t.venueId,
       venue: t.venueName,
@@ -42,15 +44,15 @@ function rows(): ArchiveRow[] {
   });
 }
 
-export default function TurnierArchivPage() {
-  const spielorte = archiveVenues();
+export default function ErgebnissePage() {
+  const spielorte = venuesOfSeason(FINAL_SEASON.id);
 
   return (
     <>
       <PageHero
-        kicker={`Saison ${FINAL_SEASON.label}`}
-        title="Turnierarchiv"
-        description={`Jedes Ranking-Turnier der abgeschlossenen Saison — vom ${formatDate(ARCHIVE_STATS.firstDate)} bis ${formatDate(ARCHIVE_STATS.lastDate)}, mit kompletter Ergebnisliste und den Punkten, die dabei vergeben wurden.`}
+        kicker="Ergebnisse"
+        title="Alle Turniere"
+        description={`Jedes ausgewertete Ranking-Turnier mit kompletter Ergebnisliste — die laufende Saison ${RUNNING_SEASON.label} seit dem ${formatDate(RUNNING_STATS.firstDate)} und die abgeschlossene Saison ${FINAL_SEASON.label} mit ${formatNumber(ARCHIVE_STATS.tournaments)} Turnieren.`}
       />
 
       <section className="mdc-section">
@@ -63,40 +65,47 @@ export default function TurnierArchivPage() {
           >
             <StatCard
               icon={<CalendarDays size={17} />}
-              label="Turniere"
+              label={`Turniere ${RUNNING_SEASON.label}`}
+              value={formatNumber(RUNNING_STATS.tournaments)}
+              sub={`seit ${formatDate(RUNNING_STATS.firstDate)}, ${formatNumber(RUNNING_STATS.entries)} Starts`}
+            />
+            <StatCard
+              icon={<Archive size={17} />}
+              label={`Turniere ${FINAL_SEASON.label}`}
               value={formatNumber(ARCHIVE_STATS.tournaments)}
-              sub={`in ${ARCHIVE_STATS.venues} Lokalen`}
+              sub={`${formatDate(ARCHIVE_STATS.firstDate)} bis ${formatDate(ARCHIVE_STATS.lastDate)}`}
             />
             <StatCard
               icon={<Users size={17} />}
-              label="Starts"
-              value={formatNumber(ARCHIVE_STATS.entries)}
-              sub={`von ${ARCHIVE_STATS.players} Spielern`}
+              label="Starts insgesamt"
+              value={formatNumber(ARCHIVE_STATS.entries + RUNNING_STATS.entries)}
+              sub={`von ${ARCHIVE_STATS.players} bzw. ${RUNNING_STATS.players} Spielern`}
             />
             <StatCard
-              icon={<Trophy size={17} />}
+              icon={<Target size={17} />}
               label="Vergebene Punkte"
-              value={formatNumber(ARCHIVE_STATS.points)}
-              sub="ergeben die Endrangliste"
-            />
-            <StatCard
-              icon={<Users size={17} />}
-              label="Größtes Feld"
-              value={`${ARCHIVE_STATS.largestField} Starter`}
-              sub="Obergrenze der MDC sind 32"
+              value={formatNumber(ARCHIVE_STATS.points + RUNNING_STATS.points)}
+              sub="ergeben die Ranglisten"
             />
           </div>
 
-          <ArchiveBrowser rows={rows()} />
+          <ResultsBrowser
+            rows={rows()}
+            seasons={[
+              { id: RUNNING_SEASON.id, label: `Saison ${RUNNING_SEASON.label}` },
+              { id: FINAL_SEASON.id, label: `Saison ${FINAL_SEASON.label}` },
+            ]}
+            initialSeason={RUNNING_SEASON.id}
+          />
         </div>
       </section>
 
       <section className="mdc-section mdc-section-tint">
         <div className="mdc-shell">
           <SectionHeading
-            kicker="Spielorte"
+            kicker={`Spielorte ${FINAL_SEASON.label}`}
             title="Wo gespielt wurde"
-            description="Die Saison über haben zwölf Lokale Ranking-Turniere ausgerichtet. Drei davon stehen nicht mehr in der Spielorte-Übersicht der laufenden Saison."
+            description="In der abgeschlossenen Saison haben zwölf Lokale Ranking-Turniere ausgerichtet. Drei davon stehen nicht mehr in der Spielorte-Übersicht der laufenden Saison."
           />
 
           <div className="mdc-card">
@@ -135,7 +144,10 @@ export default function TurnierArchivPage() {
           </div>
 
           <div style={{ marginTop: 26, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <Link href="/mdc/rangliste/archiv" className="mdc-btn mdc-btn-primary">
+            <Link href="/mdc/rangliste" className="mdc-btn mdc-btn-primary">
+              Rangliste {RUNNING_SEASON.label}
+            </Link>
+            <Link href="/mdc/rangliste/archiv" className="mdc-btn mdc-btn-ghost">
               <Archive size={18} />
               Endstand {FINAL_SEASON.label}
             </Link>

@@ -12,7 +12,8 @@
 
 import type { Division, PayoutSummary, RankingEntry } from './types';
 import { PARSED_MEN, PARSED_WOMEN } from './players';
-import { archivePlayerStats } from './archive-2025-26';
+import { playerSeasonStats } from './tournament-results';
+import { FINAL_SEASON } from './season';
 import { RANKING_MEN_GAP } from './ranking-2025-26-men';
 
 export { RANKING_MEN_GAP };
@@ -57,8 +58,8 @@ function buildEntries(
     // Beste Platzierung und Turniersiege kommen aus den Einzelergebnissen
     // derselben Saison. Die Endrangliste selbst führt sie nicht — sie stünden
     // hier auf 0, bevor irgendetwas geschätzt wird.
-    bestFinish: archivePlayerStats(row.playerId)?.bestFinish ?? 0,
-    wins: archivePlayerStats(row.playerId)?.wins ?? 0,
+    bestFinish: playerSeasonStats(row.playerId, FINAL_SEASON.id)?.bestFinish ?? 0,
+    wins: playerSeasonStats(row.playerId, FINAL_SEASON.id)?.wins ?? 0,
     payoutPercent: row.payoutPercent ?? undefined,
     payoutEuro: row.payoutPercent === null
       ? undefined
