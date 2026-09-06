@@ -7,6 +7,7 @@ import { ArrowRight, MapPin, Phone, Target } from 'lucide-react';
 import type { Venue } from '@/data/types';
 import { PHONES_PUBLIC, venueAddress, venueMapsUrl, venueWeekdayShort } from '@/data/venues';
 import { formatTime } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 interface VenueCardProps {
   venue: Venue;
@@ -55,7 +56,7 @@ export function VenueCard({ venue }: VenueCardProps) {
       </dl>
 
       <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-        <Link href={`/mdc/spielorte/${venue.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+        <Link href={mdcPath(`/spielorte/${venue.id}`)} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
           Details
           <ArrowRight size={15} />
         </Link>

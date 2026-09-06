@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ExternalLink, MapPin, Trophy, Users } from 'lucide-react';
-import { PageHero, DemoNotice } from '@/components/mdc/ui';
+import { ExternalLink, Mail, MapPin, Trophy, Users } from 'lucide-react';
+import { PageHero } from '@/components/mdc/ui';
 import { VENUES } from '@/data/venues';
+import { MDC_LEGAL } from '@/data/mdc-legal';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Kontakt',
@@ -16,7 +18,7 @@ const TOPICS = [
     text:
       'Einfach an einem Turnierabend ins Lokal kommen und vor Ort anmelden. Die MDC-Passnummer ' +
       'bekommt man beim ersten Start — sie gilt dann für die ganze Serie.',
-    action: { label: 'Spielorte ansehen', href: '/mdc/spielorte' },
+    action: { label: 'Spielorte ansehen', href: mdcPath('/spielorte') },
   },
   {
     icon: <MapPin size={20} />,
@@ -32,7 +34,7 @@ const TOPICS = [
     text:
       'Punkte falsch verbucht, Platzierung unklar, Passnummer doppelt? Am besten mit Datum, ' +
       'Lokal und Passnummer melden — dann lässt sich das schnell klären.',
-    action: { label: 'Punkte erklärt', href: '/mdc/regeln' },
+    action: { label: 'Punkte erklärt', href: mdcPath('/regeln') },
   },
 ];
 
@@ -47,11 +49,22 @@ export default function KontaktPage() {
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-          <DemoNotice>
-            In dieser Vorschau sind noch keine echten Kontaktdaten hinterlegt und es
-            gibt bewusst kein Formular — es würde nichts verschicken. Adresse und
-            E-Mail trägt der Betreiber vor der Veröffentlichung ein.
-          </DemoNotice>
+          {/* Kein Formular: Es gäbe hier keinen Server, der es entgegennimmt —
+              eine Schaltfläche, die nichts verschickt, wäre eine Attrappe. */}
+          <div className="mdc-card" style={{ padding: '20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <Mail size={20} style={{ flexShrink: 0, marginTop: 3, color: 'var(--mdc-red)' }} />
+            <div>
+              <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>Direkt schreiben</h2>
+              <p style={{ marginTop: 8, fontSize: '0.94rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+                Am schnellsten geht es per E-Mail an{' '}
+                <a href={`mailto:${MDC_LEGAL.email}`} style={{ fontWeight: 600 }}>
+                  {MDC_LEGAL.email}
+                </a>
+                . Ein Formular gibt es hier bewusst nicht — die Seite nimmt keine Eingaben
+                entgegen, und eine Schaltfläche, die nichts verschickt, wäre eine Attrappe.
+              </p>
+            </div>
+          </div>
 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
             {TOPICS.map(topic => (

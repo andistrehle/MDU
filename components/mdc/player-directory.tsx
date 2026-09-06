@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import type { Division } from '@/data/types';
 import { formatAverage, formatNumber } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 export interface DirectoryEntry {
   id: string;
@@ -91,7 +92,7 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
 
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(258px, 1fr))' }}>
         {shown.map(entry => (
-          <Link key={entry.id} href={`/mdc/spieler/${entry.id}`}>
+          <Link key={entry.id} href={mdcPath(`/spieler/${entry.id}`)}>
             <article
               className="mdc-card mdc-card-hover"
               style={{ padding: '16px 18px', height: '100%', display: 'flex', gap: 13, alignItems: 'flex-start' }}

@@ -22,6 +22,7 @@ import {
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
+import { mdcPath } from '@/lib/mdc/site';
 
 const STEPS = [
   {
@@ -118,11 +119,11 @@ export default function MdcHomePage() {
           </p>
 
           <div className="mdc-rise mdc-rise-3" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 32 }}>
-            <Link href="/mdc/rangliste" className="mdc-btn mdc-btn-primary">
+            <Link href={mdcPath('/rangliste')} className="mdc-btn mdc-btn-primary">
               <Trophy size={18} />
               Zur Rangliste
             </Link>
-            <Link href="/mdc/turniere" className="mdc-btn mdc-btn-ghost">
+            <Link href={mdcPath('/turniere')} className="mdc-btn mdc-btn-ghost">
               <CalendarClock size={18} />
               Turniere ansehen
             </Link>
@@ -161,7 +162,7 @@ export default function MdcHomePage() {
             kicker={`Saison ${RUNNING_SEASON.label}`}
             title="MDC-Ranking"
             description={`Die neue Saison läuft seit dem ${formatDate(RUNNING_SEASON.startDate)}. Männer und Frauen spielen dieselben Turniere und werden getrennt gewertet.`}
-            action={{ label: 'Zur Rangliste', href: '/mdc/rangliste' }}
+            action={{ label: 'Zur Rangliste', href: mdcPath('/rangliste') }}
           />
 
           {RUNNING_HAS_RESULTS ? (
@@ -189,7 +190,7 @@ export default function MdcHomePage() {
           ) : (
             <EmptyRanking
               title="Noch keine Wertung"
-              action={{ label: 'Endstand 2025/26 ansehen', href: '/mdc/rangliste/archiv' }}
+              action={{ label: 'Endstand 2025/26 ansehen', href: mdcPath('/rangliste/archiv') }}
             >
               Die Einzelergebnisse der Ranking-Turniere werden nachgetragen, sobald sie
               vorliegen. Bis dahin steht hier bewusst nichts — nichts wird aus der
@@ -206,7 +207,7 @@ export default function MdcHomePage() {
             kicker="Archiv"
             title={`Endstand ${FINAL_SEASON.label}`}
             description={`Abgeschlossen am ${formatDate(FINAL_SEASON.asOf)}, mit Ausschüttung. Diese Wertung wird nicht mehr verändert.`}
-            action={{ label: 'Komplettes Archiv', href: '/mdc/rangliste/archiv' }}
+            action={{ label: 'Komplettes Archiv', href: mdcPath('/rangliste/archiv') }}
           />
 
           <div style={{ display: 'grid', gap: 26, gridTemplateColumns: 'minmax(0, 1.65fr) minmax(0, 1fr)' }} className="mdc-grid-2">
@@ -242,7 +243,7 @@ export default function MdcHomePage() {
               label={`Nummer 1 · ${FINAL_SEASON.label}`}
               value={leader ? playerName(leader) : '—'}
               sub={`${formatNumber(MDC_STATS.archivedLeaderPoints)} Punkte · Frauen: ${womenLeader ? playerName(womenLeader) : '—'}`}
-              href={leader ? `/mdc/spieler/${leader.id}` : undefined}
+              href={leader ? mdcPath(`/spieler/${leader.id}`) : undefined}
             />
             <StatCard
               icon={<Trophy size={17} />}
@@ -251,21 +252,21 @@ export default function MdcHomePage() {
               sub={recordHolder
                 ? `${MDC_STATS.mostAppearances} davon mit ${playerName(recordHolder)}`
                 : undefined}
-              href="/mdc/turniere/ergebnisse"
+              href={mdcPath('/turniere/ergebnisse')}
             />
             <StatCard
               icon={<Users size={17} />}
               label="Spieler mit MDC-Pass"
               value={formatNumber(MDC_STATS.players)}
               sub="Männer- und Frauenwertung zusammen"
-              href="/mdc/spieler"
+              href={mdcPath('/spieler')}
             />
             <StatCard
               icon={<Building2 size={17} />}
               label="Spielorte"
               value={String(MDC_STATS.venues)}
               sub="von Giesing bis ins Würmtal"
-              href="/mdc/spielorte"
+              href={mdcPath('/spielorte')}
             />
           </div>
         </div>
@@ -278,7 +279,7 @@ export default function MdcHomePage() {
             kicker="Spielplan"
             title="Diese Woche bei der MDC"
             description="Von Montag bis Donnerstag wird gespielt — anmelden kann man sich direkt im Lokal, bis kurz vor Turnierstart."
-            action={{ label: 'Alle Spielorte', href: '/mdc/spielorte' }}
+            action={{ label: 'Alle Spielorte', href: mdcPath('/spielorte') }}
           />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
@@ -315,7 +316,7 @@ export default function MdcHomePage() {
                         {venue.boards} Dartautomaten
                       </p>
                       <Link
-                        href={`/mdc/spielorte/${venue.id}`}
+                        href={mdcPath(`/spielorte/${venue.id}`)}
                         className="mdc-btn mdc-btn-ghost mdc-btn-sm"
                         style={{ marginTop: 'auto', alignSelf: 'flex-start' }}
                       >
@@ -353,7 +354,7 @@ export default function MdcHomePage() {
             kicker="Ergebnisse"
             title={`Zuletzt gespielt · Saison ${RUNNING_SEASON.label}`}
             description={`Die letzten ausgewerteten Ranking-Turniere. In der laufenden Saison sind es bisher ${formatNumber(RUNNING_STATS.tournaments)} Turniere mit ${formatNumber(RUNNING_STATS.entries)} Starts — jedes mit kompletter Ergebnisliste.`}
-            action={{ label: 'Alle Ergebnisse', href: '/mdc/turniere/ergebnisse' }}
+            action={{ label: 'Alle Ergebnisse', href: mdcPath('/turniere/ergebnisse') }}
           />
 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
@@ -377,7 +378,7 @@ export default function MdcHomePage() {
             kicker="Spielprinzip"
             title="So funktioniert die MDC"
             description="Vier Schritte — mehr braucht es nicht, um mitzuspielen."
-            action={{ label: 'Alle Regeln', href: '/mdc/regeln' }}
+            action={{ label: 'Alle Regeln', href: mdcPath('/regeln') }}
           />
 
           <ol style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' }}>
@@ -410,7 +411,7 @@ export default function MdcHomePage() {
             <p className="mdc-display" style={{ fontSize: 'clamp(1.2rem, 2.6vw, 1.8rem)' }}>
               Wer zweimal verliert, scheidet aus.
             </p>
-            <Link href="/mdc/regeln" className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+            <Link href={mdcPath('/regeln')} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
               Doppel-K.-o. erklärt
               <ArrowRight size={15} />
             </Link>

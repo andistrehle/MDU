@@ -6,9 +6,10 @@
 // Erscheinungsbild, eigene Datenschicht (`/data`). Gemeinsam ist nur der
 // Next.js-Rahmen — und ein Link in der jeweiligen Fußzeile.
 //
-// Die Demo ist bewusst nicht indexierbar: Sie zeigt echte Namen aus der
-// MDC-Auswertung und ist zur Abstimmung mit dem Betreiber gedacht, nicht als
-// öffentliche Seite.
+// Indexiert wird nur auf der eigenen Domain (mdc-ranking.de) und nur, wenn die
+// Pflichtangaben im Impressum stehen — siehe `lib/mdc/site.ts`. Unter
+// mdudarts.de/mdc bleibt die Seite gesperrt: Dieselben Inhalte zweimal im
+// Index wären für beide Adressen schlecht.
 // ============================================================
 
 import type { Metadata } from 'next';
@@ -19,8 +20,15 @@ import { VENUES, nextPlayDay } from '@/data/venues';
 import { todayInMunich } from '@/data/season';
 import { formatDateShort } from '@/lib/mdc/format';
 import { logoSrc, throwerSrc } from '@/lib/mdc/brand';
+import { mdcPath, MDC_INDEXABLE, MDC_ORIGIN, MDC_STANDALONE } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
+  // Auf der eigenen Domain lösen relative Angaben (z. B. Vorschaubilder)
+  // gegen mdc-ranking.de auf. Bewusst OHNE `alternates.canonical`: Ein im
+  // Layout gesetzter Wert gälte für jede Unterseite und würde alle Seiten als
+  // Kopie der Startseite ausweisen. Doppelte Adressen gibt es ohnehin nicht —
+  // `/mdc/...` leitet auf die kurze Form um.
+  ...(MDC_STANDALONE ? { metadataBase: new URL(MDC_ORIGIN) } : {}),
   title: {
     default: 'Munich Darts Challenge (MDC) — Münchens Ranking-Serie für Einzelspieler',
     template: '%s · Munich Darts Challenge',
@@ -28,7 +36,9 @@ export const metadata: Metadata = {
   description:
     'Die Munich Darts Challenge ist Münchens Ranking-Serie für Einzelspieler: ' +
     `Turniere im Doppel-K.-o. in ${VENUES.length} Münchner Lokalen, Punkte für die Saisonrangliste.`,
-  robots: { index: false, follow: false },
+  robots: MDC_INDEXABLE
+    ? { index: true, follow: true }
+    : { index: false, follow: false },
 };
 
 /**
@@ -52,8 +62,8 @@ export default function MdcLayout({ children }: { children: React.ReactNode }) {
       }`
     : 'Spielorte ansehen';
   const nextHref = next && next.venues.length === 1
-    ? `/mdc/spielorte/${next.venues[0].id}`
-    : '/mdc/spielorte';
+    ? mdcPath(`/spielorte/${next.venues[0].id}`)
+    : mdcPath('/spielorte');
 
   return (
     <div className="mdc-root">

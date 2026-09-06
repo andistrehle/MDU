@@ -21,6 +21,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Trophy, Users } from 'lucide-react';
 import { formatDate, formatMonth, weekdayName } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 export interface ResultRow {
   seasonId: string;
@@ -187,7 +188,7 @@ export function ResultsBrowser(
                 <td className="mdc-cell-name">
                   {/* Der ganze Block ist der Verweis, nicht nur das Datum —
                       am Handy ist das die einzige große Trefferfläche. */}
-                  <Link href={`/mdc/turniere/ergebnisse/${row.id}`} className="mdc-cell-link">
+                  <Link href={mdcPath(`/turniere/ergebnisse/${row.id}`)} className="mdc-cell-link">
                     <span className="mdc-num">{formatDate(row.date)}</span>
                     <span className="mdc-row-meta mdc-narrow-only">
                       {weekdayName(row.date)} · {row.venue}
@@ -201,7 +202,7 @@ export function ResultsBrowser(
                     ist der Verweis unsichtbar, es ist derselbe wie links. */}
                 <td className="mdc-td-num mdc-num">
                   <Link
-                    href={`/mdc/turniere/ergebnisse/${row.id}`}
+                    href={mdcPath(`/turniere/ergebnisse/${row.id}`)}
                     className="mdc-cell-link"
                     aria-hidden="true"
                     tabIndex={-1}
@@ -211,11 +212,11 @@ export function ResultsBrowser(
                 </td>
                 <td className="mdc-hide-narrow">
                   {row.winnerId
-                    ? <Link href={`/mdc/spieler/${row.winnerId}`}>{row.winner}</Link>
+                    ? <Link href={mdcPath(`/spieler/${row.winnerId}`)}>{row.winner}</Link>
                     : row.winner}
                 </td>
                 <td className="mdc-hide-narrow mdc-td-num">
-                  <Link href={`/mdc/turniere/ergebnisse/${row.id}`} aria-label="Ergebnisliste öffnen">
+                  <Link href={mdcPath(`/turniere/ergebnisse/${row.id}`)} aria-label="Ergebnisliste öffnen">
                     <ArrowRight size={15} />
                   </Link>
                 </td>

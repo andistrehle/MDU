@@ -10,6 +10,7 @@ import { tournamentsAtVenue } from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
 import { RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, formatTime, weekdayName } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 export function generateStaticParams() {
   return VENUES.map(venue => ({ id: venue.id }));
@@ -49,7 +50,7 @@ export default async function SpielortDetailPage(
       <section className="mdc-hero">
         <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '36px 44px' }}>
-          <Link href="/mdc/spielorte" className="mdc-chip" style={{ marginBottom: 18 }}>
+          <Link href={mdcPath('/spielorte')} className="mdc-chip" style={{ marginBottom: 18 }}>
             <ArrowLeft size={13} />
             Alle Spielorte
           </Link>
@@ -172,7 +173,7 @@ export default async function SpielortDetailPage(
                       return (
                         <tr key={t.id}>
                           <td className="mdc-cell-name">
-                            <Link href={`/mdc/turniere/ergebnisse/${t.id}`} className="mdc-cell-link">
+                            <Link href={mdcPath(`/turniere/ergebnisse/${t.id}`)} className="mdc-cell-link">
                               <span className="mdc-num">{formatDate(t.date)}</span>
                               <span className="mdc-row-meta mdc-narrow-only">
                                 Sieger: {sieger ? playerName(sieger) : `Passnr. ${t.results[0].passNr}`}
@@ -182,7 +183,7 @@ export default async function SpielortDetailPage(
                           <td className="mdc-td-num mdc-num">{t.participants}</td>
                           <td className="mdc-hide-narrow">
                             {sieger
-                              ? <Link href={`/mdc/spieler/${sieger.id}`}>{playerName(sieger)}</Link>
+                              ? <Link href={mdcPath(`/spieler/${sieger.id}`)}>{playerName(sieger)}</Link>
                               : `Passnr. ${t.results[0].passNr}`}
                           </td>
                         </tr>
@@ -193,7 +194,7 @@ export default async function SpielortDetailPage(
               </div>
 
               <Link
-                href="/mdc/turniere/ergebnisse"
+                href={mdcPath('/turniere/ergebnisse')}
                 className="mdc-btn mdc-btn-ghost mdc-btn-sm"
                 style={{ marginTop: 16 }}
               >

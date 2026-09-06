@@ -5,6 +5,7 @@ import { PageHero } from '@/components/mdc/ui';
 import {
   EXAMPLE_FIELD_SIZES, MIN_POINTS, TABLE_RANGE, pointsTableRows,
 } from '@/lib/mdc/points';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Regeln',
@@ -167,7 +168,7 @@ export default function RegelnPage() {
               folgende Turnier. Männer und Frauen haben dabei jeweils ihre eigene Tabelle und
               ihre eigene Ausschüttung.
             </p>
-            <Link href="/mdc/rangliste" className="mdc-btn mdc-btn-primary" style={{ marginTop: 20 }}>
+            <Link href={mdcPath('/rangliste')} className="mdc-btn mdc-btn-primary" style={{ marginTop: 20 }}>
               Zur Rangliste
               <ArrowRight size={17} />
             </Link>

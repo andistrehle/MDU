@@ -19,6 +19,7 @@ import {
 import { getPlayer, playerName } from '@/data/players';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate, formatNumber } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Turnierergebnisse',
@@ -124,7 +125,7 @@ export default function ErgebnissePage() {
                     <td className="mdc-cell-name">
                       {v.formerVenue
                         ? v.name
-                        : <Link href={`/mdc/spielorte/${v.venueId}`}>{v.name}</Link>}
+                        : <Link href={mdcPath(`/spielorte/${v.venueId}`)}>{v.name}</Link>}
                       {v.formerVenue && (
                         <span className="mdc-row-meta">
                           spielt in der laufenden Saison nicht mehr mit
@@ -144,14 +145,14 @@ export default function ErgebnissePage() {
           </div>
 
           <div style={{ marginTop: 26, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <Link href="/mdc/rangliste" className="mdc-btn mdc-btn-primary">
+            <Link href={mdcPath('/rangliste')} className="mdc-btn mdc-btn-primary">
               Rangliste {RUNNING_SEASON.label}
             </Link>
-            <Link href="/mdc/rangliste/archiv" className="mdc-btn mdc-btn-ghost">
+            <Link href={mdcPath('/rangliste/archiv')} className="mdc-btn mdc-btn-ghost">
               <Archive size={18} />
               Endstand {FINAL_SEASON.label}
             </Link>
-            <Link href="/mdc/spielorte" className="mdc-btn mdc-btn-ghost">
+            <Link href={mdcPath('/spielorte')} className="mdc-btn mdc-btn-ghost">
               <Building2 size={18} />
               Spielorte heute
             </Link>

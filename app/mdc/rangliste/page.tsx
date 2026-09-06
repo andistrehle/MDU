@@ -21,6 +21,7 @@ import { CORRECTIONS } from '@/data/corrections';
 import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Rangliste',
@@ -59,7 +60,7 @@ export default function RanglistePage() {
                         <strong>Ein Turnier ist berichtigt.</strong> {hinweis.note}{' '}
                         Dadurch weichen einzelne Punktzahlen und Plätze von der ausgehängten
                         Liste ab.{' '}
-                        <Link href={`/mdc/turniere/ergebnisse/${hinweis.tournamentId}`}>
+                        <Link href={mdcPath(`/turniere/ergebnisse/${hinweis.tournamentId}`)}>
                           Zum Turnier
                         </Link>
                       </p>
@@ -79,7 +80,7 @@ export default function RanglistePage() {
                 {formatDate(RUNNING_SEASON.startDate)} — {RUNNING_STATS.entries} Starts,{' '}
                 {RUNNING_STATS.points.toLocaleString('de-DE')} vergebene Punkte. Jedes einzelne
                 Turnier steht in der{' '}
-                <Link href="/mdc/turniere/ergebnisse">Ergebnisübersicht</Link>.
+                <Link href={mdcPath('/turniere/ergebnisse')}>Ergebnisübersicht</Link>.
               </p>
             </>
           ) : (
@@ -107,7 +108,7 @@ export default function RanglistePage() {
                   {formatDate(FINAL_SEASON.asOf)} und das Sommer-Ranking 2026 bleiben
                   vollständig einsehbar — mit Punkten, Schnitt und Ausschüttung.
                 </p>
-                <Link href="/mdc/rangliste/archiv" className="mdc-btn mdc-btn-primary">
+                <Link href={mdcPath('/rangliste/archiv')} className="mdc-btn mdc-btn-primary">
                   <Archive size={18} />
                   Archiv öffnen
                 </Link>

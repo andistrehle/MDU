@@ -19,12 +19,21 @@
 // ============================================================
 
 import { usePathname } from 'next/navigation';
+import { isMdcPath, MDC_STANDALONE } from '@/lib/mdc/site';
 import { AuthProvider } from '@/lib/auth/auth-context';
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isMdc = pathname === '/mdc' || pathname.startsWith('/mdc/');
 
-  if (isMdc) return <>{children}</>;
+  // Eigenständige MDC-Seite: Dort gibt es keine MDU-Anmeldung. Der Kontext
+  // wird trotzdem gestellt — er ist ohne Supabase-Zugangsdaten von selbst
+  // untätig (`lib/supabase/client.ts` liefert dann `null`, es gibt weder eine
+  // Anfrage noch ein Cookie), und die MDU-Seiten im selben Build lassen sich
+  // nur so vorrendern. Im MDC-Projekt deshalb KEINE Supabase-Variablen setzen.
+  if (MDC_STANDALONE) return <AuthProvider>{children}</AuthProvider>;
+
+  // In der MDU-Ausprägung entscheidet der Pfad: Unter `/mdc` läuft die
+  // eigenständige Seite ohne MDU-Kontext.
+  if (isMdcPath(pathname)) return <>{children}</>;
   return <AuthProvider>{children}</AuthProvider>;
 }

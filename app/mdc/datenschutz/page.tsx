@@ -1,72 +1,198 @@
+// ============================================================
+// MDC — Datenschutzhinweise
+// ============================================================
+//
+// Beschrieben ist, was diese Seite TATSÄCHLICH tut. Sie ist eine reine
+// Leseseite: keine Anmeldung, kein Formular, keine Cookies, kein lokaler
+// Speicher, keine Inhalte von fremden Servern. Was sie dagegen sehr wohl tut:
+// Namen echter Personen samt Ergebnissen veröffentlichen — genau das ist der
+// erklärungsbedürftige Teil und steht deshalb weit oben.
+//
+// Die Anbieterangaben kommen aus `data/mdc-legal.ts`.
+// ============================================================
+
 import type { Metadata } from 'next';
-import { PageHero, DemoNotice } from '@/components/mdc/ui';
+import Link from 'next/link';
+import { PageHero } from '@/components/mdc/ui';
+import { LegalPage, LegalSection, LegalGapNotice } from '@/components/mdc/legal';
+import { MDC_LEGAL, MDC_LEGAL_COMPLETE, legal } from '@/data/mdc-legal';
+import { FINAL_SEASON } from '@/data/season';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Datenschutz',
-  description: 'Datenschutzhinweise der Munich Darts Challenge (Platzhalter der Demo-Fassung).',
+  description:
+    'Datenschutzhinweise der Munich Darts Challenge: welche Daten veröffentlicht werden, ' +
+    'auf welcher Grundlage, wie lange — und wie man widerspricht.',
 };
 
-const SECTIONS = [
-  {
-    title: 'Verantwortliche Stelle',
-    body: '[Name und Anschrift der verantwortlichen Person — siehe Impressum. Kontaktadresse für Auskunfts- und Löschanfragen ergänzen.]',
-  },
-  {
-    title: 'Welche Daten veröffentlicht werden',
-    body:
-      'Für den Ranglistenbetrieb werden Name, Vorname, MDC-Passnummer, Anzahl der Turnierteilnahmen, ' +
-      'Punkte und Platzierung veröffentlicht. Diese Angaben sind der Kern einer Rangliste — ohne sie ' +
-      'gäbe es keine Wertung. Fotos, Geburtsdaten, Anschriften oder Kontaktdaten werden auf dieser ' +
-      'Seite nicht gezeigt.',
-  },
-  {
-    title: 'Rechtsgrundlage',
-    body: '[Zu prüfen und zu ergänzen: Rechtsgrundlage der Veröffentlichung, Speicherdauer, Widerspruchsrecht.]',
-  },
-  {
-    title: 'Server-Logdaten',
-    body: '[Platzhalter: Angaben zum Hosting, zu Server-Logdaten und deren Aufbewahrungsdauer.]',
-  },
-  {
-    title: 'Rechte der Betroffenen',
-    body:
-      'Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und ' +
-      'Beschwerde bei einer Aufsichtsbehörde. [Konkrete Kontaktwege ergänzen.]',
-  },
-  {
-    title: 'Externe Dienste',
-    body:
-      'Diese Vorschau lädt keine Inhalte von fremden Servern nach — keine Karten, keine Schriftarten ' +
-      'von Dritten auf den MDC-Seiten, keine Zählpixel. Verweise auf Kartendienste öffnen sich erst ' +
-      'nach ausdrücklichem Klick.',
-  },
-];
-
 export default function DatenschutzPage() {
+  const { operator, representedBy, street, zipCity, email, updated } = MDC_LEGAL;
+  const kontakt = email
+    ? <a href={`mailto:${email}`}>{email}</a>
+    : '[E-Mail-Adresse]';
+
   return (
     <>
-      <PageHero kicker="Rechtliches" title="Datenschutz" />
+      <PageHero
+        kicker="Rechtliches"
+        title="Datenschutz"
+        description={`Stand: ${updated}`}
+      />
 
-      <section className="mdc-section">
-        <div className="mdc-shell" style={{ maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 22 }}>
-          <DemoNotice>
-            Platzhalter. Diese Hinweise sind nicht geprüft und ersetzen keine
-            Datenschutzerklärung. Vor einer Veröffentlichung mit echten Spielernamen
-            muss der Text rechtlich abgesichert werden.
-          </DemoNotice>
+      <LegalPage>
+        {!MDC_LEGAL_COMPLETE && (
+          <LegalGapNotice>
+            <strong>Noch unvollständig.</strong> Die Angaben zur verantwortlichen Stelle
+            fehlen (eckige Klammern) und müssen in <code>data/mdc-legal.ts</code> eingetragen
+            werden. Bis dahin bleibt die Seite für Suchmaschinen gesperrt.
+          </LegalGapNotice>
+        )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-            {SECTIONS.map(section => (
-              <div key={section.title}>
-                <h2 className="mdc-display mdc-h3" style={{ marginBottom: 8 }}>{section.title}</h2>
-                <p style={{ color: 'var(--mdc-ink-soft)', lineHeight: 1.75, fontSize: '0.95rem' }}>
-                  {section.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <LegalSection title="1. Verantwortliche Stelle">
+          Verantwortlich für die Datenverarbeitung auf dieser Website ist{' '}
+          {legal(operator, 'Anbieter der Seite')}
+          {representedBy && <>, vertreten durch {representedBy}</>}.<br />
+          {legal(street, 'Straße und Hausnummer')} · {legal(zipCity, 'PLZ und Ort')}<br />
+          E-Mail (auch für Auskunft und Widerspruch): {kontakt}
+        </LegalSection>
+
+        <LegalSection title="2. Was diese Seite veröffentlicht">
+          Die Munich Darts Challenge ist eine Ranglistenserie. Veröffentlicht werden deshalb
+          je Spielerin und Spieler: <strong>Vor- und Nachname</strong> (bzw. der in der Serie
+          geführte Spielername), die <strong>MDC-Passnummer</strong>, die{' '}
+          <strong>Anzahl der Turnierteilnahmen</strong>, die erreichten{' '}
+          <strong>Punkte, Platzierungen und der Punkteschnitt</strong> sowie am Saisonende der
+          Anteil an der Ausschüttung. Dazu die einzelnen Turnierergebnisse: Datum, Spielort,
+          Feldgröße, Platzierung und Punkte.
+          <br /><br />
+          Ebenfalls veröffentlicht wird ein Spitzname, sofern er in der Auswertung als Teil des
+          Namens geführt wird (etwa {'„Chriss (Bonsai)“'}). Das ist genau die Schreibweise, unter
+          der die Serie die Person seit jeher führt.
+        </LegalSection>
+
+        <LegalSection title="3. Was diese Seite NICHT veröffentlicht">
+          Keine Fotos, keine Geburtsdaten, keine Anschriften, keine Telefonnummern, keine
+          E-Mail-Adressen von Spielerinnen und Spielern. Statt Bildern zeigt die Seite
+          Platzhalter aus den Initialen. Auch die Telefonnummern der Spielorte stehen nicht
+          öffentlich, solange die Lokale dem nicht zugestimmt haben.
+        </LegalSection>
+
+        <LegalSection title="4. Woher die Daten stammen">
+          Ausschließlich aus der Auswertung der Turnierserie selbst: aus den
+          Ergebnislisten, die in den Lokalen ausgefüllt werden, und aus der Arbeitsmappe, mit
+          der die Serie ihre Ranglisten führt. Es werden keine Daten aus anderen Quellen
+          zugekauft, zusammengeführt oder aus sozialen Netzwerken ergänzt. Eine Verknüpfung mit
+          dem Spielerbestand der Münchner Dart Union findet nicht statt; beide Serien führen
+          eigene Passnummern.
+        </LegalSection>
+
+        <LegalSection title="5. Rechtsgrundlage">
+          Die Veröffentlichung erfolgt auf Grundlage des berechtigten Interesses
+          (Art. 6 Abs. 1 lit. f DSGVO). Das berechtigte Interesse besteht darin, den
+          Spielbetrieb einer offenen Turnierserie nachvollziehbar zu machen: Wer Punkte sammelt,
+          muss die Wertung prüfen können, und die Ausschüttung am Saisonende muss für alle
+          Beteiligten nachrechenbar sein. Genau dafür ist die Rangliste da — ohne Namen und
+          Punktestände gäbe es sie nicht.
+          <br /><br />
+          Berücksichtigt wurde dabei, dass die Teilnahme freiwillig ist, dass ausschließlich
+          Daten aus dem sportlichen Wettbewerb veröffentlicht werden und dass die Rangliste
+          ohnehin in den Lokalen aushängt. Auf besonders schützenswerte Angaben
+          (Art. 9 DSGVO) wird vollständig verzichtet.
+        </LegalSection>
+
+        <LegalSection title="6. Widerspruchsrecht">
+          Jede betroffene Person kann der Veröffentlichung ihrer Daten jederzeit widersprechen
+          (Art. 21 DSGVO) — formlos per E-Mail an {kontakt}, ohne Angabe von Gründen. Nach einem
+          Widerspruch wird der Name aus den Ranglisten und Ergebnislisten dieser Seite entfernt.
+          Die sportliche Wertung der Serie selbst bleibt davon unberührt; sie wird außerhalb
+          dieser Website geführt.
+        </LegalSection>
+
+        <LegalSection title="7. Domain und Hosting">
+          Die Domain ist über die Strato AG registriert; gehostet wird die Seite bei der
+          Vercel Inc. Beim Aufruf verarbeitet der Hoster technisch notwendige Daten in
+          Server-Logs (IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browsertyp und
+          -version, übertragene Datenmenge). Das dient der Auslieferung, der Stabilität und
+          der Abwehr von Angriffen. Rechtsgrundlage ist das berechtigte Interesse
+          (Art. 6 Abs. 1 lit. f DSGVO). Mit dem Anbieter besteht ein Vertrag zur
+          Auftragsverarbeitung (Art. 28 DSGVO); soweit Daten in die USA übermittelt werden,
+          geschieht das auf Grundlage geeigneter Garantien (EU-Standardvertragsklauseln bzw.
+          EU-US Data Privacy Framework). Die Logs werden von dort nach kurzer Zeit gelöscht;
+          eine Zusammenführung mit den Ranglistendaten findet nicht statt.
+        </LegalSection>
+
+        <LegalSection title="8. Keine Anmeldung, keine Cookies">
+          Diese Seite ist eine reine Leseseite: Es gibt kein Benutzerkonto, kein Formular und
+          keinen Warenkorb. Sie setzt <strong>keine Cookies</strong> und legt nichts im
+          lokalen Speicher des Browsers ab. Auch eine Einwilligungsabfrage (Cookie-Banner) ist
+          deshalb nicht nötig — es gibt nichts einzuwilligen.
+        </LegalSection>
+
+        <LegalSection title="9. Reichweitenmessung">
+          Sofern beim Hoster (Vercel) die Funktion {'„Web Analytics“'} aktiviert ist, werden
+          Seitenaufrufe anonym gezählt. Diese Messung arbeitet <strong>ohne Cookies</strong>,
+          ohne geräteübergreifende Wiedererkennung und ohne Profilbildung; die IP-Adresse wird
+          dabei nicht gespeichert. Rechtsgrundlage ist das berechtigte Interesse an einer
+          groben Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO). Ist die Funktion nicht
+          aktiviert, findet gar keine Messung statt.
+        </LegalSection>
+
+        <LegalSection title="10. Schriften und externe Inhalte">
+          Die verwendeten Schriften werden vom eigenen Server ausgeliefert; beim Seitenaufruf
+          entsteht <strong>keine Verbindung zu Google Fonts</strong> oder anderen
+          Fremdservern. Karten werden nicht eingebettet — der Verweis auf einen Kartendienst
+          öffnet sich erst nach ausdrücklichem Klick, und erst dann gelten die
+          Datenschutzbestimmungen des jeweiligen Anbieters. Auch Zählpixel, Werbenetzwerke und
+          Schaltflächen sozialer Netzwerke gibt es hier nicht.
+        </LegalSection>
+
+        <LegalSection title="11. Kontaktaufnahme">
+          Wer per E-Mail schreibt, dessen Adresse und Nachricht werden ausschließlich zur
+          Bearbeitung des Anliegens verarbeitet (Art. 6 Abs. 1 lit. f DSGVO, bei
+          vertragsähnlichen Anliegen lit. b). Die Nachrichten werden gelöscht, sobald sie
+          erledigt sind und keine gesetzlichen Aufbewahrungsfristen entgegenstehen.
+        </LegalSection>
+
+        <LegalSection title="12. Speicherdauer">
+          Ranglisten und Turnierergebnisse bleiben dauerhaft abrufbar, auch als Archiv
+          abgeschlossener Saisons (derzeit die Saison {FINAL_SEASON.label}) — eine Rangliste,
+          die nach Saisonende verschwindet, verlöre ihren Zweck. Nach einem Widerspruch
+          (Ziffer 6) wird die betroffene Person entfernt. Server-Logs löscht der Hoster nach
+          kurzer Zeit; E-Mails werden nach Erledigung gelöscht.
+        </LegalSection>
+
+        <LegalSection title="13. Rechte der betroffenen Personen">
+          Es bestehen die Rechte auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung
+          (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20)
+          und Widerspruch (Art. 21 DSGVO). Zur Wahrnehmung genügt eine E-Mail an {kontakt}.
+          <br /><br />
+          Außerdem besteht ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde.
+          Zuständig ist das <strong>Bayerische Landesamt für Datenschutzaufsicht (BayLDA)</strong>,
+          Promenade 27, 91522 Ansbach (www.lda.bayern.de); man kann sich aber auch an die
+          Behörde des eigenen Aufenthaltsorts wenden.
+        </LegalSection>
+
+        <LegalSection title="14. Keine automatisierte Entscheidungsfindung">
+          Eine automatisierte Entscheidungsfindung mit rechtlicher Wirkung im Sinne des
+          Art. 22 DSGVO findet nicht statt. Punkte und Plätze ergeben sich aus dem
+          veröffentlichten Punkteschlüssel und dem sportlichen Ergebnis; die Auswertung führt
+          der Betreiber der Serie.
+        </LegalSection>
+
+        <LegalSection title="15. Minderjährige">
+          Nehmen Minderjährige am Spielbetrieb teil, gelten für die Veröffentlichung ihrer
+          Ergebnisse dieselben Grundsätze; ein Widerspruch (Ziffer 6) kann durch die
+          Erziehungsberechtigten erklärt werden und wird ohne Rückfrage umgesetzt.
+        </LegalSection>
+
+        <LegalSection title="16. Änderungen dieser Hinweise">
+          Ändert sich etwas an der Seite oder an den eingesetzten Diensten, werden diese
+          Hinweise angepasst. Es gilt jeweils die hier veröffentlichte Fassung; der Stand steht
+          oben. Die Anbieterangaben stehen im{' '}
+          <Link href={mdcPath('/impressum')}>Impressum</Link>.
+        </LegalSection>
+      </LegalPage>
     </>
   );
 }

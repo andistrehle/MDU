@@ -12,6 +12,7 @@
 // ============================================================
 
 import { usePathname } from 'next/navigation';
+import { isMdcPath } from '@/lib/mdc/site';
 import { BottomNav } from './bottom-nav';
 import { DemoTour } from './demo-tour';
 import { DemoTourButton } from './tour-restart-link';
@@ -19,7 +20,9 @@ import { AnalyticsTracker } from './analytics-tracker';
 
 export function GlobalChrome() {
   const pathname = usePathname();
-  if (pathname === '/mdc' || pathname.startsWith('/mdc/')) return null;
+  // `isMdcPath` ist auf der eigenen MDC-Domain immer wahr — dort gibt es die
+  // MDU-Oberfläche gar nicht, und der Pfad heißt im Browser nicht mehr /mdc.
+  if (isMdcPath(pathname)) return null;
 
   return (
     <>

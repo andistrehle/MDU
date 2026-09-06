@@ -18,31 +18,32 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: 'Spielbetrieb',
     links: [
-      { label: 'Rangliste', href: '/mdc/rangliste' },
-      { label: 'Archiv', href: '/mdc/rangliste/archiv' },
-      { label: 'Turniere', href: '/mdc/turniere' },
-      { label: 'Spieler', href: '/mdc/spieler' },
-      { label: 'Spielorte', href: '/mdc/spielorte' },
+      { label: 'Rangliste', href: mdcPath('/rangliste') },
+      { label: 'Archiv', href: mdcPath('/rangliste/archiv') },
+      { label: 'Turniere', href: mdcPath('/turniere') },
+      { label: 'Spieler', href: mdcPath('/spieler') },
+      { label: 'Spielorte', href: mdcPath('/spielorte') },
     ],
   },
   {
     title: 'Die MDC',
     links: [
-      { label: 'Regeln', href: '/mdc/regeln' },
-      { label: 'Kontakt', href: '/mdc/kontakt' },
-      { label: 'Turnierverwaltung', href: '/mdc/admin' },
+      { label: 'Regeln', href: mdcPath('/regeln') },
+      { label: 'Kontakt', href: mdcPath('/kontakt') },
+      { label: 'Turnierverwaltung', href: mdcPath('/admin') },
     ],
   },
   {
     title: 'Rechtliches',
     links: [
-      { label: 'Impressum', href: '/mdc/impressum' },
-      { label: 'Datenschutz', href: '/mdc/datenschutz' },
+      { label: 'Impressum', href: mdcPath('/impressum') },
+      { label: 'Datenschutz', href: mdcPath('/datenschutz') },
     ],
   },
 ];
 
 import type { BrandImage } from '@/lib/mdc/brand';
+import { mdcPath } from '@/lib/mdc/site';
 
 export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
   const season = getCurrentSeason();
@@ -152,7 +153,7 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
           }}
         >
           <span>© {season.asOf.slice(0, 4)} Munich Darts Challenge</span>
-          <span>Demo-Fassung — Inhalte und Rechtstexte sind Platzhalter.</span>
+          <span>Ergebnisse und Ranglisten aus der offiziellen Auswertung · Angaben ohne Gewähr</span>
         </div>
       </div>
     </footer>

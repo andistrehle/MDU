@@ -22,6 +22,7 @@ import { correctionsFor } from '@/data/corrections';
 import { rankGroupLabel } from '@/lib/mdc/points';
 import { formatDateLong, formatNumber } from '@/lib/mdc/format';
 import { getSeason } from '@/data/season';
+import { mdcPath } from '@/lib/mdc/site';
 
 export function generateStaticParams() {
   return ALL_TOURNAMENTS.map(t => ({ id: t.id }));
@@ -69,7 +70,7 @@ export default async function ArchivTurnierPage(
         <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '40px 44px' }}>
           <div style={{ marginBottom: 18 }}>
-            <Link href="/mdc/turniere/ergebnisse" className="mdc-chip">
+            <Link href={mdcPath('/turniere/ergebnisse')} className="mdc-chip">
               <ArrowLeft size={13} />
               Alle Turniere
             </Link>
@@ -95,7 +96,7 @@ export default async function ArchivTurnierPage(
             {venue && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                 <MapPin size={15} style={{ color: 'var(--mdc-red)' }} />
-                <Link href={`/mdc/spielorte/${venue.id}`}>{venueAddress(venue)}</Link>
+                <Link href={mdcPath(`/spielorte/${venue.id}`)}>{venueAddress(venue)}</Link>
               </span>
             )}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
@@ -131,7 +132,7 @@ export default async function ArchivTurnierPage(
                       {player && <PlayerAvatar player={player} size={platz === 1 ? 56 : 46} highlight={platz === 1} />}
                       {player ? (
                         <Link
-                          href={`/mdc/spieler/${player.id}`}
+                          href={mdcPath(`/spieler/${player.id}`)}
                           className="mdc-display"
                           style={{ display: 'block', fontSize: platz === 1 ? '1.15rem' : '1rem', marginTop: 10 }}
                         >
@@ -214,7 +215,7 @@ export default async function ArchivTurnierPage(
                       <td className="mdc-cell-name">
                         {player ? (
                           <Link
-                            href={`/mdc/spieler/${player.id}`}
+                            href={mdcPath(`/spieler/${player.id}`)}
                             style={{ display: 'flex', alignItems: 'center', gap: 10 }}
                           >
                             <PlayerAvatar player={player} size={28} />
@@ -255,13 +256,13 @@ export default async function ArchivTurnierPage(
           {(neuer || aelter) && (
             <div style={{ marginTop: 26, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {aelter && (
-                <Link href={`/mdc/turniere/ergebnisse/${aelter.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+                <Link href={mdcPath(`/turniere/ergebnisse/${aelter.id}`)} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
                   <ArrowLeft size={15} />
                   Vorheriges im {turnier.venueName}
                 </Link>
               )}
               {neuer && (
-                <Link href={`/mdc/turniere/ergebnisse/${neuer.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+                <Link href={mdcPath(`/turniere/ergebnisse/${neuer.id}`)} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
                   Nächstes im {turnier.venueName}
                   <ArrowRight size={15} />
                 </Link>

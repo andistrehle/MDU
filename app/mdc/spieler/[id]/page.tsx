@@ -13,6 +13,7 @@ import { appearancesOf } from '@/data/tournament-results';
 import { getVenue, venueName } from '@/data/venues';
 import { formatAverage, formatDate, formatNumber } from '@/lib/mdc/format';
 import { FINAL_SEASON, RUNNING_SEASON, SUMMER_SEASON, getSeason } from '@/data/season';
+import { mdcPath } from '@/lib/mdc/site';
 
 export function generateStaticParams() {
   return PLAYERS.map(player => ({ id: player.id }));
@@ -97,7 +98,7 @@ export default async function SpielerProfilPage(
       <section className="mdc-hero">
         <Dartboard className="mdc-hero-board mdc-spin-slow" showNumbers={false} tone="brand" />
         <div className="mdc-shell" style={{ position: 'relative', zIndex: 2, paddingBlock: '36px 40px' }}>
-          <Link href="/mdc/spieler" className="mdc-chip" style={{ marginBottom: 18 }}>
+          <Link href={mdcPath('/spieler')} className="mdc-chip" style={{ marginBottom: 18 }}>
             <ArrowLeft size={13} />
             Alle Spieler
           </Link>
@@ -263,7 +264,7 @@ export default async function SpielerProfilPage(
                         </td>
                         <td className="mdc-cell-name">
                           <Link
-                            href={`/mdc/turniere/ergebnisse/${tournament.id}`}
+                            href={mdcPath(`/turniere/ergebnisse/${tournament.id}`)}
                             className="mdc-cell-link"
                             style={{ color: 'var(--mdc-ink)' }}
                           >
@@ -301,7 +302,7 @@ export default async function SpielerProfilPage(
           {favouriteVenue && (
             <div>
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Lieblingslokal</h2>
-              <MaybeLink href={favouriteVenue.page ? `/mdc/spielorte/${favouriteVenue.id}` : null}>
+              <MaybeLink href={favouriteVenue.page ? mdcPath(`/spielorte/${favouriteVenue.id}`) : null}>
                 <div className="mdc-card mdc-card-hover" style={{ padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
                   <Trophy size={22} style={{ color: 'var(--mdc-red)', flexShrink: 0 }} />
                   <div>

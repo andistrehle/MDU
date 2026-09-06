@@ -25,6 +25,7 @@ import {
 import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, formatTime, weekdayName } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Turniere',
@@ -53,7 +54,7 @@ export default function TurnierePage() {
             kicker="Kommende Termine"
             title="Die nächsten zwei Wochen"
             description="Jedes Lokal hat seinen festen Spieltag. Der Plan rechnet sich daraus — er kann also nicht veralten."
-            action={{ label: 'Alle Spielorte', href: '/mdc/spielorte' }}
+            action={{ label: 'Alle Spielorte', href: mdcPath('/spielorte') }}
           />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
@@ -89,7 +90,7 @@ export default function TurnierePage() {
                         {venue.boards} Dartautomaten
                       </p>
                       <Link
-                        href={`/mdc/spielorte/${venue.id}`}
+                        href={mdcPath(`/spielorte/${venue.id}`)}
                         className="mdc-btn mdc-btn-ghost mdc-btn-sm"
                         style={{ marginTop: 'auto', alignSelf: 'flex-start' }}
                       >
@@ -127,7 +128,7 @@ export default function TurnierePage() {
             kicker="Ergebnisse"
             title="Zuletzt gespielt"
             description={`Jedes ausgewertete Turnier mit Podium, kompletter Ergebnisliste und den vergebenen Punkten. Diese Punkte aufaddiert ergeben die Rangliste der Saison ${RUNNING_SEASON.label}.`}
-            action={{ label: 'Alle ansehen', href: '/mdc/turniere/ergebnisse' }}
+            action={{ label: 'Alle ansehen', href: mdcPath('/turniere/ergebnisse') }}
           />
 
           <div
@@ -141,7 +142,7 @@ export default function TurnierePage() {
               label={`Turniere ${RUNNING_SEASON.label}`}
               value={formatNumber(RUNNING_STATS.tournaments)}
               sub={`seit ${formatDate(RUNNING_STATS.firstDate)}`}
-              href="/mdc/turniere/ergebnisse"
+              href={mdcPath('/turniere/ergebnisse')}
             />
             <StatCard
               icon={<Users size={17} />}
@@ -154,7 +155,7 @@ export default function TurnierePage() {
               label={`Archiv ${FINAL_SEASON.label}`}
               value={formatNumber(ARCHIVE_STATS.tournaments)}
               sub={`Turniere, ${formatNumber(ARCHIVE_STATS.entries)} Starts`}
-              href="/mdc/turniere/ergebnisse"
+              href={mdcPath('/turniere/ergebnisse')}
             />
           </div>
 
@@ -165,7 +166,7 @@ export default function TurnierePage() {
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <Link href="/mdc/turniere/ergebnisse" className="mdc-btn mdc-btn-primary">
+            <Link href={mdcPath('/turniere/ergebnisse')} className="mdc-btn mdc-btn-primary">
               <ListOrdered size={18} />
               Alle Turnierergebnisse
             </Link>

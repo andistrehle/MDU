@@ -8,6 +8,7 @@ import { getPlayer, playerName } from '@/data/players';
 import { formatAverage, formatNumber } from '@/lib/mdc/format';
 import { PlayerAvatar } from './player-avatar';
 import { TrendIcon } from './ui';
+import { mdcPath } from '@/lib/mdc/site';
 
 interface RankingWidgetProps {
   entries: RankingEntry[];
@@ -45,7 +46,7 @@ export function RankingWidget({ entries, division, compact = false }: RankingWid
                 <td className="mdc-hide-narrow"><TrendIcon trend={entry.trend} /></td>
                 <td className="mdc-cell-name">
                   <Link
-                    href={`/mdc/spieler/${player.id}`}
+                    href={mdcPath(`/spieler/${player.id}`)}
                     style={{ display: 'flex', alignItems: 'center', gap: 10 }}
                   >
                     <PlayerAvatar player={player} size={30} highlight={entry.rank === 1} />

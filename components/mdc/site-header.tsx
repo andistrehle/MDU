@@ -16,14 +16,15 @@ import { usePathname } from 'next/navigation';
 import { CalendarClock, ChevronRight, Menu, X } from 'lucide-react';
 import { MdcMark, MdcThrower, MdcWordmark } from './logo';
 import type { BrandImage } from '@/lib/mdc/brand';
+import { mdcPath, mdcRelativePath } from '@/lib/mdc/site';
 
 const NAV = [
-  { href: '/mdc', label: 'Start' },
-  { href: '/mdc/rangliste', label: 'Rangliste' },
-  { href: '/mdc/turniere', label: 'Turniere' },
-  { href: '/mdc/spieler', label: 'Spieler' },
-  { href: '/mdc/spielorte', label: 'Spielorte' },
-  { href: '/mdc/regeln', label: 'Regeln' },
+  { href: mdcPath(), label: 'Start' },
+  { href: mdcPath('/rangliste'), label: 'Rangliste' },
+  { href: mdcPath('/turniere'), label: 'Turniere' },
+  { href: mdcPath('/spieler'), label: 'Spieler' },
+  { href: mdcPath('/spielorte'), label: 'Spielorte' },
+  { href: mdcPath('/regeln'), label: 'Regeln' },
 ];
 
 interface SiteHeaderProps {
@@ -39,8 +40,15 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const isActive = (href: string) =>
-    href === '/mdc' ? pathname === '/mdc' : pathname.startsWith(href);
+  // Beide Seiten des Vergleichs ohne `/mdc`-Präfix: Auf der eigenen Domain
+  // schreibt der Proxy intern auf `/mdc/…` um, im Browser steht der Pfad ohne.
+  // Ohne diese Normalisierung würde nach dem Laden ein anderer Punkt leuchten
+  // als im ausgelieferten HTML.
+  const aktuell = mdcRelativePath(pathname);
+  const isActive = (href: string) => {
+    const ziel = mdcRelativePath(href);
+    return ziel === '/' ? aktuell === '/' : aktuell.startsWith(ziel);
+  };
 
   // Solange das Menü offen ist, soll der Hintergrund nicht mitscrollen.
   // (Geschlossen wird es beim Klick auf einen Eintrag — kein Effekt nötig.)
@@ -57,7 +65,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
         <div className="mdc-shell mdc-header-inner">
           {/* Ein breiter Banner trägt den Schriftzug bereits — dann steht er
               nicht noch einmal daneben. */}
-          <Link href="/mdc" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href={mdcPath()} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <MdcMark size={logo?.wide ? 54 : 40} src={logo} />
             {!logo?.wide && <MdcWordmark />}
           </Link>

@@ -14,6 +14,18 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { COMING_SOON, PREVIEW_KEY } from '@/lib/site-config';
+import { MDC_STANDALONE, MDC_ORIGIN } from '@/lib/mdc/site';
+
+/**
+ * Ist die MDC auf ihre eigene Domain umgezogen? Dann führt `mdudarts.de/mdc`
+ * dorthin, statt die Seiten ein zweites Mal auszuliefern (doppelte Inhalte).
+ *
+ * Bewusst über eine Umgebungsvariable und nicht fest im Code: Die Weiterleitung
+ * darf erst greifen, wenn mdc-ranking.de wirklich läuft — sonst schickt sie
+ * Besucher auf eine Platzhalterseite. Im Vercel-Projekt der MDU setzen:
+ * `NEXT_PUBLIC_MDC_MOVED=1`.
+ */
+const MDC_MOVED = process.env.NEXT_PUBLIC_MDC_MOVED === '1';
 
 const PROTECTED_PREFIXES = ['/admin', '/mein-bereich', '/mein-profil', '/mein-team'];
 const PREVIEW_COOKIE = 'mdu-preview';
@@ -34,14 +46,33 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 }
 
 export function proxy(request: NextRequest) {
-  // Zweitdomain → Hauptdomain (dauerhaft, Pfad/Query beibehalten).
   const host = (request.headers.get('host') ?? '').toLowerCase().split(':')[0];
-  if (REDIRECT_HOSTS.has(host)) {
-    const dest = new URL(request.nextUrl.pathname + request.nextUrl.search, CANONICAL_ORIGIN);
-    return withSecurityHeaders(NextResponse.redirect(dest, 308));
+  const { pathname, search } = request.nextUrl;
+
+  // ── Eigenständige MDC-Seite (mdc-ranking.de) ──
+  // Dieses Projekt kennt nur die MDC. Die Seiten liegen im Code unter
+  // `app/mdc`, sollen aber ohne Präfix erreichbar sein — also wird jeder
+  // Aufruf intern dorthin umgeschrieben. Von der MDU-Seite ist hier nichts
+  // erreichbar, weil auch `/tabellen` in `/mdc/tabellen` läuft und dort ins
+  // Leere greift.
+  if (MDC_STANDALONE) {
+    // Wer die alte Adresse mit Präfix aufruft (alte Verweise, Lesezeichen),
+    // wird auf die kurze Form geschickt — eine Adresse je Seite.
+    if (pathname === '/mdc' || pathname.startsWith('/mdc/')) {
+      const url = request.nextUrl.clone();
+      url.pathname = pathname.slice('/mdc'.length) || '/';
+      return withSecurityHeaders(NextResponse.redirect(url, 308));
+    }
+    const url = request.nextUrl.clone();
+    url.pathname = `/mdc${pathname === '/' ? '' : pathname}`;
+    return withSecurityHeaders(NextResponse.rewrite(url));
   }
 
-  const { pathname, search } = request.nextUrl;
+  // Zweitdomain → Hauptdomain (dauerhaft, Pfad/Query beibehalten).
+  if (REDIRECT_HOSTS.has(host)) {
+    const dest = new URL(pathname + search, CANONICAL_ORIGIN);
+    return withSecurityHeaders(NextResponse.redirect(dest, 308));
+  }
 
   // ── Munich Darts Challenge (`/mdc`) ──
   // Eigenständiges Projekt: Weder der Coming-Soon-Schalter der MDU noch ihr
@@ -51,6 +82,12 @@ export function proxy(request: NextRequest) {
   // Die Sicherheits-Header bekommt die MDC weiterhin; die gelten für jede
   // Seite, die von hier ausgeliefert wird.
   if (pathname === '/mdc' || pathname.startsWith('/mdc/')) {
+    // Nach dem Umzug wohnt die MDC unter mdc-ranking.de. Dann führt die alte
+    // Adresse dauerhaft dorthin, statt dieselben Seiten zweimal auszuliefern.
+    if (MDC_MOVED) {
+      const ziel = new URL((pathname.slice('/mdc'.length) || '/') + search, MDC_ORIGIN);
+      return withSecurityHeaders(NextResponse.redirect(ziel, 308));
+    }
     return withSecurityHeaders(NextResponse.next());
   }
 

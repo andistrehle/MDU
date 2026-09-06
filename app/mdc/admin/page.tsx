@@ -5,6 +5,8 @@ import { VENUES, venueWeekdayShort } from '@/data/venues';
 import { PLAYERS, playerName } from '@/data/players';
 
 export const metadata: Metadata = {
+  // Oberflächen-Demo ohne Daten — gehört nicht in den Suchindex.
+  robots: { index: false, follow: false },
   title: 'Turnierverwaltung (Demo)',
   description:
     'Oberflächen-Demo der MDC-Turnierverwaltung: Turnier anlegen, Spieler melden, ' +

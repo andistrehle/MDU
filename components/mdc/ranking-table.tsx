@@ -23,6 +23,7 @@ import { Search } from 'lucide-react';
 import type { Trend } from '@/data/types';
 import { formatAverage, formatNumber } from '@/lib/mdc/format';
 import { TrendIcon } from './ui';
+import { mdcPath } from '@/lib/mdc/site';
 
 export interface RankingRow {
   rank: number;
@@ -270,7 +271,7 @@ function RowGroup({
         <td className="mdc-hide-narrow"><TrendIcon trend={row.trend} /></td>
         <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{row.passNr ?? '—'}</td>
         <td className="mdc-cell-name" style={{ fontWeight: 600 }}>
-          <Link href={`/mdc/spieler/${row.playerId}`} style={{ borderBottom: '1px solid transparent' }}>
+          <Link href={mdcPath(`/spieler/${row.playerId}`)} style={{ borderBottom: '1px solid transparent' }}>
             {row.lastName}
             {/* Am Handy fällt die Vornamenspalte weg — dann steht er hier mit. */}
             <span className="mdc-narrow-only"> {row.firstName}</span>

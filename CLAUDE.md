@@ -78,6 +78,13 @@ nicht ins Repo, sie enthalten das komplette Teilnehmerregister). Erzeugt werden
 je Saison `data/results-<saison>.generated.ts` und `data/ranking-<saison>-*.ts`
 — diese Dateien nie von Hand ändern. Prüfen mit
 `npx tsx scripts/mdc-check-saison.ts`. Demo-Turniere gibt es nicht mehr.
+**Zweite Domain:** Die MDC zieht auf **mdc-ranking.de** um — dasselbe Repo wird
+ein zweites Mal deployed, `NEXT_PUBLIC_MDC_STANDALONE=1` schaltet dort auf
+Wurzelpfade um (`lib/mdc/site.ts`, `proxy.ts`). In diesem Projekt KEINE
+Supabase-Variablen setzen. Verweise innerhalb der MDC immer über `mdcPath()`,
+nie hart `/mdc/...`. Ablauf und Abnahme: `docs/mdc-domain-umzug.md`.
+Rechtstexte der MDC: `data/mdc-legal.ts` (Anbieter = wie MDU); ohne
+vollständige Angaben bleibt die Seite automatisch noindex.
 
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der

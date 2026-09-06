@@ -12,6 +12,7 @@ import { ArrowRight, Target } from 'lucide-react';
 import type { TournamentRecord } from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
 import { formatDate, formatDateShort, formatNumber } from '@/lib/mdc/format';
+import { mdcPath } from '@/lib/mdc/site';
 
 const MEDAL = ['var(--mdc-gold)', 'var(--mdc-silver)', 'var(--mdc-bronze)'];
 
@@ -75,7 +76,7 @@ export function TournamentCard({ tournament }: { tournament: TournamentRecord })
       </ol>
 
       <div style={{ padding: '18px 20px 20px', marginTop: 'auto' }}>
-        <Link href={`/mdc/turniere/ergebnisse/${tournament.id}`} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
+        <Link href={mdcPath(`/turniere/ergebnisse/${tournament.id}`)} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
           Ergebnisliste
           <ArrowRight size={15} />
         </Link>

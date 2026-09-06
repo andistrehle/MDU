@@ -99,7 +99,7 @@ Fälle machen beim Verknüpfen Ärger.
 | `/mdc/regeln`            | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
 | `/mdc/admin`             | Oberflächen-Demo der Turnierverwaltung (ohne Anmeldung, ohne Speichern) |
 | `/mdc/kontakt`           | Mitspielen, Spielort werden, Fragen zur Wertung                    |
-| `/mdc/impressum`, `/mdc/datenschutz` | Platzhalter, rechtlich ungeprüft                       |
+| `/mdc/impressum`, `/mdc/datenschutz` | Vollständige Rechtstexte (Anbieter wie bei der MDU), anwaltlich nicht geprüft |
 
 ## Woher die Daten kommen
 
@@ -457,9 +457,14 @@ das Stammlokal bei Spielern, die die MDC unter ihrem Lokalnamen führt:
 
 ## Vor einer Veröffentlichung
 
-- Impressum und Datenschutz mit echten Angaben füllen und prüfen lassen
+- ~~Impressum und Datenschutz mit echten Angaben füllen~~ — erledigt
+  (`data/mdc-legal.ts`, Anbieter wie bei der MDU). Anwaltlich geprüft sind die
+  Texte nicht; die DSB sollte sie noch sehen.
 - Telefonnummern der Spielorte durch echte ersetzen (`data/venues.ts`, aktuell Blindnummern `089 5555 xx`)
-- `robots` in `app/mdc/layout.tsx` freigeben
+- ~~`robots` freigeben~~ — passiert von selbst: Auf der eigenen Domain
+  (`NEXT_PUBLIC_MDC_STANDALONE=1`) und mit vollständigem Impressum ist die
+  Seite indexierbar, sonst gesperrt (`lib/mdc/site.ts`).
+- Umzug auf mdc-ranking.de: Schritt für Schritt in **`docs/mdc-domain-umzug.md`**
 
 ## Daten neu erzeugen
 
