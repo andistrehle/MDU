@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowRight, Building2, CalendarClock, Crown, MapPin, Target,
+  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, MapPin, Target,
   Trophy, Users,
 } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
@@ -22,7 +22,7 @@ import {
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
-import { mdcPath } from '@/lib/mdc/site';
+import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
 
 const STEPS = [
   {
@@ -368,6 +368,39 @@ export default function MdcHomePage() {
             aufaddiert ergeben die Rangliste oben. Die abgeschlossene Saison{' '}
             {FINAL_SEASON.label} steht mit allen Turnieren im Archiv.
           </p>
+
+          {/* Die Gruppe ist die schnellste Quelle: Dort hängen die Listen,
+              bevor sie in die Auswertung und damit auf diese Seite kommen. */}
+          <div
+            className="mdc-card"
+            style={{
+              marginTop: 18, padding: '20px 22px', display: 'flex', flexWrap: 'wrap',
+              alignItems: 'center', gap: 16, justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 520 }}>
+              <h3
+                className="mdc-display"
+                style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: 9 }}
+              >
+                <Users size={19} style={{ color: 'var(--mdc-red)' }} />
+                Aktuelle Listen auf Facebook
+              </h3>
+              <p style={{ marginTop: 7, fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)' }}>
+                In der MDC-Gruppe stehen immer die aktuellen Listen — dort
+                landen sie zuerst, hier stehen sie, sobald sie ausgewertet sind.
+              </p>
+            </div>
+            <a
+              href={MDC_FACEBOOK_GROUP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+            >
+              Zur Facebook-Gruppe
+              <ExternalLink size={15} />
+            </a>
+          </div>
         </div>
       </section>
 

@@ -37,6 +37,20 @@ export const MDC_BASE = MDC_STANDALONE ? '' : '/mdc';
 export const MDC_ORIGIN = 'https://mdc-ranking.de';
 
 /**
+ * Die Facebook-Gruppe der MDC. Dort hängen die aktuellen Listen — der Betreiber
+ * stellt sie ein, bevor sie in die Auswertung wandern.
+ *
+ * Bewusst ohne `?locale=`-Anhängsel: Der Parameter zwingt jedem Besucher die
+ * Sprache auf, die beim Kopieren der Adresse gerade eingestellt war.
+ *
+ * Nur ein gewöhnlicher Verweis, kein eingebettetes Feed-Element — es lädt also
+ * nichts von Facebook mit, solange niemand klickt. So steht es auch in den
+ * Datenschutzhinweisen; wird das hier je zu einer Einbettung, muss der Text
+ * dort mitgeändert werden.
+ */
+export const MDC_FACEBOOK_GROUP = 'https://www.facebook.com/groups/494489343989256/';
+
+/**
  * Verweis innerhalb der MDC. Immer benutzen statt `/mdc/...` zu schreiben —
  * sonst zeigt der Verweis auf der eigenen Domain ins Leere.
  *

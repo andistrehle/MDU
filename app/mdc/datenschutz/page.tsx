@@ -143,8 +143,12 @@ export default function DatenschutzPage() {
           entsteht <strong>keine Verbindung zu Google Fonts</strong> oder anderen
           Fremdservern. Karten werden nicht eingebettet — der Verweis auf einen Kartendienst
           öffnet sich erst nach ausdrücklichem Klick, und erst dann gelten die
-          Datenschutzbestimmungen des jeweiligen Anbieters. Auch Zählpixel, Werbenetzwerke und
-          Schaltflächen sozialer Netzwerke gibt es hier nicht.
+          Datenschutzbestimmungen des jeweiligen Anbieters. Dasselbe gilt für den Verweis auf
+          die Facebook-Gruppe der Serie: Das ist ein <strong>gewöhnlicher Link</strong>, keine
+          Einbettung — solange niemand darauf klickt, wird nichts von Facebook geladen und
+          erfährt Facebook nichts vom Seitenaufruf. Wer klickt, verlässt diese Seite; ab dann
+          gilt die Datenschutzerklärung von Meta. Zählpixel, Werbenetzwerke und
+          Schaltflächen sozialer Netzwerke (Like-Buttons und dergleichen) gibt es hier nicht.
         </LegalSection>
 
         <LegalSection title="11. Kontaktaufnahme">
