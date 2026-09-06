@@ -66,16 +66,15 @@ export default function KontaktPage() {
             </div>
           </div>
 
-          {/* Die Gruppe ist der zweite Weg: dort laufen Ankündigungen und die
-              aktuellen Listen, bevor sie ausgewertet hier stehen. */}
+          {/* Die Gruppe ist der zweite Weg, jemanden zu erreichen. */}
           <div className="mdc-card" style={{ padding: '20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
             <Users size={20} style={{ flexShrink: 0, marginTop: 3, color: 'var(--mdc-red)' }} />
             <div>
               <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>In der Facebook-Gruppe</h2>
               <p style={{ marginTop: 8, fontSize: '0.94rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-                Dort stehen immer die aktuellen Listen und die Ankündigungen zu den
-                Turnierabenden — meist bevor die Ergebnisse ausgewertet sind und auf dieser
-                Seite auftauchen. Kurze Fragen lassen sich da genauso stellen wie per E-Mail.
+                Dort laufen die Ankündigungen zu den Turnierabenden und die aktuellen
+                Listen. Kurze Fragen lassen sich da genauso stellen wie per E-Mail — für
+                alles, was in Ruhe geklärt werden will, ist die E-Mail der bessere Weg.
               </p>
               <a
                 href={MDC_FACEBOOK_GROUP}

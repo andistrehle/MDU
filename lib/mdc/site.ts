@@ -37,8 +37,12 @@ export const MDC_BASE = MDC_STANDALONE ? '' : '/mdc';
 export const MDC_ORIGIN = 'https://mdc-ranking.de';
 
 /**
- * Die Facebook-Gruppe der MDC. Dort hängen die aktuellen Listen — der Betreiber
- * stellt sie ein, bevor sie in die Auswertung wandern.
+ * Die Facebook-Gruppe der MDC — Ankündigungen zu den Turnierabenden und die
+ * aktuellen Listen.
+ *
+ * In den Texten steht bewusst NICHT, die Listen stünden dort zuerst: Sobald
+ * die Ergebnisfotos direkt auf dieser Seite hochgeladen werden, stimmt das
+ * nicht mehr.
  *
  * Bewusst ohne `?locale=`-Anhängsel: Der Parameter zwingt jedem Besucher die
  * Sprache auf, die beim Kopieren der Adresse gerade eingestellt war.

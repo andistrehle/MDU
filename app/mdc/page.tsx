@@ -369,8 +369,9 @@ export default function MdcHomePage() {
             {FINAL_SEASON.label} steht mit allen Turnieren im Archiv.
           </p>
 
-          {/* Die Gruppe ist die schnellste Quelle: Dort hängen die Listen,
-              bevor sie in die Auswertung und damit auf diese Seite kommen. */}
+          {/* Bewusst ohne „dort zuerst": Sobald die Ergebnisfotos direkt
+              hochgeladen werden, stehen die Zahlen hier zuerst. Der Text soll
+              dann nicht nachgezogen werden müssen. */}
           <div
             className="mdc-card"
             style={{
@@ -384,11 +385,11 @@ export default function MdcHomePage() {
                 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: 9 }}
               >
                 <Users size={19} style={{ color: 'var(--mdc-red)' }} />
-                Aktuelle Listen auf Facebook
+                Die MDC auf Facebook
               </h3>
               <p style={{ marginTop: 7, fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)' }}>
-                In der MDC-Gruppe stehen immer die aktuellen Listen — dort
-                landen sie zuerst, hier stehen sie, sobald sie ausgewertet sind.
+                In der MDC-Gruppe laufen die Ankündigungen zu den Turnierabenden
+                und die aktuellen Listen — dazu alles, was sich sonst so ergibt.
               </p>
             </div>
             <a
