@@ -88,15 +88,15 @@ export default function ImpressumPage() {
 
         <LegalSection title="Urheberrecht">
           Die auf dieser Seite erstellten Inhalte, Texte und Darstellungen unterliegen dem
-          deutschen Urheberrecht. Name und Logo der Munich Darts Challenge werden mit
-          Zustimmung der Turnierserie verwendet.
+          deutschen Urheberrecht. Name und Logo der Munich Darts Challenge gehören zur
+          Turnierserie.
         </LegalSection>
 
         <LegalSection title="Verbraucherstreitbeilegung">
           Wir sind nicht verpflichtet und nicht bereit, an einem Streitbeilegungsverfahren vor
           einer Verbraucherschlichtungsstelle (§ 36 VSBG) teilzunehmen. Die Munich Darts
           Challenge ist ein nicht kommerzieller Zusammenschluss zur Organisation des
-          Turnierbetriebs; ein Online-Verkauf findet auf dieser Seite nicht statt.
+          Turnierbetriebs; ein Online-Verkauf findet nicht statt.
         </LegalSection>
       </LegalPage>
     </>

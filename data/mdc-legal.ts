@@ -37,20 +37,20 @@ export interface MdcLegal {
   updated: string;
 }
 
-// Vom Betreiber bestätigt: dieselben Anbieterangaben wie bei der MDU
-// (`app/impressum/page.tsx`). Anbieter der Seite ist damit die Münchner Dart
-// Union; die Munich Darts Challenge ist die hier dargestellte Turnierserie.
+// Vom Betreiber bestätigt: Anschrift und Kontakt wie bei der MDU
+// (`app/impressum/page.tsx`), Anbieter ist aber die Turnierserie selbst —
+// Munich Darts Challenge, vertreten durch Anton Bauer.
 export const MDC_LEGAL: MdcLegal = {
-  operator: 'Münchner Dart Union',
+  operator: 'Munich Darts Challenge',
   legalForm: 'nicht eingetragener Verein',
-  representedBy: 'Anton Bauer (i. V. Andreas Strehle)',
+  representedBy: 'Anton Bauer',
   street: 'Zenettistraße 30',
   zipCity: '80337 München',
   email: 'kontakt@mdudarts.de',
   // Leer lassen, solange keine Nummer öffentlich stehen soll — Pflicht ist sie
   // nicht, eine E-Mail-Adresse genügt.
   phone: '',
-  contentResponsible: 'Anton Bauer (i. V. Andreas Strehle)',
+  contentResponsible: 'Anton Bauer',
   updated: 'September 2026',
 };
 
