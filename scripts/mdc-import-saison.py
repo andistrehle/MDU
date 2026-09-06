@@ -123,8 +123,15 @@ def lies_turniere(ws):
             zelle(row[i]) for i in range(4, 13)
         )
         if not key:
-            if any([platz, passnr, name, punkte]):
+            # Zeilen ohne Blockschlüssel gehören zu keinem Turnier. Steht dort
+            # etwas Inhaltliches (Passnummer, Name oder Punkte), stimmt etwas
+            # nicht und der Import bricht ab. Eine übrig gebliebene Platzzahl
+            # ohne alles andere ist dagegen ein Rest vom Bearbeiten der Mappe —
+            # die wird gemeldet und übersprungen.
+            if any([passnr, name, punkte]):
                 sys.exit(f'Ergebniszeile ohne Blockschlüssel: {row}')
+            if platz:
+                print(f'  Hinweis: leere Zeile mit Platz „{platz}" ohne Turnier — übersprungen')
             continue
         block = turniere.setdefault(key, {'ort': '', 'datum': '', 'rows': []})
         if ort:

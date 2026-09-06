@@ -40,22 +40,10 @@ export interface ResultCorrection {
   note: string;
 }
 
-export const CORRECTIONS: ResultCorrection[] = [
-  {
-    tournamentId: '2026-08-31-harlekin',
-    insertAfterRank: 15,
-    passNr: 53,
-    workbookParticipants: 26,
-    source: 'Ergebniszettel Harlekin, 31.08.2026',
-    note:
-      'In der Auswertung fehlt ein Starter: Micky Schul (Passnr. 53), auf dem ' +
-      'Ergebniszettel in der Platzgruppe 13–16. Der Betreiber hat bestätigt, dass der ' +
-      'Zettel stimmt — das Turnier steht hier deshalb mit 27 Startern, und alle Punkte ' +
-      'sind nach dem offiziellen Schlüssel für 27 Starter gerechnet. Bis die Auswertung ' +
-      'nachgezogen ist, weicht die Punktzahl um wenige Zähler von der ausgehängten ' +
-      'Liste ab.',
-  },
-];
+// Zurzeit keine. Die bisher einzige — im Harlekin am 31.08.2026 fehlte Micky
+// Schul (Passnr. 53) — hat der Betreiber am 06.09.2026 in der Mappe
+// nachgetragen; seitdem kommt das Turnier wieder unverändert von dort.
+export const CORRECTIONS: ResultCorrection[] = [];
 
 const BY_TOURNAMENT = new Map<string, ResultCorrection[]>();
 for (const eintrag of CORRECTIONS) {

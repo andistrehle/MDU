@@ -48,7 +48,7 @@ export const SEASONS: Season[] = [
     endDate: '2027-07-25',
     // Stand der Wertung — steht in der Kopfzeile der Arbeitsmappe und wird
     // beim Import mitgeliefert.
-    asOf: '2026-09-05',
+    asOf: '2026-09-06',
     current: true,
   },
 ];

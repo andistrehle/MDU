@@ -103,7 +103,10 @@ function parse(raw: string, seasonId: string): TournamentRecord {
 
   // Berichtigungen einsetzen und danach ALLE Punkte neu rechnen: Der
   // Schlüssel hängt an der Feldgröße, ein Starter mehr ändert jede Zeile.
-  const korrekturen = correctionsFor(id);
+  // Steht die Person inzwischen selbst in der Mappe, ist die Berichtigung
+  // erledigt und wird übersprungen — sonst stünde sie zweimal da.
+  const korrekturen = correctionsFor(id)
+    .filter(k => !zeilen.some(z => z.passNr === k.passNr));
   for (const k of korrekturen) {
     zeilen.splice(k.insertAfterRank, 0, { passNr: k.passNr, points: 0 });
   }

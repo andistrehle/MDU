@@ -78,8 +78,8 @@ export default function RanglistePage() {
                 Gerechnet aus {RUNNING_STATS.tournaments} Turnieren seit dem{' '}
                 {formatDate(RUNNING_SEASON.startDate)} — {RUNNING_STATS.entries} Starts,{' '}
                 {RUNNING_STATS.points.toLocaleString('de-DE')} vergebene Punkte. Jedes einzelne
-                Turnier steht im{' '}
-                <Link href="/mdc/turniere/ergebnisse">Turnierarchiv</Link>.
+                Turnier steht in der{' '}
+                <Link href="/mdc/turniere/ergebnisse">Ergebnisübersicht</Link>.
               </p>
             </>
           ) : (

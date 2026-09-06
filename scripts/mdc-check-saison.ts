@@ -112,9 +112,11 @@ if (CORRECTIONS.length > 0) {
       continue;
     }
     if (turnier.participantsInWorkbook !== eintrag.workbookParticipants) {
-      console.log(`  ERLEDIGT  ${eintrag.tournamentId}: Die Mappe führt jetzt ` +
-        `${turnier.participantsInWorkbook} Starter statt ${eintrag.workbookParticipants} — ` +
-        'Eintrag aus data/corrections.ts entfernen und neu prüfen');
+      // Als Fehler und nicht als Hinweis: Eine überholte Berichtigung würde
+      // sonst still weiterlaufen und die Zahlen verfälschen.
+      meldung(`ERLEDIGT: ${eintrag.tournamentId} — die Mappe führt jetzt ` +
+        `${turnier.participantsInWorkbook} statt ${eintrag.workbookParticipants} Starter. ` +
+        'Eintrag aus data/corrections.ts entfernen.');
       continue;
     }
     const zeile = turnier.results.find(r => r.passNr === eintrag.passNr);
