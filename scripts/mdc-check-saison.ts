@@ -26,8 +26,9 @@
 // ============================================================
 
 import {
-  tournamentsOfSeason, playerSeasonStats, seasonStats,
+  tournamentsOfSeason, playerSeasonStats, seasonStats, getTournamentRecord,
 } from '../data/tournament-results';
+import { OPEN_CORRECTIONS } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
 import { runningRankingOf } from '../data/ranking';
 import { getPlayer, playerName } from '../data/players';
@@ -100,6 +101,26 @@ function pruefe(saison: Season, wertung: Record<Division, RankingEntry[]>) {
 console.log('\nMDC — Einzelergebnisse und Wertungen');
 pruefe(FINAL_SEASON, FINAL_RANKING_2025_26);
 pruefe(RUNNING_SEASON, { men: runningRankingOf('men'), women: runningRankingOf('women') });
+
+// ── Bekannte Abweichungen: noch offen oder erledigt? ────────
+if (OPEN_CORRECTIONS.length > 0) {
+  console.log('\nBekannte Abweichungen (data/corrections.ts)');
+  for (const eintrag of OPEN_CORRECTIONS) {
+    const turnier = getTournamentRecord(eintrag.tournamentId);
+    if (!turnier) {
+      meldung(`Abweichung verweist auf ein Turnier, das es nicht gibt: ${eintrag.tournamentId}`);
+    } else if (turnier.participants === eintrag.participantsInWorkbook) {
+      console.log(`  offen     ${eintrag.tournamentId}: Auswertung führt ` +
+        `${turnier.participants} Starter, der Zettel ${eintrag.participantsOnSheet}`);
+    } else if (turnier.participants === eintrag.participantsOnSheet) {
+      console.log(`  ERLEDIGT  ${eintrag.tournamentId}: Auswertung führt jetzt ` +
+        `${turnier.participants} Starter — Eintrag aus data/corrections.ts entfernen`);
+    } else {
+      meldung(`${eintrag.tournamentId}: Auswertung führt ${turnier.participants} Starter — ` +
+        `weder ${eintrag.participantsInWorkbook} (bekannt) noch ${eintrag.participantsOnSheet} (Zettel)`);
+    }
+  }
+}
 
 if (fehler === 0) console.log('\n  Alles stimmig.\n');
 else console.log(`\n  ${fehler} Fehler.\n`);

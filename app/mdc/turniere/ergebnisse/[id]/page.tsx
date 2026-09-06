@@ -10,7 +10,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, CalendarClock, MapPin, Users } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, CalendarClock, MapPin, Users } from 'lucide-react';
 import { PlayerAvatar } from '@/components/mdc/player-avatar';
 import { Dartboard } from '@/components/mdc/dartboard';
 import {
@@ -18,6 +18,7 @@ import {
 } from '@/data/tournament-results';
 import { getVenue, venueAddress } from '@/data/venues';
 import { getPlayer, playerName } from '@/data/players';
+import { correctionsFor } from '@/data/corrections';
 import { rankGroupLabel } from '@/lib/mdc/points';
 import { formatDateLong, formatNumber } from '@/lib/mdc/format';
 import { getSeason } from '@/data/season';
@@ -51,6 +52,8 @@ export default async function ArchivTurnierPage(
   if (!turnier) notFound();
 
   const venue = getVenue(turnier.venueId);
+  // Bekannte Abweichung zwischen Ergebniszettel und Auswertung (data/corrections.ts).
+  const abweichungen = correctionsFor(turnier.id);
   const top3 = turnier.results.slice(0, 3);
   const punkteGesamt = turnier.results.reduce((sum, r) => sum + r.points, 0);
 
@@ -168,6 +171,23 @@ export default async function ArchivTurnierPage(
 
       <section className="mdc-section">
         <div className="mdc-shell">
+          {abweichungen.map(hinweis => (
+            <div
+              key={hinweis.tournamentId}
+              className="mdc-card"
+              style={{
+                display: 'flex', gap: 12, padding: '14px 16px', marginBottom: 22,
+                borderColor: 'var(--mdc-red-a35)', background: 'var(--mdc-red-a08)',
+                fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)',
+              }}
+            >
+              <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
+              <p>
+                <strong>Ungeklärte Abweichung:</strong> {hinweis.note}
+              </p>
+            </div>
+          ))}
+
           <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Ergebnisliste</h2>
 
           <div className="mdc-card">

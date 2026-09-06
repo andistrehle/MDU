@@ -175,10 +175,20 @@ ersetzt. Der Abgleich Zeile für Zeile:
 - **Zwei verlesene Nummern:** „Moni" im Ambasador ist **220 Moni Struck**
   (nicht 280), „Michi" ist **223 Michi Kronbichler** (nicht 243). Damit sind
   die beiden Widersprüche erledigt.
-- **Eine echte Abweichung bleibt:** Im Harlekin am 31.08.2026 stand auf dem
+- **Eine Abweichung bleibt offen:** Im Harlekin am 31.08.2026 stand auf dem
   Zettel eine Person mehr (27 Starter, Passnr. 53 Micky Schul). Die Auswertung
-  des Betreibers führt 26 Starter ohne ihn — und damit andere Punkte. Es gilt
-  die Mappe.
+  führt 26 Starter ohne ihn — und damit für alle anderen ein bis vier Punkte
+  weniger, weil der Punkteschlüssel an der Feldgröße hängt. Micky kommt in der
+  ganzen Mappe 2026/27 nicht vor, steht aber im Teilnehmerregister. Der
+  Betreiber geht von einem Übertragungsfehler aus.
+
+  **Die Webseite rechnet das nicht um.** Sie zeigt weiter den Stand der Mappe
+  und weist die Abweichung beim Turnier aus (`data/corrections.ts`). Sonst
+  gäbe es zwei Wahrheiten: die Rangliste, die der Betreiber aushängt, und eine
+  andere hier. Erledigt wird das in der Mappe — eine Zeile ergänzen, die
+  Punkte rechnen sich dort neu —, danach neu einlesen.
+  `scripts/mdc-check-saison.ts` meldet bei jedem Lauf, ob die Abweichung noch
+  besteht.
 
 ### Was das Register geklärt hat
 
