@@ -347,6 +347,16 @@ body:has(.mdc-root) {
 .mdc-table tbody tr:hover { background: var(--mdc-blue-a08); }
 .mdc-table .mdc-td-num { text-align: right; }
 
+/* Ein Verweis, der seine ganze Zelle ausfüllt. Ohne das ist am Handy nur die
+   Datumszahl antippbar und der Finger landet daneben — obwohl die ganze Zeile
+   zu einem Turnier gehört. Die negativen Ränder heben die Zellenpolsterung
+   auf, der Verweis übernimmt sie selbst. */
+.mdc-table td > .mdc-cell-link {
+  display: block;
+  margin: -12px -14px;
+  padding: 12px 14px;
+}
+
 /* Tabellen am Handy: nicht schieben, sondern falten
    ---------------------------------------------------
    Eine zehnspaltige Rangliste ist auf 390 Pixeln nicht zu gebrauchen — auch
@@ -371,6 +381,7 @@ body:has(.mdc-root) {
   .mdc-table td.mdc-cell-name { white-space: normal; }
   .mdc-table th,
   .mdc-table td { padding: 11px 10px; }
+  .mdc-table td > .mdc-cell-link { margin: -11px -10px; padding: 11px 10px; }
 }
 
 /* Erste Spalte (Platz) beim seitlichen Scrollen stehen lassen. */

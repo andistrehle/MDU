@@ -185,16 +185,30 @@ export function ResultsBrowser(
             {zeige.map(row => (
               <tr key={row.id}>
                 <td className="mdc-cell-name">
-                  <Link href={`/mdc/turniere/ergebnisse/${row.id}`}>
+                  {/* Der ganze Block ist der Verweis, nicht nur das Datum —
+                      am Handy ist das die einzige große Trefferfläche. */}
+                  <Link href={`/mdc/turniere/ergebnisse/${row.id}`} className="mdc-cell-link">
                     <span className="mdc-num">{formatDate(row.date)}</span>
+                    <span className="mdc-row-meta mdc-narrow-only">
+                      {weekdayName(row.date)} · {row.venue}
+                      {row.winner && <> · Sieger: {row.winner}</>}
+                    </span>
                   </Link>
-                  <span className="mdc-row-meta mdc-narrow-only">
-                    {weekdayName(row.date)} · {row.venue}
-                    {row.winner && <> · Sieger: {row.winner}</>}
-                  </span>
                 </td>
                 <td className="mdc-hide-narrow">{row.venue}</td>
-                <td className="mdc-td-num mdc-num">{row.participants}</td>
+                {/* Auch die Zahlenspalte führt zum Turnier — sonst bliebe am
+                    Handy ein toter Streifen am rechten Rand. Für Vorlesehilfen
+                    ist der Verweis unsichtbar, es ist derselbe wie links. */}
+                <td className="mdc-td-num mdc-num">
+                  <Link
+                    href={`/mdc/turniere/ergebnisse/${row.id}`}
+                    className="mdc-cell-link"
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >
+                    {row.participants}
+                  </Link>
+                </td>
                 <td className="mdc-hide-narrow">
                   {row.winnerId
                     ? <Link href={`/mdc/spieler/${row.winnerId}`}>{row.winner}</Link>

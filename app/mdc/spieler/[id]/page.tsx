@@ -262,13 +262,17 @@ export default async function SpielerProfilPage(
                           {formatDate(tournament.date)}
                         </td>
                         <td className="mdc-cell-name">
-                          <Link href={`/mdc/turniere/ergebnisse/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
+                          <Link
+                            href={`/mdc/turniere/ergebnisse/${tournament.id}`}
+                            className="mdc-cell-link"
+                            style={{ color: 'var(--mdc-ink)' }}
+                          >
                             Ranking im {tournament.venueName}
+                            {/* Am Handy fallen Datum, Spielort und Feldgröße als Spalten weg. */}
+                            <span className="mdc-narrow-only mdc-row-meta">
+                              {formatDate(tournament.date)} · {tournament.participants} Starter
+                            </span>
                           </Link>
-                          {/* Am Handy fallen Datum, Spielort und Feldgröße als Spalten weg. */}
-                          <span className="mdc-narrow-only mdc-row-meta">
-                            {formatDate(tournament.date)} · {tournament.participants} Starter
-                          </span>
                         </td>
                         <td className="mdc-hide-narrow mdc-num" style={{ color: 'var(--mdc-ink-soft)' }}>
                           {getSeason(tournament.seasonId)?.label ?? tournament.seasonId}

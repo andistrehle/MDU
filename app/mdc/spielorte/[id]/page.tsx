@@ -172,12 +172,12 @@ export default async function SpielortDetailPage(
                       return (
                         <tr key={t.id}>
                           <td className="mdc-cell-name">
-                            <Link href={`/mdc/turniere/ergebnisse/${t.id}`} className="mdc-num">
-                              {formatDate(t.date)}
+                            <Link href={`/mdc/turniere/ergebnisse/${t.id}`} className="mdc-cell-link">
+                              <span className="mdc-num">{formatDate(t.date)}</span>
+                              <span className="mdc-row-meta mdc-narrow-only">
+                                Sieger: {sieger ? playerName(sieger) : `Passnr. ${t.results[0].passNr}`}
+                              </span>
                             </Link>
-                            <span className="mdc-row-meta mdc-narrow-only">
-                              Sieger: {sieger ? playerName(sieger) : `Passnr. ${t.results[0].passNr}`}
-                            </span>
                           </td>
                           <td className="mdc-td-num mdc-num">{t.participants}</td>
                           <td className="mdc-hide-narrow">
