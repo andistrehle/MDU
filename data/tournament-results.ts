@@ -20,9 +20,13 @@
 // führt nur Platzierung und Punkte — erfunden wird der Rest nicht.
 // ============================================================
 
+import { pointsFor } from '@/lib/mdc/points';
+import { correctionsFor } from './corrections';
 import { RESULTS_2025_26_RAW } from './results-2025-26.generated';
 import { RESULTS_2026_27_RAW } from './results-2026-27.generated';
-import { PARSED_MEN, PARSED_WOMEN, PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN } from './players';
+import {
+  PARSED_MEN, PARSED_WOMEN, PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN, getPlayerByPassNr,
+} from './players';
 import { isFormerVenue, venueName } from './venues';
 import { FINAL_SEASON, RUNNING_SEASON } from './season';
 
@@ -46,6 +50,14 @@ export interface TournamentRecord {
   formerVenue: boolean;
   participants: number;
   results: TournamentResultRow[];
+  /**
+   * Gegenüber der Auswertung berichtigt (siehe `corrections.ts`). Dann sind
+   * Feldgröße und Punkte hier andere als in der Mappe — die Oberfläche weist
+   * das beim Turnier aus.
+   */
+  corrected: boolean;
+  /** Starterzahl, die die Arbeitsmappe führt — ohne Berichtigung dieselbe. */
+  participantsInWorkbook: number;
 }
 
 /**
@@ -68,27 +80,51 @@ const RAW: Record<string, string[]> = {
   [RUNNING_SEASON.id]: RESULTS_2026_27_RAW,
 };
 
+/**
+ * Spieler-ID zu einer Passnummer: erst aus der Wertung DIESER Saison, sonst
+ * aus dem Stamm. Der zweite Weg greift bei berichtigten Zeilen — wer in der
+ * Auswertung fehlt, steht auch in ihrer Rangliste nicht.
+ */
+function playerFor(passNr: number, seasonId: string): string | null {
+  return PLAYER_BY_PASS[seasonId]?.get(passNr)
+    ?? getPlayerByPassNr(passNr)?.id
+    ?? null;
+}
+
 function parse(raw: string, seasonId: string): TournamentRecord {
   const [date, venueId, results] = raw.split('|');
-  const namen = PLAYER_BY_PASS[seasonId];
+  const id = `${date}-${venueId}`;
+
+  // Zeilen der Mappe: Passnummer und die dort verbuchten Punkte.
+  const zeilen = results.split(',').map(eintrag => {
+    const [pass, points] = eintrag.split(':');
+    return { passNr: Number(pass), points: Number(points) };
+  });
+
+  // Berichtigungen einsetzen und danach ALLE Punkte neu rechnen: Der
+  // Schlüssel hängt an der Feldgröße, ein Starter mehr ändert jede Zeile.
+  const korrekturen = correctionsFor(id);
+  for (const k of korrekturen) {
+    zeilen.splice(k.insertAfterRank, 0, { passNr: k.passNr, points: 0 });
+  }
+  const participants = zeilen.length;
+
   return {
-    id: `${date}-${venueId}`,
+    id,
     seasonId,
     date,
     venueId,
     venueName: venueName(venueId),
     formerVenue: isFormerVenue(venueId),
-    participants: results.split(',').length,
-    results: results.split(',').map((eintrag, index) => {
-      const [pass, points] = eintrag.split(':');
-      const passNr = Number(pass);
-      return {
-        rank: index + 1,
-        passNr,
-        points: Number(points),
-        playerId: namen.get(passNr) ?? null,
-      };
-    }),
+    participants,
+    corrected: korrekturen.length > 0,
+    participantsInWorkbook: zeilen.length - korrekturen.length,
+    results: zeilen.map((zeile, index) => ({
+      rank: index + 1,
+      passNr: zeile.passNr,
+      points: korrekturen.length > 0 ? pointsFor(index + 1, participants) : zeile.points,
+      playerId: playerFor(zeile.passNr, seasonId),
+    })),
   };
 }
 

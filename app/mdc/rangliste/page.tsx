@@ -12,11 +12,12 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Archive } from 'lucide-react';
+import { AlertTriangle, Archive } from 'lucide-react';
 import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows } from '@/lib/mdc/rows';
-import { runningRankingOf, RUNNING_HAS_RESULTS } from '@/data/ranking';
+import { runningRankingOf, RUNNING_HAS_RESULTS, RUNNING_IS_CORRECTED } from '@/data/ranking';
+import { CORRECTIONS } from '@/data/corrections';
 import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
@@ -41,6 +42,32 @@ export default function RanglistePage() {
         <div className="mdc-shell">
           {RUNNING_HAS_RESULTS ? (
             <>
+              {RUNNING_IS_CORRECTED && (
+                <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
+                  {CORRECTIONS.map(hinweis => (
+                    <div
+                      key={hinweis.tournamentId}
+                      className="mdc-card"
+                      style={{
+                        display: 'flex', gap: 12, padding: '14px 16px',
+                        borderColor: 'var(--mdc-red-a35)', background: 'var(--mdc-red-a08)',
+                        fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)',
+                      }}
+                    >
+                      <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
+                      <p>
+                        <strong>Ein Turnier ist berichtigt.</strong> {hinweis.note}{' '}
+                        Dadurch weichen einzelne Punktzahlen und Plätze von der ausgehängten
+                        Liste ab.{' '}
+                        <Link href={`/mdc/turniere/ergebnisse/${hinweis.tournamentId}`}>
+                          Zum Turnier
+                        </Link>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <DivisionSwitch
                 men={toRankingRows(runningRankingOf('men'))}
                 women={toRankingRows(runningRankingOf('women'))}

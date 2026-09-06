@@ -52,8 +52,8 @@ export default async function ArchivTurnierPage(
   if (!turnier) notFound();
 
   const venue = getVenue(turnier.venueId);
-  // Bekannte Abweichung zwischen Ergebniszettel und Auswertung (data/corrections.ts).
-  const abweichungen = correctionsFor(turnier.id);
+  // Berichtigung gegenüber der Auswertung (data/corrections.ts).
+  const berichtigungen = correctionsFor(turnier.id);
   const top3 = turnier.results.slice(0, 3);
   const punkteGesamt = turnier.results.reduce((sum, r) => sum + r.points, 0);
 
@@ -171,7 +171,7 @@ export default async function ArchivTurnierPage(
 
       <section className="mdc-section">
         <div className="mdc-shell">
-          {abweichungen.map(hinweis => (
+          {berichtigungen.map(hinweis => (
             <div
               key={hinweis.tournamentId}
               className="mdc-card"
@@ -183,7 +183,8 @@ export default async function ArchivTurnierPage(
             >
               <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
               <p>
-                <strong>Ungeklärte Abweichung:</strong> {hinweis.note}
+                <strong>Berichtigt gegenüber der Auswertung:</strong> {hinweis.note}{' '}
+                Quelle: {hinweis.source}.
               </p>
             </div>
           ))}

@@ -28,7 +28,7 @@
 import {
   tournamentsOfSeason, playerSeasonStats, seasonStats, getTournamentRecord,
 } from '../data/tournament-results';
-import { OPEN_CORRECTIONS } from '../data/corrections';
+import { CORRECTIONS } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
 import { runningRankingOf } from '../data/ranking';
 import { getPlayer, playerName } from '../data/players';
@@ -102,22 +102,29 @@ console.log('\nMDC — Einzelergebnisse und Wertungen');
 pruefe(FINAL_SEASON, FINAL_RANKING_2025_26);
 pruefe(RUNNING_SEASON, { men: runningRankingOf('men'), women: runningRankingOf('women') });
 
-// ── Bekannte Abweichungen: noch offen oder erledigt? ────────
-if (OPEN_CORRECTIONS.length > 0) {
-  console.log('\nBekannte Abweichungen (data/corrections.ts)');
-  for (const eintrag of OPEN_CORRECTIONS) {
+// ── Berichtigungen: noch nötig oder erledigt? ───────────────
+if (CORRECTIONS.length > 0) {
+  console.log('\nBerichtigungen (data/corrections.ts)');
+  for (const eintrag of CORRECTIONS) {
     const turnier = getTournamentRecord(eintrag.tournamentId);
     if (!turnier) {
-      meldung(`Abweichung verweist auf ein Turnier, das es nicht gibt: ${eintrag.tournamentId}`);
-    } else if (turnier.participants === eintrag.participantsInWorkbook) {
-      console.log(`  offen     ${eintrag.tournamentId}: Auswertung führt ` +
-        `${turnier.participants} Starter, der Zettel ${eintrag.participantsOnSheet}`);
-    } else if (turnier.participants === eintrag.participantsOnSheet) {
-      console.log(`  ERLEDIGT  ${eintrag.tournamentId}: Auswertung führt jetzt ` +
-        `${turnier.participants} Starter — Eintrag aus data/corrections.ts entfernen`);
+      meldung(`Berichtigung verweist auf ein Turnier, das es nicht gibt: ${eintrag.tournamentId}`);
+      continue;
+    }
+    if (turnier.participantsInWorkbook !== eintrag.workbookParticipants) {
+      console.log(`  ERLEDIGT  ${eintrag.tournamentId}: Die Mappe führt jetzt ` +
+        `${turnier.participantsInWorkbook} Starter statt ${eintrag.workbookParticipants} — ` +
+        'Eintrag aus data/corrections.ts entfernen und neu prüfen');
+      continue;
+    }
+    const zeile = turnier.results.find(r => r.passNr === eintrag.passNr);
+    if (!zeile) {
+      meldung(`${eintrag.tournamentId}: Passnr. ${eintrag.passNr} fehlt trotz Berichtigung`);
+    } else if (!zeile.playerId) {
+      meldung(`${eintrag.tournamentId}: Passnr. ${eintrag.passNr} gehört zu keinem Spieler im Stamm`);
     } else {
-      meldung(`${eintrag.tournamentId}: Auswertung führt ${turnier.participants} Starter — ` +
-        `weder ${eintrag.participantsInWorkbook} (bekannt) noch ${eintrag.participantsOnSheet} (Zettel)`);
+      console.log(`  aktiv     ${eintrag.tournamentId}: Passnr. ${eintrag.passNr} auf Platz ` +
+        `${zeile.rank} ergänzt, ${turnier.participants} statt ${turnier.participantsInWorkbook} Starter`);
     }
   }
 }

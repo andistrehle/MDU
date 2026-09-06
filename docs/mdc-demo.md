@@ -131,7 +131,7 @@ Damit stehen die **Einzelergebnisse beider Saisons** auf der Seite:
 | Saison | Turniere | Ergebniszeilen | Punkte | Spieler | Lokale |
 | --- | --- | --- | --- | --- | --- |
 | 2025/26 (abgeschlossen) | 744 | 9.411 | 1.234.138 | 400 | 12 |
-| 2026/27 (laufend, Stand 05.09.2026) | 12 | 179 | 24.048 | 111 | 8 |
+| 2026/27 (laufend, Stand 05.09.2026) | 12 | 180 | 24.178 | 112 | 8 |
 
 Zu sehen unter `/mdc/turniere/ergebnisse`, dazu auf jedem Spieler- und
 Spielort-Profil. Auch die **Wertung der laufenden Saison** kommt aus der
@@ -145,7 +145,7 @@ Was dabei herauskam:
   Punktzahl *und* Startanzahl der Rangliste — in beiden Saisons, für alle 400
   bzw. 111 Spieler, ohne eine einzige Abweichung. Damit ist der Import
   nachweislich vollständig.
-- **Der Punkteschlüssel stimmt.** Alle 9.590 Ergebniszeilen wurden gegen
+- **Der Punkteschlüssel stimmt.** Alle 9.591 Ergebniszeilen wurden gegen
   `pointsFor(Platz, Feldgröße)` gerechnet: null Abweichungen. Damit ist auch
   die letzte offene Zelle bestätigt (26 TN, Platz 25 → 43 Punkte, nicht 40).
 - **Die abgetippten Endranglisten hatten Lesefehler.** Sie stammten aus Fotos
@@ -175,22 +175,29 @@ ersetzt. Der Abgleich Zeile für Zeile:
 - **Zwei verlesene Nummern:** „Moni" im Ambasador ist **220 Moni Struck**
   (nicht 280), „Michi" ist **223 Michi Kronbichler** (nicht 243). Damit sind
   die beiden Widersprüche erledigt.
-- **Eine Abweichung bleibt offen:** Im Harlekin am 31.08.2026 stand auf dem
-  Zettel eine Person mehr (27 Starter, Passnr. 53 Micky Schul, Platzgruppe
-  13–16). Die Auswertung führt 26 Starter ohne ihn. Mit ihm verschiebt sich
-  jeder nach ihm um einen Platz, und weil der Punkteschlüssel an der Feldgröße
-  hängt, hätten 24 Starter null bis fünf Punkte mehr — zwei aber weniger
-  (Samy Minic −26, Stephan Brunner −54), weil sie eine Platzgruppe tiefer
-  rutschen. Micky kommt in der ganzen Mappe 2026/27 nicht vor, steht aber im
-  Teilnehmerregister. Der Betreiber geht von einem Übertragungsfehler aus.
+- **Eine Zeile fehlt in der Mappe — sie wird berichtigt.** Im Harlekin am
+  31.08.2026 führt die Auswertung 26 Starter, der Zettel 27: Micky Schul
+  (Passnr. 53) fehlt, und er kommt in der ganzen Mappe 2026/27 nicht vor.
+  Der Betreiber hat den Zettel bestätigt (Foto liegt vor).
 
-  **Die Webseite rechnet das nicht um.** Sie zeigt weiter den Stand der Mappe
-  und weist die Abweichung beim Turnier aus (`data/corrections.ts`). Sonst
-  gäbe es zwei Wahrheiten: die Rangliste, die der Betreiber aushängt, und eine
-  andere hier. Erledigt wird das in der Mappe — eine Zeile ergänzen, die
-  Punkte rechnen sich dort neu —, danach neu einlesen.
-  `scripts/mdc-check-saison.ts` meldet bei jedem Lauf, ob die Abweichung noch
-  besteht.
+  Die Webseite trägt ihn deshalb nach — als **Berichtigung neben den erzeugten
+  Dateien** (`data/corrections.ts`), nicht in ihnen. Beim Einlesen wird die
+  Zeile eingefügt, das Turnier neu durchnummeriert und jede Punktzahl aus
+  `pointsFor(Platz, Feldgröße)` neu gerechnet; die Wertung der Saison entsteht
+  aus diesen berichtigten Ergebnissen. Ein neuer Import überschreibt das nicht.
+
+  Weil der Punkteschlüssel an der Feldgröße hängt, ändert der eine Starter
+  jede Zeile des Turniers: 24 Starter bekommen null bis fünf Punkte mehr, zwei
+  weniger (Samy Minic −26, Stephan Brunner −54) — sie rutschen mit Micky im
+  Feld eine Platzgruppe tiefer. In der Saisonwertung heißt das u. a.: Jimmy
+  Pogremno 901 statt 899, Stephan Brunner von Platz 26 auf 33, Samy Minic bei
+  den Frauen von 3 auf 4, Micky Schul neu mit 136 Punkten.
+
+  **Die Wertung weicht damit bewusst von der ausgehängten Liste ab.** Beide
+  Seiten sagen das dazu: auf der Turnierseite und über der Rangliste.
+  Sobald der Betreiber die Zeile in der Mappe nachträgt, meldet
+  `scripts/mdc-check-saison.ts` „ERLEDIGT", der Eintrag in `corrections.ts`
+  kann weg, und alles kommt wieder unverändert aus der Mappe.
 
 ### Was das Register geklärt hat
 
@@ -208,7 +215,7 @@ Zwischen den beiden Registern sind genau vier Nummern dazugekommen: 146, 156,
 314 und 315 — alle vier tauchen in den ersten Turnieren der neuen Saison auf.
 
 Namen und Geschlechtskennzeichen sind in Register, Ergebnissen und Ranglisten
-durchgehend identisch — geprüft über alle 9.590 Zeilen.
+durchgehend identisch — geprüft über alle 9.591 Zeilen.
 
 Die Männer-Endrangliste 2025/26 war lange unvollständig: Die Plätze **199–280**
 fehlten, weil zwei Auswertungsseiten nicht vorlagen. Sie wurden zuerst von Hand
