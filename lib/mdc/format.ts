@@ -42,6 +42,12 @@ export function formatDateLong(isoDate: string): string {
   return `${WEEKDAYS[weekday]}, ${d}. ${MONTHS[m - 1]} ${y}`;
 }
 
+/** „September 2025" — aus „2025-09". */
+export function formatMonth(isoMonth: string): string {
+  const [y, m] = isoMonth.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
+}
+
 /** Wochentagsname zu einem ISO-Datum. */
 export function weekdayName(isoDate: string): string {
   return WEEKDAYS[parts(isoDate).weekday];

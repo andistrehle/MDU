@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { RankingWidget } from '@/components/mdc/ranking-widget';
-import { TournamentCard } from '@/components/mdc/tournament-card';
-import { SectionHeading, StatCard, DemoNotice, EmptyRanking } from '@/components/mdc/ui';
+import { ArchiveTournamentCard } from '@/components/mdc/archive-card';
+import { SectionHeading, StatCard, EmptyRanking } from '@/components/mdc/ui';
 import { finalRankingOf, runningRankingOf, MDC_STATS, RUNNING_HAS_RESULTS } from '@/data/ranking';
 import { getPlayer, playerName, PLAYERS } from '@/data/players';
-import { finishedTournaments } from '@/data/tournaments';
+import { ARCHIVE_STATS, ARCHIVE_TOURNAMENTS_DESC } from '@/data/archive-2025-26';
 import {
-  getVenue, VENUES, venueAddress, playDaysFrom,
+  VENUES, venueAddress, playDaysFrom,
   FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE,
 } from '@/data/venues';
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
@@ -61,7 +61,9 @@ export default function MdcHomePage() {
   // rechnet ab heute. Wie oft „heute" neu bestimmt wird, steht in `revalidate`.
   const heute = todayInMunich();
   const woche = playDaysFrom(heute);
-  const latest = finishedTournaments().slice(0, 3);
+  // Die zuletzt gespielten Turniere der abgeschlossenen Saison — echte
+  // Ergebnisse aus der Auswertung, keine Demo-Turniere.
+  const latest = ARCHIVE_TOURNAMENTS_DESC.slice(0, 3);
 
   return (
     <>
@@ -245,8 +247,11 @@ export default function MdcHomePage() {
             <StatCard
               icon={<Trophy size={17} />}
               label={`Turniere ${FINAL_SEASON.label}`}
-              value={`${MDC_STATS.mostAppearances}+`}
-              sub={recordHolder ? `so oft war ${playerName(recordHolder)} am Start` : undefined}
+              value={formatNumber(ARCHIVE_STATS.tournaments)}
+              sub={recordHolder
+                ? `${MDC_STATS.mostAppearances} davon mit ${playerName(recordHolder)}`
+                : undefined}
+              href="/mdc/turniere/archiv"
             />
             <StatCard
               icon={<Users size={17} />}
@@ -346,26 +351,23 @@ export default function MdcHomePage() {
         <div className="mdc-shell">
           <SectionHeading
             kicker="Ergebnisse"
-            title="Letzte Turniere"
-            description="Die zuletzt gespielten Ranglistenturniere mit Podium, kompletter Ergebnisliste und Turnierbaum."
-            action={{ label: 'Alle Ergebnisse', href: '/mdc/turniere' }}
+            title={`Zuletzt gespielt · Saison ${FINAL_SEASON.label}`}
+            description={`Die letzten Ranking-Turniere der abgeschlossenen Saison. Insgesamt stehen ${formatNumber(ARCHIVE_STATS.tournaments)} Turniere mit ${formatNumber(ARCHIVE_STATS.entries)} Starts im Archiv — jedes mit kompletter Ergebnisliste.`}
+            action={{ label: 'Turnierarchiv', href: '/mdc/turniere/archiv' }}
           />
 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
             {latest.map(tournament => (
-              <TournamentCard key={tournament.id} tournament={tournament} />
+              <ArchiveTournamentCard key={tournament.id} tournament={tournament} />
             ))}
           </div>
 
-          <div style={{ marginTop: 22 }}>
-            <DemoNotice>
-              Echt sind die Ranglisten: der Saison-Endstand 2025/26 und der
-              Endstand des Sommer-Rankings vom 01.09.2026. Die hier gezeigten
-              einzelnen Turniere samt Ergebnissen, Meldeständen und
-              Turnierbäumen sind Demo-Material — sie zahlen auf keine der
-              beiden Ranglisten ein.
-            </DemoNotice>
-          </div>
+          <p style={{ marginTop: 20, fontSize: '0.84rem', color: 'var(--mdc-ink-dim)', maxWidth: 700, lineHeight: 1.65 }}>
+            Echte Ergebnisse aus der Auswertung des Betreibers: Diese Punkte
+            aufaddiert ergeben den Endstand {FINAL_SEASON.label}. Für die laufende
+            Saison {RUNNING_SEASON.label} werden die Ergebnislisten nachgetragen,
+            sobald sie vorliegen.
+          </p>
         </div>
       </section>
 

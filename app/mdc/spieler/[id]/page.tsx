@@ -4,13 +4,13 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, MapPin, Trophy } from 'lucide-react';
 import { PlayerAvatar } from '@/components/mdc/player-avatar';
 import { Sparkline } from '@/components/mdc/sparkline';
-import { DemoNotice } from '@/components/mdc/ui';
+
 import { Dartboard } from '@/components/mdc/dartboard';
 import { PLAYERS, getPlayer, playerName } from '@/data/players';
 import { getFinalEntry, DIVISION_LABEL } from '@/data/ranking-final';
 import { getSummerEntry } from '@/data/ranking';
-import { tournamentsOfPlayer } from '@/data/tournaments';
-import { getVenue } from '@/data/venues';
+import { archiveAppearances } from '@/data/archive-2025-26';
+import { getVenue, venueName } from '@/data/venues';
 import { formatAverage, formatDate, formatNumber } from '@/lib/mdc/format';
 import { FINAL_SEASON, SUMMER_SEASON } from '@/data/season';
 
@@ -28,6 +28,11 @@ export async function generateMetadata(
     title: playerName(player),
     description: `MDC-Profil von ${playerName(player)} (Passnr. ${player.passNr}) — Platzierung, Punkte und gespielte Turniere.`,
   };
+}
+
+/** Verweis, wenn es eine Seite dazu gibt — sonst nur der Inhalt. */
+function MaybeLink({ href, children }: { href: string | null; children: React.ReactNode }) {
+  return href ? <Link href={href}>{children}</Link> : <>{children}</>;
 }
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -56,7 +61,9 @@ export default async function SpielerProfilPage(
 
   const final = getFinalEntry(player.id);
   const summer = getSummerEntry(player.id);
-  const history = tournamentsOfPlayer(player.id);
+  // Echte Turniere der Saison 2025/26 aus der Auswertung des Betreibers.
+  // Genau diese Punkte ergeben aufaddiert den Endstand oben.
+  const history = archiveAppearances(player.id);
   const summerSeason = SUMMER_SEASON;
 
   // Lieblingslokal: das Lokal, in dem am häufigsten gespielt wurde. Kommt der
@@ -70,7 +77,11 @@ export default async function SpielerProfilPage(
   const mostVisited = [...venueCounts.entries()].sort((a, b) => b[1] - a[1])[0];
   const favouriteVenueId = player.homeVenueId
     ?? (mostVisited && mostVisited[1] >= 2 ? mostVisited[0] : null);
-  const favouriteVenue = favouriteVenueId ? getVenue(favouriteVenueId) : undefined;
+  // Lokale, in denen heute nicht mehr gespielt wird, haben keine eigene
+  // Seite — der Name steht trotzdem da, nur ohne Verweis.
+  const favouriteVenue = favouriteVenueId
+    ? { id: favouriteVenueId, name: venueName(favouriteVenueId), page: getVenue(favouriteVenueId) }
+    : undefined;
 
   // Formkurve: Platzierungen chronologisch. Kleinere Zahl = besser, deshalb
   // gespiegelt, damit „nach oben" auch optisch besser heißt.
@@ -136,8 +147,9 @@ export default async function SpielerProfilPage(
               </div>
             ) : (
               <p className="mdc-lead">
-                Für diesen Spieler liegt (noch) kein Eintrag in der Endrangliste
-                2025/26 vor — die Auswertungsseiten der Plätze 199–280 fehlen bislang.
+                In der Endrangliste {FINAL_SEASON.label} steht dieser Spieler nicht —
+                gewertet wird dort nur, wer in der Saison mindestens einmal
+                angetreten ist.
               </p>
             )}
           </div>
@@ -169,7 +181,15 @@ export default async function SpielerProfilPage(
           {/* ── Formkurve + Punktehistorie ── */}
           {history.length > 0 && (
             <div>
-              <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Formkurve</h2>
+              <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>
+                Turniere {FINAL_SEASON.label}
+              </h2>
+              <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
+                {history.length === 1
+                  ? 'Ein Start in der Saison'
+                  : `${history.length} Starts in der Saison`} · zusammen{' '}
+                {formatNumber(history.reduce((sum, h) => sum + h.result.points, 0))} Punkte
+              </p>
 
               {formValues.length >= 2 && (
                 <div className="mdc-card" style={{ padding: '20px 18px 12px', marginBottom: 18 }}>
@@ -198,45 +218,42 @@ export default async function SpielerProfilPage(
                       <th>Turnier</th>
                       <th className="mdc-hide-narrow">Spielort</th>
                       <th className="mdc-td-num">Platz</th>
-                      <th className="mdc-td-num mdc-hide-narrow">Legs</th>
+                      <th className="mdc-td-num mdc-hide-narrow">Feld</th>
                       <th className="mdc-td-num">Punkte</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {history.map(({ tournament, result }) => {
-                      const venue = getVenue(tournament.venueId);
-                      return (
-                        <tr key={tournament.id}>
-                          <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
-                            {formatDate(tournament.date)}
-                          </td>
-                          <td className="mdc-cell-name">
-                            <Link href={`/mdc/turniere/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
-                              {tournament.name}
-                            </Link>
-                            {/* Am Handy fallen Datum, Spielort und Legs als Spalten weg. */}
-                            <span className="mdc-narrow-only mdc-row-meta">
-                              {formatDate(tournament.date)}
-                              {venue ? ` · ${venue.name}` : ''}
-                              {' · '}{result.legsWon}:{result.legsLost} Legs
-                            </span>
-                          </td>
-                          <td className="mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>{venue?.name ?? '—'}</td>
-                          <td
-                            className="mdc-td-num mdc-num"
-                            style={{ fontWeight: 700, color: result.rank <= 3 ? 'var(--mdc-gold)' : 'var(--mdc-ink)' }}
-                          >
-                            {result.rank}.
-                          </td>
-                          <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
-                            {result.legsWon}:{result.legsLost}
-                          </td>
-                          <td className="mdc-td-num mdc-num" style={{ fontWeight: 700 }}>
-                            {formatNumber(result.points)}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {history.map(({ tournament, result }) => (
+                      <tr key={tournament.id}>
+                        <td className="mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
+                          {formatDate(tournament.date)}
+                        </td>
+                        <td className="mdc-cell-name">
+                          <Link href={`/mdc/turniere/archiv/${tournament.id}`} style={{ color: 'var(--mdc-ink)' }}>
+                            Ranking im {tournament.venueName}
+                          </Link>
+                          {/* Am Handy fallen Datum, Spielort und Feldgröße als Spalten weg. */}
+                          <span className="mdc-narrow-only mdc-row-meta">
+                            {formatDate(tournament.date)} · {tournament.participants} Starter
+                          </span>
+                        </td>
+                        <td className="mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
+                          {tournament.venueName}
+                        </td>
+                        <td
+                          className="mdc-td-num mdc-num"
+                          style={{ fontWeight: 700, color: result.rank <= 3 ? 'var(--mdc-gold)' : 'var(--mdc-ink)' }}
+                        >
+                          {result.rank}.
+                        </td>
+                        <td className="mdc-td-num mdc-num mdc-hide-narrow" style={{ color: 'var(--mdc-ink-soft)' }}>
+                          {tournament.participants}
+                        </td>
+                        <td className="mdc-td-num mdc-num" style={{ fontWeight: 700 }}>
+                          {formatNumber(result.points)}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -247,7 +264,7 @@ export default async function SpielerProfilPage(
           {favouriteVenue && (
             <div>
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 16 }}>Lieblingslokal</h2>
-              <Link href={`/mdc/spielorte/${favouriteVenue.id}`}>
+              <MaybeLink href={favouriteVenue.page ? `/mdc/spielorte/${favouriteVenue.id}` : null}>
                 <div className="mdc-card mdc-card-hover" style={{ padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
                   <Trophy size={22} style={{ color: 'var(--mdc-red)', flexShrink: 0 }} />
                   <div>
@@ -255,22 +272,23 @@ export default async function SpielerProfilPage(
                     <p style={{ marginTop: 5, fontSize: '0.86rem', color: 'var(--mdc-ink-soft)' }}>
                       {player.homeVenueId
                         ? 'Stammlokal — unter diesem Namen läuft der Spieler in der MDC-Wertung.'
-                        : `Hier wurde in dieser Serie am häufigsten gespielt (${venueCounts.get(favouriteVenue.id)}×).`}
+                        : `Hier wurde in der Saison ${FINAL_SEASON.label} am häufigsten gespielt (${venueCounts.get(favouriteVenue.id)}×).`}
                     </p>
                   </div>
                 </div>
-              </Link>
+              </MaybeLink>
             </div>
           )}
 
-          <DemoNotice>
-            Platzierung, Punkte und Schnitt stammen in beiden Wertungen aus
-            der offiziellen MDC-Auswertung — Saison 2025/26 und Sommer-Ranking.
-            Turnierverlauf und Formkurve gehören dagegen zu den Demo-Turnieren
-            dieser Vorschau; sie summieren sich nicht auf die Punkte oben.
-            Fotos und persönliche Angaben werden bewusst nicht gezeigt — dafür
-            liegt nichts vor.
-          </DemoNotice>
+          <p style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.65, maxWidth: 680 }}>
+            Alles auf dieser Seite kommt aus der Auswertung des Betreibers:
+            Platzierung, Punkte und Schnitt beider Wertungen, dazu jedes einzelne
+            Turnier der Saison {FINAL_SEASON.label}. Die Punkte der Turnierliste
+            ergeben aufaddiert genau die Punktzahl im Endstand. Wie viele Legs
+            gespielt wurden, führt die Auswertung nicht — deshalb steht hier
+            keine Leg-Statistik. Fotos und persönliche Angaben werden bewusst
+            nicht gezeigt; dafür liegt nichts vor.
+          </p>
         </div>
       </section>
     </>

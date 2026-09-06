@@ -60,19 +60,21 @@
 // Drei bleiben offen. Bei den Frauen greift die Lücken-Erklärung ohnehin
 // nicht: Deren Endrangliste ist lückenlos, ebenso beide Sommer-Ranglisten.
 //
-//   156  „Thomas Schmid"  — auch nach der Nachlieferung nicht belegt
-//   243  „Michi"          — dito; es gibt 223 Michi Kronbichler und
-//                            252 Michi Moch
-//   280  „Moni" (F)       — WIDERSPRUCH: 280 ist laut Nachlieferung
-//                            STEPHAN, THADEUS (Platz 243, Männer). Entweder
-//                            ist die Nummer auf dem Zettel verlesen oder
-//                            zweimal vergeben.
+//   156  „Thomas Schmid"  — im Teilnehmerregister der Arbeitsmappe ist die
+//                            156 GAR NICHT VERGEBEN. Die Nummer auf dem
+//                            Zettel kann so nicht stimmen.
+//   243  „Michi"          — WIDERSPRUCH: 243 ist laut Register TONYS ALEX.
+//                            Es gibt 223 Michi Kronbichler und 252 Michi Moch.
+//   280  „Moni" (F)       — WIDERSPRUCH: 280 ist laut Register und
+//                            Endrangliste STEPHAN, THADEUS (männlich).
+//                            Entweder ist die Nummer auf dem Zettel verlesen
+//                            oder sie wurde zweimal vergeben.
 //
-// Dass 156 und 243 fehlen, muss kein Lesefehler sein: Die Ranglisten sind
-// Ergebnislisten, kein Mitgliederverzeichnis. Wer einen Pass hat und letzte
-// Saison keine Punkte holte, steht in keiner dieser Dateien — von 660
-// möglichen Nummern kommen 255 nirgends vor. Beide Zeilen sind auf dem Zettel
-// auch nicht als „neu" angekreuzt, haben also eine Nummer.
+// Das Register (Blatt „Teilnehmer" der Arbeitsmappe, 528 vergebene Nummern bis
+// 660) ist damit die bessere Auskunft als die Ranglisten: Diese sind
+// Ergebnislisten, kein Mitgliederverzeichnis — wer einen Pass hat und keine
+// Punkte holt, steht dort nicht. Für 156 und 650 sagt aber auch das Register:
+// nicht vergeben.
 //
 // Solange das nicht geklärt ist, laufen diese Zeilen als eigene, neue
 // Spieler. Sie holen sich damit keine Punkte, die jemand anderem gehören.

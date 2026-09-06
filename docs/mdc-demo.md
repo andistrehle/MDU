@@ -89,12 +89,14 @@ Fälle machen beim Verknüpfen Ärger.
 | `/mdc`                   | Bühne, laufende Saison, Archiv-Top-Listen, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
 | `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27, gerechnet aus den Ergebnislisten |
 | `/mdc/rangliste/archiv`  | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + Sommer-Ranking 2026 |
-| `/mdc/turniere`          | Kommende Termine mit Meldestand, gespielte Turniere                |
-| `/mdc/turniere/[id]`     | Podium, Ergebnisliste, Punkte, Turnierbaum                         |
+| `/mdc/turniere`          | Kommende Termine mit Meldestand, Demo-Turniere                     |
+| `/mdc/turniere/archiv`   | **Alle 744 echten Turniere der Saison 2025/26**, filterbar nach Lokal und Monat |
+| `/mdc/turniere/archiv/[id]` | Podium und komplette Ergebnisliste eines echten Turniers         |
+| `/mdc/turniere/[id]`     | Demo-Turnier: Podium, Ergebnisliste, Meldestand, Turnierbaum       |
 | `/mdc/spieler`           | Spielerübersicht mit Suche über Name, Spitzname und Passnummer     |
-| `/mdc/spieler/[id]`      | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve, Turnierhistorie (alles Archiv) |
+| `/mdc/spieler/[id]`      | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve und jedes gespielte Turnier der Saison |
 | `/mdc/spielorte`         | Spielorte nach Wochentag                                           |
-| `/mdc/spielorte/[id]`    | Adresse, Automaten, Termine, letzte Turniere                       |
+| `/mdc/spielorte/[id]`    | Adresse, Automaten, Termine, Turniere der Saison 2025/26           |
 | `/mdc/regeln`            | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
 | `/mdc/admin`             | Oberflächen-Demo der Turnierverwaltung (ohne Anmeldung, ohne Speichern) |
 | `/mdc/kontakt`           | Mitspielen, Spielort werden, Fragen zur Wertung                    |
@@ -109,45 +111,91 @@ Drei Quellen, sauber getrennt — und auf der Seite auch so ausgewiesen:
 | Wertung | Stand | Dateien |
 | --- | --- | --- |
 | Endrangliste 2025/26, Männer + Frauen | 27.07.2026 | `ranking-2025-26-men.ts`, `-women.ts` |
+| **Einzelergebnisse 2025/26 — alle 744 Turniere** | 26.07.2026 | `archive-2025-26.generated.ts` |
 | Sommer-Ranking 2026, Männer + Frauen | 01.09.2026 | `ranking-sommer-2026-men.ts`, `-women.ts` |
 | Ergebnislisten Saison 2026/27 | laufend | `results-2026-27.ts` |
 | Punkteschlüssel, 4–32 Starter | — | `lib/mdc/points.ts` |
 | Spielorte 2026/2027 | Aug. 2026 | `venues.ts` |
 
+### Die Arbeitsmappe der Saison 2025/26
+
+Im September 2026 hat der Betreiber die Excel-Mappe geliefert, mit der er die
+Saison führt (`MDC_2025_2026.xlsm`). Sie liegt **nicht** im Repository: 9,6 MB
+und darin das komplette Teilnehmerregister mit allen Namen. Eingelesen wird sie
+mit `scripts/mdc-import-saison-2025-26.py`, das drei Dateien erzeugt:
+`archive-2025-26.generated.ts` und die beiden Endranglisten.
+
+Damit stehen die **Einzelergebnisse der ganzen Saison** auf der Seite: 744
+Turniere vom 01.09.2025 bis 26.07.2026, 9.411 Ergebniszeilen, 1.234.138
+vergebene Punkte, 400 Spieler, 12 Lokale. Zu sehen unter
+`/mdc/turniere/archiv`, dazu auf jedem Spieler- und Spielort-Profil.
+
+Der Import prüft und bricht bei Widersprüchen ab; `scripts/mdc-check-archiv.ts`
+prüft dieselben Daten noch einmal auf der TypeScript-Seite. Was dabei
+herauskam:
+
+- **Die Summenprobe geht exakt auf.** Die Turnierpunkte je Passnummer ergeben
+  Punktzahl *und* Startanzahl der Endrangliste — für alle 400 Spieler, ohne
+  eine einzige Abweichung. Damit ist der Import nachweislich vollständig.
+- **Der Punkteschlüssel stimmt.** Alle 9.411 Zeilen wurden gegen
+  `pointsFor(Platz, Feldgröße)` gerechnet: 522 belegte Kombinationen aus
+  Feldgröße und Platz, null Abweichungen. Damit ist auch die letzte offene
+  Zelle bestätigt (26 TN, Platz 25 → 43 Punkte, nicht 40).
+- **Die abgetippten Endranglisten hatten Lesefehler.** Sie stammten aus Fotos
+  der gedruckten Auswertung. Der Abgleich hat 13 Fehler bei den Männern und 2
+  bei den Frauen berichtigt (u. a. `POZDERCEC` → `POZDEREC`, `OBSTQI` →
+  `OBSTOJ`, `BEEREBB` → `BEERE88`, drei falsche Teilnahmezahlen), sieben
+  übersehene geteilte Plätze erkannt und eine ganz fehlende Zeile ergänzt
+  (Frauen, Platz 77: WÜRMTAL GABI). Die Frauenliste hat damit 77 statt 76
+  Zeilen.
+
+Die Endranglisten werden seither **erzeugt, nicht gepflegt** — sonst laufen
+Wertung und Einzelergebnisse auseinander.
+
+### Was das Register geklärt hat
+
+Die Mappe enthält auch das Teilnehmerregister (528 vergebene Nummern bis 660).
+Zu den offenen Fragen aus den Ergebnislisten 2026/27:
+
+| Nummer | Register sagt | Damit |
+| --- | --- | --- |
+| 156 „Thomas Schmid" | Nummer ist **nicht vergeben** | Zettel-Nummer stimmt nicht |
+| 243 „Michi" | 243 = **TONYS ALEX** | Widerspruch zum Zettel |
+| 650 „Sandy" | Nummer ist **nicht vergeben** | bestätigt die Korrektur auf 550 Sandy Poller |
+| 280 „Moni" (F) | 280 = **STEPHAN THADEUS** (m) | Widerspruch zum Zettel bleibt |
+
+Namen und Geschlechtskennzeichen sind in Register, Ergebnissen und Ranglisten
+durchgehend identisch — geprüft über alle 9.411 Zeilen.
+
 Die Männer-Endrangliste 2025/26 war lange unvollständig: Die Plätze **199–280**
-fehlten, weil zwei Auswertungsseiten nicht vorlagen. Sie sind nachgeliefert und
-eingetragen — 82 Zeilen, jede gegen die Schnitt-Spalte des Blattes gerechnet
-(`Punkte / Anzahl TN`), die Platzfolge gegen die geteilten Plätze geprüft und
-der Anschluss nach oben (Platz 198, 360 Punkte) wie nach unten (Platz 281, 94
-Punkte) kontrolliert. Alle vier Auswertungen sind damit lückenlos.
+fehlten, weil zwei Auswertungsseiten nicht vorlagen. Sie wurden zuerst von Hand
+nachgetragen und stammen seit dem Import direkt aus der Mappe.
 
-`RANKING_MEN_GAP` steht jetzt auf `null`. Die Mechanik bleibt: Fehlt später
-wieder eine Seite, trägt man dort einen Bereich ein und die Tabelle weist ihn
-von selbst aus.
+`RANKING_MEN_GAP` steht auf `null`. Die Mechanik bleibt: Fehlt später wieder
+eine Seite, trägt man dort einen Bereich ein und die Tabelle weist ihn von
+selbst aus.
 
-Nachgezählt, mit geteilten Plätzen verrechnet — punktgleiche Spieler teilen den
-Platz, und die nächste Nummer überspringt die Gruppe. **Eine fehlende
-Platznummer ist deshalb nicht automatisch eine Lücke**: In der Männerliste
-fehlen 40 einzelne Nummern, und trotzdem ist sie lückenlos. Richtig prüft man
-über die Gruppengröße (Platz + Gruppengröße = nächster Platz):
+Punktgleiche Spieler teilen den Platz, und die nächste Nummer überspringt die
+Gruppe. **Eine fehlende Platznummer ist deshalb nicht automatisch eine Lücke**:
+In der Männerliste fehlen 40 einzelne Nummern, und trotzdem ist sie lückenlos.
+Richtig prüft man über die Gruppengröße (Platz + Gruppengröße = nächster Platz):
 
-| Auswertung | Zeilen | Platzgruppen | letzter Platz | Lücken |
-| --- | --- | --- | --- | --- |
-| Endrangliste Männer 2025/26 | 323 | 277 | 323 | lückenlos |
-| Endrangliste Frauen 2025/26 | 76 | 76 | 76 | lückenlos |
-| Sommer-Ranking Männer 2026 | 54 | 52 | 54 | lückenlos |
-| Sommer-Ranking Frauen 2026 | 14 | 14 | 14 | lückenlos |
+| Auswertung | Zeilen | letzter Platz | Lücken |
+| --- | --- | --- | --- |
+| Endrangliste Männer 2025/26 | 323 | 323 | lückenlos |
+| Endrangliste Frauen 2025/26 | 77 | 77 | lückenlos |
+| Sommer-Ranking Männer 2026 | 54 | 54 | lückenlos |
+| Sommer-Ranking Frauen 2026 | 14 | 14 | lückenlos |
 
 Die Nachlieferung hat eine der offenen Passnummern aus den neuen
 Ergebnislisten geklärt: **531 „Hubsi" = WÜRMTAL HUBSI**, Platz 212 — passend
-dazu kam der Zettel aus dem DJK Würmtal. Vier bleiben offen (156, 243, 650 und
-der Widerspruch bei 280); bei den Frauen half die Nachlieferung ohnehin nicht,
-deren Endrangliste war schon vorher vollständig.
+dazu kam der Zettel aus dem DJK Würmtal.
 
-**Demo** sind allein die einzelnen Turniere (`tournaments.generated.ts`,
-erzeugt von `scripts/mdc-generate-tournaments.mjs`). Sie zeigen, wie
-Turnierseiten, Ergebnislisten, Meldestände und Turnierbäume aussehen —
-**sie zahlen auf keine Rangliste ein.**
+**Demo** sind nur noch die Turniere unter `/mdc/turniere`
+(`tournaments.generated.ts`, erzeugt von
+`scripts/mdc-generate-tournaments.mjs`). Sie zeigen, was die echten Ergebnisse
+nicht hergeben: Meldestände, Legs und Turnierbäume — **sie zahlen auf keine
+Rangliste ein.** Die echten Turniere stehen unter `/mdc/turniere/archiv`.
 
 Der Spielerstamm entsteht aus allen vier Ranglisten-Dateien. Zusammengeführt
 wird über die Spieler-ID (Namens-Slug), nicht über die Passnummer — siehe den
@@ -179,18 +227,20 @@ aufgefallen. Alle drei sind in `data/parse-ranking.ts` festgehalten:
 **Dieselbe Passnummer, offenbar zwei verschiedene Menschen** — NICHT
 zusammengeführt, beide bleiben eigene Spieler:
 
-| Passnr. | einmal | ein andermal |
+| Passnr. | Saison 2025/26 + Register | anderswo |
 | --- | --- | --- |
-| 84 | Legende Uli | Harlekin Erna |
-| 303 | Obstqi Harry | Friedl Lena |
-| 281 | Hundseder Markus | Roll Morris |
-| 282 | Grimm Nicole | Leschinski Luca |
-| 302 | Aust Daniel | P Stefan |
-| 280 | Stephan Thadeus (Rangliste) | „Moni", Zettel Ambasador |
+| 84 | Legende Uli | Harlekin Erna (Sommer-Ranking) |
+| 303 | Obstoj Harry | Friedl Lena (Sommer-Ranking) |
+| 281 | Roll Morris | Hundseder Markus (Sommer-Ranking) |
+| 282 | Leschinski Luca | Grimm Nicole (Sommer-Ranking) |
+| 302 | P Stefan | Aust Daniel (Sommer-Ranking) |
+| 280 | Stephan Thadeus (m) | „Moni" (w), Zettel Ambasador 2026/27 |
 
-Die unteren vier sind mit den nachgelieferten Seiten dazugekommen: 281, 282 und
-302 stehen dort mit anderen Namen als in den übrigen Auswertungen. 280 ist ein
-Widerspruch zwischen Rangliste und Ergebniszettel.
+Das Teilnehmerregister der Arbeitsmappe ist eindeutig: Es nennt für alle sechs
+Nummern die Person aus der linken Spalte, und Register, Einzelergebnisse und
+Endrangliste stimmen darin überein. Die abweichenden Namen stehen jeweils im
+Sommer-Ranking 2026 bzw. auf einem Ergebniszettel der laufenden Saison — dort
+ist entweder die Nummer falsch notiert oder sie wurde neu vergeben.
 
 Was dort richtig ist, muss der Betreiber klären. `passNumberConflicts()` in
 `data/players.ts` listet solche Fälle auf.
@@ -377,13 +427,18 @@ das Stammlokal bei Spielern, die die MDC unter ihrem Lokalnamen führt:
 
 - Impressum und Datenschutz mit echten Angaben füllen und prüfen lassen
 - Telefonnummern der Spielorte durch echte ersetzen (`data/venues.ts`, aktuell Blindnummern `089 5555 xx`)
-- Männer-Plätze 199–280 nachtragen
-- Klären, ob die Turnier-Demodaten bestehen bleiben oder echtem Spielbetrieb weichen
+- Klären, ob die Turnier-Demodaten unter `/mdc/turniere` bestehen bleiben — die
+  echten Ergebnisse stehen seit dem Import unter `/mdc/turniere/archiv`
 - `robots` in `app/mdc/layout.tsx` freigeben
 
 ## Daten neu erzeugen
 
 ```bash
+# Saison 2025/26 aus der Arbeitsmappe des Betreibers (braucht openpyxl)
+python3 scripts/mdc-import-saison-2025-26.py MDC_2025_2026.xlsm
+npx tsx scripts/mdc-check-archiv.ts         # prüft das Ergebnis gegen den Punkteschlüssel
+
+# Demo-Turniere
 node scripts/mdc-generate-tournaments.mjs   # schreibt data/tournaments.generated.ts
 npx tsc --noEmit && npm run build
 ```

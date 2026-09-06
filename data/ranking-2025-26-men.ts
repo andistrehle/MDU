@@ -2,26 +2,34 @@
 // MDC — Endrangliste Männer, Saison 2025/26 (Stand 27.07.2026)
 // ============================================================
 //
-// Übertragen aus der offiziellen MDC-Auswertung. Format je Zeile:
+// ERZEUGT aus der Arbeitsmappe des Betreibers durch
+// `scripts/mdc-import-saison-2025-26.py` (Blatt „Männer"). Nicht von Hand
+// bearbeiten — sonst laufen Rangliste und Einzelergebnisse auseinander.
+//
+// Format je Zeile:
 //
 //   Platz | Passnr. | Name | Vorname | Anzahl TN | Punkte | % | Trend
 //
 // • Platz leer  → punktgleich mit der Zeile darüber (geteilter Platz).
+//                 51 der 323 Zeilen teilen sich so einen Platz.
 // • %           → Anteil an der Einzelranglisten-Ausschüttung (EZR).
 //                 Der Euro-Betrag wird daraus berechnet (siehe payout.ts),
 //                 damit Prozent und Euro nicht auseinanderlaufen können.
 // • Trend       → 'u' = ▲ gestiegen, 'd' = ▼ gefallen, leer = unverändert.
 // • Schnitt     → wird als Punkte / Anzahl TN berechnet, nicht gepflegt.
 //
-// VOLLSTÄNDIG. Die Plätze 199–280 fehlten lange (zwei Seiten der Auswertung
-// lagen nicht vor) und wurden nachgeliefert. Jede der 82 Zeilen ist gegen die
-// Schnitt-Spalte des Blattes gerechnet (Punkte / Anzahl TN), die Platzfolge
-// gegen die geteilten Plätze geprüft und der Anschluss nach oben (Platz 198,
-// 360 Punkte) wie nach unten (Platz 281, 94 Punkte) kontrolliert.
+// Jede Zeile ist gegen die Einzelergebnisse derselben Mappe gerechnet: Die
+// Summe der Turnierpunkte einer Passnummer ergibt die Punktzahl hier, die
+// Anzahl der Starts die Spalte „Anzahl TN".
+//
+// Vor dem ersten Import (September 2026) stand hier eine von Fotos der
+// gedruckten Auswertung abgetippte Fassung. Der Abgleich mit der Mappe hat
+// 13 Lesefehler in der Männer- und 2 in der Frauenwertung berichtigt, sieben
+// übersehene geteilte Plätze erkannt und eine fehlende Zeile ergänzt.
 // ============================================================
 
 export const RANKING_MEN_2025_26_RAW: string[] = [
-  '1|153|POGREMINO|JIMMY|190|32151|10',
+  '1|153|POGREMNO|JIMMY|190|32151|10',
   '2|340|BURDULEA|MITA|220|29868|8.3',
   '3|428|SKARUPSKI|ENRICO|127|24694|7',
   '4|198|FREINBERGER|FRANZ|186|22424|5.5',
@@ -39,7 +47,7 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '16|558|BÖHME|ALEX|63|11394|1.7',
   '17|485|SPIELMANN|ANDREAS|64|11262|1.4|u',
   '18|12|BRUNNER|STEPHAN|94|11241|1.4|d',
-  '19|260|BRUNN|MICHAEL|98|10840|1.4',
+  '19|260|BRUNN|MICHAEL|80|10840|1.4',
   '20|71|MASTRIA|DONATO|58|10655|1.4',
   '21|379|WAGNER|DIDI|87|10374|1.4',
   '22|535|MÜLLER|RALF|76|10305|1.4',
@@ -63,34 +71,34 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '40|200|LUDWIG|LEON|80|8421|0.8',
   '41|120|LIEBL|BASTI (BATMAN)|50|8287|0.8',
   '42|431|WITTECK|STEFAN|45|8154|0.8',
-  '43|231|HERCEG|DRAGAN|49|8092|0.8',
+  '43|231|HERCEG|DRAGAN|49|8097|0.8',
   '44|3|BAUER|CHRISTIAN CB5|52|8092|0.8',
   '45|54|HENNEMANN|HELLI|82|8010|0.8',
   '46|212|SCHMALZL|THOMAS|76|7984|0.8',
   '47|124|SCHULZ-NEUBER|THORSTEN|64|7942|0.8',
-  '48|38|JOKER|JOKER|39|7942|0.8',
+  '|38|JOKER|JOKER|39|7942|0.8',
   '49|262|FRÖSE|PETER|77|7896|0.5',
   '50|13|SCHREIL|MICHI|49|7886|0.5',
   '51|525|LANGE|BENNI|50|7876|0.5',
   '52|237|LOZANCIC|ZLATKO (LOCA)|43|7847|0.5',
   '53|83|TORKA|DENNIS|40|7705|0.5',
-  '54|179|MATEJKA|BALU|48|7643|0.5|d',
+  '54|179|MATEJKA|BALU|48|7643|0.5|u',
   '55|30|KRANABETTER|HERBIE|75|7606|0.5|d',
   '56|227|HOLLWEG|MAX|63|7602|0.5|u',
   '57|268|KÜBLBÖCK|THOMAS|45|7600|0.5|d',
   '58|174|MÜLLER|UWE|57|7577|0.5|d',
   '59|536|SANWALD|STEFAN|55|7515|0.5|d',
-  '60|5|ALBRECHT|SVEN|60|7486|0.5|d',
+  '60|5|ALBRECHT|SVEN|60|7486|0.5',
   '61|210|JUCHEM|FRÄNKY|64|7473|0.5|u',
   '62|522|LIBEER|YANNIK|64|7468|0.5|d',
   '63|365|TSCHOLLAR|JOSCH|42|7466|0.5|d',
   '64|533|BIBER|ULI|43|7457|0.5|d',
   '65|267|BUCHHOLZ|MANUEL|50|7422||d',
-  '66|375|BAHN|ERICH|95|7214||d',
+  '66|375|BAHN|ERICH|95|7214||u',
   '67|102|JAURICH|ENRICO|79|7170||d',
   '68|389|LATA|FABIAN|72|7159||u',
   '69|510|WÜRMTAL|TIMON|49|7095||d',
-  '70|166|REISINGER|THOMAS|44|6706||d',
+  '70|166|REISINGER|THOMAS|44|6706',
   '71|74|MASTRIA|ANTONIO|51|6494',
   '72|497|SCHERER|YVES|61|6246',
   '73|232|HECHENBERGER|MARCUS (HECHI)|31|6170',
@@ -120,7 +128,7 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '97|145|MATHIS|CHRISTOPH (STOFFEL)|23|3645',
   '98|520|PISCHEL|MATHIAS|17|3595',
   '99|64|HANSL|MATHIAS|36|3469',
-  '100|26|LEHNER|MARTIN|17|3469',
+  '|26|LEHNER|MARTIN|17|3469',
   '101|342|GABLER|MARVIN|20|3314',
   '102|147|VIDICEVIC|BRANKO|24|3305',
   '103|461|VEITINGER|STEFAN|27|3125',
@@ -152,14 +160,14 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '129|266|FISCHER|KURTI|18|1644',
   '130|113|MENDE|LARS|13|1621',
   '131|185|KETIASHVILI|GIORGI|14|1595',
-  '132|446|WALZ|CHRISTIAN (BEEREBB)|9|1590',
+  '132|446|WALZ|CHRISTIAN (BEERE88)|9|1590',
   '133|92|SARKIC|ERMIN|12|1572',
   '134|189|MÜLLER|MARKUS|10|1503',
   '135|337|BLOMS|ALEXANDER|11|1494',
   '136|257|RG|GERD|16|1462||u',
   '137|503|LUTZ|THOMAS|14|1459||d',
-  '138|235|SCHRÖDER|ANDRE|8|1376',
-  '139|415|RETTKE|WOLF (BACCARDI)|15|1350',
+  '138|235|SCHRÖDER|ANDRE|8|1376||d',
+  '139|415|RETTKE|WOLFI (BACCARDI)|15|1350',
   '140|270|FRANK|STEFAN|15|1314',
   '141|400|GESSI|PETER|10|1292',
   '142|16|BUTZ|KLAUS|14|1273',
@@ -172,7 +180,7 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '149|482|5STERNE|KLAUSI|9|1092',
   '150|76|DANDL|HANNES|8|1076',
   '151|242|RG|MATZE|16|1071',
-  '152|107|HAHNE|BASTI|7|1018',
+  '152|107|HAHNE|BASTI|9|1018',
   '153|25|KLEEMANN|WERNER (WEKL)|9|1016',
   '154|160|POHL|BASTI|6|1014',
   '155|514|WÜRMTAL|ROBBIE|8|997',
@@ -183,20 +191,20 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '160|245|SCHMELZER|PATRICK|7|949||d',
   '161|163|JOSIPOV|MATO|7|915||d',
   '162|69|OTT|LORENZ|7|772',
-  '163|182|POZDERCEC|DENIS|4|732',
+  '163|182|POZDEREC|DENIS|4|732',
   '164|544|HELLER|SVEN|7|687',
   '165|215|JUCHEM|SAMUEL|6|685',
   '166|363|SCHERER|SIMON|8|678',
-  '167|40|WEIG|ALEX|5|678',
+  '|40|WEIG|ALEX|5|678',
   '168|373|NIEMANN|CHRIS|12|675',
   '169|263|MUHIC|ASIM|5|666',
   '170|475|KAMMERGRUBER|ERWIN|5|660',
-  '171|188|LAZIC|MARKO|5|660',
+  '|188|LAZIC|MARKO|5|660',
   '172|75|FLEUTH|DOMINIK|3|640',
   '173|180|HEIDER|AXEL|4|626',
   '174|73|MALANCIC|DOMI|6|622',
   '175|345|BAUER|PETER|5|611',
-  '176|177|KRIEGER|TOM|6|611',
+  '|177|KRIEGER|TOM|6|611',
   '177|169|KLOSE|MARKUS|5|606',
   '178|559|RG|ROBERT|6|597',
   '179|563|KAUSCH|TOM|4|579',
@@ -219,7 +227,6 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '196|506|BAUMANN|MARCUS (EXITUS)|2|385',
   '197|20|HASLER|CHRISTIAN|4|361',
   '198|433|BÜTTNER|DIRK|2|360',
-  // ── Plätze 199–280: die zwei nachgelieferten Auswertungsseiten ──
   '199|183|MINTCHEV|NIKOLAY|3|357',
   '200|139|KULIK|CHRISTIAN|2|342',
   '201|28|F|AXEL|3|337',
@@ -339,7 +346,7 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
   '|127|TOMIC|IVAN|1|52',
   '316|108|ATILLA|ARCHIE|1|46',
   '317|387|GÖKAY|CHEESY|1|40',
-  '|303|OBSTQI|HARRY|1|40',
+  '|303|OBSTOJ|HARRY|1|40',
   '|273|DEGELMANN|LUDWIG|1|40',
   '|265|FOLIE|HELMUT|1|40',
   '|208|GERUM|STEFAN|1|40',
@@ -348,9 +355,9 @@ export const RANKING_MEN_2025_26_RAW: string[] = [
 ];
 
 /**
- * Plätze, deren Auswertungsseiten fehlen — wird in der Tabelle ausgewiesen.
- * `null` = keine Lücke. Die frühere Lücke 199–280 ist nachgeliefert und
- * eingetragen. Die Plumbing bleibt: Fehlt später wieder eine Seite, steht
- * hier ein Bereich und die Tabelle weist ihn von selbst aus.
+ * Plätze, deren Auswertungsseiten fehlen — wird in der Tabelle
+ * ausgewiesen. `null` = keine Lücke. Seit dem Import aus der
+ * Arbeitsmappe ist die Wertung vollständig; die Plumbing bleibt für
+ * den Fall, dass später einmal etwas fehlt.
  */
 export const RANKING_MEN_GAP: { from: number; to: number } | null = null;

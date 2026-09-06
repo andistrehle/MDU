@@ -14,7 +14,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Archive } from 'lucide-react';
 import { PageHero, EmptyRanking } from '@/components/mdc/ui';
-import { RankingTable } from '@/components/mdc/ranking-table';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows } from '@/lib/mdc/rows';
 import { runningRankingOf, RUNNING_HAS_RESULTS, openSheetRows } from '@/data/ranking';

@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ListOrdered } from 'lucide-react';
 import { PageHero, SectionHeading, DemoNotice } from '@/components/mdc/ui';
 import { TournamentCard } from '@/components/mdc/tournament-card';
 import { finishedTournaments, upcomingTournaments } from '@/data/tournaments';
 import { formatDate } from '@/lib/mdc/format';
-import { getCurrentSeason } from '@/data/season';
+import { getCurrentSeason, FINAL_SEASON } from '@/data/season';
+import { ARCHIVE_STATS } from '@/data/archive-2025-26';
 
 export const metadata: Metadata = {
   title: 'Turniere',
@@ -56,13 +59,20 @@ export default function TurnierePage() {
             description="Jedes gespielte Turnier mit Siegerpodium, kompletter Ergebnisliste, vergebenen Punkten und Turnierbaum."
           />
 
-          <div style={{ marginBottom: 22 }}>
+          <div style={{ marginBottom: 22, display: 'grid', gap: 14 }}>
             <DemoNotice>
               Diese Turnierergebnisse sind Demo-Material und zahlen auf keine
-              Rangliste ein. Echt sind die beiden abgeschlossenen Wertungen im
-              Archiv: der Saison-Endstand 2025/26 und der Endstand des
-              Sommer-Rankings 2026.
+              Rangliste ein — sie zeigen, wie ein Turnier mit Podium,
+              Ergebnisliste und Turnierbaum aussieht. Echt sind die{' '}
+              {ARCHIVE_STATS.tournaments} Ranking-Turniere der Saison{' '}
+              {FINAL_SEASON.label} im Turnierarchiv.
             </DemoNotice>
+            <div>
+              <Link href="/mdc/turniere/archiv" className="mdc-btn mdc-btn-primary">
+                <ListOrdered size={18} />
+                Turnierarchiv {FINAL_SEASON.label}
+              </Link>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>

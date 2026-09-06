@@ -2,13 +2,30 @@
 // MDC — Endrangliste Frauen, Saison 2025/26 (Stand 27.07.2026)
 // ============================================================
 //
-// Gleiches Zeilenformat wie bei den Männern:
+// ERZEUGT aus der Arbeitsmappe des Betreibers durch
+// `scripts/mdc-import-saison-2025-26.py` (Blatt „Frauen"). Nicht von Hand
+// bearbeiten — sonst laufen Rangliste und Einzelergebnisse auseinander.
+//
+// Format je Zeile:
+//
 //   Platz | Passnr. | Name | Vorname | Anzahl TN | Punkte | % | Trend
 //
-// Frauen und Männer spielen dieselben Turniere — gewertet wird am Saisonende
-// aber in zwei getrennten Tabellen mit eigener Ausschüttung.
+// • Platz leer  → punktgleich mit der Zeile darüber (geteilter Platz).
+//                 2 der 77 Zeilen teilen sich so einen Platz.
+// • %           → Anteil an der Einzelranglisten-Ausschüttung (EZR).
+//                 Der Euro-Betrag wird daraus berechnet (siehe payout.ts),
+//                 damit Prozent und Euro nicht auseinanderlaufen können.
+// • Trend       → 'u' = ▲ gestiegen, 'd' = ▼ gefallen, leer = unverändert.
+// • Schnitt     → wird als Punkte / Anzahl TN berechnet, nicht gepflegt.
 //
-// Diese Liste ist vollständig (Plätze 1–76).
+// Jede Zeile ist gegen die Einzelergebnisse derselben Mappe gerechnet: Die
+// Summe der Turnierpunkte einer Passnummer ergibt die Punktzahl hier, die
+// Anzahl der Starts die Spalte „Anzahl TN".
+//
+// Vor dem ersten Import (September 2026) stand hier eine von Fotos der
+// gedruckten Auswertung abgetippte Fassung. Der Abgleich mit der Mappe hat
+// 13 Lesefehler in der Männer- und 2 in der Frauenwertung berichtigt, sieben
+// übersehene geteilte Plätze erkannt und eine fehlende Zeile ergänzt.
 // ============================================================
 
 export const RANKING_WOMEN_2025_26_RAW: string[] = [
@@ -37,13 +54,13 @@ export const RANKING_WOMEN_2025_26_RAW: string[] = [
   '23|122|LIEBL|MELLI (BATWIFE)|38|2728|0.8',
   '24|471|BITTNER-OTT|MICHA|27|2720|0.8',
   '25|264|NECKE|MELANIE|28|2691|0.8',
-  '26|204|MOLNAR|ILDIKO|31|2691|0.8',
+  '|204|MOLNAR|ILDIKO|31|2691|0.8',
   '27|660|OELLERER|KARIN|31|2609|0.8',
   '28|50|FOLWARK|ALEX|23|2599|0.8',
   '29|250|DÖLLE|MIRIAM|30|2579|0.8',
   '30|67|FUSS|CHEYENNE|21|2541|0.8',
   '31|467|KRANABETTER|WALTRAUD|19|2491|0.8',
-  '32|9|KARNOLL|TAMARA|28|2464|0.8',
+  '32|9|KARNOLL|TAMARA|25|2464|0.8',
   '33|364|KRANABETTER|BECCI|23|2284',
   '34|275|RG|HANNA|15|1391',
   '35|115|BASIC|MANUELA|14|1326',
@@ -83,9 +100,10 @@ export const RANKING_WOMEN_2025_26_RAW: string[] = [
   '69|311|MACHETE|MEL|1|94',
   '70|357|EREGLIADIS|MICHAELA|1|82',
   '71|426|KÖHLER|MARION|2|80',
-  '72|306|MACHETE|MANU|2|80',
+  '|306|MACHETE|MANU|2|80',
   '73|47|FIAKER|VICKY|1|76',
-  '74|81|LUZI|MELU|1|72',
+  '74|81|LUZI|MELLI|1|72',
   '75|329|WEINBERGER|TAMY|1|65',
   '76|507|BACHMAIER|PETRA|1|61',
+  '77|540|WÜRMTAL|GABI|1|52',
 ];

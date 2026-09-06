@@ -172,15 +172,35 @@ export const FLEXIBLE_RANKING_DAYS: { label: string; weekdays: Weekday[] }[] = [
 export const FLEXIBLE_RANKING_NOTE =
   'Möglich ab mindestens 4 Personen — die Wirte entscheiden.';
 
+/**
+ * Lokale, in denen 2025/26 gespielt wurde, die aber in der Spielorte-Übersicht
+ * für 2026/27 nicht mehr stehen. Sie kommen im Turnierarchiv vor, deshalb
+ * braucht es ihre Namen — mehr ist von ihnen aber nicht bekannt. Adresse,
+ * Spieltag und Automatenzahl werden NICHT erfunden, also sind das hier auch
+ * keine `Venue`-Einträge: Es gibt keine Spielort-Seite dazu, nur den Namen in
+ * der Ergebnisliste.
+ */
+export const FORMER_VENUES: { id: string; name: string }[] = [
+  { id: 'rg-bar', name: 'RG Bar' },
+  { id: 'gisi', name: 'Gisi' },
+  { id: 'flair', name: 'Flair' },
+];
+
 const BY_ID = new Map(VENUES.map(v => [v.id, v]));
+const FORMER_BY_ID = new Map(FORMER_VENUES.map(v => [v.id, v]));
 
 export function getVenue(id: string): Venue | undefined {
   return BY_ID.get(id);
 }
 
+/** Ist das ein Lokal, in dem heute nicht mehr gespielt wird? */
+export function isFormerVenue(id: string): boolean {
+  return FORMER_BY_ID.has(id);
+}
+
 /** Name des Spielorts oder ein neutraler Platzhalter (nie erfundene Namen). */
 export function venueName(id: string): string {
-  return BY_ID.get(id)?.name ?? 'Unbekannter Spielort';
+  return BY_ID.get(id)?.name ?? FORMER_BY_ID.get(id)?.name ?? 'Unbekannter Spielort';
 }
 
 export const WEEKDAY_NAMES: Record<Weekday, string> = {
