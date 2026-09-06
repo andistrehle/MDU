@@ -131,8 +131,6 @@ export interface MdcStats {
   mostAppearancesPlayerId: string | null;
   players: number;
   venues: number;
-  /** Turniere, die das Sommer-Ranking gewertet hat (meiste Teilnahmen). */
-  summerTournaments: number;
   /** Turniere der laufenden Saison — gezählt, nicht geschätzt. */
   runningTournaments: number;
 }
@@ -152,9 +150,6 @@ function computeStats(): MdcStats {
     mostAppearancesPlayerId: top?.playerId ?? null,
     players: PLAYERS.length,
     venues: VENUES.length,
-    // Untergrenze: So oft war der fleißigste Spieler dabei — mehr Turniere
-    // hatte die Serie mindestens.
-    summerTournaments: Math.max(0, ...SUMMER_RANKING.map(e => e.tournaments)),
     runningTournaments: RUNNING_STATS.tournaments,
   };
 }

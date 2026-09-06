@@ -198,11 +198,16 @@ export default async function SpielerProfilPage(
                 <Tile label="Punkte" value={formatNumber(summer.points)} />
                 <Tile label="Turniere" value={String(summer.tournaments)} />
                 <Tile label="Schnitt" value={formatAverage(summer.average)} />
-                <Tile
-                  label="Beste Platzierung"
-                  value={`${summer.bestFinish}.`}
-                  sub={summer.wins > 0 ? `${summer.wins} Turniersieg${summer.wins > 1 ? 'e' : ''}` : undefined}
-                />
+                {/* Beste Platzierung nur, wenn sie bekannt ist: Vom
+                    Sommer-Ranking liegt nur der Endstand vor, keine
+                    Einzelturniere — dann steht hier nichts statt einer 0. */}
+                {summer.bestFinish > 0 && (
+                  <Tile
+                    label="Beste Platzierung"
+                    value={`${summer.bestFinish}.`}
+                    sub={summer.wins > 0 ? `${summer.wins} Turniersieg${summer.wins > 1 ? 'e' : ''}` : undefined}
+                  />
+                )}
               </div>
             </div>
           )}

@@ -64,7 +64,11 @@ export function getCurrentSeason(): Season {
 /** Die abgeschlossene Saison mit der offiziellen Endrangliste. */
 export const FINAL_SEASON = SEASONS[0];
 
-/** Die Zwischenserie im Sommerloch — deren Turniere zeigt der Spielbetrieb. */
+/**
+ * Die Zwischenserie im Sommerloch. Sie ist beendet; von ihr liegt nur der
+ * Endstand vor, keine Einzelturniere — sie steht deshalb ausschließlich im
+ * Ranglisten-Archiv.
+ */
 export const SUMMER_SEASON = SEASONS[1];
 
 /** Die laufende Saison. Ihre Wertung beginnt bei null. */
