@@ -18,6 +18,13 @@ import { COMING_SOON, PREVIEW_KEY } from '@/lib/site-config';
 const PROTECTED_PREFIXES = ['/admin', '/mein-bereich', '/mein-profil', '/mein-team'];
 const PREVIEW_COOKIE = 'mdu-preview';
 
+// Zweitdomain(s), die dauerhaft auf die Hauptdomain umgeleitet werden. Greift,
+// sobald die Domain auf Vercel zeigt und im Projekt hinterlegt ist — dann fängt
+// die Middleware jeden Aufruf ab und schickt ihn per 308 auf www.mdudarts.de
+// (Pfad/Query bleiben erhalten).
+const REDIRECT_HOSTS = new Set(['mdu-darts.de', 'www.mdu-darts.de']);
+const CANONICAL_ORIGIN = 'https://www.mdudarts.de';
+
 function withSecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-Frame-Options', 'SAMEORIGIN');
   res.headers.set('X-Content-Type-Options', 'nosniff');
@@ -27,6 +34,13 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 }
 
 export function proxy(request: NextRequest) {
+  // Zweitdomain → Hauptdomain (dauerhaft, Pfad/Query beibehalten).
+  const host = (request.headers.get('host') ?? '').toLowerCase().split(':')[0];
+  if (REDIRECT_HOSTS.has(host)) {
+    const dest = new URL(request.nextUrl.pathname + request.nextUrl.search, CANONICAL_ORIGIN);
+    return withSecurityHeaders(NextResponse.redirect(dest, 308));
+  }
+
   const { pathname, search } = request.nextUrl;
 
   // ── Munich Darts Challenge (`/mdc`) ──
