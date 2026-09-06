@@ -1,5 +1,11 @@
 # MDC auf mdc-ranking.de umziehen
 
+> **Erledigt am 06.09.2026.** Die Seite läuft unter mdc-ranking.de,
+> `mdudarts.de/mdc/...` leitet dorthin um. Diese Anleitung bleibt stehen: als
+> Nachweis, wie es aufgesetzt ist, und als Vorlage, falls die Adresse noch
+> einmal wechselt. Was danach noch offen ist, steht unten unter
+> „Was noch offen ist".
+
 Die Munich Darts Challenge liegt im selben Repository wie die MDU-Plattform,
 soll aber unter **mdc-ranking.de** in der Wurzel laufen — also
 `mdc-ranking.de/rangliste`, nicht `…/mdc/rangliste`.
@@ -111,12 +117,36 @@ Danach ein Redeploy. `mdudarts.de/mdc/...` leitet dann dauerhaft (308) auf
 Vorher nicht setzen: Sonst schickt die Weiterleitung Besucher auf die
 STRATO-Platzhalterseite.
 
-## 7. Bei Google anmelden (optional)
+Wichtig für später: Die Variable wird beim Bauen fest in den Code eingesetzt
+(alles mit `NEXT_PUBLIC_`). Sie zu ändern wirkt erst nach einem neuen Deploy —
+und sie ist deshalb auch kein Geheimnis, in Vercel also Typ „Config", nicht
+„Secret".
 
-Sobald die Seite steht: Google Search Console → Property `mdc-ranking.de`
-anlegen (Nachweis per DNS-TXT-Eintrag bei STRATO), dann
-`https://mdc-ranking.de/sitemap.xml` einreichen. Ohne das dauert es länger,
-bis die Seite auftaucht — kaputt ist ohne Search Console aber nichts.
+*Gesetzt am 06.09.2026, Weiterleitung geprüft.*
+
+## 7. Bei Google anmelden
+
+Google Search Console → Property `mdc-ranking.de` anlegen (Nachweis per
+DNS-TXT-Eintrag bei STRATO), dann `https://mdc-ranking.de/sitemap.xml`
+einreichen. Ohne das dauert es länger, bis die Seite auftaucht — kaputt ist
+ohne Search Console aber nichts.
+
+*Noch offen.*
+
+---
+
+## Was noch offen ist
+
+- **Search Console** (Punkt 7) — damit die Seite schneller gefunden wird.
+- **Rechtstexte prüfen lassen.** Impressum und Datenschutz sind sorgfältig auf
+  das geschrieben, was die Seite tut, aber nicht anwaltlich geprüft. Die DSB,
+  die schon die MDU-Texte gesehen hat, sollte einmal drüberschauen.
+- **Admin-Ansicht.** `/admin` ist im MDC-Bereich weiterhin erreichbar und zeigt
+  nur eine Oberfläche ohne Funktion. Für Suchmaschinen ist sie gesperrt
+  (`robots.ts`), wer die Adresse errät, sieht sie trotzdem — entweder entfernen
+  oder bewusst so lassen.
+- **Telefonnummern der Spielorte** stehen als Platzhalter in den Daten und
+  werden deshalb nicht öffentlich gezeigt (so steht es auch im Datenschutz).
 
 ---
 

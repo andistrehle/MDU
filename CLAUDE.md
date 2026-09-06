@@ -78,11 +78,18 @@ nicht ins Repo, sie enthalten das komplette Teilnehmerregister). Erzeugt werden
 je Saison `data/results-<saison>.generated.ts` und `data/ranking-<saison>-*.ts`
 — diese Dateien nie von Hand ändern. Prüfen mit
 `npx tsx scripts/mdc-check-saison.ts`. Demo-Turniere gibt es nicht mehr.
-**Zweite Domain:** Die MDC zieht auf **mdc-ranking.de** um — dasselbe Repo wird
-ein zweites Mal deployed, `NEXT_PUBLIC_MDC_STANDALONE=1` schaltet dort auf
-Wurzelpfade um (`lib/mdc/site.ts`, `proxy.ts`). In diesem Projekt KEINE
-Supabase-Variablen setzen. Verweise innerhalb der MDC immer über `mdcPath()`,
-nie hart `/mdc/...`. Ablauf und Abnahme: `docs/mdc-domain-umzug.md`.
+**Zweite Domain (seit 06.09.2026 live):** Die MDC läuft unter
+**mdc-ranking.de** — dasselbe Repo ist ein zweites Mal bei Vercel deployed,
+dort schaltet `NEXT_PUBLIC_MDC_STANDALONE=1` auf Wurzelpfade um
+(`lib/mdc/site.ts`, `proxy.ts`). Im MDU-Projekt sorgt `NEXT_PUBLIC_MDC_MOVED=1`
+dafür, dass `mdudarts.de/mdc/...` dauerhaft dorthin weiterleitet. Im
+MDC-Projekt KEINE Supabase-/Resend-/OCR-Variablen setzen — ohne sie macht die
+Seite keine DB-Aufrufe und setzt keine Cookies, genau wie im Datenschutz
+beschrieben. Verweise innerhalb der MDC immer über `mdcPath()`, nie hart
+`/mdc/...` — sonst zeigen sie auf der eigenen Domain ins Leere. Anders als die
+MDU ist die MDC **indexiert** (`MDC_INDEXABLE`, sobald die Pflichtangaben
+vollständig sind). Ablauf, Abnahme und offene Punkte:
+`docs/mdc-domain-umzug.md`.
 Rechtstexte der MDC: `data/mdc-legal.ts` (Anbieter = wie MDU); ohne
 vollständige Angaben bleibt die Seite automatisch noindex.
 

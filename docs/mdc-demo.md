@@ -1,25 +1,32 @@
-# Munich Darts Challenge (MDC) — Demo-Web-App
+# Munich Darts Challenge (MDC) — Web-App
 
-Eigenständige Demo-Anwendung für die **Munich Darts Challenge**, Münchens
+Eigenständige Anwendung für die **Munich Darts Challenge**, Münchens
 Ranking-Serie für Einzelspieler. Liegt im MDU-Repo, ist aber inhaltlich und
 technisch ein getrenntes Projekt: eigene Datenschicht, eigene Navigation,
 eigenes Erscheinungsbild, eigene Passnummern. Verbunden sind MDC und MDU nur
 über je einen Link in der Fußzeile.
 
-Einstieg: **`/mdc`**
+Live: **https://mdc-ranking.de** (seit 06.09.2026)
 
-## Warum unter `/mdc` und nicht unter `/`
+## Eine Anwendung, zwei Adressen
 
-Die MDC bekommt eine eigene Homepage mit eigener Domain; beide Seiten
-verlinken dann aufeinander. Bis dahin läuft sie als Unterpfad derselben
-Next.js-Anwendung — das spart ein zweites Deployment.
+Im Code liegen die Seiten unter `app/mdc`. Nach außen hängt es vom Deployment
+ab, wie sie erreichbar sind:
 
-Zwei Stellen sind dadurch anders als in der Aufgabenstellung beschrieben:
+| Deployment | Domain | `NEXT_PUBLIC_MDC_STANDALONE` | Pfade |
+| --- | --- | --- | --- |
+| MDU-Projekt | www.mdudarts.de | *nicht gesetzt* | `/mdc/…` → leitet auf mdc-ranking.de um |
+| MDC-Projekt | mdc-ranking.de | `1` | `/…` ohne Präfix |
 
-| Aufgabenstellung | Hier | Grund |
-| --- | --- | --- |
-| `/admin` | `/mdc/admin` | `/admin` gehört zur MDU-Verwaltung |
-| eigene Domain | Unterpfad `/mdc` | eine Anwendung, ein Deployment |
+Möglich macht das `lib/mdc/site.ts` (`mdcPath()` für jeden Verweis) zusammen
+mit `proxy.ts`, das im MDC-Projekt intern auf `/mdc/…` umschreibt. Deshalb gilt
+in allen MDC-Bausteinen: **niemals `/mdc/...` hart schreiben** — auf der
+eigenen Domain zeigt das ins Leere. Ablauf des Umzugs und offene Punkte:
+`docs/mdc-domain-umzug.md`.
+
+Eine Abweichung von der ursprünglichen Aufgabenstellung bleibt: Die
+Turnierverwaltung liegt unter `app/mdc/admin`, weil `/admin` im MDU-Teil
+bereits vergeben ist. Auf mdc-ranking.de ist sie als `/admin` erreichbar.
 
 ## Was von der MDU getrennt ist — und was noch nicht
 
@@ -31,15 +38,20 @@ Zwei Stellen sind dadurch anders als in der Aufgabenstellung beschrieben:
 - **Anmeldung.** Der MDU-Anmeldekontext wird auf MDC-Seiten nicht mehr
   eingehängt (`components/mdu/app-providers.tsx`). Vorher baute er dort beim
   Seitenaufruf eine Verbindung zur MDU-Supabase auf — eine Abfrage an ein
-  fremdes Konto-System, die niemand braucht.
+  fremdes Konto-System, die niemand braucht. Im MDC-Deployment sind gar keine
+  Supabase-Zugangsdaten gesetzt, dort kann er nichts abfragen.
 - **Oberflächenelemente.** Bottom-Nav, Demo-Tour und Analytics der MDU
   blenden sich unter `/mdc` aus (`components/mdu/global-chrome.tsx`).
 - **Middleware.** `/mdc` läuft an Coming-Soon-Schalter und Anmelde-Guard der
   MDU vorbei (`proxy.ts`). Sonst hätte ein MDU-Wartungsmodus die MDC gleich
   mit abgeschaltet, und `/mdc/admin` wäre unter den Guard für `/admin`
   gefallen. Die Sicherheits-Header gelten weiterhin.
-- **Suchmaschinen.** `/mdc` ist auf noindex gesetzt und in der robots.txt
-  gesperrt.
+- **Suchmaschinen.** Umgekehrte Vorzeichen: Auf mdc-ranking.de ist die Seite
+  **indexiert** (die MDU ist es vor ihrem Go-live noch nicht), unter
+  `mdudarts.de/mdc` bleibt sie gesperrt — dieselben Inhalte sollen nur unter
+  einer Adresse auffindbar sein. Geregelt über `MDC_INDEXABLE`
+  (`lib/mdc/site.ts`), das vollständige Pflichtangaben in `data/mdc-legal.ts`
+  voraussetzt, sowie `app/robots.ts` und `app/sitemap.ts`.
 
 **Noch nicht getrennt** — beides verschwindet beim Umzug in ein eigenes
 Repo von selbst, deshalb hier bewusst nicht angefasst:
@@ -56,9 +68,11 @@ Repo von selbst, deshalb hier bewusst nicht angefasst:
   Anmeldekontext dastehen. Das Risiko lohnt für einen Vorteil nicht, der
   beim Umzug gratis kommt.
 
-## Umzug in ein eigenes Repo
+## Falls die MDC einmal ein eigenes Repo bekommt
 
-Alles Nötige liegt in fünf Ordnern und ist dann nur noch Kopieren:
+Nötig ist das nicht mehr — die eigene Domain läuft auch so. Sollte die Trennung
+trotzdem kommen (etwa weil jemand anderes die MDC pflegt), liegt alles Nötige
+in fünf Ordnern und ist dann nur noch Kopieren:
 
 ```
 app/mdc  →  app/          components/mdc  →  components/
@@ -71,7 +85,8 @@ Dazu neu: eigenes `app/layout.tsx` (Schriften direkt laden), eigenes
 weg), schlanke Middleware nur für Sicherheits-Header, eigene `robots.ts`.
 Im MDU-Repo: die fünf Ordner löschen, `GlobalChrome` und `AppProviders`
 zurückbauen, die MDC-Weiche aus `proxy.ts` entfernen, im Footer auf die neue
-Domain zeigen.
+Domain zeigen. `mdcPath()` würde überflüssig und könnte durch schlichte Pfade
+ersetzt werden.
 
 **Konten später verknüpfen:** Dass ein MDU-Spieler sich einmal mit beiden
 Konten anmelden können soll, spricht nicht gegen die Trennung — im
@@ -84,22 +99,24 @@ Fälle machen beim Verknüpfen Ärger.
 
 ## Seiten
 
+Adressen wie auf mdc-ranking.de; im Code liegen sie jeweils unter `app/mdc/…`.
+
 | Route                    | Inhalt                                                            |
 | ------------------------ | ----------------------------------------------------------------- |
-| `/mdc`                   | Bühne, laufende Saison, Archiv-Top-Listen, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
-| `/mdc/rangliste`         | Wertung der laufenden Saison 2026/27 aus der Arbeitsmappe |
-| `/mdc/rangliste/archiv`  | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + Sommer-Ranking 2026 |
-| `/mdc/turniere`          | Kommende Termine (aus den Spielorten gerechnet) und zuletzt Gespieltes |
-| `/mdc/turniere/ergebnisse` | **Alle ausgewerteten Turniere beider Saisons**, filterbar nach Saison, Lokal und Monat |
-| `/mdc/turniere/ergebnisse/[id]` | Podium und komplette Ergebnisliste eines Turniers          |
-| `/mdc/spieler`           | Spielerübersicht mit Suche über Name, Spitzname und Passnummer     |
-| `/mdc/spieler/[id]`      | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve und jedes gespielte Turnier der Saison |
-| `/mdc/spielorte`         | Spielorte nach Wochentag                                           |
-| `/mdc/spielorte/[id]`    | Adresse, Automaten, Termine, Turniere der Saison 2025/26           |
-| `/mdc/regeln`            | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
-| `/mdc/admin`             | Oberflächen-Demo der Turnierverwaltung (ohne Anmeldung, ohne Speichern) |
-| `/mdc/kontakt`           | Mitspielen, Spielort werden, Fragen zur Wertung                    |
-| `/mdc/impressum`, `/mdc/datenschutz` | Vollständige Rechtstexte (Anbieter wie bei der MDU), anwaltlich nicht geprüft |
+| `/`                      | Bühne, laufende Saison, Archiv-Top-Listen, Kennzahlen, Wochenspielplan, letzte Turniere, Spielprinzip |
+| `/rangliste`             | Wertung der laufenden Saison 2026/27 aus der Arbeitsmappe |
+| `/rangliste/archiv`      | Endrangliste 2025/26 (Männer/Frauen) mit Ausschüttung + Sommer-Ranking 2026 |
+| `/turniere`              | Kommende Termine (aus den Spielorten gerechnet) und zuletzt Gespieltes |
+| `/turniere/ergebnisse`   | **Alle ausgewerteten Turniere beider Saisons**, filterbar nach Saison, Lokal und Monat |
+| `/turniere/ergebnisse/[id]` | Podium und komplette Ergebnisliste eines Turniers               |
+| `/spieler`               | Spielerübersicht mit Suche über Name, Spitzname und Passnummer     |
+| `/spieler/[id]`          | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve und jedes gespielte Turnier der Saison |
+| `/spielorte`             | Spielorte nach Wochentag                                           |
+| `/spielorte/[id]`        | Adresse, Automaten, Termine, Turniere der Saison 2025/26           |
+| `/regeln`                | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
+| `/admin`                 | Oberflächen-Demo der Turnierverwaltung (ohne Anmeldung, ohne Speichern) |
+| `/kontakt`               | Mitspielen, Spielort werden, Fragen zur Wertung                    |
+| `/impressum`, `/datenschutz` | Vollständige Rechtstexte (Anbieter wie bei der MDU), anwaltlich nicht geprüft |
 
 ## Woher die Daten kommen
 
