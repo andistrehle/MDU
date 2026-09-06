@@ -4,7 +4,7 @@ import { ExternalLink, Mail, MapPin, Trophy, Users } from 'lucide-react';
 import { PageHero } from '@/components/mdc/ui';
 import { VENUES } from '@/data/venues';
 import { MDC_LEGAL } from '@/data/mdc-legal';
-import { mdcPath } from '@/lib/mdc/site';
+import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   title: 'Kontakt',
@@ -63,6 +63,30 @@ export default function KontaktPage() {
                 . Ein Formular gibt es hier bewusst nicht — die Seite nimmt keine Eingaben
                 entgegen, und eine Schaltfläche, die nichts verschickt, wäre eine Attrappe.
               </p>
+            </div>
+          </div>
+
+          {/* Die Gruppe ist der zweite Weg: dort laufen Ankündigungen und die
+              aktuellen Listen, bevor sie ausgewertet hier stehen. */}
+          <div className="mdc-card" style={{ padding: '20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <Users size={20} style={{ flexShrink: 0, marginTop: 3, color: 'var(--mdc-red)' }} />
+            <div>
+              <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>In der Facebook-Gruppe</h2>
+              <p style={{ marginTop: 8, fontSize: '0.94rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+                Dort stehen immer die aktuellen Listen und die Ankündigungen zu den
+                Turnierabenden — meist bevor die Ergebnisse ausgewertet sind und auf dieser
+                Seite auftauchen. Kurze Fragen lassen sich da genauso stellen wie per E-Mail.
+              </p>
+              <a
+                href={MDC_FACEBOOK_GROUP}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                style={{ marginTop: 14 }}
+              >
+                Zur Facebook-Gruppe
+                <ExternalLink size={14} />
+              </a>
             </div>
           </div>
 

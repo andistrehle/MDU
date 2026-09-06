@@ -43,7 +43,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 ];
 
 import type { BrandImage } from '@/lib/mdc/brand';
-import { mdcPath } from '@/lib/mdc/site';
+import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
 
 export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
   const season = getCurrentSeason();
@@ -79,6 +79,18 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
               {VENUES.length} Lokalen quer durch die Stadt — mehrmals pro Woche,
               das ganze Jahr.
             </p>
+            {/* Kurz gehalten: Der Chip bricht nicht um (`white-space: nowrap`),
+                ein langer Text spränge in der schmalen Spalte über den Rand. */}
+            <a
+              href={MDC_FACEBOOK_GROUP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mdc-chip"
+              style={{ marginTop: 16, color: '#FFFFFF' }}
+            >
+              MDC bei Facebook
+              <ExternalLink size={13} />
+            </a>
             <p style={{ marginTop: 14, fontSize: '0.78rem', color: '#8FA3C4' }}>
               Stand: {formatDate(season.asOf)}
             </p>
