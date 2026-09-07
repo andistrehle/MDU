@@ -19,9 +19,10 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Trophy, Users } from 'lucide-react';
-import { formatDate, formatMonth, weekdayName } from '@/lib/mdc/format';
+import { ArrowRight, CalendarDays, Target, Trophy, Users } from 'lucide-react';
+import { formatDate, formatMonth, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
+import { StatCard } from './ui';
 
 export interface ResultRow {
   seasonId: string;
@@ -30,6 +31,8 @@ export interface ResultRow {
   venueId: string;
   venue: string;
   participants: number;
+  /** Summe der in diesem Turnier vergebenen Punkte. */
+  points: number;
   winner: string;
   winnerId: string | null;
 }
@@ -91,6 +94,29 @@ export function ResultsBrowser(
     });
   }, [inSaison, venue, month, sort]);
 
+  // Kennzahlen zur AKTUELLEN Auswahl. Sie standen früher fest über der Liste
+  // und blieben stehen, während darunter gefiltert wurde — „744 Turniere" bei
+  // acht angezeigten Zeilen. Jetzt beschreiben sie genau das, was man sieht.
+  const kennzahlen = useMemo(() => {
+    if (!visible.length) return null;
+    const starts = visible.reduce((s, r) => s + r.participants, 0);
+    const punkte = visible.reduce((s, r) => s + r.points, 0);
+    const groesstes = visible.reduce((a, b) => (b.participants > a.participants ? b : a));
+    const daten = visible.map(r => r.date);
+    return {
+      turniere: visible.length,
+      starts,
+      punkte,
+      schnitt: Math.round((starts / visible.length) * 10) / 10,
+      groesstes,
+      von: daten.reduce((a, b) => (b < a ? b : a)),
+      bis: daten.reduce((a, b) => (b > a ? b : a)),
+      jeSaison: seasons
+        .map(s => ({ label: s.label, anzahl: visible.filter(r => r.seasonId === s.id).length }))
+        .filter(e => e.anzahl > 0),
+    };
+  }, [visible, seasons]);
+
   // Filterwechsel: wieder von vorn anzeigen, sonst steht man mitten in einer
   // Liste, die es so gar nicht mehr gibt.
   const zeige = visible.slice(0, limit);
@@ -98,6 +124,46 @@ export function ResultsBrowser(
 
   return (
     <div>
+      <div
+        style={{
+          display: 'grid', gap: 14, marginBottom: 26,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        }}
+      >
+        <StatCard
+          icon={<CalendarDays size={17} />}
+          label="Turniere"
+          value={kennzahlen ? formatNumber(kennzahlen.turniere) : '0'}
+          sub={kennzahlen
+            ? kennzahlen.jeSaison.length > 1
+              ? kennzahlen.jeSaison.map(e => `${formatNumber(e.anzahl)} in ${e.label}`).join(' · ')
+              : `${formatDate(kennzahlen.von)} bis ${formatDate(kennzahlen.bis)}`
+            : 'keine Auswahl'}
+        />
+        <StatCard
+          icon={<Users size={17} />}
+          label="Starts"
+          value={kennzahlen ? formatNumber(kennzahlen.starts) : '0'}
+          sub={kennzahlen ? `im Schnitt ${kennzahlen.schnitt} je Turnier` : '—'}
+        />
+        <StatCard
+          icon={<Target size={17} />}
+          label="Vergebene Punkte"
+          value={kennzahlen ? formatNumber(kennzahlen.punkte) : '0'}
+          sub={kennzahlen
+            ? `im Schnitt ${formatNumber(Math.round(kennzahlen.punkte / kennzahlen.turniere))} je Turnier`
+            : '—'}
+        />
+        <StatCard
+          icon={<Trophy size={17} />}
+          label="Größtes Feld"
+          value={kennzahlen ? `${kennzahlen.groesstes.participants}` : '0'}
+          sub={kennzahlen
+            ? `${kennzahlen.groesstes.venue}, ${formatDate(kennzahlen.groesstes.date)}`
+            : '—'}
+        />
+      </div>
+
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end', marginBottom: 18 }}>
         <div style={{ flex: '0 1 190px' }}>
           <label className="mdc-label" htmlFor="mdc-erg-saison">Saison</label>

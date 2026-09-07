@@ -10,12 +10,10 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Archive, Building2, CalendarDays, Target, Users } from 'lucide-react';
-import { PageHero, SectionHeading, StatCard } from '@/components/mdc/ui';
+import { Archive, Building2 } from 'lucide-react';
+import { PageHero, SectionHeading } from '@/components/mdc/ui';
 import { ResultsBrowser, type ResultRow } from '@/components/mdc/results-browser';
-import {
-  ALL_TOURNAMENTS, ARCHIVE_STATS, RUNNING_STATS, venuesOfSeason,
-} from '@/data/tournament-results';
+import { ALL_TOURNAMENTS, ARCHIVE_STATS, RUNNING_STATS, venuesOfSeason } from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate, formatNumber } from '@/lib/mdc/format';
@@ -39,6 +37,7 @@ function rows(): ResultRow[] {
       venueId: t.venueId,
       venue: t.venueName,
       participants: t.participants,
+      points: t.results.reduce((summe, r) => summe + r.points, 0),
       winner: sieger ? playerName(sieger) : `Passnr. ${t.results[0].passNr}`,
       winnerId: sieger?.id ?? null,
     };
@@ -58,38 +57,6 @@ export default function ErgebnissePage() {
 
       <section className="mdc-section">
         <div className="mdc-shell">
-          <div
-            style={{
-              display: 'grid', gap: 14, marginBottom: 34,
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            }}
-          >
-            <StatCard
-              icon={<CalendarDays size={17} />}
-              label={`Turniere ${RUNNING_SEASON.label}`}
-              value={formatNumber(RUNNING_STATS.tournaments)}
-              sub={`seit ${formatDate(RUNNING_STATS.firstDate)}, ${formatNumber(RUNNING_STATS.entries)} Starts`}
-            />
-            <StatCard
-              icon={<Archive size={17} />}
-              label={`Turniere ${FINAL_SEASON.label}`}
-              value={formatNumber(ARCHIVE_STATS.tournaments)}
-              sub={`${formatDate(ARCHIVE_STATS.firstDate)} bis ${formatDate(ARCHIVE_STATS.lastDate)}`}
-            />
-            <StatCard
-              icon={<Users size={17} />}
-              label="Starts insgesamt"
-              value={formatNumber(ARCHIVE_STATS.entries + RUNNING_STATS.entries)}
-              sub={`von ${ARCHIVE_STATS.players} bzw. ${RUNNING_STATS.players} Spielern`}
-            />
-            <StatCard
-              icon={<Target size={17} />}
-              label="Vergebene Punkte"
-              value={formatNumber(ARCHIVE_STATS.points + RUNNING_STATS.points)}
-              sub="ergeben die Ranglisten"
-            />
-          </div>
-
           <ResultsBrowser
             rows={rows()}
             seasons={[
