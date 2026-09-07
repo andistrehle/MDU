@@ -24,7 +24,7 @@ import {
   AlertTriangle, ArrowDown, ArrowUp, Camera, Check, CircleAlert, ExternalLink,
   Loader2, Trash2, UserPlus, X,
 } from 'lucide-react';
-import { pointsFor, rankGroupLabel, TABLE_RANGE } from '@/lib/mdc/points';
+import { fieldSizeForPoints, pointsFor, rankGroupLabel, TABLE_RANGE } from '@/lib/mdc/points';
 import { erkenneZettel, gibErgebnisFrei, type Vorschlag, type VorschlagZeile } from '@/app/mdc/admin/ergebnis/actions';
 import type { NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
 
@@ -55,6 +55,8 @@ interface Zeile {
   key: string;
   erkannterName: string | null;
   confidence: number | null;
+  /** Punktzahl aus der Spalte „PKT" des Zettels — nur zur Gegenprobe. */
+  punkteLautZettel: number | null;
   hinweis: string | null;
   sicher: boolean;
   /** Bestätigte Passnummer, `null` solange nichts gewählt ist. */
@@ -110,6 +112,7 @@ function ausVorschlag(zeile: VorschlagZeile, index: number): Zeile {
     key: `${index}-${zeile.erkannterName ?? 'leer'}`,
     erkannterName: zeile.erkannterName,
     confidence: zeile.confidence,
+    punkteLautZettel: zeile.punkteLautZettel,
     hinweis: zeile.hinweis,
     sicher: zeile.sicher,
     passNr: uebernehmen ? zeile.vorschlag?.passNr ?? null : null,
@@ -163,6 +166,16 @@ export function ErgebnisUpload({
   }, [venues, datum]);
   const feldAusserhalb = teilnehmer > 0
     && (teilnehmer < TABLE_RANGE.from || teilnehmer > TABLE_RANGE.to);
+
+  // Gegenprobe über die Spalte „PKT" des Zettels: Weil der Punkteschlüssel für
+  // jede Feldgröße andere Werte hat, verrät sie, von wie vielen Startern der
+  // Auswerter ausgegangen ist. Weicht das ab, hat die Liste eine Zeile zu viel
+  // oder zu wenig — und dann stimmt keine einzige Punktzahl.
+  const feldLautZettel = useMemo(
+    () => fieldSizeForPoints(zeilen.map(z => z.punkteLautZettel)),
+    [zeilen],
+  );
+  const feldWiderspruch = feldLautZettel !== null && feldLautZettel !== teilnehmer;
 
   async function fotoGewaehlt(datei: File | undefined) {
     if (!datei) return;
@@ -401,6 +414,19 @@ export function ErgebnisUpload({
             </ul>
           )}
 
+          {feldWiderspruch && (
+            <p style={warnStil}>
+              <strong>Die Punkte auf dem Zettel passen zu {feldLautZettel} Startern, hier
+              stehen {teilnehmer} Zeilen.</strong>{' '}
+              Der Punkteschlüssel hat für jede Feldgröße andere Werte — die Spalte {'„PKT“'}{' '}
+              verrät also, mit wie vielen Startern gerechnet wurde. Wahrscheinlich{' '}
+              {teilnehmer > feldLautZettel
+                ? `sind ${teilnehmer - feldLautZettel} Zeile${teilnehmer - feldLautZettel === 1 ? '' : 'n'} zu viel gelesen worden — etwa leer gebliebene Zeilen des Formulars. Bitte löschen.`
+                : `fehlen ${feldLautZettel - teilnehmer} Zeile${feldLautZettel - teilnehmer === 1 ? '' : 'n'} — vielleicht ist der Zettel unten abgeschnitten. Bitte noch einmal fotografieren.`}
+              {' '}Solange das nicht stimmt, ist jede Punktzahl falsch.
+            </p>
+          )}
+
           {vorschlag.teilnehmerLautZettel !== null
             && vorschlag.teilnehmerLautZettel !== teilnehmer && (
             <p style={warnStil}>
@@ -561,10 +587,25 @@ function ZeilenKarte({
         </div>
 
         <span
-          className="mdc-display"
-          style={{ minWidth: 58, textAlign: 'right', paddingTop: 6, fontSize: '1.05rem', color: 'var(--mdc-red)' }}
+          style={{
+            minWidth: 58, textAlign: 'right', paddingTop: 6,
+            display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+          }}
         >
-          {punkte}
+          <span className="mdc-display" style={{ fontSize: '1.05rem', color: 'var(--mdc-red)' }}>
+            {punkte}
+          </span>
+          {/* Weicht die Punktzahl vom Zettel ab, steht sie darunter. Meist
+              liegt es nicht an dieser Zeile, sondern an der Feldgröße — der
+              Hinweis oben sagt es dann im Ganzen. */}
+          {zeile.punkteLautZettel !== null && zeile.punkteLautZettel !== punkte && (
+            <span
+              style={{ fontSize: '0.72rem', color: 'var(--mdc-warn-ink)', lineHeight: 1.3 }}
+              title={'Punktzahl laut Spalte „PKT" auf dem Zettel'}
+            >
+              Zettel: {zeile.punkteLautZettel}
+            </span>
+          )}
         </span>
 
         <div style={{ display: 'flex', gap: 4, paddingTop: 2 }}>

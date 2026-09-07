@@ -127,6 +127,39 @@ export function pointsFor(place: number, participants: number): number {
   return Math.max(MIN_POINTS, Math.round(232 - (200 * place) / participants));
 }
 
+/**
+ * Zu welcher Feldgröße passen diese Punkte?
+ *
+ * Auf dem Ergebniszettel steht neben jedem Platz die Punktzahl, die der
+ * Auswerter aus dem Schlüssel abgelesen hat. Weil der Schlüssel für jede
+ * Feldgröße andere Werte hat, verrät diese Spalte, von wie vielen Startern er
+ * ausgegangen ist — und damit, ob die eingelesene Liste eine Zeile zu viel
+ * oder zu wenig hat.
+ *
+ * Genau dieser Fall ist beim ersten echten Zettel aufgetreten: Das vorgedruckte
+ * Formular führt die 9 mehrfach, zwei Zeilen waren leer geblieben und wurden
+ * als Teilnehmer gelesen. Zwölf statt zehn Starter — und damit jede einzelne
+ * Punktzahl falsch. Die Spalte auf dem Zettel hätte es sofort verraten.
+ *
+ * `punkte[i]` ist die Punktzahl für Platz i+1; unbekannte Werte sind `null`
+ * und werden übersprungen. Zurück kommt die einzige Feldgröße, die zu ALLEN
+ * bekannten Werten passt — oder `null`, wenn keine oder mehrere passen.
+ */
+export function fieldSizeForPoints(punkte: (number | null)[]): number | null {
+  const bekannt = punkte
+    .map((p, i) => ({ platz: i + 1, punkte: p }))
+    .filter((e): e is { platz: number; punkte: number } => e.punkte !== null);
+  // Unter drei Anhaltspunkten passt fast jede Feldgröße — dann lieber nichts
+  // behaupten.
+  if (bekannt.length < 3) return null;
+
+  const treffer: number[] = [];
+  for (let n = TABLE_RANGE.from; n <= TABLE_RANGE.to; n++) {
+    if (bekannt.every(e => pointsFor(e.platz, n) === e.punkte)) treffer.push(n);
+  }
+  return treffer.length === 1 ? treffer[0] : null;
+}
+
 /** Platzierungsgruppen des Doppel-K.-o. — bis 8 einzeln, danach geteilt. */
 const GROUPS = [1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 24, 32];
 

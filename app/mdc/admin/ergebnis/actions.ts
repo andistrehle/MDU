@@ -34,6 +34,8 @@ export interface VorschlagZeile {
   platzLautZettel: number | null;
   erkannterName: string | null;
   erkanntePassNr: number | null;
+  /** Punktzahl aus der Spalte „PKT" — nur zur Gegenprobe, nie übernommen. */
+  punkteLautZettel: number | null;
   confidence: number | null;
   /** Vorschlag der Zuordnung — `null`, wenn keiner gefunden wurde. */
   vorschlag: Zuordnung | null;
@@ -114,10 +116,28 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
       };
     }
 
+    // Leergebliebene Zeilen des vorgedruckten Formulars aussortieren.
+    //
+    // Der Zettel hat mehr Zeilen als Teilnehmer — die Spalte PLATZ ist fertig
+    // bedruckt, die 9 steht viermal da. Eine Zeile ohne Namen UND ohne
+    // Passnummer ist kein Starter. Das steht auch im Prompt, aber hier darf es
+    // nicht davon abhängen, ob sich das Modell daran hält: Eine Zeile zu viel
+    // ändert die Feldgröße und damit JEDE Punktzahl des Turniers.
+    const gefiltert = erkannt.zeilen.filter(z => z.name?.trim() || z.passNr !== null);
+    const leere = erkannt.zeilen.length - gefiltert.length;
+
+    if (!gefiltert.length) {
+      return {
+        ok: false,
+        fehler: 'Auf dem Zettel ist keine ausgefüllte Zeile zu erkennen. '
+          + 'Bitte noch einmal fotografieren — am besten die ganze Liste gerade und hell.',
+      };
+    }
+
     // Reihenfolge: was auf dem Zettel oben steht, ist Platz 1. Der notierte
     // Platz sortiert vor — bei geteilten Plätzen (mehrfach dieselbe Zahl)
     // bleibt die Reihenfolge des Zettels erhalten.
-    const sortiert = erkannt.zeilen
+    const sortiert = gefiltert
       .map((zeile, i) => ({ zeile, i }))
       .sort((a, b) =>
         (a.zeile.platz ?? Number.MAX_SAFE_INTEGER) - (b.zeile.platz ?? Number.MAX_SAFE_INTEGER)
@@ -131,6 +151,7 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
         erkannterName: zeile.name,
         erkanntePassNr: zeile.passNr,
         confidence: zeile.confidence,
+        punkteLautZettel: zeile.punkte,
         vorschlag: zuordnung.treffer,
         alternativen: zuordnung.alternativen,
         sicher: zuordnung.sicher,
@@ -146,7 +167,13 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
         datumLautZettel: erkannt.datum,
         spielortLautZettel: erkannt.spielort,
         teilnehmerLautZettel: erkannt.teilnehmerLautZettel,
-        hinweise: erkannt.hinweise,
+        hinweise: leere > 0
+          ? [
+            ...erkannt.hinweise,
+            `${leere} leer gebliebene Zeile${leere === 1 ? '' : 'n'} des Formulars `
+            + 'übergangen — dort stand weder ein Name noch eine Passnummer.',
+          ]
+          : erkannt.hinweise,
       },
     };
   } catch (fehler) {

@@ -30,6 +30,13 @@ const ErkanntZeileSchema = z.object({
   platz: z.number().int().min(1).max(64).nullable(),
   name: z.string().nullable(),
   passNr: z.number().int().min(1).max(9999).nullable(),
+  /**
+   * Die Punktzahl aus der Spalte „PKT" — NICHT um sie zu übernehmen (die
+   * rechnet der Schlüssel), sondern als Gegenprobe: Sie verrät die Feldgröße,
+   * die der Auswerter im Kopf hatte. Weichen die Punkte ab, stimmt die Zahl
+   * der Zeilen nicht.
+   */
+  punkte: z.number().int().min(0).max(300).nullable(),
   confidence: z.number().min(0).max(1).nullable(),
 });
 
@@ -49,12 +56,18 @@ const PROMPT = [
   'Du liest die handgeschriebene Ergebnisliste eines Dart-Turniers der Munich Darts Challenge (MDC) aus dem Bild aus.',
   'Auf dem Zettel steht je Zeile eine Platzierung und ein Spielername, manchmal zusätzlich eine Passnummer (ein- bis dreistellig).',
   '',
+  'Der Zettel ist ein VORGEDRUCKTES Formular: Die Spalte PLATZ ist fertig bedruckt (1, 2, 3, … und die 9 mehrfach), unabhängig davon, wie viele Leute mitgespielt haben. Handschriftlich sind nur Passnummer, Punkte und Name.',
+  '',
   'Regeln:',
+  '- ENTSCHEIDEND: Gib NUR Zeilen aus, in denen tatsächlich etwas HANDSCHRIFTLICHES steht — ein Name oder eine Passnummer. Eine vorgedruckte Zeile, die leer geblieben ist, ist KEIN Teilnehmer. Ebenso wenig eine durchgestrichene oder ausgestrichene Zeile. Solche Zeilen gehören NICHT in "zeilen"; erwähne sie höchstens in "hinweise".',
+  '- Im Zweifel weglassen: Eine zu viel ausgegebene Zeile verfälscht die Punkte ALLER Teilnehmer, weil der Punkteschlüssel an der Feldgröße hängt.',
+  '- Ist der untere Teil des Zettels abgeschnitten oder unlesbar, gib die betroffenen Zeilen NICHT aus und schreib es in "hinweise".',
   '- Gib NUR wieder, was tatsächlich lesbar ist. Erfinde nichts. Was du nicht entziffern kannst, ist null — nicht geraten.',
   '- Behalte die Reihenfolge des Zettels von oben nach unten bei. Sie entscheidet über die Platzierung.',
   '- Ab Platz 9 teilen sich im Doppel-K.-o. mehrere Spieler eine Platzierung (9.-12., 13.-16., 17.-24., 25.-32.). Auf dem Zettel steht die Gruppe dann oft nur einmal am Rand. Trage bei JEDEM Spieler dieser Gruppe dieselbe Zahl ein (also viermal die 9), und gib trotzdem jeden Spieler als eigene Zeile aus.',
   '- Namen so wiedergeben, wie sie dastehen — auch Spitznamen und Kurzformen („Micky", „Chriss"). Nichts vervollständigen, nichts eindeutschen, keine Reihenfolge von Vor- und Nachname ändern.',
-  '- Eine Zahl neben dem Namen ist nur dann eine Passnummer, wenn sie erkennbar als solche geführt wird (eigene Spalte oder Beschriftung). Punktzahlen (dreistellig, 40 bis 226) sind KEINE Passnummern.',
+  '- Die Spalten heißen üblicherweise PLATZ · M · F · neu · PASSNR · PKT · VORNAME/NAME. Aus PASSNR kommt passNr, aus PKT kommt punkte. Verwechsle die beiden nicht: PKT liegt zwischen 40 und 226 und fällt von Zeile zu Zeile.',
+  '- punkte NICHT ausrechnen und NICHT korrigieren — gib nur wieder, was in der Spalte PKT steht, sonst null. Diese Zahlen dienen als Gegenprobe.',
   '- confidence je Zeile: 1 = klar lesbar, 0.5 = unsicher, 0.2 = kaum zu entziffern.',
   '- Steht die Teilnehmerzahl irgendwo auf dem Zettel, gib sie unter teilnehmerLautZettel an. Sonst null.',
   '- Ist das Bild offensichtlich keine Ergebnisliste (Speisekarte, Screenshot, leeres Blatt): istErgebnisliste = false und zeilen leer.',
@@ -66,7 +79,7 @@ const PROMPT = [
   '  "datum": "YYYY-MM-DD"|null,',
   '  "spielort": string|null,',
   '  "teilnehmerLautZettel": number|null,',
-  '  "zeilen": [ { "platz": number|null, "name": string|null, "passNr": number|null, "confidence": number|null } ],',
+  '  "zeilen": [ { "platz": number|null, "name": string|null, "passNr": number|null, "punkte": number|null, "confidence": number|null } ],',
   '  "hinweise": string[]',
   '}',
 ].join('\n');
