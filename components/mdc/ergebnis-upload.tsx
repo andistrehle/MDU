@@ -298,7 +298,9 @@ export function ErgebnisUpload({
       {fehler && (
         <div className="mdc-card" style={{ padding: '16px 18px', display: 'flex', gap: 12, alignItems: 'flex-start', borderColor: 'var(--mdc-red-a35)' }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
-          <p style={{ fontSize: '0.92rem', lineHeight: 1.65 }}>{fehler}</p>
+          {/* `pre-line`, damit der Rat, was zu tun ist, als eigener Absatz
+              unter der Meldung steht statt in einer Textwurst zu verschwinden. */}
+          <p style={{ fontSize: '0.92rem', lineHeight: 1.65, whiteSpace: 'pre-line' }}>{fehler}</p>
         </div>
       )}
 

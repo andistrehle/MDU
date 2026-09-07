@@ -43,6 +43,40 @@ function kontext(): GhKontext {
   return { repo: cfg.githubRepo, branch: cfg.githubBranch, token: cfg.githubToken };
 }
 
+/**
+ * Was bei einer Absage von GitHub konkret zu tun ist.
+ *
+ * Die Meldung von GitHub allein („Resource not accessible by personal access
+ * token") sagt nicht, welche Einstellung gemeint ist. Weil es fast immer
+ * dieselben drei Ursachen sind, steht der Rat gleich dabei — sonst sitzt man
+ * abends im Lokal vor einer Fehlermeldung, die man nicht einordnen kann.
+ */
+function rat(status: number, methode?: string): string {
+  const schreibend = !!methode && methode !== 'GET';
+  if (status === 403 && schreibend) {
+    return '\n\nLesen hat funktioniert, Schreiben nicht — dem Token fehlt das Schreibrecht. '
+      + 'In GitHub unter Settings → Developer settings → Personal access tokens → '
+      + 'Fine-grained tokens den Token öffnen und bei Repository permissions „Contents" '
+      + 'auf „Read and write" stellen. Der Token-Wert bleibt derselbe; in Vercel muss '
+      + 'nichts geändert werden.';
+  }
+  if (status === 401) {
+    return '\n\nDer Token wird nicht anerkannt — er ist abgelaufen, widerrufen oder falsch '
+      + 'eingetragen. In GitHub einen neuen erzeugen und in Vercel als MDC_GITHUB_TOKEN '
+      + 'hinterlegen (danach Redeploy).';
+  }
+  if (status === 404) {
+    return '\n\nDas Repository ist für diesen Token nicht sichtbar. Beim Token unter '
+      + '„Repository access" muss „Only select repositories" mit diesem Repository stehen — '
+      + 'nicht „Public Repositories".';
+  }
+  if (status === 409 || status === 422) {
+    return '\n\nInzwischen hat jemand anderes auf denselben Branch geschrieben. '
+      + 'Einfach noch einmal freigeben.';
+  }
+  return '';
+}
+
 async function gh<T>(ctx: GhKontext, pfad: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API}${pfad}`, {
     ...init,
@@ -58,7 +92,8 @@ async function gh<T>(ctx: GhKontext, pfad: string, init?: RequestInit): Promise<
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new CommitFehler(
-      `GitHub hat abgelehnt (${res.status} bei ${pfad}). ${text.slice(0, 300)}`,
+      `GitHub hat abgelehnt (${res.status} bei ${pfad}). ${text.slice(0, 300)}`
+      + rat(res.status, init?.method),
     );
   }
   return res.json() as Promise<T>;
