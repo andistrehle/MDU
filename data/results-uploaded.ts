@@ -29,4 +29,6 @@
 // von der Mappe überholt wurde, kostet nichts außer drei Zeilen Text.
 // ============================================================
 
-export const RESULTS_UPLOADED_RAW: string[] = [];
+export const RESULTS_UPLOADED_RAW: string[] = [
+  '2026-09-06|siebziger|71:212,153:192,119:172,164:152,259:132,340:112,198:92,102:72,260:52,74:52',
+];
