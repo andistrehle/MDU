@@ -100,13 +100,19 @@ function wochentagVon(datum: string): number {
 }
 
 function ausVorschlag(zeile: VorschlagZeile, index: number): Zeile {
+  // Vorbelegt wird, was sicher ist — UND alles, was über die Passnummer kam.
+  // Die Nummer ist der eindeutige Schlüssel; dass der Name daneben anders
+  // geschrieben ist („Michi B" für Michael Brunn), ist der Normalfall, kein
+  // Verdachtsfall. Solche Zeilen bleiben markiert, aber niemand muss sich
+  // durch Hunderte Namen scrollen, um dasselbe noch einmal auszuwählen.
+  const uebernehmen = zeile.sicher || zeile.quelle === 'passnummer';
   return {
     key: `${index}-${zeile.erkannterName ?? 'leer'}`,
     erkannterName: zeile.erkannterName,
     confidence: zeile.confidence,
     hinweis: zeile.hinweis,
     sicher: zeile.sicher,
-    passNr: zeile.sicher ? zeile.vorschlag?.passNr ?? null : null,
+    passNr: uebernehmen ? zeile.vorschlag?.passNr ?? null : null,
     neu: null,
   };
 }
@@ -139,7 +145,13 @@ export function ErgebnisUpload({
     () => zeilen.map((_, i) => pointsFor(i + 1, teilnehmer)),
     [zeilen, teilnehmer],
   );
+  // Zwei verschiedene Zustände, zwei verschiedene Farben:
+  //   offen    gar kein Spieler gewählt → Freigabe gesperrt (rot)
+  //   pruefen  eingesetzt, aber der Name auf dem Zettel passt nicht → nur
+  //            markiert (gelb). Die Freigabe bleibt möglich; der eingesetzte
+  //            Name steht direkt neben dem, was auf dem Zettel stand.
   const offen = zeilen.filter(z => z.passNr === null && !z.neu).length;
+  const zuPruefen = zeilen.filter(z => z.passNr !== null && !z.sicher && !z.neu).length;
   // Lokale, die am gewählten Tag spielen, stehen in der Auswahl oben — nicht
   // ausschließlich: Ein Turnier kann ausnahmsweise an einem anderen Tag laufen.
   const [amTag, sonstige] = useMemo(() => {
@@ -375,9 +387,12 @@ export function ErgebnisUpload({
         <div className="mdc-card" style={{ padding: '22px 20px' }}>
           <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>2 · Prüfen</h2>
           <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
-            Die Reihenfolge ist die Platzierung. Was unsicher erkannt wurde, ist rot markiert und
-            muss ausgewählt werden. Die Punkte rechnet die Serie selbst — sie ändern sich, sobald
-            eine Zeile dazukommt oder wegfällt.
+            Die Reihenfolge ist die Platzierung. <strong style={{ color: 'var(--mdc-red-deep)' }}>Rot</strong> heißt:
+            kein Spieler zugeordnet, muss ausgewählt werden.{' '}
+            <strong style={{ color: 'var(--mdc-warn-ink)' }}>Gelb</strong> heißt: nach der
+            Passnummer eingesetzt, aber der Name auf dem Zettel ist anders geschrieben — bitte
+            kurz vergleichen. Die Punkte rechnet die Serie selbst; sie ändern sich, sobald eine
+            Zeile dazukommt oder wegfällt.
           </p>
 
           {vorschlag.hinweise.length > 0 && (
@@ -433,10 +448,20 @@ export function ErgebnisUpload({
             <button type="button" onClick={nochmal} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
               Verwerfen
             </button>
-            <span style={{ fontSize: '0.86rem', color: offen > 0 ? 'var(--mdc-red-deep)' : 'var(--mdc-ink-dim)' }}>
+            <span
+              style={{
+                fontSize: '0.86rem',
+                color: offen > 0
+                  ? 'var(--mdc-red-deep)'
+                  : zuPruefen > 0 ? 'var(--mdc-warn-ink)' : 'var(--mdc-ink-dim)',
+              }}
+            >
               {offen > 0
                 ? `${offen} Zeile${offen === 1 ? '' : 'n'} noch ohne Spieler`
-                : `${teilnehmer} Starter · ${punkte.reduce((s, p) => s + p, 0)} Punkte insgesamt`}
+                : zuPruefen > 0
+                  ? `${teilnehmer} Starter · ${zuPruefen} gelb markierte Zeile${zuPruefen === 1 ? '' : 'n'} `
+                    + 'nach Passnummer eingesetzt — Namen kurz vergleichen'
+                  : `${teilnehmer} Starter · ${punkte.reduce((s, p) => s + p, 0)} Punkte insgesamt`}
             </span>
           </div>
         </div>
@@ -463,14 +488,20 @@ function ZeilenKarte({
 }) {
   const offen = zeile.passNr === null && !zeile.neu;
   const unsicher = !zeile.sicher;
+  // Eingesetzt, aber der Name auf dem Zettel passt nicht dazu.
+  const pruefen = !offen && unsicher && !zeile.neu;
 
   return (
     <div
       className="mdc-card"
       style={{
         padding: '12px 14px',
-        borderColor: offen ? 'var(--mdc-red-a35)' : undefined,
-        background: offen ? 'var(--mdc-red-a08)' : undefined,
+        borderColor: offen
+          ? 'var(--mdc-red-a35)'
+          : pruefen ? 'var(--mdc-warn-line)' : undefined,
+        background: offen
+          ? 'var(--mdc-red-a08)'
+          : pruefen ? 'var(--mdc-warn-tint)' : undefined,
       }}
     >
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -517,7 +548,12 @@ function ZeilenKarte({
             </select>
           )}
 
-          <p style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', lineHeight: 1.5 }}>
+          <p
+            style={{
+              marginTop: 6, fontSize: '0.8rem', lineHeight: 1.5,
+              color: pruefen ? 'var(--mdc-warn-ink)' : 'var(--mdc-ink-dim)',
+            }}
+          >
             Zettel: <strong>{zeile.erkannterName ?? 'nichts erkannt'}</strong>
             {zeile.confidence !== null && zeile.confidence < 0.7 && ' · unsicher gelesen'}
             {unsicher && zeile.hinweis && ` · ${zeile.hinweis}`}

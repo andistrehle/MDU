@@ -47,6 +47,11 @@
   --mdc-line-hard:  #C3D2E6;
 
   /* Tönungen */
+  /* Gelb für „bitte prüfen" in der Turnierverwaltung — deutlich genug, um
+     aufzufallen, aber nicht rot: Rot heißt dort „fehlt noch". */
+  --mdc-warn-tint:  rgba(184, 134, 11, 0.10);
+  --mdc-warn-line:  rgba(184, 134, 11, 0.45);
+  --mdc-warn-ink:   #8A6508;
   --mdc-red-a08:    rgba(214, 26, 26, 0.08);
   --mdc-red-a16:    rgba(214, 26, 26, 0.16);
   --mdc-red-a35:    rgba(214, 26, 26, 0.35);

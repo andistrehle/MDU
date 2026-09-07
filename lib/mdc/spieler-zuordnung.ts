@@ -11,14 +11,20 @@
 // automatisch gesetzter falscher Treffer würde Punkte an die falsche Person
 // buchen und fiele monatelang niemandem auf. Deshalb gilt:
 //
-//   sicher = true   nur bei eindeutigem Treffer OHNE zweiten ernsthaften
-//                   Kandidaten. Die Seite markiert die Zeile trotzdem als
-//                   „zugeordnet" und zeigt, WER gemeint ist.
-//   sicher = false  alles andere — die Zeile muss von Hand bestätigt werden.
+//   sicher = true   eindeutiger Treffer OHNE zweiten ernsthaften Kandidaten.
+//   sicher = false  alles andere — die Zeile wird am Bildschirm markiert.
 //
-// Die Passnummer schlägt den Namen: Sie ist der eindeutige Schlüssel. Passt
-// der Name nicht dazu, ist das ein Hinweis, kein Grund, sie zu verwerfen —
-// beides wird angezeigt, entschieden wird am Bildschirm.
+// Die Passnummer schlägt den Namen: Sie ist der eindeutige Schlüssel. Steht
+// sie auf dem Zettel und gehört sie jemandem, wird dieser Spieler eingesetzt,
+// auch wenn der Name daneben anders geschrieben ist („Michi B" für Michael
+// Brunn). Die Zeile bleibt trotzdem markiert und sagt, was zu prüfen ist.
+//
+// Das ist bewusst so herum: Der Name auf dem Zettel ist eine Kurzform, die
+// Nummer ist der Schlüssel. Wer sich für jede solche Zeile durch Hunderte
+// Namen scrollen müsste, würde das Werkzeug nach zwei Abenden nicht mehr
+// benutzen — und genau dann wird wieder von Hand in die Mappe getippt.
+// Gelesen und geprüft wird trotzdem: Der eingesetzte Name steht direkt neben
+// dem, was auf dem Zettel stand.
 // ============================================================
 
 import { PLAYERS, playerName, getPlayerByPassNr } from '@/data/players';
@@ -40,6 +46,20 @@ export interface ZuordnungsErgebnis {
   alternativen: Zuordnung[];
   /** Ohne Nachfrage übernehmbar? Siehe Kopf dieser Datei. */
   sicher: boolean;
+  /**
+   * Woher der Treffer kommt:
+   *
+   *   'passnummer'  über die Nummer vom Zettel — eindeutig, auch wenn der
+   *                 Name daneben anders geschrieben ist
+   *   'name'        über den Namen geraten
+   *   null          kein Treffer
+   *
+   * Die Oberfläche belegt einen Treffer über die Passnummer vor, selbst wenn
+   * der Name nicht dazu passt: Die Nummer IST der Schlüssel, und wer sich
+   * sonst durch Hunderte Namen scrollen müsste, macht das nicht lange mit.
+   * Markiert bleibt die Zeile trotzdem.
+   */
+  quelle: 'passnummer' | 'name' | null;
   /** Kurzer Grund für die Anzeige — auch wenn es gut lief. */
   hinweis: string | null;
 }
@@ -149,9 +169,13 @@ export function ordneSpielerZu(
         treffer: alsZuordnung(spieler, 1),
         alternativen: [],
         sicher: passtName,
+        quelle: 'passnummer',
         hinweis: passtName
           ? null
-          : `Passnummer ${erkannt.passNr} gehört zu ${playerName(spieler)} — auf dem Zettel steht „${erkannt.name}". Bitte prüfen.`,
+          : `Nach Passnummer ${erkannt.passNr} eingesetzt: ${playerName(spieler)}. `
+            + `Auf dem Zettel steht als Name „${erkannt.name}" — bitte prüfen, ob das dieselbe `
+            + 'Person ist. Wenn nicht, war die Nummer falsch gelesen: dann den richtigen '
+            + 'Spieler auswählen.',
       };
     }
     // Nummer unbekannt: nicht verwerfen, sondern über den Namen weitersuchen.
@@ -160,7 +184,7 @@ export function ordneSpielerZu(
   // ── Weg 2: über den Namen ──
   if (!erkannt.name?.trim()) {
     return {
-      treffer: null, alternativen: [], sicher: false,
+      treffer: null, alternativen: [], sicher: false, quelle: null,
       hinweis: 'Kein Name erkannt — bitte von Hand auswählen.',
     };
   }
@@ -174,7 +198,7 @@ export function ordneSpielerZu(
 
   if (!bewertet.length) {
     return {
-      treffer: null, alternativen: [], sicher: false,
+      treffer: null, alternativen: [], sicher: false, quelle: null,
       hinweis: `„${erkannt.name}" steht in keiner Wertung. Entweder ist die Schreibweise anders — oder es ist jemand Neues.`,
     };
   }
@@ -188,6 +212,7 @@ export function ordneSpielerZu(
     treffer: alsZuordnung(beste.spieler, beste.score),
     alternativen: bewertet.slice(1).map(k => alsZuordnung(k.spieler, k.score)),
     sicher: sicher && !unbekannteNummer,
+    quelle: 'name',
     hinweis: unbekannteNummer
       ? `Passnummer ${erkannt.passNr} ist keinem Spieler zugeordnet — Vorschlag stammt aus dem Namen.`
       : sicher

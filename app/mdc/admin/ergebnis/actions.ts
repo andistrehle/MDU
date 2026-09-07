@@ -39,6 +39,8 @@ export interface VorschlagZeile {
   vorschlag: Zuordnung | null;
   alternativen: Zuordnung[];
   sicher: boolean;
+  /** Kam der Vorschlag über die Passnummer oder über den Namen? */
+  quelle: 'passnummer' | 'name' | null;
   hinweis: string | null;
 }
 
@@ -132,6 +134,7 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
         vorschlag: zuordnung.treffer,
         alternativen: zuordnung.alternativen,
         sicher: zuordnung.sicher,
+        quelle: zuordnung.quelle,
         hinweis: zuordnung.hinweis,
       };
     });
