@@ -169,8 +169,11 @@ export function ErgebnisUpload({
 
   // Gegenprobe über die Spalte „PKT" des Zettels: Weil der Punkteschlüssel für
   // jede Feldgröße andere Werte hat, verrät sie, von wie vielen Startern der
-  // Auswerter ausgegangen ist. Weicht das ab, hat die Liste eine Zeile zu viel
-  // oder zu wenig — und dann stimmt keine einzige Punktzahl.
+  // Auswerter ausgegangen ist.
+  //
+  // Ein HINWEIS, kein Urteil. Die Spalte ist von Hand geschrieben und kann
+  // selbst falsch sein; sie sperrt deshalb nichts. Maßgeblich bleibt die Zahl
+  // der Starter — die Punkte kommen ohnehin aus dem Schlüssel, nie vom Zettel.
   const feldLautZettel = useMemo(
     () => fieldSizeForPoints(zeilen.map(z => z.punkteLautZettel)),
     [zeilen],
@@ -416,14 +419,16 @@ export function ErgebnisUpload({
 
           {feldWiderspruch && (
             <p style={warnStil}>
-              <strong>Die Punkte auf dem Zettel passen zu {feldLautZettel} Startern, hier
-              stehen {teilnehmer} Zeilen.</strong>{' '}
-              Der Punkteschlüssel hat für jede Feldgröße andere Werte — die Spalte {'„PKT“'}{' '}
-              verrät also, mit wie vielen Startern gerechnet wurde. Wahrscheinlich{' '}
+              <strong>Zum Vergleich:</strong> Die Punkte in der Spalte {'„PKT“'} auf dem Zettel
+              passen zu <strong>{feldLautZettel} Startern</strong>, hier stehen{' '}
+              <strong>{teilnehmer} Zeilen</strong>.{' '}
               {teilnehmer > feldLautZettel
-                ? `sind ${teilnehmer - feldLautZettel} Zeile${teilnehmer - feldLautZettel === 1 ? '' : 'n'} zu viel gelesen worden — etwa leer gebliebene Zeilen des Formulars. Bitte löschen.`
-                : `fehlen ${feldLautZettel - teilnehmer} Zeile${feldLautZettel - teilnehmer === 1 ? '' : 'n'} — vielleicht ist der Zettel unten abgeschnitten. Bitte noch einmal fotografieren.`}
-              {' '}Solange das nicht stimmt, ist jede Punktzahl falsch.
+                ? `Vielleicht ${teilnehmer - feldLautZettel === 1 ? 'wurde eine Zeile' : `wurden ${teilnehmer - feldLautZettel} Zeilen`} zu viel gelesen — etwa leer gebliebene Zeilen des Formulars.`
+                : `Vielleicht ${feldLautZettel - teilnehmer === 1 ? 'fehlt eine Zeile' : `fehlen ${feldLautZettel - teilnehmer} Zeilen`} — etwa weil der Zettel unten abgeschnitten ist.`}
+              {' '}Es kann aber genauso gut sein, dass auf dem Zettel selbst die falschen Punkte
+              stehen — dann stimmt die Liste hier und der Hinweis ist gegenstandslos.{' '}
+              <strong>Maßgeblich ist die Zahl der Starter</strong>, nicht die Spalte auf dem
+              Zettel: Die Punkte kommen ohnehin aus dem Schlüssel.
             </p>
           )}
 
@@ -452,6 +457,7 @@ export function ErgebnisUpload({
                 index={index}
                 anzahl={zeilen.length}
                 punkte={punkte[index]}
+                zeigeZettelPunkte={!feldWiderspruch}
                 spieler={spieler}
                 onAendern={teil => aendere(index, teil)}
                 onVerschieben={richtung => verschiebe(index, richtung)}
@@ -501,12 +507,19 @@ export function ErgebnisUpload({
 // ------------------------------------------------------------
 
 function ZeilenKarte({
-  zeile, index, anzahl, punkte, spieler, onAendern, onVerschieben, onLoeschen,
+  zeile, index, anzahl, punkte, zeigeZettelPunkte, spieler,
+  onAendern, onVerschieben, onLoeschen,
 }: {
   zeile: Zeile;
   index: number;
   anzahl: number;
   punkte: number;
+  /**
+   * Punktzahl vom Zettel danebenstellen, wenn sie abweicht? Nur sinnvoll,
+   * solange die Feldgröße stimmt: Passt sie nicht, weicht ohnehin jede Zeile
+   * ab, und der Hinweis über der Liste sagt es einmal statt zehnmal.
+   */
+  zeigeZettelPunkte: boolean;
   spieler: UploadSpieler[];
   onAendern: (teil: Partial<Zeile>) => void;
   onVerschieben: (richtung: -1 | 1) => void;
@@ -598,7 +611,8 @@ function ZeilenKarte({
           {/* Weicht die Punktzahl vom Zettel ab, steht sie darunter. Meist
               liegt es nicht an dieser Zeile, sondern an der Feldgröße — der
               Hinweis oben sagt es dann im Ganzen. */}
-          {zeile.punkteLautZettel !== null && zeile.punkteLautZettel !== punkte && (
+          {zeigeZettelPunkte && zeile.punkteLautZettel !== null
+            && zeile.punkteLautZettel !== punkte && (
             <span
               style={{ fontSize: '0.72rem', color: 'var(--mdc-warn-ink)', lineHeight: 1.3 }}
               title={'Punktzahl laut Spalte „PKT" auf dem Zettel'}
