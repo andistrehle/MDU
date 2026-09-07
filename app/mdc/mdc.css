@@ -371,9 +371,17 @@ body:has(.mdc-root) {
    Es geht dabei nichts verloren, es steht nur woanders. */
 .mdc-narrow-only { display: none; }
 
+/* Turnierverwaltung: „Zettel fotografieren" gibt es nur dort, wo auch eine
+   Kamera sitzt. Am Schreibtisch bliebe die Schaltfläche eine leere Zusage —
+   dort führt sie zum selben Dateiauswahlfenster wie „hochladen".
+   Eigene Klasse statt `.mdc-narrow-only`: Die Schaltflächen sind
+   `inline-flex`, und `display: revert` machte daraus wieder `inline`. */
+.mdc-cam-only { display: none; }
+
 @media (max-width: 900px) {
   .mdc-hide-narrow { display: none; }
   .mdc-narrow-only { display: revert; }
+  .mdc-cam-only { display: inline-flex; }
   .mdc-row-meta {
     display: block;
     margin-top: 3px;

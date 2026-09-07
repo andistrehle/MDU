@@ -22,7 +22,7 @@
 import { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, ArrowDown, ArrowUp, Camera, Check, CircleAlert, ExternalLink,
-  Loader2, Trash2, UserPlus, X,
+  Loader2, Trash2, Upload, UserPlus, X,
 } from 'lucide-react';
 import { fieldSizeForPoints, pointsFor, rankGroupLabel, TABLE_RANGE } from '@/lib/mdc/points';
 import { erkenneZettel, gibErgebnisFrei, type Vorschlag, type VorschlagZeile } from '@/app/mdc/admin/ergebnis/actions';
@@ -142,6 +142,7 @@ export function ErgebnisUpload({
   const [zeilen, setZeilen] = useState<Zeile[]>([]);
   const [ergebnis, setErgebnis] = useState<{ url: string; ersetzt: boolean; turnier: string } | null>(null);
   const dateiRef = useRef<HTMLInputElement>(null);
+  const kameraRef = useRef<HTMLInputElement>(null);
 
   const teilnehmer = zeilen.length;
   const punkte = useMemo(
@@ -245,7 +246,10 @@ export function ErgebnisUpload({
     setZeilen([]);
     setErgebnis(null);
     setFehler(null);
+    // Beide Felder leeren: Sonst meldet der Browser beim zweiten Mal dieselbe
+    // Datei nicht noch einmal, wenn man versehentlich dieselbe wählt.
     if (dateiRef.current) dateiRef.current.value = '';
+    if (kameraRef.current) kameraRef.current.value = '';
   }
 
   // ── Nicht eingerichtet: ehrlich sagen, was fehlt ──
@@ -356,21 +360,45 @@ export function ErgebnisUpload({
 
         {schritt === 'start' && (
           <>
-            <label
-              className="mdc-btn mdc-btn-ghost"
-              style={{ marginTop: 18, cursor: 'pointer', display: 'inline-flex' }}
-            >
-              <Camera size={17} />
-              {bild ? 'Anderes Foto wählen' : 'Zettel fotografieren'}
-              <input
-                ref={dateiRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={e => fotoGewaehlt(e.target.files?.[0])}
-                style={{ display: 'none' }}
-              />
-            </label>
+            {/* Zwei Wege, aber nicht überall beide:
+                  • Am Handy „fotografieren" (öffnet die Kamera) UND „hochladen"
+                    (öffnet die Fotos) — je nachdem, ob der Zettel gerade auf dem
+                    Tisch liegt oder das Bild schon aufgenommen ist.
+                  • Am Schreibtisch nur „hochladen". Dort gibt es keine Kamera,
+                    die man auf einen Zettel halten könnte; „fotografieren" führte
+                    zum selben Dateiauswahlfenster und wäre eine leere Zusage.
+                Die Weiche steckt in `.mdc-cam-only` (app/mdc/mdc.css), nicht in
+                einer Geräteerkennung im Code — die läge beim ersten Rendern noch
+                nicht vor und ließe die Schaltflächen springen. */}
+            <div style={{ marginTop: 18, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <label className="mdc-btn mdc-btn-ghost mdc-cam-only" style={{ cursor: 'pointer' }}>
+                <Camera size={17} />
+                Zettel fotografieren
+                <input
+                  ref={kameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={e => fotoGewaehlt(e.target.files?.[0])}
+                  style={{ display: 'none' }}
+                />
+              </label>
+
+              <label
+                className="mdc-btn mdc-btn-ghost"
+                style={{ cursor: 'pointer', display: 'inline-flex' }}
+              >
+                <Upload size={17} />
+                Zettel hochladen
+                <input
+                  ref={dateiRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={e => fotoGewaehlt(e.target.files?.[0])}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
 
             {bild && (
               <div style={{ marginTop: 16 }}>
