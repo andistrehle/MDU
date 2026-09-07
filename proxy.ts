@@ -62,29 +62,74 @@ function gleich(a: string, b: string): boolean {
 }
 
 /**
+ * Das Passwort aus der `Authorization`-Kopfzeile — richtig entschlüsselt.
+ *
+ * `atob` allein genügt NICHT: Es liefert eine Byte-Kette, kein UTF-8. Ein
+ * Passwort mit Umlaut käme dann als „GrÃ¼Ã-di" an und könnte nie passen —
+ * niemand mit so einem Passwort käme jemals hinein, ganz gleich wie sorgfältig
+ * er tippt. Deshalb Bytes einsammeln und ausdrücklich als UTF-8 lesen.
+ */
+function passwortAus(header: string): string | null {
+  if (!header.startsWith('Basic ')) return null;
+  try {
+    const bytes = Uint8Array.from(atob(header.slice('Basic '.length)), z => z.charCodeAt(0));
+    const text = new TextDecoder('utf-8').decode(bytes);
+    // Benutzername ist gleichgültig — es gibt nur ein Passwort.
+    return text.slice(text.indexOf(':') + 1);
+  } catch {
+    return null;   // kaputte Kodierung → wie ein falsches Passwort behandeln
+  }
+}
+
+/**
+ * Was bei einer Abweisung im Browser steht. Eine nackte Zeile Text hilft
+ * niemandem, der abends im Lokal davorsteht — hier steht, dass der Browser
+ * fragt, dass der Benutzername beliebig ist und wie man es noch einmal
+ * versucht.
+ */
+const ABWEISUNG = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turnierverwaltung — Zugang</title>
+<style>
+  body { margin:0; padding:32px 22px; font-family: system-ui, -apple-system, sans-serif;
+         color:#141A24; background:#F3F7FC; line-height:1.6; }
+  main { max-width:34rem; margin:0 auto; background:#fff; border:1px solid #DDE5F0;
+         border-radius:14px; padding:26px 24px; }
+  h1 { margin:0 0 14px; font-size:1.25rem; color:#1F3B73; }
+  ul { padding-left:20px; } li { margin:6px 0; }
+  a { color:#D61A1A; }
+</style></head>
+<body><main>
+  <h1>Zugang nur für die Turnierverwaltung</h1>
+  <p>Diese Seite ist mit einem Passwort geschützt. Der Browser fragt danach in
+     einem eigenen kleinen Fenster.</p>
+  <ul>
+    <li><strong>Benutzername:</strong> beliebig — zum Beispiel <code>mdc</code>.
+        Das Feld wird nicht geprüft.</li>
+    <li><strong>Passwort:</strong> das von der Turnierleitung vergebene.</li>
+  </ul>
+  <p>Diese Meldung erscheint, wenn die Abfrage abgebrochen wurde oder das
+     Passwort nicht gepasst hat. <strong>Seite neu laden</strong>, dann fragt
+     der Browser erneut.</p>
+  <p><a href="/">Zurück zur Startseite</a></p>
+</main></body></html>`;
+
+/**
  * Prüft den Zugang zum MDC-Verwaltungsbereich.
  * Gibt `null` zurück, wenn durchgelassen werden darf.
  */
 function mdcAdminGuard(request: NextRequest): NextResponse | null {
   if (!MDC_ADMIN_PASSWORD) return null;   // nicht eingerichtet → nur die Demo
 
-  const header = request.headers.get('authorization') ?? '';
-  if (header.startsWith('Basic ')) {
-    try {
-      const entschluesselt = atob(header.slice('Basic '.length));
-      // Benutzername ist gleichgültig — es gibt nur ein Passwort.
-      const passwort = entschluesselt.slice(entschluesselt.indexOf(':') + 1);
-      if (gleich(passwort, MDC_ADMIN_PASSWORD)) return null;
-    } catch {
-      // Kaputte Kodierung → wie ein falsches Passwort behandeln.
-    }
-  }
+  const passwort = passwortAus(request.headers.get('authorization') ?? '');
+  if (passwort !== null && gleich(passwort, MDC_ADMIN_PASSWORD)) return null;
 
-  return withSecurityHeaders(new NextResponse('Zugang nur für die Turnierverwaltung.', {
+  return withSecurityHeaders(new NextResponse(ABWEISUNG, {
     status: 401,
     headers: {
       'WWW-Authenticate': 'Basic realm="MDC Turnierverwaltung", charset="UTF-8"',
-      'Content-Type': 'text/plain; charset=utf-8',
+      'Content-Type': 'text/html; charset=utf-8',
       // Nichts davon gehört in einen Zwischenspeicher.
       'Cache-Control': 'no-store',
     },
