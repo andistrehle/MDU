@@ -582,9 +582,29 @@ body:has(.mdc-root) {
 }
 .mdc-mobile-nav a:not(.mdc-btn)[data-active='true'] { color: var(--mdc-red); }
 
+/* Schlüssel in die Turnierverwaltung — ganz rechts in der Kopfzeile.
+   Absichtlich blass und ohne Beschriftung: Er soll nicht ins Auge fallen,
+   aber immer an derselben Stelle stehen. */
+.mdc-header-admin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--mdc-ink-faint);
+  flex-shrink: 0;
+}
+.mdc-header-admin:hover {
+  color: var(--mdc-red);
+  background: var(--mdc-red-a08);
+}
+
 @media (max-width: 1080px) {
   .mdc-nav { display: none; }
   .mdc-header-cta { display: none; }
+  /* Wie der Ranking-Knopf: am Handy führt der Weg über die Fußzeile. */
+  .mdc-header-admin { display: none; }
   .mdc-burger { display: inline-flex; }
 }
 

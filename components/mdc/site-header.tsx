@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CalendarClock, ChevronRight, Menu, X } from 'lucide-react';
+import { CalendarClock, ChevronRight, KeyRound, Menu, X } from 'lucide-react';
 import { MdcMark, MdcThrower, MdcWordmark } from './logo';
 import type { BrandImage } from '@/lib/mdc/brand';
 import { mdcPath, mdcRelativePath } from '@/lib/mdc/site';
@@ -98,6 +98,24 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
                 {nextRankingLabel}
               </span>
             </span>
+          </Link>
+
+          {/* Stiller Weg in die Turnierverwaltung: nur das Schlüsselsymbol,
+              ganz rechts neben dem Ranking-Knopf. Wer ihn sucht, findet ihn
+              auf jeder Seite an derselben Stelle; wer nicht, hält ihn für
+              Zierde.
+
+              `mdc-header-admin` blendet ihn wie den Ranking-Knopf unter
+              1081 px aus — am Handy übernimmt die Fußzeile. Dahinter steht
+              die Passwortabfrage, es ist also kein Schutz, sondern
+              Zurückhaltung. */}
+          <Link
+            href={mdcPath('/admin')}
+            className="mdc-header-admin"
+            aria-label="Turnierverwaltung"
+            title="Turnierverwaltung — Ergebnis hochladen, Kalender, News"
+          >
+            <KeyRound size={16} />
           </Link>
 
           <button

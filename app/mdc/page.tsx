@@ -5,8 +5,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, KeyRound, MapPin,
-  Target, Trophy, Users,
+  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, MapPin, Target,
+  Trophy, Users,
 } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { RankingWidget } from '@/components/mdc/ranking-widget';
@@ -98,34 +98,6 @@ export default function MdcHomePage() {
             paddingBottom: 'clamp(24px, 3vw, 36px)',
           }}
         >
-          {/* Kurzer Weg in die Turnierverwaltung — oben rechts in der Bühne,
-              also ohne Scrollen erreichbar. Blass und klein: Wer ihn sucht,
-              findet ihn immer an derselben Stelle; wer nicht, übersieht ihn.
-
-              `mdc-hide-narrow` blendet ihn unter 901 px aus. Am Handy stört er
-              in der Bühne nur, und dort führt der Weg über die Fußzeile.
-              Dahinter steht die Passwortabfrage, es ist also kein Schutz,
-              sondern Zurückhaltung. */}
-          <div className="mdc-hide-narrow" style={{ float: 'right' }}>
-            <Link
-              href={mdcPath('/admin')}
-              title="Turnierverwaltung — Ergebnis hochladen, Kalender, News"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                fontSize: '0.76rem', color: 'var(--mdc-ink-dim)', textDecoration: 'none',
-                // Dahinter liegt das Bühnenfoto. Ohne diesen hellen Grund wäre
-                // die Zeile darauf kaum zu lesen — sie soll unauffällig sein,
-                // nicht unsichtbar.
-                padding: '4px 10px', borderRadius: 999,
-                background: 'rgba(255, 255, 255, 0.72)',
-                border: '1px solid var(--mdc-line-soft)',
-              }}
-            >
-              <KeyRound size={12} />
-              Turnierverwaltung
-            </Link>
-          </div>
-
           <span className="mdc-kicker mdc-rise">München · Einzelrangliste</span>
 
           {/* Rot nur auf den Initialen M, D, C — der Rest steht im Dunkelblau
