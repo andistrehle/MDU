@@ -66,6 +66,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "19:30",
     "note": "Vertretung Fiaker Stüberl"
+  },
+  {
+    "id": "2026-09-17-fiakerstueberl-absage",
+    "date": "2026-09-17",
+    "venueId": "fiakerstueberl",
+    "art": "absage",
+    "time": null,
+    "note": "Wg Urlaub"
   }
 ];
 
