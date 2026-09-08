@@ -88,3 +88,20 @@ export function heroSrc(): BrandImage | null {
 export function throwerSrc(): BrandImage | null {
   return findInPublic(['werfer.svg', 'werfer.png', 'thrower.svg']);
 }
+
+/**
+ * Quadratisches Zeichen für den Browser-Tab (`public/mdc/icon.*`).
+ *
+ * Warum eine eigene Datei und nicht das Logo: Das Banner ist etwa 3:1 breit
+ * und wäre als Tab-Symbol ein Streifen. Aus dem Banner herausschneiden geht
+ * auch nicht sauber — die Bänder laufen hinter dem Kreis durch und ragen
+ * beidseitig heraus, jeder Schnitt lässt entweder Fetzen stehen oder kappt
+ * den Kreis.
+ *
+ * Ohne diese Datei bleibt das Tab-Symbol das der MDU (`app/icon.png`) — die
+ * MDC liegt im selben Projekt und erbt es. Das ist sichtbar falsch, aber
+ * ehrlicher, als ein Zeichen zu erfinden.
+ */
+export function iconSrc(): BrandImage | null {
+  return findInPublic(['icon.svg', 'icon.png', 'emblem.svg', 'emblem.png']);
+}

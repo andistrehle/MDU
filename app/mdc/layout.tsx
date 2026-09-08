@@ -19,8 +19,12 @@ import { SiteFooter } from '@/components/mdc/site-footer';
 import { VENUES, nextPlayDay } from '@/data/venues';
 import { todayInMunich } from '@/data/season';
 import { formatDateShort } from '@/lib/mdc/format';
-import { logoSrc, throwerSrc } from '@/lib/mdc/brand';
+import { iconSrc, logoSrc, throwerSrc } from '@/lib/mdc/brand';
 import { mdcPath, MDC_INDEXABLE, MDC_ORIGIN, MDC_STANDALONE } from '@/lib/mdc/site';
+
+// Liegt ein quadratisches Zeichen unter `public/mdc/`, wird es zum Tab-Symbol.
+// Ohne Datei bleibt das der MDU (`app/icon.png`) — siehe `iconSrc`.
+const MDC_ICON = iconSrc();
 
 export const metadata: Metadata = {
   // Auf der eigenen Domain lösen relative Angaben (z. B. Vorschaubilder)
@@ -36,6 +40,28 @@ export const metadata: Metadata = {
   description:
     'Die Munich Darts Challenge ist Münchens Ranking-Serie für Einzelspieler: ' +
     `Turniere im Doppel-K.-o. in ${VENUES.length} Münchner Lokalen, Punkte für die Saisonrangliste.`,
+  // MUSS hier stehen, auch wenn Titel und Beschreibung schon oben stehen:
+  // `openGraph` wird als Ganzes vom Wurzel-Layout geerbt, wenn eine Unterseite
+  // keinen eigenen Block hat. Ohne diesen Abschnitt bot WhatsApp die
+  // MDC-Adresse als „Münchner Dart Union (MDU) – Dart-Liga München" an, samt
+  // MDU-Dartscheibe als Bild. Das Vorschaubild liefert
+  // `opengraph-image.png` in diesem Ordner.
+  openGraph: {
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'Munich Darts Challenge',
+    ...(MDC_STANDALONE ? { url: MDC_ORIGIN } : {}),
+    title: 'Munich Darts Challenge (MDC) — Münchens Ranking-Serie für Einzelspieler',
+    description:
+      'Ranglisten, Turnierergebnisse, Spieler und Spielorte der Munich Darts Challenge — ' +
+      'Münchens Ranking-Serie für Einzelspieler.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Munich Darts Challenge (MDC)',
+    description: 'Münchens Ranking-Serie für Einzelspieler.',
+  },
+  ...(MDC_ICON ? { icons: { icon: MDC_ICON.src, apple: MDC_ICON.src } } : {}),
   robots: MDC_INDEXABLE
     ? { index: true, follow: true }
     : { index: false, follow: false },
