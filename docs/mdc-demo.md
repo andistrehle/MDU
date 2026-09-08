@@ -121,9 +121,11 @@ Adressen wie auf mdc-ranking.de; im Code liegen sie jeweils unter `app/mdc/…`.
 | `/spieler/[id]`          | Profil: Endstand 2025/26, Sommer-Ranking, Formkurve und jedes gespielte Turnier der Saison |
 | `/spielorte`             | Spielorte nach Wochentag                                           |
 | `/spielorte/[id]`        | Adresse, Automaten, Termine, Turniere der Saison 2025/26           |
+| `/news`                  | Neuigkeiten zur Serie (`/news/[id]` je Beitrag)                     |
 | `/regeln`                | Spielprinzip, Doppel-K.-o., Punktetabelle                          |
 | `/admin`                 | Turnierverwaltung — passwortgeschützt; darin der echte Ergebnis-Upload, der Rest Oberflächen-Demo |
 | `/admin/ergebnis`        | **Ergebniszettel fotografieren, prüfen, freigeben** (`docs/mdc-ergebnis-upload.md`) |
+| `/admin/news`            | **News schreiben** — Beiträge landen als Commit in `data/news.ts`   |
 | `/kontakt`               | Mitspielen, Spielort werden, Fragen zur Wertung                    |
 | `/impressum`, `/datenschutz` | Vollständige Rechtstexte (Anbieter wie bei der MDU), anwaltlich nicht geprüft |
 

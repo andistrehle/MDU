@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Camera } from 'lucide-react';
+import { ArrowRight, Camera, Newspaper } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
 import { VENUES, venueWeekdayShort } from '@/data/venues';
@@ -67,11 +67,34 @@ export default function AdminPage() {
             </Link>
           </div>
 
+          <div
+            className="mdc-card"
+            style={{
+              padding: '22px 20px', display: 'flex', flexWrap: 'wrap', gap: 16,
+              alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 560 }}>
+              <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Newspaper size={19} style={{ color: 'var(--mdc-red)' }} />
+                News schreiben
+              </h2>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Neuigkeiten für die Startseite und die News-Übersicht — Termine, Änderungen im
+                Spielbetrieb, alles, was die Serie betrifft. Auch das tut wirklich etwas.
+              </p>
+            </div>
+            <Link href={mdcPath('/admin/news')} className="mdc-btn mdc-btn-primary">
+              Beitrag schreiben
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
           <DemoNotice>
             Alles Weitere auf dieser Seite ist reine Oberfläche: Kein Eintrag wird
             gespeichert oder verschickt, alles lebt nur im Browser und ist nach dem
-            Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut ist
-            davon bisher nur der Ergebnis-Upload oben.
+            Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut sind
+            davon bisher der Ergebnis-Upload und die News oben.
           </DemoNotice>
 
           <AdminDemo venues={venues} players={players} />

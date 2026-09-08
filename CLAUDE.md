@@ -104,9 +104,16 @@ dasselbe Turnier später dort, wird die hochgeladene Zeile ignoriert.
 `proxy.ts`, KEIN Cookie — die Zusage „keine Cookies" im Datenschutz gilt
 weiter). Nötige ENV im MDC-Projekt: `MDC_ADMIN_PASSWORD`, `MDC_OCR_API_KEY`,
 `MDC_GITHUB_TOKEN` (fehlt eine, sagt die Seite das und schaltet ab).
-Ablauf, Grenzen und Einrichtung: `docs/mdc-ergebnis-upload.md`. Ändert sich
-etwas am Ablauf (anderer Dienst, Fotos speichern, Datenbank), MUSS Ziffer 9
-der Datenschutzhinweise mitgeändert werden.
+Ändert sich etwas am Foto-Ablauf (anderer Dienst, Fotos speichern,
+Datenbank), MUSS Ziffer 9 der Datenschutzhinweise mitgeändert werden.
+Ablauf, Grenzen und Einrichtung: `docs/mdc-ergebnis-upload.md`.
+**News:** Unter `/admin/news` schreibt die Turnierleitung Beiträge; sie
+landen als Commit in `data/news.ts` (JSON-Array in der Datei, deshalb nie
+von Hand die Form zerstören) und erscheinen unter `/news`, auf der
+Startseite und in der Sitemap. Entwürfe (`published: false`) stehen in der
+Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
+Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
+GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
 
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der

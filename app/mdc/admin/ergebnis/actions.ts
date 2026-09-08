@@ -20,7 +20,8 @@
 import { headers } from 'next/headers';
 import { liesErgebniszettel, FotoNichtLesbarError } from '@/lib/mdc/ergebnis-foto';
 import { ordneSpielerZu, type Zuordnung } from '@/lib/mdc/spieler-zuordnung';
-import { veroeffentlicheTurnier, CommitFehler, type NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
+import { veroeffentlicheTurnier, type NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
+import { CommitFehler } from '@/lib/mdc/github';
 import { getUploadConfig, getUploadStatus } from '@/lib/mdc/upload-config';
 import { pointsFor, TABLE_RANGE } from '@/lib/mdc/points';
 import { PLAYERS, getPlayerByPassNr, playerName } from '@/data/players';

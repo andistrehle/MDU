@@ -22,6 +22,7 @@ const NAV = [
   { href: mdcPath(), label: 'Start' },
   { href: mdcPath('/rangliste'), label: 'Rangliste' },
   { href: mdcPath('/turniere'), label: 'Turniere' },
+  { href: mdcPath('/news'), label: 'News' },
   { href: mdcPath('/spieler'), label: 'Spieler' },
   { href: mdcPath('/spielorte'), label: 'Spielorte' },
   { href: mdcPath('/regeln'), label: 'Regeln' },

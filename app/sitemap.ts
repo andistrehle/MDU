@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { LEAGUES, TEAMS, PLAYERS } from '@/lib/data';
 import { MDC_STANDALONE, MDC_ORIGIN } from '@/lib/mdc/site';
+import { publishedNews } from '@/data/news';
 import { PLAYERS as MDC_PLAYERS } from '@/data/players';
 import { VENUES } from '@/data/venues';
 import { ALL_TOURNAMENTS } from '@/data/tournament-results';
@@ -21,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   if (MDC_STANDALONE) {
     const mdcPaths = [
       '', '/rangliste', '/rangliste/archiv', '/turniere', '/turniere/ergebnisse',
-      '/spieler', '/spielorte', '/regeln', '/kontakt', '/impressum', '/datenschutz',
+      '/spieler', '/spielorte', '/regeln', '/news', '/kontakt', '/impressum', '/datenschutz',
     ];
     return [
       ...mdcPaths.map(p => ({ url: `${MDC_ORIGIN}${p}`, lastModified: now })),
@@ -30,6 +31,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       ...ALL_TOURNAMENTS.map(t => ({
         url: `${MDC_ORIGIN}/turniere/ergebnisse/${t.id}`,
         lastModified: now,
+      })),
+      ...publishedNews().map(post => ({
+        url: `${MDC_ORIGIN}/news/${post.id}`,
+        lastModified: new Date(post.date),
       })),
     ];
   }
