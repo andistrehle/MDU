@@ -114,6 +114,16 @@ Startseite und in der Sitemap. Entwürfe (`published: false`) stehen in der
 Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
 Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
 GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
+**Kalender:** Der Wochenplan steht NICHT in einer Terminliste, sondern in den
+Spielorten (fester Wochentag + Uhrzeit je Lokal, `playDaysFrom`). Unter
+`/admin/kalender` trägt die Turnierleitung nur die Abweichungen ein — `absage`
+(Ranking fällt aus, bleibt durchgestrichen sichtbar) und `zusatz` (ein Lokal
+springt ein oder es gibt spontan eines am Wochenende). Landet als Commit in
+`data/kalender.ts` (JSON-Array, Form nicht zerstören), `playDaysFrom` legt es
+über den Plan, also wirkt es überall zugleich: Startseite, `/turniere`,
+Spielort-Seiten, Knopf in der Kopfzeile. Der Spielort ist immer eines der elf
+Lokale — freie Eingabe gibt es bewusst nicht (sonst kein Adresse/Karte/Seite).
+Dauerhafte Änderungen am Spieltag gehören in `data/venues.ts`, nicht hierher.
 **Passnummern-Register (seit 08.09.2026 maßgeblich):** Blatt „Teilnehmer" der
 Arbeitsmappe ist die verbindliche Liste „welche Nummer gehört wem" — auch für
 Leute, die noch nie gespielt haben. Einlesen mit

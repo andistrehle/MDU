@@ -56,13 +56,16 @@ export default function MdcLayout({ children }: { children: React.ReactNode }) {
   const heute = todayInMunich();
   const next = nextPlayDay(heute);
   // Wird heute gespielt, ist „Heute" die klarere Angabe als das Datum.
+  // Abgesagte Termine zählen hier nicht mit — der Knopf soll sagen, wo
+  // wirklich gespielt wird.
+  const offen = next?.eintraege.filter(e => !e.abgesagt) ?? [];
   const nextLabel = next
     ? `${next.date === heute ? 'Heute' : formatDateShort(next.date)} · ${
-        next.venues.length === 1 ? next.venues[0].name : `${next.venues.length} Lokale`
+        offen.length === 1 ? offen[0].venue.name : `${offen.length} Lokale`
       }`
     : 'Spielorte ansehen';
-  const nextHref = next && next.venues.length === 1
-    ? mdcPath(`/spielorte/${next.venues[0].id}`)
+  const nextHref = offen.length === 1
+    ? mdcPath(`/spielorte/${offen[0].venue.id}`)
     : mdcPath('/spielorte');
 
   return (

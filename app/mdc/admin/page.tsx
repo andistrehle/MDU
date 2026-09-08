@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Camera, KeyRound, Newspaper } from 'lucide-react';
+import { ArrowRight, CalendarDays, Camera, KeyRound, Newspaper } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
@@ -79,6 +79,30 @@ export default function AdminPage() {
           >
             <div style={{ maxWidth: 560 }}>
               <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <CalendarDays size={19} style={{ color: 'var(--mdc-red)' }} />
+                Kalender
+              </h2>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Ein Ranking fällt aus, ein anderes Lokal springt ein, oder jemand setzt
+                spontan eins am Wochenende an — hier eintragen. Steht danach überall im
+                Plan.
+              </p>
+            </div>
+            <Link href={mdcPath('/admin/kalender')} className="mdc-btn mdc-btn-primary">
+              Kalender öffnen
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          <div
+            className="mdc-card"
+            style={{
+              padding: '22px 20px', display: 'flex', flexWrap: 'wrap', gap: 16,
+              alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 560 }}>
+              <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
                 <Newspaper size={19} style={{ color: 'var(--mdc-red)' }} />
                 News schreiben
               </h2>
@@ -121,7 +145,7 @@ export default function AdminPage() {
             Alles Weitere auf dieser Seite ist reine Oberfläche: Kein Eintrag wird
             gespeichert oder verschickt, alles lebt nur im Browser und ist nach dem
             Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut sind
-            davon bisher der Ergebnis-Upload, die News und die Passnummern oben.
+            davon bisher der Ergebnis-Upload, der Kalender, die News und die Passnummern oben.
           </DemoNotice>
 
           <AdminDemo venues={venues} players={players} />

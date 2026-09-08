@@ -2,7 +2,7 @@
 // MDC — Wege innerhalb der Turnierverwaltung
 // ============================================================
 //
-// Die Verwaltung hat inzwischen vier Seiten. Ohne diese Leiste käme man von
+// Die Verwaltung hat inzwischen fünf Seiten. Ohne diese Leiste käme man von
 // „Ergebnis hochladen" nur über die Übersicht zu „News schreiben" — am Handy
 // heißt das: zurück, scrollen, weiter. Deshalb steht auf jeder Seite, was es
 // sonst noch gibt.
@@ -12,12 +12,13 @@
 // ============================================================
 
 import Link from 'next/link';
-import { Camera, KeyRound, LayoutGrid, Newspaper } from 'lucide-react';
+import { CalendarDays, Camera, KeyRound, LayoutGrid, Newspaper } from 'lucide-react';
 import { mdcPath } from '@/lib/mdc/site';
 
 const SEITEN = [
   { key: 'uebersicht', href: mdcPath('/admin'), label: 'Übersicht', icon: LayoutGrid },
   { key: 'ergebnis', href: mdcPath('/admin/ergebnis'), label: 'Ergebnis hochladen', icon: Camera },
+  { key: 'kalender', href: mdcPath('/admin/kalender'), label: 'Kalender', icon: CalendarDays },
   { key: 'news', href: mdcPath('/admin/news'), label: 'News schreiben', icon: Newspaper },
   { key: 'passnummern', href: mdcPath('/admin/passnummern'), label: 'Passnummern', icon: KeyRound },
 ] as const;

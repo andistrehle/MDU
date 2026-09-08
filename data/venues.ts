@@ -16,6 +16,7 @@
 // ============================================================
 
 import type { Venue, Weekday } from './types';
+import { faelltAus, zusatzAm } from './kalender';
 
 /**
  * Sollen die Telefonnummern öffentlich angezeigt werden?
@@ -239,21 +240,77 @@ export function venuesByWeekday(): { weekday: Weekday; venues: Venue[] }[] {
  * mitmacht — die stehen in `FLEXIBLE_RANKING_DAYS` und werden getrennt
  * ausgewiesen, statt sie als Termin zu behaupten.
  */
-export function playDaysFrom(fromIso: string, days = 7): {
-  date: string; weekday: Weekday; venues: Venue[];
-}[] {
+export interface PlanEintrag {
+  venue: Venue;
+  /** Uhrzeit an diesem Tag — bei einem Zusatztermin kann sie abweichen. */
+  time: string;
+  /** Nicht der feste Spieltag des Lokals, sondern extra angesetzt. */
+  zusatz: boolean;
+  /** Abgesagt. Der Eintrag bleibt sichtbar, durchgestrichen. */
+  abgesagt: boolean;
+  /** Hinweis aus dem Kalender, z. B. der Grund der Absage. */
+  note: string | null;
+}
+
+export interface PlanTag {
+  date: string;
+  weekday: Weekday;
+  eintraege: PlanEintrag[];
+  /** Findet an diesem Tag noch etwas statt? Bei lauter Absagen `false`. */
+  hatTermine: boolean;
+}
+
+export function playDaysFrom(fromIso: string, days = 7): PlanTag[] {
   const start = new Date(`${fromIso}T00:00:00Z`);
-  const plan: { date: string; weekday: Weekday; venues: Venue[] }[] = [];
+  const plan: PlanTag[] = [];
 
   for (let i = 0; i < days; i++) {
     const tag = new Date(start);
     tag.setUTCDate(tag.getUTCDate() + i);
     // getUTCDay(): 0 = Sonntag. Die MDC zählt 1 = Montag … 7 = Sonntag.
     const weekday = (tag.getUTCDay() === 0 ? 7 : tag.getUTCDay()) as Weekday;
-    const offene = VENUES
+    const date = tag.toISOString().slice(0, 10);
+
+    // Die festen Spieltage aus den Spielorten …
+    const fest: PlanEintrag[] = VENUES
       .filter(v => v.weekdays.includes(weekday))
-      .sort((a, b) => a.time.localeCompare(b.time) || a.name.localeCompare(b.name));
-    if (offene.length) plan.push({ date: tag.toISOString().slice(0, 10), weekday, venues: offene });
+      .map(venue => {
+        const absage = faelltAus(date, venue.id);
+        return {
+          venue,
+          time: venue.time,
+          zusatz: false,
+          abgesagt: absage !== undefined,
+          note: absage?.note ?? null,
+        };
+      });
+
+    // … und was die Turnierleitung zusätzlich angesetzt hat.
+    const extra: PlanEintrag[] = zusatzAm(date)
+      .map(t => {
+        const venue = BY_ID.get(t.venueId);
+        if (!venue) return null;
+        return {
+          venue,
+          time: t.time ?? venue.time,
+          zusatz: true,
+          abgesagt: false,
+          note: t.note,
+        };
+      })
+      .filter((e): e is PlanEintrag => e !== null);
+
+    const eintraege = [...fest, ...extra]
+      .sort((a, b) => a.time.localeCompare(b.time) || a.venue.name.localeCompare(b.venue.name));
+
+    if (eintraege.length) {
+      plan.push({
+        date,
+        weekday,
+        eintraege,
+        hatTermine: eintraege.some(e => !e.abgesagt),
+      });
+    }
   }
 
   return plan;
@@ -265,15 +322,18 @@ export function playDaysFrom(fromIso: string, days = 7): {
  */
 export function nextDatesForVenue(venueId: string, fromIso: string, count = 4): string[] {
   return playDaysFrom(fromIso, count * 7 + 7)
-    .filter(tag => tag.venues.some(v => v.id === venueId))
+    .filter(tag => tag.eintraege.some(e => e.venue.id === venueId && !e.abgesagt))
     .slice(0, count)
     .map(tag => tag.date);
 }
 
-/** Der nächste Spieltag ab einem Datum — für den Knopf in der Kopfzeile. */
-export function nextPlayDay(fromIso: string): { date: string; weekday: Weekday; venues: Venue[] } | undefined {
+/**
+ * Der nächste Tag, an dem wirklich gespielt wird — für den Knopf in der
+ * Kopfzeile. Ein Tag, an dem alles abgesagt ist, wird übersprungen.
+ */
+export function nextPlayDay(fromIso: string): PlanTag | undefined {
   // 8 Tage schauen, damit auch von einem Freitag aus der Montag gefunden wird.
-  return playDaysFrom(fromIso, 8)[0];
+  return playDaysFrom(fromIso, 8).find(tag => tag.hatTermine);
 }
 
 /** „Montag" oder „Dienstag & Freitag" — je nach Zahl der Spieltage. */

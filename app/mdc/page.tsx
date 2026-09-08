@@ -13,12 +13,13 @@ import { RankingWidget } from '@/components/mdc/ranking-widget';
 import { TournamentCard } from '@/components/mdc/result-card';
 import { SectionHeading, StatCard, EmptyRanking } from '@/components/mdc/ui';
 import { NewsKarte } from '@/components/mdc/news';
+import { PlanKarte } from '@/components/mdc/plan-karte';
 import { latestNews } from '@/data/news';
 import { finalRankingOf, runningRankingOf, MDC_STATS, RUNNING_HAS_RESULTS } from '@/data/ranking';
 import { getPlayer, playerName, PLAYERS } from '@/data/players';
 import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/tournament-results';
 import {
-  VENUES, venueAddress, playDaysFrom,
+  VENUES, playDaysFrom,
   FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE,
 } from '@/data/venues';
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
@@ -144,7 +145,7 @@ export default function MdcHomePage() {
                 className="mdc-live-dot"
                 style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--mdc-red)' }}
               />
-              {woche[0]?.venues.length ?? 0} Turniere{' '}
+              {woche[0]?.eintraege.filter(e => !e.abgesagt).length ?? 0} Turniere{' '}
               {woche[0]
                 ? woche[0].date === heute
                   ? 'heute'
@@ -323,34 +324,12 @@ export default function MdcHomePage() {
                 </div>
 
                 <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-                  {tag.venues.map(venue => (
-                    <div
-                      key={venue.id}
-                      className="mdc-card mdc-card-hover"
-                      style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                        <h4 className="mdc-display" style={{ fontSize: '1.15rem' }}>{venue.name}</h4>
-                        <span className="mdc-num" style={{ color: 'var(--mdc-red)', fontWeight: 700 }}>
-                          {venue.time}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-soft)', lineHeight: 1.5 }}>
-                        {venueAddress(venue)}
-                      </p>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', display: 'flex', alignItems: 'center', gap: 7 }}>
-                        <Target size={13} />
-                        {venue.boards} Dartautomaten
-                      </p>
-                      <Link
-                        href={mdcPath(`/spielorte/${venue.id}`)}
-                        className="mdc-btn mdc-btn-ghost mdc-btn-sm"
-                        style={{ marginTop: 'auto', alignSelf: 'flex-start' }}
-                      >
-                        Spielort
-                        <ArrowRight size={14} />
-                      </Link>
-                    </div>
+                  {tag.eintraege.map(eintrag => (
+                    <PlanKarte
+                      key={`${eintrag.venue.id}-${eintrag.zusatz}`}
+                      eintrag={eintrag}
+                      titelGroesse="1.15rem"
+                    />
                   ))}
                 </div>
               </div>
