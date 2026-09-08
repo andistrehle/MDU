@@ -61,7 +61,19 @@ export const metadata: Metadata = {
     title: 'Munich Darts Challenge (MDC)',
     description: 'Münchens Ranking-Serie für Einzelspieler.',
   },
-  ...(MDC_ICON ? { icons: { icon: MDC_ICON.src, apple: MDC_ICON.src } } : {}),
+  // Mit Größe und Typ, nicht nur mit Pfad: Aus dem Wurzelverzeichnis kommt
+  // zusätzlich `favicon.ico` der MDU (48 × 48) — das lässt sich für einen
+  // Unterordner nicht abschalten. Browser wählen unter mehreren Symbolen das
+  // am besten passende, und ein ausgewiesenes 512er PNG sticht ein 48er ICO.
+  ...(MDC_ICON
+    ? {
+      icons: {
+        icon: [{ url: MDC_ICON.src, sizes: '512x512', type: 'image/png' }],
+        shortcut: [{ url: MDC_ICON.src, sizes: '512x512', type: 'image/png' }],
+        apple: [{ url: MDC_ICON.src, sizes: '512x512', type: 'image/png' }],
+      },
+    }
+    : {}),
   robots: MDC_INDEXABLE
     ? { index: true, follow: true }
     : { index: false, follow: false },
