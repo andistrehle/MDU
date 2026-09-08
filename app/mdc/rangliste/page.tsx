@@ -22,6 +22,7 @@ import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
+import { jackpotStand, STARTGELD_JE_TEILNAHME } from '@/lib/mdc/jackpot';
 
 export const metadata: Metadata = {
   title: 'Rangliste',
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
 };
 
 export default function RanglistePage() {
+  // Aus den bisherigen Teilnahmen gerechnet, nicht abgeschrieben — siehe
+  // `lib/mdc/jackpot.ts`.
+  const jackpot = jackpotStand();
+
   return (
     <>
       <PageHero
@@ -73,6 +78,10 @@ export default function RanglistePage() {
                 men={toRankingRows(runningRankingOf('men'))}
                 women={toRankingRows(runningRankingOf('women'))}
                 asOf={RUNNING_SEASON.asOf}
+                payouts={{ men: jackpot.men, women: jackpot.women }}
+                teilnahmen={jackpot.teilnahmen}
+                startgeld={STARTGELD_JE_TEILNAHME}
+                seasonLabel={RUNNING_SEASON.label}
               />
 
               <p style={{ marginTop: 20, fontSize: '0.84rem', color: 'var(--mdc-ink-dim)', maxWidth: 700, lineHeight: 1.65 }}>

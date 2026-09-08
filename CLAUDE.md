@@ -124,6 +124,16 @@ springt ein oder es gibt spontan eines am Wochenende). Landet als Commit in
 Spielort-Seiten, Knopf in der Kopfzeile. Der Spielort ist immer eines der elf
 Lokale — freie Eingabe gibt es bewusst nicht (sonst kein Adresse/Karte/Seite).
 Dauerhafte Änderungen am Spieltag gehören in `data/venues.ts`, nicht hierher.
+**Jackpot:** `lib/mdc/jackpot.ts` rechnet den Topf der laufenden Saison aus den
+Teilnahmen (3 € je Teilnahme, Blatt „Einzelergebnisse" J5) plus Übertrag aus der
+Vorsaison (Männer 200 €, Frauen 220 €); 2 % des Männer-Topfs gehen an die Frauen,
+davon 65 % über die Einzelrangliste, 35 % ins folgende Turnier. Gerechnet statt
+abgeschrieben, damit der Betrag mit jedem Import mitwächst. Zwei bewusste
+Abweichungen von der Mappe stehen im Kopf der Datei (`+175` → `+200` auf Anweisung
+des Betreibers; „Mädels2%" verweist dort auf die leere Hilfsspalte AW13 und käme
+auf 3,50 € statt der abgezogenen 16,54 € — hier gilt für beide Seiten derselbe
+Betrag). Angezeigt im gemeinsamen `components/mdc/payout-box.tsx`: im Archiv als
+Endstand, in der laufenden Wertung als Zwischenstand OHNE Euro je Platz.
 **Passnummern-Register (seit 08.09.2026 maßgeblich):** Blatt „Teilnehmer" der
 Arbeitsmappe ist die verbindliche Liste „welche Nummer gehört wem" — auch für
 Leute, die noch nie gespielt haben. Einlesen mit

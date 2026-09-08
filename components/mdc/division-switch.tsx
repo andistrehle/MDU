@@ -7,24 +7,35 @@
 // Nur ein Umschalter: Männer ↔ Frauen. Männer und Frauen spielen dieselben
 // Turniere, gewertet wird getrennt.
 //
-// Ausschüttung und Lückenhinweis fehlen hier absichtlich: Beides gehört zum
-// Saison-Endstand und stünde in einer laufenden Wertung nur als Versprechen.
-// Der Endstand liegt im Archiv (`ranking-explorer.tsx`).
+// Der Jackpot steht hier wie im Archiv, aber ohne Euro-Beträge je Platz: Der
+// Topf ist ein Fakt, die Verteilung noch nicht. Wer heute Zweiter ist, kann
+// im Mai Zwölfter sein — eine Zahl daneben wäre ein Versprechen, das die
+// Tabelle nicht halten kann.
 // ============================================================
 
 import { useState } from 'react';
-import type { Division } from '@/data/types';
+import type { Division, PayoutSummary } from '@/data/types';
 import { formatDate, formatNumber } from '@/lib/mdc/format';
 import { RankingTable, type RankingRow } from './ranking-table';
+import { PayoutBox } from './payout-box';
 
 interface DivisionSwitchProps {
   men: RankingRow[];
   women: RankingRow[];
   /** Stand der Wertung — steht als Datum über der Tabelle. */
   asOf: string;
+  /** Jackpot je Wertung, sofern die Saison einen führt. */
+  payouts?: Record<Division, PayoutSummary>;
+  /** Teilnahmen je Wertung — erklärt, wie der Topf zustande kommt. */
+  teilnahmen?: Record<Division, number>;
+  /** Startgeld je Teilnahme, das in den Topf fließt. */
+  startgeld?: number;
+  seasonLabel: string;
 }
 
-export function DivisionSwitch({ men, women, asOf }: DivisionSwitchProps) {
+export function DivisionSwitch({
+  men, women, asOf, payouts, teilnahmen, startgeld, seasonLabel,
+}: DivisionSwitchProps) {
   const [division, setDivision] = useState<Division>('men');
   const rows = division === 'men' ? men : women;
 
@@ -49,6 +60,23 @@ export function DivisionSwitch({ men, women, asOf }: DivisionSwitchProps) {
         Wertung. Gespielt haben Männer und Frauen dieselben Turniere — gewertet
         wird getrennt.
       </p>
+
+      {payouts && (
+        <PayoutBox
+          payout={payouts[division]}
+          titel={`Jackpot Saison ${seasonLabel} — Zwischenstand`}
+          hinweis={
+            <>
+              Der Topf wächst mit jedem Turnier: {startgeld ?? 3} € je Teilnahme, bisher{' '}
+              {formatNumber(teilnahmen?.[division] ?? 0)}
+              {' '}in dieser Wertung. Dazu der Übertrag aus der Vorsaison. Ausgeschüttet
+              wird erst am Saisonende — {payouts[division].ezrPercent} % über die
+              Einzelrangliste, der Rest fließt in das folgende Turnier. Wie viel auf
+              welchen Platz entfällt, steht deshalb noch nicht in der Tabelle.
+            </>
+          }
+        />
+      )}
 
       <RankingTable rows={rows} />
     </div>
