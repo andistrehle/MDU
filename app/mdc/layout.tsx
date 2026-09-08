@@ -64,9 +64,12 @@ export default function MdcLayout({ children }: { children: React.ReactNode }) {
         offen.length === 1 ? offen[0].venue.name : `${offen.length} Lokale`
       }`
     : 'Spielorte ansehen';
-  const nextHref = offen.length === 1
-    ? mdcPath(`/spielorte/${offen[0].venue.id}`)
-    : mdcPath('/spielorte');
+  // Der Knopf führt zu den Turnieren DIESES Tages, nicht in eine allgemeine
+  // Übersicht: Wer draufdrückt, will wissen, wo an dem Abend gespielt wird.
+  // Die Sprungmarke setzt `app/mdc/turniere/page.tsx` je Tag.
+  const nextHref = next
+    ? `${mdcPath('/turniere')}#tag-${next.date}`
+    : mdcPath('/turniere');
 
   return (
     <div className="mdc-root">

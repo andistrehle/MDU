@@ -60,7 +60,11 @@ export default function TurnierePage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
             {termine.map(tag => (
-              <div key={tag.date}>
+              // Sprungmarke je Tag: Der Knopf „Nächstes Ranking" in der
+              // Kopfzeile zeigt darauf, damit man dort landet, wo die Turniere
+              // dieses Abends stehen. Der Abstand oben hält die feste
+              // Kopfzeile von der Überschrift fern.
+              <div key={tag.date} id={`tag-${tag.date}`} style={{ scrollMarginTop: 96 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
                   <h3 className="mdc-display" style={{ fontSize: '1.3rem' }}>
                     {tag.date === heute ? 'Heute' : weekdayName(tag.date)}
