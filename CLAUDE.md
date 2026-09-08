@@ -132,8 +132,13 @@ abgeschrieben, damit der Betrag mit jedem Import mitwächst. Zwei bewusste
 Abweichungen von der Mappe stehen im Kopf der Datei (`+175` → `+200` auf Anweisung
 des Betreibers; „Mädels2%" verweist dort auf die leere Hilfsspalte AW13 und käme
 auf 3,50 € statt der abgezogenen 16,54 € — hier gilt für beide Seiten derselbe
-Betrag). Angezeigt im gemeinsamen `components/mdc/payout-box.tsx`: im Archiv als
-Endstand, in der laufenden Wertung als Zwischenstand OHNE Euro je Platz.
+Betrag). Ausgeschüttet wird nur an Spieler mit mindestens 15 Teilnahmen
+(`MINDEST_TEILNAHMEN`, Blatt „Einzelergebnisse" I5, vom Betreiber bestätigt) —
+steht so auch auf der Regelseite. Angezeigt im gemeinsamen
+`components/mdc/payout-box.tsx`: im Archiv als Endstand, in der laufenden
+Wertung als Zwischenstand — dort MIT Anteil und Euro je Platz, ausdrücklich als
+Stand von heute (`withPayout` in `lib/mdc/rows.ts` rechnet den Betrag aus dem
+aktuellen Jackpot, statt ihn abzulegen).
 **Passnummern-Register (seit 08.09.2026 maßgeblich):** Blatt „Teilnehmer" der
 Arbeitsmappe ist die verbindliche Liste „welche Nummer gehört wem" — auch für
 Leute, die noch nie gespielt haben. Einlesen mit
