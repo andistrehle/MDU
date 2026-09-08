@@ -116,6 +116,32 @@ const ABWEISUNG = `<!doctype html>
 </main></body></html>`;
 
 /**
+ * Holt der Browser die Seite im Hintergrund, ohne dass jemand darauf geklickt
+ * hat? Next lädt Ziele vorab, sobald ein `Link` ins Blickfeld scrollt, und
+ * Browser tun das von sich aus auch.
+ *
+ * Das ist der Grund für ein hässliches Verhalten: Ein Vorabruf auf `/admin`
+ * bekommt eine 401 mit `WWW-Authenticate` — und daraufhin fragt der Browser
+ * mitten im Scrollen nach dem Passwort, obwohl der Besucher nirgends
+ * hingewollt hat. Bei so einem Abruf bleibt der Kopf deshalb weg: Die Antwort
+ * ist weiterhin 401, aber ohne Aufforderung fragt niemand.
+ *
+ * ACHTUNG, das erwischt NICHT alles: Den Vorabruf des Next-Routers
+ * (`next-router-prefetch`) bekommt der Proxy gar nicht zu sehen — Next
+ * entfernt diesen Kopf absichtlich, damit RSC- und HTML-Abrufe gleich
+ * behandelt werden (siehe `next/dist/docs/…/proxy.md`, „RSC requests and
+ * rewrites"). Deshalb ist die eigentliche Vorsorge, dass Verweise auf
+ * `/admin` als gewöhnliches `<a>` gesetzt werden statt als `Link`: Dann
+ * entsteht der Vorabruf erst gar nicht.
+ */
+function istVorabruf(request: NextRequest): boolean {
+  const h = request.headers;
+  return h.get('x-middleware-prefetch') === '1'
+    || h.get('purpose') === 'prefetch'
+    || (h.get('sec-purpose') ?? '').includes('prefetch');
+}
+
+/**
  * Prüft den Zugang zum MDC-Verwaltungsbereich.
  * Gibt `null` zurück, wenn durchgelassen werden darf.
  */
@@ -125,15 +151,17 @@ function mdcAdminGuard(request: NextRequest): NextResponse | null {
   const passwort = passwortAus(request.headers.get('authorization') ?? '');
   if (passwort !== null && gleich(passwort, MDC_ADMIN_PASSWORD)) return null;
 
-  return withSecurityHeaders(new NextResponse(ABWEISUNG, {
-    status: 401,
-    headers: {
-      'WWW-Authenticate': 'Basic realm="MDC Turnierverwaltung", charset="UTF-8"',
-      'Content-Type': 'text/html; charset=utf-8',
-      // Nichts davon gehört in einen Zwischenspeicher.
-      'Cache-Control': 'no-store',
-    },
-  }));
+  const kopf: Record<string, string> = {
+    'Content-Type': 'text/html; charset=utf-8',
+    // Nichts davon gehört in einen Zwischenspeicher.
+    'Cache-Control': 'no-store',
+  };
+  // Nur wer wirklich hierher wollte, wird nach dem Passwort gefragt.
+  if (!istVorabruf(request)) {
+    kopf['WWW-Authenticate'] = 'Basic realm="MDC Turnierverwaltung", charset="UTF-8"';
+  }
+
+  return withSecurityHeaders(new NextResponse(ABWEISUNG, { status: 401, headers: kopf }));
 }
 
 function withSecurityHeaders(res: NextResponse): NextResponse {

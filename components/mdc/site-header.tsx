@@ -108,15 +108,21 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
               `mdc-header-admin` blendet ihn wie den Ranking-Knopf unter
               1081 px aus — am Handy übernimmt die Fußzeile. Dahinter steht
               die Passwortabfrage, es ist also kein Schutz, sondern
-              Zurückhaltung. */}
-          <Link
+              Zurückhaltung.
+
+              Bewusst ein gewöhnliches `<a>` und kein `Link`: Next lädt Ziele
+              im Blickfeld schon vorab, und dieser Verweis steht auf JEDER
+              Seite im Blickfeld. Ein solcher Vorabruf auf `/admin` bekommt vom
+              Wächter eine 401 — und der Browser fragt daraufhin unaufgefordert
+              nach dem Passwort. Ein `<a>` lädt erst beim Klick. */}
+          <a
             href={mdcPath('/admin')}
             className="mdc-header-admin"
             aria-label="Turnierverwaltung"
             title="Turnierverwaltung — Ergebnis hochladen, Kalender, News"
           >
             <KeyRound size={16} />
-          </Link>
+          </a>
 
           <button
             type="button"

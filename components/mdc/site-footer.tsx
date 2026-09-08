@@ -14,7 +14,14 @@ import { getCurrentSeason } from '@/data/season';
 import { VENUES } from '@/data/venues';
 import { formatDate } from '@/lib/mdc/format';
 
-const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+interface FooterLink {
+  label: string;
+  href: string;
+  /** Liegt hinter der Passwortabfrage — dann kein Vorabruf (siehe unten). */
+  guarded?: boolean;
+}
+
+const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: 'Spielbetrieb',
     links: [
@@ -30,7 +37,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     links: [
       { label: 'Regeln', href: mdcPath('/regeln') },
       { label: 'Kontakt', href: mdcPath('/kontakt') },
-      { label: 'Turnierverwaltung', href: mdcPath('/admin') },
+      { label: 'Turnierverwaltung', href: mdcPath('/admin'), guarded: true },
     ],
   },
   {
@@ -114,7 +121,15 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
               <ul style={{ display: 'flex', flexDirection: 'column', gap: 9, fontSize: '0.9rem' }}>
                 {column.links.map(link => (
                   <li key={link.href}>
-                    <Link href={link.href}>{link.label}</Link>
+                    {/* Der Verwaltungsbereich als gewöhnlicher Verweis, nicht
+                        als `Link`: Next lädt Ziele im Blickfeld schon vorab,
+                        und ein solcher Vorabruf auf `/admin` beantwortet der
+                        Wächter mit 401 — der Browser fragt dann mitten im
+                        Scrollen nach dem Passwort. Ein `<a>` lädt erst beim
+                        Klick, und dann ist die Abfrage ja gewollt. */}
+                    {link.guarded
+                      ? <a href={link.href}>{link.label}</a>
+                      : <Link href={link.href}>{link.label}</Link>}
                   </li>
                 ))}
               </ul>

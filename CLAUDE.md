@@ -145,6 +145,14 @@ nicht). Löschen kann die Seite nicht: Der Stamm entsteht aus Register und
 Wertungen, wer raus soll, muss aus der Arbeitsmappe raus.
 
 ## Stolperfallen
+- **Verweise auf `/admin` (MDC) NIE als `<Link>`, immer als `<a>`.** Next lädt Ziele vorab,
+  sobald ein `Link` ins Blickfeld scrollt; auf `/admin` antwortet der Wächter mit 401 +
+  `WWW-Authenticate`, und der Browser fragt daraufhin mitten im Scrollen nach dem Passwort —
+  bei jedem Besucher. Trat im September 2026 in Fußzeile und Kopfzeile auf. Der Proxy
+  unterdrückt die Aufforderung zusätzlich bei erkennbaren Vorabrufen (`purpose`,
+  `sec-purpose`, `x-middleware-prefetch`), aber `next-router-prefetch` sieht er NICHT:
+  Next entfernt den Kopf absichtlich (`next/dist/docs/…/proxy.md`, „RSC requests and
+  rewrites"). Das `<a>` ist deshalb die eigentliche Vorsorge.
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der
   **Suppression-Liste** und bekommt nichts mehr → im Resend-Dashboard entfernen.
 - JSX verschluckt Leerzeichen nach `</strong>` am Zeilenende → `{' '}` verwenden.
