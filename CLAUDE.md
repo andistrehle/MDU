@@ -114,15 +114,24 @@ Startseite und in der Sitemap. Entwürfe (`published: false`) stehen in der
 Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
 Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
 GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
-**Passnummern:** `/admin/passnummern` wertet nur aus (`lib/mdc/passnummern.ts`),
-schreibt nichts: vergebene Nummern der Reihe nach, Lücken, nächste freie und
-die doppelt vergebenen. Doppelbelegungen sind echt — eine Nummer wurde nach
-dem Aufhören des ersten Inhabers neu vergeben. Beide bleiben im Stamm (sonst
-hätten ihre Turniere niemanden); als heutiger Inhaber gilt der aus der
-jüngeren Wertung, danach richtet sich auch `getPlayerByPassNr`. Ergebnisse
-einer Saison werden weiterhin über die Rangliste GENAU DIESER Saison
-aufgelöst (`data/tournament-results.ts`) — alte Turniere bleiben beim
-richtigen Menschen. Löschen kann die Seite nicht: Der Stamm entsteht aus den
+**Passnummern-Register (seit 08.09.2026 maßgeblich):** Blatt „Teilnehmer" der
+Arbeitsmappe ist die verbindliche Liste „welche Nummer gehört wem" — auch für
+Leute, die noch nie gespielt haben. Einlesen mit
+`python3 scripts/mdc-import-register.py <mappe.xlsm>` → `data/register.generated.ts`
+(bewusst getrennt vom Saison-Import, damit eine alte Mappe nicht das aktuelle
+Register überschreibt). `data/register.ts` wertet es aus, `data/players.ts`
+baut darauf: Registereinträge ohne Wertung kommen als Spieler dazu (damit sie
+auf einem Zettel auftauchen dürfen), und wessen Nummer im Register jemand
+anderem gehört, verliert sie und bekommt `formerPassNr` — er behält alle
+Ergebnisse, wird als „früher Passnr. X" ausgewiesen. `getPlayerByPassNr` folgt
+dem Register. Ergebnisse einer Saison werden weiterhin über die Rangliste
+GENAU DIESER Saison aufgelöst (`data/tournament-results.ts`) — alte Turniere
+bleiben beim richtigen Menschen.
+`/admin/passnummern` wertet nur aus (`lib/mdc/passnummern.ts`), schreibt
+nichts: Nummern der Reihe nach, echte Lücken, nächste freie, Nummern mit
+Vorgänger — und als einzige Fehlermeldung die Nummern, mit denen gespielt
+wurde, die im Register aber ohne Namen stehen (die sehen frei aus und sind es
+nicht). Löschen kann die Seite nicht: Der Stamm entsteht aus Register und
 Wertungen, wer raus soll, muss aus der Arbeitsmappe raus.
 
 ## Stolperfallen

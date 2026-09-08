@@ -27,7 +27,9 @@ export async function generateMetadata(
   if (!player) return { title: 'Spieler' };
   return {
     title: playerName(player),
-    description: `MDC-Profil von ${playerName(player)} (Passnr. ${player.passNr}) — Platzierung, Punkte und gespielte Turniere.`,
+    description: player.passNr !== null
+      ? `MDC-Profil von ${playerName(player)} (Passnr. ${player.passNr}) — Platzierung, Punkte und gespielte Turniere.`
+      : `MDC-Profil von ${playerName(player)} — Platzierung, Punkte und gespielte Turniere.`,
   };
 }
 
@@ -108,7 +110,20 @@ export default async function SpielerProfilPage(
             <div>
               <h1 className="mdc-display mdc-h2">{playerName(player)}</h1>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                <span className="mdc-chip mdc-chip-red">Passnr. {player.passNr}</span>
+                {player.passNr !== null ? (
+                  <span className="mdc-chip mdc-chip-red">Passnr. {player.passNr}</span>
+                ) : player.formerPassNr !== null ? (
+                  // Die Nummer gehört im Register inzwischen jemand anderem. Sie
+                  // hier trotzdem zu nennen, hilft beim Zuordnen alter Zettel —
+                  // die Ergebnisse unten sind davon unberührt.
+                  <span
+                    className="mdc-chip"
+                    title={'Diese Nummer trägt heute jemand anderes. Die Turniere unten '
+                      + 'gehören trotzdem hierher — jede Saison wird für sich ausgewertet.'}
+                  >
+                    früher Passnr. {player.formerPassNr}
+                  </span>
+                ) : null}
                 {player.nickname && <span className="mdc-chip">„{player.nickname}“</span>}
                 <span className="mdc-chip">{DIVISION_LABEL[player.division]}</span>
                 {favouriteVenue && (

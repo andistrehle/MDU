@@ -18,8 +18,14 @@ import { mdcPath } from '@/lib/mdc/site';
 
 export interface DirectoryEntry {
   id: string;
-  /** `null` = noch keine Nummer vergeben. */
+  /** `null` = keine Nummer mehr oder noch keine vergeben. */
   passNr: number | null;
+  /**
+   * Nummer, die diese Person früher hatte und die inzwischen jemand anderem
+   * gehört. Sie wird ausgewiesen, damit ein alter Zettel mit dieser Nummer
+   * nicht beim Falschen landet.
+   */
+  formerPassNr: number | null;
   firstName: string;
   lastName: string;
   nickname: string | null;
@@ -49,7 +55,10 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
         `${entry.firstName} ${entry.lastName}`.toLowerCase().includes(q) ||
         `${entry.lastName} ${entry.firstName}`.toLowerCase().includes(q) ||
         (entry.nickname?.toLowerCase().includes(q) ?? false) ||
-        (entry.passNr !== null && String(entry.passNr).includes(q))
+        (entry.passNr !== null && String(entry.passNr).includes(q)) ||
+        // Auch über die alte Nummer auffindbar — sonst sucht man sich bei
+        // einem alten Ergebniszettel dumm und dämlich.
+        (entry.formerPassNr !== null && String(entry.formerPassNr).includes(q))
       );
     });
   }, [entries, query, division]);
@@ -130,7 +139,11 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
                   {entry.nickname && <span style={{ color: 'var(--mdc-ink-dim)' }}> „{entry.nickname}“</span>}
                 </p>
                 <p className="mdc-num" style={{ marginTop: 7, fontSize: '0.76rem', color: 'var(--mdc-ink-dim)' }}>
-                  {entry.passNr === null ? 'noch keine Passnr.' : `Passnr. ${entry.passNr}`}
+                  {entry.passNr !== null
+                    ? `Passnr. ${entry.passNr}`
+                    : entry.formerPassNr !== null
+                      ? `früher Passnr. ${entry.formerPassNr}`
+                      : 'noch keine Passnr.'}
                   {entry.tournaments > 0 && (
                     <> · {formatNumber(entry.points)} Pkt · Ø {formatAverage(entry.average)}</>
                   )}

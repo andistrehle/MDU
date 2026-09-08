@@ -2,35 +2,32 @@
 // MDC — Welche Passnummer ist vergeben, welche ist frei?
 // ============================================================
 //
-// Die Seite vergibt keine Passnummern — das tut die Turnierleitung. Sie kann
-// aber sagen, welche Nummern sie kennt, und daraus ergibt sich der Rest:
+// Maßgeblich ist seit September 2026 das Register (`data/register.ts`), das
+// aus dem Blatt „Teilnehmer" der Arbeitsmappe kommt. Dort trägt jede Nummer
+// genau einen Namen — auch die von Leuten, die noch nie gespielt haben.
 //
-//   VERGEBEN   Die Nummer steht in mindestens einer Wertung (Archiv 2025/26,
-//              Sommer-Ranking 2026, laufende Saison) oder wurde beim
-//              Hochladen eines Ergebniszettels neu angelegt.
+//   VERGEBEN   Die Nummer steht im Register.
 //
-//   LÜCKE      Die Nummer steht in keiner davon. Das heißt „der Seite nicht
-//              bekannt", nicht „darf vergeben werden" — wer einen Pass in der
-//              Schublade hat und seit zwei Jahren nicht gespielt hat, steht
-//              hier nicht. Genau so sind die Doppelbelegungen entstanden.
-//              Deshalb schlägt die Seite als nächste Nummer NIE eine Lücke
-//              vor, sondern immer eine über der höchsten vergebenen.
+//   FREI       Sie steht nicht im Register und auch bei niemandem, der
+//              gespielt hat. Anders als früher ist das jetzt eine belastbare
+//              Aussage: Vorher hieß „frei" nur „der Seite unbekannt", und wer
+//              seinen Pass in der Schublade hatte, sah aus wie eine Lücke.
 //
-//   NEU        Zwei Menschen stehen auf derselben Nummer, weil sie nach dem
-//   VERGEBEN   Aufhören des ersten neu vergeben wurde. Das ist kein Fehler und
-//              für die Ergebnisse folgenlos: Jede Saison löst ihre
-//              Passnummern über IHRE EIGENE Rangliste auf
-//              (`data/tournament-results.ts`), und innerhalb einer Wertung ist
-//              keine Nummer doppelt — nachgemessen: 400 Nummern im Archiv,
-//              68 im Sommer-Ranking, 113 in der laufenden Saison, kein
-//              einziger Konflikt. Die Doppelung entsteht erst in der
-//              zusammengeführten Gesamtliste. Wo es auf einen einzelnen Namen
-//              ankommt (Ergebnis-Upload), gilt der aus der jüngeren Wertung.
+//   FEHLT IM   Jemand hat mit dieser Nummer gespielt, im Register steht sie
+//   REGISTER   aber ohne Namen. Das ist die einzige Sorte Fehler, die diese
+//              Seite melden kann und soll — würde die Nummer neu vergeben,
+//              hätte sie zwei Inhaber.
+//
+//   FRÜHERER   Die Nummer gehört im Register jemand anderem als dem, der
+//   INHABER    früher damit gespielt hat. Kein Fehler: Beide behalten ihre
+//              Ergebnisse, denn jede Saison löst ihre Passnummern über ihre
+//              eigene Rangliste auf (`data/tournament-results.ts`).
 //
 // Reine Auswertung vorhandener Daten — hier wird nichts geschrieben.
 // ============================================================
 
-import { PLAYERS, playerName, letzteQuelle, PASS_QUELLEN, type PassQuelle } from '@/data/players';
+import { PLAYERS, playerName, letzteQuelle, type PassQuelle } from '@/data/players';
+import { FREIE_NUMMERN, HOECHSTE_NUMMER, registerEintrag } from '@/data/register';
 import { appearancesOf } from '@/data/tournament-results';
 import type { Division } from '@/data/types';
 
@@ -44,15 +41,15 @@ export interface PassInhaber {
   /** Tag des letzten Turniers, das die Seite kennt. */
   letzterStart: string | null;
   starts: number;
-  /**
-   * Trägt die Nummer heute. Bei einer einfach vergebenen Nummer immer wahr,
-   * bei einer doppelten genau einmal.
-   */
+  /** Trägt die Nummer heute. Bei jeder Nummer genau einmal. */
   aktuell: boolean;
 }
 
 export interface PassBelegung {
   passNr: number;
+  /** Steht die Nummer im Register des Betreibers? */
+  imRegister: boolean;
+  /** Aktueller Inhaber zuerst, dann die früheren. */
   inhaber: PassInhaber[];
 }
 
@@ -60,25 +57,17 @@ export interface PassUebersicht {
   belegungen: PassBelegung[];
   /** Nummern ohne Inhaber, von 1 bis zur höchsten vergebenen. */
   frei: number[];
-  /**
-   * Der Vorschlag für den nächsten Pass: eine höher als die höchste je
-   * vergebene. NICHT die kleinste Lücke.
-   *
-   * Eine Lücke heißt nur „die Seite kennt diese Nummer nicht" — wer einen Pass
-   * in der Schublade hat und seit zwei Jahren nicht gespielt hat, steht in
-   * keiner Wertung und reißt hier ein Loch. Vergibt man solche Löcher neu,
-   * entstehen genau die Doppelbelegungen, die es schon gibt. Immer oben
-   * weiterzählen kann dagegen nie kollidieren.
-   */
-  naechsteNeue: number;
-  /** Kleinste Lücke — nur zur Ansicht, ausdrücklich nicht als Vorschlag. */
-  kleinsteLuecke: number | null;
+  /** Kleinste freie Nummer — der Vorschlag für den nächsten Pass. */
+  naechsteFreie: number;
   hoechsteVergebene: number;
-  /** Belegungen mit mehr als einem Inhaber, aufsteigend. */
-  doppelt: PassBelegung[];
+  /** Nummern, mit denen gespielt wurde, die im Register aber fehlen. */
+  fehltImRegister: PassBelegung[];
+  /** Nummern, die schon mal jemand anderem gehört haben. */
+  mitVorgaenger: PassBelegung[];
 }
 
 const LABEL: Record<PassQuelle, string> = {
+  register: 'noch kein Turnier gespielt',
   archiv: 'Saison 2025/26',
   sommer: 'Sommer-Ranking 2026',
   upload: 'beim Hochladen angelegt',
@@ -90,53 +79,70 @@ export function quelleLabel(quelle: PassQuelle): string {
   return LABEL[quelle];
 }
 
-export function passUebersicht(): PassUebersicht {
-  const nach = new Map<number, PassInhaber[]>();
+function inhaberAus(playerId: string, aktuell: boolean): PassInhaber | null {
+  const player = PLAYERS.find(p => p.id === playerId);
+  if (!player) return null;
+  const starts = appearancesOf(player.id);
+  return {
+    playerId: player.id,
+    name: playerName(player),
+    nickname: player.nickname,
+    quelle: letzteQuelle(player.id) ?? 'register',
+    division: player.division,
+    letzterStart: starts.length
+      ? starts.map(a => a.tournament.date).sort().at(-1) ?? null
+      : null,
+    starts: starts.length,
+    aktuell,
+  };
+}
 
-  for (const player of PLAYERS) {
-    if (player.passNr === null) continue;
-    const starts = appearancesOf(player.id);
-    nach.set(player.passNr, [
-      ...(nach.get(player.passNr) ?? []),
-      {
-        playerId: player.id,
-        name: playerName(player),
-        nickname: player.nickname,
-        division: player.division,
-        quelle: letzteQuelle(player.id) ?? 'archiv',
-        // `appearancesOf` liefert die Starts, aus denen sich der letzte ergibt.
-        letzterStart: starts.length
-          ? starts.map(a => a.tournament.date).sort().at(-1) ?? null
-          : null,
-        starts: starts.length,
-        aktuell: false,
-      },
-    ]);
+export function passUebersicht(): PassUebersicht {
+  // Frühere Inhaber, nach der Nummer, die sie mal hatten.
+  const frueher = new Map<number, string[]>();
+  for (const p of PLAYERS) {
+    if (p.formerPassNr === null) continue;
+    frueher.set(p.formerPassNr, [...(frueher.get(p.formerPassNr) ?? []), p.id]);
   }
 
-  const belegungen: PassBelegung[] = [...nach.entries()]
-    .map(([passNr, inhaber]) => {
-      // Der aus der jüngsten Wertung trägt die Nummer heute — dieselbe Regel
-      // wie in `getPlayerByPassNr`, damit Oberfläche und Zuordnung dasselbe
-      // sagen.
-      const sortiert = [...inhaber].sort(
-        (a, b) => PASS_QUELLEN.indexOf(b.quelle) - PASS_QUELLEN.indexOf(a.quelle),
-      );
-      sortiert[0].aktuell = true;
-      return { passNr, inhaber: sortiert };
-    })
+  // Je Nummer eine Zeile. Mehr als einen aktuellen Inhaber kann es nur bei
+  // einer Nummer geben, die im Register fehlt — dort hat die Seite nichts,
+  // woran sie entscheiden könnte, und sagt das lieber, als zu raten.
+  const heutige = new Map<number, string[]>();
+  for (const player of PLAYERS) {
+    if (player.passNr === null) continue;
+    heutige.set(player.passNr, [...(heutige.get(player.passNr) ?? []), player.id]);
+  }
+
+  const belegungen: PassBelegung[] = [...heutige.entries()]
+    .map(([passNr, ids]) => ({
+      passNr,
+      imRegister: registerEintrag(passNr) !== undefined,
+      inhaber: [
+        ...ids.map(id => inhaberAus(id, true)),
+        ...(frueher.get(passNr) ?? []).map(id => inhaberAus(id, false)),
+      ].filter((i): i is PassInhaber => i !== null),
+    }))
+    .filter(b => b.inhaber.length > 0)
     .sort((a, b) => a.passNr - b.passNr);
 
-  const hoechsteVergebene = belegungen.length ? belegungen[belegungen.length - 1].passNr : 0;
-  const frei: number[] = [];
-  for (let n = 1; n <= hoechsteVergebene; n++) if (!nach.has(n)) frei.push(n);
+  // Die höchste Nummer ist die des Registers — es sei denn, jemand spielt mit
+  // einer noch höheren, die dort fehlt.
+  const hoechsteVergebene = Math.max(
+    HOECHSTE_NUMMER,
+    belegungen.length ? belegungen[belegungen.length - 1].passNr : 0,
+  );
+
+  // Frei ist, was weder im Register steht noch von jemandem getragen wird.
+  const getragen = new Set(belegungen.map(b => b.passNr));
+  const frei = FREIE_NUMMERN.filter(n => !getragen.has(n));
 
   return {
     belegungen,
     frei,
-    naechsteNeue: hoechsteVergebene + 1,
-    kleinsteLuecke: frei[0] ?? null,
+    naechsteFreie: frei[0] ?? hoechsteVergebene + 1,
     hoechsteVergebene,
-    doppelt: belegungen.filter(b => b.inhaber.length > 1),
+    fehltImRegister: belegungen.filter(b => !b.imRegister),
+    mitVorgaenger: belegungen.filter(b => b.imRegister && b.inhaber.length > 1),
   };
 }

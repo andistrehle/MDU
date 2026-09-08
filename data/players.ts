@@ -26,6 +26,7 @@ import { RANKING_WOMEN_2026_27_RAW } from './ranking-2026-27-women';
 import { RANKING_SOMMER_MEN_RAW } from './ranking-sommer-2026-men';
 import { RANKING_SOMMER_WOMEN_RAW } from './ranking-sommer-2026-women';
 import { PLAYERS_UPLOADED_MEN_RAW, PLAYERS_UPLOADED_WOMEN_RAW } from './players-uploaded';
+import { HAS_REGISTER, REGISTER, registerEintrag } from './register';
 
 export const PARSED_MEN = parseRankingRows(RANKING_MEN_2025_26_RAW, 'men');
 export const PARSED_WOMEN = parseRankingRows(RANKING_WOMEN_2025_26_RAW, 'women');
@@ -45,18 +46,21 @@ export const PARSED_UPLOADED_WOMEN = parseRankingRows(PLAYERS_UPLOADED_WOMEN_RAW
 
 /**
  * Der Stamm wird über die Spieler-ID zusammengeführt, NICHT über die
- * Passnummer. Grund: Zwei Passnummern (84 und 303) zeigen in den beiden
- * Auswertungen auf verschiedene Menschen. Über die Nummer zusammengeführt
- * würde einer den anderen überschreiben; über den Namen bleiben beide
- * erhalten und die Doppelbelegung wird sichtbar statt still aufgelöst.
+ * Passnummer: Ein paar Nummern zeigen in verschiedenen Wertungen auf
+ * verschiedene Menschen, weil sie nach dem Aufhören des ersten neu vergeben
+ * wurden. Über die Nummer zusammengeführt würde einer den anderen
+ * überschreiben; über den Namen bleiben beide erhalten.
+ *
+ * Wem eine Nummer HEUTE gehört, entscheidet dann das Register
+ * (`data/register.ts`) — nicht mehr eine Vermutung aus den Wertungen.
  */
+
 /**
  * In welcher Wertung ein Spieler zuletzt aufgetaucht ist — von der ältesten
- * zur jüngsten. Die Reihenfolge ist dieselbe, in der `buildPlayers` die
- * Wertungen durchgeht, und sie beantwortet die Frage, wem eine doppelt
- * vergebene Passnummer HEUTE gehört.
+ * zur jüngsten. `register` heißt: Er hat eine Nummer, steht aber in keiner
+ * Wertung, hat also noch kein Turnier gespielt.
  */
-export const PASS_QUELLEN = ['archiv', 'sommer', 'upload', 'laufend'] as const;
+export const PASS_QUELLEN = ['register', 'archiv', 'sommer', 'upload', 'laufend'] as const;
 export type PassQuelle = (typeof PASS_QUELLEN)[number];
 
 const QUELLE_VON = new Map<string, PassQuelle>();
@@ -89,6 +93,7 @@ function buildPlayers(): Player[] {
     players.set(row.playerId, {
       id: row.playerId,
       passNr: row.passNr,
+      formerPassNr: null,
       firstName: row.firstName,
       lastName: row.lastName,
       // Spitzname und Stammlokal stehen mal in der einen, mal in der anderen
@@ -100,7 +105,48 @@ function buildPlayers(): Player[] {
     });
   }
 
-  // Spieler ohne Passnummer (noch keine vergeben) stehen hinten.
+  // ------------------------------------------------------------
+  // Das Register hat das letzte Wort
+  // ------------------------------------------------------------
+  // Wer im Register steht, aber in keiner Wertung, kommt jetzt dazu: Er hat
+  // eine Nummer und darf auf einem Ergebniszettel auftauchen, auch wenn er
+  // noch nie gespielt hat. Die Wertungsklasse eines Spielers, der schon in
+  // einer Rangliste steht, wird NICHT angefasst — sonst verschöbe sich
+  // jemand aus seiner eigenen Wertung heraus.
+  for (const row of REGISTER) {
+    const existing = players.get(row.playerId);
+    if (existing) {
+      players.set(row.playerId, { ...existing, passNr: row.passNr });
+      continue;
+    }
+    QUELLE_VON.set(row.playerId, 'register');
+    players.set(row.playerId, {
+      id: row.playerId,
+      passNr: row.passNr,
+      formerPassNr: null,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      nickname: row.nickname,
+      division: row.division,
+      photoUrl: null,
+      homeVenueId: row.homeVenueId,
+    });
+  }
+
+  // Und wessen Nummer im Register jemand anderem gehört, der ist ihr
+  // ehemaliger Inhaber. Er behält alles außer der Nummer — seine Ergebnisse
+  // hängen an der Spieler-ID, nicht an der Nummer.
+  if (HAS_REGISTER) {
+    for (const [id, player] of players) {
+      if (player.passNr === null) continue;
+      const eintrag = registerEintrag(player.passNr);
+      if (eintrag && eintrag.playerId !== id) {
+        players.set(id, { ...player, passNr: null, formerPassNr: player.passNr });
+      }
+    }
+  }
+
+  // Spieler ohne Passnummer (ehemalige Inhaber) stehen hinten.
   return [...players.values()].sort(
     (a, b) => (a.passNr ?? Infinity) - (b.passNr ?? Infinity) || a.id.localeCompare(b.id),
   );
@@ -132,25 +178,17 @@ export const PLAYERS: Player[] = buildPlayers();
 const BY_ID = new Map(PLAYERS.map(p => [p.id, p]));
 
 /**
- * Passnummer → Spieler. Bei doppelt vergebenen Nummern gewinnt der JÜNGERE
- * Eintrag: Wer eine Nummer heute auf den Zettel schreibt, meint den, der sie
- * jetzt trägt, nicht den, der vor zwei Saisons damit gespielt hat. Vorher
- * entschied hier die alphabetische Reihenfolge der Spieler-ID — das war
- * Zufall.
+ * Passnummer → Spieler. Seit es das Register gibt, ist das eindeutig: Dort
+ * trägt jede Nummer genau einen Namen, und wer eine Nummer früher hatte, hat
+ * hier keine mehr (`formerPassNr`).
  *
  * Für Ergebnisse einer bestimmten Saison gilt das NICHT: dort löst
  * `data/tournament-results.ts` die Nummer über die Rangliste genau dieser
  * Saison auf, damit alte Turniere beim richtigen Menschen bleiben.
  */
-const BY_PASS = new Map<number, Player>();
-for (const p of PLAYERS) {
-  if (p.passNr === null) continue;
-  const bisher = BY_PASS.get(p.passNr);
-  if (!bisher) { BY_PASS.set(p.passNr, p); continue; }
-  const alt = PASS_QUELLEN.indexOf(letzteQuelle(bisher.id) ?? 'archiv');
-  const neu = PASS_QUELLEN.indexOf(letzteQuelle(p.id) ?? 'archiv');
-  if (neu > alt) BY_PASS.set(p.passNr, p);
-}
+const BY_PASS = new Map<number, Player>(
+  PLAYERS.filter(p => p.passNr !== null).map(p => [p.passNr as number, p]),
+);
 
 export function getPlayer(id: string): Player | undefined {
   return BY_ID.get(id);

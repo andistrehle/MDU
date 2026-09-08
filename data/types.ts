@@ -38,6 +38,14 @@ export interface Player {
    * noch keine Nummer haben. Eine Nummer wird nicht erfunden.
    */
   passNr: number | null;
+  /**
+   * Nummer, die diese Person früher getragen hat und die im Register
+   * inzwischen jemand anderem gehört. `null` im Normalfall.
+   *
+   * Ihre Ergebnisse bleiben davon unberührt: Jede Saison löst ihre
+   * Passnummern über ihre eigene Rangliste auf.
+   */
+  formerPassNr: number | null;
   firstName: string;
   lastName: string;
   /** Spitzname aus der Rangliste (steht dort in Klammern). `null` = keiner. */

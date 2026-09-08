@@ -18,6 +18,7 @@ export default function SpielerPage() {
     return {
       id: player.id,
       passNr: player.passNr,
+      formerPassNr: player.formerPassNr,
       firstName: player.firstName,
       lastName: player.lastName,
       nickname: player.nickname,
@@ -36,7 +37,7 @@ export default function SpielerPage() {
       <PageHero
         kicker="Spielerstamm"
         title="Spieler"
-        description={`${formatNumber(PLAYERS.length)} Spielerinnen und Spieler mit eigener MDC-Passnummer. Die Passnummer gilt nur in der MDC — mit den Pässen der Münchner Dart Union hat sie nichts zu tun.`}
+        description={`${formatNumber(PLAYERS.filter(p => p.passNr !== null).length)} Spielerinnen und Spieler mit eigener MDC-Passnummer. Die Passnummer gilt nur in der MDC — mit den Pässen der Münchner Dart Union hat sie nichts zu tun.`}
       />
 
       <section className="mdc-section">
