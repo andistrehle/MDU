@@ -52,6 +52,14 @@ export interface Terminaenderung {
 
 export const KALENDER: Terminaenderung[] = [
   {
+    "id": "2026-09-08-legendary-zusatz",
+    "date": "2026-09-08",
+    "venueId": "legendary",
+    "art": "zusatz",
+    "time": "20:00",
+    "note": null
+  },
+  {
     "id": "2026-09-10-fiakerstueberl-absage",
     "date": "2026-09-10",
     "venueId": "fiakerstueberl",
