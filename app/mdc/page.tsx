@@ -158,6 +158,30 @@ export default function MdcHomePage() {
         </div>
       </section>
 
+      {/* ── News ──
+          Steht bewusst ganz oben, gleich hinter der Bühne: Wer die Seite
+          aufmacht, soll sehen, was es Neues gibt, ohne erst an Rangliste und
+          Kennzahlen vorbeizuscrollen.
+
+          Und nur, wenn es etwas gibt: Ein Abschnitt „Aktuelles" mit dem
+          Hinweis, dass noch nichts geschrieben wurde, wäre schlechter als gar
+          keiner. */}
+      {neuesteNews.length > 0 && (
+        <section className="mdc-section">
+          <div className="mdc-shell">
+            <SectionHeading
+              kicker="News"
+              title="Aktuelles"
+              description="Was es bei der MDC Neues gibt."
+              action={{ label: 'Alle News', href: mdcPath('/news') }}
+            />
+            <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+              {neuesteNews.map(post => <NewsKarte key={post.id} post={post} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Rangliste ── */}
       <section className="mdc-section">
         <div className="mdc-shell">
@@ -349,25 +373,6 @@ export default function MdcHomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── News ──
-          Nur wenn es etwas gibt: Ein Abschnitt „Aktuelles" mit dem Hinweis, dass
-          noch nichts geschrieben wurde, wäre schlechter als gar keiner. */}
-      {neuesteNews.length > 0 && (
-        <section className="mdc-section">
-          <div className="mdc-shell">
-            <SectionHeading
-              kicker="Aktuelles"
-              title="News"
-              description="Was es bei der MDC Neues gibt."
-              action={{ label: 'Alle News', href: mdcPath('/news') }}
-            />
-            <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-              {neuesteNews.map(post => <NewsKarte key={post.id} post={post} />)}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── Letzte Turniere ── */}
       <section className="mdc-section mdc-section-tint">

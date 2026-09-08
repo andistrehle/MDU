@@ -11,14 +11,12 @@
 // ============================================================
 
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { PageHero } from '@/components/mdc/ui';
+import { AdminNav } from '@/components/mdc/admin-nav';
 import { NewsEditor } from '@/components/mdc/news-editor';
 import { NEWS } from '@/data/news';
 import { todayInMunich } from '@/data/season';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
-import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -45,6 +43,8 @@ export default async function AdminNewsPage() {
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          <AdminNav aktiv="news" />
+
           <NewsEditor posts={posts} heute={todayInMunich()} status={getUploadStatus()} />
 
           <p style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--mdc-ink-dim)', maxWidth: 700 }}>
@@ -54,10 +54,6 @@ export default async function AdminNewsPage() {
             im Verlauf des Repositories.
           </p>
 
-          <Link href={mdcPath('/admin')} className="mdc-btn mdc-btn-ghost mdc-btn-sm" style={{ alignSelf: 'flex-start' }}>
-            <ArrowLeft size={15} />
-            Zur Turnierverwaltung
-          </Link>
         </div>
       </section>
     </>

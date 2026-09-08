@@ -12,8 +12,8 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { PageHero } from '@/components/mdc/ui';
+import { AdminNav } from '@/components/mdc/admin-nav';
 import { ErgebnisUpload, type UploadSpieler, type UploadVenue } from '@/components/mdc/ergebnis-upload';
 import { VENUES, venueWeekdayShort } from '@/data/venues';
 import { PLAYERS, playerName } from '@/data/players';
@@ -53,6 +53,8 @@ export default async function ErgebnisUploadPage() {
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          <AdminNav aktiv="ergebnis" />
+
           <ErgebnisUpload
             venues={venues}
             spieler={spieler}
@@ -68,10 +70,6 @@ export default async function ErgebnisUploadPage() {
             <Link href={mdcPath('/datenschutz')}>Datenschutzhinweisen</Link>.
           </p>
 
-          <Link href={mdcPath('/admin')} className="mdc-btn mdc-btn-ghost mdc-btn-sm" style={{ alignSelf: 'flex-start' }}>
-            Zur Turnierverwaltung
-            <ArrowRight size={15} />
-          </Link>
         </div>
       </section>
     </>

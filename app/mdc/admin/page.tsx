@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Camera, Newspaper } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
+import { AdminNav } from '@/components/mdc/admin-nav';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
 import { VENUES, venueWeekdayShort } from '@/data/venues';
 import { PLAYERS, playerName } from '@/data/players';
@@ -41,6 +42,8 @@ export default function AdminPage() {
 
       <section className="mdc-section">
         <div className="mdc-shell" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          <AdminNav aktiv="uebersicht" />
+
           {/* Der echte Weg steht vor der Demo — wer hierher kommt, will in aller
               Regel ein Ergebnis eintragen, nicht eine Oberfläche ansehen. */}
           <div
