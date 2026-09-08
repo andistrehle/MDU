@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Camera, Newspaper } from 'lucide-react';
+import { ArrowRight, Camera, KeyRound, Newspaper } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
@@ -93,11 +93,35 @@ export default function AdminPage() {
             </Link>
           </div>
 
+          <div
+            className="mdc-card"
+            style={{
+              padding: '22px 20px', display: 'flex', flexWrap: 'wrap', gap: 16,
+              alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 560 }}>
+              <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <KeyRound size={19} style={{ color: 'var(--mdc-red)' }} />
+                Passnummern
+              </h2>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Alle Nummern der Reihe nach: welche vergeben ist, welche frei, und welche
+                zwei Menschen tragen. Für die Frage, welche Nummer der nächste Neuling
+                bekommt.
+              </p>
+            </div>
+            <Link href={mdcPath('/admin/passnummern')} className="mdc-btn mdc-btn-primary">
+              Nummern ansehen
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
           <DemoNotice>
             Alles Weitere auf dieser Seite ist reine Oberfläche: Kein Eintrag wird
             gespeichert oder verschickt, alles lebt nur im Browser und ist nach dem
             Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut sind
-            davon bisher der Ergebnis-Upload und die News oben.
+            davon bisher der Ergebnis-Upload, die News und die Passnummern oben.
           </DemoNotice>
 
           <AdminDemo venues={venues} players={players} />

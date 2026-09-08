@@ -18,7 +18,7 @@
 // ============================================================
 
 import type { Division, Player } from './types';
-import { parseRankingRows } from './parse-ranking';
+import { parseRankingRows, type ParsedRow } from './parse-ranking';
 import { RANKING_MEN_2025_26_RAW } from './ranking-2025-26-men';
 import { RANKING_WOMEN_2025_26_RAW } from './ranking-2025-26-women';
 import { RANKING_MEN_2026_27_RAW } from './ranking-2026-27-men';
@@ -50,22 +50,42 @@ export const PARSED_UPLOADED_WOMEN = parseRankingRows(PLAYERS_UPLOADED_WOMEN_RAW
  * würde einer den anderen überschreiben; über den Namen bleiben beide
  * erhalten und die Doppelbelegung wird sichtbar statt still aufgelöst.
  */
+/**
+ * In welcher Wertung ein Spieler zuletzt aufgetaucht ist — von der ältesten
+ * zur jüngsten. Die Reihenfolge ist dieselbe, in der `buildPlayers` die
+ * Wertungen durchgeht, und sie beantwortet die Frage, wem eine doppelt
+ * vergebene Passnummer HEUTE gehört.
+ */
+export const PASS_QUELLEN = ['archiv', 'sommer', 'upload', 'laufend'] as const;
+export type PassQuelle = (typeof PASS_QUELLEN)[number];
+
+const QUELLE_VON = new Map<string, PassQuelle>();
+
+/**
+ * Die jüngste Wertung, in der dieser Spieler steht. `undefined` gibt es nicht —
+ * ohne Wertung wäre er nicht im Stamm.
+ */
+export function letzteQuelle(playerId: string): PassQuelle | undefined {
+  return QUELLE_VON.get(playerId);
+}
+
 function buildPlayers(): Player[] {
   const players = new Map<string, Player>();
 
-  const alle = [
-    ...PARSED_MEN, ...PARSED_WOMEN,
-    ...PARSED_SOMMER_MEN, ...PARSED_SOMMER_WOMEN,
+  const alle: { rows: ParsedRow[]; quelle: PassQuelle }[] = [
+    { rows: [...PARSED_MEN, ...PARSED_WOMEN], quelle: 'archiv' },
+    { rows: [...PARSED_SOMMER_MEN, ...PARSED_SOMMER_WOMEN], quelle: 'sommer' },
     // Beim Hochladen erfasste Neulinge stehen VOR der laufenden Wertung:
     // Taucht die Person später in der Mappe auf, gilt deren Schreibweise.
-    ...PARSED_UPLOADED_MEN, ...PARSED_UPLOADED_WOMEN,
+    { rows: [...PARSED_UPLOADED_MEN, ...PARSED_UPLOADED_WOMEN], quelle: 'upload' },
     // Zuletzt die laufende Saison: Wer dort steht, ist aktuell dabei — seine
     // Wertungsklasse und Schreibweise gelten.
-    ...PARSED_RUNNING_MEN, ...PARSED_RUNNING_WOMEN,
+    { rows: [...PARSED_RUNNING_MEN, ...PARSED_RUNNING_WOMEN], quelle: 'laufend' },
   ];
 
-  for (const row of alle) {
+  for (const { rows, quelle } of alle) for (const row of rows) {
     const existing = players.get(row.playerId);
+    QUELLE_VON.set(row.playerId, quelle);
     players.set(row.playerId, {
       id: row.playerId,
       passNr: row.passNr,
@@ -87,10 +107,13 @@ function buildPlayers(): Player[] {
 }
 
 /**
- * Passnummern, die mehr als einen Spieler tragen. Aktuell 84 und 303 — in der
- * Saison-Endrangliste und im Sommer-Ranking steht dort jeweils ein anderer
- * Mensch. Wird auf der Spielerseite ausgewiesen, damit es auffällt und
- * geklärt werden kann.
+ * Passnummern, die mehr als einen Spieler tragen: In verschiedenen Wertungen
+ * steht dort jeweils ein anderer Mensch — meistens, weil die Nummer nach dem
+ * Aufhören des ersten Inhabers neu vergeben wurde.
+ *
+ * Zusammengeführt wird trotzdem nicht (siehe `buildPlayers`): Beide behalten
+ * ihre Ergebnisse, und die Doppelbelegung ist sichtbar statt still aufgelöst.
+ * Ausgewiesen wird sie in der Turnierverwaltung unter „Passnummern".
  */
 export function passNumberConflicts(): { passNr: number; players: Player[] }[] {
   const byPass = new Map<number, Player[]>();
@@ -107,9 +130,27 @@ export function passNumberConflicts(): { passNr: number; players: Player[] }[] {
 export const PLAYERS: Player[] = buildPlayers();
 
 const BY_ID = new Map(PLAYERS.map(p => [p.id, p]));
-const BY_PASS = new Map(
-  PLAYERS.filter(p => p.passNr !== null).map(p => [p.passNr as number, p]),
-);
+
+/**
+ * Passnummer → Spieler. Bei doppelt vergebenen Nummern gewinnt der JÜNGERE
+ * Eintrag: Wer eine Nummer heute auf den Zettel schreibt, meint den, der sie
+ * jetzt trägt, nicht den, der vor zwei Saisons damit gespielt hat. Vorher
+ * entschied hier die alphabetische Reihenfolge der Spieler-ID — das war
+ * Zufall.
+ *
+ * Für Ergebnisse einer bestimmten Saison gilt das NICHT: dort löst
+ * `data/tournament-results.ts` die Nummer über die Rangliste genau dieser
+ * Saison auf, damit alte Turniere beim richtigen Menschen bleiben.
+ */
+const BY_PASS = new Map<number, Player>();
+for (const p of PLAYERS) {
+  if (p.passNr === null) continue;
+  const bisher = BY_PASS.get(p.passNr);
+  if (!bisher) { BY_PASS.set(p.passNr, p); continue; }
+  const alt = PASS_QUELLEN.indexOf(letzteQuelle(bisher.id) ?? 'archiv');
+  const neu = PASS_QUELLEN.indexOf(letzteQuelle(p.id) ?? 'archiv');
+  if (neu > alt) BY_PASS.set(p.passNr, p);
+}
 
 export function getPlayer(id: string): Player | undefined {
   return BY_ID.get(id);

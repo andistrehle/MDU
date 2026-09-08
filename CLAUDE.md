@@ -114,6 +114,16 @@ Startseite und in der Sitemap. Entwürfe (`published: false`) stehen in der
 Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
 Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
 GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
+**Passnummern:** `/admin/passnummern` wertet nur aus (`lib/mdc/passnummern.ts`),
+schreibt nichts: vergebene Nummern der Reihe nach, Lücken, nächste freie und
+die doppelt vergebenen. Doppelbelegungen sind echt — eine Nummer wurde nach
+dem Aufhören des ersten Inhabers neu vergeben. Beide bleiben im Stamm (sonst
+hätten ihre Turniere niemanden); als heutiger Inhaber gilt der aus der
+jüngeren Wertung, danach richtet sich auch `getPlayerByPassNr`. Ergebnisse
+einer Saison werden weiterhin über die Rangliste GENAU DIESER Saison
+aufgelöst (`data/tournament-results.ts`) — alte Turniere bleiben beim
+richtigen Menschen. Löschen kann die Seite nicht: Der Stamm entsteht aus den
+Wertungen, wer raus soll, muss aus der Arbeitsmappe raus.
 
 ## Stolperfallen
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der
