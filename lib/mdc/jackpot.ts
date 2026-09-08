@@ -18,7 +18,7 @@
 //   Übertrag 2 %     Zwei Prozent des Männer-Topfs gehen an die Frauen. Beim
 //                    Männer-Jackpot abgezogen, beim Frauen-Jackpot addiert.
 //   EZR 65 %         Anteil, der über die Einzelrangliste ausgeschüttet wird.
-//   Rest 35 %        Rücklage für das folgende Turnier.
+//   Rest 35 %        Rücklage für das Abschlussturnier.
 //
 // ABWEICHUNG VON DER MAPPE, vom Betreiber angewiesen: Im Männer-Jackpot steht
 // dort einmal `+175`, gemeint war `+200`. Hier steht durchgehend 200.

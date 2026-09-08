@@ -135,7 +135,7 @@ export interface RankingEntry {
 
 /**
  * Ausschüttung am Saisonende. In der offiziellen MDC-Endrangliste steht das
- * als Kasten neben der Tabelle (Jackpot, EZR 65 %, folgendes Turnier, Mädels 2 %).
+ * als Kasten neben der Tabelle (Jackpot, EZR 65 %, Abschlussturnier, Mädels 2 %).
  */
 export interface PayoutSummary {
   seasonId: string;
@@ -145,7 +145,7 @@ export interface PayoutSummary {
   /** Einzelranglisten-Anteil (EZR): Prozentsatz und Betrag. */
   ezrPercent: number;
   ezrAmount: number;
-  /** Rücklage fürs folgende Turnier (der Rest des Jackpots). */
+  /** Rücklage fürs Abschlussturnier (der Rest des Jackpots). */
   nextTournamentAmount: number;
   /** Übertrag zwischen den beiden Ranglisten — Beschriftung und Betrag. */
   transferLabel: string;

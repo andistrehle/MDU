@@ -82,7 +82,7 @@ export function RankingExplorer({
           hinweis={
             <>
               Vom Jackpot gehen {payout.ezrPercent} % an die Einzelrangliste, der Rest
-              fließt in das folgende Turnier. Der Euro-Betrag je Platz ergibt sich aus dem
+              geht in das Abschlussturnier. Der Euro-Betrag je Platz ergibt sich aus dem
               Prozentsatz in der Tabelle.
             </>
           }

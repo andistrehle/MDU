@@ -28,7 +28,7 @@ export function PayoutBox({ payout, titel, hinweis }: {
   const items = [
     { label: 'Jackpot', value: euro(payout.jackpot), strong: true },
     { label: `Einzelrangliste ${payout.ezrPercent} %`, value: euro(payout.ezrAmount) },
-    { label: 'Folgendes Turnier', value: euro(payout.nextTournamentAmount) },
+    { label: 'Abschlussturnier', value: euro(payout.nextTournamentAmount) },
     { label: payout.transferLabel, value: euro(payout.transferAmount) },
   ];
 

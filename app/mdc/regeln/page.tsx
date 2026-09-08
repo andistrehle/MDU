@@ -168,7 +168,7 @@ export default function RegelnPage() {
               Alle Punkte einer Saison werden aufaddiert; der Schnitt zeigt, wie stark jemand pro
               Turnier war. Am Saisonende wird die Rangliste abgeschlossen und der Jackpot
               ausgeschüttet: {EZR_PROZENT} % gehen an die Einzelrangliste, der Rest in das
-              folgende Turnier. Männer und Frauen haben dabei jeweils ihre eigene Tabelle und
+              Abschlussturnier. Männer und Frauen haben dabei jeweils ihre eigene Tabelle und
               ihre eigene Ausschüttung.
             </p>
             <p className="mdc-lead" style={{ maxWidth: 760, marginTop: 14 }}>

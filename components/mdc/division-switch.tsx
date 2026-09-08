@@ -74,7 +74,7 @@ export function DivisionSwitch({
               {formatNumber(teilnahmen?.[division] ?? 0)}
               {' '}in dieser Wertung. Dazu der Übertrag aus der Vorsaison. Ausgeschüttet
               wird erst am Saisonende — {payouts[division].ezrPercent} % über die
-              Einzelrangliste, der Rest fließt in das folgende Turnier. Die Beträge in der
+              Einzelrangliste, der Rest in das Abschlussturnier. Die Beträge in der
               Tabelle sind der Stand von heute — der Topf wächst noch, und die Plätze
               verschieben sich bis zum Schluss.
               {mindestTeilnahmen !== undefined && (
