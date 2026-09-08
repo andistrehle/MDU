@@ -53,6 +53,17 @@ export const NEWS: NewsPost[] = [
       "Wenn dir etwas auffällt — ein falscher Platz, eine vertauschte Passnummer, ein fehlendes Turnier —, sag bitte Bescheid. Lieber einmal zu viel gemeldet als eine Zeile, die falsch stehen bleibt."
     ],
     "published": true
+  },
+  {
+    "id": "vertretungsranking-fuers-fiakerstueberl",
+    "date": "2026-09-08",
+    "title": "!!! VERTRETUNGSRANKING  FÜRS FIAKERSTÜBERL !!!",
+    "teaser": "MDC Ranking Donnerstags im 70ER",
+    "category": "MDC",
+    "paragraphs": [
+      "Bitte beachten !! Am Do. 10.9. und DO. 17.9. findet im FIAKER wg. Urlaub kein MDC Ranking statt. Vertretungsweise aber wieder jeweils  ab 19 Uhr im 70ER!!"
+    ],
+    "published": true
   }
 ];
 
