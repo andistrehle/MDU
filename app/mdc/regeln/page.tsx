@@ -6,6 +6,9 @@ import {
   EXAMPLE_FIELD_SIZES, MIN_POINTS, TABLE_RANGE, pointsTableRows,
 } from '@/lib/mdc/points';
 import { mdcPath } from '@/lib/mdc/site';
+import {
+  EZR_PROZENT, MINDEST_TEILNAHMEN, STARTGELD_JE_TEILNAHME,
+} from '@/lib/mdc/jackpot';
 
 export const metadata: Metadata = {
   title: 'Regeln',
@@ -164,9 +167,15 @@ export default function RegelnPage() {
             <p className="mdc-lead" style={{ maxWidth: 760 }}>
               Alle Punkte einer Saison werden aufaddiert; der Schnitt zeigt, wie stark jemand pro
               Turnier war. Am Saisonende wird die Rangliste abgeschlossen und der Jackpot
-              ausgeschüttet: Ein fester Anteil geht an die Einzelrangliste, der Rest in das
+              ausgeschüttet: {EZR_PROZENT} % gehen an die Einzelrangliste, der Rest in das
               folgende Turnier. Männer und Frauen haben dabei jeweils ihre eigene Tabelle und
               ihre eigene Ausschüttung.
+            </p>
+            <p className="mdc-lead" style={{ maxWidth: 760, marginTop: 14 }}>
+              Gefüllt wird der Jackpot aus dem Startgeld: {STARTGELD_JE_TEILNAHME} € je
+              Teilnahme — wer viermal spielt, zahlt viermal ein. Bei der Ausschüttung dabei ist,
+              wer in der Saison <strong>mindestens {MINDEST_TEILNAHMEN} Turniere</strong>{' '}
+              gespielt hat. In der Rangliste steht man auch mit weniger.
             </p>
             <Link href={mdcPath('/rangliste')} className="mdc-btn mdc-btn-primary" style={{ marginTop: 20 }}>
               Zur Rangliste

@@ -15,14 +15,14 @@ import Link from 'next/link';
 import { AlertTriangle, Archive } from 'lucide-react';
 import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
-import { toRankingRows } from '@/lib/mdc/rows';
+import { toRankingRows, withPayout } from '@/lib/mdc/rows';
 import { runningRankingOf, RUNNING_HAS_RESULTS, RUNNING_IS_CORRECTED } from '@/data/ranking';
 import { CORRECTIONS } from '@/data/corrections';
 import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
-import { jackpotStand, STARTGELD_JE_TEILNAHME } from '@/lib/mdc/jackpot';
+import { jackpotStand, STARTGELD_JE_TEILNAHME, MINDEST_TEILNAHMEN } from '@/lib/mdc/jackpot';
 
 export const metadata: Metadata = {
   title: 'Rangliste',
@@ -75,12 +75,14 @@ export default function RanglistePage() {
               )}
 
               <DivisionSwitch
-                men={toRankingRows(runningRankingOf('men'))}
-                women={toRankingRows(runningRankingOf('women'))}
+                men={withPayout(toRankingRows(runningRankingOf('men')), jackpot.men.ezrAmount)}
+                women={withPayout(toRankingRows(runningRankingOf('women')), jackpot.women.ezrAmount)}
                 asOf={RUNNING_SEASON.asOf}
                 payouts={{ men: jackpot.men, women: jackpot.women }}
                 teilnahmen={jackpot.teilnahmen}
+                dabei={jackpot.dabei}
                 startgeld={STARTGELD_JE_TEILNAHME}
+                mindestTeilnahmen={MINDEST_TEILNAHMEN}
                 seasonLabel={RUNNING_SEASON.label}
               />
 

@@ -7,10 +7,9 @@
 // Nur ein Umschalter: Männer ↔ Frauen. Männer und Frauen spielen dieselben
 // Turniere, gewertet wird getrennt.
 //
-// Der Jackpot steht hier wie im Archiv, aber ohne Euro-Beträge je Platz: Der
-// Topf ist ein Fakt, die Verteilung noch nicht. Wer heute Zweiter ist, kann
-// im Mai Zwölfter sein — eine Zahl daneben wäre ein Versprechen, das die
-// Tabelle nicht halten kann.
+// Jackpot und Verteilung stehen hier wie im Archiv — nur eben als
+// Zwischenstand. Dass sich beides bis zum Saisonende noch verschiebt, sagt der
+// Kasten ausdrücklich dazu: Wer heute Fünfter ist, kann im Mai 29. sein.
 // ============================================================
 
 import { useState } from 'react';
@@ -28,13 +27,17 @@ interface DivisionSwitchProps {
   payouts?: Record<Division, PayoutSummary>;
   /** Teilnahmen je Wertung — erklärt, wie der Topf zustande kommt. */
   teilnahmen?: Record<Division, number>;
+  /** Wie viele haben die Mindestzahl an Teilnahmen schon erreicht? */
+  dabei?: Record<Division, number>;
   /** Startgeld je Teilnahme, das in den Topf fließt. */
   startgeld?: number;
+  /** So oft muss man spielen, um bei der Ausschüttung dabei zu sein. */
+  mindestTeilnahmen?: number;
   seasonLabel: string;
 }
 
 export function DivisionSwitch({
-  men, women, asOf, payouts, teilnahmen, startgeld, seasonLabel,
+  men, women, asOf, payouts, teilnahmen, dabei, startgeld, mindestTeilnahmen, seasonLabel,
 }: DivisionSwitchProps) {
   const [division, setDivision] = useState<Division>('men');
   const rows = division === 'men' ? men : women;
@@ -71,14 +74,27 @@ export function DivisionSwitch({
               {formatNumber(teilnahmen?.[division] ?? 0)}
               {' '}in dieser Wertung. Dazu der Übertrag aus der Vorsaison. Ausgeschüttet
               wird erst am Saisonende — {payouts[division].ezrPercent} % über die
-              Einzelrangliste, der Rest fließt in das folgende Turnier. Wie viel auf
-              welchen Platz entfällt, steht deshalb noch nicht in der Tabelle.
+              Einzelrangliste, der Rest fließt in das folgende Turnier. Die Beträge in der
+              Tabelle sind der Stand von heute — der Topf wächst noch, und die Plätze
+              verschieben sich bis zum Schluss.
+              {mindestTeilnahmen !== undefined && (
+                <>
+                  {' '}Dabei ist, wer <strong>mindestens {mindestTeilnahmen} Turniere</strong>{' '}
+                  gespielt hat — bisher{' '}
+                  {(dabei?.[division] ?? 0) === 0
+                    ? 'noch niemand'
+                    : `${formatNumber(dabei?.[division] ?? 0)} von ${formatNumber(rows.length)}`}
+                  .
+                </>
+              )}
             </>
           }
         />
       )}
 
-      <RankingTable rows={rows} />
+      {/* Anteil und Euro-Betrag stehen mit dabei, sobald es einen Jackpot
+          gibt — als Zwischenstand, der sich mit jedem Turnier ändert. */}
+      <RankingTable rows={rows} showPayout={payouts !== undefined} />
     </div>
   );
 }

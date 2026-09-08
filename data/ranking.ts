@@ -105,12 +105,14 @@ function buildRunningRanking(): Record<Division, RankingEntry[]> {
   const divisionOf = new Map<string, Division>();
   const trendOf = new Map<string, RankingEntry['trend']>();
   const orderOf = new Map<string, number>();
+  const anteilOf = new Map<string, number>();
 
   [PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN].forEach((rows, i) => {
     for (const row of rows) {
       divisionOf.set(row.playerId, i === 0 ? 'men' : 'women');
       trendOf.set(row.playerId, row.trend);
       orderOf.set(row.playerId, row.rank);
+      if (row.payoutPercent !== null) anteilOf.set(row.playerId, row.payoutPercent);
     }
   });
 
@@ -160,6 +162,11 @@ function buildRunningRanking(): Record<Division, RankingEntry[]> {
         average: Math.round((konto.points / konto.starts) * 100) / 100,
         bestFinish: stats?.bestFinish ?? 0,
         wins: stats?.wins ?? 0,
+        // Der Anteil an der Ausschüttung steht in der Auswertung des
+        // Betreibers und hängt am Platz. Der Euro-Betrag wird daraus erst in
+        // der Oberfläche gerechnet (mit dem aktuellen Jackpot), damit beides
+        // nicht auseinanderlaufen kann.
+        payoutPercent: anteilOf.get(playerId),
       };
     });
   }

@@ -47,12 +47,28 @@ export const EZR_PROZENT = 65;
 /** Anteil des Männer-Topfs, der an die Frauen geht. */
 export const UEBERTRAG_PROZENT = 2;
 
+/**
+ * So oft muss man gespielt haben, um bei der Ausschüttung dabei zu sein
+ * (Blatt „Einzelergebnisse", I5 — „Mindestanzahl an Teilnahmen"; vom
+ * Betreiber bestätigt). In der Rangliste steht man auch mit weniger, beim
+ * Geld ist man dann aber nicht dabei.
+ */
+export const MINDEST_TEILNAHMEN = 15;
+
 const cent = (n: number) => Math.round(n * 100) / 100;
+
+function zeilen(division: Division) {
+  return division === 'men' ? PARSED_RUNNING_MEN : PARSED_RUNNING_WOMEN;
+}
 
 /** Teilnahmen einer Wertung — die Summe der Spalte „Anzahl TN". */
 function teilnahmen(division: Division): number {
-  const rows = division === 'men' ? PARSED_RUNNING_MEN : PARSED_RUNNING_WOMEN;
-  return rows.reduce((summe, row) => summe + row.tournaments, 0);
+  return zeilen(division).reduce((summe, row) => summe + row.tournaments, 0);
+}
+
+/** Wie viele einer Wertung sind schon bei der Ausschüttung dabei? */
+function dabei(division: Division): number {
+  return zeilen(division).filter(row => row.tournaments >= MINDEST_TEILNAHMEN).length;
 }
 
 export interface JackpotStand {
@@ -60,6 +76,8 @@ export interface JackpotStand {
   women: PayoutSummary;
   /** Teilnahmen je Wertung — Grundlage der Rechnung, gehört daneben. */
   teilnahmen: Record<Division, number>;
+  /** Wie viele haben die Mindestzahl an Teilnahmen schon erreicht? */
+  dabei: Record<Division, number>;
   uebertrag: number;
 }
 
@@ -102,6 +120,7 @@ export function jackpotStand(): JackpotStand {
       uebertrag,
     ),
     teilnahmen: { men: tnMen, women: tnWomen },
+    dabei: { men: dabei('men'), women: dabei('women') },
     uebertrag,
   };
 }
