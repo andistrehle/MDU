@@ -81,7 +81,7 @@ export const KALENDER: Terminaenderung[] = [
     "venueId": "fiakerstueberl",
     "art": "absage",
     "time": null,
-    "note": "Wg Urlaub"
+    "note": "wg Urlaub"
   },
   {
     "id": "2026-09-17-siebziger-zusatz",
