@@ -5,8 +5,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, MapPin, Target,
-  Trophy, Users,
+  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, KeyRound, MapPin,
+  Target, Trophy, Users,
 } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { RankingWidget } from '@/components/mdc/ranking-widget';
@@ -454,6 +454,28 @@ export default function MdcHomePage() {
             <Link href={mdcPath('/regeln')} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
               Doppel-K.-o. erklärt
               <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          {/* Kurzer Weg in die Turnierverwaltung — letzte Zeile der Seite,
+              rechts, blass. Wer ihn sucht, findet ihn immer an derselben
+              Stelle; wer nicht, übersieht ihn.
+
+              `mdc-hide-narrow` blendet ihn unter 901 px aus: Am Handy stört er
+              nur, und dort führt der Weg ohnehin über die Fußzeile. Dahinter
+              steht die Passwortabfrage, es ist also kein Schutz, sondern
+              Zurückhaltung. */}
+          <div className="mdc-hide-narrow" style={{ marginTop: 18, textAlign: 'right' }}>
+            <Link
+              href={mdcPath('/admin')}
+              title="Turnierverwaltung — Ergebnis hochladen, Kalender, News"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: '0.76rem', color: 'var(--mdc-ink-faint)', textDecoration: 'none',
+              }}
+            >
+              <KeyRound size={12} />
+              Turnierverwaltung
             </Link>
           </div>
         </div>
