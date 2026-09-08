@@ -16,11 +16,16 @@
 //              Deshalb schlägt die Seite als nächste Nummer NIE eine Lücke
 //              vor, sondern immer eine über der höchsten vergebenen.
 //
-//   DOPPELT    Zwei Menschen tragen dieselbe Nummer, weil sie nach dem
-//              Aufhören des ersten neu vergeben wurde. Beide bleiben im Stamm,
-//              ihre alten Ergebnisse bleiben bei ihnen (siehe
-//              `data/tournament-results.ts`). Als heutiger Inhaber gilt der
-//              aus der jüngeren Wertung.
+//   NEU        Zwei Menschen stehen auf derselben Nummer, weil sie nach dem
+//   VERGEBEN   Aufhören des ersten neu vergeben wurde. Das ist kein Fehler und
+//              für die Ergebnisse folgenlos: Jede Saison löst ihre
+//              Passnummern über IHRE EIGENE Rangliste auf
+//              (`data/tournament-results.ts`), und innerhalb einer Wertung ist
+//              keine Nummer doppelt — nachgemessen: 400 Nummern im Archiv,
+//              68 im Sommer-Ranking, 113 in der laufenden Saison, kein
+//              einziger Konflikt. Die Doppelung entsteht erst in der
+//              zusammengeführten Gesamtliste. Wo es auf einen einzelnen Namen
+//              ankommt (Ergebnis-Upload), gilt der aus der jüngeren Wertung.
 //
 // Reine Auswertung vorhandener Daten — hier wird nichts geschrieben.
 // ============================================================

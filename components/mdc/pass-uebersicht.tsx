@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Hash, KeyRound, TriangleAlert, Users } from 'lucide-react';
+import { Hash, History, KeyRound, Users } from 'lucide-react';
 import { StatCard } from './ui';
 import { mdcPath } from '@/lib/mdc/site';
 
@@ -107,10 +107,10 @@ export function PassUebersicht({
           icon={<Hash size={18} />}
         />
         <StatCard
-          label="Doppelt vergeben"
+          label="Neu vergeben"
           value={String(doppelt.length)}
-          sub={doppelt.length ? 'zwei Personen auf einer Nummer' : 'keine Doppelbelegung'}
-          icon={<TriangleAlert size={18} />}
+          sub={doppelt.length ? 'Nummer hatte schon mal jemand anderen' : 'jede Nummer hatte nur einen Inhaber'}
+          icon={<History size={18} />}
         />
       </div>
 
@@ -201,22 +201,19 @@ export function PassUebersicht({
       </div>
 
       {doppelt.length > 0 && (
-        <div
-          className="mdc-card"
-          style={{
-            padding: '18px 18px 20px',
-            borderColor: 'var(--mdc-warn-line)', background: 'var(--mdc-warn-tint)',
-          }}
-        >
+        <div className="mdc-card" style={{ padding: '18px 18px 20px' }}>
           <h2 className="mdc-display" style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 9 }}>
-            <TriangleAlert size={18} style={{ color: 'var(--mdc-warn-ink)' }} />
-            Doppelt vergebene Nummern
+            <History size={18} style={{ color: 'var(--mdc-red)' }} />
+            Nummern mit einem zweiten Inhaber
           </h2>
           <p style={{ marginTop: 8, fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-            Diese Nummern tragen zwei Menschen — in aller Regel, weil die Nummer nach dem
-            Aufhören des ersten neu vergeben wurde. Beide bleiben im Stamm, damit ihre
-            Ergebnisse dort bleiben, wo sie hingehören. Wer die Nummer heute trägt, ist
-            der aus der jüngeren Wertung — nach dem richtet sich auch der Ergebnis-Upload.
+            Diese Nummern stehen bei zwei Menschen — in aller Regel, weil die Nummer nach
+            dem Aufhören des ersten neu vergeben wurde.{' '}
+            <strong>Für die Ergebnisse ist das folgenlos:</strong> Jede Saison löst ihre
+            Passnummern über ihre eigene Rangliste auf, innerhalb einer Wertung ist keine
+            Nummer doppelt. Der eine kann dem anderen sein Turnier also nicht wegnehmen.
+            Wo es auf einen einzelnen Namen ankommt — beim Ergebnis-Upload — gilt der aus
+            der jüngeren Wertung.
           </p>
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {doppelt.map(z => (
@@ -258,7 +255,7 @@ export function PassUebersicht({
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10, fontSize: '0.8rem', color: 'var(--mdc-ink-dim)' }}>
           <span><b style={{ color: 'var(--mdc-ink)' }}>Fett</b> = vergeben</span>
           <span>Blass = Lücke</span>
-          <span style={{ color: 'var(--mdc-red-deep)' }}>Rot = doppelt</span>
+          <span style={{ color: 'var(--mdc-red-deep)' }}>Rot = zweiter Inhaber</span>
         </div>
 
         {gefiltert.length === 0 ? (

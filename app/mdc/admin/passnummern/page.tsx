@@ -72,13 +72,20 @@ export default async function AdminPassnummernPage() {
               ist eine Lücke kein Vorschlag, sondern nur eine Beobachtung.
             </p>
             <p style={{ marginTop: 12 }}>
-              <strong>Löschen geht hier nicht</strong>, und zwar mit Absicht: Der Spielerstamm
-              wird nicht von Hand gepflegt, sondern aus den Wertungen aufgebaut. Wer eine
-              Zeile in einer Rangliste hat, ist im Stamm — sonst hätten seine Turniere
-              niemanden, zu dem sie gehören. Soll jemand wirklich verschwinden, muss die Zeile
-              aus der Arbeitsmappe raus und die Saison neu eingelesen werden. Bei jemandem mit
-              gespielten Turnieren wäre das falsch: Seine Ergebnisse sind passiert und stehen
-              in der Auswertung.
+              <strong>Löschen ist hier nicht nötig</strong> — auch nicht bei einer Nummer mit
+              zweitem Inhaber. Die Saisons stehen unabhängig voneinander: Jede löst ihre
+              Passnummern über ihre eigene Rangliste auf, ein neuer Inhaber kann dem alten
+              nichts wegnehmen. Und einen Löschknopf gibt es auch deshalb nicht, weil der
+              Spielerstamm nicht von Hand gepflegt, sondern aus den Wertungen aufgebaut wird:
+              Wer eine Ranglistenzeile hat, ist im Stamm — sonst hätten seine Turniere
+              niemanden, zu dem sie gehören.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              Soll jemand wirklich ganz verschwinden, muss seine Zeile aus der Arbeitsmappe
+              raus und die Saison neu eingelesen werden. Das ist der richtige Weg für eine
+              Karteileiche — jemanden, der versehentlich angelegt wurde, etwa durch einen
+              Zahlendreher. Bei jemandem mit gespielten Turnieren wäre es falsch: Dann fehlen
+              Punkte in der Endrangliste und alle darunter rutschen einen Platz nach oben.
             </p>
             <p style={{ marginTop: 12 }}>
               Fehlt oder stimmt etwas nicht, steht der Weg dafür auf der{' '}
