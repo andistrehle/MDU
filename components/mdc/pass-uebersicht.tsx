@@ -37,7 +37,8 @@ export interface PassZeile {
 export interface PassUebersichtProps {
   zeilen: PassZeile[];
   frei: number[];
-  naechsteFreie: number;
+  naechsteNeue: number;
+  kleinsteLuecke: number | null;
   hoechsteVergebene: number;
 }
 
@@ -49,7 +50,9 @@ function datum(iso: string | null): string {
   return `${t}.${m}.${j}`;
 }
 
-export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene }: PassUebersichtProps) {
+export function PassUebersicht({
+  zeilen, frei, naechsteNeue, kleinsteLuecke, hoechsteVergebene,
+}: PassUebersichtProps) {
   const [suche, setSuche] = useState('');
   const [nurFreie, setNurFreie] = useState(false);
 
@@ -84,9 +87,9 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
         }}
       >
         <StatCard
-          label="Nächste freie"
-          value={String(naechsteFreie)}
-          sub={frei.length ? `kleinste Lücke — danach ${frei.slice(1, 4).join(', ')}` : 'erste Nummer über der höchsten vergebenen'}
+          label="Nächste neue Nummer"
+          value={String(naechsteNeue)}
+          sub="eine über der höchsten vergebenen — kann nie doppelt sein"
           icon={<KeyRound size={18} />}
         />
         <StatCard
@@ -96,9 +99,11 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
           icon={<Users size={18} />}
         />
         <StatCard
-          label="Freie Nummern"
+          label="Lücken"
           value={zahl.format(frei.length)}
-          sub={`Lücken zwischen 1 und ${hoechsteVergebene}`}
+          sub={kleinsteLuecke === null
+            ? `keine zwischen 1 und ${hoechsteVergebene}`
+            : `ab ${kleinsteLuecke} — nicht neu vergeben`}
           icon={<Hash size={18} />}
         />
         <StatCard
@@ -107,6 +112,23 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
           sub={doppelt.length ? 'zwei Personen auf einer Nummer' : 'keine Doppelbelegung'}
           icon={<TriangleAlert size={18} />}
         />
+      </div>
+
+      <div
+        className="mdc-card mdc-card-accent"
+        style={{ padding: '18px 18px 20px' }}
+      >
+        <h2 className="mdc-display" style={{ fontSize: '1.1rem' }}>
+          Die nächste Nummer ist die {naechsteNeue}
+        </h2>
+        <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+          Immer oben weiterzählen, nie eine Lücke auffüllen. Eine Lücke heißt nur, dass
+          die Seite diese Nummer nicht kennt — wer seinen Pass in der Schublade hat und
+          zwei Jahre nicht gespielt hat, steht in keiner Wertung und reißt hier ein Loch.
+          Genau so sind die {zahl.format(zeilen.filter(z => z.inhaber.length > 1).length)}{' '}
+          doppelt vergebenen Nummern entstanden. Eine Nummer über der höchsten kann
+          dagegen nie kollidieren.
+        </p>
       </div>
 
       <div className="mdc-card" style={{ padding: '18px 18px 20px' }}>
@@ -158,10 +180,14 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
               </>
             ) : (
               <>
-                <strong>Passnr. {treffer} ist frei</strong> — jedenfalls kennt die Seite
-                niemanden mit dieser Nummer.
-                {treffer > hoechsteVergebene && (
-                  <> Sie liegt über der höchsten vergebenen ({hoechsteVergebene}).</>
+                <strong>Passnr. {treffer} ist nicht vergeben</strong> — jedenfalls kennt die
+                Seite niemanden mit dieser Nummer.
+                {treffer > hoechsteVergebene ? (
+                  <> Sie liegt über der höchsten vergebenen ({hoechsteVergebene}) und kann
+                    bedenkenlos vergeben werden.</>
+                ) : (
+                  <> Sie ist eine Lücke unterhalb der höchsten vergebenen — vielleicht hat
+                    doch jemand einen alten Pass damit. Sicher ist die {naechsteNeue}.</>
                 )}
               </>
             )}
@@ -170,7 +196,7 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 14, fontSize: '0.9rem' }}>
           <input type="checkbox" checked={nurFreie} onChange={e => setNurFreie(e.target.checked)} />
-          Nur freie Nummern zeigen
+          Nur die Lücken zeigen
         </label>
       </div>
 
@@ -231,7 +257,7 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10, fontSize: '0.8rem', color: 'var(--mdc-ink-dim)' }}>
           <span><b style={{ color: 'var(--mdc-ink)' }}>Fett</b> = vergeben</span>
-          <span>Blass = frei</span>
+          <span>Blass = Lücke</span>
           <span style={{ color: 'var(--mdc-red-deep)' }}>Rot = doppelt</span>
         </div>
 
@@ -253,7 +279,7 @@ export function PassUebersicht({ zeilen, frei, naechsteFreie, hoechsteVergebene 
               return (
                 <span
                   key={n}
-                  title={zeile ? `Passnr. ${n}: ${namen}` : `Passnr. ${n} — frei`}
+                  title={zeile ? `Passnr. ${n}: ${namen}` : `Passnr. ${n} — Lücke, nicht vergeben`}
                   style={{
                     padding: '7px 4px', textAlign: 'center', borderRadius: 7,
                     fontVariantNumeric: 'tabular-nums', fontSize: '0.85rem',

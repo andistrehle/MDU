@@ -9,10 +9,12 @@
 //              Sommer-Ranking 2026, laufende Saison) oder wurde beim
 //              Hochladen eines Ergebniszettels neu angelegt.
 //
-//   FREI       Die Nummer steht in keiner davon. Das heißt „der Seite nicht
+//   LÜCKE      Die Nummer steht in keiner davon. Das heißt „der Seite nicht
 //              bekannt", nicht „darf vergeben werden" — wer einen Pass in der
 //              Schublade hat und seit zwei Jahren nicht gespielt hat, steht
-//              hier nicht. Deshalb sagt die Oberfläche das ausdrücklich dazu.
+//              hier nicht. Genau so sind die Doppelbelegungen entstanden.
+//              Deshalb schlägt die Seite als nächste Nummer NIE eine Lücke
+//              vor, sondern immer eine über der höchsten vergebenen.
 //
 //   DOPPELT    Zwei Menschen tragen dieselbe Nummer, weil sie nach dem
 //              Aufhören des ersten neu vergeben wurde. Beide bleiben im Stamm,
@@ -53,8 +55,19 @@ export interface PassUebersicht {
   belegungen: PassBelegung[];
   /** Nummern ohne Inhaber, von 1 bis zur höchsten vergebenen. */
   frei: number[];
-  /** Kleinste freie Nummer — der naheliegende Vorschlag für den nächsten Pass. */
-  naechsteFreie: number;
+  /**
+   * Der Vorschlag für den nächsten Pass: eine höher als die höchste je
+   * vergebene. NICHT die kleinste Lücke.
+   *
+   * Eine Lücke heißt nur „die Seite kennt diese Nummer nicht" — wer einen Pass
+   * in der Schublade hat und seit zwei Jahren nicht gespielt hat, steht in
+   * keiner Wertung und reißt hier ein Loch. Vergibt man solche Löcher neu,
+   * entstehen genau die Doppelbelegungen, die es schon gibt. Immer oben
+   * weiterzählen kann dagegen nie kollidieren.
+   */
+  naechsteNeue: number;
+  /** Kleinste Lücke — nur zur Ansicht, ausdrücklich nicht als Vorschlag. */
+  kleinsteLuecke: number | null;
   hoechsteVergebene: number;
   /** Belegungen mit mehr als einem Inhaber, aufsteigend. */
   doppelt: PassBelegung[];
@@ -116,7 +129,8 @@ export function passUebersicht(): PassUebersicht {
   return {
     belegungen,
     frei,
-    naechsteFreie: frei[0] ?? hoechsteVergebene + 1,
+    naechsteNeue: hoechsteVergebene + 1,
+    kleinsteLuecke: frei[0] ?? null,
     hoechsteVergebene,
     doppelt: belegungen.filter(b => b.inhaber.length > 1),
   };

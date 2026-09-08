@@ -57,18 +57,19 @@ export default async function AdminPassnummernPage() {
           <PassUebersicht
             zeilen={zeilen}
             frei={u.frei}
-            naechsteFreie={u.naechsteFreie}
+            naechsteNeue={u.naechsteNeue}
+            kleinsteLuecke={u.kleinsteLuecke}
             hoechsteVergebene={u.hoechsteVergebene}
           />
 
           <div style={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'var(--mdc-ink-dim)', maxWidth: 720 }}>
             <p>
-              <strong>{'Was „frei" hier heißt:'}</strong> Die Nummer steht in keiner Wertung, die
-              die Seite kennt — weder im Archiv 2025/26, noch im Sommer-Ranking 2026, noch in
-              der laufenden Saison, und sie wurde auch nicht beim Hochladen eines Zettels
-              angelegt. Ob jemand mit dieser Nummer einen Pass in der Schublade hat und seit
-              zwei Jahren nicht mehr gespielt hat, weiß die Seite nicht. Das entscheidet die
-              Turnierleitung, nicht die Liste.
+              <strong>{'Was eine „Lücke" hier heißt:'}</strong> Die Nummer steht in keiner
+              Wertung, die die Seite kennt — weder im Archiv 2025/26, noch im Sommer-Ranking
+              2026, noch in der laufenden Saison, und sie wurde auch nicht beim Hochladen
+              eines Zettels angelegt. Ob jemand mit dieser Nummer einen Pass in der Schublade
+              hat und seit zwei Jahren nicht mehr gespielt hat, weiß die Seite nicht. Deshalb
+              ist eine Lücke kein Vorschlag, sondern nur eine Beobachtung.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Löschen geht hier nicht</strong>, und zwar mit Absicht: Der Spielerstamm
