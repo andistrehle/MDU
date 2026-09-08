@@ -38,7 +38,23 @@ export interface NewsPost {
   published: boolean;
 }
 
-export const NEWS: NewsPost[] = [];
+export const NEWS: NewsPost[] = [
+  {
+    "id": "die-neue-saison-laeuft-und-die-seite-ist-online",
+    "date": "2026-09-08",
+    "title": "Die neue Saison läuft — und die Seite ist online",
+    "teaser": "Seit dem 31. August läuft die Saison 2026/27. Ab sofort stehen Rangliste, Turniere und Spielerprofile im Netz.",
+    "category": "MDC",
+    "paragraphs": [
+      "Seit dem **31. August** läuft die Saison 2026/27. Die Wertung hat für alle wieder bei null angefangen. Die festen Turnierabende sind wie gewohnt von Montag bis Donnerstag in elf Lokalen in und um München, dazu kommen einzelne Termine am Wochenende.",
+      "Neu ist, dass es das alles jetzt auch im Netz gibt: Unter **mdc-ranking.de** stehen die laufende Rangliste getrennt nach Herren und Damen, jedes einzelne Turnier mit der vollständigen Platzierungsliste, alle Spielorte mit ihrem Wochentag und eine eigene Seite für jeden Spieler mit sämtlichen Starts.",
+      "Die Vorsaison ist ebenfalls da. Der Endstand der Saison 2025/26 mit allen 744 Turnieren und das Sommer-Ranking 2026 liegen im Archiv und bleiben dort unverändert stehen.",
+      "Die Punkte rechnet die Seite selbst — aus Platzierung und Feldgröße, nach der Punktetabelle der Serie. Sie werden nirgends abgetippt. Ein Turnier steht online, sobald die Turnierleitung den Ergebniszettel eingetragen hat.",
+      "Wenn dir etwas auffällt — ein falscher Platz, eine vertauschte Passnummer, ein fehlendes Turnier —, sag bitte Bescheid. Lieber einmal zu viel gemeldet als eine Zeile, die falsch stehen bleibt."
+    ],
+    "published": true
+  }
+];
 
 /** Veröffentlichte Beiträge, neueste zuerst. */
 export function publishedNews(): NewsPost[] {
