@@ -50,7 +50,16 @@ export interface Terminaenderung {
   note: string | null;
 }
 
-export const KALENDER: Terminaenderung[] = [];
+export const KALENDER: Terminaenderung[] = [
+  {
+    "id": "2026-09-10-fiakerstueberl-absage",
+    "date": "2026-09-10",
+    "venueId": "fiakerstueberl",
+    "art": "absage",
+    "time": null,
+    "note": "Toni im Urlaub"
+  }
+];
 
 /** Alle Änderungen an einem Tag. */
 export function aenderungenAm(date: string): Terminaenderung[] {
