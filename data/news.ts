@@ -55,6 +55,17 @@ export const NEWS: NewsPost[] = [
     "published": true
   },
   {
+    "id": "vertretungsranking-fuers-fiaker",
+    "date": "2026-09-08",
+    "title": "!! VERTRETUNGSRANKING FÜRS FIAKER !!",
+    "teaser": "DO. Ranking im 70ER",
+    "category": "MDC",
+    "paragraphs": [
+      "**BITTE BACHTEN**   Do. 10.9. und Do. 17.9. findet das MDC Ranking nicht im Fiakerstüberl statt, sondern beim Donato im 70ER !!!"
+    ],
+    "published": true
+  },
+  {
     "id": "vertretungsranking-fuers-fiakerstueberl",
     "date": "2026-09-08",
     "title": "!!! VERTRETUNGSRANKING  FÜRS FIAKERSTÜBERL !!!",
