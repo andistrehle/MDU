@@ -64,17 +64,6 @@ export const NEWS: NewsPost[] = [
       "**BITTE BACHTEN**   Do. 10.9. und Do. 17.9. findet das MDC Ranking nicht im Fiakerstüberl statt, sondern beim Donato im 70ER !!!"
     ],
     "published": true
-  },
-  {
-    "id": "vertretungsranking-fuers-fiakerstueberl",
-    "date": "2026-09-08",
-    "title": "!!! VERTRETUNGSRANKING  FÜRS FIAKERSTÜBERL !!!",
-    "teaser": "MDC Ranking Donnerstags im 70ER",
-    "category": "MDC",
-    "paragraphs": [
-      "Bitte beachten !! Am Do. 10.9. und DO. 17.9. findet im FIAKER wg. Urlaub kein MDC Ranking statt. Vertretungsweise aber wieder jeweils  ab 19 Uhr im 70ER!!"
-    ],
-    "published": true
   }
 ];
 
