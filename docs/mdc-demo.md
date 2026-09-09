@@ -287,16 +287,25 @@ nicht gepflegt.
 ## Passnummern: drei Auffälligkeiten
 
 Beim Abgleich der Saison-Endrangliste mit dem Sommer-Ranking sind drei Dinge
-aufgefallen. Alle drei sind in `data/parse-ranking.ts` festgehalten:
+aufgefallen. Alle drei sind festgehalten: die Namen in `data/namen.ts`, die
+Doppelbelegungen in `data/parse-ranking.ts`.
 
-**Dieselbe Person, andere Schreibweise** — zusammengeführt über
-`CANONICAL_NAMES`, sonst würde aus einem Menschen zwei:
+**Dieselbe Person, andere Schreibweise** — zusammengeführt über die
+Namenskorrekturen in `data/namen.ts`, sonst würde aus einem Menschen zwei:
 
 | Passnr. | Saison 2025/26 | Sommer-Ranking | übernommen |
 | --- | --- | --- | --- |
 | 53 | Schul Micky | Schul Mikky | Micky |
 | 153 | Pogremino Jimmy | Pogremno Jimmy | Pogremno (vom Betreiber bestätigt) |
 | 312 | Machete Reinhold | Behrend Reinhold | Behrend (echter Nachname) |
+| 297 | Ambasador David | — | Sedlmeier (Nachname am 08.09.2026 nachgetragen) |
+
+Diese Liste pflegt seit September 2026 die Turnierleitung selbst, unter
+`/admin/passnummern` → „Namen berichtigen". Sie wird als Commit in
+`data/namen.ts` abgelegt und beim nächsten Einlesen einer Saison nicht
+überschrieben. Weil die Profiladresse aus dem Namen entsteht, merkt sich jeder
+Eintrag die frühere Adresse (`alteId`) — alte Links leiten dauerhaft auf das
+heutige Profil um.
 
 **Dieselbe Passnummer, offenbar zwei verschiedene Menschen** — NICHT
 zusammengeführt, beide bleiben eigene Spieler:

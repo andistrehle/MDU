@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { ArrowLeft, MapPin, Trophy } from 'lucide-react';
 import { PlayerAvatar } from '@/components/mdc/player-avatar';
 import { Sparkline } from '@/components/mdc/sparkline';
 
 import { Dartboard } from '@/components/mdc/dartboard';
+import { neueAdresseFuer } from '@/data/namen';
 import { PLAYERS, getPlayer, playerName } from '@/data/players';
 import { getFinalEntry, DIVISION_LABEL } from '@/data/ranking-final';
 import { getSummerEntry, runningRankingOf } from '@/data/ranking';
@@ -60,7 +61,15 @@ export default async function SpielerProfilPage(
 ) {
   const { id } = await props.params;
   const player = getPlayer(id);
-  if (!player) notFound();
+  // Die Adresse entsteht aus dem Namen — wird ein Name berichtigt
+  // (`/admin/passnummern`), ändert sie sich mit. Ein Link, den jemand vorher
+  // weitergegeben hat, liefe sonst ins Leere; deshalb hier die dauerhafte
+  // Umleitung auf das heutige Profil.
+  if (!player) {
+    const neu = neueAdresseFuer(id);
+    if (neu && getPlayer(neu)) permanentRedirect(mdcPath(`/spieler/${neu}`));
+    notFound();
+  }
 
   const final = getFinalEntry(player.id);
   const summer = getSummerEntry(player.id);

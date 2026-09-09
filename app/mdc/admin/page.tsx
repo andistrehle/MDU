@@ -132,7 +132,8 @@ export default function AdminPage() {
               <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
                 Alle Nummern der Reihe nach: welche vergeben ist, welche frei, und welche
                 zwei Menschen tragen. Für die Frage, welche Nummer der nächste Neuling
-                bekommt.
+                bekommt. Dort lassen sich auch Namen berichtigen — wenn jemand unter
+                seinem Lokalnamen läuft oder falsch geschrieben in der Auswertung steht.
               </p>
             </div>
             <Link href={mdcPath('/admin/passnummern')} className="mdc-btn mdc-btn-primary">

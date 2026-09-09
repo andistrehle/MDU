@@ -18,6 +18,7 @@
 // ============================================================
 
 import type { Division, Trend } from './types';
+import { namensKorrektur } from './namen';
 import { slugify, titleCase, venueFromSurname } from '@/lib/mdc/names';
 
 export interface ParsedRow {
@@ -35,38 +36,6 @@ export interface ParsedRow {
   playerId: string;
   homeVenueId: string | null;
 }
-
-/**
- * Dieselbe Person, in zwei Auswertungen unterschiedlich geschrieben. Ohne
- * diese Tabelle würde aus einem Menschen versehentlich zwei — die Spieler-ID
- * entsteht aus dem Namen.
- *
- *   53  „Schul Micky" (25/26) ↔ „Schul Mikky" (Sommer)
- *  153  „Pogremino Jimmy" (25/26) ↔ „Pogremno Jimmy" (Sommer)
- *  312  „Machete Reinhold" (25/26, unter dem Lokalnamen) ↔ „Behrend Reinhold"
- *
- * Für 53 gilt die Schreibweise der großen Saison-Auswertung, für 312 der echte
- * Nachname aus dem Sommer-Ranking.
- *
- * Für 153 galt bisher ebenfalls die Saison-Auswertung („Pogremino"). Der
- * Betreiber hat die richtige Schreibweise genannt: POGREMNO — also die des
- * Sommer-Rankings, ohne das i. So steht der Name auch im MDU-Spielerstamm.
- *
- * Dieselbe Tabelle trägt auch den zweiten Fall: einen Spieler, der bisher
- * unter dem Namen seines Lokals geführt wurde, weil sein Nachname nicht
- * bekannt war. Sobald er ihn auf einen Ergebniszettel schreibt, gehört er
- * hierher — dann greift er überall zugleich, in Register und Wertungen, und
- * es entstehen nicht zwei Menschen aus einem.
- *
- *  297  „Ambasador David" → SEDLMEIER David (Nachname am 08.09.2026 auf dem
- *       Zettel nachgetragen, vom Betreiber gemeldet)
- */
-const CANONICAL_NAMES: Record<number, { lastName: string; firstName: string }> = {
-  53: { lastName: 'SCHUL', firstName: 'MICKY' },
-  153: { lastName: 'POGREMNO', firstName: 'JIMMY' },  // vom Betreiber bestätigt
-  297: { lastName: 'SEDLMEIER', firstName: 'DAVID' }, // vom Betreiber gemeldet
-  312: { lastName: 'BEHREND', firstName: 'REINHOLD' },
-};
 
 /**
  * Passnummern, die in beiden Auswertungen auf verschiedene Menschen zeigen.
@@ -102,10 +71,14 @@ export function parseRankingRows(rawLines: string[], division: Division): Parsed
     const rank = sharedRank ? lastRank : Number(rankRaw);
     lastRank = rank;
 
+    // Namenskorrektur der Turnierverwaltung (`data/namen.ts`): Sie greift hier
+    // und deshalb überall zugleich — Register, laufende Wertung, Archiv,
+    // hochgeladene Zettel. Stünde sie nur an einer Stelle, entstünden aus
+    // einem Menschen zwei, denn die Spieler-ID kommt aus dem Namen.
     const passNr = Number(passRaw);
-    const canonical = CANONICAL_NAMES[passNr];
-    const lastName = titleCase(canonical?.lastName ?? nameRaw);
-    const { firstName, nickname } = splitFirstName(canonical?.firstName ?? firstRaw);
+    const korrektur = namensKorrektur(passNr);
+    const lastName = titleCase(korrektur?.lastName ?? nameRaw);
+    const { firstName, nickname } = splitFirstName(korrektur?.firstName ?? firstRaw);
 
     // ID aus dem Namen; nur bei echter Namensgleichheit kommt die Passnummer dazu.
     const base = slugify(`${firstName} ${lastName}`);

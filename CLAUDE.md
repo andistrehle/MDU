@@ -152,12 +152,28 @@ Ergebnisse, wird als „früher Passnr. X" ausgewiesen. `getPlayerByPassNr` folg
 dem Register. Ergebnisse einer Saison werden weiterhin über die Rangliste
 GENAU DIESER Saison aufgelöst (`data/tournament-results.ts`) — alte Turniere
 bleiben beim richtigen Menschen.
-`/admin/passnummern` wertet nur aus (`lib/mdc/passnummern.ts`), schreibt
-nichts: Nummern der Reihe nach, echte Lücken, nächste freie, Nummern mit
-Vorgänger — und als einzige Fehlermeldung die Nummern, mit denen gespielt
-wurde, die im Register aber ohne Namen stehen (die sehen frei aus und sind es
-nicht). Löschen kann die Seite nicht: Der Stamm entsteht aus Register und
-Wertungen, wer raus soll, muss aus der Arbeitsmappe raus.
+`/admin/passnummern` wertet aus (`lib/mdc/passnummern.ts`): Nummern der Reihe
+nach, echte Lücken, nächste freie, Nummern mit Vorgänger — und als einzige
+Fehlermeldung die Nummern, mit denen gespielt wurde, die im Register aber ohne
+Namen stehen (die sehen frei aus und sind es nicht). Nummern vergeben oder
+löschen kann die Seite nicht: Der Stamm entsteht aus Register und Wertungen,
+wer raus soll, muss aus der Arbeitsmappe raus.
+**Namen berichtigen** ist das Einzige, was dort geschrieben wird
+(`components/mdc/namen-editor.tsx` → `lib/mdc/namen-commit.ts` → JSON-Array in
+`data/namen.ts`, Form nicht zerstören). Zwei echte Fälle: der Spieler, der
+unter seinem Lokalnamen läuft und den Nachnamen nachträgt („Ambasador David" →
+Sedlmeier), und dieselbe Person in zwei Auswertungen verschieden geschrieben
+(„Pogremino" ↔ „Pogremno"). Die Korrektur greift in `parseRankingRows` und
+damit in ALLEN Quellen zugleich (Register, laufende Wertung, Archiv, Uploads) —
+stünde sie nur an einer Stelle, würden aus einem Menschen zwei, weil die
+Spieler-ID aus dem Namen entsteht. `homeVenueId` kommt weiterhin aus dem ROHEN
+Nachnamen, sonst verlöre der Spieler sein Stammlokal. Drei Prüfungen in
+`app/mdc/admin/passnummern/actions.ts`: die Nummer muss jemandem gehören, sie
+darf nicht bei zwei Menschen stehen (die Korrektur hängt an der Nummer und
+würde beide umbenennen — Fall für die Mappe), und der neue Name darf nicht die
+Adresse eines anderen Spielers ergeben. Weil die Profiladresse aus dem Namen
+entsteht, ändert sie sich mit: `alteId` in der Korrektur merkt sich die
+frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
 
 ## Stolperfallen
 - **ISR-Schreibvorgänge sind bei Vercel kontingentiert** (Freikontingent 200.000/Monat, danach
