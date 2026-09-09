@@ -105,16 +105,33 @@ function buildRunningRanking(): Record<Division, RankingEntry[]> {
   const divisionOf = new Map<string, Division>();
   const trendOf = new Map<string, RankingEntry['trend']>();
   const orderOf = new Map<string, number>();
-  const anteilOf = new Map<string, number>();
 
   [PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN].forEach((rows, i) => {
     for (const row of rows) {
       divisionOf.set(row.playerId, i === 0 ? 'men' : 'women');
       trendOf.set(row.playerId, row.trend);
       orderOf.set(row.playerId, row.rank);
-      if (row.payoutPercent !== null) anteilOf.set(row.playerId, row.payoutPercent);
     }
   });
+
+  /**
+   * Die Prozentleiter der Auswertung, in ihrer Reihenfolge: 14 %, 12 %, 10 %
+   * … Sie hängt am PLATZ, nicht am Menschen.
+   *
+   * Genau das war hier zuerst falsch: Der Anteil war an die Spieler-ID
+   * geknüpft. Solange die Seite dieselbe Reihenfolge wie die Mappe errechnete,
+   * fiel das nicht auf. Sobald aber ein hochgeladenes Turnier dazukam, das die
+   * Mappe noch nicht kennt, wanderte jemand nach vorn und nahm seinen alten,
+   * kleineren Anteil mit — die Zweite bekam mehr als die Erste.
+   *
+   * Nach Position und nicht nach Platznummer, weil die Mappe bei
+   * Punktgleichheit zwar denselben Platz ausweist, in der Prozentspalte aber
+   * trotzdem zwei verschiedene Werte führt.
+   */
+  const leiter: Record<Division, (number | null)[]> = {
+    men: PARSED_RUNNING_MEN.map(row => row.payoutPercent),
+    women: PARSED_RUNNING_WOMEN.map(row => row.payoutPercent),
+  };
 
   const konten = new Map<string, { points: number; starts: number }>();
   for (const turnier of tournamentsOfSeason(RUNNING_SEASON.id)) {
@@ -162,11 +179,12 @@ function buildRunningRanking(): Record<Division, RankingEntry[]> {
         average: Math.round((konto.points / konto.starts) * 100) / 100,
         bestFinish: stats?.bestFinish ?? 0,
         wins: stats?.wins ?? 0,
-        // Der Anteil an der Ausschüttung steht in der Auswertung des
-        // Betreibers und hängt am Platz. Der Euro-Betrag wird daraus erst in
-        // der Oberfläche gerechnet (mit dem aktuellen Jackpot), damit beides
-        // nicht auseinanderlaufen kann.
-        payoutPercent: anteilOf.get(playerId),
+        // Der Anteil kommt aus der Prozentleiter der Auswertung und richtet
+        // sich nach der Position in DIESER Wertung. Wer weiter hinten steht,
+        // als die Leiter reicht, bekommt keinen — dort steht `null`.
+        // Der Euro-Betrag wird daraus erst in der Oberfläche gerechnet (mit
+        // dem aktuellen Jackpot), damit beides nicht auseinanderlaufen kann.
+        payoutPercent: leiter[division][index] ?? undefined,
       };
     });
   }

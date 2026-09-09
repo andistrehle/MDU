@@ -32,7 +32,7 @@
 // ============================================================
 
 import type { Division, PayoutSummary } from '@/data/types';
-import { PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN } from '@/data/players';
+import { runningRankingOf } from '@/data/ranking';
 import { RUNNING_SEASON } from '@/data/season';
 
 /** Startgeld je Teilnahme, das in den Jackpot fließt. */
@@ -57,18 +57,22 @@ export const MINDEST_TEILNAHMEN = 15;
 
 const cent = (n: number) => Math.round(n * 100) / 100;
 
-function zeilen(division: Division) {
-  return division === 'men' ? PARSED_RUNNING_MEN : PARSED_RUNNING_WOMEN;
-}
-
-/** Teilnahmen einer Wertung — die Summe der Spalte „Anzahl TN". */
+/**
+ * Teilnahmen einer Wertung.
+ *
+ * Aus der Wertung der SEITE, nicht aus der Rangliste der Mappe: Ein per Foto
+ * hochgeladenes Turnier steht sofort in den Einzelergebnissen, in der Mappe
+ * aber erst nach der nächsten Auswertung. Mit der Mappe als Quelle wäre der
+ * Jackpot nach jedem Upload zu klein — dabei zahlt jeder Starter sein
+ * Startgeld schon an dem Abend ein.
+ */
 function teilnahmen(division: Division): number {
-  return zeilen(division).reduce((summe, row) => summe + row.tournaments, 0);
+  return runningRankingOf(division).reduce((summe, e) => summe + e.tournaments, 0);
 }
 
 /** Wie viele einer Wertung sind schon bei der Ausschüttung dabei? */
 function dabei(division: Division): number {
-  return zeilen(division).filter(row => row.tournaments >= MINDEST_TEILNAHMEN).length;
+  return runningRankingOf(division).filter(e => e.tournaments >= MINDEST_TEILNAHMEN).length;
 }
 
 export interface JackpotStand {

@@ -34,6 +34,8 @@ import {
 import { pointsFor, TABLE_RANGE } from '../lib/mdc/points';
 import { FINAL_SEASON, RUNNING_SEASON } from '../data/season';
 import { getVenue, isFormerVenue } from '../data/venues';
+import { runningRankingOf } from '../data/ranking';
+import { jackpotStand } from '../lib/mdc/jackpot';
 import type { Division, Season } from '../data/types';
 
 /** Was die Summenprobe von einer Ranglistenzeile braucht. */
@@ -150,6 +152,35 @@ pruefe(FINAL_SEASON, FINAL_RANKING_2025_26);
 // gegen die gerechnete: Die entsteht selbst aus den Einzelergebnissen, ein
 // Vergleich damit wäre eine Probe gegen sich selbst.
 pruefe(RUNNING_SEASON, { men: PARSED_RUNNING_MEN, women: PARSED_RUNNING_WOMEN });
+
+// ── Ausschüttung der laufenden Saison ──────────────────────
+//
+// Der Anteil an der Ausschüttung hängt am PLATZ, nicht am Menschen. Als er
+// hier einmal an der Spieler-ID hing, fiel das erst auf, als ein
+// hochgeladenes Turnier jemanden nach vorn schob: Die Zweite bekam mehr als
+// die Erste. Deshalb steht die Probe jetzt im Prüfskript.
+console.log('\nAusschüttung ' + RUNNING_SEASON.label);
+{
+  const j = jackpotStand();
+  for (const division of ['men', 'women'] as Division[]) {
+    const mit = runningRankingOf(division).filter(e => e.payoutPercent !== undefined);
+    for (let i = 1; i < mit.length; i++) {
+      const vorher = mit[i - 1];
+      const jetzt = mit[i];
+      if ((jetzt.payoutPercent ?? 0) > (vorher.payoutPercent ?? 0)) {
+        meldung(`${division}: Platz ${jetzt.rank} bekommt ${jetzt.payoutPercent} %, `
+          + `Platz ${vorher.rank} davor nur ${vorher.payoutPercent} %`);
+      }
+    }
+    const topf = j[division];
+    if (Math.abs(topf.ezrAmount + topf.nextTournamentAmount - topf.jackpot) > 0.005) {
+      meldung(`${division}: Einzelrangliste und Abschlussturnier ergeben nicht den Jackpot`);
+    }
+    console.log(`  ${division === 'men' ? 'Männer' : 'Frauen'}: Jackpot `
+      + `${topf.jackpot.toFixed(2)} € aus ${j.teilnahmen[division]} Teilnahmen, `
+      + `${mit.length} Plätze mit Anteil`);
+  }
+}
 
 // ── Berichtigungen: noch nötig oder erledigt? ───────────────
 if (CORRECTIONS.length > 0) {
