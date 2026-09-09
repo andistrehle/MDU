@@ -183,6 +183,12 @@ frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
   und nur die wirklich datumsabhängigen Seiten setzen sich selbst einen kürzeren Wert:
   Startseite und `/turniere` 1800, `/spielorte/[id]` 3600. Von zwei Werten gilt in Next der
   KLEINERE. Vor jedem neuen `revalidate` überlegen, für wie viele Seiten er gilt.
+  Auf der **MDU-Seite** gilt dasselbe: Startseite (`app/page.tsx`) und `/news` standen auf
+  **60 s** (bis zu 2.880 Writes/Tag), obwohl die einzige laufend wechselnde Quelle die
+  Admin-News sind — jetzt **600** (10 Min). Es gibt keine On-Demand-Revalidierung; der
+  News-Schreibpfad läuft clientseitig (`lib/supabase/news.ts`). Braucht News künftig schneller
+  online zu sein, wäre der saubere Hebel `revalidatePath('/')`/`'/news'` per Server-Action,
+  nicht ein kürzeres `revalidate`.
 - **Verweise auf `/admin` (MDC) NIE als `<Link>`, immer als `<a>`.** Next lädt Ziele vorab,
   sobald ein `Link` ins Blickfeld scrollt; auf `/admin` antwortet der Wächter mit 401 +
   `WWW-Authenticate`, und der Browser fragt daraufhin mitten im Scrollen nach dem Passwort —

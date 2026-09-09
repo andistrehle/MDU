@@ -4,8 +4,11 @@ import { NewsArticleCard } from '@/components/mdu/news-article-card';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { getPublishedNews } from '@/lib/server/news-data';
 
-// News kommen aus der DB (Admin-verwaltet); alle 60 s serverseitig neu erzeugt.
-export const revalidate = 60;
+// News kommen aus der DB (Admin-verwaltet); serverseitig alle 10 Minuten neu
+// erzeugt. Bewusst nicht kürzer: Jedes Neurendern ist ein kontingentierter
+// Vercel-ISR-Write (siehe CLAUDE.md „Stolperfallen"). 10 Minuten Vorlauf, bis
+// eine frisch veröffentlichte Meldung öffentlich sichtbar ist, sind unkritisch.
+export const revalidate = 600;
 
 export default async function NewsPage() {
   const articles = await getPublishedNews();

@@ -19,8 +19,13 @@ import {
   formatScheduledDate,
 } from '@/lib/data';
 
-// News kommen aus der DB (Admin-verwaltet); alle 60 s serverseitig neu erzeugt.
-export const revalidate = 60;
+// News kommen aus der DB (Admin-verwaltet); serverseitig alle 10 Minuten neu
+// erzeugt. Bewusst nicht kürzer: Jedes Neurendern ist ein kontingentierter
+// Vercel-ISR-Write (siehe CLAUDE.md „Stolperfallen"). Die einzige laufend
+// wechselnde Quelle hier sind Admin-News; Spielpläne/Ergebnisse stammen aus
+// statischen Daten und ändern sich ohnehin nur mit einem Deploy. 10 Minuten
+// Vorlauf für eine Vereins-Startseite sind unkritisch (Seite ist zudem noindex).
+export const revalidate = 600;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
 
