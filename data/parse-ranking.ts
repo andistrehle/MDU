@@ -51,10 +51,20 @@ export interface ParsedRow {
  * Für 153 galt bisher ebenfalls die Saison-Auswertung („Pogremino"). Der
  * Betreiber hat die richtige Schreibweise genannt: POGREMNO — also die des
  * Sommer-Rankings, ohne das i. So steht der Name auch im MDU-Spielerstamm.
+ *
+ * Dieselbe Tabelle trägt auch den zweiten Fall: einen Spieler, der bisher
+ * unter dem Namen seines Lokals geführt wurde, weil sein Nachname nicht
+ * bekannt war. Sobald er ihn auf einen Ergebniszettel schreibt, gehört er
+ * hierher — dann greift er überall zugleich, in Register und Wertungen, und
+ * es entstehen nicht zwei Menschen aus einem.
+ *
+ *  297  „Ambasador David" → SEDLMEIER David (Nachname am 08.09.2026 auf dem
+ *       Zettel nachgetragen, vom Betreiber gemeldet)
  */
 const CANONICAL_NAMES: Record<number, { lastName: string; firstName: string }> = {
   53: { lastName: 'SCHUL', firstName: 'MICKY' },
   153: { lastName: 'POGREMNO', firstName: 'JIMMY' },  // vom Betreiber bestätigt
+  297: { lastName: 'SEDLMEIER', firstName: 'DAVID' }, // vom Betreiber gemeldet
   312: { lastName: 'BEHREND', firstName: 'REINHOLD' },
 };
 
