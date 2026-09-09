@@ -160,6 +160,13 @@ nicht). Löschen kann die Seite nicht: Der Stamm entsteht aus Register und
 Wertungen, wer raus soll, muss aus der Arbeitsmappe raus.
 
 ## Stolperfallen
+- **ISR-Schreibvorgänge sind bei Vercel kontingentiert** (Freikontingent 200.000/Monat, danach
+  werden die Projekte pausiert). Jedes Neurendern einer statischen Seite zählt. `revalidate`
+  im MDC-Layout gilt für über 1.300 Seiten (546 Spielerprofile, 763 Turniere) — bei 30 Minuten
+  wären das bis zu 64.000 Schreibvorgänge am Tag. Deshalb steht im Layout **86400** (ein Tag),
+  und nur die wirklich datumsabhängigen Seiten setzen sich selbst einen kürzeren Wert:
+  Startseite und `/turniere` 1800, `/spielorte/[id]` 3600. Von zwei Werten gilt in Next der
+  KLEINERE. Vor jedem neuen `revalidate` überlegen, für wie viele Seiten er gilt.
 - **Verweise auf `/admin` (MDC) NIE als `<Link>`, immer als `<a>`.** Next lädt Ziele vorab,
   sobald ein `Link` ins Blickfeld scrollt; auf `/admin` antwortet der Wächter mit 401 +
   `WWW-Authenticate`, und der Browser fragt daraufhin mitten im Scrollen nach dem Passwort —

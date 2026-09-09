@@ -27,6 +27,17 @@ import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
 import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
 
+/**
+ * Hier steht der Wochenplan ab heute — die Seite muss also mit dem Datum
+ * mitgehen. Halbe Stunde: Kurz nach Mitternacht ist der Plan höchstens so
+ * lange von gestern.
+ *
+ * Bewusst nur auf DIESER Seite und nicht im Layout: Der Wert des Layouts
+ * gälte für über 1.300 Seiten, und jedes Neurendern zählt bei Vercel als
+ * Schreibvorgang (siehe `app/mdc/layout.tsx`).
+ */
+export const revalidate = 1800;
+
 const STEPS = [
   {
     icon: <MapPin size={22} />,

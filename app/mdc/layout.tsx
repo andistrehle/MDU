@@ -82,10 +82,26 @@ export const metadata: Metadata = {
 /**
  * Die MDC-Seiten sind statisch — ohne diese Zeile würde „heute" beim Bauen
  * eingefroren und der Wochenplan zeigte für immer den Tag des letzten
- * Deployments. Halbstündlich neu rendern reicht: Der Plan ändert sich nur
- * zum Tageswechsel.
+ * Deployments.
+ *
+ * EINMAL AM TAG, nicht mehr halbstündlich. Der Wert gilt für ALLE Seiten
+ * darunter, und das sind über 1.300: jedes Spielerprofil, jedes Turnier der
+ * beiden Saisons. Bei 30 Minuten kann jede einzelne davon 48-mal am Tag neu
+ * gerendert werden — Vercel zählt jedes Rendern als „ISR Write", und im
+ * September 2026 war das Freikontingent von 200.000 Schreibvorgängen dadurch
+ * binnen Tagen aufgebraucht (danach pausiert Vercel die Projekte).
+ *
+ * Die wenigen Seiten, die wirklich am Tagesdatum hängen, setzen sich selbst
+ * einen kürzeren Wert: Startseite und `/turniere` (Wochenplan) sowie die
+ * Spielort-Seiten (nächste Termine). Von zwei Werten gilt in Next der
+ * kleinere, also gewinnt dort der der Seite.
+ *
+ * Ein Spielerprofil braucht das nicht: Dort steht kein Datum, das von selbst
+ * altert. Einzig der Knopf „Nächstes Ranking" in der Kopfzeile kann dort
+ * einen Tag hinterherhinken — beim ersten Aufruf des Tages steht er wieder
+ * richtig.
  */
-export const revalidate = 1800;
+export const revalidate = 86400;
 
 export default function MdcLayout({ children }: { children: React.ReactNode }) {
   // Der nächste Spieltag ergibt sich aus den Spielorten (fester Wochentag je

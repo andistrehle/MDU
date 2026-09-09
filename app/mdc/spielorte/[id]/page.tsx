@@ -28,6 +28,13 @@ export async function generateMetadata(
   };
 }
 
+/**
+ * Zeigt die nächsten vier Termine ab heute — muss also mit dem Datum mitgehen.
+ * Stündlich statt halbstündlich: Es sind elf Seiten, und ein Termin ändert
+ * sich nur zum Tageswechsel (siehe `app/mdc/layout.tsx`).
+ */
+export const revalidate = 3600;
+
 export default async function SpielortDetailPage(
   props: { params: Promise<{ id: string }> },
 ) {

@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     `der Saison ${FINAL_SEASON.label}.`,
 };
 
+/** Zeigt die nächsten zwei Wochen ab heute — siehe `app/mdc/layout.tsx`. */
+export const revalidate = 1800;
+
 export default function TurnierePage() {
   const heute = todayInMunich();
   const termine = playDaysFrom(heute, 14);
