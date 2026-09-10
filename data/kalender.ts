@@ -68,6 +68,14 @@ export const KALENDER: Terminaenderung[] = [
     "note": "Toni im Urlaub"
   },
   {
+    "id": "2026-09-10-legendary-zusatz",
+    "date": "2026-09-10",
+    "venueId": "legendary",
+    "art": "zusatz",
+    "time": "20:00",
+    "note": null
+  },
+  {
     "id": "2026-09-10-siebziger-zusatz",
     "date": "2026-09-10",
     "venueId": "siebziger",
