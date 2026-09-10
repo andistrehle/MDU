@@ -73,7 +73,7 @@ export const KALENDER: Terminaenderung[] = [
     "venueId": "siebziger",
     "art": "zusatz",
     "time": "19:00",
-    "note": "Vertretung fürs Fiaker"
+    "note": null
   },
   {
     "id": "2026-09-17-fiakerstueberl-absage",
