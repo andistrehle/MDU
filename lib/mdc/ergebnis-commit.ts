@@ -28,7 +28,7 @@ import { CommitFehler, committe, kontext, leseDatei } from './github';
  * mehr Angriffsfläche als Nutzen. Passt die Form nicht, wird abgebrochen statt
  * geraten — lieber gar nicht schreiben als eine Datei zerlegen.
  */
-function ersetzeListe(quelle: string, konstante: string, eintraege: string[]): string {
+export function ersetzeListe(quelle: string, konstante: string, eintraege: string[]): string {
   const anfang = new RegExp(`(export const ${konstante}[^=]*=\\s*\\[)`);
   const treffer = quelle.match(anfang);
   if (!treffer || treffer.index === undefined) {
@@ -45,7 +45,7 @@ function ersetzeListe(quelle: string, konstante: string, eintraege: string[]): s
 }
 
 /** Die Zeichenketten aus einem `string[]`-Literal. */
-function leseListe(quelle: string, konstante: string): string[] {
+export function leseListe(quelle: string, konstante: string): string[] {
   const treffer = quelle.match(new RegExp(`export const ${konstante}[^=]*=\\s*\\[([\\s\\S]*?)\\];`));
   if (!treffer) throw new CommitFehler(`In der Datei fehlt die Liste ${konstante}.`);
   return [...treffer[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m => m[1].replace(/\\'/g, "'"));

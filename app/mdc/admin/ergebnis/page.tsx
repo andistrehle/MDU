@@ -15,8 +15,10 @@ import Link from 'next/link';
 import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { ErgebnisUpload, type UploadSpieler, type UploadVenue } from '@/components/mdc/ergebnis-upload';
+import { TurnierKorrektur, type KorrekturTurnier } from '@/components/mdc/turnier-korrektur';
 import { VENUES, venueWeekdayShort } from '@/data/venues';
-import { PLAYERS, playerName } from '@/data/players';
+import { PLAYERS, getPlayer, playerName } from '@/data/players';
+import { UPLOADED_TOURNAMENTS } from '@/data/tournament-results';
 import { todayInMunich } from '@/data/season';
 import { passUebersicht } from '@/lib/mdc/passnummern';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
@@ -60,6 +62,24 @@ export default async function ErgebnisUploadPage() {
     (_, i) => pass.hoechsteVergebene + 1 + i,
   );
 
+  // Was über diese Seite hochgeladen wurde — nur daran lässt sich nachträglich
+  // etwas ändern. Neuestes zuerst: Ein falsches Datum fällt meist am nächsten
+  // Tag auf.
+  const hochgeladen: KorrekturTurnier[] = [...UPLOADED_TOURNAMENTS]
+    .sort((a, b) => b.date.localeCompare(a.date) || a.venueName.localeCompare(b.venueName))
+    .map(t => {
+      const erster = t.results[0];
+      const sieger = erster.playerId ? getPlayer(erster.playerId) : undefined;
+      return {
+        id: t.id,
+        datum: t.date,
+        spielortId: t.venueId,
+        spielortName: t.venueName,
+        starter: t.participants,
+        sieger: sieger ? playerName(sieger) : `Passnr. ${erster.passNr}`,
+      };
+    });
+
   return (
     <>
       <PageHero
@@ -79,6 +99,12 @@ export default async function ErgebnisUploadPage() {
             status={getUploadStatus()}
             luecken={pass.frei}
             neueNummern={neueNummern}
+          />
+
+          <TurnierKorrektur
+            turniere={hochgeladen}
+            venues={VENUES.map(v => ({ id: v.id, name: v.name, weekday: venueWeekdayShort(v) }))}
+            canPublish={getUploadStatus().canPublish}
           />
 
           <p style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--mdc-ink-dim)', maxWidth: 700 }}>

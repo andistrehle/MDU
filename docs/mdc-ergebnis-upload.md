@@ -42,6 +42,16 @@ Freigeben geht erst, wenn keine Zeile mehr offen ist.
 
 **3 · Freigeben.** Jetzt erst wird gerechnet und abgelegt.
 
+**Nachträglich berichtigen.** Unter der Upload-Maske stehen alle Turniere, die
+über diese Seite hochgeladen wurden. Dort lassen sich **Datum und Spielort**
+ändern oder das Turnier ganz entfernen — für den Fall, dass das Datum falsch
+vom Zettel gelesen wurde und es erst Tage später auffällt (passiert im
+September 2026 beim 70er: 29.09. statt 09.09.). Geändert wird nur die
+Kopfzeile; stimmen Namen oder Reihenfolge nicht, gehört der Zettel noch einmal
+hochgeladen — dasselbe Datum und Lokal ersetzt die alte Fassung. Turniere aus
+der Arbeitsmappe stehen gar nicht erst in der Liste: Die kämen beim nächsten
+Einlesen zurück.
+
 ---
 
 ## Was dabei wohin geht

@@ -21,6 +21,7 @@ import { headers } from 'next/headers';
 import { liesErgebniszettel, FotoNichtLesbarError } from '@/lib/mdc/ergebnis-foto';
 import { ordneSpielerZu, type Zuordnung } from '@/lib/mdc/spieler-zuordnung';
 import { veroeffentlicheTurnier, type NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
+import { loescheTurnier, verschiebeTurnier } from '@/lib/mdc/turnier-commit';
 import { CommitFehler } from '@/lib/mdc/github';
 import { getUploadConfig, getUploadStatus } from '@/lib/mdc/upload-config';
 import { pointsFor, TABLE_RANGE } from '@/lib/mdc/points';
@@ -321,6 +322,130 @@ export async function gibErgebnisFrei(eingabe: FreigabeEingabe): Promise<Freigab
     if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
     console.error('[mdc] Freigabe fehlgeschlagen', fehler);
     return { ok: false, fehler: 'Das Ergebnis konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+// ------------------------------------------------------------
+// Nachträglich berichtigen — Datum und Spielort
+// ------------------------------------------------------------
+//
+// Der Fall, für den es das gibt: Das Datum wurde vom Zettel falsch gelesen und
+// erst Tage später ist es jemandem aufgefallen. Ohne diesen Weg müsste man
+// dafür in die Datei im Repository — am Handy im Lokal keine Option.
+//
+// Nur Datum und Spielort. An der Ergebnisliste wird hier nichts gedreht:
+// Stimmt die nicht, gehört der Zettel noch einmal hochgeladen, dann steht die
+// Korrektur wieder neben dem Bild, aus dem sie stammt.
+
+export interface TurnierAenderung {
+  /** Datum und Spielort, wie das Turnier heute abgelegt ist. */
+  altesDatum: string;
+  alterSpielortId: string;
+  datum: string;
+  spielortId: string;
+}
+
+export type TurnierErgebnis =
+  | { ok: true; url: string; turnier: string }
+  | { ok: false; fehler: string };
+
+/** Gemeinsame Prüfungen für Ändern und Entfernen. */
+function bereitFuerAenderung(): string | null {
+  const status = getUploadStatus();
+  return status.canPublish
+    ? null
+    : `Das Ablegen ist nicht eingerichtet: ${status.missing.join(', ')}.`;
+}
+
+export async function verschiebeHochgeladenesTurnier(
+  eingabe: TurnierAenderung,
+): Promise<TurnierErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereitFuerAenderung();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(eingabe.datum)) {
+    return { ok: false, fehler: 'Das Datum fehlt oder hat die falsche Form.' };
+  }
+  const saison = SEASONS.find(s => eingabe.datum >= s.startDate && eingabe.datum <= s.endDate);
+  if (!saison) {
+    return {
+      ok: false,
+      fehler: `Der ${eingabe.datum} liegt in keiner Saison — das Turnier stünde dann in gar `
+        + 'keiner Wertung. Bitte das Datum prüfen.',
+    };
+  }
+  if (!getVenue(eingabe.spielortId)) {
+    return { ok: false, fehler: 'Dieser Spielort ist nicht bekannt.' };
+  }
+
+  const alt = getTournamentRecord(`${eingabe.altesDatum}-${eingabe.alterSpielortId}`);
+  if (!alt) {
+    return { ok: false, fehler: 'Dieses Turnier gibt es nicht (mehr). Bitte die Seite neu laden.' };
+  }
+  // Turniere der Arbeitsmappe stehen in den erzeugten Saisondateien und würden
+  // beim nächsten Import zurückgesetzt — hier ist nur zu ändern, was die Seite
+  // selbst geschrieben hat.
+  if (alt.source !== 'upload') {
+    return {
+      ok: false,
+      fehler: 'Dieses Turnier stammt aus der Arbeitsmappe des Betreibers. Geändert wird es '
+        + 'dort — beim nächsten Einlesen käme die Mappe sonst zurück und überschriebe es.',
+    };
+  }
+  if (eingabe.datum === eingabe.altesDatum && eingabe.spielortId === eingabe.alterSpielortId) {
+    return { ok: false, fehler: 'Datum und Spielort sind unverändert.' };
+  }
+
+  // Steht am Ziel schon ein Turnier aus der Mappe, hätte die Änderung keine
+  // Wirkung: Die Mappe hat Vorrang, die verschobene Zeile würde ignoriert.
+  const amZiel = getTournamentRecord(`${eingabe.datum}-${eingabe.spielortId}`);
+  if (amZiel && amZiel.source === 'workbook') {
+    return {
+      ok: false,
+      fehler: `Am ${eingabe.datum} steht in ${venueName(eingabe.spielortId)} schon ein Turnier `
+        + 'aus der Arbeitsmappe. Die hat Vorrang — das hochgeladene würde dort nicht angezeigt.',
+    };
+  }
+
+  try {
+    const beschreibung = `${venueName(eingabe.spielortId)}, ${eingabe.datum}`;
+    const commit = await verschiebeTurnier(
+      { datum: eingabe.altesDatum, spielortId: eingabe.alterSpielortId },
+      { datum: eingabe.datum, spielortId: eingabe.spielortId },
+      beschreibung,
+    );
+    return { ok: true, url: commit.url, turnier: beschreibung };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Turnier verschieben fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Die Änderung konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+export async function entferneHochgeladenesTurnier(
+  eingabe: { datum: string; spielortId: string },
+): Promise<TurnierErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereitFuerAenderung();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  const alt = getTournamentRecord(`${eingabe.datum}-${eingabe.spielortId}`);
+  if (alt && alt.source !== 'upload') {
+    return {
+      ok: false,
+      fehler: 'Dieses Turnier stammt aus der Arbeitsmappe und lässt sich hier nicht entfernen.',
+    };
+  }
+
+  try {
+    const beschreibung = `${venueName(eingabe.spielortId)}, ${eingabe.datum}`;
+    const commit = await loescheTurnier(eingabe, beschreibung);
+    return { ok: true, url: commit.url, turnier: beschreibung };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Turnier entfernen fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Das Turnier konnte nicht entfernt werden. Bitte noch einmal versuchen.' };
   }
 }
 

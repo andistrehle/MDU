@@ -107,6 +107,13 @@ Commit in `data/results-uploaded.ts` (neue Spieler in
 `data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form
 aber ganz normal von Hand änderbar. **Die Arbeitsmappe hat Vorrang:** Steht
 dasselbe Turnier später dort, wird die hochgeladene Zeile ignoriert.
+**Nachträglich berichtigen:** Unter der Upload-Maske listet
+`components/mdc/turnier-korrektur.tsx` alle hochgeladenen Turniere; Datum und
+Spielort lassen sich ändern, das Turnier ganz entfernen
+(`lib/mdc/turnier-commit.ts`, schreibt dieselbe Datei). Nur `source: 'upload'` —
+Mappen-Turniere stehen nicht in der Liste und werden serverseitig abgelehnt,
+sie kämen beim nächsten Import zurück. An der Ergebnisliste ändert das nichts:
+Dafür den Zettel neu hochladen, gleiche Kennung ersetzt die alte Zeile.
 `/admin` ist per Passwortabfrage des Browsers geschützt (HTTP Basic in
 `proxy.ts`, KEIN Cookie — die Zusage „keine Cookies" im Datenschutz gilt
 weiter). Nötige ENV im MDC-Projekt: `MDC_ADMIN_PASSWORD`, `MDC_OCR_API_KEY`,
