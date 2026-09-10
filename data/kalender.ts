@@ -76,14 +76,6 @@ export const KALENDER: Terminaenderung[] = [
     "note": null
   },
   {
-    "id": "2026-09-10-siebziger-zusatz",
-    "date": "2026-09-10",
-    "venueId": "siebziger",
-    "art": "zusatz",
-    "time": "19:00",
-    "note": "Vertretung Fiakerstüberl"
-  },
-  {
     "id": "2026-09-17-fiakerstueberl-absage",
     "date": "2026-09-17",
     "venueId": "fiakerstueberl",
