@@ -28,6 +28,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: 'Rangliste', href: mdcPath('/rangliste') },
       { label: 'Archiv', href: mdcPath('/rangliste/archiv') },
       { label: 'Turniere', href: mdcPath('/turniere') },
+      { label: 'Ergebnisse', href: mdcPath('/turniere/ergebnisse') },
       { label: 'Spieler', href: mdcPath('/spieler') },
       { label: 'Spielorte', href: mdcPath('/spielorte') },
     ],

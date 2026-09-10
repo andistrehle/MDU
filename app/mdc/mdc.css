@@ -600,7 +600,11 @@ body:has(.mdc-root) {
   background: var(--mdc-red-a08);
 }
 
-@media (max-width: 1080px) {
+/* Ab acht Menüpunkten („Ergebnisse" kam im September 2026 dazu) braucht die
+   Reihe aus Logo, Navigation, Ranking-Knopf und Schlüssel rund 1.120 px.
+   Darunter wurde der Schriftzug links zusammengequetscht — deshalb übernimmt
+   das Burger-Menü jetzt schon bei 1.160 px statt erst bei 1.080. */
+@media (max-width: 1160px) {
   .mdc-nav { display: none; }
   .mdc-header-cta { display: none; }
   /* Wie der Ranking-Knopf: am Handy führt der Weg über die Fußzeile. */

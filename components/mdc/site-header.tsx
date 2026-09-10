@@ -22,6 +22,9 @@ const NAV = [
   { href: mdcPath(), label: 'Start' },
   { href: mdcPath('/rangliste'), label: 'Rangliste' },
   { href: mdcPath('/turniere'), label: 'Turniere' },
+  // Eigener Punkt neben „Turniere": Dort stehen die nächsten Termine, hier
+  // die gespielten. Nach einem Turnierabend ist das die häufigste Frage.
+  { href: mdcPath('/turniere/ergebnisse'), label: 'Ergebnisse' },
   { href: mdcPath('/news'), label: 'News' },
   { href: mdcPath('/spieler'), label: 'Spieler' },
   { href: mdcPath('/spielorte'), label: 'Spielorte' },
@@ -46,10 +49,14 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
   // Ohne diese Normalisierung würde nach dem Laden ein anderer Punkt leuchten
   // als im ausgelieferten HTML.
   const aktuell = mdcRelativePath(pathname);
-  const isActive = (href: string) => {
-    const ziel = mdcRelativePath(href);
-    return ziel === '/' ? aktuell === '/' : aktuell.startsWith(ziel);
-  };
+  // Es leuchtet immer genau EIN Punkt: der mit dem längsten passenden Pfad.
+  // Sonst wären auf `/turniere/ergebnisse` „Turniere" und „Ergebnisse"
+  // gleichzeitig hervorgehoben, weil der eine Pfad im anderen steckt.
+  const treffer = NAV
+    .map(item => mdcRelativePath(item.href))
+    .filter(ziel => (ziel === '/' ? aktuell === '/' : aktuell.startsWith(ziel)))
+    .sort((a, b) => b.length - a.length)[0];
+  const isActive = (href: string) => mdcRelativePath(href) === treffer;
 
   // Solange das Menü offen ist, soll der Hintergrund nicht mitscrollen.
   // (Geschlossen wird es beim Klick auf einen Eintrag — kein Effekt nötig.)

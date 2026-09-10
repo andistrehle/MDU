@@ -5,8 +5,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, MapPin, Target,
-  Trophy, Users,
+  ArrowRight, Building2, CalendarClock, Crown, ExternalLink, ListOrdered, MapPin,
+  Target, Trophy, Users,
 } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import { RankingWidget } from '@/components/mdc/ranking-widget';
@@ -141,6 +141,13 @@ export default function MdcHomePage() {
             <Link href={mdcPath('/turniere')} className="mdc-btn mdc-btn-ghost">
               <CalendarClock size={18} />
               Turniere ansehen
+            </Link>
+            {/* Der häufigste Grund, die Seite am Tag nach einem Turnier
+                aufzumachen: „Was ist gestern rausgekommen?" Das stand bisher
+                zwei Klicks tief, hinter „Turniere". */}
+            <Link href={mdcPath('/turniere/ergebnisse')} className="mdc-btn mdc-btn-ghost">
+              <ListOrdered size={18} />
+              Ergebnisse
             </Link>
           </div>
 
