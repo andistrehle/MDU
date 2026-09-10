@@ -80,8 +80,8 @@ export const KALENDER: Terminaenderung[] = [
     "date": "2026-09-10",
     "venueId": "siebziger",
     "art": "zusatz",
-    "time": "19:30",
-    "note": "Vertretung Fiaker Stüberl"
+    "time": "19:00",
+    "note": "Vertretung Fiakerstüberl"
   },
   {
     "id": "2026-09-17-fiakerstueberl-absage",
