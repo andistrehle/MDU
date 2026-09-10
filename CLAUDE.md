@@ -176,6 +176,14 @@ entsteht, ändert sie sich mit: `alteId` in der Korrektur merkt sich die
 frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
 
 ## Stolperfallen
+- **`app/favicon.ico` gilt für ALLE Seiten des Projekts, auch für `/mdc`.** Next behandelt
+  diese Datei besonders: Ihr `<link>` steht in jedem Kopf und lässt sich — anders als
+  `app/icon.png` — durch `icons` in einem Unter-Layout NICHT ersetzen. Auf mdc-ranking.de
+  zeigte deshalb Google die MDU-Dartscheibe. Gelöst in `next.config.ts`: Ist
+  `NEXT_PUBLIC_MDC_STANDALONE=1` gesetzt, schreibt ein `beforeFiles`-Rewrite `/favicon.ico`
+  (und `/icon.png`, `/apple-icon.png`, `/apple-touch-icon*.png`) auf `/mdc/icon.png` um.
+  `beforeFiles` ist Pflicht — `afterFiles` käme zu spät, dann gewönne die MDU-Datei.
+  Google holt sein Symbol aus dem Zwischenspeicher; das Suchergebnis zieht erst Tage später nach.
 - **ISR-Schreibvorgänge sind bei Vercel kontingentiert** (Freikontingent 200.000/Monat, danach
   werden die Projekte pausiert). Jedes Neurendern einer statischen Seite zählt. `revalidate`
   im MDC-Layout gilt für über 1.300 Seiten (546 Spielerprofile, 763 Turniere) — bei 30 Minuten
