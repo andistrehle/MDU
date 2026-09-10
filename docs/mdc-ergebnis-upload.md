@@ -24,8 +24,17 @@ für Zeile da:
 - **Jede Zeile braucht einen Spieler.** Sicher erkannte sind vorbelegt, alles
   andere ist rot markiert und muss ausgewählt werden. Darunter steht immer,
   was auf dem Zettel gelesen wurde — man sieht also, worüber man entscheidet.
-- **Wer noch in keiner Wertung steht**, wird über „+ Neuen Spieler anlegen" mit
-  Passnummer, Name und Wertungsklasse erfasst.
+- **Neulinge stehen auf dem Zettel selbst.** Ein Kreuz in der Spalte „neu" und
+  keine Passnummer daneben — dann wird nicht geraten: Die Zeile ist blau
+  markiert, die Felder für den neuen Spieler stehen offen, Vor- und Nachname
+  vom Zettel sind eingetragen und die Wertungsklasse kommt aus der Spalte M/F.
+  **Die Passnummer wählt man aus einer Liste der freien**: erst die echten
+  Lücken im Register, dann die Nummern über der höchsten vergebenen. Vorbelegt
+  ist die kleinste freie — und sind mehrere Neulinge dabei, bekommt jeder eine
+  andere. Steht der Name trotz Kreuz schon im Spielerstamm, sagt die Zeile das
+  (sonst entstünde eine zweite Nummer für dieselbe Person).
+- **Wer ohne Kreuz noch in keiner Wertung steht**, lässt sich über „+ Neuen
+  Spieler anlegen" genauso erfassen.
 - **Die Punkte stehen daneben** und ändern sich mit jeder Zeile, die dazukommt
   oder wegfällt. Sie werden nie eingetippt.
 

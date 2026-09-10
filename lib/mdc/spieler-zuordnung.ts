@@ -59,7 +59,13 @@ export interface ZuordnungsErgebnis {
    * sonst durch Hunderte Namen scrollen müsste, macht das nicht lange mit.
    * Markiert bleibt die Zeile trotzdem.
    */
-  quelle: 'passnummer' | 'name' | null;
+  quelle: 'passnummer' | 'name' | 'neu' | null;
+  /**
+   * Der Zettel sagt selbst, dass das ein Neuling ist: Kreuz in der Spalte
+   * „neu", keine Passnummer. Dann wird nicht geraten — die Oberfläche macht
+   * gleich die Felder für einen neuen Spieler auf.
+   */
+  neuerSpieler: boolean;
   /** Kurzer Grund für die Anzeige — auch wenn es gut lief. */
   hinweis: string | null;
 }
@@ -156,8 +162,43 @@ function alsZuordnung(spieler: Player, score: number): Zuordnung {
  * Bildschirm lebt davon.
  */
 export function ordneSpielerZu(
-  erkannt: { name: string | null; passNr: number | null },
+  erkannt: { name: string | null; passNr: number | null; neu?: boolean | null },
 ): ZuordnungsErgebnis {
+  // ── Weg 0: der Zettel sagt es selbst ──
+  //
+  // Kreuz in der Spalte „neu" und keine Passnummer daneben: Damit ist die
+  // Frage beantwortet, bevor sie gestellt wird. Hier noch einen ähnlichen
+  // Namen vorzuschlagen wäre nicht nur überflüssig, sondern gefährlich —
+  // „Robert Lindinger" (neu) und „Diana Lindinger" (neu) am selben Abend
+  // ergäben beide einen halbwegs passenden Treffer auf denselben Menschen.
+  //
+  // Trotzdem wird gesucht: Steht der Name schon im Stamm, ist entweder das
+  // Kreuz zu viel oder es gibt ihn wirklich zweimal. Das gehört gesagt, sonst
+  // entsteht eine zweite Passnummer für dieselbe Person. Entschieden wird es
+  // am Bildschirm.
+  if (erkannt.neu && erkannt.passNr === null) {
+    const gesucht = erkannt.name?.trim() ? normalisiere(erkannt.name) : '';
+    const bekannt = gesucht
+      ? PLAYERS
+        .map(spieler => ({ spieler, score: bewerte(gesucht, spieler) }))
+        .filter(k => k.score >= SICHER_AB)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4)
+      : [];
+    return {
+      treffer: null,
+      alternativen: bekannt.map(k => alsZuordnung(k.spieler, k.score)),
+      sicher: false,
+      quelle: 'neu',
+      neuerSpieler: true,
+      hinweis: bekannt.length
+        ? `Auf dem Zettel als neu angekreuzt — unter diesem Namen steht aber schon `
+          + `${bekannt.map(k => `${playerName(k.spieler)} (Passnr. ${k.spieler.passNr})`).join(', ')} `
+          + 'im Stamm. Bitte prüfen: dieselbe Person oder wirklich jemand Neues?'
+        : null,
+    };
+  }
+
   // ── Weg 1: über die Passnummer ──
   if (erkannt.passNr !== null) {
     const spieler = getPlayerByPassNr(erkannt.passNr);
@@ -170,6 +211,7 @@ export function ordneSpielerZu(
         alternativen: [],
         sicher: passtName,
         quelle: 'passnummer',
+        neuerSpieler: false,
         hinweis: passtName
           ? null
           : `Nach Passnummer ${erkannt.passNr} eingesetzt: ${playerName(spieler)}. `
@@ -184,7 +226,7 @@ export function ordneSpielerZu(
   // ── Weg 2: über den Namen ──
   if (!erkannt.name?.trim()) {
     return {
-      treffer: null, alternativen: [], sicher: false, quelle: null,
+      treffer: null, alternativen: [], sicher: false, quelle: null, neuerSpieler: false,
       hinweis: 'Kein Name erkannt — bitte von Hand auswählen.',
     };
   }
@@ -198,7 +240,7 @@ export function ordneSpielerZu(
 
   if (!bewertet.length) {
     return {
-      treffer: null, alternativen: [], sicher: false, quelle: null,
+      treffer: null, alternativen: [], sicher: false, quelle: null, neuerSpieler: false,
       hinweis: `„${erkannt.name}" steht in keiner Wertung. Entweder ist die Schreibweise anders — oder es ist jemand Neues.`,
     };
   }
@@ -213,6 +255,7 @@ export function ordneSpielerZu(
     alternativen: bewertet.slice(1).map(k => alsZuordnung(k.spieler, k.score)),
     sicher: sicher && !unbekannteNummer,
     quelle: 'name',
+    neuerSpieler: false,
     hinweis: unbekannteNummer
       ? `Passnummer ${erkannt.passNr} ist keinem Spieler zugeordnet — Vorschlag stammt aus dem Namen.`
       : sicher

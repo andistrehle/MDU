@@ -37,6 +37,20 @@ const ErkanntZeileSchema = z.object({
    * der Zeilen nicht.
    */
   punkte: z.number().int().min(0).max(300).nullable(),
+  /**
+   * Kreuz in der Spalte „neu" — die Turnierleitung erklärt damit auf dem
+   * Zettel selbst, dass diese Person noch keine Passnummer hat. Das ist keine
+   * Vermutung, die die Seite anstellen müsste, sondern eine Angabe: Zusammen
+   * mit der leeren Spalte PASSNR ist die Zeile eindeutig ein Neuling und wird
+   * gar nicht erst gegen den Spielerstamm geraten.
+   */
+  neu: z.boolean().nullable(),
+  /**
+   * Kreuz in der Spalte M oder F. Zählt nur für Neulinge — bei allen anderen
+   * sagt der Stamm, in welcher Wertung sie stehen. Ohne diese Angabe landete
+   * jede neu angelegte Spielerin in der Herrenwertung.
+   */
+  weiblich: z.boolean().nullable(),
   confidence: z.number().min(0).max(1).nullable(),
 });
 
@@ -67,6 +81,8 @@ const PROMPT = [
   '- Ab Platz 9 teilen sich im Doppel-K.-o. mehrere Spieler eine Platzierung (9.-12., 13.-16., 17.-24., 25.-32.). Auf dem Zettel steht die Gruppe dann oft nur einmal am Rand. Trage bei JEDEM Spieler dieser Gruppe dieselbe Zahl ein (also viermal die 9), und gib trotzdem jeden Spieler als eigene Zeile aus.',
   '- Namen so wiedergeben, wie sie dastehen — auch Spitznamen und Kurzformen („Micky", „Chriss"). Nichts vervollständigen, nichts eindeutschen, keine Reihenfolge von Vor- und Nachname ändern.',
   '- Die Spalten heißen üblicherweise PLATZ · M · F · neu · PASSNR · PKT · VORNAME/NAME. Aus PASSNR kommt passNr, aus PKT kommt punkte. Verwechsle die beiden nicht: PKT liegt zwischen 40 und 226 und fällt von Zeile zu Zeile.',
+  '- Spalte "neu": Ein Kreuz dort heißt, dass der Spieler noch keine Passnummer hat und neu aufgenommen wird. Dann steht in PASSNR üblicherweise nichts oder ein Strich („–"). Gib neu = true zurück, wenn in dieser Spalte ein Kreuz oder Haken steht, sonst false. Ein Strich in PASSNR ist KEINE Zahl: passNr bleibt dann null.',
+  '- Spalten M und F: Kreuz bei M = männlich, Kreuz bei F = weiblich. Gib weiblich = true zurück, wenn das Kreuz in der Spalte F steht, false bei M, null wenn keins von beiden erkennbar ist. Achte auf die waagerechte Lage des Kreuzes — M und F stehen dicht nebeneinander.',
   '- punkte NICHT ausrechnen und NICHT korrigieren — gib nur wieder, was in der Spalte PKT steht, sonst null. Diese Zahlen dienen als Gegenprobe.',
   '- confidence je Zeile: 1 = klar lesbar, 0.5 = unsicher, 0.2 = kaum zu entziffern.',
   '- Steht die Teilnehmerzahl irgendwo auf dem Zettel, gib sie unter teilnehmerLautZettel an. Sonst null.',
@@ -79,7 +95,7 @@ const PROMPT = [
   '  "datum": "YYYY-MM-DD"|null,',
   '  "spielort": string|null,',
   '  "teilnehmerLautZettel": number|null,',
-  '  "zeilen": [ { "platz": number|null, "name": string|null, "passNr": number|null, "punkte": number|null, "confidence": number|null } ],',
+  '  "zeilen": [ { "platz": number|null, "name": string|null, "passNr": number|null, "punkte": number|null, "neu": boolean|null, "weiblich": boolean|null, "confidence": number|null } ],',
   '  "hinweise": string[]',
   '}',
 ].join('\n');

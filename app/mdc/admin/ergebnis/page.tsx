@@ -18,8 +18,15 @@ import { ErgebnisUpload, type UploadSpieler, type UploadVenue } from '@/componen
 import { VENUES, venueWeekdayShort } from '@/data/venues';
 import { PLAYERS, playerName } from '@/data/players';
 import { todayInMunich } from '@/data/season';
+import { passUebersicht } from '@/lib/mdc/passnummern';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
 import { mdcPath } from '@/lib/mdc/site';
+
+/**
+ * Wie viele Nummern über der höchsten vergebenen zur Auswahl stehen. Zwanzig
+ * reichen für jeden Abend — und mehr wäre eine Liste, die niemand liest.
+ */
+const NEUE_NUMMERN = 20;
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -43,6 +50,16 @@ export default async function ErgebnisUploadPage() {
     .map(p => ({ passNr: p.passNr as number, name: playerName(p), nickname: p.nickname }))
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
+  // Freie Passnummern für Neulinge: erst die echten Lücken im Register des
+  // Betreibers (der Reihe nach aufzufüllen), dann die Nummern über der
+  // höchsten vergebenen. Wer im Lokal einen Neuling einträgt, soll nicht
+  // raten müssen, welche Nummer noch zu haben ist.
+  const pass = passUebersicht();
+  const neueNummern = Array.from(
+    { length: NEUE_NUMMERN },
+    (_, i) => pass.hoechsteVergebene + 1 + i,
+  );
+
   return (
     <>
       <PageHero
@@ -60,6 +77,8 @@ export default async function ErgebnisUploadPage() {
             spieler={spieler}
             heute={todayInMunich()}
             status={getUploadStatus()}
+            luecken={pass.frei}
+            neueNummern={neueNummern}
           />
 
           <p style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--mdc-ink-dim)', maxWidth: 700 }}>

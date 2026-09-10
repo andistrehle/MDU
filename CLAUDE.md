@@ -95,7 +95,14 @@ vollständige Angaben bleibt die Seite automatisch noindex.
 **Ergebnis-Upload:** Unter `/admin/ergebnis` kann die Turnierleitung den
 Ergebniszettel fotografieren; Claude Vision liest ihn, die erkannte Liste
 wird am Bildschirm geprüft und erst dann freigegeben. Die Punkte kommen
-immer aus `pointsFor`, nie vom Zettel. Freigegebene Turniere landen als
+immer aus `pointsFor`, nie vom Zettel. **Neulinge stehen auf dem Zettel:**
+Kreuz in der Spalte „neu" + leere PASSNR → `ordneSpielerZu` rät gar nicht erst
+(`quelle: 'neu'`), die Oberfläche macht die Felder für den neuen Spieler auf,
+Name vom Zettel, Wertungsklasse aus der Spalte M/F, und die Passnummer kommt
+aus einer Liste der freien (Lücken des Registers zuerst, `passUebersicht()`);
+bei mehreren Neulingen bekommt jeder eine andere. Steht der Name trotz Kreuz
+schon im Stamm, wird das gemeldet statt still eine zweite Nummer anzulegen.
+Freigegebene Turniere landen als
 Commit in `data/results-uploaded.ts` (neue Spieler in
 `data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form
 aber ganz normal von Hand änderbar. **Die Arbeitsmappe hat Vorrang:** Steht

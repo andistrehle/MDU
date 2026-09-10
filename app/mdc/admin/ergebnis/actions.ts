@@ -42,8 +42,15 @@ export interface VorschlagZeile {
   vorschlag: Zuordnung | null;
   alternativen: Zuordnung[];
   sicher: boolean;
-  /** Kam der Vorschlag über die Passnummer oder über den Namen? */
-  quelle: 'passnummer' | 'name' | null;
+  /** Kam der Vorschlag über die Passnummer, den Namen — oder gar nicht? */
+  quelle: 'passnummer' | 'name' | 'neu' | null;
+  /** Auf dem Zettel als neu angekreuzt, ohne Passnummer. */
+  istNeu: boolean;
+  /**
+   * Kreuz in Spalte F statt M. Nur für Neulinge von Belang: Bei allen anderen
+   * steht die Wertungsklasse im Stamm.
+   */
+  weiblichLautZettel: boolean | null;
   hinweis: string | null;
 }
 
@@ -145,7 +152,9 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
         || a.i - b.i);
 
     const zeilen: VorschlagZeile[] = sortiert.map(({ zeile }, index) => {
-      const zuordnung = ordneSpielerZu({ name: zeile.name, passNr: zeile.passNr });
+      const zuordnung = ordneSpielerZu({
+        name: zeile.name, passNr: zeile.passNr, neu: zeile.neu,
+      });
       return {
         position: index + 1,
         platzLautZettel: zeile.platz,
@@ -157,6 +166,8 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
         alternativen: zuordnung.alternativen,
         sicher: zuordnung.sicher,
         quelle: zuordnung.quelle,
+        istNeu: zuordnung.neuerSpieler,
+        weiblichLautZettel: zeile.weiblich,
         hinweis: zuordnung.hinweis,
       };
     });

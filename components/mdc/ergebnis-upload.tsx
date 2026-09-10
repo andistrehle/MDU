@@ -59,10 +59,28 @@ interface Zeile {
   punkteLautZettel: number | null;
   hinweis: string | null;
   sicher: boolean;
+  /** Auf dem Zettel in der Spalte „neu" angekreuzt und ohne Passnummer. */
+  vomZettelNeu: boolean;
   /** Bestätigte Passnummer, `null` solange nichts gewählt ist. */
   passNr: number | null;
   /** Ausgefüllt, wenn statt einer Auswahl jemand neu angelegt wird. */
   neu: NeuerSpieler | null;
+}
+
+/**
+ * „Robert Lindinger" → Vorname ROBERT, Nachname LINDINGER. Die Spalte auf dem
+ * Zettel heißt „VORNAME / NAME", vorne steht also der Vorname. Steht nur ein
+ * Wort da („Bibo"), ist das der Vorname — genau wie in der Arbeitsmappe, wo
+ * etliche Spieler nur unter ihrem Rufnamen geführt werden.
+ */
+function zerlegeName(erkannt: string | null): { firstName: string; lastName: string } {
+  const teile = (erkannt ?? '').trim().split(/\s+/).filter(Boolean);
+  if (teile.length === 0) return { firstName: '', lastName: '' };
+  if (teile.length === 1) return { firstName: teile[0].toUpperCase(), lastName: '' };
+  return {
+    firstName: teile[0].toUpperCase(),
+    lastName: teile.slice(1).join(' ').toUpperCase(),
+  };
 }
 
 type Schritt = 'start' | 'liest' | 'pruefen' | 'sendet' | 'fertig';
@@ -115,18 +133,53 @@ function ausVorschlag(zeile: VorschlagZeile, index: number): Zeile {
     punkteLautZettel: zeile.punkteLautZettel,
     hinweis: zeile.hinweis,
     sicher: zeile.sicher,
+    vomZettelNeu: zeile.istNeu,
     passNr: uebernehmen ? zeile.vorschlag?.passNr ?? null : null,
-    neu: null,
+    // Steht auf dem Zettel ein Kreuz bei „neu" und keine Passnummer, ist die
+    // Sache entschieden: Die Felder für den Neuling stehen gleich offen, mit
+    // dem Namen vom Zettel und der Wertungsklasse aus der Spalte M/F. Die
+    // Passnummer bleibt leer — sie kommt gleich aus der Liste der freien.
+    neu: zeile.istNeu
+      ? {
+        passNr: 0,
+        ...zerlegeName(zeile.erkannterName),
+        division: zeile.weiblichLautZettel ? 'women' : 'men',
+      }
+      : null,
   };
 }
 
+/**
+ * Vergibt an jede neue Zeile die kleinste noch freie Nummer.
+ *
+ * Muss über alle Zeilen zugleich laufen: Am selben Abend können zwei Neulinge
+ * dabei sein (auf dem Zettel vom 09.09. waren es drei), und jeder für sich
+ * bekäme sonst dieselbe „nächste freie" Nummer.
+ */
+function verteileFreieNummern(zeilen: Zeile[], frei: number[]): Zeile[] {
+  const vergeben = new Set(
+    zeilen.map(z => z.neu?.passNr ?? z.passNr).filter((n): n is number => !!n),
+  );
+  return zeilen.map(zeile => {
+    if (!zeile.neu || zeile.neu.passNr > 0) return zeile;
+    const nummer = frei.find(n => !vergeben.has(n));
+    if (nummer === undefined) return zeile;
+    vergeben.add(nummer);
+    return { ...zeile, neu: { ...zeile.neu, passNr: nummer } };
+  });
+}
+
 export function ErgebnisUpload({
-  venues, spieler, heute, status,
+  venues, spieler, heute, status, luecken, neueNummern,
 }: {
   venues: UploadVenue[];
   spieler: UploadSpieler[];
   heute: string;
   status: UploadStatusAnzeige;
+  /** Echte Lücken im Register — die werden der Reihe nach aufgefüllt. */
+  luecken: number[];
+  /** Die nächsten Nummern über der höchsten vergebenen. */
+  neueNummern: number[];
 }) {
   const [schritt, setSchritt] = useState<Schritt>('start');
   const [datum, setDatum] = useState(heute);
@@ -154,8 +207,18 @@ export function ErgebnisUpload({
   //   pruefen  eingesetzt, aber der Name auf dem Zettel passt nicht → nur
   //            markiert (gelb). Die Freigabe bleibt möglich; der eingesetzte
   //            Name steht direkt neben dem, was auf dem Zettel stand.
-  const offen = zeilen.filter(z => z.passNr === null && !z.neu).length;
+  // Ein Neuling ohne gewählte Nummer zählt genauso als offen: Ohne Nummer
+  // ließe sich die Zeile nicht ablegen, und die Freigabe soll das hier sagen
+  // und nicht erst der Server nach dem Absenden.
+  const offen = zeilen.filter(z => (z.neu ? z.neu.passNr < 1 : z.passNr === null)).length;
   const zuPruefen = zeilen.filter(z => z.passNr !== null && !z.sicher && !z.neu).length;
+  const neulinge = zeilen.filter(z => z.neu).length;
+  // Alle Nummern, die für einen Neuling in Frage kommen — Lücken zuerst.
+  const freieNummern = useMemo(() => [...luecken, ...neueNummern], [luecken, neueNummern]);
+  const vergebeneNummern = useMemo(
+    () => new Set(zeilen.map(z => z.neu?.passNr ?? z.passNr).filter((n): n is number => !!n)),
+    [zeilen],
+  );
   // Lokale, die am gewählten Tag spielen, stehen in der Auswahl oben — nicht
   // ausschließlich: Ein Turnier kann ausnahmsweise an einem anderen Tag laufen.
   const [amTag, sonstige] = useMemo(() => {
@@ -202,7 +265,10 @@ export function ErgebnisUpload({
       return;
     }
     setVorschlag(antwort.vorschlag);
-    setZeilen(antwort.vorschlag.zeilen.map(ausVorschlag));
+    setZeilen(verteileFreieNummern(
+      antwort.vorschlag.zeilen.map(ausVorschlag),
+      freieNummern,
+    ));
     if (antwort.vorschlag.datumLautZettel) setDatum(antwort.vorschlag.datumLautZettel);
     setSchritt('pruefen');
   }
@@ -437,8 +503,9 @@ export function ErgebnisUpload({
             kein Spieler zugeordnet, muss ausgewählt werden.{' '}
             <strong style={{ color: 'var(--mdc-warn-ink)' }}>Gelb</strong> heißt: nach der
             Passnummer eingesetzt, aber der Name auf dem Zettel ist anders geschrieben — bitte
-            kurz vergleichen. Die Punkte rechnet die Serie selbst; sie ändern sich, sobald eine
-            Zeile dazukommt oder wegfällt.
+            kurz vergleichen. <strong>Blau</strong> heißt: Neuling — auf dem Zettel in der
+            Spalte {'„neu“'} angekreuzt und ohne Passnummer. Die Punkte rechnet die Serie
+            selbst; sie ändern sich, sobald eine Zeile dazukommt oder wegfällt.
           </p>
 
           {vorschlag.hinweise.length > 0 && (
@@ -489,6 +556,13 @@ export function ErgebnisUpload({
                 punkte={punkte[index]}
                 zeigeZettelPunkte={!feldWiderspruch}
                 spieler={spieler}
+                // Was ein anderer Neuling in dieser Liste schon bekommen hat,
+                // steht hier nicht mehr zur Wahl — sonst hätten am Ende zwei
+                // Leute dieselbe Nummer.
+                freieNummern={freieNummern.filter(
+                  n => n === zeile.neu?.passNr || !vergebeneNummern.has(n),
+                )}
+                luecken={luecken}
                 onAendern={teil => aendere(index, teil)}
                 onVerschieben={richtung => verschiebe(index, richtung)}
                 onLoeschen={() => setZeilen(alt => alt.filter((_, i) => i !== index))}
@@ -519,11 +593,14 @@ export function ErgebnisUpload({
               }}
             >
               {offen > 0
-                ? `${offen} Zeile${offen === 1 ? '' : 'n'} noch ohne Spieler`
+                ? `${offen} Zeile${offen === 1 ? '' : 'n'} noch ohne Spieler oder ohne Passnummer`
                 : zuPruefen > 0
                   ? `${teilnehmer} Starter · ${zuPruefen} gelb markierte Zeile${zuPruefen === 1 ? '' : 'n'} `
                     + 'nach Passnummer eingesetzt — Namen kurz vergleichen'
-                  : `${teilnehmer} Starter · ${punkte.reduce((s, p) => s + p, 0)} Punkte insgesamt`}
+                  : `${teilnehmer} Starter · ${punkte.reduce((s, p) => s + p, 0)} Punkte insgesamt`
+                    + (neulinge > 0
+                      ? ` · ${neulinge} neue${neulinge === 1 ? 'r Spieler wird' : ' Spieler werden'} angelegt`
+                      : '')}
             </span>
           </div>
         </div>
@@ -537,13 +614,17 @@ export function ErgebnisUpload({
 // ------------------------------------------------------------
 
 function ZeilenKarte({
-  zeile, index, anzahl, punkte, zeigeZettelPunkte, spieler,
+  zeile, index, anzahl, punkte, zeigeZettelPunkte, spieler, freieNummern, luecken,
   onAendern, onVerschieben, onLoeschen,
 }: {
   zeile: Zeile;
   index: number;
   anzahl: number;
   punkte: number;
+  /** Nummern, die dieser Zeile für einen Neuling offenstehen. */
+  freieNummern: number[];
+  /** Welche davon echte Lücken im Register sind — für die Beschriftung. */
+  luecken: number[];
   /**
    * Punktzahl vom Zettel danebenstellen, wenn sie abweicht? Nur sinnvoll,
    * solange die Feldgröße stimmt: Passt sie nicht, weicht ohnehin jede Zeile
@@ -555,7 +636,7 @@ function ZeilenKarte({
   onVerschieben: (richtung: -1 | 1) => void;
   onLoeschen: () => void;
 }) {
-  const offen = zeile.passNr === null && !zeile.neu;
+  const offen = zeile.neu ? zeile.neu.passNr < 1 : zeile.passNr === null;
   const unsicher = !zeile.sicher;
   // Eingesetzt, aber der Name auf dem Zettel passt nicht dazu.
   const pruefen = !offen && unsicher && !zeile.neu;
@@ -565,12 +646,18 @@ function ZeilenKarte({
       className="mdc-card"
       style={{
         padding: '12px 14px',
+        // Drei Zustände, drei Farben: rot = da fehlt noch etwas, gelb = bitte
+        // vergleichen, blau = Neuling (kein Fehler, nur anders).
         borderColor: offen
           ? 'var(--mdc-red-a35)'
-          : pruefen ? 'var(--mdc-warn-line)' : undefined,
+          : pruefen
+            ? 'var(--mdc-warn-line)'
+            : zeile.neu ? 'var(--mdc-blue-soft)' : undefined,
         background: offen
           ? 'var(--mdc-red-a08)'
-          : pruefen ? 'var(--mdc-warn-tint)' : undefined,
+          : pruefen
+            ? 'var(--mdc-warn-tint)'
+            : zeile.neu ? 'var(--mdc-blue-a08)' : undefined,
       }}
     >
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -585,6 +672,9 @@ function ZeilenKarte({
           {zeile.neu ? (
             <NeuerSpielerFelder
               wert={zeile.neu}
+              vomZettel={zeile.vomZettelNeu}
+              freieNummern={freieNummern}
+              luecken={luecken}
               onAendern={neu => onAendern({ neu })}
               onAbbrechen={() => onAendern({ neu: null })}
             />
@@ -595,9 +685,10 @@ function ZeilenKarte({
                 if (e.target.value === 'neu') {
                   onAendern({
                     neu: {
-                      passNr: 0,
-                      lastName: '',
-                      firstName: (zeile.erkannterName ?? '').toUpperCase(),
+                      // Die kleinste Nummer, die dieser Zeile offensteht —
+                      // ändern geht gleich daneben in der Auswahl.
+                      passNr: freieNummern[0] ?? 0,
+                      ...zerlegeName(zeile.erkannterName),
                       division: 'men',
                     },
                   });
@@ -620,12 +711,18 @@ function ZeilenKarte({
           <p
             style={{
               marginTop: 6, fontSize: '0.8rem', lineHeight: 1.5,
-              color: pruefen ? 'var(--mdc-warn-ink)' : 'var(--mdc-ink-dim)',
+              color: pruefen || (zeile.vomZettelNeu && zeile.hinweis)
+                ? 'var(--mdc-warn-ink)'
+                : 'var(--mdc-ink-dim)',
             }}
           >
             Zettel: <strong>{zeile.erkannterName ?? 'nichts erkannt'}</strong>
             {zeile.confidence !== null && zeile.confidence < 0.7 && ' · unsicher gelesen'}
-            {unsicher && zeile.hinweis && ` · ${zeile.hinweis}`}
+            {/* Beim Neuling ist der Grund die Angabe auf dem Zettel selbst —
+                das ist keine Unsicherheit, sondern die Auskunft der
+                Turnierleitung. */}
+            {zeile.vomZettelNeu && ' · Spalte „neu" angekreuzt, keine Passnummer'}
+            {(unsicher || zeile.vomZettelNeu) && zeile.hinweis && ` · ${zeile.hinweis}`}
           </p>
         </div>
 
@@ -669,30 +766,77 @@ function ZeilenKarte({
 }
 
 function NeuerSpielerFelder({
-  wert, onAendern, onAbbrechen,
+  wert, vomZettel, freieNummern, luecken, onAendern, onAbbrechen,
 }: {
   wert: NeuerSpieler;
+  /** Auf dem Zettel angekreuzt — dann steht das hier auch so da. */
+  vomZettel: boolean;
+  freieNummern: number[];
+  luecken: number[];
   onAendern: (neu: NeuerSpieler) => void;
   onAbbrechen: () => void;
 }) {
+  // Ausweg für den seltenen Fall, dass die gewünschte Nummer nicht in der
+  // Liste steht — etwa weit über der höchsten vergebenen. Der Server prüft
+  // ohnehin, ob sie frei ist.
+  const [freieEingabe, setFreieEingabe] = useState(
+    wert.passNr > 0 && !freieNummern.includes(wert.passNr),
+  );
+  const lueckenSet = useMemo(() => new Set(luecken), [luecken]);
+  const [alsLuecke, alsNeue] = useMemo(() => [
+    freieNummern.filter(n => lueckenSet.has(n)),
+    freieNummern.filter(n => !lueckenSet.has(n)),
+  ], [freieNummern, lueckenSet]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: 'var(--mdc-ink-soft)' }}>
         <UserPlus size={14} style={{ color: 'var(--mdc-red)' }} />
-        Neuer Spieler
+        {vomZettel ? 'Neuer Spieler — auf dem Zettel angekreuzt' : 'Neuer Spieler'}
         <button type="button" onClick={onAbbrechen} style={{ ...iconStil, marginLeft: 'auto' }} aria-label="Doch auswählen">
           <X size={14} />
         </button>
       </div>
       <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))' }}>
-        <input
-          type="number"
-          inputMode="numeric"
-          placeholder="Passnr."
-          value={wert.passNr || ''}
-          onChange={e => onAendern({ ...wert, passNr: Number(e.target.value) })}
-          style={eingabeStil}
-        />
+        {freieEingabe ? (
+          <input
+            type="number"
+            inputMode="numeric"
+            placeholder="Passnr."
+            value={wert.passNr || ''}
+            onChange={e => onAendern({ ...wert, passNr: Number(e.target.value) })}
+            onBlur={() => { if (!wert.passNr) setFreieEingabe(false); }}
+            style={eingabeStil}
+            autoFocus
+          />
+        ) : (
+          <select
+            value={wert.passNr || ''}
+            onChange={e => {
+              if (e.target.value === 'andere') {
+                setFreieEingabe(true);
+                onAendern({ ...wert, passNr: 0 });
+                return;
+              }
+              onAendern({ ...wert, passNr: Number(e.target.value) });
+            }}
+            style={eingabeStil}
+            aria-label="Freie Passnummer"
+          >
+            <option value="">— Passnr. wählen —</option>
+            {alsLuecke.length > 0 && (
+              <optgroup label="Freie Lücken">
+                {alsLuecke.map(n => <option key={n} value={n}>{n}</option>)}
+              </optgroup>
+            )}
+            {alsNeue.length > 0 && (
+              <optgroup label="Neue Nummern">
+                {alsNeue.map(n => <option key={n} value={n}>{n}</option>)}
+              </optgroup>
+            )}
+            <option value="andere">andere Nummer eintippen …</option>
+          </select>
+        )}
         <input
           placeholder="Vorname"
           value={wert.firstName}
