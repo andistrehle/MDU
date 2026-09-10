@@ -29,7 +29,12 @@
 // ============================================================
 
 /** Neue Spieler der Herrenwertung, aus hochgeladenen Ergebniszetteln. */
-export const PLAYERS_UPLOADED_MEN_RAW: string[] = [];
+export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
+  '0|171|LINDINGER|ROBERT|0|0||',
+];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
-export const PLAYERS_UPLOADED_WOMEN_RAW: string[] = [];
+export const PLAYERS_UPLOADED_WOMEN_RAW: string[] = [
+  '0|155|LINDINGER|DIANA|0|0||',
+  '0|316|PÖPPERL|KARIN|0|0||',
+];
