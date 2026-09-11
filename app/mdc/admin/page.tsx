@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Camera, KeyRound, Newspaper } from 'lucide-react';
+import { ArrowRight, CalendarDays, Camera, KeyRound, Megaphone, Newspaper } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
@@ -142,11 +142,37 @@ export default function AdminPage() {
             </Link>
           </div>
 
+          <div
+            className="mdc-card"
+            style={{
+              padding: '22px 20px', display: 'flex', flexWrap: 'wrap', gap: 16,
+              alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 560 }}>
+              <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Megaphone size={19} style={{ color: 'var(--mdc-red)' }} />
+                Rangliste für Facebook
+              </h2>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Die ersten 32 Herren und 16 Damen als fertiger Beitrag, mit Jackpot und Link
+                auf die komplette Rangliste. Kopieren und in der MDC-Gruppe einfügen — in eine
+                Gruppe kann kein Programm selbst schreiben. Denselben Text erzeugt jeden Montag
+                ein Wochenlauf.
+              </p>
+            </div>
+            <Link href={mdcPath('/admin/facebook')} className="mdc-btn mdc-btn-primary">
+              Beitrag ansehen
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
           <DemoNotice>
             Alles Weitere auf dieser Seite ist reine Oberfläche: Kein Eintrag wird
             gespeichert oder verschickt, alles lebt nur im Browser und ist nach dem
             Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut sind
-            davon bisher der Ergebnis-Upload, der Kalender, die News und die Passnummern oben.
+            davon bisher der Ergebnis-Upload, der Kalender, die News, die Passnummern und der
+            Facebook-Beitrag oben.
           </DemoNotice>
 
           <AdminDemo venues={venues} players={players} />

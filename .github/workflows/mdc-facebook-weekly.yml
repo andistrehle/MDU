@@ -1,0 +1,36 @@
+name: MDC · Rangliste für Facebook
+
+# Jeden Montag um 08:00 Ortszeit (07:00 UTC im Sommer, 07:00 UTC = 08:00 MEZ im
+# Winter — Cron kennt keine Zeitumstellung, eine Stunde Abweichung im Winter ist
+# hier egal). Der Lauf rechnet den Beitrag und legt ihn als Zusammenfassung ab;
+# unter "Actions" lässt er sich von dort kopieren, auch am Handy.
+#
+# Eingestellt wird nur, wenn eine Facebook-SEITE hinterlegt ist (Secrets
+# MDC_FB_PAGE_ID und MDC_FB_PAGE_TOKEN). Ohne sie sagt der Lauf das und endet
+# grün — in eine Facebook-GRUPPE kann kein Programm schreiben, seit Meta die
+# Schnittstelle abgeschaltet hat.
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+jobs:
+  beitrag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Beitrag rechnen und (falls eingerichtet) einstellen
+        env:
+          MDC_FB_PAGE_ID: ${{ secrets.MDC_FB_PAGE_ID }}
+          MDC_FB_PAGE_TOKEN: ${{ secrets.MDC_FB_PAGE_TOKEN }}
+        run: npx tsx scripts/mdc-facebook-post.ts --post

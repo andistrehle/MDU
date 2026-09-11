@@ -128,6 +128,19 @@ Startseite und in der Sitemap. Entwürfe (`published: false`) stehen in der
 Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
 Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
 GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
+**Facebook:** `/admin/facebook` zeigt die laufende Rangliste als fertigen
+Beitrag (Top 32 Herren, Top 16 Damen, Jackpot, Link auf `/rangliste`) —
+`lib/mdc/facebook-post.ts` baut den Text, dieselbe Quelle nutzt der Wochenlauf
+`scripts/mdc-facebook-post.ts` (`.github/workflows/mdc-facebook-weekly.yml`,
+montags 7:00 UTC; legt den Text als Job-Zusammenfassung ab, auch am Handy
+kopierbar). **In eine Facebook-GRUPPE kann kein Programm schreiben** — Meta hat
+`publish_to_groups` abgeschaltet; für die MDC-Gruppe bleibt es beim Kopieren,
+und die Oberfläche sagt das auch so. Auf eine Facebook-SEITE kann die Seite
+selbst posten, sobald `MDC_FB_PAGE_ID` und `MDC_FB_PAGE_TOKEN` gesetzt sind
+(`lib/mdc/facebook-api.ts`); fehlen sie, erscheint der Knopf gar nicht erst und
+der Wochenlauf endet grün mit „übersprungen". Keine Euro-Beträge je Platz im
+Beitrag — die ändern sich mit jedem Turnier, der Beitrag bleibt stehen.
+Einzelheiten: `docs/mdc-facebook.md`.
 **Kalender:** Der Wochenplan steht NICHT in einer Terminliste, sondern in den
 Spielorten (fester Wochentag + Uhrzeit je Lokal, `playDaysFrom`). Unter
 `/admin/kalender` trägt die Turnierleitung nur die Abweichungen ein — `absage`
