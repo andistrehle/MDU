@@ -138,18 +138,35 @@ weiter). Nötige ENV im MDC-Projekt: `MDC_ADMIN_PASSWORD`, `MDC_OCR_API_KEY`,
 Datenbank), MUSS Ziffer 9 der Datenschutzhinweise mitgeändert werden.
 Ablauf, Grenzen und Einrichtung: `docs/mdc-ergebnis-upload.md`.
 **Turnierplan (Doppel-K.-o., seit 12.09.2026, NICHT verlinkt):**
-`/admin/turnierplan` ist der Papierplan zum Klicken — Teilnehmer setzen, Sieger
-antippen, Platzierung entsteht. Bewusst NICHT in `AdminNav`: zum Ausprobieren,
-bevor er im Lokal jemandem in die Hände fällt. **Schreibt nichts** — keine
-Wertung, kein Commit; Ergebnisse kommen weiter über `/admin/ergebnis` (so vom
-Betreiber vorgegeben, das Einlesen kommt später). Zwischenstand liegt im
-`localStorage` des Geräts, damit ein geschlossener Reiter keinen Turnierabend
-kostet. `lib/mdc/doppel-ko.ts` ist reine Logik und getestet: Setzliste der
-ersten Runde und die Plätze (1–8 einzeln, dann 9/13/17/25 als Gruppe, dazu die
-Spiele um 5/6 und 7/8) sind VOM PAPIERPLAN abgetippt, die Verliererseite ist
-nach dem üblichen Schema gebaut (Absteiger umgekehrt eingehängt) — **die gehört
-gegen den Zettel gegengeprüft**, bevor der Plan das Papier ersetzt. Fehlende
-Plätze sind Freilose und lösen sich selbst auf.
+`/admin/turnierplan` ist der Papierplan zum Klicken — Teilnehmer setzen,
+Ergebnis antippen, Platzierung entsteht. Bewusst NICHT in `AdminNav`: zum
+Ausprobieren, bevor er im Lokal jemandem in die Hände fällt. **Schreibt
+nichts** — keine Wertung, kein Commit; Ergebnisse kommen weiter über
+`/admin/ergebnis` (so vom Betreiber vorgegeben, das Einlesen kommt später).
+Zwischenstand liegt im `localStorage` des Geräts, damit ein geschlossener
+Reiter keinen Turnierabend kostet (Sieger UND Legs UND Modus — wer hier etwas
+ergänzt, muss es in `Gespeichert` und beim Laden mitführen, sonst ist es nach
+dem Neuladen weg). `lib/mdc/doppel-ko.ts` ist reine Logik und getestet:
+Setzliste der ersten Runde und die Plätze (1–8 einzeln, dann 9/13/17/25 als
+Gruppe, dazu die Spiele um 5/6 und 7/8) sind VOM PAPIERPLAN abgetippt, die
+Verliererseite ist nach dem üblichen Schema gebaut (Absteiger umgekehrt
+eingehängt) — **die gehört gegen den Zettel gegengeprüft**, bevor der Plan das
+Papier ersetzt. Fehlende Plätze sind Freilose und lösen sich selbst auf.
+**Ergebnisse** stehen als Legs in `turnier.legs`; `setzeLegs` leitet den Sieger
+daraus ab, `gewinnlegs` (Standard 2 = best of 3) steuert nur die
+Schnellknöpfe — verboten ist kein Ergebnis, der Zettel gilt. Ein von Hand
+gesetzter Sieger, der dem eingetragenen Ergebnis widerspricht, wirft das
+Ergebnis weg; zwei Wahrheiten gibt es nicht.
+**Der Turnierbaum** (`components/mdc/turnierbaum.tsx`) ist nach den Papierplänen
+gezeichnet: erste Runde in der Mitte mit den Setznummern, rechts die
+Siegerseite, links die Verliererseite, Spaltenüberschriften mit „Verlierer wird
+4." aus `verliererPlaetze`. Quer über die Mitte wird KEINE Linie gezogen —
+dafür stehen wie auf dem Papier Buchstaben am Kasten (A … Z, dann AA; der 32er
+hat 31 Absteiger). Die Lage rechnet sich aus dem Plan selbst (jede Partie mittig
+zwischen ihren Vorgängern DERSELBEN Seite), es sind nirgends Koordinaten
+abgetippt — deshalb stimmt er für 8, 16 und 32 zugleich. Die Ergebnisknöpfe
+stehen unter dem Kasten, der gerade dran ist; beim Öffnen springt der Kasten auf
+die erste Runde, sonst sähe man am Handy zuerst leere Kästen.
 **News:** Unter `/admin/news` schreibt die Turnierleitung Beiträge; sie
 landen als Commit in `data/news.ts` (JSON-Array in der Datei, deshalb nie
 von Hand die Form zerstören) und erscheinen unter `/news`, auf der

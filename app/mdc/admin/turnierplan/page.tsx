@@ -45,7 +45,7 @@ export default async function AdminTurnierplanPage() {
       <PageHero
         kicker="Turnierverwaltung · zum Ausprobieren"
         title="Turnierplan"
-        description="Das Doppel-K.-o. vom Papierplan, klickbar: Teilnehmer setzen, Sieger antippen, Platzierung entsteht von selbst. Noch nichts davon geht in die Wertung."
+        description="Das Doppel-K.-o. vom Papierplan als Turnierbaum: Teilnehmer setzen, Ergebnis antippen (üblich best of 3, also 2 Gewinnlegs), Platzierung entsteht von selbst. Noch nichts davon geht in die Wertung."
       />
 
       <section className="mdc-section">
@@ -61,13 +61,23 @@ export default async function AdminTurnierplanPage() {
               <strong>Was vom Papier übernommen ist:</strong> die Setzliste der ersten Runde —
               beim 8er {SETZLISTE[8].map(([a, b]) => `${a}–${b}`).join(', ')}, beim 16er und
               32er entsprechend — und die Plätze der Ergebnisliste (1 bis 8 einzeln, dann 9,
-              13, 17, 25 als Gruppe), samt der Spiele um Platz 5/6 und 7/8.
+              13, 17, 25 als Gruppe), samt der Spiele um Platz 5/6 und 7/8. Der Baum steht wie
+              der Zettel: erste Runde in der Mitte mit den Setznummern, rechts die Siegerseite,
+              links die Verliererseite, und die Absteiger tragen Buchstaben statt Linien quer
+              über das Blatt.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Was nach dem üblichen Schema gebaut ist:</strong> die Verliererseite. Auf
               dem Papier führen dorthin Buchstaben (A, B, C …), die im Scan nicht überall zu
               verfolgen sind. Bitte einmal einen Abend gegen den Zettel gegenprüfen — weicht
               etwas ab, gehört der Plan hier geändert, nicht der Zettel.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              <strong>Ergebnisse:</strong> Unter jedem Kasten, der gerade dran ist, stehen die
+              üblichen Ergebnisse als Knopf — voreingestellt sind zwei Gewinnlegs (best of 3).
+              Ein anderer Modus lässt sich beim Aufstellen wählen, und jedes krumme Ergebnis
+              geht über „anderes …“ in der Liste oben. Wer nur den Namen antippt, setzt den
+              Sieger ohne Legs; auch das reicht dem Plan.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Und so kommt das Ergebnis in die Wertung:</strong> wie bisher über{' '}

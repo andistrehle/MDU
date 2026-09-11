@@ -91,6 +91,17 @@ export interface Turnier {
   partien: Partie[];
   /** Partie-ID → Sieger („a" oder „b"). Alles, was der Abend erzeugt. */
   ergebnisse: Record<string, 'a' | 'b'>;
+  /**
+   * Partie-ID → gewonnene Legs [a, b]. Freiwillig: Für den Plan genügt der
+   * Sieger, das Ergebnis ist die Zugabe für den, der es aufschreiben will.
+   */
+  legs: Record<string, [number, number]>;
+  /**
+   * Legs, die man zum Sieg braucht — bei der MDC üblicherweise 2 („best of
+   * 3"). Steuert nur die Schnellknöpfe beim Eintragen; verboten ist kein
+   * Ergebnis, der Zettel gilt.
+   */
+  gewinnlegs: number;
 }
 
 /** Ein Platz kann leer sein (Freilos) oder noch nicht feststehen. */
@@ -240,35 +251,57 @@ export function bauePlan(feld: Feldgroesse): Partie[] {
 }
 
 /**
- * Welche Verliererrunde entscheidet über Platz 5 und über Platz 7?
+ * Um welche Plätze es in einer Verliererrunde geht — genauer: welche Plätze
+ * die Verlierer dieser Runde bekommen.
  *
  * Von hinten gezählt: In der letzten Verliererrunde scheidet der Dritte aus,
  * in der davor der Vierte, dann zwei auf einmal (5 und 6), dann wieder zwei
  * (7 und 8). Wie viele Runden das sind, hängt an der Feldgröße — deshalb
  * gerechnet und nicht abgezählt.
+ *
+ * Auf dem Papierplan steht dasselbe als „Verlierer ist 4. Platz" an der
+ * Runde; der Turnierbaum schreibt es aus dieser Tabelle an die Spalte.
  */
-function platzRunden(partien: Partie[]): Record<number, number> {
+export function verliererPlaetze(partien: Partie[]): Record<number, { von: number; bis: number }> {
   const lbRunden = [...new Set(
     partien.filter(p => p.seite === 'verlierer').map(p => p.runde),
   )].sort((a, b) => b - a);
 
-  const treffer: Record<number, number> = {};
+  const treffer: Record<number, { von: number; bis: number }> = {};
   let platz = 3;
   for (const runde of lbRunden) {
     const anzahl = partien.filter(p => p.seite === 'verlierer' && p.runde === runde).length;
-    if (platz === 5 || platz === 7) treffer[platz] = runde;
+    treffer[runde] = { von: platz, bis: platz + anzahl - 1 };
     platz += anzahl;
   }
   return treffer;
 }
 
-export function neuesTurnier(teilnehmer: Teilnehmer[], feld?: Feldgroesse): Turnier {
+/** Welche Verliererrunde entscheidet über Platz 5 und über Platz 7? */
+function platzRunden(partien: Partie[]): Record<number, number> {
+  const treffer: Record<number, number> = {};
+  for (const [runde, { von }] of Object.entries(verliererPlaetze(partien))) {
+    if (von === 5 || von === 7) treffer[von] = Number(runde);
+  }
+  return treffer;
+}
+
+/** Bei der MDC der Normalfall: zwei gewonnene Legs. */
+export const GEWINNLEGS_STANDARD = 2;
+
+export function neuesTurnier(
+  teilnehmer: Teilnehmer[],
+  feld?: Feldgroesse,
+  gewinnlegs = GEWINNLEGS_STANDARD,
+): Turnier {
   const groesse = feld ?? planFuer(teilnehmer.length);
   return {
     feld: groesse,
     teilnehmer: teilnehmer.slice(0, groesse),
     partien: bauePlan(groesse),
     ergebnisse: {},
+    legs: {},
+    gewinnlegs,
   };
 }
 
@@ -343,10 +376,20 @@ export function entfaellt(turnier: Turnier, partie: Partie): boolean {
  */
 export function setzeSieger(turnier: Turnier, partieId: string, sieger: 'a' | 'b' | null): Turnier {
   const ergebnisse = { ...turnier.ergebnisse };
-  if (sieger) ergebnisse[partieId] = sieger;
-  else delete ergebnisse[partieId];
+  const legs = { ...turnier.legs };
+  if (sieger) {
+    ergebnisse[partieId] = sieger;
+    // Ein von Hand gesetzter Sieger und ein eingetragenes Ergebnis, das
+    // etwas anderes sagt, wären zwei Wahrheiten. Dann gilt der Sieger, das
+    // Ergebnis fällt weg.
+    const legStand = legs[partieId];
+    if (legStand && (legStand[0] > legStand[1] ? 'a' : 'b') !== sieger) delete legs[partieId];
+  } else {
+    delete ergebnisse[partieId];
+    delete legs[partieId];
+  }
 
-  const zwischen: Turnier = { ...turnier, ergebnisse };
+  const zwischen: Turnier = { ...turnier, ergebnisse, legs };
 
   // Alles verwerfen, dessen Teilnehmer nicht mehr feststehen.
   let geaendert = true;
@@ -356,11 +399,41 @@ export function setzeSieger(turnier: Turnier, partieId: string, sieger: 'a' | 'b
       if (!zwischen.ergebnisse[partie.id]) continue;
       if (spielbar(zwischen, partie)) continue;
       delete zwischen.ergebnisse[partie.id];
+      delete zwischen.legs[partie.id];
       geaendert = true;
     }
   }
 
   return zwischen;
+}
+
+/**
+ * Ergebnis eintragen — daraus ergibt sich der Sieger.
+ *
+ * Gleichstand gibt es im Doppel-K.-o. nicht; ein solcher Eintrag nimmt
+ * deshalb die Entscheidung zurück, statt eine zu erfinden.
+ */
+export function setzeLegs(
+  turnier: Turnier,
+  partieId: string,
+  a: number,
+  b: number,
+): Turnier {
+  if (a === b) return setzeSieger(turnier, partieId, null);
+  const mit = setzeSieger(turnier, partieId, a > b ? 'a' : 'b');
+  return { ...mit, legs: { ...mit.legs, [partieId]: [a, b] } };
+}
+
+/**
+ * Die üblichen Ergebnisse bei dieser Zahl von Gewinnlegs — für die
+ * Schnellknöpfe. Bei zwei Gewinnlegs sind das 2:0 und 2:1.
+ */
+export function ueblicheErgebnisse(gewinnlegs: number): [number, number][] {
+  const liste: [number, number][] = [];
+  for (let verloren = 0; verloren < gewinnlegs; verloren++) {
+    liste.push([gewinnlegs, verloren]);
+  }
+  return liste;
 }
 
 // ------------------------------------------------------------

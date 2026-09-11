@@ -25,9 +25,11 @@ import {
 } from 'lucide-react';
 import {
   besetzungen, entfaellt, fortschritt, jetztDran, neuesTurnier, planFuer,
-  platzierungen, setzeSieger, spielbar,
+  platzierungen, setzeLegs, setzeSieger, spielbar, ueblicheErgebnisse,
+  GEWINNLEGS_STANDARD,
   type Besetzung, type Feldgroesse, type Partie, type Teilnehmer, type Turnier,
 } from '@/lib/mdc/doppel-ko';
+import { Turnierbaum } from '@/components/mdc/turnierbaum';
 
 export interface PlanSpieler {
   passNr: number;
@@ -42,6 +44,8 @@ interface Gespeichert {
   feld: Feldgroesse;
   teilnehmer: Teilnehmer[];
   ergebnisse: Record<string, 'a' | 'b'>;
+  legs?: Record<string, [number, number]>;
+  gewinnlegs?: number;
   titel: string;
 }
 
@@ -56,6 +60,7 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
   const [liste, setListe] = useState<Teilnehmer[]>([]);
   const [suche, setSuche] = useState('');
   const [gast, setGast] = useState('');
+  const [gewinnlegs, setGewinnlegs] = useState(GEWINNLEGS_STANDARD);
   const [turnier, setTurnier] = useState<Turnier | null>(null);
   const [geladen, setGeladen] = useState(false);
 
@@ -71,10 +76,11 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
       const roh = window.localStorage.getItem(SPEICHER);
       if (roh) {
         const g = JSON.parse(roh) as Gespeichert;
-        const t = neuesTurnier(g.teilnehmer, g.feld);
+        const t = neuesTurnier(g.teilnehmer, g.feld, g.gewinnlegs ?? GEWINNLEGS_STANDARD);
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setTurnier({ ...t, ergebnisse: g.ergebnisse ?? {} });
+        setTurnier({ ...t, ergebnisse: g.ergebnisse ?? {}, legs: g.legs ?? {} });
         setTitel(g.titel ?? '');
+        setGewinnlegs(g.gewinnlegs ?? GEWINNLEGS_STANDARD);
       }
     } catch {
       // Kaputter Eintrag: lieber neu anfangen als hängen bleiben.
@@ -91,6 +97,8 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
           feld: turnier.feld,
           teilnehmer: turnier.teilnehmer,
           ergebnisse: turnier.ergebnisse,
+          legs: turnier.legs,
+          gewinnlegs: turnier.gewinnlegs,
           titel,
         };
         window.localStorage.setItem(SPEICHER, JSON.stringify(g));
@@ -138,7 +146,7 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
 
   function starten() {
     if (liste.length < 3) return;
-    setTurnier(neuesTurnier(liste));
+    setTurnier(neuesTurnier(liste, undefined, gewinnlegs));
   }
 
   function verwerfen() {
@@ -178,6 +186,23 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
               placeholder="z. B. Harlekin, Donnerstag"
               style={eingabe}
             />
+          </label>
+
+          <label style={{ display: 'block', marginTop: 14 }}>
+            <span style={label}>Modus</span>
+            <select
+              value={gewinnlegs}
+              onChange={e => setGewinnlegs(Number(e.target.value))}
+              style={eingabe}
+            >
+              <option value={1}>1 Gewinnleg (ein Leg entscheidet)</option>
+              <option value={2}>2 Gewinnlegs — best of 3 (üblich)</option>
+              <option value={3}>3 Gewinnlegs — best of 5</option>
+            </select>
+            <span style={{ display: 'block', marginTop: 5, fontSize: '0.78rem', color: 'var(--mdc-ink-dim)' }}>
+              Bestimmt nur die Schnellknöpfe beim Eintragen. Jedes andere Ergebnis lässt sich
+              trotzdem eingeben.
+            </span>
           </label>
 
           <label style={{ display: 'block', marginTop: 14 }}>
@@ -302,11 +327,15 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
   const dran = jetztDran(turnier);
   const stand = fortschritt(turnier);
   const platz = platzierungen(turnier);
-  const runden = [...new Set(turnier.partien.map(p => p.titel))];
+  const platzSpiele = turnier.partien.filter(p => p.seite === 'platz' && !entfaellt(turnier, p));
 
   const klick = (partie: Partie, seite: 'a' | 'b') => {
     const bisher = turnier.ergebnisse[partie.id];
     setTurnier(setzeSieger(turnier, partie.id, bisher === seite ? null : seite));
+  };
+
+  const legs = (partie: Partie, a: number, b: number) => {
+    setTurnier(setzeLegs(turnier, partie.id, a, b));
   };
 
   return (
@@ -341,7 +370,14 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
 
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {dran.map(partie => (
-            <PartieKarte key={partie.id} turnier={turnier} partie={partie} onKlick={klick} gross />
+            <PartieKarte
+              key={partie.id}
+              turnier={turnier}
+              partie={partie}
+              onKlick={klick}
+              onLegs={legs}
+              gross
+            />
           ))}
         </div>
       </div>
@@ -375,32 +411,37 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
         </div>
       )}
 
-      {/* ── Der ganze Plan ── */}
+      {/* ── Der Turnierbaum ── */}
       <div className="mdc-card" style={{ padding: '22px 20px' }}>
-        <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>Der ganze Plan</h2>
-        <p style={{ marginTop: 8, fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-          Jede Partie, auch die noch offenen. Eine falsch getippte Entscheidung lässt sich
-          hier zurücknehmen — alles, was darauf aufbaute, wird dann wieder offen.
+        <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>Turnierbaum</h2>
+        <p style={{ marginTop: 8, marginBottom: 14, fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+          Derselbe Aufbau wie auf dem Zettel: in der Mitte die erste Runde mit den
+          Setznummern, rechts die Siegerseite, links die Verliererseite. Unter dem Kasten,
+          der gerade dran ist, stehen die Ergebnisknöpfe. Ein Name lässt sich auch antippen —
+          das setzt den Sieger ohne Ergebnis, und ein zweiter Tipp nimmt ihn zurück.
         </p>
-
-        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {runden.map(runde => {
-            const partien = turnier.partien.filter(p => p.titel === runde);
-            return (
-              <div key={runde}>
-                <h3 className="mdc-display" style={{ fontSize: '0.95rem', color: 'var(--mdc-navy)' }}>
-                  {runde}
-                </h3>
-                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {partien.map(partie => (
-                    <PartieKarte key={partie.id} turnier={turnier} partie={partie} onKlick={klick} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <Turnierbaum turnier={turnier} onWaehle={klick} onLegs={legs} />
       </div>
+
+      {/* ── Platzierungsspiele ── */}
+      {platzSpiele.length > 0 && (
+        <div className="mdc-card" style={{ padding: '22px 20px' }}>
+          <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>Spiele um die Plätze</h2>
+          <p style={{ marginTop: 8, fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+            Stehen so auf dem Papierplan. Ohne sie teilen sich die Betroffenen den Platz.
+          </p>
+          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {platzSpiele.map(partie => (
+              <div key={partie.id}>
+                <h3 className="mdc-display" style={{ fontSize: '0.9rem', color: 'var(--mdc-navy)', marginBottom: 6 }}>
+                  {partie.titel}
+                </h3>
+                <PartieKarte turnier={turnier} partie={partie} onKlick={klick} onLegs={legs} gross />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -409,14 +450,16 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
 // Eine Partie
 // ------------------------------------------------------------
 
-function PartieKarte({ turnier, partie, onKlick, gross }: {
+function PartieKarte({ turnier, partie, onKlick, onLegs, gross }: {
   turnier: Turnier;
   partie: Partie;
   onKlick: (partie: Partie, seite: 'a' | 'b') => void;
+  onLegs: (partie: Partie, a: number, b: number) => void;
   gross?: boolean;
 }) {
   const { a, b } = besetzungen(turnier, partie);
   const sieger = turnier.ergebnisse[partie.id];
+  const stand = turnier.legs[partie.id];
   const offen = spielbar(turnier, partie) && !sieger;
   const weg = entfaellt(turnier, partie);
 
@@ -469,7 +512,15 @@ function PartieKarte({ turnier, partie, onKlick, gross }: {
             }}
           >
             {gewinnt && <Check size={15} style={{ color: 'var(--mdc-win)', flexShrink: 0 }} />}
-            {name(b_)}
+            <span style={{ flex: 1 }}>{name(b_)}</span>
+            {stand && (
+              <span
+                className="mdc-num"
+                style={{ fontWeight: 700, color: gewinnt ? 'var(--mdc-win)' : 'var(--mdc-ink-dim)' }}
+              >
+                {seite === 'a' ? stand[0] : stand[1]}
+              </span>
+            )}
           </button>
         );
       })}
@@ -484,7 +535,92 @@ function PartieKarte({ turnier, partie, onKlick, gross }: {
           <RotateCcw size={14} />
         </button>
       )}
+
+      {/* ── Ergebnis eintragen ──
+          Zwei Wege: die üblichen Ergebnisse als Knopf (ein Tipp im Lokal) und
+          zwei Felder für alles andere. Der Sieger ergibt sich daraus; wer nur
+          den Namen antippt, bekommt einen Sieger ohne Ergebnis — auch das ist
+          in Ordnung, der Plan braucht die Legs nicht. */}
+      {gross && spielbar(turnier, partie) && (
+        <div style={{ flexBasis: '100%', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', marginTop: 2 }}>
+          <span style={{ fontSize: '0.76rem', color: 'var(--mdc-ink-dim)', marginRight: 2 }}>
+            Ergebnis:
+          </span>
+          {ueblicheErgebnisse(turnier.gewinnlegs).flatMap(([hoch, tief]) => [
+            [hoch, tief] as [number, number],
+            [tief, hoch] as [number, number],
+          ]).map(([a_, b_]) => {
+            const aktiv = stand?.[0] === a_ && stand?.[1] === b_;
+            return (
+              <button
+                key={`${a_}-${b_}`}
+                type="button"
+                onClick={() => onLegs(partie, a_, b_)}
+                style={{
+                  ...legKnopf,
+                  borderColor: aktiv ? 'var(--mdc-win)' : 'var(--mdc-line)',
+                  background: aktiv ? 'rgba(20, 122, 61, 0.10)' : 'var(--mdc-card)',
+                  fontWeight: aktiv ? 700 : 400,
+                }}
+              >
+                {a_}:{b_}
+              </button>
+            );
+          })}
+          <FreiesErgebnis partie={partie} stand={stand} onLegs={onLegs} />
+        </div>
+      )}
     </div>
+  );
+}
+
+/** Zwei kleine Felder für ein Ergebnis, das nicht auf einen Knopf passt. */
+function FreiesErgebnis({ partie, stand, onLegs }: {
+  partie: Partie;
+  stand?: [number, number];
+  onLegs: (partie: Partie, a: number, b: number) => void;
+}) {
+  const [offen, setOffen] = useState(false);
+  const [a, setA] = useState(stand ? String(stand[0]) : '');
+  const [b, setB] = useState(stand ? String(stand[1]) : '');
+
+  if (!offen) {
+    return (
+      <button type="button" onClick={() => setOffen(true)} style={{ ...legKnopf, color: 'var(--mdc-ink-dim)' }}>
+        anderes …
+      </button>
+    );
+  }
+
+  const uebernehmen = () => {
+    const za = Number(a);
+    const zb = Number(b);
+    if (!Number.isInteger(za) || !Number.isInteger(zb) || za < 0 || zb < 0) return;
+    onLegs(partie, za, zb);
+    setOffen(false);
+  };
+
+  return (
+    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+      <input
+        value={a}
+        onChange={e => setA(e.target.value.replace(/\D/g, ''))}
+        inputMode="numeric"
+        style={legFeld}
+        aria-label="Legs oben"
+      />
+      <span style={{ color: 'var(--mdc-ink-dim)' }}>:</span>
+      <input
+        value={b}
+        onChange={e => setB(e.target.value.replace(/\D/g, ''))}
+        inputMode="numeric"
+        style={legFeld}
+        aria-label="Legs unten"
+      />
+      <button type="button" onClick={uebernehmen} style={{ ...legKnopf, borderColor: 'var(--mdc-red-a35)' }}>
+        <Check size={13} />
+      </button>
+    </span>
   );
 }
 
@@ -540,6 +676,20 @@ const zeileStil: React.CSSProperties = {
 const partieStil: React.CSSProperties = {
   display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8,
   padding: '8px 10px', borderRadius: 10, border: '1px solid var(--mdc-line)',
+};
+
+const legKnopf: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 4,
+  padding: '4px 9px', borderRadius: 7, fontSize: '0.82rem',
+  border: '1px solid var(--mdc-line)', background: 'var(--mdc-card)',
+  color: 'var(--mdc-ink)', cursor: 'pointer', font: 'inherit',
+  fontVariantNumeric: 'tabular-nums',
+};
+
+const legFeld: React.CSSProperties = {
+  width: 34, padding: '4px 6px', textAlign: 'center', fontSize: '0.82rem',
+  border: '1px solid var(--mdc-line-hard)', borderRadius: 7,
+  background: 'var(--mdc-card)', color: 'var(--mdc-ink)', font: 'inherit',
 };
 
 const iconStil: React.CSSProperties = {
