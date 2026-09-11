@@ -16,6 +16,7 @@ import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { FacebookEditor } from '@/components/mdc/facebook-editor';
 import { aktuellerFacebookPost, PLAETZE } from '@/lib/mdc/facebook-post';
+import { bildHoehe } from '@/lib/mdc/facebook-bild';
 import { facebookStatus } from '@/lib/mdc/facebook-api';
 import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
 import { RUNNING_SEASON } from '@/data/season';
@@ -37,7 +38,7 @@ export default async function AdminFacebookPage() {
       <PageHero
         kicker="Turnierverwaltung"
         title="Rangliste für Facebook"
-        description={`Die ersten ${PLAETZE.men} Herren und ${PLAETZE.women} Damen als fertiger Beitrag — mit Jackpot-Stand und Link auf die komplette Rangliste.`}
+        description={`Die ersten ${PLAETZE.men} Herren und ${PLAETZE.women} Damen als fertiges Bild — dazu der Text mit Jackpot-Stand und Link auf die komplette Rangliste.`}
       />
 
       <section className="mdc-section">
@@ -46,7 +47,26 @@ export default async function AdminFacebookPage() {
 
           {post ? (
             <FacebookEditor
-              vorlage={post.text}
+              vorlage={post.kurz}
+              langfassung={post.text}
+              bilder={[
+                {
+                  src: mdcPath('/admin/facebook/bild/men'),
+                  titel: 'Herren',
+                  dateiname: `mdc-rangliste-herren-${post.daten.stand}.png`,
+                  breite: 1200,
+                  hoehe: bildHoehe(post.daten.men.length),
+                  zeilen: post.daten.men.length,
+                },
+                {
+                  src: mdcPath('/admin/facebook/bild/women'),
+                  titel: 'Damen',
+                  dateiname: `mdc-rangliste-damen-${post.daten.stand}.png`,
+                  breite: 1200,
+                  hoehe: bildHoehe(post.daten.women.length),
+                  zeilen: post.daten.women.length,
+                },
+              ]}
               gruppe={MDC_FACEBOOK_GROUP}
               canPost={status.canPost}
               missing={status.missing}
@@ -66,11 +86,11 @@ export default async function AdminFacebookPage() {
 
           <div style={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'var(--mdc-ink-dim)', maxWidth: 720 }}>
             <p>
-              <strong>Jede Woche von selbst:</strong> Ein Wochenlauf erzeugt denselben Text
-              jeden Montagmorgen und legt ihn als Zusammenfassung im Repository ab
+              <strong>Jede Woche von selbst:</strong> Ein Wochenlauf erzeugt jeden
+              Montagmorgen denselben Text und legt ihn als Zusammenfassung ab
               (GitHub → Actions → „MDC · Rangliste für Facebook"). Von dort lässt er sich auch
-              am Handy kopieren. Ist eine Facebook-Seite hinterlegt, stellt derselbe Lauf den
-              Beitrag gleich ein.
+              am Handy kopieren. Die Bilder entstehen dagegen erst beim Aufruf dieser Seite —
+              sie zeigen also immer den Stand von jetzt.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Warum nicht direkt in die Gruppe:</strong> Meta hat die Schnittstelle zum

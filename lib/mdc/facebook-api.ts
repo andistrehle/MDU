@@ -100,11 +100,83 @@ export async function posteAufFacebook(
     throw new FacebookFehler(`Facebook hat abgelehnt: ${meldung}${rat}`);
   }
 
-  // Die Kennung hat die Form „<seite>_<beitrag>"; die Adresse setzt sich
-  // daraus zusammen.
-  const beitrag = antwort.id.includes('_') ? antwort.id.split('_')[1] : antwort.id;
-  return {
-    id: antwort.id,
-    url: `https://www.facebook.com/${status.pageId}/posts/${beitrag}`,
-  };
+  return { id: antwort.id, url: beitragsAdresse(antwort.id, status.pageId as string) };
+}
+
+/** Die Kennung hat die Form „<seite>_<beitrag>" — daraus wird die Adresse. */
+function beitragsAdresse(id: string, pageId: string): string {
+  const beitrag = id.includes('_') ? id.split('_')[1] : id;
+  return `https://www.facebook.com/${pageId}/posts/${beitrag}`;
+}
+
+/**
+ * Beitrag mit mehreren Bildern.
+ *
+ * Facebook kennt dafür keinen einzelnen Aufruf: Erst wird jedes Bild
+ * hochgeladen, aber NICHT veröffentlicht (`published=false`) — das gibt je
+ * eine Kennung. Die werden dann als `attached_media` an den eigentlichen
+ * Beitrag gehängt. Anders bekäme man zwei einzelne Bildbeiträge statt eines
+ * mit zwei Bildern.
+ *
+ * ACHTUNG: Dieser Weg ist gegen die Graph-API nicht erprobt — die MDC hat
+ * heute keine Facebook-Seite, an der sich das ausprobieren ließe. Er ist nach
+ * der Dokumentation gebaut. Wer ihn zum ersten Mal benutzt, prüft bitte nach,
+ * was dabei herauskommt.
+ */
+export async function posteBilderAufFacebook(
+  text: string,
+  bilder: { name: string; daten: Uint8Array }[],
+): Promise<{ id: string; url: string }> {
+  const status = facebookStatus();
+  if (!status.canPost) {
+    throw new FacebookFehler(`Facebook ist nicht eingerichtet: ${status.missing.join(', ')}.`);
+  }
+  if (!bilder.length) throw new FacebookFehler('Kein Bild zum Einstellen.');
+
+  const token = (process.env.MDC_FB_PAGE_TOKEN ?? '').trim();
+  const kennungen: string[] = [];
+
+  for (const bild of bilder) {
+    const form = new FormData();
+    form.set('published', 'false');
+    form.set('access_token', token);
+    form.set('source', new Blob([new Uint8Array(bild.daten)], { type: 'image/png' }), bild.name);
+
+    const res = await fetch(`${GRAPH}/${status.pageId}/photos`, {
+      method: 'POST',
+      body: form,
+      cache: 'no-store',
+    });
+    const antwort = await res.json().catch(() => null) as
+      { id?: string; error?: { message?: string } } | null;
+    if (!res.ok || !antwort?.id) {
+      throw new FacebookFehler(
+        `Facebook hat das Bild „${bild.name}" abgelehnt: `
+        + `${antwort?.error?.message ?? `HTTP ${res.status}`}`,
+      );
+    }
+    kennungen.push(antwort.id);
+  }
+
+  const body = new URLSearchParams({ message: text, access_token: token });
+  kennungen.forEach((id, i) => {
+    body.set(`attached_media[${i}]`, JSON.stringify({ media_fbid: id }));
+  });
+
+  const res = await fetch(`${GRAPH}/${status.pageId}/feed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+    cache: 'no-store',
+  });
+  const antwort = await res.json().catch(() => null) as
+    { id?: string; error?: { message?: string } } | null;
+  if (!res.ok || !antwort?.id) {
+    throw new FacebookFehler(
+      'Die Bilder liegen bei Facebook, der Beitrag dazu ist aber nicht entstanden: '
+      + `${antwort?.error?.message ?? `HTTP ${res.status}`}`,
+    );
+  }
+
+  return { id: antwort.id, url: beitragsAdresse(antwort.id, status.pageId as string) };
 }

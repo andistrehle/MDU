@@ -109,6 +109,39 @@ export function baueFacebookPost(daten: PostDaten): string {
 }
 
 /**
+ * Die kurze Fassung: Sie steht ÜBER den Bildern, nicht statt ihrer.
+ *
+ * Die Namen stehen im Bild, deshalb hier keine Liste — ein Beitrag, der die
+ * Rangliste zweimal enthält, liest sich niemand durch. Was bleibt, ist die
+ * Einordnung (Saison, Stand, Jackpot) und der Verweis.
+ */
+export function kurzerFacebookText(daten: PostDaten): string {
+  const zeilen = [
+    `🎯 MDC-Rangliste — Stand ${datum(daten.stand)}`,
+    `Saison ${daten.saison} · ${zahl.format(daten.turniere)} Turniere gespielt`,
+    '',
+    `🏆 Top ${daten.men.length} Herren und Top ${daten.women.length} Damen im Bild.`,
+  ];
+
+  if (daten.jackpot) {
+    zeilen.push(
+      '',
+      `💰 Jackpot: Herren ${euro.format(daten.jackpot.men)} · `
+      + `Damen ${euro.format(daten.jackpot.women)}`,
+      `Ausgeschüttet wird ab ${daten.mindestTeilnahmen} Teilnahmen.`,
+    );
+  }
+
+  zeilen.push(
+    '',
+    '👉 Komplette Rangliste, alle Turniere und jedes Ergebnis:',
+    daten.link,
+  );
+
+  return zeilen.join('\n');
+}
+
+/**
  * Ranglisteneinträge in die Form bringen, die der Beitrag braucht — gekürzt
  * auf die vereinbarte Zahl von Plätzen.
  *
@@ -147,7 +180,8 @@ export function kuerze(
  * Gibt `null` zurück, solange die laufende Saison keine Wertung hat. Ein
  * Beitrag mit leerer Tabelle wäre schlechter als gar keiner.
  */
-export function aktuellerFacebookPost(): { text: string; daten: PostDaten } | null {
+export function aktuellerFacebookPost():
+  { text: string; kurz: string; daten: PostDaten } | null {
   if (!RUNNING_HAS_RESULTS) return null;
 
   const name = (playerId: string) => {
@@ -169,5 +203,5 @@ export function aktuellerFacebookPost(): { text: string; daten: PostDaten } | nu
     link: `${MDC_ORIGIN}/rangliste`,
   };
 
-  return { text: baueFacebookPost(daten), daten };
+  return { text: baueFacebookPost(daten), kurz: kurzerFacebookText(daten), daten };
 }

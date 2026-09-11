@@ -129,11 +129,14 @@ Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
 Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
 GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
 **Facebook:** `/admin/facebook` zeigt die laufende Rangliste als fertigen
-Beitrag (Top 32 Herren, Top 16 Damen, Jackpot, Link auf `/rangliste`) —
-`lib/mdc/facebook-post.ts` baut den Text, dieselbe Quelle nutzt der Wochenlauf
+Beitrag — **zwei Tabellenbilder** (Top 32 Herren, Top 16 Damen; gezeichnet mit
+`ImageResponse`/Satori in `lib/mdc/facebook-bild.tsx`, ausgeliefert unter
+`/admin/facebook/bild/[division]`, Satori kann NUR Flexbox) plus kurzem Text
+mit Jackpot und Link auf `/rangliste`. Im Bildfuß steht der Verweis noch einmal.
+`lib/mdc/facebook-post.ts` baut den Text (kurz und lang), dieselbe Quelle nutzt der Wochenlauf
 `scripts/mdc-facebook-post.ts` (`.github/workflows/mdc-facebook-weekly.yml`,
-montags 7:00 UTC; legt den Text als Job-Zusammenfassung ab, auch am Handy
-kopierbar). **In eine Facebook-GRUPPE kann kein Programm schreiben** — Meta hat
+montags 7:00 UTC; legt den Text als Job-Zusammenfassung und die Bilder als
+Artefakt `facebook-bilder` ab, beides am Handy abrufbar). **In eine Facebook-GRUPPE kann kein Programm schreiben** — Meta hat
 `publish_to_groups` abgeschaltet; für die MDC-Gruppe bleibt es beim Kopieren,
 und die Oberfläche sagt das auch so. Auf eine Facebook-SEITE kann die Seite
 selbst posten, sobald `MDC_FB_PAGE_ID` und `MDC_FB_PAGE_TOKEN` gesetzt sind

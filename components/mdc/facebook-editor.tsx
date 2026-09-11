@@ -4,10 +4,19 @@
 // MDC — Rangliste als Facebook-Beitrag
 // ============================================================
 //
-// Der Text steht fertig da und ist trotzdem ein Textfeld: Vor dem Einstellen
-// will man oft noch einen Satz davorschreiben („Heute im Fiakerstüberl geht's
-// weiter"). Kopiert und abgeschickt wird immer das, was im Feld steht — nicht
-// das, was die Seite gerechnet hat.
+// Der Beitrag besteht aus zwei Bildern (Herren, Damen) und einem kurzen Text
+// darüber. Die Rangliste als Bleiwüste aus 49 Zeilen hat niemand gelesen —
+// als Tabellenbild schon.
+//
+// Ablauf am Handy: beide Bilder speichern, Text kopieren, bei Facebook einen
+// Beitrag mit beiden Bildern anlegen, Text einfügen. Deshalb stehen die
+// Bilder oben und der Text darunter, in genau dieser Reihenfolge.
+//
+// Der Text ist ein Textfeld: Vor dem Einstellen will man oft noch einen Satz
+// davorschreiben („Heute im Fiakerstüberl geht's weiter"). Kopiert und
+// abgeschickt wird immer das, was im Feld steht — nicht das, was die Seite
+// gerechnet hat. Wer die Namen doch lieber als Text hätte, schaltet auf die
+// Langfassung um.
 //
 // Der Kopierweg ist der Hauptweg und nicht der Notbehelf: In eine
 // Facebook-GRUPPE kann kein Programm schreiben, seit Meta die Groups-API
@@ -18,16 +27,32 @@
 
 import { useState } from 'react';
 import {
-  AlertTriangle, Check, Copy, ExternalLink, Loader2, Megaphone, RotateCcw, Send,
+  AlertTriangle, Check, Copy, Download, ExternalLink, FileText, Image as ImageIcon,
+  Loader2, Megaphone, RotateCcw, Send,
 } from 'lucide-react';
 import { posteRangliste } from '@/app/mdc/admin/facebook/actions';
 
 // Das Megafon statt eines Facebook-Zeichens: lucide führt keine Markenlogos
 // mehr. Passt hier ohnehin besser — es geht ums Hinausrufen, nicht um Facebook.
 
+export interface BeitragsBild {
+  /** Adresse, unter der das PNG erzeugt wird. */
+  src: string;
+  titel: string;
+  /** Dateiname beim Herunterladen. */
+  dateiname: string;
+  breite: number;
+  hoehe: number;
+  zeilen: number;
+}
+
 export interface FacebookEditorProps {
-  /** Der gerechnete Beitrag — Ausgangspunkt, nicht Zwang. */
+  /** Kurzer Text über den Bildern — Ausgangspunkt, nicht Zwang. */
   vorlage: string;
+  /** Dieselbe Rangliste als reiner Text, falls die Bilder nicht passen. */
+  langfassung: string;
+  /** Die beiden Tabellenbilder. */
+  bilder: BeitragsBild[];
   /** Adresse der MDC-Gruppe, in die der Text eingefügt wird. */
   gruppe: string;
   /** Kann die Seite selbst posten (Facebook-Seite hinterlegt)? */
@@ -39,9 +64,10 @@ export interface FacebookEditorProps {
 }
 
 export function FacebookEditor({
-  vorlage, gruppe, canPost, missing, zusammenfassung,
+  vorlage, langfassung, bilder, gruppe, canPost, missing, zusammenfassung,
 }: FacebookEditorProps) {
   const [text, setText] = useState(vorlage);
+  const [lang, setLang] = useState(false);
   const [kopiert, setKopiert] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -95,11 +121,69 @@ export function FacebookEditor({
         </div>
       )}
 
+      {/* ── 1. Die Bilder ── */}
+      <div className="mdc-card mdc-card-accent" style={{ padding: '22px 20px' }}>
+        <h2 className="mdc-display" style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+          <ImageIcon size={19} style={{ color: 'var(--mdc-red)' }} />
+          Die Rangliste als Bild
+        </h2>
+        <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+          Beide Bilder speichern, bei Facebook einen Beitrag anlegen, beide anhängen und den
+          Text von unten einfügen. Der Verweis auf die Seite steht im Bild selbst — und noch
+          einmal als anklickbarer Link im Text.
+        </p>
+
+        <div
+          style={{
+            marginTop: 16, display: 'grid', gap: 16,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          }}
+        >
+          {bilder.map(bild => (
+            <div key={bild.src} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Kein next/image: Das PNG wird bei jedem Aufruf frisch
+                  gezeichnet und hat je nach Zahl der Plätze eine andere Höhe —
+                  da gibt es nichts vorzuoptimieren. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={bild.src}
+                alt={`Rangliste ${bild.titel}`}
+                width={bild.breite}
+                height={bild.hoehe}
+                style={{
+                  width: '100%', height: 'auto', borderRadius: 10,
+                  border: '1px solid var(--mdc-line)',
+                }}
+              />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                <a
+                  href={bild.src}
+                  download={bild.dateiname}
+                  className="mdc-btn mdc-btn-primary mdc-btn-sm"
+                >
+                  <Download size={15} />
+                  {bild.titel} speichern
+                </a>
+                <span style={{ fontSize: '0.8rem', color: 'var(--mdc-ink-dim)' }}>
+                  {bild.zeilen} Plätze · {bild.breite} × {bild.hoehe}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ marginTop: 14, fontSize: '0.84rem', lineHeight: 1.65, color: 'var(--mdc-ink-dim)' }}>
+          Am Handy: lange auf das Bild drücken und „Bild sichern" wählen, das geht genauso.
+          Die Bilder entstehen bei jedem Aufruf neu — sie zeigen immer den Stand von jetzt.
+        </p>
+      </div>
+
+      {/* ── 2. Der Text dazu ── */}
       <div className="mdc-card" style={{ padding: '22px 20px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'baseline', justifyContent: 'space-between' }}>
           <h2 className="mdc-display" style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 9 }}>
             <Megaphone size={19} style={{ color: 'var(--mdc-red)' }} />
-            Beitrag
+            Text zum Beitrag
           </h2>
           <span style={{ fontSize: '0.82rem', color: 'var(--mdc-ink-dim)' }}>
             {zusammenfassung} · {text.length} Zeichen
@@ -107,8 +191,9 @@ export function FacebookEditor({
         </div>
 
         <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-          Der Text ist der Stand von heute. Du kannst ihn ändern, bevor du ihn kopierst —
-          etwa einen Satz voranstellen.
+          Steht bei Facebook über den Bildern. Du kannst ihn ändern, bevor du ihn kopierst —
+          etwa einen Satz voranstellen. Wer die Namen lieber im Text hätte statt im Bild,
+          schaltet unten auf die Langfassung um.
         </p>
 
         <textarea
@@ -139,8 +224,21 @@ export function FacebookEditor({
           <button
             type="button"
             className="mdc-btn mdc-btn-ghost"
-            onClick={() => { setText(vorlage); setFehler(null); }}
-            disabled={text === vorlage}
+            onClick={() => {
+              const naechste = !lang;
+              setLang(naechste);
+              setText(naechste ? langfassung : vorlage);
+              setFehler(null);
+            }}
+          >
+            <FileText size={16} />
+            {lang ? 'Kurzfassung' : 'Alle Namen als Text'}
+          </button>
+          <button
+            type="button"
+            className="mdc-btn mdc-btn-ghost"
+            onClick={() => { setText(lang ? langfassung : vorlage); setFehler(null); }}
+            disabled={text === (lang ? langfassung : vorlage)}
           >
             <RotateCcw size={16} />
             Zurücksetzen

@@ -2,8 +2,9 @@ name: MDC · Rangliste für Facebook
 
 # Jeden Montag um 08:00 Ortszeit (07:00 UTC im Sommer, 07:00 UTC = 08:00 MEZ im
 # Winter — Cron kennt keine Zeitumstellung, eine Stunde Abweichung im Winter ist
-# hier egal). Der Lauf rechnet den Beitrag und legt ihn als Zusammenfassung ab;
-# unter "Actions" lässt er sich von dort kopieren, auch am Handy.
+# hier egal). Der Lauf rechnet den Beitrag: den Text in die Zusammenfassung, die
+# beiden Tabellenbilder als Artefakt. Unter "Actions" ist damit alles beisammen,
+# was der Beitrag braucht — auch am Handy.
 #
 # Eingestellt wird nur, wenn eine Facebook-SEITE hinterlegt ist (Secrets
 # MDC_FB_PAGE_ID und MDC_FB_PAGE_TOKEN). Ohne sie sagt der Lauf das und endet
@@ -34,3 +35,13 @@ jobs:
           MDC_FB_PAGE_ID: ${{ secrets.MDC_FB_PAGE_ID }}
           MDC_FB_PAGE_TOKEN: ${{ secrets.MDC_FB_PAGE_TOKEN }}
         run: npx tsx scripts/mdc-facebook-post.ts --post
+
+      # Die Bilder zum Herunterladen. Vier Wochen aufheben reicht — danach ist
+      # die Rangliste ohnehin eine andere.
+      - name: Bilder aufbewahren
+        uses: actions/upload-artifact@v4
+        with:
+          name: facebook-bilder
+          path: facebook-bilder/
+          if-no-files-found: warn
+          retention-days: 28

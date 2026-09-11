@@ -1,12 +1,25 @@
 # MDC — Rangliste als Facebook-Beitrag
 
 Unter **`/admin/facebook`** steht die aktuelle Rangliste als fertiger
-Beitrag: die ersten **32 Herren** und **16 Damen**, dazu der Jackpot-Stand und
-der Link auf die komplette Rangliste. Text kopieren, in der MDC-Gruppe
-einfügen, abschicken.
+Beitrag — **als Bild**, nicht als Textwüste:
 
-Der Text ist ein Textfeld, kein starrer Block — vor dem Kopieren lässt sich
-noch ein Satz voranstellen. Kopiert wird immer das, was im Feld steht.
+1. **Zwei Tabellenbilder** (1200 px breit): die ersten **32 Herren** und
+   **16 Damen**, mit Platz, Name, Punkten und Teilnahmen. Unten im Bild steht
+   „Komplette Rangliste auf mdc-ranking.de/rangliste".
+2. **Ein kurzer Text** darüber: Stand, Jackpot, und derselbe Verweis noch
+   einmal als anklickbarer Link.
+
+Ablauf: beide Bilder speichern, bei Facebook einen Beitrag mit beiden Bildern
+anlegen, Text einfügen. Der Text ist ein Textfeld — vor dem Kopieren lässt sich
+ein Satz voranstellen, und wer die Namen doch lieber als Text hätte, schaltet
+auf die Langfassung um.
+
+Gezeichnet werden die Bilder mit `ImageResponse` (Satori) in
+`lib/mdc/facebook-bild.tsx`; ausgeliefert werden sie unter
+`/admin/facebook/bild/men` bzw. `/women`, immer frisch gerechnet. **Satori kann
+nur Flexbox** — kein `grid`, keine Tabellen; beim Ändern daran denken. Die
+Hausschrift der Seite kommt von Google Fonts und liegt nicht als Datei im
+Repository, deshalb zeichnet Satori mit seiner eingebauten Schrift.
 
 ---
 
@@ -42,6 +55,12 @@ für den Wochenlauf, dieselben als GitHub-Secrets):
 
 Sind beide gesetzt, erscheint in der Verwaltung der Knopf „Auf der
 Facebook-Seite einstellen"; der Wochenlauf stellt den Beitrag dann selbst ein.
+Ein Beitrag mit zwei Bildern braucht bei Facebook zwei Schritte (Bilder
+unveröffentlicht hochladen, dann als `attached_media` an den Beitrag hängen) —
+das steckt in `posteBilderAufFacebook`. **Dieser Weg ist nie gegen die echte
+API gelaufen**, weil es keine MDC-Seite zum Ausprobieren gibt; er ist nach der
+Dokumentation gebaut. Beim ersten Einsatz bitte nachsehen, was dabei
+herauskommt.
 Fehlt eine, sagt die Seite das und bietet nur den Kopierweg an — sie tut nicht
 so, als hätte sie gepostet.
 
@@ -57,10 +76,11 @@ ab, meldet die Seite Fehlercode 190 samt Rat.
 `.github/workflows/mdc-facebook-weekly.yml` läuft **montags um 7:00 UTC** und
 lässt sich im Actions-Tab jederzeit von Hand starten.
 
-Jeder Lauf rechnet den Beitrag und legt ihn als **Zusammenfassung** ab —
-GitHub → Actions → „MDC · Rangliste für Facebook" → Lauf öffnen. Von dort
-lässt er sich kopieren, auch am Handy. Ist eine Facebook-Seite hinterlegt,
-stellt derselbe Lauf ihn zusätzlich ein.
+Jeder Lauf legt beides ab: den **Text** als Zusammenfassung und die **beiden
+Bilder** als Artefakt `facebook-bilder` (28 Tage). GitHub → Actions → „MDC ·
+Rangliste für Facebook" → Lauf öffnen; Text kopieren, Bilder laden, fertig —
+auch am Handy. Ist eine Facebook-Seite hinterlegt, stellt derselbe Lauf den
+Beitrag mit beiden Bildern zusätzlich selbst ein.
 
 Ohne Schlüssel endet der Lauf **grün** mit dem Vermerk, dass nichts eingestellt
 wurde. Das ist Absicht: Eine rote Meldung jede Woche, die nichts bedeutet,
@@ -79,7 +99,9 @@ npx tsx scripts/mdc-facebook-post.ts --post   # zusätzlich einstellen
 
 | Datei | Wofür |
 | --- | --- |
-| `lib/mdc/facebook-post.ts` | Baut den Text. Eine Quelle für Verwaltung und Wochenlauf |
+| `lib/mdc/facebook-post.ts` | Baut den Text (kurz und lang). Eine Quelle für Verwaltung und Wochenlauf |
+| `lib/mdc/facebook-bild.tsx` | Zeichnet die Tabellenbilder |
+| `app/mdc/admin/facebook/bild/[division]/` | Liefert das PNG aus |
 | `lib/mdc/facebook-api.ts` | Graph-API, Status, Fehlerklartext |
 | `app/mdc/admin/facebook/` | Seite und Server-Aktion |
 | `components/mdc/facebook-editor.tsx` | Textfeld, Kopieren, Einstellen |

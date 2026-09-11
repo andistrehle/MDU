@@ -14,7 +14,11 @@
 // ============================================================
 
 import { headers } from 'next/headers';
-import { facebookStatus, posteAufFacebook, FacebookFehler } from '@/lib/mdc/facebook-api';
+import {
+  facebookStatus, posteAufFacebook, posteBilderAufFacebook, FacebookFehler,
+} from '@/lib/mdc/facebook-api';
+import { aktuellerFacebookPost } from '@/lib/mdc/facebook-post';
+import { bildDatenAus, ranglisteBild } from '@/lib/mdc/facebook-bild';
 import { MDC_ORIGIN } from '@/lib/mdc/site';
 
 export type PostErgebnis =
@@ -53,7 +57,26 @@ export async function posteRangliste(text: string): Promise<PostErgebnis> {
   }
 
   try {
-    const beitrag = await posteAufFacebook(inhalt, `${MDC_ORIGIN}/rangliste`);
+    // Mit Bildern, wenn es welche gibt — der Beitrag soll bei Facebook so
+    // aussehen wie hier am Bildschirm. Nur wenn die Wertung noch leer ist,
+    // bleibt es beim reinen Text mit Vorschaubild der Seite.
+    const post = aktuellerFacebookPost();
+    const bilder = post
+      ? await Promise.all(
+        (['men', 'women'] as const)
+          .filter(division => post.daten[division].length > 0)
+          .map(async division => ({
+            name: `mdc-rangliste-${division === 'men' ? 'herren' : 'damen'}-${post.daten.stand}.png`,
+            daten: new Uint8Array(
+              await ranglisteBild(bildDatenAus(post.daten, division)).arrayBuffer(),
+            ),
+          })),
+      )
+      : [];
+
+    const beitrag = bilder.length
+      ? await posteBilderAufFacebook(inhalt, bilder)
+      : await posteAufFacebook(inhalt, `${MDC_ORIGIN}/rangliste`);
     return { ok: true, url: beitrag.url };
   } catch (fehler) {
     if (fehler instanceof FacebookFehler) return { ok: false, fehler: fehler.message };
