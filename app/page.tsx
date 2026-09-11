@@ -105,6 +105,8 @@ export default async function HomePage() {
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center', minHeight: 400,
         }}>
           <div className="mdu-hero-inner" style={{ position: 'relative', zIndex: 2 }}>
+            {/* Kicker als gemeinsame Typo-Signatur mit der MDC (siehe .mdu-kicker). */}
+            <div className="mdu-kicker" style={{ marginBottom: 16 }}>München · Dart-Liga</div>
             <h1 className="mdu-hero-title" style={{
               fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 96,
               lineHeight: 0.92, letterSpacing: '-0.005em', color: 'var(--th-text-strong)', margin: 0,

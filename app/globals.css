@@ -456,6 +456,34 @@ body {
   display: inline-block;
 }
 
+/* ── Kicker / Überzeile ────────────────────────────────────────
+   Gemeinsame Typo-Signatur mit der MDC (mdc-ranking.de): kondensierte
+   Versalien mit weiter Laufweite und kurzem Balken davor. Farbe kommt
+   bewusst aus `--th-accent` (nicht hart rot), damit Hell-/Dunkel-Thema
+   und das MDU-Farbschema unverändert greifen. */
+.mdu-kicker {
+  font-family: var(--font-saira-condensed), 'Archivo Narrow', system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--th-accent);
+  /* Block-Ebene (flex, nicht inline-flex), damit die nachfolgende Überschrift
+     — auch eine inline-block-h1 mit Unterstrich wie im Seitenbanner — immer in
+     der Zeile darunter steht und nicht daneben rutscht. */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mdu-kicker::before {
+  content: '';
+  width: 26px;
+  height: 3px;
+  background: var(--th-accent);
+  flex: none;
+}
+
 @keyframes mdu-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 @keyframes ken-burns { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
 

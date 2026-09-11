@@ -61,10 +61,7 @@ export function PageBanner({
           <div className="mdu-pb-content">
             {breadcrumb}
             {eyebrow && (
-              <div style={{
-                fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.2em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 8,
-              }}>
+              <div className="mdu-kicker" style={{ marginBottom: 10 }}>
                 {eyebrow}
               </div>
             )}
