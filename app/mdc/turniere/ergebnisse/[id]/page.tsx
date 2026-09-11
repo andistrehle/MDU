@@ -20,7 +20,7 @@ import {
 } from '@/data/tournament-results';
 import { getVenue, venueAddress } from '@/data/venues';
 import { getPlayer, playerName } from '@/data/players';
-import { correctionsFor } from '@/data/corrections';
+import { correctionsFor, passKorrekturenFor } from '@/data/corrections';
 import { rankGroupLabel } from '@/lib/mdc/points';
 import { formatDateLong, formatNumber } from '@/lib/mdc/format';
 import { getSeason } from '@/data/season';
@@ -55,8 +55,13 @@ export default async function ArchivTurnierPage(
   if (!turnier) notFound();
 
   const venue = getVenue(turnier.venueId);
-  // Berichtigung gegenüber der Auswertung (data/corrections.ts).
-  const berichtigungen = correctionsFor(turnier.id);
+  // Berichtigungen gegenüber der Auswertung (data/corrections.ts) — die
+  // nachgetragene Zeile und die vertauschte Passnummer sehen für den Leser
+  // gleich aus, deshalb hier zusammengefasst.
+  const berichtigungen = [
+    ...correctionsFor(turnier.id),
+    ...passKorrekturenFor(turnier.id),
+  ];
   const top3 = turnier.results.slice(0, 3);
   const punkteGesamt = turnier.results.reduce((sum, r) => sum + r.points, 0);
 
@@ -176,7 +181,7 @@ export default async function ArchivTurnierPage(
         <div className="mdc-shell">
           {berichtigungen.map(hinweis => (
             <div
-              key={hinweis.tournamentId}
+              key={`${hinweis.tournamentId}-${hinweis.passNr}`}
               className="mdc-card"
               style={{
                 display: 'flex', gap: 12, padding: '14px 16px', marginBottom: 22,

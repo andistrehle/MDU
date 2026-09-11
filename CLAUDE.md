@@ -107,6 +107,16 @@ Commit in `data/results-uploaded.ts` (neue Spieler in
 `data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form
 aber ganz normal von Hand änderbar. **Die Arbeitsmappe hat Vorrang:** Steht
 dasselbe Turnier später dort, wird die hochgeladene Zeile ignoriert.
+**Turniere der Arbeitsmappe berichtigen:** `data/corrections.ts` kennt ZWEI
+Arten, beide überstehen jeden neuen Import und lassen die erzeugten Dateien in
+Ruhe. `CORRECTIONS` trägt eine **fehlende Zeile** nach (Turnier wird komplett
+neu durchgerechnet, weil der Punkteschlüssel an der Feldgröße hängt);
+`PASS_KORREKTUREN` tauscht eine **verwechselte Passnummer** (Platz, Punkte und
+Feldgröße bleiben, nur die Zeile gehört jemand anderem — 07.09.2026 Harlekin:
+57 statt 67). Beide greifen nur, solange die Mappe sie braucht; sobald der
+Betreiber dort berichtigt, meldet `scripts/mdc-check-saison.ts` „ERLEDIGT".
+Die laufende Wertung entsteht aus den berichtigten Ergebnissen, die Änderung
+wirkt also auch in Rangliste, Jackpot und Spielerprofil.
 **Nachträglich berichtigen:** Unter der Upload-Maske listet
 `components/mdc/turnier-korrektur.tsx` alle hochgeladenen Turniere; Datum und
 Spielort lassen sich ändern, das Turnier ganz entfernen

@@ -17,7 +17,7 @@ import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows, withPayout } from '@/lib/mdc/rows';
 import { runningRankingOf, RUNNING_HAS_RESULTS, RUNNING_IS_CORRECTED } from '@/data/ranking';
-import { CORRECTIONS } from '@/data/corrections';
+import { BERICHTIGUNGS_HINWEISE } from '@/data/corrections';
 import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
@@ -50,7 +50,7 @@ export default function RanglistePage() {
             <>
               {RUNNING_IS_CORRECTED && (
                 <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
-                  {CORRECTIONS.map(hinweis => (
+                  {BERICHTIGUNGS_HINWEISE.map(hinweis => (
                     <div
                       key={hinweis.tournamentId}
                       className="mdc-card"
@@ -63,8 +63,7 @@ export default function RanglistePage() {
                       <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
                       <p>
                         <strong>Ein Turnier ist berichtigt.</strong> {hinweis.note}{' '}
-                        Dadurch weichen einzelne Punktzahlen und Plätze von der ausgehängten
-                        Liste ab.{' '}
+                        {hinweis.folge}{' '}
                         <Link href={mdcPath(`/turniere/ergebnisse/${hinweis.tournamentId}`)}>
                           Zum Turnier
                         </Link>

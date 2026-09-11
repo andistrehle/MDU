@@ -21,7 +21,7 @@
 // ============================================================
 
 import { pointsFor } from '@/lib/mdc/points';
-import { correctionsFor } from './corrections';
+import { correctionsFor, passKorrekturenFor, type PassNrCorrection } from './corrections';
 import { RESULTS_2025_26_RAW } from './results-2025-26.generated';
 import { RESULTS_2026_27_RAW } from './results-2026-27.generated';
 import { RESULTS_UPLOADED_RAW } from './results-uploaded';
@@ -93,6 +93,14 @@ const RAW: Record<string, string[]> = {
 };
 
 /**
+ * Passnummern-Berichtigungen, die beim Einlesen wirklich gegriffen haben.
+ * `scripts/mdc-check-saison.ts` vergleicht das mit `PASS_KORREKTUREN` und
+ * meldet, welcher Eintrag ins Leere zeigt — etwa weil die Mappe inzwischen
+ * stimmt und der Eintrag raus kann.
+ */
+export const AKTIVE_PASS_KORREKTUREN: PassNrCorrection[] = [];
+
+/**
  * Spieler-ID zu einer Passnummer: erst aus der Wertung DIESER Saison, sonst
  * aus dem Stamm. Der zweite Weg greift bei berichtigten Zeilen — wer in der
  * Auswertung fehlt, steht auch in ihrer Rangliste nicht.
@@ -113,7 +121,20 @@ function parse(raw: string, seasonId: string, source: 'workbook' | 'upload'): To
     return { passNr: Number(pass), points: Number(points) };
   });
 
-  // Berichtigungen einsetzen und danach ALLE Punkte neu rechnen: Der
+  // Verwechselte Passnummer: nur tauschen, sonst nichts. Platz und Punkte
+  // gehören zur Zeile, nicht zur Person — die Feldgröße ändert sich dabei ja
+  // nicht. Greift nur, wenn die falsche Nummer wirklich dasteht: Hat der
+  // Betreiber sie inzwischen in der Mappe berichtigt, ist der Eintrag
+  // gegenstandslos und wird übersprungen.
+  const passKorrekturen = passKorrekturenFor(id)
+    .filter(k => zeilen.some(z => z.passNr === k.falschePassNr));
+  for (const k of passKorrekturen) {
+    const zeile = zeilen.find(z => z.passNr === k.falschePassNr);
+    if (zeile) zeile.passNr = k.passNr;
+    AKTIVE_PASS_KORREKTUREN.push(k);
+  }
+
+  // Fehlende Zeile einsetzen und danach ALLE Punkte neu rechnen: Der
   // Schlüssel hängt an der Feldgröße, ein Starter mehr ändert jede Zeile.
   // Steht die Person inzwischen selbst in der Mappe, ist die Berichtigung
   // erledigt und wird übersprungen — sonst stünde sie zweimal da.
@@ -132,7 +153,7 @@ function parse(raw: string, seasonId: string, source: 'workbook' | 'upload'): To
     venueName: venueName(venueId),
     formerVenue: isFormerVenue(venueId),
     participants,
-    corrected: korrekturen.length > 0,
+    corrected: korrekturen.length > 0 || passKorrekturen.length > 0,
     participantsInWorkbook: zeilen.length - korrekturen.length,
     source,
     results: zeilen.map((zeile, index) => ({

@@ -25,11 +25,13 @@
 // Rückgabe: Code 1, sobald eine Prüfung scheitert.
 // ============================================================
 
-import { tournamentsOfSeason, seasonStats, getTournamentRecord } from '../data/tournament-results';
-import { CORRECTIONS } from '../data/corrections';
+import {
+  tournamentsOfSeason, seasonStats, getTournamentRecord, AKTIVE_PASS_KORREKTUREN,
+} from '../data/tournament-results';
+import { CORRECTIONS, PASS_KORREKTUREN } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
 import {
-  getPlayer, playerName, PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN,
+  getPlayer, getPlayerByPassNr, playerName, PARSED_RUNNING_MEN, PARSED_RUNNING_WOMEN,
 } from '../data/players';
 import { pointsFor, TABLE_RANGE } from '../lib/mdc/points';
 import { FINAL_SEASON, RUNNING_SEASON } from '../data/season';
@@ -113,6 +115,14 @@ function pruefe(saison: Season, wertung: Record<Division, WertungsZeile[]>) {
   for (const t of tournamentsOfSeason(saison.id)) {
     if (!t.corrected) continue;
     for (const r of t.results) if (r.playerId) berichtigt.add(r.playerId);
+  }
+  // Bei einer vertauschten Passnummer fehlt der frühere Inhaber in den
+  // berichtigten Ergebnissen — in der Wertung der Mappe steht er aber noch.
+  // Auch er gehört übergangen, sonst meldete die Probe genau die Abweichung,
+  // die beabsichtigt ist.
+  for (const k of AKTIVE_PASS_KORREKTUREN) {
+    const frueher = getPlayerByPassNr(k.falschePassNr);
+    if (frueher) berichtigt.add(frueher.id);
   }
 
   let abgeglichen = 0;
@@ -207,6 +217,36 @@ if (CORRECTIONS.length > 0) {
     } else {
       console.log(`  aktiv     ${eintrag.tournamentId}: Passnr. ${eintrag.passNr} auf Platz ` +
         `${zeile.rank} ergänzt, ${turnier.participants} statt ${turnier.participantsInWorkbook} Starter`);
+    }
+  }
+}
+
+// ── Vertauschte Passnummern: greift die Berichtigung noch? ──
+if (PASS_KORREKTUREN.length > 0) {
+  console.log('\nVertauschte Passnummern (data/corrections.ts)');
+  for (const eintrag of PASS_KORREKTUREN) {
+    const turnier = getTournamentRecord(eintrag.tournamentId);
+    if (!turnier) {
+      meldung(`Berichtigung verweist auf ein Turnier, das es nicht gibt: ${eintrag.tournamentId}`);
+      continue;
+    }
+    // Nicht aktiv heißt: Die falsche Nummer steht nicht (mehr) in der Mappe.
+    // Entweder hat der Betreiber sie berichtigt — dann kann der Eintrag weg —
+    // oder er war von Anfang an falsch. Beides gehört gemeldet.
+    if (!AKTIVE_PASS_KORREKTUREN.includes(eintrag)) {
+      meldung(`ERLEDIGT oder gegenstandslos: ${eintrag.tournamentId} führt keine `
+        + `Passnr. ${eintrag.falschePassNr} (mehr). Eintrag aus data/corrections.ts entfernen.`);
+      continue;
+    }
+    const zeile = turnier.results.find(r => r.passNr === eintrag.passNr);
+    const spieler = zeile?.playerId ? getPlayer(zeile.playerId) : undefined;
+    if (!zeile) {
+      meldung(`${eintrag.tournamentId}: Passnr. ${eintrag.passNr} fehlt trotz Berichtigung`);
+    } else if (!spieler) {
+      meldung(`${eintrag.tournamentId}: Passnr. ${eintrag.passNr} gehört zu keinem Spieler im Stamm`);
+    } else {
+      console.log(`  aktiv     ${eintrag.tournamentId}: Platz ${zeile.rank} läuft auf `
+        + `Passnr. ${eintrag.passNr} (${playerName(spieler)}) statt ${eintrag.falschePassNr}`);
     }
   }
 }

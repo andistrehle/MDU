@@ -45,6 +45,45 @@ export interface ResultCorrection {
 // nachgetragen; seitdem kommt das Turnier wieder unverändert von dort.
 export const CORRECTIONS: ResultCorrection[] = [];
 
+// ------------------------------------------------------------
+// Zweite Art: die verwechselte Passnummer
+// ------------------------------------------------------------
+//
+// Kommt vor: Auf dem Zettel steht eine Nummer, in der Mappe landet eine
+// andere — ein Ziffernddreher, und schon bekommt der Falsche die Punkte. Hier
+// wird NUR die Nummer getauscht: Platz, Punkte und Feldgröße bleiben, wie sie
+// sind. Es ändert sich also nichts an der Rangfolge des Turniers, nur daran,
+// WEM die Zeile gehört.
+//
+// Absichtlich eine eigene Liste und kein Sonderfall der Ergänzung oben: Dort
+// wird das ganze Turnier neu durchgerechnet, was hier falsch wäre.
+
+export interface PassNrCorrection {
+  /** Turnier-ID, z. B. „2026-09-07-harlekin". */
+  tournamentId: string;
+  /** Die Nummer, wie sie in der Mappe steht. */
+  falschePassNr: number;
+  /** Die Nummer, die es sein muss. */
+  passNr: number;
+  /** Woher die Berichtigung kommt. */
+  source: string;
+  /** Hinweis, der beim Turnier und bei der Wertung steht. */
+  note: string;
+}
+
+export const PASS_KORREKTUREN: PassNrCorrection[] = [
+  {
+    tournamentId: '2026-09-07-harlekin',
+    falschePassNr: 57,
+    passNr: 67,
+    source: 'Vom Betreiber gemeldet am 12.09.2026 (Zahlendreher beim Übertragen).',
+    // Ohne den Satz „Punkte bleiben gleich" — der steht als `folge` schon in
+    // `BERICHTIGUNGS_HINWEISE` und stünde sonst zweimal untereinander.
+    note: 'Die Zeile auf Platz 18 lief auf Passnr. 57 (Peter Seidl); richtig ist '
+      + 'Passnr. 67 (Cheyenne Fuss).',
+  },
+];
+
 const BY_TOURNAMENT = new Map<string, ResultCorrection[]>();
 for (const eintrag of CORRECTIONS) {
   BY_TOURNAMENT.set(eintrag.tournamentId, [
@@ -52,9 +91,41 @@ for (const eintrag of CORRECTIONS) {
   ]);
 }
 
+const PASS_BY_TOURNAMENT = new Map<string, PassNrCorrection[]>();
+for (const eintrag of PASS_KORREKTUREN) {
+  PASS_BY_TOURNAMENT.set(eintrag.tournamentId, [
+    ...(PASS_BY_TOURNAMENT.get(eintrag.tournamentId) ?? []), eintrag,
+  ]);
+}
+
 export function correctionsFor(tournamentId: string): ResultCorrection[] {
   return BY_TOURNAMENT.get(tournamentId) ?? [];
 }
 
+export function passKorrekturenFor(tournamentId: string): PassNrCorrection[] {
+  return PASS_BY_TOURNAMENT.get(tournamentId) ?? [];
+}
+
 /** Gibt es überhaupt Berichtigungen? Steuert die Hinweise in der Oberfläche. */
-export const HAS_CORRECTIONS = CORRECTIONS.length > 0;
+export const HAS_CORRECTIONS = CORRECTIONS.length > 0 || PASS_KORREKTUREN.length > 0;
+
+/**
+ * Alle Berichtigungen in einer Form, die die Oberfläche anzeigen kann — mit
+ * je eigenem Satz, weil das eine die Punkte verschiebt und das andere nicht.
+ */
+export const BERICHTIGUNGS_HINWEISE: {
+  tournamentId: string;
+  note: string;
+  folge: string;
+}[] = [
+  ...CORRECTIONS.map(k => ({
+    tournamentId: k.tournamentId,
+    note: k.note,
+    folge: 'Dadurch weichen einzelne Punktzahlen und Plätze von der ausgehängten Liste ab.',
+  })),
+  ...PASS_KORREKTUREN.map(k => ({
+    tournamentId: k.tournamentId,
+    note: k.note,
+    folge: 'Punkte und Plätze des Turniers bleiben dieselben — nur die Zeile gehört jemand anderem.',
+  })),
+];
