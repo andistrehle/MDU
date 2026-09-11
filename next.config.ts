@@ -27,22 +27,6 @@ const nextConfig: NextConfig = {
   // Google zeigt sein Symbol aus dem eigenen Zwischenspeicher und holt es
   // nicht bei jedem Durchlauf neu — bis das Suchergebnis nachzieht, können
   // Tage vergehen. Im Browser reicht ein harter Neuladen.
-  // ── Interne Turnierseite (public/intern-x7k2/) aus dem Index halten ──
-  //
-  // Die statische Seite unter /intern-x7k2/turnier.html ist nur über den
-  // direkten Link erreichbar (nirgends verlinkt, nicht in Sitemap/robots-
-  // Allow). Zusätzlich bekommt der ganze Pfad per HTTP-Header ein hartes
-  // noindex/nofollow mit — falls die URL doch irgendwo auftaucht, nimmt sie
-  // keine Suchmaschine auf.
-  async headers() {
-    return [
-      {
-        source: '/intern-x7k2/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
-      },
-    ];
-  },
-
   async rewrites() {
     if (process.env.NEXT_PUBLIC_MDC_STANDALONE !== '1') return [];
     const emblem = '/mdc/icon.png';
