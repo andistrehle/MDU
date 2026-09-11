@@ -208,9 +208,8 @@ export default async function ArchivTurnierPage(
               <FileCheck2 size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-navy)' }} />
               <p>
                 <strong>Direkt vom Ergebniszettel.</strong> Dieses Turnier wurde am
-                Turnierabend erfasst und freigegeben; in der Auswertung des Betreibers steht
-                es noch nicht. Die Punkte kommen wie überall aus dem Punkteschlüssel. Sobald
-                die Auswertung nachzieht, gilt sie.
+                Turnierabend erfasst, Zeile für Zeile gegen den Zettel geprüft und freigegeben.
+                Die Punkte kommen wie überall aus dem Punkteschlüssel.
               </p>
             </div>
           )}

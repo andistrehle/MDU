@@ -17,16 +17,17 @@
 // (`lib/mdc/points.ts`) — sie stehen trotzdem mit dabei, damit die Datei für
 // sich lesbar bleibt und `scripts/mdc-check-saison.ts` nachrechnen kann.
 //
-// ── Verhältnis zur Arbeitsmappe ──────────────────────────────
+// ── Verhältnis zur Arbeitsmappe (geändert am 12.09.2026) ─────
 //
-// Die Mappe des Betreibers bleibt die maßgebliche Quelle. Taucht dasselbe
-// Turnier (gleiches Datum, gleiches Lokal) später dort auf, gewinnt die Mappe
-// und die Zeile hier wird ignoriert — nicht gelöscht, damit man beides
-// vergleichen kann. Auf der Turnierseite steht dann wieder „aus der
-// Auswertung" statt „vom Ergebniszettel".
+// DIESE DATEI IST DIE HAUPTQUELLE. Führt die Arbeitsmappe dasselbe Turnier
+// (gleiches Datum, gleiches Lokal), gewinnt die Zeile hier — sie ist am
+// Bildschirm gegen den Zettel geprüft worden, und Berichtigungen hängen an
+// ihr.
 //
-// Aufräumen ist deshalb ungefährlich, aber auch nicht nötig: Eine Zeile, die
-// von der Mappe überholt wurde, kostet nichts außer drei Zeilen Text.
+// Bis dahin war es umgekehrt. Die Mappe läuft in der Übergangszeit als
+// Gegenprobe weiter: `scripts/mdc-check-saison.ts` vergleicht beide Fassungen
+// und meldet jede Abweichung. Solange dort „identisch" steht, ist der Abend
+// zweimal unabhängig richtig erfasst worden.
 // ============================================================
 
 export const RESULTS_UPLOADED_RAW: string[] = [

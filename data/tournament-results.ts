@@ -10,7 +10,11 @@
 // ECHTE DATEN, echte Personen — beide Saisons:
 //
 //   2025/26   abgeschlossen, 744 Turniere
-//   2026/27   läuft, wächst mit jeder neuen Fassung der Mappe
+//   2026/27   läuft, wächst mit jedem freigegebenen Ergebniszettel
+//
+// SEIT 12.09.2026 IST DIE HOMEPAGE DIE HAUPTQUELLE. Führt die Arbeitsmappe
+// dasselbe Turnier, gewinnt die hier freigegebene Fassung — die Mappe läuft
+// in der Übergangszeit als Gegenprobe mit (`PARALLEL_GEPRUEFT`).
 //
 // Die Summe der Punkte je Spieler ergibt exakt die Rangliste derselben Saison;
 // beides kommt aus derselben Mappe und wird beim Import gegeneinander
@@ -64,7 +68,8 @@ export interface TournamentRecord {
    *
    *   'workbook'  aus der Auswertung des Betreibers (`results-*.generated.ts`)
    *   'upload'    direkt vom Ergebniszettel hochgeladen und freigegeben
-   *               (`results-uploaded.ts`) — die Mappe kennt es noch nicht
+   *               (`results-uploaded.ts`) — seit 12.09.2026 der Regelfall,
+   *               und bei doppelt geführten Turnieren die maßgebliche Fassung
    *
    * Die Oberfläche sagt es beim Turnier dazu. Nicht, weil das eine weniger
    * wert wäre, sondern weil man wissen soll, woher die Zahlen stammen.
@@ -176,55 +181,112 @@ function seasonOfDate(date: string): string | null {
 /**
  * Turniere aus hochgeladenen Ergebniszetteln, nach Saison sortiert.
  *
- * Übersprungen wird eine Zeile, wenn
- *   • ihr Datum in keine Saison fällt (dann gehört sie in keine Wertung), oder
- *   • dasselbe Turnier schon in der Arbeitsmappe steht — die Mappe ist die
- *     maßgebliche Quelle, sobald sie das Turnier führt.
- *
- * Beides still zu übergehen ist hier richtig: Die Datei wird von der Seite
- * geschrieben, ein Abbruch beim Bauen würde den ganzen Auftritt lahmlegen.
- * `scripts/mdc-check-saison.ts` meldet solche Zeilen dafür ausdrücklich.
+ * Übersprungen wird nur, was in keine Saison fällt — eine solche Zeile gehört
+ * in keine Wertung. Still zu übergehen ist hier richtig: Die Datei wird von der
+ * Seite geschrieben, ein Abbruch beim Bauen würde den ganzen Auftritt
+ * lahmlegen. `scripts/mdc-check-saison.ts` meldet solche Zeilen ausdrücklich.
  */
-function uploadedBySeason(bekannteIds: Set<string>): Record<string, string[]> {
+function uploadedBySeason(): Record<string, string[]> {
   const je: Record<string, string[]> = {};
   for (const raw of RESULTS_UPLOADED_RAW) {
-    const [date, venueId] = raw.split('|');
+    const [date] = raw.split('|');
     const seasonId = seasonOfDate(date);
-    if (!seasonId || bekannteIds.has(`${date}-${venueId}`)) continue;
+    if (!seasonId) continue;
     (je[seasonId] ??= []).push(raw);
   }
   return je;
 }
 
+/**
+ * Turniere, die in BEIDEN Quellen stehen — und ob sie dort dasselbe sagen.
+ *
+ * Das ist die Gegenprobe, solange die Arbeitsmappe parallel weitergeführt
+ * wird: Stimmen beide überein, war der Abend richtig erfasst. Weichen sie ab,
+ * gehört das angesehen statt stillschweigend entschieden.
+ * `scripts/mdc-check-saison.ts` listet es auf.
+ */
+export const PARALLEL_GEPRUEFT: { id: string; gleich: boolean; mappe: string; seite: string }[] = [];
+
+/**
+ * Turniere, die die Arbeitsmappe führt — unabhängig davon, welche Fassung
+ * heute gilt. `scripts/mdc-check-saison.ts` braucht das für die Summenprobe:
+ * Die Wertung der Mappe kann nur mit den Turnieren aufgehen, die die Mappe
+ * auch kennt.
+ */
+export const MAPPE_IDS: Set<string> = new Set(
+  Object.values(RAW).flat().map(raw => {
+    const [date, venueId] = raw.split('|');
+    return `${date}-${venueId}`;
+  }),
+);
+
 /** Alle Turniere einer Saison, ältestes zuerst (so wie in der Mappe). */
 const BY_SEASON: Record<string, TournamentRecord[]> = (() => {
-  const ausMappe = Object.fromEntries(
-    Object.entries(RAW).map(([seasonId, rows]) => [
-      seasonId, rows.map(raw => parse(raw, seasonId, 'workbook')),
-    ]),
-  );
+  // Rohzeilen der Mappe, nach Turnier — zum Vergleichen und zum Ersetzen.
+  const mappeRoh = new Map<string, { seasonId: string; raw: string }>();
+  for (const [seasonId, rows] of Object.entries(RAW)) {
+    for (const raw of rows) {
+      const [date, venueId] = raw.split('|');
+      mappeRoh.set(`${date}-${venueId}`, { seasonId, raw });
+    }
+  }
 
-  const bekannt = new Set(Object.values(ausMappe).flat().map(t => t.id));
-  for (const [seasonId, rows] of Object.entries(uploadedBySeason(bekannt))) {
-    const liste = [
-      ...(ausMappe[seasonId] ?? []),
-      ...rows.map(raw => parse(raw, seasonId, 'upload')),
-    ];
-    // Nach Datum sortieren: Sonst hinge ein hochgeladenes Turnier immer hinten,
-    // auch wenn es älter ist als das letzte aus der Mappe.
+  // SEIT 12.09.2026 IST DIE HOMEPAGE DIE HAUPTQUELLE (vom Betreiber so
+  // festgelegt). Bis dahin galt das Umgekehrte: Sobald die Mappe ein Turnier
+  // führte, wurde die hochgeladene Zeile ignoriert.
+  //
+  // Warum die Umkehr: Was hier freigegeben wurde, ist am Bildschirm Zeile für
+  // Zeile gegen den Zettel geprüft worden — und Berichtigungen (etwa eine
+  // vertauschte Passnummer) stehen ebenfalls auf dieser Seite. Gewönne die
+  // Mappe, würde beides beim nächsten Import still überschrieben.
+  //
+  // Die Mappe verschwindet damit nicht: Führt sie dasselbe Turnier, wird
+  // verglichen und das Ergebnis des Vergleichs abgelegt (PARALLEL_GEPRUEFT).
+  // Genau das ist ihre Aufgabe in der Übergangszeit — Kontrolle, nicht
+  // Vorrang.
+  const hochgeladen = new Set<string>();
+  const ausMappe: Record<string, TournamentRecord[]> = {};
+  for (const [seasonId, rows] of Object.entries(uploadedBySeason())) {
+    for (const raw of rows) {
+      const [date, venueId] = raw.split('|');
+      const id = `${date}-${venueId}`;
+      hochgeladen.add(id);
+      const inMappe = mappeRoh.get(id);
+      if (inMappe) {
+        PARALLEL_GEPRUEFT.push({
+          id,
+          gleich: inMappe.raw === raw,
+          mappe: inMappe.raw.split('|')[2] ?? '',
+          seite: raw.split('|')[2] ?? '',
+        });
+      }
+      (ausMappe[seasonId] ??= []).push(parse(raw, seasonId, 'upload'));
+    }
+  }
+
+  for (const [seasonId, rows] of Object.entries(RAW)) {
+    for (const raw of rows) {
+      const [date, venueId] = raw.split('|');
+      if (hochgeladen.has(`${date}-${venueId}`)) continue;
+      (ausMappe[seasonId] ??= []).push(parse(raw, seasonId, 'workbook'));
+    }
+  }
+
+  // Nach Datum sortieren: Sonst hinge ein hochgeladenes Turnier immer vorn,
+  // auch wenn es jünger ist als das letzte aus der Mappe.
+  for (const liste of Object.values(ausMappe)) {
     liste.sort((a, b) => a.date.localeCompare(b.date) || a.venueName.localeCompare(b.venueName));
-    ausMappe[seasonId] = liste;
   }
 
   return ausMappe;
 })();
 
-/** Turniere, die vom Ergebniszettel kommen und (noch) nicht in der Mappe stehen. */
+/** Turniere, die von der Seite selbst kommen — vom Ergebniszettel freigegeben. */
 export const UPLOADED_TOURNAMENTS: TournamentRecord[] = Object.values(BY_SEASON)
   .flat()
   .filter(t => t.source === 'upload');
 
-/** Steht in der Wertung etwas, das die Arbeitsmappe noch nicht kennt? */
+/** Steht in der Wertung etwas, das von der Seite selbst geschrieben wurde? */
 export const HAS_UPLOADED_RESULTS = UPLOADED_TOURNAMENTS.length > 0;
 
 export function tournamentsOfSeason(seasonId: string): TournamentRecord[] {

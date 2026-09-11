@@ -105,8 +105,14 @@ schon im Stamm, wird das gemeldet statt still eine zweite Nummer anzulegen.
 Freigegebene Turniere landen als
 Commit in `data/results-uploaded.ts` (neue Spieler in
 `data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form
-aber ganz normal von Hand änderbar. **Die Arbeitsmappe hat Vorrang:** Steht
-dasselbe Turnier später dort, wird die hochgeladene Zeile ignoriert.
+aber ganz normal von Hand änderbar. **Seit 12.09.2026 ist die HOMEPAGE die
+Hauptquelle** (vorher die Mappe): Führt die Arbeitsmappe dasselbe Turnier,
+gewinnt die hier freigegebene Fassung — sie ist gegen den Zettel geprüft, und
+die Berichtigungen hängen an ihr. Die Mappe läuft anfangs als Gegenprobe
+parallel: `PARALLEL_GEPRUEFT` in `data/tournament-results.ts` sammelt jedes
+doppelt geführte Turnier, `scripts/mdc-check-saison.ts` meldet „identisch" oder
+„ABWEICHUNG". Die Summenprobe gegen die Wertung der Mappe zählt Turniere, die
+die Mappe KENNT (`MAPPE_IDS`), unabhängig davon, welche Fassung gilt.
 **Turniere der Arbeitsmappe berichtigen:** `data/corrections.ts` kennt ZWEI
 Arten, beide überstehen jeden neuen Import und lassen die erzeugten Dateien in
 Ruhe. `CORRECTIONS` trägt eine **fehlende Zeile** nach (Turnier wird komplett

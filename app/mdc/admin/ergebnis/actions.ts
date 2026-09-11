@@ -285,16 +285,11 @@ export async function gibErgebnisFrei(eingabe: FreigabeEingabe): Promise<Freigab
     }
   }
 
-  const kennung = `${eingabe.datum}-${eingabe.spielortId}`;
-  const ausMappe = getTournamentRecord(kennung);
-  if (ausMappe?.source === 'workbook') {
-    return {
-      ok: false,
-      fehler: `Dieses Turnier steht schon in der Auswertung des Betreibers `
-        + `(${venueName(eingabe.spielortId)}, ${eingabe.datum}). Die Mappe hat Vorrang — `
-        + 'bitte dort korrigieren.',
-    };
-  }
+  // Früher wurde hier abgelehnt, wenn die Arbeitsmappe dasselbe Turnier schon
+  // führte — die Mappe hatte Vorrang. Seit dem 12.09.2026 ist die Homepage die
+  // Hauptquelle: Ein erneutes Hochladen IST der Weg, ein Ergebnis zu
+  // berichtigen, auch wenn es in der Mappe steht. Die Mappe läuft als
+  // Gegenprobe weiter (`scripts/mdc-check-saison.ts` vergleicht beide).
 
   // ── Punkte. Nicht vom Zettel abgeschrieben, sondern aus Platz und Feldgröße
   //    gerechnet — der Schlüssel ist die verbindliche Quelle. ──
@@ -397,14 +392,17 @@ export async function verschiebeHochgeladenesTurnier(
     return { ok: false, fehler: 'Datum und Spielort sind unverändert.' };
   }
 
-  // Steht am Ziel schon ein Turnier aus der Mappe, hätte die Änderung keine
-  // Wirkung: Die Mappe hat Vorrang, die verschobene Zeile würde ignoriert.
+  // Steht am Ziel schon ein Turnier aus der Mappe, würde es durch das
+  // verschobene ERSETZT — seit dem 12.09.2026 ist die Homepage die Hauptquelle.
+  // Das still zu tun wäre falsch: Hier verschiebt jemand ein Datum, er will
+  // nicht nebenbei einen anderen Abend überschreiben.
   const amZiel = getTournamentRecord(`${eingabe.datum}-${eingabe.spielortId}`);
   if (amZiel && amZiel.source === 'workbook') {
     return {
       ok: false,
       fehler: `Am ${eingabe.datum} steht in ${venueName(eingabe.spielortId)} schon ein Turnier `
-        + 'aus der Arbeitsmappe. Die hat Vorrang — das hochgeladene würde dort nicht angezeigt.',
+        + 'aus der Arbeitsmappe. Das verschobene würde es verdrängen — bitte erst klären, '
+        + 'welches der beiden stimmt.',
     };
   }
 

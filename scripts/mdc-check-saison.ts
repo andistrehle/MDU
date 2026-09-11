@@ -27,6 +27,7 @@
 
 import {
   tournamentsOfSeason, seasonStats, getTournamentRecord, AKTIVE_PASS_KORREKTUREN,
+  PARALLEL_GEPRUEFT, MAPPE_IDS,
 } from '../data/tournament-results';
 import { CORRECTIONS, PASS_KORREKTUREN } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
@@ -98,7 +99,13 @@ function pruefe(saison: Season, wertung: Record<Division, WertungsZeile[]>) {
   // Probe jeden hochgeladenen Abend als Abweichung und wäre wertlos.
   const konten = new Map<string, { points: number; starts: number }>();
   for (const t of tournamentsOfSeason(saison.id)) {
-    if (t.source !== 'workbook') continue;
+    // Maßgeblich ist, ob die MAPPE das Turnier kennt — nicht, welche Fassung
+    // heute gilt. Seit die Homepage Hauptquelle ist, liefert bei doppelt
+    // geführten Turnieren die Seite die Zeilen; für diese Probe zählen sie
+    // trotzdem mit, sonst fehlten der Wertung der Mappe genau deren Punkte.
+    // Weichen die beiden Fassungen voneinander ab, meldet das die Gegenprobe
+    // weiter unten — dann kann auch diese Summe nicht aufgehen.
+    if (!MAPPE_IDS.has(t.id)) continue;
     for (const r of t.results) {
       if (!r.playerId) continue;
       const konto = konten.get(r.playerId) ?? { points: 0, starts: 0 };
@@ -148,8 +155,8 @@ function pruefe(saison: Season, wertung: Record<Division, WertungsZeile[]>) {
 
   const hochgeladen = tournamentsOfSeason(saison.id).filter(t => t.source === 'upload');
   if (hochgeladen.length) {
-    console.log(`  davon ${hochgeladen.length} vom Ergebniszettel hochgeladen ` +
-      '(noch nicht in der Arbeitsmappe):');
+    console.log(`  davon ${hochgeladen.length} von der Seite selbst ` +
+      '(Ergebniszettel hochgeladen und freigegeben):');
     for (const t of hochgeladen) {
       console.log(`    ${t.date}  ${t.venueName} — ${t.participants} Starter`);
     }
@@ -218,6 +225,28 @@ if (CORRECTIONS.length > 0) {
       console.log(`  aktiv     ${eintrag.tournamentId}: Passnr. ${eintrag.passNr} auf Platz ` +
         `${zeile.rank} ergänzt, ${turnier.participants} statt ${turnier.participantsInWorkbook} Starter`);
     }
+  }
+}
+
+// ── Gegenprobe: Mappe gegen Homepage ───────────────────────
+//
+// Seit dem 12.09.2026 ist die Homepage die Hauptquelle; die Arbeitsmappe läuft
+// anfangs parallel weiter. Genau dafür ist dieser Abschnitt da: Wo beide
+// dasselbe Turnier führen, wird verglichen. „identisch" heißt, der Abend ist
+// zweimal unabhängig richtig erfasst worden — das ist der Sinn der Übung.
+if (PARALLEL_GEPRUEFT.length > 0) {
+  console.log('\nGegenprobe Homepage ↔ Arbeitsmappe');
+  for (const p of PARALLEL_GEPRUEFT) {
+    if (p.gleich) {
+      console.log(`  identisch  ${p.id}`);
+      continue;
+    }
+    // Kein Fehler im Sinne von „kaputt": Es gilt die Fassung der Seite. Aber
+    // eine der beiden ist falsch, und das gehört angesehen.
+    meldung(`ABWEICHUNG: ${p.id} steht in beiden Quellen verschieden.\n`
+      + `      Seite: ${p.seite}\n`
+      + `      Mappe: ${p.mappe}\n`
+      + '      Es gilt die Fassung der Seite. Bitte prüfen, welche stimmt.');
   }
 }
 

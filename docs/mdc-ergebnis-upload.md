@@ -48,9 +48,10 @@ Freigeben geht erst, wenn keine Zeile mehr offen ist.
 vom Zettel gelesen wurde und es erst Tage später auffällt (passiert im
 September 2026 beim 70er: 29.09. statt 09.09.). Geändert wird nur die
 Kopfzeile; stimmen Namen oder Reihenfolge nicht, gehört der Zettel noch einmal
-hochgeladen — dasselbe Datum und Lokal ersetzt die alte Fassung. Turniere aus
-der Arbeitsmappe stehen gar nicht erst in der Liste: Die kämen beim nächsten
-Einlesen zurück.
+hochgeladen — dasselbe Datum und Lokal ersetzt die alte Fassung. In der Liste
+stehen nur Turniere, die über diese Seite hochgeladen wurden; was ausschließlich
+in der Arbeitsmappe steht, gehört dort geändert (oder einmal als Zettel
+hochgeladen, dann gilt die Fassung der Seite).
 
 ---
 
@@ -70,21 +71,33 @@ den es noch nicht gibt.
 Der Commit steht am Ende als Link da: Man kann nachlesen, was genau geschrieben
 wurde.
 
-## Verhältnis zur Arbeitsmappe
+## Verhältnis zur Arbeitsmappe (geändert am 12.09.2026)
 
-Die Mappe des Betreibers bleibt die maßgebliche Quelle. Steht dasselbe Turnier
-(gleiches Datum, gleiches Lokal) später dort, **gewinnt die Mappe** und die
-hochgeladene Zeile wird ignoriert — nicht gelöscht, damit sich beides
-vergleichen lässt. Auf der Turnierseite verschwindet dann der Hinweis „Direkt
-vom Ergebniszettel".
+**Die Homepage ist die Hauptquelle.** Steht dasselbe Turnier (gleiches Datum,
+gleiches Lokal) auch in der Arbeitsmappe, **gewinnt die hier freigegebene
+Fassung**. Bis zum 12.09.2026 war es umgekehrt.
 
-Ein Ergebnis berichtigen heißt: dasselbe Turnier noch einmal hochladen. Die
-alte Zeile wird ersetzt, nicht ergänzt.
+Der Grund: Was hier freigegeben wurde, ist am Bildschirm Zeile für Zeile gegen
+den Zettel geprüft worden, und Berichtigungen (`data/corrections.ts`) hängen an
+dieser Fassung. Gewönne die Mappe, würde beides beim nächsten Import still
+überschrieben — und niemand merkte es.
 
-`npx tsx scripts/mdc-check-saison.ts` prüft beide Quellen gemeinsam gegen den
-Punkteschlüssel und listet hochgeladene Turniere eigens auf. Die Summenprobe
-gegen die Wertung der Mappe lässt sie bewusst außen vor — die Mappe kennt sie
-ja noch nicht.
+**Die Mappe läuft anfangs parallel als Gegenprobe.** Genau dafür ist sie jetzt
+da: `npx tsx scripts/mdc-check-saison.ts` vergleicht jedes doppelt geführte
+Turnier und meldet
+
+```
+Gegenprobe Homepage ↔ Arbeitsmappe
+  identisch  2026-09-06-siebziger
+```
+
+Steht dort `ABWEICHUNG`, sagen beide Quellen etwas Verschiedenes — dann
+angesehen werden, welche stimmt. Es gilt die Fassung der Seite, aber
+stillschweigend entschieden wird das nicht.
+
+Ein Ergebnis berichtigen heißt weiterhin: dasselbe Turnier noch einmal
+hochladen. Die alte Zeile wird ersetzt, nicht ergänzt — und das geht jetzt
+auch, wenn die Mappe das Turnier schon führt.
 
 ---
 
