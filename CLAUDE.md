@@ -137,6 +137,19 @@ weiter). Nötige ENV im MDC-Projekt: `MDC_ADMIN_PASSWORD`, `MDC_OCR_API_KEY`,
 Ändert sich etwas am Foto-Ablauf (anderer Dienst, Fotos speichern,
 Datenbank), MUSS Ziffer 9 der Datenschutzhinweise mitgeändert werden.
 Ablauf, Grenzen und Einrichtung: `docs/mdc-ergebnis-upload.md`.
+**Turnierplan (Doppel-K.-o., seit 12.09.2026, NICHT verlinkt):**
+`/admin/turnierplan` ist der Papierplan zum Klicken — Teilnehmer setzen, Sieger
+antippen, Platzierung entsteht. Bewusst NICHT in `AdminNav`: zum Ausprobieren,
+bevor er im Lokal jemandem in die Hände fällt. **Schreibt nichts** — keine
+Wertung, kein Commit; Ergebnisse kommen weiter über `/admin/ergebnis` (so vom
+Betreiber vorgegeben, das Einlesen kommt später). Zwischenstand liegt im
+`localStorage` des Geräts, damit ein geschlossener Reiter keinen Turnierabend
+kostet. `lib/mdc/doppel-ko.ts` ist reine Logik und getestet: Setzliste der
+ersten Runde und die Plätze (1–8 einzeln, dann 9/13/17/25 als Gruppe, dazu die
+Spiele um 5/6 und 7/8) sind VOM PAPIERPLAN abgetippt, die Verliererseite ist
+nach dem üblichen Schema gebaut (Absteiger umgekehrt eingehängt) — **die gehört
+gegen den Zettel gegengeprüft**, bevor der Plan das Papier ersetzt. Fehlende
+Plätze sind Freilose und lösen sich selbst auf.
 **News:** Unter `/admin/news` schreibt die Turnierleitung Beiträge; sie
 landen als Commit in `data/news.ts` (JSON-Array in der Datei, deshalb nie
 von Hand die Form zerstören) und erscheinen unter `/news`, auf der
