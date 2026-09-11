@@ -73,6 +73,12 @@ export default async function AdminTurnierplanPage() {
               etwas ab, gehört der Plan hier geändert, nicht der Zettel.
             </p>
             <p style={{ marginTop: 12 }}>
+              <strong>Auslosung:</strong> Erst alle eintragen, dann „Auslosen“ — die
+              Reihenfolge ist die Setzliste und entscheidet damit auch, gegen wen die
+              Freilose fallen. Gezogen wird jedes Mal neu; einzeln nachschieben geht
+              danach weiter.
+            </p>
+            <p style={{ marginTop: 12 }}>
               <strong>Ergebnisse:</strong> Unter jedem Kasten, der gerade dran ist, stehen die
               üblichen Ergebnisse als Knopf — voreingestellt sind zwei Gewinnlegs (best of 3).
               Ein anderer Modus lässt sich beim Aufstellen wählen, und jedes krumme Ergebnis

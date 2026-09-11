@@ -167,6 +167,18 @@ zwischen ihren Vorgängern DERSELBEN Seite), es sind nirgends Koordinaten
 abgetippt — deshalb stimmt er für 8, 16 und 32 zugleich. Die Ergebnisknöpfe
 stehen unter dem Kasten, der gerade dran ist; beim Öffnen springt der Kasten auf
 die erste Runde, sonst sähe man am Handy zuerst leere Kästen.
+**Vollbild** (für den Bildschirm im Lokal): eigene Schicht über der Seite PLUS
+`requestFullscreen` — beides, weil iPhones die echte Vollbildfunktion für
+normale Elemente nicht können und die Schicht überall wirkt. Escape und das
+Verlassen des Browser-Vollbilds schließen sie mit. Beim Einschalten wird der
+Zoom auf „ganzer Plan aufs Bild" gestellt, ABER nur wenn dabei mindestens 50 %
+herauskommen: Am Handy passt ein Turnierplan nicht aufs Bild, und 30 % wären
+unleserlich — dort bleibt der Zoom stehen und es wird geschoben.
+**Auslosung:** Die Setzliste wird mit „Auslosen" gezogen (`mischen`,
+Fisher-Yates mit `crypto.getRandomValues`). **Nicht** auf
+`sort(() => Math.random() - 0.5)` umbauen — das ist nachweislich ungleich
+verteilt, und an der Reihenfolge hängen Freilose und Platzierung. Der Hinweis
+„Ausgelost" verschwindet, sobald von Hand geschoben oder jemand ergänzt wird.
 **News:** Unter `/admin/news` schreibt die Turnierleitung Beiträge; sie
 landen als Commit in `data/news.ts` (JSON-Array in der Datei, deshalb nie
 von Hand die Form zerstören) und erscheinen unter `/news`, auf der

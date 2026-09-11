@@ -38,7 +38,7 @@
 // ============================================================
 
 import { useEffect, useRef, useMemo, useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
+import { Maximize2, Minus, Plus, X } from 'lucide-react';
 import {
   besetzungen, entfaellt, spielbar, ueblicheErgebnisse, verliererPlaetze, PLATZ_GRUPPEN,
   type Besetzung, type Partie, type Turnier,
@@ -60,6 +60,16 @@ const KOPF = 54;
 const KOPF_ZEILE = 22;
 /** Gasse links der ersten Runde für die Setznummern. */
 const GASSE = 34;
+/**
+ * Zoombereich. Nach unten so weit, dass ein 32er-Plan im Vollbild auf einen
+ * Fernseher passt — lesbar ist er dort aus zwei Metern immer noch.
+ */
+const ZOOM_MIN = 0.3;
+const ZOOM_MAX = 1.5;
+
+function begrenze(z: number): number {
+  return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * 20) / 20));
+}
 
 interface Kasten {
   partie: Partie;
@@ -102,7 +112,11 @@ export function Turnierbaum({ turnier, onWaehle, onLegs }: {
   onLegs: (partie: Partie, a: number, b: number) => void;
 }) {
   const [zoom, setZoom] = useState(1);
+  const [vollbild, setVollbild] = useState(false);
   const rahmen = useRef<HTMLDivElement>(null);
+  const buehne = useRef<HTMLDivElement>(null);
+  /** Zoom vor dem Vollbild — danach steht wieder, was eingestellt war. */
+  const zoomVorher = useRef(1);
 
   const { kaesten, spalten, linien, vonHier, nachHier, breite, hoehe, mitteX } = useMemo(() => {
     const nachId = new Map(turnier.partien.map(p => [p.id, p]));
@@ -263,18 +277,88 @@ export function Turnierbaum({ turnier, onWaehle, onLegs }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Vollbild an und aus. Beim Einschalten wird der Zoom so gesetzt, dass der
+   * ganze Plan hineinpasst — sonst stünde auf einem großen Bildschirm ein
+   * kleiner Baum in einer großen Fläche, und das Schieben ginge von vorne los.
+   * Gerechnet aus dem Fenster statt aus dem Kasten: Den gibt es in der Größe
+   * erst nach dem Umschalten.
+   */
+  function umschalten() {
+    if (vollbild) {
+      setZoom(zoomVorher.current);
+      setVollbild(false);
+      return;
+    }
+    zoomVorher.current = zoom;
+    const platzBreit = window.innerWidth - 34;
+    // Kopfzeile des Vollbilds plus Rand.
+    const platzHoch = window.innerHeight - 84;
+    const passt = Math.min(platzBreit / breite, platzHoch / hoehe);
+    // Unter der Hälfte wird kein Name mehr gelesen. Am Handy passt ein
+    // Turnierplan nun einmal nicht aufs Bild — dann bleibt der Zoom, wie er
+    // war, und es wird wie bisher geschoben. Verkleinert wird nur, wenn dabei
+    // auch wirklich etwas Lesbares herauskommt.
+    if (passt >= 0.5) setZoom(Math.min(1.2, begrenze(passt)));
+    setVollbild(true);
+  }
+
+  // ── Vollbild ──
+  //
+  // Am Turnierabend hängt der Plan idealerweise auf einem Bildschirm im Lokal.
+  // Zwei Wege, weil einer allein nicht reicht:
+  //
+  //   1. Die echte Vollbildfunktion des Browsers (`requestFullscreen`) — die
+  //      räumt auch die Adresszeile weg. Auf iPhones gibt es sie für normale
+  //      Elemente NICHT, der Aufruf scheitert einfach.
+  //   2. Deshalb liegt darunter immer eine eigene Schicht über der Seite. Die
+  //      wirkt überall, auch wenn (1) nicht geht.
+  //
+  // Verlässt jemand das Browser-Vollbild (Escape, Wischgeste), wird die
+  // Schicht mit geschlossen — sonst bliebe eine Schicht stehen, die niemand
+  // mehr zuordnen kann.
+  useEffect(() => {
+    if (!vollbild) return;
+
+    const zurueck = () => { setZoom(zoomVorher.current); setVollbild(false); };
+    const taste = (e: KeyboardEvent) => { if (e.key === 'Escape') zurueck(); };
+    const wechsel = () => { if (!document.fullscreenElement) zurueck(); };
+
+    void buehne.current?.requestFullscreen?.().catch(() => {
+      // Kein echtes Vollbild (iPhone) — die eigene Schicht genügt.
+    });
+    document.addEventListener('keydown', taste);
+    document.addEventListener('fullscreenchange', wechsel);
+    const vorher = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', taste);
+      document.removeEventListener('fullscreenchange', wechsel);
+      document.body.style.overflow = vorher;
+      if (document.fullscreenElement) void document.exitFullscreen?.().catch(() => {});
+    };
+  }, [vollbild]);
+
   return (
-    <div>
+    <div
+      ref={buehne}
+      style={vollbild ? {
+        position: 'fixed', inset: 0, zIndex: 90,
+        background: 'var(--mdc-page)', padding: '10px 12px 12px',
+        display: 'flex', flexDirection: 'column',
+      } : undefined}
+    >
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 10 }}>
         <span style={{ fontSize: '0.84rem', lineHeight: 1.6, color: 'var(--mdc-ink-dim)', flex: 1, minWidth: 220 }}>
-          Der Plan öffnet sich bei der ersten Runde; seitlich schieben und kleiner stellen
-          geht. Ein Buchstabe am Kasten heißt: Der Verlierer dieser Partie spielt links dort
-          weiter, wo derselbe Buchstabe steht.
+          {vollbild
+            ? 'Vollbild — mit Escape oder dem Kreuz zurück zur Seite.'
+            : 'Der Plan öffnet sich bei der ersten Runde; seitlich schieben und kleiner stellen geht. Ein Buchstabe am Kasten heißt: Der Verlierer dieser Partie spielt links dort weiter, wo derselbe Buchstabe steht.'}
         </span>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <button
             type="button"
-            onClick={() => setZoom(z => Math.max(0.5, Math.round((z - 0.15) * 100) / 100))}
+            onClick={() => setZoom(z => Math.max(ZOOM_MIN, Math.round((z - 0.1) * 100) / 100))}
             style={zoomStil}
             aria-label="Kleiner"
           >
@@ -285,11 +369,20 @@ export function Turnierbaum({ turnier, onWaehle, onLegs }: {
           </span>
           <button
             type="button"
-            onClick={() => setZoom(z => Math.min(1.2, Math.round((z + 0.15) * 100) / 100))}
+            onClick={() => setZoom(z => Math.min(ZOOM_MAX, Math.round((z + 0.1) * 100) / 100))}
             style={zoomStil}
             aria-label="Größer"
           >
             <Plus size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={umschalten}
+            style={{ ...zoomStil, width: 'auto', gap: 6, padding: '0 10px' }}
+            title={vollbild ? 'Vollbild beenden' : 'Turnierbaum auf den ganzen Bildschirm'}
+          >
+            {vollbild ? <X size={14} /> : <Maximize2 size={14} />}
+            <span style={{ fontSize: '0.8rem' }}>{vollbild ? 'Schließen' : 'Vollbild'}</span>
           </button>
         </div>
       </div>
@@ -302,7 +395,8 @@ export function Turnierbaum({ turnier, onWaehle, onLegs }: {
           borderRadius: 12,
           background: 'var(--mdc-card-2)',
           // Hoch genug für einen Blick, nicht so hoch, dass die Seite kippt.
-          maxHeight: '72vh',
+          // Im Vollbild nimmt der Baum, was da ist.
+          ...(vollbild ? { flex: 1, minHeight: 0 } : { maxHeight: '72vh' }),
           WebkitOverflowScrolling: 'touch',
         }}
       >

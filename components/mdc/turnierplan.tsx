@@ -21,7 +21,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle, ArrowLeft, Check, ListOrdered, Plus, RotateCcw, Trash2, Trophy,
+  AlertTriangle, ArrowLeft, Check, ListOrdered, Plus, RotateCcw, Shuffle, Trash2, Trophy,
 } from 'lucide-react';
 import {
   besetzungen, entfaellt, fortschritt, jetztDran, neuesTurnier, planFuer,
@@ -49,6 +49,38 @@ interface Gespeichert {
   titel: string;
 }
 
+/**
+ * Auslosen — Fisher-Yates, mit `crypto.getRandomValues`, wo es das gibt.
+ *
+ * Nicht `sort(() => Math.random() - 0.5)`: Das sieht zufällig aus, ist es aber
+ * nicht — je nach Sortierverfahren bleiben Plätze überdurchschnittlich oft
+ * vorn. Bei einer Auslosung, an der eine Platzierung hängt, gehört das richtig
+ * gemacht.
+ */
+function mischen<T>(liste: T[]): T[] {
+  const neu = [...liste];
+  const zufall = (grenze: number) => {
+    const krypto = typeof crypto !== 'undefined' ? crypto : undefined;
+    if (krypto?.getRandomValues) {
+      // Zahlen über der Grenze verwerfen, sonst wären kleine Werte häufiger.
+      const grenzwert = Math.floor(0x100000000 / grenze) * grenze;
+      const feld = new Uint32Array(1);
+      let wert: number;
+      do {
+        krypto.getRandomValues(feld);
+        wert = feld[0];
+      } while (wert >= grenzwert);
+      return wert % grenze;
+    }
+    return Math.floor(Math.random() * grenze);
+  };
+  for (let i = neu.length - 1; i > 0; i--) {
+    const j = zufall(i + 1);
+    [neu[i], neu[j]] = [neu[j], neu[i]];
+  }
+  return neu;
+}
+
 function name(b: Besetzung): string {
   if (b.art === 'spieler') return b.spieler.name;
   if (b.art === 'freilos') return 'Freilos';
@@ -61,6 +93,7 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
   const [suche, setSuche] = useState('');
   const [gast, setGast] = useState('');
   const [gewinnlegs, setGewinnlegs] = useState(GEWINNLEGS_STANDARD);
+  const [ausgelost, setAusgelost] = useState(false);
   const [turnier, setTurnier] = useState<Turnier | null>(null);
   const [geladen, setGeladen] = useState(false);
 
@@ -125,6 +158,7 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
   function dazu(s: PlanSpieler) {
     setListe(alt => [...alt, { id: String(s.passNr), name: s.name, passNr: s.passNr }]);
     setSuche('');
+    setAusgelost(false);
   }
 
   function gastDazu() {
@@ -132,6 +166,7 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
     if (!sauber) return;
     setListe(alt => [...alt, { id: `gast-${alt.length + 1}-${sauber}`, name: sauber, passNr: null }]);
     setGast('');
+    setAusgelost(false);
   }
 
   function verschiebe(index: number, richtung: -1 | 1) {
@@ -142,6 +177,14 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
       [neu[index], neu[ziel]] = [neu[ziel], neu[index]];
       return neu;
     });
+    // Von Hand geschoben ist nicht mehr die Auslosung — der Hinweis muss weg.
+    setAusgelost(false);
+  }
+
+  function auslosen() {
+    if (liste.length < 2) return;
+    setListe(alt => mischen(alt));
+    setAusgelost(true);
   }
 
   function starten() {
@@ -157,6 +200,7 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
     setTurnier(null);
     setListe([]);
     setTitel('');
+    setAusgelost(false);
   }
 
   if (!geladen) return null;
@@ -173,9 +217,9 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
         <div className="mdc-card mdc-card-accent" style={{ padding: '22px 20px' }}>
           <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>Teilnehmer</h2>
           <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-            In der Reihenfolge eintragen, in der gesetzt wird: Wer zuerst steht, ist die
-            Nummer 1 auf dem Plan. Verschieben geht mit den Pfeilen. Wer keine Passnummer
-            hat, kommt als Gast dazu.
+            Erst alle eintragen, dann unten <strong>auslosen</strong> — die Reihenfolge ist
+            die Setzliste, wer zuerst steht, ist die Nummer 1 auf dem Plan. Von Hand
+            verschieben geht mit den Pfeilen. Wer keine Passnummer hat, kommt als Gast dazu.
           </p>
 
           <label style={{ display: 'block', marginTop: 16 }}>
@@ -261,6 +305,29 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
             </span>
           </div>
 
+          {/* ── Auslosen ──
+              Der Regelfall bei der MDC: Es gibt keine gesetzten Spieler, die
+              Reihenfolge wird gezogen. Von Hand sortieren bleibt möglich, wird
+              aber nicht vorausgesetzt. */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 14 }}>
+            <button
+              type="button"
+              className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+              onClick={auslosen}
+              disabled={liste.length < 2}
+            >
+              <Shuffle size={15} />
+              {ausgelost ? 'Neu auslosen' : 'Auslosen'}
+            </button>
+            <span style={{ fontSize: '0.83rem', lineHeight: 1.6, color: ausgelost ? 'var(--mdc-win)' : 'var(--mdc-ink-dim)' }}>
+              {liste.length < 2
+                ? 'Sobald zwei Teilnehmer dastehen.'
+                : ausgelost
+                  ? 'Ausgelost. Noch einmal drücken zieht neu — solange der Plan nicht steht.'
+                  : 'Zieht die Reihenfolge neu. Danach lässt sich einzeln nachschieben.'}
+            </span>
+          </div>
+
           {liste.length === 0 ? (
             <p style={{ marginTop: 12, fontSize: '0.9rem', color: 'var(--mdc-ink-soft)' }}>
               Noch niemand eingetragen.
@@ -296,7 +363,8 @@ export function Turnierplan({ spieler }: { spieler: PlanSpieler[] }) {
           {feld && liste.length < feld && (
             <p style={{ marginTop: 14, fontSize: '0.85rem', lineHeight: 1.65, color: 'var(--mdc-ink-dim)' }}>
               Der {feld}er-Plan hat {feld} Plätze; die übrigen {feld - liste.length} sind
-              Freilose. Wer eins zieht, ist ohne Wurf eine Runde weiter — das rechnet der Plan
+              Freilose. Gegen wen sie fallen, entscheidet die Setzliste — deshalb vorher
+              auslosen. Wer eins zieht, ist ohne Wurf eine Runde weiter; das rechnet der Plan
               selbst.
             </p>
           )}
