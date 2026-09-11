@@ -9,10 +9,27 @@ Beitrag — **als Bild**, nicht als Textwüste:
 2. **Ein kurzer Text** darüber: Stand, Jackpot, und derselbe Verweis noch
    einmal als anklickbarer Link.
 
-Ablauf: beide Bilder speichern, bei Facebook einen Beitrag mit beiden Bildern
-anlegen, Text einfügen. Der Text ist ein Textfeld — vor dem Kopieren lässt sich
-ein Satz voranstellen, und wer die Namen doch lieber als Text hätte, schaltet
-auf die Langfassung um.
+**Ein Knopf macht alles fertig:** „Beitrag fertig machen" legt den Text in die
+Zwischenablage und reicht beide Bilder ans Teilen-Fenster des Geräts weiter —
+dort Facebook wählen, Gruppe wählen, Text einfügen, abschicken. Am
+Schreibtisch gibt es kein Teilen-Fenster; dort werden beide Bilder
+heruntergeladen, der Text liegt trotzdem in der Zwischenablage.
+
+Facebook übernimmt beim Teilen die **Bilder** zuverlässig, den mitgeschickten
+**Text** nicht immer. Deshalb wird er vorher kopiert — dann genügt Einfügen.
+
+Der Text ist ein Textfeld: vor dem Kopieren lässt sich ein Satz voranstellen,
+und wer die Namen doch lieber als Text hätte, schaltet auf die Langfassung um.
+
+### Wenn „Text kopieren" nichts tut
+
+Das passiert in den **eingebauten Browsern von Facebook und Instagram** — dort
+ist `navigator.clipboard` gesperrt, und genau dort landet man, wenn man den
+Link in der Gruppe antippt. Der Knopf versucht deshalb drei Wege
+nacheinander: `navigator.clipboard`, dann das alte `execCommand('copy')`, und
+wenn beides nichts hilft, markiert er den Text und sagt, dass jetzt „Kopieren"
+aus dem Menü des Browsers dran ist. Im normalen Browser (Safari, Chrome) greift
+schon der erste Weg.
 
 Gezeichnet werden die Bilder mit `ImageResponse` (Satori) in
 `lib/mdc/facebook-bild.tsx`; ausgeliefert werden sie unter

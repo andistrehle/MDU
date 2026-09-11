@@ -133,6 +133,12 @@ Beitrag — **zwei Tabellenbilder** (Top 32 Herren, Top 16 Damen; gezeichnet mit
 `ImageResponse`/Satori in `lib/mdc/facebook-bild.tsx`, ausgeliefert unter
 `/admin/facebook/bild/[division]`, Satori kann NUR Flexbox) plus kurzem Text
 mit Jackpot und Link auf `/rangliste`. Im Bildfuß steht der Verweis noch einmal.
+Ein Knopf („Beitrag fertig machen") kopiert den Text und reicht beide Bilder an
+`navigator.share` weiter — am Schreibtisch stattdessen Download beider Bilder.
+Kopiert wird mit drei Anläufen (`navigator.clipboard` → `execCommand` → Text
+markieren und sagen, dass von Hand kopiert werden muss): In den eingebauten
+Browsern von Facebook/Instagram ist die Zwischenablage gesperrt, und genau dort
+landet man aus der Gruppe heraus.
 `lib/mdc/facebook-post.ts` baut den Text (kurz und lang), dieselbe Quelle nutzt der Wochenlauf
 `scripts/mdc-facebook-post.ts` (`.github/workflows/mdc-facebook-weekly.yml`,
 montags 7:00 UTC; legt den Text als Job-Zusammenfassung und die Bilder als

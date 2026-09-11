@@ -8,9 +8,10 @@
 // darüber. Die Rangliste als Bleiwüste aus 49 Zeilen hat niemand gelesen —
 // als Tabellenbild schon.
 //
-// Ablauf am Handy: beide Bilder speichern, Text kopieren, bei Facebook einen
-// Beitrag mit beiden Bildern anlegen, Text einfügen. Deshalb stehen die
-// Bilder oben und der Text darunter, in genau dieser Reihenfolge.
+// Ablauf am Handy: EIN Knopf. „Beitrag fertig machen" legt den Text in die
+// Zwischenablage und reicht beide Bilder ans Teilen-Fenster des Geräts weiter
+// — dort steht Facebook mit drin. Alles andere auf der Seite ist der Weg zu
+// Fuß für den Fall, dass das Teilen-Fenster nicht mitspielt.
 //
 // Der Text ist ein Textfeld: Vor dem Einstellen will man oft noch einen Satz
 // davorschreiben („Heute im Fiakerstüberl geht's weiter"). Kopiert und
@@ -25,10 +26,10 @@
 // hinterlegt ist — dort geht es.
 // ============================================================
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   AlertTriangle, Check, Copy, Download, ExternalLink, FileText, Image as ImageIcon,
-  Loader2, Megaphone, RotateCcw, Send,
+  Info, Loader2, Megaphone, RotateCcw, Send, Share2,
 } from 'lucide-react';
 import { posteRangliste } from '@/app/mdc/admin/facebook/actions';
 
@@ -70,21 +71,140 @@ export function FacebookEditor({
   const [lang, setLang] = useState(false);
   const [kopiert, setKopiert] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
+  const [teilt, setTeilt] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
+  const [hinweis, setHinweis] = useState<string | null>(null);
   const [erfolg, setErfolg] = useState<string | null>(null);
+  const feldRef = useRef<HTMLTextAreaElement>(null);
 
-  async function kopieren() {
+  /**
+   * Kopieren mit drei Anläufen — auf dem Handy scheitert der erste öfter, als
+   * man denkt:
+   *
+   *   1. `navigator.clipboard` — der richtige Weg, braucht aber HTTPS und
+   *      wird in den eingebauten Browsern von Facebook und Instagram gern
+   *      verweigert. Genau dort landet man, wenn man den Link in der Gruppe
+   *      antippt.
+   *   2. Das alte `execCommand('copy')` über das Textfeld selbst. Sieht aus
+   *      wie von gestern, funktioniert aber auch dort, wo Nummer 1 nichts tut.
+   *   3. Wenn beides nichts hilft: Text markieren und ehrlich sagen, dass
+   *      jetzt „Kopieren" aus dem Menü des Browsers dran ist. Vorher stand da
+   *      nur eine Fehlermeldung — und der Text war nicht einmal markiert.
+   */
+  async function kopieren(): Promise<boolean> {
+    setFehler(null);
+    setHinweis(null);
+
     try {
-      await navigator.clipboard.writeText(text);
-      setKopiert(true);
-      setFehler(null);
-      window.setTimeout(() => setKopiert(false), 4000);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        gelungen();
+        return true;
+      }
     } catch {
-      // Ohne Zwischenablage (ältere Browser, kein HTTPS) bleibt der ehrliche
-      // Weg: markieren und von Hand kopieren.
+      // Weiter zum zweiten Anlauf.
+    }
+
+    const feld = feldRef.current;
+    if (feld) {
+      try {
+        feld.focus();
+        feld.setSelectionRange(0, feld.value.length);
+        // `execCommand` gilt als veraltet und ist hier trotzdem richtig: Es ist
+        // der einzige Weg, der in den eingebauten Browsern zuverlässig greift.
+        if (document.execCommand('copy')) {
+          gelungen();
+          return true;
+        }
+      } catch {
+        // Dann bleibt der dritte Anlauf.
+      }
+      feld.focus();
+      feld.setSelectionRange(0, feld.value.length);
+    }
+
+    setHinweis(
+      'Dieser Browser lässt das Kopieren nicht zu — der Text ist jetzt markiert. '
+      + 'Lange darauf tippen und „Kopieren" wählen. (In den eingebauten Browsern von '
+      + 'Facebook oder Instagram passiert das öfter; im normalen Browser geht der Knopf.)',
+    );
+    return false;
+  }
+
+  function gelungen() {
+    setKopiert(true);
+    window.setTimeout(() => setKopiert(false), 4000);
+  }
+
+  /**
+   * Ein Knopf für den ganzen Beitrag: Text in die Zwischenablage, beide Bilder
+   * ins Teilen-Fenster des Handys — dort steht Facebook mit drin, und der
+   * Beitrag ist mit Bildern fertig, ohne dass irgendetwas gespeichert werden
+   * muss.
+   *
+   * Am Schreibtisch gibt es dieses Fenster nicht; dann werden beide Bilder
+   * heruntergeladen und der Text liegt in der Zwischenablage. Zwei Handgriffe
+   * statt einem, aber dasselbe Ergebnis.
+   *
+   * Zu Facebook selbst, damit die Überraschung ausbleibt: Bilder übernimmt es
+   * zuverlässig, den mitgeschickten Text je nach Fassung nicht. Deshalb wird
+   * er VORHER kopiert — dann genügt Einfügen.
+   */
+  async function beitragFertig() {
+    setTeilt(true);
+    setFehler(null);
+    setHinweis(null);
+    setErfolg(null);
+
+    const textKopiert = await kopieren();
+
+    try {
+      const dateien = await Promise.all(bilder.map(async bild => {
+        // `same-origin` ist entscheidend: Die Bilder liegen hinter der
+        // Passwortabfrage, ohne Anmeldedaten käme eine 401 zurück.
+        const antwort = await fetch(bild.src, { credentials: 'same-origin' });
+        if (!antwort.ok) throw new Error(`Bild ${bild.titel}: HTTP ${antwort.status}`);
+        return new File([await antwort.blob()], bild.dateiname, { type: 'image/png' });
+      }));
+
+      if (navigator.canShare?.({ files: dateien })) {
+        await navigator.share({ files: dateien, text });
+        setTeilt(false);
+        setHinweis(
+          textKopiert
+            ? 'Weitergereicht. Falls Facebook den Text nicht übernommen hat: Er liegt in der '
+              + 'Zwischenablage, einfach einfügen.'
+            : 'Bilder weitergereicht. Den Text bitte noch aus dem Feld kopieren.',
+        );
+        return;
+      }
+
+      // Kein Teilen-Fenster (Schreibtisch): beide Bilder herunterladen.
+      for (const datei of dateien) {
+        const url = URL.createObjectURL(datei);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = datei.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+      setTeilt(false);
+      setHinweis(
+        textKopiert
+          ? 'Beide Bilder sind heruntergeladen, der Text liegt in der Zwischenablage. '
+            + 'Bei Facebook Beitrag anlegen, Bilder anhängen, Text einfügen.'
+          : 'Beide Bilder sind heruntergeladen. Den Text bitte noch aus dem Feld kopieren.',
+      );
+    } catch (problem) {
+      setTeilt(false);
+      // Wer das Teilen-Fenster wegwischt, hat keinen Fehler gemacht.
+      if (problem instanceof DOMException && problem.name === 'AbortError') return;
       setFehler(
-        'Der Browser hat das Kopieren nicht zugelassen. Bitte den Text im Feld markieren '
-        + 'und von Hand kopieren.',
+        'Die Bilder konnten nicht vorbereitet werden: '
+        + `${problem instanceof Error ? problem.message : String(problem)}\n\n`
+        + 'Die Bilder lassen sich weiter einzeln über „speichern" holen.',
       );
     }
   }
@@ -108,6 +228,13 @@ export function FacebookEditor({
         </div>
       )}
 
+      {hinweis && (
+        <div className="mdc-card" style={{ padding: '16px 18px', display: 'flex', gap: 12, borderColor: 'var(--mdc-blue-soft)', background: 'var(--mdc-blue-a08)' }}>
+          <Info size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-blue)' }} />
+          <p style={{ fontSize: '0.92rem', lineHeight: 1.65 }}>{hinweis}</p>
+        </div>
+      )}
+
       {erfolg && (
         <div className="mdc-card mdc-card-accent" style={{ padding: '18px 20px' }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 600 }}>
@@ -121,16 +248,47 @@ export function FacebookEditor({
         </div>
       )}
 
-      {/* ── 1. Die Bilder ── */}
+      {/* ── Der eine Knopf ── */}
       <div className="mdc-card mdc-card-accent" style={{ padding: '22px 20px' }}>
+        <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Share2 size={20} style={{ color: 'var(--mdc-red)' }} />
+          Beitrag fertig machen
+        </h2>
+        <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+          Ein Druck, und alles ist beisammen: Der Text geht in die Zwischenablage, beide Bilder
+          ins Teilen-Fenster. Dort Facebook auswählen, Gruppe wählen, Text einfügen, abschicken.
+        </p>
+
+        <button
+          type="button"
+          className="mdc-btn mdc-btn-primary"
+          style={{ marginTop: 16 }}
+          onClick={beitragFertig}
+          disabled={teilt || bilder.length === 0}
+        >
+          {teilt
+            ? <><Loader2 size={18} className="mdc-spin" /> Wird vorbereitet …</>
+            : <><Share2 size={18} /> Beitrag fertig machen</>}
+        </button>
+
+        <p style={{ marginTop: 12, fontSize: '0.84rem', lineHeight: 1.65, color: 'var(--mdc-ink-dim)' }}>
+          Am Schreibtisch gibt es kein Teilen-Fenster — dort werden beide Bilder
+          heruntergeladen, der Text liegt trotzdem in der Zwischenablage.{' '}
+          <strong>Facebook übernimmt die Bilder zuverlässig, den Text aber nicht immer</strong> —
+          deshalb wird er vorher kopiert, dann genügt Einfügen.
+        </p>
+      </div>
+
+      {/* ── Die Bilder einzeln ── */}
+      <div className="mdc-card" style={{ padding: '22px 20px' }}>
         <h2 className="mdc-display" style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 9 }}>
           <ImageIcon size={19} style={{ color: 'var(--mdc-red)' }} />
           Die Rangliste als Bild
         </h2>
         <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
-          Beide Bilder speichern, bei Facebook einen Beitrag anlegen, beide anhängen und den
-          Text von unten einfügen. Der Verweis auf die Seite steht im Bild selbst — und noch
-          einmal als anklickbarer Link im Text.
+          So sehen die beiden Bilder aus, die der Knopf oben weiterreicht. Einzeln speichern
+          geht auch. Der Verweis auf die Seite steht im Bild selbst — und noch einmal als
+          anklickbarer Link im Text.
         </p>
 
         <div
@@ -197,6 +355,7 @@ export function FacebookEditor({
         </p>
 
         <textarea
+          ref={feldRef}
           value={text}
           onChange={e => setText(e.target.value)}
           spellCheck={false}
@@ -212,9 +371,9 @@ export function FacebookEditor({
         />
 
         <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <button type="button" className="mdc-btn mdc-btn-primary" onClick={kopieren}>
+          <button type="button" className="mdc-btn mdc-btn-ghost" onClick={() => { void kopieren(); }}>
             {kopiert ? <Check size={17} /> : <Copy size={17} />}
-            {kopiert ? 'Kopiert' : 'Text kopieren'}
+            {kopiert ? 'Kopiert' : 'Nur den Text kopieren'}
           </button>
           <a href={gruppe} target="_blank" rel="noopener noreferrer" className="mdc-btn mdc-btn-ghost">
             <Megaphone size={17} />
