@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12100e">
+<title>MDU Darts – Turnier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100e; --surface:#1c1916; --surface2:#26221e; --line:#3a342e;
+    --fg:#efe9dc; --muted:#8d857a; --red:#d23b2f; --green:#3f8f5a; --gold:#e0a63a;
+    --font:"Bricolage Grotesque",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.35}
+  body{padding:env(safe-area-inset-top) 0 calc(24px + env(safe-area-inset-bottom))}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  input{font:inherit}
+  h1,h2,h3{margin:0;font-weight:600}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:18px 0 10px}
+  header h1{font-size:22px;font-weight:800;letter-spacing:-.01em}
+  header .sub{color:var(--muted);font-size:14px}
+  .menu{display:flex;gap:6px}
+  .btn{padding:10px 14px;border-radius:10px;background:var(--surface2);font-weight:600;font-size:15px}
+  .btn.primary{background:var(--red);color:#fff}
+  .btn.ghost{color:var(--muted)}
+  .btn:disabled{opacity:.4}
+  .btn.small{padding:6px 10px;font-size:13px}
+
+  /* Setup */
+  .card{background:var(--surface);border-radius:16px;padding:18px;margin:12px 0}
+  .card h2{font-size:18px;margin-bottom:10px}
+  .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+  .field label{font-size:13px;color:var(--muted)}
+  .field input{padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:17px}
+  .row{display:flex;gap:8px;align-items:center}
+  .players{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .players li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:10px}
+  .players .seed{width:22px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .players .name{flex:1;font-weight:600}
+  .players button{color:var(--muted);padding:4px 8px}
+  .hint{color:var(--muted);font-size:13px}
+  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper button{width:44px;height:44px;border-radius:10px;background:var(--surface2);font-size:22px}
+  .stepper .val{min-width:34px;text-align:center;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* Jetzt spielen */
+  .now{margin:8px 0 18px}
+  .now h2{font-size:14px;color:var(--muted);font-weight:600;margin-bottom:8px}
+  .nowlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .nowcard{background:var(--surface);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;border-left:4px solid var(--red)}
+  .nowcard.waiting{border-left-color:var(--line)}
+  .nowcard .vs{flex:1;min-width:0}
+  .nowcard .vs div{font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nowcard .vs .m{color:var(--muted);font-size:13px;font-weight:400;margin-top:2px}
+  .nowcard .board{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+  .nowcard .board b{display:block;font-size:26px;font-weight:800;color:var(--fg);line-height:1}
+  .empty{color:var(--muted);padding:16px;text-align:center}
+
+  /* Bracket */
+  section.br{margin:22px 0}
+  section.br h2{font-size:16px;margin-bottom:10px}
+  .rounds{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+  .round{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:190px;scroll-snap-align:start}
+  .round .rl{font-size:12px;color:var(--muted)}
+  .match{background:var(--surface);border-radius:12px;border:1px solid var(--line);text-align:left;width:100%;padding:0}
+  .match.ready{border-color:var(--red)}
+  .match.live{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+  .match.finished{border-color:var(--line)}
+  .match.bye{opacity:.5}
+  .match .mk{display:flex;justify-content:space-between;padding:6px 10px 0;font-size:11px;color:var(--muted)}
+  .match .p{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;font-size:15px}
+  .match .p+.p{border-top:1px solid var(--line)}
+  .match .p .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .match .p.win .n{font-weight:700}
+  .match .p.lose{color:var(--muted)}
+  .match .p .s{font-variant-numeric:tabular-nums;font-weight:600}
+  .match .p .n.open{color:var(--muted);font-style:italic}
+
+  /* Champion */
+  .champ{background:linear-gradient(135deg,#2a2214,#1c1916);border:1px solid var(--gold);border-radius:16px;padding:18px;margin:12px 0}
+  .champ .t{color:var(--gold);font-size:13px}
+  .champ .n{font-size:32px;font-weight:800;letter-spacing:-.01em}
+  .champ .p{color:var(--muted);margin-top:6px;font-size:14px}
+
+  /* Sheet */
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none}
+  .backdrop.open{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;transform:translateY(100%);transition:transform .22s ease}
+  .sheet.open{transform:none}
+  @media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+  .sheet h3{font-size:14px;color:var(--muted);font-weight:600;margin-bottom:12px}
+  .res{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:10px 0}
+  .res+.res{border-top:1px solid var(--line)}
+  .res .pn{font-size:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .res .stepper button{width:52px;height:52px}
+  .res .stepper .val{font-size:34px;min-width:44px}
+  .sheet .actions{display:flex;gap:8px;margin-top:16px}
+  .sheet .actions .btn{flex:1;padding:14px}
+  .boardpick{display:flex;gap:8px;margin:6px 0 14px}
+  .boardpick button{flex:1;padding:12px;border-radius:10px;background:var(--surface2);font-weight:600}
+  .boardpick button.on{background:var(--fg);color:var(--bg)}
+  .warn{color:var(--red);font-size:13px;margin-top:8px}
+  .foot{color:var(--muted);font-size:12px;text-align:center;margin:28px 0 0}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<script>
+// Doppel-KO-Kern (identisch zur TypeScript-Version, hier als plain JS für die Standalone-Seite)
+function bracketSize(n){let s=4;while(s<n)s*=2;return s}
+function seedOrder(size){let o=[1];while(o.length<size){const nx=[],t=o.length*2+1;for(const s of o)nx.push(s,t-s);o=nx}return o}
+function generateDE(playerCount){
+  const n=bracketSize(playerCount),k=Math.log2(n),ms=[];
+  const key=(b,r,i)=>`${b}-${r}-${i}`;
+  const order=seedOrder(n);
+  for(let r=1;r<=k;r++){const c=n/2**r;for(let i=0;i<c;i++){
+    const slots=r===1?[{type:"seed",seed:order[2*i]},{type:"seed",seed:order[2*i+1]}]
+      :[{type:"winner",match:key("W",r-1,2*i)},{type:"winner",match:key("W",r-1,2*i+1)}];
+    ms.push({key:key("W",r,i),bracket:"W",round:r,position:i,slots})}}
+  const lR=2*(k-1);
+  for(let r=1;r<=lR;r++){const j=Math.ceil(r/2),c=n/2**(j+1);for(let i=0;i<c;i++){
+    let slots;
+    if(r===1)slots=[{type:"loser",match:key("W",1,2*i)},{type:"loser",match:key("W",1,2*i+1)}];
+    else if(r%2===1)slots=[{type:"winner",match:key("L",r-1,2*i)},{type:"winner",match:key("L",r-1,2*i+1)}];
+    else slots=[{type:"winner",match:key("L",r-1,i)},{type:"loser",match:key("W",j+1,c-1-i)}];
+    ms.push({key:key("L",r,i),bracket:"L",round:r,position:i,slots})}}
+  ms.push({key:"GF",bracket:"GF",round:1,position:0,slots:[{type:"winner",match:key("W",k,0)},{type:"winner",match:key("L",lR,0)}]});
+  ms.push({key:"GF2",bracket:"GF2",round:1,position:0,slots:[{type:"winner",match:"GF"},{type:"loser",match:"GF"}]});
+  return ms;
+}
+// results: {key:{w:playerId, legs:[a,b]}}
+function resolveDE(matches,seeds,results){
+  const by=new Map();
+  const winnerOf=k=>by.get(k)?.winner??null, loserOf=k=>by.get(k)?.loser??null;
+  const done=k=>{const m=by.get(k);return !!m&&["finished","bye","skipped"].includes(m.status)};
+  for(const m of matches){
+    const players=m.slots.map(s=>s.type==="seed"?(seeds[s.seed-1]??null):s.type==="winner"?winnerOf(s.match):loserOf(s.match));
+    const depsDone=m.slots.every(s=>s.type==="seed"||done(s.match));
+    let status="pending",winner=null,loser=null,legs=results[m.key]?.legs??null;
+    if(m.bracket==="GF2"){
+      const gf=by.get("GF");const wChamp=winnerOf(gf.slots[0].match);
+      if(gf.status==="finished"&&gf.winner===wChamp)status="skipped";
+      else if(gf.status==="finished")status=results[m.key]?"finished":"ready";
+      if(status==="finished"){winner=results[m.key].w;loser=players.find(p=>p&&p!==winner)??null}
+      by.set(m.key,{...m,players,winner,loser,status,legs});continue;
+    }
+    if(results[m.key]){status="finished";winner=results[m.key].w;loser=players.find(p=>p&&p!==winner)??null}
+    else if(depsDone){const pr=players.filter(Boolean);if(pr.length===2)status="ready";else{status="bye";winner=pr[0]??null}}
+    by.set(m.key,{...m,players,winner,loser,status,legs});
+  }
+  return matches.map(m=>by.get(m.key));
+}
+function championOf(res){
+  const gf=res.find(m=>m.key==="GF"),gf2=res.find(m=>m.key==="GF2");
+  if(!gf||gf.status!=="finished")return null;
+  if(gf2.status==="skipped")return gf.winner;
+  if(gf2.status==="finished")return gf2.winner;
+  return null;
+}
+function playable(res){const rank=m=>(m.bracket==="L"?0:m.bracket==="W"?1:2)*100+m.round;return res.filter(m=>m.status==="ready").sort((a,b)=>rank(a)-rank(b))}
+
+</script>
+<script>
+const LS="mdu-turnier-v1";
+const el=(s)=>document.querySelector(s);
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let T=load();
+function load(){try{return JSON.parse(localStorage.getItem(LS))||null}catch{return null}}
+function save(){localStorage.setItem(LS,JSON.stringify(T))}
+
+function newTournament(){return {name:"Vereinsturnier",legsToWin:3,boards:2,players:[],started:false,results:{},live:{},createdAt:Date.now()}}
+if(!T)T=newTournament();
+
+function names(){return Object.fromEntries(T.players.map(p=>[p.id,p.name]))}
+function resolved(){return resolveDE(generateDE(T.players.length),T.players.map(p=>p.id),T.results)}
+
+// ---------- Setup ----------
+function renderSetup(){
+  const app=el("#app");
+  app.innerHTML=`
+  <header><div><h1>Turnier anlegen</h1><div class="sub">Doppel-KO · Ergebnisse werden von Hand eingetragen</div></div></header>
+  <div class="card">
+    <div class="field"><label for="tn">Name</label><input id="tn" value="${esc(T.name)}"></div>
+    <div class="row" style="gap:24px;flex-wrap:wrap">
+      <div class="field"><label>Legs zum Sieg (first to)</label><div class="stepper"><button data-st="legsToWin" data-d="-1">−</button><span class="val" id="legs">${T.legsToWin}</span><button data-st="legsToWin" data-d="1">+</button></div></div>
+      <div class="field"><label>Boards</label><div class="stepper"><button data-st="boards" data-d="-1">−</button><span class="val" id="boards">${T.boards}</span><button data-st="boards" data-d="1">+</button></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Spieler <span class="hint">(${T.players.length})</span></h2>
+    <div class="row"><input id="pn" placeholder="Name eingeben" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)" autocomplete="off" enterkeyhint="done"><button class="btn" id="addp">Hinzufügen</button></div>
+    <p class="hint">Reihenfolge = Setzliste. 1 spielt gegen den letzten Platz, usw. Ohne Setzliste einfach so lassen oder mischen.</p>
+    <ul class="players">${T.players.map((p,i)=>`<li><span class="seed">${i+1}</span><span class="name">${esc(p.name)}</span><button data-up="${i}" aria-label="nach oben">↑</button><button data-down="${i}" aria-label="nach unten">↓</button><button data-del="${i}" aria-label="entfernen">✕</button></li>`).join("")}</ul>
+    ${T.players.length?`<div class="row" style="margin-top:10px"><button class="btn ghost small" id="shuffle">Zufällig mischen</button></div>`:""}
+  </div>
+  <div class="row" style="justify-content:space-between;margin:12px 0">
+    <button class="btn ghost" id="import">Sicherung laden</button>
+    <button class="btn primary" id="start" ${T.players.length<3?"disabled":""}>Turnier starten</button>
+  </div>
+  ${T.players.length<3?`<p class="hint" style="text-align:right">Mindestens 3 Spieler.</p>`:`<p class="hint" style="text-align:right">${T.players.length} Spieler → ${2*T.players.length-2} Spiele (plus ggf. Entscheidung)</p>`}
+  <p class="foot">Alles bleibt auf diesem Gerät gespeichert. Über „Sicherung“ kannst du den Stand als Datei exportieren.</p>`;
+
+  el("#tn").oninput=e=>{T.name=e.target.value;save()};
+  app.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{const k=b.dataset.st;T[k]=Math.max(1,Math.min(k==="boards"?8:9,T[k]+Number(b.dataset.d)));save();renderSetup()});
+  const add=()=>{const v=el("#pn").value.trim();if(!v)return;T.players.push({id:"p"+Math.random().toString(36).slice(2,8),name:v});save();renderSetup();el("#pn").focus()};
+  el("#addp").onclick=add;el("#pn").onkeydown=e=>{if(e.key==="Enter")add()};
+  app.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{T.players.splice(+b.dataset.del,1);save();renderSetup()});
+  app.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{const i=+b.dataset.up;if(i>0){[T.players[i-1],T.players[i]]=[T.players[i],T.players[i-1]];save();renderSetup()}});
+  app.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{const i=+b.dataset.down;if(i<T.players.length-1){[T.players[i+1],T.players[i]]=[T.players[i],T.players[i+1]];save();renderSetup()}});
+  const sh=el("#shuffle");if(sh)sh.onclick=()=>{for(let i=T.players.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[T.players[i],T.players[j]]=[T.players[j],T.players[i]]}save();renderSetup()};
+  el("#start").onclick=()=>{T.started=true;T.results={};T.live={};save();render()};
+  el("#import").onclick=importFile;
+}
+
+// ---------- Turnier ----------
+function renderTournament(){
+  const app=el("#app"),N=names(),res=resolved(),champ=championOf(res);
+  const ready=playable(res);
+  const liveKeys=Object.keys(T.live);
+  const usedBoards=new Set(Object.values(T.live));
+  const freeBoards=Array.from({length:T.boards},(_,i)=>i+1).filter(b=>!usedBoards.has(b));
+  const roundLabel=(m)=>m.bracket==="GF"?"Finale":m.bracket==="GF2"?"Entscheidung":`${m.bracket==="W"?"Gewinner":"Verlierer"}runde ${m.round}`;
+
+  const nowCards=[
+    ...liveKeys.map(k=>res.find(m=>m.key===k)).filter(Boolean).map(m=>card(m,T.live[m.key],"läuft")),
+    ...ready.filter(m=>!T.live[m.key]).map((m,i)=>card(m,freeBoards[i]??null,freeBoards[i]?"frei":"wartet"))
+  ];
+  function card(m,board,state){
+    return `<button class="nowcard ${state==="wartet"?"waiting":""}" data-open="${m.key}">
+      <div class="vs"><div>${esc(N[m.players[0]])}</div><div>${esc(N[m.players[1]])}</div><div class="m">${roundLabel(m)}${m.legs?` · ${m.legs[0]}:${m.legs[1]}`:""}</div></div>
+      <div class="board">${board?`<b>${board}</b>Board · ${state}`:`<b>–</b>${state}`}</div></button>`;
+  }
+
+  const standings=champ?finalStandings(res):null;
+
+  app.innerHTML=`
+  <header><div><h1>${esc(T.name)}</h1><div class="sub">Doppel-KO · first to ${T.legsToWin} · ${T.players.length} Spieler</div></div>
+    <div class="menu"><button class="btn ghost small" id="export">Sicherung</button><button class="btn ghost small" id="reset">Neu</button></div></header>
+  ${champ?`<div class="champ"><div class="t">Turniersieger</div><div class="n">${esc(N[champ])}</div><div class="p">2. ${esc(N[standings[1]])}${standings[2]?` · 3. ${esc(N[standings[2]])}`:""}</div></div>`:""}
+  <div class="now"><h2>${champ?"Alle Spiele gespielt":"Jetzt spielen"}</h2>
+    ${nowCards.length?`<div class="nowlist">${nowCards.join("")}</div>`:champ?"":`<div class="empty">Keine spielbaren Spiele – erst müssen laufende Ergebnisse eingetragen werden.</div>`}
+  </div>
+  ${bracketSection("Gewinnerrunde",res.filter(m=>m.bracket==="W"))}
+  ${bracketSection("Verliererrunde",res.filter(m=>m.bracket==="L"))}
+  ${bracketSection("Finale",res.filter(m=>(m.bracket==="GF"||m.bracket==="GF2")&&m.status!=="skipped"),true)}
+  <p class="foot">Tipp auf ein Spiel: Board wählen oder Ergebnis eintragen. Eingetragene Ergebnisse lassen sich ändern, solange das Folgespiel noch offen ist.</p>`;
+
+  function bracketSection(title,list,isFinal){
+    if(!list.length)return"";
+    const byRound=new Map();for(const m of list)byRound.set(m.round,[...(byRound.get(m.round)||[]),m]);
+    const cols=[...byRound.entries()].sort((a,b)=>a[0]-b[0]);
+    return `<section class="br"><h2>${title}</h2><div class="rounds">${cols.map(([r,ms])=>`<div class="round"><div class="rl">${isFinal?"":"Runde "+r}</div>${ms.sort((a,b)=>a.position-b.position).map(matchBox).join("")}</div>`).join("")}</div></section>`;
+  }
+  function matchBox(m){
+    const st=T.live[m.key]?"live":m.status;
+    const clickable=["ready","live","finished"].includes(st)&&m.players.every(Boolean);
+    const p=(i)=>{const id=m.players[i];const cls=m.status==="finished"?(m.winner===id?"win":"lose"):"";
+      return `<div class="p ${cls}"><span class="n ${id?"":"open"}">${id?esc(N[id]):(m.status==="bye"?"Freilos":"offen")}</span><span class="s">${m.legs?m.legs[i]:""}</span></div>`};
+    const tag=st==="live"?`Board ${T.live[m.key]}`:st==="ready"?"bereit":st==="finished"?"":st==="bye"?"":"";
+    return `<button class="match ${st}" ${clickable?`data-open="${m.key}"`:"disabled"}><div class="mk"><span>${m.bracket==="GF"?"Finale":m.bracket==="GF2"?"Entscheidung":m.key}</span><span>${tag}</span></div>${p(0)}${p(1)}</button>`;
+  }
+
+  app.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openSheet(b.dataset.open));
+  el("#export").onclick=exportFile;
+  el("#reset").onclick=()=>{if(confirm("Neues Turnier anlegen? Der aktuelle Stand wird überschrieben – vorher ggf. Sicherung exportieren.")){T=newTournament();save();render()}};
+}
+
+function finalStandings(res){
+  const gf=res.find(m=>m.key==="GF"),gf2=res.find(m=>m.key==="GF2");
+  const champ=championOf(res);
+  const runnerUp=(gf2.status==="finished"?gf2:gf).players.find(p=>p!==champ);
+  const lFinal=res.filter(m=>m.bracket==="L").sort((a,b)=>b.round-a.round)[0];
+  const third=lFinal&&lFinal.status==="finished"?lFinal.loser:null;
+  return [champ,runnerUp,third];
+}
+
+// ---------- Sheet ----------
+let sheetState=null;
+function openSheet(key){
+  const res=resolved(),m=res.find(x=>x.key===key),N=names();
+  const dependents=res.filter(x=>x.slots.some(s=>s.match===key)&&x.status==="finished");
+  const locked=dependents.length>0;
+  const legs=m.legs?[...m.legs]:[0,0];
+  sheetState={key,legs,board:T.live[key]||null,locked};
+  drawSheet(m,N);
+  el("#backdrop").classList.add("open");el("#sheet").classList.add("open");
+}
+function drawSheet(m,N){
+  const s=sheetState,L=T.legsToWin;
+  const boards=Array.from({length:T.boards},(_,i)=>i+1);
+  const busy=new Set(Object.entries(T.live).filter(([k])=>k!==s.key).map(([,b])=>b));
+  const done=s.legs[0]>=L||s.legs[1]>=L;
+  const valid=done&&!(s.legs[0]>=L&&s.legs[1]>=L);
+  el("#sheet").innerHTML=`
+    <h3>${m.bracket==="GF"?"Finale":m.bracket==="GF2"?"Entscheidungsspiel":m.bracket==="W"?"Gewinnerrunde "+m.round:"Verliererrunde "+m.round} · first to ${L}</h3>
+    ${s.locked?`<p class="warn">Ergebnis gesperrt: das Folgespiel ist schon eingetragen. Erst dort das Ergebnis löschen.</p>`:`
+    <div class="boardpick">${boards.map(b=>`<button data-b="${b}" class="${s.board===b?"on":""}" ${busy.has(b)?"disabled":""}>Board ${b}${busy.has(b)?" · belegt":""}</button>`).join("")}</div>`}
+    ${[0,1].map(i=>`<div class="res"><div class="pn">${esc(N[m.players[i]])}</div><div class="stepper"><button data-l="${i}" data-d="-1" ${s.locked?"disabled":""}>−</button><span class="val">${s.legs[i]}</span><button data-l="${i}" data-d="1" ${s.locked?"disabled":""}>+</button></div></div>`).join("")}
+    <div class="actions">
+      <button class="btn ghost" id="close">Schließen</button>
+      ${!s.locked&&m.status==="finished"?`<button class="btn ghost" id="clear">Ergebnis löschen</button>`:""}
+      ${!s.locked?`<button class="btn primary" id="saveres" ${valid?"":"disabled"}>${valid?"Ergebnis speichern":"Spiel läuft"}</button>`:""}
+    </div>`;
+  el("#sheet").querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>{s.board=s.board===+b.dataset.b?null:+b.dataset.b;if(s.board)T.live[s.key]=s.board;else delete T.live[s.key];save();drawSheet(m,N);render(false)});
+  el("#sheet").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const i=+b.dataset.l;s.legs[i]=Math.max(0,Math.min(L,s.legs[i]+Number(b.dataset.d)));drawSheet(m,N)});
+  el("#close").onclick=closeSheet;
+  const c=el("#clear");if(c)c.onclick=()=>{delete T.results[s.key];save();closeSheet();render()};
+  const sv=el("#saveres");if(sv)sv.onclick=()=>{const w=s.legs[0]>=L?m.players[0]:m.players[1];T.results[s.key]={w,legs:[...s.legs]};delete T.live[s.key];save();closeSheet();render()};
+}
+function closeSheet(){el("#backdrop").classList.remove("open");el("#sheet").classList.remove("open");sheetState=null}
+el("#backdrop").onclick=closeSheet;
+
+// ---------- Sicherung ----------
+function exportFile(){const blob=new Blob([JSON.stringify(T,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${T.name.replace(/[^\w\-]+/g,"_")}.json`;a.click()}
+function importFile(){const i=document.createElement("input");i.type="file";i.accept="application/json";i.onchange=()=>{const f=i.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d.players)throw 0;T=d;save();render()}catch{alert("Datei konnte nicht gelesen werden.")}})};i.click()}
+
+function render(scroll=true){const y=window.scrollY;T.started?renderTournament():renderSetup();if(!scroll)window.scrollTo(0,y)}
+render();
+</script>
+</body>
+</html>

@@ -47,6 +47,10 @@ export default function robots(): MetadataRoute.Robots {
         '/mein-team',
         '/admin',
         '/api/',
+        // Interne Turnierseite (statisch unter public/intern-x7k2/): nur per
+        // Direktlink, nirgends verlinkt — zusätzlich X-Robots-Tag im
+        // next.config.ts. Nicht crawlen, nicht indexieren.
+        '/intern-x7k2/',
         // Demo der Munich Dart Challenge: erreichbar, wer den Link hat —
         // aber nicht crawlen, nicht indexieren (zusätzlich noindex im Layout).
         '/mdc',
