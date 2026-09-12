@@ -89,6 +89,10 @@ export default async function AdminPassnummernPage() {
     starts: appearancesOf(p.id).length,
   }));
 
+  // Zehn Nummern über der höchsten vergebenen — dieselbe Vorgehensweise wie
+  // in der Upload-Maske, damit ein neuer Pass nicht in einer Lücke landen muss.
+  const neueNummern = Array.from({ length: 10 }, (_, i) => u.hoechsteVergebene + 1 + i);
+
   const nummernStand: NummerStand[] = u.belegungen.map(b => ({
     passNr: b.passNr,
     heute: b.inhaber.find(i => i.aktuell)?.name ?? null,
@@ -137,6 +141,7 @@ export default async function AdminPassnummernPage() {
             spieler={vergabeSpieler}
             nummern={nummernStand}
             frei={u.frei}
+            neueNummern={neueNummern}
             naechsteFreie={u.naechsteFreie}
             vergaben={nurVergabe(AKTIVE_REGISTER_KORREKTUREN)}
             erledigt={nurVergabe(ERLEDIGTE_REGISTER_KORREKTUREN)}

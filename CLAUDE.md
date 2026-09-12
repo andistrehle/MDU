@@ -286,6 +286,10 @@ fällt von selbst weg, sobald der Betreiber dort nachzieht — dann meldet
   Mappe: an jemanden im Stamm ohne Nummer oder an einen ganz Neuen. Geprüft
   wird, dass die Nummer wirklich frei ist und der neue Name nicht die Adresse
   eines bestehenden Spielers ergibt (sonst würden aus zwei Menschen einer).
+Die Nummer wird **ausgewählt, nicht getippt** (`<select>` mit drei Gruppen:
+Lücken im Register, die nächsten zehn über der höchsten, dann die vergebenen
+MIT Namen) — am Handy soll niemand raten müssen, welche Nummer frei ist, und
+beim Umschreiben wählt man einen Menschen und keine Zahl.
 Gefiltert und ergänzt wird **vor** `parseRankingRows` (sonst behielte ein
 Übriggebliebener die angehängte Nummer in seiner Adresse), und `stillgelegt`/
 `inhaber` greifen nur, solange auch der NAME der Mappenzeile passt — eine

@@ -57,10 +57,16 @@ export interface NummerStand {
   frueher: string[];
 }
 
-export function NummernVergabe({ spieler, nummern, frei, naechsteFreie, vergaben, erledigt, canPublish, missing }: {
+export function NummernVergabe({
+  spieler, nummern, frei, neueNummern, naechsteFreie, vergaben, erledigt, canPublish, missing,
+}: {
   spieler: VergabeSpieler[];
   nummern: NummerStand[];
+  /** Echte Lücken im Register — die werden der Reihe nach aufgefüllt. */
   frei: number[];
+  /** Die nächsten Nummern über der höchsten vergebenen. */
+  neueNummern: number[];
+  /** Kleinste freie Nummer — steht in der Liste als Empfehlung dabei. */
   naechsteFreie: number;
   vergaben: Vergabe[];
   erledigt: Vergabe[];
@@ -213,15 +219,41 @@ export function NummernVergabe({ spieler, nummern, frei, naechsteFreie, vergaben
         </div>
       )}
 
+      {/* Auswahlliste statt Zahlenfeld: Am Handy soll niemand raten oder
+          tippen müssen, welche Nummer frei ist. Erst die echten Lücken (die
+          werden der Reihe nach aufgefüllt), dann die Nummern über der
+          höchsten, dann die vergebenen — die stehen MIT Namen da, weil man
+          eine Nummer umschreibt und nicht eine Zahl. */}
       <label style={{ display: 'block', marginTop: 18 }}>
         <span style={labelStil}>Passnummer</span>
-        <input
+        <select
           value={nummer}
-          onChange={e => { setNummer(e.target.value.replace(/\D/g, '')); setGewaehlt(null); }}
-          inputMode="numeric"
-          placeholder={`z. B. ${naechsteFreie}`}
-          style={{ ...eingabeStil, maxWidth: 200 }}
-        />
+          onChange={e => { setNummer(e.target.value); setGewaehlt(null); setNeuAuf(false); }}
+          style={eingabeStil}
+        >
+          <option value="">— auswählen —</option>
+          {frei.length > 0 && (
+            <optgroup label={`Frei: Lücken im Register (${frei.length})`}>
+              {frei.map(n => (
+                <option key={n} value={String(n)}>
+                  {n}{n === naechsteFreie ? ' — die kleinste freie' : ''}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {neueNummern.length > 0 && (
+            <optgroup label="Frei: neu, über der höchsten vergebenen">
+              {neueNummern.map(n => <option key={n} value={String(n)}>{n}</option>)}
+            </optgroup>
+          )}
+          <optgroup label={`Vergeben — umschreiben (${nummern.length})`}>
+            {nummern.map(n => (
+              <option key={n.passNr} value={String(n.passNr)}>
+                {n.passNr} · {n.heute ?? 'ohne Namen'}
+              </option>
+            ))}
+          </optgroup>
+        </select>
       </label>
 
       {gueltig && (
