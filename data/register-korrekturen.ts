@@ -102,8 +102,21 @@ export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
     "passNr": 281,
     "lastName": "ROLL",
     "firstName": "MORRIS",
-    "gehoertZu": { "lastName": "HUNDSEDER", "firstName": "MARKUS" },
+    "gehoertZu": {
+      "lastName": "HUNDSEDER",
+      "firstName": "MARKUS"
+    },
     "note": "Vom Betreiber entschieden am 12.09.2026: Die Nummer behält Hundseder. Rolls Turnier vom 09.02.2026 bleibt bei ihm."
+  },
+  {
+    "art": "vergeben",
+    "passNr": 490,
+    "gehoertZu": {
+      "lastName": "GLASHAUSER",
+      "firstName": "DAGMAR"
+    },
+    "division": "women",
+    "note": null
   }
 ];
 
