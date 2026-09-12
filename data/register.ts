@@ -21,43 +21,76 @@
 
 import { parseRankingRows, type ParsedRow } from './parse-ranking';
 import { REGISTER_MEN_RAW, REGISTER_WOMEN_RAW } from './register.generated';
-import { greiftAuf, REGISTER_KORREKTUREN, type RegisterKorrektur } from './register-korrekturen';
+import {
+  alsZeile, greiftAuf, REGISTER_KORREKTUREN, type RegisterKorrektur,
+} from './register-korrekturen';
+import type { Division } from './types';
+
+const ROH = [...REGISTER_MEN_RAW, ...REGISTER_WOMEN_RAW];
 
 /**
- * Stillgelegte Zeilen raus — VOR dem Einlesen.
+ * Die Berichtigungen auf die Zeilen der Arbeitsmappe legen — VOR dem Einlesen.
  *
  * Die Reihenfolge ist wesentlich: Die Spieler-ID entsteht beim Einlesen, und
  * bei zwei gleichen Namen hängt `parseRankingRows` an den zweiten die
- * Passnummer an. Fiele die falsche Zeile erst danach weg, behielte der
- * Übriggebliebene die angehängte Nummer in seiner Adresse — und wäre damit
- * immer noch ein anderer Mensch als der in der Rangliste.
+ * Passnummer an. Fiele eine Zeile erst danach weg oder bekäme erst danach
+ * einen anderen Namen, behielte der Übriggebliebene die angehängte Nummer in
+ * seiner Adresse — und wäre damit immer noch ein anderer Mensch als der in der
+ * Rangliste.
+ *
+ * Drei Handgriffe: stillgelegte Zeilen raus, beim falschen Inhaber den Namen
+ * tauschen, hier vergebene Nummern hinten anhängen.
  */
-function ohneStillgelegte(zeilen: string[]): string[] {
-  if (!REGISTER_KORREKTUREN.length) return zeilen;
-  return zeilen.filter(zeile => {
+function mitKorrekturen(zeilen: string[], division: Division): string[] {
+  const bearbeitet = zeilen.flatMap(zeile => {
     const teile = zeile.split('|');
     const passNr = Number(teile[1]);
-    return !REGISTER_KORREKTUREN.some(k => greiftAuf(k, passNr, teile[2] ?? '', teile[3] ?? ''));
+    const treffer = REGISTER_KORREKTUREN.find(
+      k => greiftAuf(k, passNr, teile[2] ?? '', teile[3] ?? ''),
+    );
+    if (!treffer) return [zeile];
+    if (treffer.art === 'stillgelegt') return [];
+    if (treffer.art === 'inhaber') return [alsZeile(passNr, treffer.gehoertZu)];
+    return [zeile];
+  });
+
+  // Hier vergebene Nummern, die die Mappe noch nicht kennt.
+  const schonDa = new Set(ROH.map(z => Number(z.split('|')[1])));
+  const dazu = REGISTER_KORREKTUREN
+    .filter(k => k.art === 'vergeben' && k.division === division && !schonDa.has(k.passNr))
+    .map(k => alsZeile(k.passNr, (k as Extract<RegisterKorrektur, { art: 'vergeben' }>).gehoertZu));
+
+  return [...bearbeitet, ...dazu];
+}
+
+export const REGISTER_MEN = parseRankingRows(mitKorrekturen(REGISTER_MEN_RAW, 'men'), 'men');
+export const REGISTER_WOMEN = parseRankingRows(mitKorrekturen(REGISTER_WOMEN_RAW, 'women'), 'women');
+
+/**
+ * Greift die Berichtigung heute noch?
+ *
+ *   stillgelegt/inhaber  ja, solange die Mappe die Zeile so führt
+ *   vergeben             ja, solange die Mappe die Nummer NICHT führt
+ *
+ * Zieht der Betreiber die Mappe nach, fällt der Eintrag von selbst heraus und
+ * der Prüflauf meldet „ERLEDIGT".
+ */
+function greiftNoch(k: RegisterKorrektur): boolean {
+  if (k.art === 'vergeben') {
+    return !ROH.some(zeile => Number(zeile.split('|')[1]) === k.passNr);
+  }
+  return ROH.some(zeile => {
+    const teile = zeile.split('|');
+    return greiftAuf(k, Number(teile[1]), teile[2] ?? '', teile[3] ?? '');
   });
 }
 
-export const REGISTER_MEN = parseRankingRows(ohneStillgelegte(REGISTER_MEN_RAW), 'men');
-export const REGISTER_WOMEN = parseRankingRows(ohneStillgelegte(REGISTER_WOMEN_RAW), 'women');
+export const AKTIVE_REGISTER_KORREKTUREN: RegisterKorrektur[] =
+  REGISTER_KORREKTUREN.filter(greiftNoch);
 
-/**
- * Korrekturen, die heute noch greifen — die Mappe führt den Doppeleintrag
- * also weiterhin. Verschwindet er dort, fällt der Eintrag hier heraus und der
- * Prüflauf meldet „ERLEDIGT".
- */
-export const AKTIVE_REGISTER_KORREKTUREN: RegisterKorrektur[] = REGISTER_KORREKTUREN
-  .filter(k => [...REGISTER_MEN_RAW, ...REGISTER_WOMEN_RAW].some(zeile => {
-    const teile = zeile.split('|');
-    return greiftAuf(k, Number(teile[1]), teile[2] ?? '', teile[3] ?? '');
-  }));
-
-/** Korrekturen, die ins Leere laufen — in der Mappe berichtigt, hier löschbar. */
-export const ERLEDIGTE_REGISTER_KORREKTUREN: RegisterKorrektur[] = REGISTER_KORREKTUREN
-  .filter(k => !AKTIVE_REGISTER_KORREKTUREN.includes(k));
+/** Berichtigungen, die ins Leere laufen — in der Mappe nachgezogen, hier löschbar. */
+export const ERLEDIGTE_REGISTER_KORREKTUREN: RegisterKorrektur[] =
+  REGISTER_KORREKTUREN.filter(k => !greiftNoch(k));
 
 /** Alle Registereinträge, nach Nummer. */
 export const REGISTER: ParsedRow[] = [...REGISTER_MEN, ...REGISTER_WOMEN]

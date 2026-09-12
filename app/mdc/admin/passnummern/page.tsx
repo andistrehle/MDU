@@ -16,10 +16,14 @@ import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { PassUebersicht, type PassZeile } from '@/components/mdc/pass-uebersicht';
 import { NamenEditor, type NamenSpieler } from '@/components/mdc/namen-editor';
-import { RegisterDoppelt } from '@/components/mdc/register-doppelt';
+import { RegisterDoppelt, type Stillgelegt } from '@/components/mdc/register-doppelt';
+import {
+  NummernVergabe, type NummerStand, type Vergabe, type VergabeSpieler,
+} from '@/components/mdc/nummern-vergabe';
 import { alleKorrekturen } from '@/data/namen';
-import { PLAYERS } from '@/data/players';
+import { PLAYERS, playerName } from '@/data/players';
 import { AKTIVE_REGISTER_KORREKTUREN, ERLEDIGTE_REGISTER_KORREKTUREN } from '@/data/register';
+import { appearancesOf } from '@/data/tournament-results';
 import { passUebersicht, quelleLabel } from '@/lib/mdc/passnummern';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
 import { mdcPath } from '@/lib/mdc/site';
@@ -70,6 +74,28 @@ export default async function AdminPassnummernPage() {
     }];
   });
 
+  // Die Berichtigungen nach Art auf die beiden Karten verteilt.
+  const nurStill = (liste: typeof AKTIVE_REGISTER_KORREKTUREN): Stillgelegt[] =>
+    liste.filter((k): k is Stillgelegt => k.art === 'stillgelegt');
+  const nurVergabe = (liste: typeof AKTIVE_REGISTER_KORREKTUREN): Vergabe[] =>
+    liste.filter((k): k is Vergabe => k.art === 'inhaber' || k.art === 'vergeben');
+
+  const vergabeSpieler: VergabeSpieler[] = PLAYERS.map(p => ({
+    playerId: p.id,
+    name: playerName(p),
+    division: p.division,
+    passNr: p.passNr,
+    formerPassNr: p.formerPassNr,
+    starts: appearancesOf(p.id).length,
+  }));
+
+  const nummernStand: NummerStand[] = u.belegungen.map(b => ({
+    passNr: b.passNr,
+    heute: b.inhaber.find(i => i.aktuell)?.name ?? null,
+    divison: b.inhaber[0]?.division ?? null,
+    frueher: b.inhaber.filter(i => !i.aktuell).map(i => i.name),
+  }));
+
   return (
     <>
       <PageHero
@@ -101,8 +127,19 @@ export default async function AdminPassnummernPage() {
               name: d.name,
               nummern: d.nummern.map(n => ({ passNr: n.passNr, gespielt: n.gespielt })),
             }))}
-            korrekturen={AKTIVE_REGISTER_KORREKTUREN}
-            erledigt={ERLEDIGTE_REGISTER_KORREKTUREN}
+            korrekturen={nurStill(AKTIVE_REGISTER_KORREKTUREN)}
+            erledigt={nurStill(ERLEDIGTE_REGISTER_KORREKTUREN)}
+            canPublish={status.canPublish}
+            missing={status.missing.filter(m => m.startsWith('MDC_GITHUB_TOKEN'))}
+          />
+
+          <NummernVergabe
+            spieler={vergabeSpieler}
+            nummern={nummernStand}
+            frei={u.frei}
+            naechsteFreie={u.naechsteFreie}
+            vergaben={nurVergabe(AKTIVE_REGISTER_KORREKTUREN)}
+            erledigt={nurVergabe(ERLEDIGTE_REGISTER_KORREKTUREN)}
             canPublish={status.canPublish}
             missing={status.missing.filter(m => m.startsWith('MDC_GITHUB_TOKEN'))}
           />
@@ -119,8 +156,17 @@ export default async function AdminPassnummernPage() {
               <strong>Woher die Nummern kommen:</strong> {'aus dem Blatt „Teilnehmer" der'}
               {' '}Arbeitsmappe. Das ist die maßgebliche Liste — eine Nummer, die dort einen Namen
               trägt, ist vergeben, auch wenn die Person noch nie gespielt hat. Eine Nummer
-              ohne Namen ist frei. <strong>Vergeben</strong> werden Nummern in der Mappe,
-              nicht hier; die Seite liest das Register beim Einlesen einer Saison mit ein.
+              ohne Namen ist frei. Die Seite liest das Register beim Einlesen einer Saison
+              mit ein.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              <strong>Vergeben und umschreiben geht trotzdem hier</strong> (ganz oben): Eine
+              freie Nummer an jemanden ausgeben — auch an einen, der schon gespielt hat —
+              oder eine vergebene Nummer jemand anderem zuschreiben, wenn die Mappe noch den
+              Vorgänger führt. Beides wird als eigene Berichtigung abgelegt, übersteht jeden
+              Import und fällt von selbst weg, sobald die Mappe nachgezogen ist. An den
+              Turnieren ändert es nichts: Wer eine Nummer abgibt, behält alle Ergebnisse und
+              steht künftig als {'„früher Passnr. …"'} da.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Namen sind die Ausnahme:</strong> Die kann die Seite selbst berichtigen

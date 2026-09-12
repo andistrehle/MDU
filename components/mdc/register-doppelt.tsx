@@ -24,7 +24,10 @@
 import { useState } from 'react';
 import { AlertTriangle, Check, ExternalLink, Loader2, RotateCcw, Users } from 'lucide-react';
 import type { RegisterKorrektur } from '@/data/register-korrekturen';
-import { hebeStilllegungAuf, legeNummerStill } from '@/app/mdc/admin/passnummern/actions';
+import { hebeRegisterKorrekturAuf, legeNummerStill } from '@/app/mdc/admin/passnummern/actions';
+
+/** Nur die stillgelegten Zeilen — die anderen Arten stehen woanders. */
+export type Stillgelegt = Extract<RegisterKorrektur, { art: 'stillgelegt' }>;
 
 export interface DoppelNummerAnzeige {
   passNr: number;
@@ -39,9 +42,9 @@ export interface DoppelAnzeige {
 export function RegisterDoppelt({ doppelt, korrekturen, erledigt, canPublish, missing }: {
   doppelt: DoppelAnzeige[];
   /** Schon stillgelegte Zeilen — die Mappe führt sie noch. */
-  korrekturen: RegisterKorrektur[];
+  korrekturen: Stillgelegt[];
   /** Stillgelegte Zeilen, die es in der Mappe nicht mehr gibt. */
-  erledigt: RegisterKorrektur[];
+  erledigt: Stillgelegt[];
   canPublish: boolean;
   missing: string[];
 }) {
@@ -80,14 +83,14 @@ export function RegisterDoppelt({ doppelt, korrekturen, erledigt, canPublish, mi
     );
   }
 
-  async function zurueck(k: RegisterKorrektur) {
+  async function zurueck(k: Stillgelegt) {
     if (!window.confirm(
       `Stilllegung von Passnr. ${k.passNr} zurücknehmen?\n\n`
       + 'Danach gilt wieder, was in der Arbeitsmappe steht — also beide Zeilen.',
     )) return;
     await schicke(
       `weg-${k.passNr}`,
-      () => hebeStilllegungAuf(k.passNr),
+      () => hebeRegisterKorrekturAuf(k.passNr),
       `Stilllegung von Passnr. ${k.passNr} zurückgenommen`,
     );
   }

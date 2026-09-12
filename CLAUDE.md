@@ -260,28 +260,39 @@ bleiben beim richtigen Menschen.
 `/admin/passnummern` wertet aus (`lib/mdc/passnummern.ts`): Nummern der Reihe
 nach, echte Lücken, nächste freie, Nummern mit Vorgänger — und als einzige
 Fehlermeldung die Nummern, mit denen gespielt wurde, die im Register aber ohne
-Namen stehen (die sehen frei aus und sind es nicht). Nummern **vergeben** kann
-die Seite nicht: Der Stamm entsteht aus Register und Wertungen, eine neue
-Nummer kommt aus der Arbeitsmappe.
-**Doppelte Registereinträge** sind die eine Ausnahme davon
-(`data/register-korrekturen.ts`, geschrieben von
-`lib/mdc/register-commit.ts`). Steht derselbe Mensch im Blatt „Teilnehmer"
-unter ZWEI Nummern, ist das kein Schönheitsfehler: Die Spieler-ID entsteht aus
-dem Namen, beim zweiten Eintrag hängt `parseRankingRows` die Passnummer an
-(„claudia-vaszi-251") — aus einem Menschen werden zwei, und der mit den
-Ergebnissen bekommt womöglich die falsche Nummer angezeigt. Genau so stand
-Claudia Vaszi mit 196 da, obwohl ihre 63 Turniere auf 251 laufen (gemeldet am
-12.09.2026; Patrick Meyer 31/133 ist derselbe Fall und noch offen). `/admin/passnummern`
-listet solche Fälle (`doppelteEintraege`) und legt die Zeile **ohne einen
-einzigen Start** stilllegen — die Nummer wird damit wieder frei. Gezählt wird
-über die ERGEBNISZEILEN (`passNr` je Turnier), nicht über den Spieler: Dessen
-Nummer ist ja gerade das, was der Fehler verdreht. Die Zeile MIT Starts geht
-nicht, da verlören Ergebnisse ihren Menschen; ebenso wenig die letzte Zeile
-einer Person. Gefiltert wird **vor** `parseRankingRows` (sonst behielte der
-Übriggebliebene die angehängte Nummer in der Adresse) und nur, wenn auch der
-NAME noch passt — eine später neu vergebene Nummer darf nicht still unter eine
-alte Korrektur fallen. Räumt der Betreiber die Mappe auf, meldet
-`scripts/mdc-check-saison.ts` „ERLEDIGT".
+Namen stehen (die sehen frei aus und sind es nicht).
+**Das Register lässt sich seit 12.09.2026 von der Seite aus berichtigen**
+(`data/register-korrekturen.ts`, geschrieben von `lib/mdc/register-commit.ts`).
+Maßgeblich bleibt die Mappe: Jeder Eintrag übersteht den nächsten Import UND
+fällt von selbst weg, sobald der Betreiber dort nachzieht — dann meldet
+`scripts/mdc-check-saison.ts` „ERLEDIGT". Drei Arten, alle aus echten Fällen:
+- `stillgelegt` — **derselbe Mensch steht zweimal im Blatt „Teilnehmer"**. Das
+  ist kein Schönheitsfehler: Die Spieler-ID entsteht aus dem Namen, beim
+  zweiten Eintrag hängt `parseRankingRows` die Passnummer an
+  („claudia-vaszi-251"), aus einem Menschen werden zwei, und der mit den
+  Ergebnissen bekommt womöglich die falsche Nummer angezeigt (Claudia Vaszi
+  stand mit 196 da statt 251; Patrick Meyer 31/133 ist derselbe Fall und noch
+  offen). `/admin/passnummern` listet sie (`doppelteEintraege`) und legt die
+  Zeile **ohne einen einzigen Start** still — die Nummer wird wieder frei.
+  Gezählt wird über die ERGEBNISZEILEN (`passNr` je Turnier), nicht über den
+  Spieler: Dessen Nummer ist ja gerade das, was der Fehler verdreht. Die Zeile
+  MIT Starts geht nicht (Ergebnisse verlören ihren Menschen), die letzte Zeile
+  einer Person auch nicht.
+- `inhaber` — **die Nummer gehört jemand anderem** als die Mappe sagt
+  (Passnr. 281 stand auf Morris Roll, behalten soll sie Markus Hundseder).
+  Der neue Inhaber muss heute NUMMERNLOS sein (sonst hätte er zwei) und in
+  derselben Wertungsklasse stehen.
+- `vergeben` — **eine freie Nummer wird hier vergeben**, nicht erst in der
+  Mappe: an jemanden im Stamm ohne Nummer oder an einen ganz Neuen. Geprüft
+  wird, dass die Nummer wirklich frei ist und der neue Name nicht die Adresse
+  eines bestehenden Spielers ergibt (sonst würden aus zwei Menschen einer).
+Gefiltert und ergänzt wird **vor** `parseRankingRows` (sonst behielte ein
+Übriggebliebener die angehängte Nummer in seiner Adresse), und `stillgelegt`/
+`inhaber` greifen nur, solange auch der NAME der Mappenzeile passt — eine
+später neu vergebene Nummer darf nicht still unter eine alte Berichtigung
+fallen. **An Ergebnissen ändert das alles nie etwas**: Jede Saison löst ihre
+Passnummern über ihre eigene Rangliste auf, wer eine Nummer abgibt, behält
+seine Turniere und wird als „früher Passnr. X" ausgewiesen.
 **Namen berichtigen** ist das Einzige, was dort geschrieben wird
 (`components/mdc/namen-editor.tsx` → `lib/mdc/namen-commit.ts` → JSON-Array in
 `data/namen.ts`, Form nicht zerstören). Zwei echte Fälle: der Spieler, der

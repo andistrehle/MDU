@@ -1,5 +1,5 @@
 // ============================================================
-// MDC — Stillgelegte Registerzeilen ins Repository schreiben
+// MDC — Register-Berichtigungen ins Repository schreiben
 // ============================================================
 //
 // Wie bei Namen, News, Ergebnissen und Kalender: kein Datenbankeintrag,
@@ -45,7 +45,7 @@ function schreibeListe(quelle: string, liste: RegisterKorrektur[]): string {
   return quelle.slice(0, start) + JSON.stringify(sortiert, null, 2) + quelle.slice(bis + 1);
 }
 
-/** Legt eine Registerzeile still. Gibt die Adresse des Commits zurück. */
+/** Legt eine Berichtigung ab. Gibt die Adresse des Commits zurück. */
 export async function speichereRegisterKorrektur(
   eintrag: RegisterKorrektur,
 ): Promise<{ sha: string; url: string; neu: boolean }> {
@@ -56,16 +56,32 @@ export async function speichereRegisterKorrektur(
   const alt = bisher.find(k => k.passNr === eintrag.passNr);
   const ohneAlten = bisher.filter(k => k.passNr !== eintrag.passNr);
 
-  const nachricht = [
-    `MDC Register: Passnr. ${eintrag.passNr} stillgelegt `
-    + `(${eintrag.lastName} ${eintrag.firstName})`,
-    '',
-    eintrag.stattdessen !== null
+  const kopf = eintrag.art === 'stillgelegt'
+    ? `MDC Register: Passnr. ${eintrag.passNr} stillgelegt `
+      + `(${eintrag.lastName} ${eintrag.firstName})`
+    : eintrag.art === 'inhaber'
+      ? `MDC Register: Passnr. ${eintrag.passNr} gehört jetzt `
+        + `${eintrag.gehoertZu.lastName} ${eintrag.gehoertZu.firstName}`
+      : `MDC Register: Passnr. ${eintrag.passNr} vergeben an `
+        + `${eintrag.gehoertZu.lastName} ${eintrag.gehoertZu.firstName}`;
+
+  const grund = eintrag.art === 'stillgelegt'
+    ? (eintrag.stattdessen !== null
       ? `Doppelt in der Arbeitsmappe — die Person läuft unter Passnr. ${eintrag.stattdessen}.`
-      : 'Doppelter Eintrag in der Arbeitsmappe.',
+      : 'Doppelter Eintrag in der Arbeitsmappe.')
+    : eintrag.art === 'inhaber'
+      ? `In der Arbeitsmappe steht dort noch ${eintrag.lastName} ${eintrag.firstName}. `
+        + 'An den Ergebnissen ändert das nichts: Jede Saison löst ihre Passnummern '
+        + 'über ihre eigene Rangliste auf.'
+      : 'Die Arbeitsmappe kennt die Nummer noch nicht.';
+
+  const nachricht = [
+    kopf,
+    '',
+    grund,
     eintrag.note ? `Grund: ${eintrag.note}` : '',
     '',
-    'Gilt nur, solange die Mappe den Doppeleintrag führt; dort berichtigt,',
+    'Gilt nur, solange die Mappe es braucht; dort nachgezogen,',
     'meldet scripts/mdc-check-saison.ts „ERLEDIGT".',
   ].filter(Boolean).join('\n');
 
@@ -77,18 +93,18 @@ export async function speichereRegisterKorrektur(
   return { ...commit, neu: alt === undefined };
 }
 
-/** Nimmt die Stilllegung zurück — dann gilt wieder die Zeile aus der Mappe. */
+/** Nimmt eine Berichtigung zurück — dann gilt wieder, was in der Mappe steht. */
 export async function loescheRegisterKorrektur(passNr: number): Promise<{ sha: string; url: string }> {
   const ctx = kontext();
   const quelle = await leseDatei(ctx, PFAD);
   const bisher = leseListe(quelle);
   const uebrig = bisher.filter(k => k.passNr !== passNr);
   if (uebrig.length === bisher.length) {
-    throw new CommitFehler(`Passnr. ${passNr} ist gar nicht stillgelegt.`);
+    throw new CommitFehler(`Für Passnr. ${passNr} gibt es gar keine Berichtigung.`);
   }
   return committe(
     ctx,
     [{ pfad: PFAD, inhalt: schreibeListe(quelle, uebrig) }],
-    `MDC Register: Stilllegung von Passnr. ${passNr} zurückgenommen`,
+    `MDC Register: Berichtigung für Passnr. ${passNr} zurückgenommen`,
   );
 }

@@ -40,7 +40,7 @@ import { getVenue, isFormerVenue } from '../data/venues';
 import { runningRankingOf } from '../data/ranking';
 import { jackpotStand } from '../lib/mdc/jackpot';
 import { doppelteEintraege } from '../lib/mdc/passnummern';
-import { REGISTER_KORREKTUREN } from '../data/register-korrekturen';
+import { REGISTER_KORREKTUREN, type RegisterKorrektur } from '../data/register-korrekturen';
 import { AKTIVE_REGISTER_KORREKTUREN, ERLEDIGTE_REGISTER_KORREKTUREN } from '../data/register';
 import type { Division, Season } from '../data/types';
 
@@ -283,7 +283,7 @@ if (PASS_KORREKTUREN.length > 0) {
   }
 }
 
-// ── Doppelte Registereinträge ───────────────────────────────
+// ── Register: Doppeleinträge und Berichtigungen ─────────────
 //
 // Derselbe Mensch unter zwei Nummern im Blatt „Teilnehmer". Das ist kein
 // Schönheitsfehler: Die Spieler-Adresse entsteht aus dem Namen, beim zweiten
@@ -291,20 +291,31 @@ if (PASS_KORREKTUREN.length > 0) {
 {
   const offen = doppelteEintraege();
   if (offen.length > 0 || REGISTER_KORREKTUREN.length > 0) {
-    console.log('\nZweimal im Register (Blatt „Teilnehmer")');
+    console.log('\nRegister (Blatt „Teilnehmer")');
   }
   for (const person of offen) {
     meldung(`${person.name} steht unter `
       + person.nummern.map(n => `${n.passNr} (${n.gespielt} Turniere)`).join(' und ')
       + ' — in der Arbeitsmappe gehört eine Zeile gelöscht.');
   }
+  const beschreibe = (k: RegisterKorrektur) => {
+    if (k.art === 'stillgelegt') {
+      return `Passnr. ${k.passNr} (${k.firstName} ${k.lastName}) stillgelegt`
+        + (k.stattdessen !== null ? `, läuft unter ${k.stattdessen}` : '');
+    }
+    if (k.art === 'inhaber') {
+      return `Passnr. ${k.passNr} gehört ${k.gehoertZu.firstName} ${k.gehoertZu.lastName}`
+        + ` statt ${k.firstName} ${k.lastName}`;
+    }
+    return `Passnr. ${k.passNr} hier vergeben an `
+      + `${k.gehoertZu.firstName} ${k.gehoertZu.lastName}`;
+  };
   for (const k of AKTIVE_REGISTER_KORREKTUREN) {
-    console.log(`  aktiv     Passnr. ${k.passNr} (${k.firstName} ${k.lastName}) stillgelegt`
-      + (k.stattdessen !== null ? `, läuft unter ${k.stattdessen}` : ''));
+    console.log(`  aktiv     ${beschreibe(k)}`);
   }
   for (const k of ERLEDIGTE_REGISTER_KORREKTUREN) {
-    console.log(`  ERLEDIGT  Passnr. ${k.passNr} (${k.firstName} ${k.lastName}) steht nicht `
-      + 'mehr doppelt in der Mappe. Eintrag aus data/register-korrekturen.ts entfernen.');
+    console.log(`  ERLEDIGT  ${beschreibe(k)} — die Mappe sagt das inzwischen selbst. `
+      + 'Eintrag aus data/register-korrekturen.ts entfernen.');
   }
 }
 

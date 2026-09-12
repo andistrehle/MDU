@@ -28,9 +28,10 @@ import { headers } from 'next/headers';
 import type { Namenskorrektur } from '@/data/namen';
 import { namensKorrektur, neuePlayerId } from '@/data/namen';
 import { PLAYERS, getPlayerByPassNr, playerName } from '@/data/players';
-import { registerEintrag } from '@/data/register';
+import { FREIE_NUMMERN, HOECHSTE_NUMMER, registerEintrag } from '@/data/register';
 import type { RegisterKorrektur } from '@/data/register-korrekturen';
 import { CommitFehler } from '@/lib/mdc/github';
+import { slugify } from '@/lib/mdc/names';
 import { loescheName, speichereName } from '@/lib/mdc/namen-commit';
 import { loescheRegisterKorrektur, speichereRegisterKorrektur } from '@/lib/mdc/register-commit';
 import { doppelteEintraege } from '@/lib/mdc/passnummern';
@@ -263,6 +264,7 @@ export async function legeNummerStill(
   // (4) Name aus der Registerzeile — er sichert die Korrektur gegen eine
   //     später neu vergebene Nummer ab.
   const eintrag: RegisterKorrektur = {
+    art: 'stillgelegt',
     passNr: nummer,
     lastName: zeile.lastName,
     firstName: zeile.firstName,
@@ -280,8 +282,8 @@ export async function legeNummerStill(
   }
 }
 
-/** Stilllegung zurücknehmen — dann gilt wieder, was in der Mappe steht. */
-export async function hebeStilllegungAuf(passNr: number): Promise<RegisterErgebnis> {
+/** Berichtigung zurücknehmen — dann gilt wieder, was in der Mappe steht. */
+export async function hebeRegisterKorrekturAuf(passNr: number): Promise<RegisterErgebnis> {
   if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
   const nichtBereit = bereit();
   if (nichtBereit) return { ok: false, fehler: nichtBereit };
@@ -293,5 +295,245 @@ export async function hebeStilllegungAuf(passNr: number): Promise<RegisterErgebn
     if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
     console.error('[mdc] Stilllegung zurücknehmen fehlgeschlagen', fehler);
     return { ok: false, fehler: 'Das konnte nicht zurückgenommen werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+// ------------------------------------------------------------
+// Nummer zuordnen und Nummer vergeben
+// ------------------------------------------------------------
+//
+// Bis September 2026 konnte die Seite gar nichts am Register ändern: Der Stamm
+// entstand aus der Arbeitsmappe, und wer einen Pass bekam, wurde dort
+// eingetragen. Das war unbequem genug, dass es an einem Turnierabend liegen
+// blieb — deshalb geht beides jetzt hier, und zwar so, dass jeder Eintrag den
+// nächsten Import übersteht und von selbst wegfällt, sobald die Mappe
+// nachgezogen ist.
+//
+// An den ERGEBNISSEN ändert das nie etwas. Jede Saison löst ihre Passnummern
+// über ihre eigene Rangliste auf; wer eine Nummer abgibt, behält alle Turniere
+// und wird als „früher Passnr. X" ausgewiesen.
+
+/** Ein Name, wie ihn die Arbeitsmappe schreibt. */
+function sauberName(wert: string): string {
+  return wert.trim().replace(/\s+/g, ' ').toUpperCase();
+}
+
+function pruefeInhaber(lastName: string, firstName: string): string | null {
+  return pruefeName(lastName, 'Der Nachname', false)
+    ?? pruefeName(firstName, 'Der Vorname', true);
+}
+
+/**
+ * Die Nummer gehört ab jetzt jemand anderem.
+ *
+ * Fünf Prüfungen:
+ *   1. Die Nummer muss im Register stehen — sonst ist sie frei und gehört
+ *      vergeben, nicht umgeschrieben.
+ *   2. Es muss einen anderen geben als den heutigen Inhaber.
+ *   3. Der neue Inhaber darf nicht schon eine ANDERE Nummer tragen; sonst
+ *      stünde er doppelt im Register, und genau das ist der Fehler, den die
+ *      Seite eine Karte weiter oben meldet.
+ *   4. Gleiche Wertungsklasse — das Register ist nach Männern und Frauen
+ *      getrennt, und eine Zeile wechselt nicht die Liste.
+ *   5. Der Name muss ein Name sein.
+ */
+export async function ordneNummerZu(
+  passNr: number,
+  playerId: string,
+  note?: string,
+): Promise<RegisterErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereit();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  const nummer = Number(passNr);
+  if (!Number.isInteger(nummer) || nummer < 1) {
+    return { ok: false, fehler: 'Die Passnummer fehlt oder ist keine ganze Zahl.' };
+  }
+  const hinweis = (note ?? '').trim();
+  if (hinweis.length > 200) {
+    return { ok: false, fehler: 'Der Hinweis ist zu lang (höchstens 200 Zeichen).' };
+  }
+
+  // (1)
+  const eintragMappe = registerEintrag(nummer);
+  if (!eintragMappe) {
+    return {
+      ok: false,
+      fehler: `Passnr. ${nummer} steht in keinem Register — sie ist frei. `
+        + 'Eine freie Nummer wird vergeben, nicht umgeschrieben.',
+    };
+  }
+
+  const neuer = PLAYERS.find(p => p.id === playerId);
+  if (!neuer) return { ok: false, fehler: 'Diesen Spieler gibt es nicht.' };
+
+  // (2)
+  if (neuer.passNr === nummer) {
+    return { ok: false, fehler: `Passnr. ${nummer} gehört ${playerName(neuer)} bereits.` };
+  }
+  // (3)
+  if (neuer.passNr !== null) {
+    return {
+      ok: false,
+      fehler: `${playerName(neuer)} trägt schon Passnr. ${neuer.passNr}. Zwei Nummern für `
+        + 'einen Menschen wären genau der Fehler, den die Karte „Zweimal im Register" meldet. '
+        + 'Erst die alte Nummer freimachen.',
+    };
+  }
+  // (4)
+  if (neuer.division !== eintragMappe.division) {
+    return {
+      ok: false,
+      fehler: `Passnr. ${nummer} steht in der Liste der `
+        + `${eintragMappe.division === 'men' ? 'Männer' : 'Frauen'}, `
+        + `${playerName(neuer)} in der der `
+        + `${neuer.division === 'men' ? 'Männer' : 'Frauen'}. Das gehört in die Arbeitsmappe.`,
+    };
+  }
+
+  const lastName = sauberName(neuer.lastName);
+  const firstName = sauberName(
+    neuer.nickname ? `${neuer.firstName} (${neuer.nickname})` : neuer.firstName,
+  );
+  // (5)
+  const fehlerName = pruefeInhaber(lastName, firstName);
+  if (fehlerName) return { ok: false, fehler: fehlerName };
+
+  // Der Name LAUT MAPPE sichert die Berichtigung ab: Schreibt der Betreiber
+  // die Zeile selbst um, greift sie nicht mehr.
+  const eintrag: RegisterKorrektur = {
+    art: 'inhaber',
+    passNr: nummer,
+    lastName: sauberName(eintragMappe.lastName),
+    firstName: sauberName(
+      eintragMappe.nickname
+        ? `${eintragMappe.firstName} (${eintragMappe.nickname})`
+        : eintragMappe.firstName,
+    ),
+    gehoertZu: { lastName, firstName },
+    note: hinweis || null,
+  };
+
+  try {
+    const commit = await speichereRegisterKorrektur(eintrag);
+    return { ok: true, url: commit.url, neu: commit.neu, passNr: nummer };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Nummer zuordnen fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Das konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+export interface VergabeEingabe {
+  passNr: number;
+  /** Bestehender Spieler ohne Nummer — oder `null` für jemanden ganz Neuen. */
+  playerId?: string | null;
+  lastName?: string;
+  firstName?: string;
+  division?: 'men' | 'women';
+  note?: string;
+}
+
+/**
+ * Eine freie Nummer vergeben.
+ *
+ * Frei heißt: Sie steht in keinem Register und niemand trägt sie. Beides wird
+ * geprüft — eine Nummer zweimal zu vergeben, fiele erst Wochen später auf.
+ */
+export async function vergebeNummer(eingabe: VergabeEingabe): Promise<RegisterErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereit();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  const nummer = Number(eingabe.passNr);
+  if (!Number.isInteger(nummer) || nummer < 1) {
+    return { ok: false, fehler: 'Die Passnummer fehlt oder ist keine ganze Zahl.' };
+  }
+  const hinweis = (eingabe.note ?? '').trim();
+  if (hinweis.length > 200) {
+    return { ok: false, fehler: 'Der Hinweis ist zu lang (höchstens 200 Zeichen).' };
+  }
+
+  // Ist die Nummer wirklich frei?
+  if (registerEintrag(nummer)) {
+    const wer = registerEintrag(nummer);
+    return {
+      ok: false,
+      fehler: `Passnr. ${nummer} gehört im Register schon ${wer?.firstName} ${wer?.lastName}. `
+        + 'Eine vergebene Nummer wird umgeschrieben, nicht neu vergeben.',
+    };
+  }
+  const traeger = getPlayerByPassNr(nummer);
+  if (traeger) {
+    return {
+      ok: false,
+      fehler: `Passnr. ${nummer} trägt schon ${playerName(traeger)}.`,
+    };
+  }
+  if (nummer <= HOECHSTE_NUMMER && !FREIE_NUMMERN.includes(nummer)) {
+    return { ok: false, fehler: `Passnr. ${nummer} ist nicht frei.` };
+  }
+
+  let lastName: string;
+  let firstName: string;
+  let division: 'men' | 'women';
+
+  if (eingabe.playerId) {
+    const spieler = PLAYERS.find(p => p.id === eingabe.playerId);
+    if (!spieler) return { ok: false, fehler: 'Diesen Spieler gibt es nicht.' };
+    if (spieler.passNr !== null) {
+      return {
+        ok: false,
+        fehler: `${playerName(spieler)} trägt schon Passnr. ${spieler.passNr}. `
+          + 'Zwei Nummern für einen Menschen gibt es nicht.',
+      };
+    }
+    lastName = sauberName(spieler.lastName);
+    firstName = sauberName(
+      spieler.nickname ? `${spieler.firstName} (${spieler.nickname})` : spieler.firstName,
+    );
+    division = spieler.division;
+  } else {
+    lastName = sauberName(eingabe.lastName ?? '');
+    firstName = sauberName(eingabe.firstName ?? '');
+    const fehlerName = pruefeInhaber(lastName, firstName);
+    if (fehlerName) return { ok: false, fehler: fehlerName };
+    if (eingabe.division !== 'men' && eingabe.division !== 'women') {
+      return { ok: false, fehler: 'Bitte Männer oder Frauen auswählen.' };
+    }
+    division = eingabe.division;
+
+    // Ergibt der Name die Adresse eines bestehenden Spielers, wären das zwei
+    // Menschen unter einem Profil. Dann ist es derselbe — und der gehört über
+    // die Auswahl oben ausgewählt, nicht neu angelegt.
+    const ohneSpitzname = firstName.replace(/\s*\([^)]*\)\s*$/, '');
+    const neueId = slugify(`${ohneSpitzname} ${lastName}`);
+    const schonDa = PLAYERS.find(p => p.id === neueId);
+    if (schonDa) {
+      return {
+        ok: false,
+        fehler: `${playerName(schonDa)} steht schon im Stamm`
+          + `${schonDa.passNr !== null ? ` mit Passnr. ${schonDa.passNr}` : ' (ohne Nummer)'}. `
+          + 'Bitte oben auswählen statt neu anlegen — sonst würden aus einem Menschen zwei.',
+      };
+    }
+  }
+
+  const eintrag: RegisterKorrektur = {
+    art: 'vergeben',
+    passNr: nummer,
+    gehoertZu: { lastName, firstName },
+    division,
+    note: hinweis || null,
+  };
+
+  try {
+    const commit = await speichereRegisterKorrektur(eintrag);
+    return { ok: true, url: commit.url, neu: commit.neu, passNr: nummer };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Nummer vergeben fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Das konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
   }
 }
