@@ -102,6 +102,17 @@ Name vom Zettel, Wertungsklasse aus der Spalte M/F, und die Passnummer kommt
 aus einer Liste der freien (Lücken des Registers zuerst, `passUebersicht()`);
 bei mehreren Neulingen bekommt jeder eine andere. Steht der Name trotz Kreuz
 schon im Stamm, wird das gemeldet statt still eine zweite Nummer anzulegen.
+**Das Datum vom Zettel ersetzt die Auswahl NICHT stillschweigend**
+(`datumProbe` in `components/mdc/ergebnis-upload.tsx`): übernommen wird nur,
+was in einer Saison liegt, nicht in der Zukunft und höchstens vier Monate her
+ist — sonst bleibt das gewählte Datum stehen und die Seite sagt, was gelesen
+wurde. Die Jahreszahl ist die anfälligste Stelle der Erkennung (11.09.2026 kam
+als 2016 zurück); schlimmer als der offensichtliche Fall wäre 2026 → 2025, das
+liegt in der VORSAISON und wäre still in der falschen Wertung gelandet. Das
+heutige Datum steht deshalb auch im OCR-Prompt (`liesErgebniszettel(bild,
+heute)`) mit der Anweisung, bei unsicherer Jahreszahl lieber `null` zu liefern.
+Ein Datum ohne Saison meldet schon Schritt 1 und sperrt die Freigabe, statt sie
+erst nach dem ganzen Prüfen abzulehnen.
 Freigegebene Turniere landen als
 Commit in `data/results-uploaded.ts` (neue Spieler in
 `data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form

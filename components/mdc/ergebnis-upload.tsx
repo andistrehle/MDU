@@ -27,6 +27,7 @@ import {
 import { fieldSizeForPoints, pointsFor, rankGroupLabel, TABLE_RANGE } from '@/lib/mdc/points';
 import { erkenneZettel, gibErgebnisFrei, type Vorschlag, type VorschlagZeile } from '@/app/mdc/admin/ergebnis/actions';
 import type { NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
+import { SEASONS } from '@/data/season';
 
 export interface UploadVenue {
   id: string;
@@ -114,6 +115,44 @@ async function verkleinere(datei: File): Promise<string> {
  * Die Uhrzeit 12:00 steht dabei, damit die Zeitzone das Datum nicht um einen
  * Tag verschiebt.
  */
+/**
+ * In welcher Saison liegt dieses Datum? `null` heißt: in keiner — dann kann
+ * das Turnier nirgends hin, und die Freigabe würde es auch ablehnen.
+ *
+ * Die Prüfung steht bewusst AUCH hier im Browser und nicht nur auf dem Server:
+ * Ein verlesenes Jahr soll oben am Datumsfeld auffallen und nicht erst, wenn
+ * unten die geprüfte Liste fertig ist und die Freigabe zurückkommt.
+ */
+function saisonFuer(datum: string): string | null {
+  return SEASONS.find(s => datum >= s.startDate && datum <= s.endDate)?.label ?? null;
+}
+
+/**
+ * Darf das Datum vom Zettel das ausgewählte ersetzen?
+ *
+ * Die Jahreszahl ist die anfälligste Stelle der ganzen Erkennung — 2026 und
+ * 2016 sehen handgeschrieben fast gleich aus. Ein verlesenes Jahr fiel früher
+ * erst bei der Freigabe auf, und im schlimmsten Fall gar nicht: Aus 2026 wird
+ * 2025, das liegt in der Vorsaison, und das Turnier landete stillschweigend in
+ * der falschen Wertung. Deshalb wird nur übernommen, was in einer Saison liegt
+ * UND zeitlich zum heutigen Tag passt. Alles andere bleibt stehen und wird
+ * gesagt — entschieden wird es von dem, der den Zettel in der Hand hat.
+ */
+function datumProbe(vomZettel: string, heute: string): { uebernehmen: boolean; grund: string | null } {
+  if (saisonFuer(vomZettel) === null) {
+    return { uebernehmen: false, grund: 'das liegt in keiner Saison' };
+  }
+  const tage = (Date.parse(`${vomZettel}T12:00:00`) - Date.parse(`${heute}T12:00:00`)) / 86400000;
+  if (tage > 1) return { uebernehmen: false, grund: 'das liegt in der Zukunft' };
+  if (tage < -120) return { uebernehmen: false, grund: 'das ist über vier Monate her' };
+  return { uebernehmen: true, grund: null };
+}
+
+function deutschesDatum(datum: string): string {
+  const [j, m, t] = datum.split('-');
+  return t && m && j ? `${t}.${m}.${j}` : datum;
+}
+
 function wochentagVon(datum: string): number {
   const tag = new Date(`${datum}T12:00:00`).getDay();
   return tag === 0 ? 7 : tag;
@@ -192,6 +231,14 @@ export function ErgebnisUpload({
   const [bild, setBild] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [vorschlag, setVorschlag] = useState<Vorschlag | null>(null);
+  /**
+   * Was auf dem Zettel als Datum stand — und ob es übernommen wurde.
+   * Übernommen wird nur ein Datum, das in einer Saison liegt; alles andere ist
+   * fast sicher verlesen (11.09.2026 als 11.09.2016). Gesagt wird beides.
+   */
+  const [zettelDatum, setZettelDatum] = useState<
+    { wert: string; uebernommen: boolean; grund: string | null } | null
+  >(null);
   const [zeilen, setZeilen] = useState<Zeile[]>([]);
   const [ergebnis, setErgebnis] = useState<{ url: string; ersetzt: boolean; turnier: string } | null>(null);
   const dateiRef = useRef<HTMLInputElement>(null);
@@ -228,6 +275,9 @@ export function ErgebnisUpload({
       venues.filter(v => !v.weekdays.includes(tag)),
     ];
   }, [venues, datum]);
+  // Liegt das gewählte Datum in keiner Saison, ist die Freigabe von vornherein
+  // aussichtslos — der Server lehnt sie ab. Dann lieber hier sagen, warum.
+  const datumOhneSaison = saisonFuer(datum) === null;
   const feldAusserhalb = teilnehmer > 0
     && (teilnehmer < TABLE_RANGE.from || teilnehmer > TABLE_RANGE.to);
 
@@ -269,7 +319,17 @@ export function ErgebnisUpload({
       antwort.vorschlag.zeilen.map(ausVorschlag),
       freieNummern,
     ));
-    if (antwort.vorschlag.datumLautZettel) setDatum(antwort.vorschlag.datumLautZettel);
+    const vomZettel = antwort.vorschlag.datumLautZettel;
+    if (vomZettel) {
+      // NICHT stillschweigend überschreiben: Wer oben ein Datum gewählt hat,
+      // muss sehen, dass der Zettel etwas anderes sagt. Übernommen wird nur
+      // ein Datum, das auch plausibel ist — siehe `datumProbe`.
+      const probe = datumProbe(vomZettel, heute);
+      if (probe.uebernehmen) setDatum(vomZettel);
+      setZettelDatum({ wert: vomZettel, uebernommen: probe.uebernehmen, grund: probe.grund });
+    } else {
+      setZettelDatum(null);
+    }
     setSchritt('pruefen');
   }
 
@@ -417,12 +477,43 @@ export function ErgebnisUpload({
             <input
               type="date"
               value={datum}
-              onChange={e => setDatum(e.target.value)}
+              onChange={e => { setDatum(e.target.value); setZettelDatum(null); }}
               disabled={schritt !== 'start' && schritt !== 'pruefen'}
-              style={eingabeStil}
+              style={{
+                ...eingabeStil,
+                borderColor: datumOhneSaison ? 'var(--mdc-red)' : 'var(--mdc-line-hard)',
+              }}
             />
           </label>
         </div>
+
+        {/* ── Was der Zettel zum Datum sagt ──
+            Das Jahr ist die anfälligste Stelle der ganzen Erkennung: 2026 und
+            2016 sehen handschriftlich fast gleich aus, und ein verlesenes Jahr
+            fiel früher erst bei der Freigabe auf — nach dem ganzen Prüfen. */}
+        {zettelDatum && (
+          <p
+            style={{
+              marginTop: 10, fontSize: '0.86rem', lineHeight: 1.6,
+              color: zettelDatum.uebernommen ? 'var(--mdc-ink-dim)' : 'var(--mdc-warn-ink)',
+            }}
+          >
+            {zettelDatum.uebernommen
+              ? `Datum vom Zettel übernommen: ${deutschesDatum(zettelDatum.wert)}.`
+              : `Auf dem Zettel wurde „${deutschesDatum(zettelDatum.wert)}“ gelesen — `
+                + `${zettelDatum.grund}, vermutlich ist die Jahreszahl verlesen. Es bleibt `
+                + `beim ausgewählten Datum ${deutschesDatum(datum)}; bitte einmal gegen den `
+                + 'Zettel vergleichen.'}
+          </p>
+        )}
+
+        {datumOhneSaison && (
+          <p style={{ marginTop: 10, fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-red-deep)' }}>
+            <strong>Der {deutschesDatum(datum)} liegt in keiner Saison.</strong> So lange lässt
+            sich das Turnier nicht ablegen — es gehörte in keine Wertung. Bitte das Datum
+            berichtigen.
+          </p>
+        )}
 
         {schritt === 'start' && (
           <>
@@ -574,9 +665,9 @@ export function ErgebnisUpload({
             <button
               type="button"
               onClick={freigeben}
-              disabled={schritt === 'sendet' || offen > 0 || teilnehmer < 2}
+              disabled={schritt === 'sendet' || offen > 0 || teilnehmer < 2 || datumOhneSaison}
               className="mdc-btn mdc-btn-primary"
-              style={{ opacity: offen > 0 || teilnehmer < 2 ? 0.5 : 1 }}
+              style={{ opacity: offen > 0 || teilnehmer < 2 || datumOhneSaison ? 0.5 : 1 }}
             >
               {schritt === 'sendet' ? <Loader2 size={17} className="mdc-spin" /> : <Check size={17} />}
               {schritt === 'sendet' ? 'Wird abgelegt …' : 'Ergebnis freigeben'}
@@ -592,7 +683,9 @@ export function ErgebnisUpload({
                   : zuPruefen > 0 ? 'var(--mdc-warn-ink)' : 'var(--mdc-ink-dim)',
               }}
             >
-              {offen > 0
+              {datumOhneSaison
+                ? `Der ${deutschesDatum(datum)} liegt in keiner Saison — bitte oben berichtigen`
+                : offen > 0
                 ? `${offen} Zeile${offen === 1 ? '' : 'n'} noch ohne Spieler oder ohne Passnummer`
                 : zuPruefen > 0
                   ? `${teilnehmer} Starter · ${zuPruefen} gelb markierte Zeile${zuPruefen === 1 ? '' : 'n'} `

@@ -66,7 +66,14 @@ const ErkanntSchema = z.object({
 export type ErkannteZeile = z.infer<typeof ErkanntZeileSchema>;
 export type ErkannteListe = z.infer<typeof ErkanntSchema>;
 
-const PROMPT = [
+/**
+ * Die Anweisung ans Modell. Das heutige Datum steht mit drin, weil sonst die
+ * JAHRESZAHL rät: Handschriftlich sehen 2026 und 2016 sich zum Verwechseln
+ * ähnlich, und ein verlesenes Jahr fällt erst ganz am Ende auf — bei der
+ * Freigabe, wenn das Datum in keiner Saison liegt.
+ */
+function prompt(heute: string): string {
+  return [
   'Du liest die handgeschriebene Ergebnisliste eines Dart-Turniers der Munich Darts Challenge (MDC) aus dem Bild aus.',
   'Auf dem Zettel steht je Zeile eine Platzierung und ein Spielername, manchmal zusätzlich eine Passnummer (ein- bis dreistellig).',
   '',
@@ -86,6 +93,7 @@ const PROMPT = [
   '- punkte NICHT ausrechnen und NICHT korrigieren — gib nur wieder, was in der Spalte PKT steht, sonst null. Diese Zahlen dienen als Gegenprobe.',
   '- confidence je Zeile: 1 = klar lesbar, 0.5 = unsicher, 0.2 = kaum zu entziffern.',
   '- Steht die Teilnehmerzahl irgendwo auf dem Zettel, gib sie unter teilnehmerLautZettel an. Sonst null.',
+  `- Das Datum: Heute ist der ${heute}. Ein Ergebniszettel wird am Turnierabend ausgefüllt und kurz darauf hochgeladen, ist also so gut wie nie älter als ein paar Wochen. Handschriftlich sehen sich Ziffern ähnlich (eine 2 kann wie eine 1 aussehen) — prüfe die Jahreszahl deshalb gegen das heutige Datum. Ein Jahr, das mehrere Jahre zurückliegt, ist mit hoher Wahrscheinlichkeit verlesen. Bist du dir bei der Jahreszahl nicht sicher, gib das ganze Datum als null zurück und schreib es in "hinweise" — ein falsches Datum ist schlimmer als gar keins.`,
   '- Ist das Bild offensichtlich keine Ergebnisliste (Speisekarte, Screenshot, leeres Blatt): istErgebnisliste = false und zeilen leer.',
   '- Alles, was dir auffällt (durchgestrichene Zeilen, doppelte Namen, unleserliche Stellen, nachträgliche Ergänzungen), gehört als kurzer deutscher Satz in hinweise.',
   '',
@@ -98,7 +106,8 @@ const PROMPT = [
   '  "zeilen": [ { "platz": number|null, "name": string|null, "passNr": number|null, "punkte": number|null, "neu": boolean|null, "weiblich": boolean|null, "confidence": number|null } ],',
   '  "hinweise": string[]',
   '}',
-].join('\n');
+  ].join('\n');
+}
 
 /**
  * Erstes vollständiges JSON-Objekt aus der Modellantwort. Toleriert
@@ -139,6 +148,8 @@ export class FotoNichtLesbarError extends Error {
  */
 export async function liesErgebniszettel(
   bild: { mimeType: string; base64: string },
+  /** Heutiges Datum als `JJJJ-MM-TT` — Maßstab für die Jahreszahl. */
+  heute: string,
 ): Promise<ErkannteListe> {
   const cfg = getUploadConfig();
   if (!cfg.apiKey) {
@@ -164,7 +175,7 @@ export async function liesErgebniszettel(
           type: 'image',
           source: { type: 'base64', media_type: bild.mimeType as 'image/jpeg', data: bild.base64 },
         },
-        { type: 'text', text: PROMPT },
+        { type: 'text', text: prompt(heute) },
       ],
     }],
   });

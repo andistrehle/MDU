@@ -27,7 +27,7 @@ import { getUploadConfig, getUploadStatus } from '@/lib/mdc/upload-config';
 import { pointsFor, TABLE_RANGE } from '@/lib/mdc/points';
 import { PLAYERS, getPlayerByPassNr, playerName } from '@/data/players';
 import { getVenue, venueName } from '@/data/venues';
-import { SEASONS } from '@/data/season';
+import { SEASONS, todayInMunich } from '@/data/season';
 import { getTournamentRecord } from '@/data/tournament-results';
 
 export interface VorschlagZeile {
@@ -115,7 +115,7 @@ export async function erkenneZettel(bildDataUrl: string): Promise<ErkennenErgebn
   }
 
   try {
-    const erkannt = await liesErgebniszettel({ mimeType, base64 });
+    const erkannt = await liesErgebniszettel({ mimeType, base64 }, todayInMunich());
 
     if (!erkannt.istErgebnisliste || !erkannt.zeilen.length) {
       return {

@@ -37,6 +37,14 @@ für Zeile da:
   Spieler anlegen" genauso erfassen.
 - **Die Punkte stehen daneben** und ändern sich mit jeder Zeile, die dazukommt
   oder wegfällt. Sie werden nie eingetippt.
+- **Das Datum vom Zettel wird nicht mehr stillschweigend übernommen.** Es
+  ersetzt die Auswahl nur, wenn es in einer Saison liegt, nicht in der Zukunft
+  und nicht über vier Monate her ist. Sonst bleibt das ausgewählte Datum stehen
+  und darüber steht, was gelesen wurde. Hintergrund: 2026 und 2016 sehen
+  handgeschrieben fast gleich aus (passiert am 11.09.2026). Im schlimmsten Fall
+  wird aus 2026 ein 2025 — das liegt in der Vorsaison, und das Turnier landete
+  sonst still in der falschen Wertung. Liegt das eingestellte Datum in keiner
+  Saison, sagt das jetzt schon Schritt 1 und die Freigabe bleibt gesperrt.
 
 Freigeben geht erst, wenn keine Zeile mehr offen ist.
 
