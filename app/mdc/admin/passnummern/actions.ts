@@ -1,7 +1,7 @@
 'use server';
 
 // ============================================================
-// MDC — Namen berichtigen
+// MDC — Namen berichtigen und Doppeleinträge stilllegen
 // ============================================================
 //
 // Der einzige schreibende Vorgang auf dieser Seite. Alles andere unter
@@ -29,8 +29,11 @@ import type { Namenskorrektur } from '@/data/namen';
 import { namensKorrektur, neuePlayerId } from '@/data/namen';
 import { PLAYERS, getPlayerByPassNr, playerName } from '@/data/players';
 import { registerEintrag } from '@/data/register';
+import type { RegisterKorrektur } from '@/data/register-korrekturen';
 import { CommitFehler } from '@/lib/mdc/github';
 import { loescheName, speichereName } from '@/lib/mdc/namen-commit';
+import { loescheRegisterKorrektur, speichereRegisterKorrektur } from '@/lib/mdc/register-commit';
+import { doppelteEintraege } from '@/lib/mdc/passnummern';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
 
 export interface NameEingabe {
@@ -182,5 +185,113 @@ export async function entferneNamenskorrektur(passNr: number): Promise<NameErgeb
     if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
     console.error('[mdc] Namenskorrektur löschen fehlgeschlagen', fehler);
     return { ok: false, fehler: 'Die Korrektur konnte nicht zurückgenommen werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+// ------------------------------------------------------------
+// Doppelten Registereintrag stilllegen
+// ------------------------------------------------------------
+//
+// Der zweite schreibende Vorgang dieser Seite — und der engste. Erlaubt ist
+// genau eine Sache: eine Nummer aus dem Register nehmen, unter der derselbe
+// Mensch ein ZWEITES Mal steht und mit der nie gespielt wurde.
+//
+// Vier Prüfungen, jede davon verhindert einen Schaden, den hinterher niemand
+// mehr sieht:
+//
+//   1. Die Nummer muss zu einem Doppeleintrag gehören. Eine einzeln
+//      vergebene Nummer stillzulegen hieße, jemandem seinen Pass zu nehmen —
+//      das gehört in die Arbeitsmappe.
+//   2. Mit der Nummer darf NICHTS gespielt worden sein. Sonst verlöre ein
+//      Turnierergebnis seinen Menschen.
+//   3. Die andere Nummer muss übrig bleiben. Beide stillzulegen ließe die
+//      Person ganz verschwinden.
+//   4. Der Name muss zur Registerzeile passen — er wird mit abgelegt, damit
+//      eine später neu vergebene Nummer nicht still unter die alte Korrektur
+//      fällt.
+
+export type RegisterErgebnis =
+  | { ok: true; url: string; neu: boolean; passNr: number }
+  | { ok: false; fehler: string };
+
+export async function legeNummerStill(
+  passNr: number,
+  note?: string,
+): Promise<RegisterErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereit();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  const nummer = Number(passNr);
+  if (!Number.isInteger(nummer) || nummer < 1) {
+    return { ok: false, fehler: 'Die Passnummer fehlt oder ist keine ganze Zahl.' };
+  }
+
+  const hinweis = (note ?? '').trim();
+  if (hinweis.length > 200) {
+    return { ok: false, fehler: 'Der Hinweis ist zu lang (höchstens 200 Zeichen).' };
+  }
+
+  // (1) Gehört die Nummer zu einem Doppeleintrag?
+  const doppel = doppelteEintraege().find(d => d.nummern.some(n => n.passNr === nummer));
+  const zeile = doppel?.nummern.find(n => n.passNr === nummer);
+  if (!doppel || !zeile) {
+    return {
+      ok: false,
+      fehler: `Passnr. ${nummer} steht im Register nur einmal. Stilllegen geht nur bei einem `
+        + 'Menschen, der dort unter zwei Nummern geführt wird — alles andere gehört in das '
+        + 'Blatt „Teilnehmer" der Arbeitsmappe.',
+    };
+  }
+
+  // (2) Wurde mit der Nummer gespielt?
+  if (zeile.gespielt > 0) {
+    return {
+      ok: false,
+      fehler: `Mit Passnr. ${nummer} stehen ${zeile.gespielt} Turnierergebnisse in der `
+        + 'Wertung. Diese Nummer wird nicht stillgelegt — die Ergebnisse verlören ihren '
+        + 'Menschen. Stillzulegen ist die Nummer OHNE Starts.',
+    };
+  }
+
+  // (3) Bleibt die andere Nummer übrig?
+  const uebrig = doppel.nummern.filter(n => n.passNr !== nummer);
+  if (uebrig.length === 0) {
+    return { ok: false, fehler: 'Die letzte Nummer dieser Person lässt sich nicht stilllegen.' };
+  }
+
+  // (4) Name aus der Registerzeile — er sichert die Korrektur gegen eine
+  //     später neu vergebene Nummer ab.
+  const eintrag: RegisterKorrektur = {
+    passNr: nummer,
+    lastName: zeile.lastName,
+    firstName: zeile.firstName,
+    stattdessen: uebrig.sort((a, b) => b.gespielt - a.gespielt)[0].passNr,
+    note: hinweis || null,
+  };
+
+  try {
+    const commit = await speichereRegisterKorrektur(eintrag);
+    return { ok: true, url: commit.url, neu: commit.neu, passNr: nummer };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Registerzeile stilllegen fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Das konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+/** Stilllegung zurücknehmen — dann gilt wieder, was in der Mappe steht. */
+export async function hebeStilllegungAuf(passNr: number): Promise<RegisterErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereit();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  try {
+    const commit = await loescheRegisterKorrektur(Number(passNr));
+    return { ok: true, url: commit.url, neu: false, passNr: Number(passNr) };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Stilllegung zurücknehmen fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Das konnte nicht zurückgenommen werden. Bitte noch einmal versuchen.' };
   }
 }

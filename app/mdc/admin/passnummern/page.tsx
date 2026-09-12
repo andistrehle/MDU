@@ -16,8 +16,10 @@ import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { PassUebersicht, type PassZeile } from '@/components/mdc/pass-uebersicht';
 import { NamenEditor, type NamenSpieler } from '@/components/mdc/namen-editor';
+import { RegisterDoppelt } from '@/components/mdc/register-doppelt';
 import { alleKorrekturen } from '@/data/namen';
 import { PLAYERS } from '@/data/players';
+import { AKTIVE_REGISTER_KORREKTUREN, ERLEDIGTE_REGISTER_KORREKTUREN } from '@/data/register';
 import { passUebersicht, quelleLabel } from '@/lib/mdc/passnummern';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
 import { mdcPath } from '@/lib/mdc/site';
@@ -73,7 +75,7 @@ export default async function AdminPassnummernPage() {
       <PageHero
         kicker="Turnierverwaltung"
         title="Passnummern"
-        description="Alle Nummern der Reihe nach: welche vergeben ist, welche frei, und welche zwei Menschen tragen. Und oben: Namen berichtigen, wenn jemand falsch geschrieben in der Auswertung steht."
+        description="Alle Nummern der Reihe nach: welche vergeben ist, welche frei, und welche zwei Menschen tragen. Und oben: Namen berichtigen — sowie den Fall auflösen, dass jemand im Register unter zwei Nummern steht."
       />
 
       <section className="mdc-section">
@@ -89,6 +91,20 @@ export default async function AdminPassnummernPage() {
               canPublish: status.canPublish,
               missing: status.missing.filter(m => m.startsWith('MDC_GITHUB_TOKEN')),
             }}
+          />
+
+          {/* Doppelte Registereinträge — der einzige Fall, in dem die Seite
+              eine Nummer aus dem Register nehmen darf. Steht über der langen
+              Liste, weil es ein Fehler ist und nicht bloß eine Auskunft. */}
+          <RegisterDoppelt
+            doppelt={u.doppelt.map(d => ({
+              name: d.name,
+              nummern: d.nummern.map(n => ({ passNr: n.passNr, gespielt: n.gespielt })),
+            }))}
+            korrekturen={AKTIVE_REGISTER_KORREKTUREN}
+            erledigt={ERLEDIGTE_REGISTER_KORREKTUREN}
+            canPublish={status.canPublish}
+            missing={status.missing.filter(m => m.startsWith('MDC_GITHUB_TOKEN'))}
           />
 
           <PassUebersicht
@@ -113,6 +129,15 @@ export default async function AdminPassnummernPage() {
               Archiv zugleich, weil sie an der Passnummer hängt. Nur deshalb entstehen aus
               einem Menschen nicht zwei. Schön wäre trotzdem, den richtigen Namen auch in
               der Mappe nachzuziehen.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              <strong>Zwei Nummern für einen Menschen</strong> sind die zweite Ausnahme.
+              Steht jemand im Blatt {'„Teilnehmer"'} doppelt, macht die Seite daraus zwei
+              Personen — die Spieler-Adresse entsteht aus dem Namen, und beim zweiten Eintrag
+              hängt die Nummer daran. Die Zeile ohne einen einzigen Start lässt sich oben
+              stilllegen; die Nummer wird damit wieder frei. Die mit den Turnieren nicht: Da
+              verlören Ergebnisse ihren Menschen. In der Mappe gehört die doppelte Zeile
+              trotzdem gelöscht — danach meldet der Prüflauf {'„ERLEDIGT"'}.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Der Reihe nach vergeben:</strong> Die kleinste freie Nummer steht oben.

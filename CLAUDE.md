@@ -260,9 +260,28 @@ bleiben beim richtigen Menschen.
 `/admin/passnummern` wertet aus (`lib/mdc/passnummern.ts`): Nummern der Reihe
 nach, echte Lücken, nächste freie, Nummern mit Vorgänger — und als einzige
 Fehlermeldung die Nummern, mit denen gespielt wurde, die im Register aber ohne
-Namen stehen (die sehen frei aus und sind es nicht). Nummern vergeben oder
-löschen kann die Seite nicht: Der Stamm entsteht aus Register und Wertungen,
-wer raus soll, muss aus der Arbeitsmappe raus.
+Namen stehen (die sehen frei aus und sind es nicht). Nummern **vergeben** kann
+die Seite nicht: Der Stamm entsteht aus Register und Wertungen, eine neue
+Nummer kommt aus der Arbeitsmappe.
+**Doppelte Registereinträge** sind die eine Ausnahme davon
+(`data/register-korrekturen.ts`, geschrieben von
+`lib/mdc/register-commit.ts`). Steht derselbe Mensch im Blatt „Teilnehmer"
+unter ZWEI Nummern, ist das kein Schönheitsfehler: Die Spieler-ID entsteht aus
+dem Namen, beim zweiten Eintrag hängt `parseRankingRows` die Passnummer an
+(„claudia-vaszi-251") — aus einem Menschen werden zwei, und der mit den
+Ergebnissen bekommt womöglich die falsche Nummer angezeigt. Genau so stand
+Claudia Vaszi mit 196 da, obwohl ihre 63 Turniere auf 251 laufen (gemeldet am
+12.09.2026; Patrick Meyer 31/133 ist derselbe Fall und noch offen). `/admin/passnummern`
+listet solche Fälle (`doppelteEintraege`) und legt die Zeile **ohne einen
+einzigen Start** stilllegen — die Nummer wird damit wieder frei. Gezählt wird
+über die ERGEBNISZEILEN (`passNr` je Turnier), nicht über den Spieler: Dessen
+Nummer ist ja gerade das, was der Fehler verdreht. Die Zeile MIT Starts geht
+nicht, da verlören Ergebnisse ihren Menschen; ebenso wenig die letzte Zeile
+einer Person. Gefiltert wird **vor** `parseRankingRows` (sonst behielte der
+Übriggebliebene die angehängte Nummer in der Adresse) und nur, wenn auch der
+NAME noch passt — eine später neu vergebene Nummer darf nicht still unter eine
+alte Korrektur fallen. Räumt der Betreiber die Mappe auf, meldet
+`scripts/mdc-check-saison.ts` „ERLEDIGT".
 **Namen berichtigen** ist das Einzige, was dort geschrieben wird
 (`components/mdc/namen-editor.tsx` → `lib/mdc/namen-commit.ts` → JSON-Array in
 `data/namen.ts`, Form nicht zerstören). Zwei echte Fälle: der Spieler, der

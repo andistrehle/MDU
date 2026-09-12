@@ -39,6 +39,9 @@ import { FINAL_SEASON, RUNNING_SEASON } from '../data/season';
 import { getVenue, isFormerVenue } from '../data/venues';
 import { runningRankingOf } from '../data/ranking';
 import { jackpotStand } from '../lib/mdc/jackpot';
+import { doppelteEintraege } from '../lib/mdc/passnummern';
+import { REGISTER_KORREKTUREN } from '../data/register-korrekturen';
+import { AKTIVE_REGISTER_KORREKTUREN, ERLEDIGTE_REGISTER_KORREKTUREN } from '../data/register';
 import type { Division, Season } from '../data/types';
 
 /** Was die Summenprobe von einer Ranglistenzeile braucht. */
@@ -277,6 +280,31 @@ if (PASS_KORREKTUREN.length > 0) {
       console.log(`  aktiv     ${eintrag.tournamentId}: Platz ${zeile.rank} läuft auf `
         + `Passnr. ${eintrag.passNr} (${playerName(spieler)}) statt ${eintrag.falschePassNr}`);
     }
+  }
+}
+
+// ── Doppelte Registereinträge ───────────────────────────────
+//
+// Derselbe Mensch unter zwei Nummern im Blatt „Teilnehmer". Das ist kein
+// Schönheitsfehler: Die Spieler-Adresse entsteht aus dem Namen, beim zweiten
+// Eintrag hängt die Passnummer daran — aus einem Menschen werden zwei.
+{
+  const offen = doppelteEintraege();
+  if (offen.length > 0 || REGISTER_KORREKTUREN.length > 0) {
+    console.log('\nZweimal im Register (Blatt „Teilnehmer")');
+  }
+  for (const person of offen) {
+    meldung(`${person.name} steht unter `
+      + person.nummern.map(n => `${n.passNr} (${n.gespielt} Turniere)`).join(' und ')
+      + ' — in der Arbeitsmappe gehört eine Zeile gelöscht.');
+  }
+  for (const k of AKTIVE_REGISTER_KORREKTUREN) {
+    console.log(`  aktiv     Passnr. ${k.passNr} (${k.firstName} ${k.lastName}) stillgelegt`
+      + (k.stattdessen !== null ? `, läuft unter ${k.stattdessen}` : ''));
+  }
+  for (const k of ERLEDIGTE_REGISTER_KORREKTUREN) {
+    console.log(`  ERLEDIGT  Passnr. ${k.passNr} (${k.firstName} ${k.lastName}) steht nicht `
+      + 'mehr doppelt in der Mappe. Eintrag aus data/register-korrekturen.ts entfernen.');
   }
 }
 

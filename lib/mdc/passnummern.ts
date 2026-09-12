@@ -23,12 +23,18 @@
 //              Ergebnisse, denn jede Saison löst ihre Passnummern über ihre
 //              eigene Rangliste auf (`data/tournament-results.ts`).
 //
+//   ZWEIMAL    Derselbe Mensch steht im Register unter ZWEI Nummern. Das ist
+//   IM         ein Fehler in der Mappe und richtet Schaden an: Aus einem
+//   REGISTER   Menschen werden zwei, und der mit den Ergebnissen bekommt
+//              womöglich die falsche Nummer angezeigt. Auflösen kann das die
+//              Seite selbst — siehe `data/register-korrekturen.ts`.
+//
 // Reine Auswertung vorhandener Daten — hier wird nichts geschrieben.
 // ============================================================
 
 import { PLAYERS, playerName, letzteQuelle, type PassQuelle } from '@/data/players';
-import { FREIE_NUMMERN, HOECHSTE_NUMMER, registerEintrag } from '@/data/register';
-import { appearancesOf } from '@/data/tournament-results';
+import { FREIE_NUMMERN, HOECHSTE_NUMMER, REGISTER, registerEintrag } from '@/data/register';
+import { ALL_TOURNAMENTS, appearancesOf } from '@/data/tournament-results';
 import type { Division } from '@/data/types';
 
 export interface PassInhaber {
@@ -53,6 +59,21 @@ export interface PassBelegung {
   inhaber: PassInhaber[];
 }
 
+/** Eine Nummer, unter der jemand im Register ein zweites Mal steht. */
+export interface DoppelNummer {
+  passNr: number;
+  /** Hat jemand mit dieser Nummer gespielt? Dann NICHT stilllegen. */
+  gespielt: number;
+  lastName: string;
+  firstName: string;
+}
+
+export interface Doppeleintrag {
+  name: string;
+  division: Division;
+  nummern: DoppelNummer[];
+}
+
 export interface PassUebersicht {
   belegungen: PassBelegung[];
   /** Nummern ohne Inhaber, von 1 bis zur höchsten vergebenen. */
@@ -64,6 +85,8 @@ export interface PassUebersicht {
   fehltImRegister: PassBelegung[];
   /** Nummern, die schon mal jemand anderem gehört haben. */
   mitVorgaenger: PassBelegung[];
+  /** Menschen, die im Register unter zwei Nummern stehen. */
+  doppelt: Doppeleintrag[];
 }
 
 const LABEL: Record<PassQuelle, string> = {
@@ -144,5 +167,68 @@ export function passUebersicht(): PassUebersicht {
     hoechsteVergebene,
     fehltImRegister: belegungen.filter(b => !b.imRegister),
     mitVorgaenger: belegungen.filter(b => b.imRegister && b.inhaber.length > 1),
+    doppelt: doppelteEintraege(),
   };
+}
+
+/**
+ * Wer steht im Register zweimal?
+ *
+ * Verglichen wird der NAME, nicht die Spieler-ID: Die ID trägt beim zweiten
+ * Eintrag schon die Passnummer und wäre deshalb nie doppelt — genau das ist ja
+ * der Schaden, den diese Liste sichtbar machen soll.
+ *
+ * Mitgezählt wird auch, mit welcher der Nummern gespielt wurde. Nur eine
+ * Nummer ohne jeden Start darf stillgelegt werden; alles andere entschiede
+ * über Turnierergebnisse, und das tut die Seite nicht.
+ */
+export function doppelteEintraege(): Doppeleintrag[] {
+  const nachName = new Map<string, typeof REGISTER>();
+  for (const zeile of REGISTER) {
+    const schluessel = `${zeile.lastName}|${zeile.firstName}|${zeile.division}`;
+    nachName.set(schluessel, [...(nachName.get(schluessel) ?? []), zeile]);
+  }
+
+  return [...nachName.values()]
+    .filter(zeilen => zeilen.length > 1)
+    .map(zeilen => ({
+      name: `${zeilen[0].firstName} ${zeilen[0].lastName}`,
+      division: zeilen[0].division,
+      nummern: zeilen
+        .map(z => ({
+          passNr: z.passNr,
+          // Ein Registereintrag ohne eigene Wertung hat die ID des ersten
+          // Eintrags NICHT — deshalb wird über die Nummer gezählt, nicht über
+          // die ID: Wer hat mit GENAU dieser Nummer gespielt?
+          gespielt: startsMitNummer(z.passNr),
+          lastName: z.lastName.toUpperCase(),
+          firstName: z.nickname
+            ? `${z.firstName.toUpperCase()} (${z.nickname.toUpperCase()})`
+            : z.firstName.toUpperCase(),
+        }))
+        .sort((a, b) => a.passNr - b.passNr),
+    }))
+    .sort((a, b) => a.nummern[0].passNr - b.nummern[0].passNr);
+}
+
+/**
+ * Wie viele Turnierergebnisse laufen auf GENAU DIESE Nummer?
+ *
+ * Gezählt wird über die Ergebniszeilen, nicht über den Spieler: Bei einem
+ * Doppeleintrag steht die Nummer beim Spieler ja womöglich falsch — das ist
+ * der Fehler, den diese Zählung aufdecken soll. Die Ergebniszeilen sind
+ * dagegen unbestechlich, in ihnen steht die Nummer vom Zettel.
+ */
+const STARTS_JE_NUMMER: Map<number, number> = (() => {
+  const zaehler = new Map<number, number>();
+  for (const turnier of ALL_TOURNAMENTS) {
+    for (const zeile of turnier.results) {
+      zaehler.set(zeile.passNr, (zaehler.get(zeile.passNr) ?? 0) + 1);
+    }
+  }
+  return zaehler;
+})();
+
+function startsMitNummer(passNr: number): number {
+  return STARTS_JE_NUMMER.get(passNr) ?? 0;
 }

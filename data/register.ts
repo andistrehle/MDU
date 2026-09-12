@@ -21,9 +21,43 @@
 
 import { parseRankingRows, type ParsedRow } from './parse-ranking';
 import { REGISTER_MEN_RAW, REGISTER_WOMEN_RAW } from './register.generated';
+import { greiftAuf, REGISTER_KORREKTUREN, type RegisterKorrektur } from './register-korrekturen';
 
-export const REGISTER_MEN = parseRankingRows(REGISTER_MEN_RAW, 'men');
-export const REGISTER_WOMEN = parseRankingRows(REGISTER_WOMEN_RAW, 'women');
+/**
+ * Stillgelegte Zeilen raus — VOR dem Einlesen.
+ *
+ * Die Reihenfolge ist wesentlich: Die Spieler-ID entsteht beim Einlesen, und
+ * bei zwei gleichen Namen hängt `parseRankingRows` an den zweiten die
+ * Passnummer an. Fiele die falsche Zeile erst danach weg, behielte der
+ * Übriggebliebene die angehängte Nummer in seiner Adresse — und wäre damit
+ * immer noch ein anderer Mensch als der in der Rangliste.
+ */
+function ohneStillgelegte(zeilen: string[]): string[] {
+  if (!REGISTER_KORREKTUREN.length) return zeilen;
+  return zeilen.filter(zeile => {
+    const teile = zeile.split('|');
+    const passNr = Number(teile[1]);
+    return !REGISTER_KORREKTUREN.some(k => greiftAuf(k, passNr, teile[2] ?? '', teile[3] ?? ''));
+  });
+}
+
+export const REGISTER_MEN = parseRankingRows(ohneStillgelegte(REGISTER_MEN_RAW), 'men');
+export const REGISTER_WOMEN = parseRankingRows(ohneStillgelegte(REGISTER_WOMEN_RAW), 'women');
+
+/**
+ * Korrekturen, die heute noch greifen — die Mappe führt den Doppeleintrag
+ * also weiterhin. Verschwindet er dort, fällt der Eintrag hier heraus und der
+ * Prüflauf meldet „ERLEDIGT".
+ */
+export const AKTIVE_REGISTER_KORREKTUREN: RegisterKorrektur[] = REGISTER_KORREKTUREN
+  .filter(k => [...REGISTER_MEN_RAW, ...REGISTER_WOMEN_RAW].some(zeile => {
+    const teile = zeile.split('|');
+    return greiftAuf(k, Number(teile[1]), teile[2] ?? '', teile[3] ?? '');
+  }));
+
+/** Korrekturen, die ins Leere laufen — in der Mappe berichtigt, hier löschbar. */
+export const ERLEDIGTE_REGISTER_KORREKTUREN: RegisterKorrektur[] = REGISTER_KORREKTUREN
+  .filter(k => !AKTIVE_REGISTER_KORREKTUREN.includes(k));
 
 /** Alle Registereinträge, nach Nummer. */
 export const REGISTER: ParsedRow[] = [...REGISTER_MEN, ...REGISTER_WOMEN]
