@@ -5,11 +5,12 @@ import { PageHero } from '@/components/mdc/ui';
 import { VENUES } from '@/data/venues';
 import { MDC_LEGAL } from '@/data/mdc-legal';
 import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Kontakt',
   description: 'Kontakt zur Munich Darts Challenge — mitspielen, Spielort werden, Fragen zur Wertung.',
-};
+});
 
 const TOPICS = [
   {

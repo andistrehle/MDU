@@ -9,13 +9,14 @@ import { mdcPath } from '@/lib/mdc/site';
 import {
   EZR_PROZENT, MINDEST_TEILNAHMEN, STARTGELD_JE_TEILNAHME,
 } from '@/lib/mdc/jackpot';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Regeln',
   description:
     'Spielprinzip der Munich Darts Challenge: Einzelrangliste, Doppel-K.-o., Punkte nach ' +
     'Platzierung und Teilnehmerzahl.',
-};
+});
 
 const BLOCKS = [
   {

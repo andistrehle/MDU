@@ -18,14 +18,15 @@ import { getPlayer, playerName } from '@/data/players';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate, formatNumber } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Turnierergebnisse',
   description:
     `Alle ausgewerteten MDC-Turniere: die laufende Saison ${RUNNING_SEASON.label} und ` +
     `die ${ARCHIVE_STATS.tournaments} Turniere der Saison ${FINAL_SEASON.label} — ` +
     'jeweils mit vollständiger Ergebnisliste, Feldgröße und vergebenen Punkten.',
-};
+});
 
 function rows(): ResultRow[] {
   return ALL_TOURNAMENTS.map(t => {

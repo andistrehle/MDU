@@ -58,9 +58,20 @@
   --mdc-blue-a08:   rgba(61, 111, 181, 0.08);
   --mdc-blue-a16:   rgba(61, 111, 181, 0.16);
 
-  /* Medaillen und Signale — auf Weiß abgedunkelt, damit sie lesbar bleiben */
-  --mdc-gold:       #B8860B;
-  --mdc-silver:     #77808F;
+  /* Medaillen und Signale — auf Weiß abgedunkelt, damit sie lesbar bleiben.
+     NACHGEMESSEN, nicht geschätzt (Kontrast auf #FFFFFF und auf dem hellen
+     Kartengrund #FAFCFE; WCAG AA verlangt 4,5:1 für normalen Text):
+       gold   #8F6708  5,11 / 4,97   (vorher #B8860B: 3,25 / 3,16 — durchgefallen)
+       silber #6A7280  4,85 / 4,71   (vorher #77808F: 3,99 / 3,88 — durchgefallen)
+       bronze #A2653A  4,71 / 4,58
+       win    #147A3D  5,41 / 5,26
+       loss   #C42A20  5,68 / 5,52
+     Gold steht nicht nur an Medaillen, sondern an JEDEM Euro-Betrag der
+     Ausschüttung — auf der Rangliste 65 Stellen, auf einem Spielerprofil 92.
+     Wer hier aufhellt, macht genau die Zahlen unlesbar, die nachgeschaut
+     werden. */
+  --mdc-gold:       #8F6708;
+  --mdc-silver:     #6A7280;
   --mdc-bronze:     #A2653A;
   --mdc-win:        #147A3D;
   --mdc-loss:       #C42A20;

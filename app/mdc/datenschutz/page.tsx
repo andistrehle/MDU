@@ -24,13 +24,14 @@ import { LegalPage, LegalSection, LegalGapNotice } from '@/components/mdc/legal'
 import { MDC_LEGAL, MDC_LEGAL_COMPLETE, legal } from '@/data/mdc-legal';
 import { FINAL_SEASON } from '@/data/season';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Datenschutz',
   description:
     'Datenschutzhinweise der Munich Darts Challenge: welche Daten veröffentlicht werden, ' +
     'auf welcher Grundlage, wie lange — und wie man widerspricht.',
-};
+});
 
 export default function DatenschutzPage() {
   const { operator, representedBy, street, zipCity, email, updated } = MDC_LEGAL;

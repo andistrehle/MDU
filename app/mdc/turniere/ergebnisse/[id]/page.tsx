@@ -25,6 +25,7 @@ import { rankGroupLabel } from '@/lib/mdc/points';
 import { formatDateLong, formatNumber } from '@/lib/mdc/format';
 import { getSeason } from '@/data/season';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
 export function generateStaticParams() {
   return ALL_TOURNAMENTS.map(t => ({ id: t.id }));
@@ -36,12 +37,12 @@ export async function generateMetadata(
   const { id } = await props.params;
   const turnier = getTournamentRecord(id);
   if (!turnier) return { title: 'Turnier' };
-  return {
+  return mdcSeite({
     title: `${turnier.venueName}, ${formatDateLong(turnier.date)}`,
     description:
       `Ergebnisliste des MDC-Rankings am ${formatDateLong(turnier.date)} im ${turnier.venueName}: ` +
       `${turnier.participants} Starter, Plätze und Punkte.`,
-  };
+  });
 }
 
 const MEDAL = ['var(--mdc-gold)', 'var(--mdc-silver)', 'var(--mdc-bronze)'];

@@ -447,13 +447,22 @@ export async function entferneHochgeladenesTurnier(
   }
 }
 
+// Auch diese beiden prüfen den Zugang, obwohl sie nur lesen und nichts
+// ablegen. Eine Server-Action ist eine eigene Adresse im Netz: Ihre Kennung
+// steht zwar nur im Bündel der geschützten Seiten, aber „schwer zu erraten"
+// ist keine Zugangsbeschränkung — und `spielerListe` gibt Namen und
+// Passnummern aller Registrierten heraus, auch der Leute, die noch nie
+// gespielt haben und deshalb sonst nirgends öffentlich stehen.
+
 /** Feldgrößen, für die der Punkteschlüssel Werte führt — für den Hinweis. */
 export async function feldgroesseInTabelle(teilnehmer: number): Promise<boolean> {
+  if (!await zugangGeprueft()) return false;
   return teilnehmer >= TABLE_RANGE.from && teilnehmer <= TABLE_RANGE.to;
 }
 
 /** Spielerliste für die Auswahlfelder (Name, Passnummer). */
 export async function spielerListe() {
+  if (!await zugangGeprueft()) return [];
   return PLAYERS
     .filter(p => p.passNr !== null)
     .map(p => ({ passNr: p.passNr as number, name: playerName(p), nickname: p.nickname }));

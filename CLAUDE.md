@@ -190,6 +190,43 @@ Fisher-Yates mit `crypto.getRandomValues`). **Nicht** auf
 `sort(() => Math.random() - 0.5)` umbauen — das ist nachweislich ungleich
 verteilt, und an der Reihenfolge hängen Freilose und Platzierung. Der Hinweis
 „Ausgelost" verschwindet, sobald von Hand geschoben oder jemand ergänzt wird.
+**Seitenangaben und geteilte Links:** Jede öffentliche MDC-Seite setzt ihre
+Metadaten über `mdcSeite()` (`lib/mdc/metadata.ts`), nicht als nacktes
+`{ title, description }`. Grund: Next erbt `openGraph`/`twitter` als GANZEN
+BLOCK vom Layout — wer nur `title` setzt, ändert den Reiter im Browser, aber
+jeder geteilte Link behält den Titel der Startseite. Bis 13.09.2026 hieß
+deshalb JEDER Link in die Facebook-Gruppe „Munich Darts Challenge (MDC)", egal
+ob Spielerprofil, Turnierergebnis oder Rangliste. `mdcSeite()` wiederholt
+bewusst Bildquelle, Sprache und Seitenname aus dem Layout — sie gingen sonst
+verloren. Die Titelvorlage `%s · Munich Darts Challenge` wirkt NICHT auf
+`openGraph.title`, deshalb hängt der Helfer den Zusatz selbst an.
+**Profile ohne Turnier sind `noindex`:** Wer im Register steht, aber nie
+angetreten ist (130 von 548), hat auf seiner Seite nichts als seinen Namen —
+dafür trägt die Veröffentlichung keine Begründung. `generateMetadata` in
+`app/mdc/spieler/[id]/page.tsx` setzt dort `noindex, follow`, `app/sitemap.ts`
+filtert sie heraus. Erreichbar bleiben die Seiten (die Verwaltung verweist
+darauf), sie gehören nur nicht in den Suchindex.
+**404 bei unbekannter Adresse:** `app/mdc/not-found.tsx` greift in Next NUR bei
+`notFound()`-Aufrufen. Für Adressen ohne jede Route nähme Next die 404 des
+Wurzelordners — die der MDU. Deshalb gibt es `app/mdc/[...unbekannt]/page.tsx`,
+die nichts tut als `notFound()` aufzurufen. Ohne sie zeigte mdc-ranking.de bei
+einem Tippfehler eine nackte Seite mit MDU-Titel, und unter `mdudarts.de/mdc`
+stürzte sie zusätzlich ab (`useAuth` ohne `AuthProvider`, den
+`app/components/mdu/app-providers.tsx` dort absichtlich weglässt). Den
+Auffangpfad nicht löschen — bestehende Seiten verdeckt er nicht, in Next
+gewinnt die genauere Route.
+**Passwortabfrage mit Bremse:** `proxy.ts` zählt Fehlversuche je Absender
+(10 in 10 Minuten, danach 429). Bewusst im Arbeitsspeicher und damit pro
+Vercel-Instanz — keine harte Garantie, aber Durchprobieren wird teuer. **Wer
+das richtige Passwort schickt, wird nie ausgesperrt:** Der Treffer wird vor der
+Sperre geprüft und räumt den Zähler ab. Aufrufe ohne `Authorization`-Kopfzeile
+und Vorabrufe zählen nicht mit.
+**Farbwerte sind nachgemessen, nicht geschätzt:** Im Kopf von `app/mdc/mdc.css`
+steht je Signalfarbe der Kontrast auf Weiß und auf dem Kartengrund. Gold
+(`#8F6708`) und Silber (`#6A7280`) wurden am 13.09.2026 abgedunkelt — vorher
+3,25:1 bzw. 3,99:1, also unter WCAG AA. Gold steht an JEDEM Euro-Betrag der
+Ausschüttung (65 Stellen auf der Rangliste, 92 auf einem Spielerprofil); wer
+es aufhellt, macht genau die Zahlen unlesbar, die nachgeschaut werden.
 **News:** Unter `/admin/news` schreibt die Turnierleitung Beiträge; sie
 landen als Commit in `data/news.ts` (JSON-Array in der Datei, deshalb nie
 von Hand die Form zerstören) und erscheinen unter `/news`, auf der

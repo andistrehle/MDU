@@ -15,6 +15,7 @@ import { getVenue, venueName } from '@/data/venues';
 import { formatAverage, formatDate, formatNumber } from '@/lib/mdc/format';
 import { FINAL_SEASON, RUNNING_SEASON, SUMMER_SEASON, getSeason } from '@/data/season';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
 export function generateStaticParams() {
   return PLAYERS.map(player => ({ id: player.id }));
@@ -26,12 +27,22 @@ export async function generateMetadata(
   const { id } = await props.params;
   const player = getPlayer(id);
   if (!player) return { title: 'Spieler' };
-  return {
+
+  // Wer noch kein Turnier gespielt hat, steht nur deshalb im Stamm, weil das
+  // Blatt „Teilnehmer" ihm eine Nummer zuschreibt. Auf seiner Seite steht dann
+  // ausschließlich sein Name — und dafür trägt die Veröffentlichung keine
+  // Begründung. Erreichbar bleibt die Seite (Verweise aus der Verwaltung
+  // laufen dorthin), aber sie gehört nicht in den Suchindex und nicht in die
+  // Sitemap (siehe `app/sitemap.ts`).
+  const ohneTurnier = appearancesOf(player.id).length === 0;
+
+  return mdcSeite({
     title: playerName(player),
     description: player.passNr !== null
       ? `MDC-Profil von ${playerName(player)} (Passnr. ${player.passNr}) — Platzierung, Punkte und gespielte Turniere.`
       : `MDC-Profil von ${playerName(player)} — Platzierung, Punkte und gespielte Turniere.`,
-  };
+    noindex: ohneTurnier,
+  });
 }
 
 /** Verweis, wenn es eine Seite dazu gibt — sonst nur der Inhalt. */

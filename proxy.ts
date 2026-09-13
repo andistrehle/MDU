@@ -142,14 +142,98 @@ function istVorabruf(request: NextRequest): boolean {
 }
 
 /**
+ * Fehlversuche je Absender — gegen das stumpfe Durchprobieren.
+ *
+ * Ein einziges Passwort schützt Ergebnisfreigabe, Passnummernvergabe und News;
+ * ohne Bremse ließe es sich beliebig oft raten. Bewusst klein gehalten und im
+ * Arbeitsspeicher: Der Proxy läuft bei Vercel je Instanz, das Zählwerk gilt
+ * also PRO INSTANZ und ist keine harte Garantie — es macht das Durchprobieren
+ * aber um Größenordnungen teurer. Für mehr bräuchte es einen gemeinsamen
+ * Speicher, und den will sich diese Seite (keine Cookies, keine Datenbank)
+ * nicht einhandeln.
+ *
+ * Wer das RICHTIGE Passwort schickt, wird nie ausgesperrt: Gezählt werden nur
+ * Fehlversuche, und ein Treffer räumt den Zähler ab. Wer sich also zehnmal
+ * vertippt und es dann richtig macht, kommt sofort hinein.
+ */
+const FEHLVERSUCHE = new Map<string, number[]>();
+const MAX_FEHLVERSUCHE = 10;
+const SPERRFENSTER = 10 * 60_000;
+
+function absender(request: NextRequest): string {
+  const weiter = request.headers.get('x-forwarded-for') ?? '';
+  return (weiter.split(',')[0] || request.headers.get('x-real-ip') || 'unbekannt').trim();
+}
+
+function zuVieleFehlversuche(schluessel: string): boolean {
+  const jetzt = Date.now();
+  const bisher = (FEHLVERSUCHE.get(schluessel) ?? []).filter(t => jetzt - t < SPERRFENSTER);
+  FEHLVERSUCHE.set(schluessel, bisher);
+  return bisher.length >= MAX_FEHLVERSUCHE;
+}
+
+function merkeFehlversuch(schluessel: string): void {
+  const jetzt = Date.now();
+  const bisher = (FEHLVERSUCHE.get(schluessel) ?? []).filter(t => jetzt - t < SPERRFENSTER);
+  bisher.push(jetzt);
+  FEHLVERSUCHE.set(schluessel, bisher);
+  // Damit die Karte nicht unbegrenzt wächst.
+  if (FEHLVERSUCHE.size > 2000) {
+    for (const [k, v] of FEHLVERSUCHE) {
+      const frisch = v.filter(t => jetzt - t < SPERRFENSTER);
+      if (frisch.length === 0) FEHLVERSUCHE.delete(k); else FEHLVERSUCHE.set(k, frisch);
+    }
+  }
+}
+
+/** Was nach zu vielen Fehlversuchen im Browser steht. */
+const GESPERRT = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turnierverwaltung — zu viele Versuche</title>
+<style>
+  body { margin:0; padding:32px 22px; font-family: system-ui, -apple-system, sans-serif;
+         color:#141A24; background:#F3F7FC; line-height:1.6; }
+  main { max-width:34rem; margin:0 auto; background:#fff; border:1px solid #DDE5F0;
+         border-radius:14px; padding:26px 24px; }
+  h1 { margin:0 0 14px; font-size:1.25rem; color:#1F3B73; }
+  a { color:#D61A1A; }
+</style></head>
+<body><main>
+  <h1>Zu viele Fehlversuche</h1>
+  <p>Das Passwort hat zehnmal hintereinander nicht gepasst. Aus Sicherheitsgründen
+     nimmt die Seite für <strong>zehn Minuten</strong> keine weiteren Versuche an.</p>
+  <p>Danach einfach neu laden — dann fragt der Browser wieder.</p>
+  <p><a href="/">Zurück zur Startseite</a></p>
+</main></body></html>`;
+
+/**
  * Prüft den Zugang zum MDC-Verwaltungsbereich.
  * Gibt `null` zurück, wenn durchgelassen werden darf.
  */
 function mdcAdminGuard(request: NextRequest): NextResponse | null {
   if (!MDC_ADMIN_PASSWORD) return null;   // nicht eingerichtet → nur die Demo
 
+  const schluessel = absender(request);
   const passwort = passwortAus(request.headers.get('authorization') ?? '');
-  if (passwort !== null && gleich(passwort, MDC_ADMIN_PASSWORD)) return null;
+  if (passwort !== null && gleich(passwort, MDC_ADMIN_PASSWORD)) {
+    FEHLVERSUCHE.delete(schluessel);   // richtig geraten ist kein Fehlversuch
+    return null;
+  }
+
+  // Ein Vorabruf ohne Zugangsdaten ist kein Rateversuch — sonst sperrte sich
+  // jemand aus, nur weil der Browser eine Seite im Hintergrund geholt hat.
+  if (!istVorabruf(request)) {
+    if (zuVieleFehlversuche(schluessel)) {
+      return withSecurityHeaders(new NextResponse(GESPERRT, {
+        status: 429,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '600' },
+      }));
+    }
+    // Nur ein ECHTER Versuch zählt: Ohne Kopfzeile hat niemand etwas geraten,
+    // das ist bloß der erste Aufruf, bevor der Browser fragt.
+    if (passwort !== null) merkeFehlversuch(schluessel);
+  }
 
   const kopf: Record<string, string> = {
     'Content-Type': 'text/html; charset=utf-8',

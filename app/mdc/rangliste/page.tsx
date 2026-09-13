@@ -23,13 +23,14 @@ import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
 import { jackpotStand, STARTGELD_JE_TEILNAHME, MINDEST_TEILNAHMEN } from '@/lib/mdc/jackpot';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Rangliste',
   description:
     'Die MDC-Rangliste der laufenden Saison 2026/27 — dazu das Archiv mit dem ' +
     'Saison-Endstand 2025/26 und dem Sommer-Ranking 2026.',
-};
+});
 
 export default function RanglistePage() {
   // Aus den bisherigen Teilnahmen gerechnet, nicht abgeschrieben — siehe

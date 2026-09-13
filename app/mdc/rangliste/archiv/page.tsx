@@ -21,13 +21,14 @@ import { PAYOUTS, RANKING_MEN_GAP } from '@/data/ranking-final';
 import { FINAL_SEASON, RUNNING_SEASON, SUMMER_SEASON } from '@/data/season';
 import { ARCHIVE_STATS } from '@/data/tournament-results';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Archiv',
   description:
     'Archiv der MDC-Wertungen: Saison-Endstand 2025/26 für Männer und Frauen mit ' +
     'Ausschüttung sowie der Endstand des Sommer-Rankings 2026.',
-};
+});
 
 export default function ArchivPage() {
   return (

@@ -5,12 +5,13 @@ import { PLAYERS } from '@/data/players';
 import { getFinalEntry } from '@/data/ranking-final';
 import { getVenue } from '@/data/venues';
 import { formatNumber } from '@/lib/mdc/format';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Spieler',
   description:
     'Alle Spielerinnen und Spieler mit MDC-Pass — mit Passnummer, Saisonpunkten und Profil.',
-};
+});
 
 export default function SpielerPage() {
   const entries: DirectoryEntry[] = PLAYERS.map(player => {

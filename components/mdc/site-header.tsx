@@ -40,6 +40,9 @@ interface SiteHeaderProps {
   thrower?: BrandImage | null;
 }
 
+/** Verbindet den Knopf mit dem Menü, das er auf- und zumacht. */
+const MENUE_ID = 'mdc-mobile-nav';
+
 export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }: SiteHeaderProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,13 +61,20 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
     .sort((a, b) => b.length - a.length)[0];
   const isActive = (href: string) => mdcRelativePath(href) === treffer;
 
-  // Solange das Menü offen ist, soll der Hintergrund nicht mitscrollen.
-  // (Geschlossen wird es beim Klick auf einen Eintrag — kein Effekt nötig.)
+  // Solange das Menü offen ist, soll der Hintergrund nicht mitscrollen — und
+  // Escape soll es zumachen. Das erwartet jeder, der mit der Tastatur
+  // unterwegs ist, und es ist der übliche Weg aus einem Dialog heraus
+  // (`role="dialog" aria-modal="true"` steht unten am Menü).
   useEffect(() => {
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = previous; };
+    const taste = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    document.addEventListener('keydown', taste);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener('keydown', taste);
+    };
   }, [menuOpen]);
 
   return (
@@ -136,6 +146,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
             className="mdc-burger"
             aria-label="Menü öffnen"
             aria-expanded={menuOpen}
+            aria-controls={MENUE_ID}
             onClick={() => setMenuOpen(true)}
           >
             <Menu size={22} />
@@ -159,7 +170,7 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
       {/* `document` ist hier immer da: Das Menü geht nur per Klick auf, also
           niemals beim Rendern auf dem Server. */}
       {menuOpen && createPortal((
-        <div className="mdc-mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation">
+        <div id={MENUE_ID} className="mdc-mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
             <MdcMark size={40} src={logo} />
             <button

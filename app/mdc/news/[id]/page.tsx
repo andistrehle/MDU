@@ -15,6 +15,7 @@ import { NewsAbsatz, NewsKopfzeile } from '@/components/mdc/news';
 import { getNewsPost, publishedNews } from '@/data/news';
 import { formatDate } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
 export function generateStaticParams() {
   return publishedNews().map(post => ({ id: post.id }));
@@ -26,7 +27,7 @@ export async function generateMetadata(
   const { id } = await props.params;
   const post = getNewsPost(id);
   if (!post) return { title: 'Beitrag' };
-  return { title: post.title, description: post.teaser };
+  return mdcSeite({ title: post.title, description: post.teaser });
 }
 
 export default async function NewsBeitragPage(

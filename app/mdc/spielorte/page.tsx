@@ -5,12 +5,13 @@ import {
   FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE, VENUES,
   venuesByWeekday, WEEKDAY_NAMES,
 } from '@/data/venues';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Spielorte',
   description:
     'Die Spielorte der Munich Darts Challenge — mit Spieltag, Startzeit, Adresse und Anzahl der Dartautomaten.',
-};
+});
 
 export default function SpielortePage() {
   const byDay = venuesByWeekday();

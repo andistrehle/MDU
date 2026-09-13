@@ -27,14 +27,15 @@ import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/to
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Turniere',
   description:
     'Die nächsten MDC-Ranking-Termine in den Münchner Lokalen — dazu die zuletzt ' +
     `gespielten Turniere und das Archiv mit allen ${ARCHIVE_STATS.tournaments} Turnieren ` +
     `der Saison ${FINAL_SEASON.label}.`,
-};
+});
 
 /** Zeigt die nächsten zwei Wochen ab heute — siehe `app/mdc/layout.tsx`. */
 export const revalidate = 1800;

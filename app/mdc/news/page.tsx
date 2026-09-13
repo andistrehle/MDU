@@ -13,13 +13,14 @@ import { PageHero } from '@/components/mdc/ui';
 import { NewsKarte } from '@/components/mdc/news';
 import { publishedNews } from '@/data/news';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'News',
   description:
     'Neuigkeiten der Munich Darts Challenge: Termine, Änderungen im Spielbetrieb '
     + 'und alles, was die Serie sonst betrifft.',
-};
+});
 
 export default function NewsPage() {
   const posts = publishedNews();

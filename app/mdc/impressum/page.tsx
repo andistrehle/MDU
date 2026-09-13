@@ -13,11 +13,12 @@ import { PageHero } from '@/components/mdc/ui';
 import { LegalPage, LegalSection, LegalGapNotice } from '@/components/mdc/legal';
 import { MDC_LEGAL, MDC_LEGAL_COMPLETE, legal } from '@/data/mdc-legal';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = mdcSeite({
   title: 'Impressum',
   description: 'Anbieterkennzeichnung der Munich Darts Challenge nach § 5 DDG.',
-};
+});
 
 export default function ImpressumPage() {
   const { operator, legalForm, representedBy, street, zipCity, email, phone,

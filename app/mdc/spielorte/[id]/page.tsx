@@ -11,6 +11,7 @@ import { getPlayer, playerName } from '@/data/players';
 import { RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, formatTime, weekdayName } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
+import { mdcSeite } from '@/lib/mdc/metadata';
 
 export function generateStaticParams() {
   return VENUES.map(venue => ({ id: venue.id }));
@@ -22,10 +23,10 @@ export async function generateMetadata(
   const { id } = await props.params;
   const venue = getVenue(id);
   if (!venue) return { title: 'Spielort' };
-  return {
+  return mdcSeite({
     title: venue.name,
     description: `MDC-Spielort ${venue.name} in ${venue.zip} ${venue.city}: ${venueWeekdayLabel(venue)} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
-  };
+  });
 }
 
 /**
