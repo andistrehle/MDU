@@ -65,12 +65,19 @@ export const metadata: Metadata = {
   // zusätzlich `favicon.ico` der MDU (48 × 48) — das lässt sich für einen
   // Unterordner nicht abschalten. Browser wählen unter mehreren Symbolen das
   // am besten passende, und ein ausgewiesenes 512er PNG sticht ein 48er ICO.
+  //
+  // `?v=…` (Version) an der URL: `/mdc/icon.png` hatte bisher KEINE Version,
+  // also blieb ein einmal gecachtes Favicon hartnäckig hängen (Handys teilen
+  // den Favicon-Speicher teils mit dem Inkognito-Modus, Google cacht tagelang).
+  // Auf mdc-ranking.de zeigte der Tab dadurch weiter die alte MDU-Dartscheibe,
+  // obwohl der Server längst das MDC-Logo lieferte. Neue URL = frischer Fetch.
+  // Beim nächsten Icon-Wechsel diese Marke hochzählen.
   ...(MDC_ICON
     ? {
       icons: {
-        icon: [{ url: MDC_ICON.src, sizes: '512x512', type: 'image/png' }],
-        shortcut: [{ url: MDC_ICON.src, sizes: '512x512', type: 'image/png' }],
-        apple: [{ url: MDC_ICON.src, sizes: '512x512', type: 'image/png' }],
+        icon: [{ url: `${MDC_ICON.src}?v=2026-09-13`, sizes: '512x512', type: 'image/png' }],
+        shortcut: [{ url: `${MDC_ICON.src}?v=2026-09-13`, sizes: '512x512', type: 'image/png' }],
+        apple: [{ url: `${MDC_ICON.src}?v=2026-09-13`, sizes: '512x512', type: 'image/png' }],
       },
     }
     : {}),
