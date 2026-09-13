@@ -39,14 +39,18 @@ export function PayoutBox({ payout, titel, hinweis }: {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
         <Euro size={17} style={{ color: 'var(--mdc-red)' }} />
-        <h3
+        {/* h2, nicht h3: Auf der Rangliste steht darüber nur die
+            Seitenüberschrift (h1). Eine h3 überspränge eine Ebene — für jemanden,
+            der die Seite vorlesen lässt, fehlt dann ein Zwischenschritt. Das
+            Aussehen hängt an den Stilangaben, nicht an der Ebene. */}
+        <h2
           style={{
             fontFamily: 'var(--mdc-font-display)', textTransform: 'uppercase',
             letterSpacing: '0.13em', fontSize: '0.8rem', fontWeight: 700, color: 'var(--mdc-ink)',
           }}
         >
           {titel}
-        </h3>
+        </h2>
       </div>
 
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>

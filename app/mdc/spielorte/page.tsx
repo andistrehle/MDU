@@ -8,6 +8,7 @@ import {
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/spielorte',
   title: 'Spielorte',
   description:
     'Die Spielorte der Munich Darts Challenge — mit Spieltag, Startzeit, Adresse und Anzahl der Dartautomaten.',

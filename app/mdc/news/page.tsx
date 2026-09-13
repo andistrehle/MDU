@@ -16,6 +16,7 @@ import { mdcPath } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/news',
   title: 'News',
   description:
     'Neuigkeiten der Munich Darts Challenge: Termine, Änderungen im Spielbetrieb '

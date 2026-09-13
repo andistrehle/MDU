@@ -12,12 +12,11 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AlertTriangle, Archive } from 'lucide-react';
+import { Archive } from 'lucide-react';
 import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows, withPayout } from '@/lib/mdc/rows';
-import { runningRankingOf, RUNNING_HAS_RESULTS, RUNNING_IS_CORRECTED } from '@/data/ranking';
-import { BERICHTIGUNGS_HINWEISE } from '@/data/corrections';
+import { runningRankingOf, RUNNING_HAS_RESULTS } from '@/data/ranking';
 import { RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
@@ -26,6 +25,7 @@ import { jackpotStand, STARTGELD_JE_TEILNAHME, MINDEST_TEILNAHMEN } from '@/lib/
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/rangliste',
   title: 'Rangliste',
   description:
     'Die MDC-Rangliste der laufenden Saison 2026/27 — dazu das Archiv mit dem ' +
@@ -49,31 +49,16 @@ export default function RanglistePage() {
         <div className="mdc-shell">
           {RUNNING_HAS_RESULTS ? (
             <>
-              {RUNNING_IS_CORRECTED && (
-                <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
-                  {BERICHTIGUNGS_HINWEISE.map(hinweis => (
-                    <div
-                      key={hinweis.tournamentId}
-                      className="mdc-card"
-                      style={{
-                        display: 'flex', gap: 12, padding: '14px 16px',
-                        borderColor: 'var(--mdc-red-a35)', background: 'var(--mdc-red-a08)',
-                        fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-ink-soft)',
-                      }}
-                    >
-                      <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
-                      <p>
-                        <strong>Ein Turnier ist berichtigt.</strong> {hinweis.note}{' '}
-                        {hinweis.folge}{' '}
-                        <Link href={mdcPath(`/turniere/ergebnisse/${hinweis.tournamentId}`)}>
-                          Zum Turnier
-                        </Link>
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
+              {/* HIER STEHT BEWUSST KEIN BERICHTIGUNGS-HINWEIS MEHR.
+                  Vom Betreiber am 13.09.2026 abbestellt: Ein roter Kasten über
+                  der ganzen Rangliste wegen einer einzelnen vertauschten Zeile
+                  stellt die Sache größer dar, als sie ist — an Punkten und
+                  Plätzen ändert eine `PASS_KORREKTUR` nichts. Die Berichtigung
+                  selbst bleibt in Kraft (`data/corrections.ts`), und die
+                  Turnierseite nennt sie weiterhin beim Namen
+                  („Berichtigt gegenüber der Auswertung", `app/mdc/turniere/
+                  ergebnisse/[id]/page.tsx`). Verschwiegen wird also nichts,
+                  es steht nur dort, wo es hingehört. */}
               <DivisionSwitch
                 men={withPayout(toRankingRows(runningRankingOf('men')), jackpot.men.ezrAmount)}
                 women={withPayout(toRankingRows(runningRankingOf('women')), jackpot.women.ezrAmount)}

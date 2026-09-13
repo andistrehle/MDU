@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -47,10 +48,30 @@ export function AuthShell({ title, subtitle, children }: {
   );
 }
 
+/**
+ * Ein beschriftetes Eingabefeld der Anmeldeseiten.
+ *
+ * ZWEI DINGE, DIE HIER FRÜHER FEHLTEN — beide betreffen Leute, die die Seite
+ * nicht mit der Maus bedienen:
+ *
+ *  1. Die Beschriftung stand nur DANEBEN, ohne `htmlFor`/`id`. Für einen
+ *     Screenreader war das Feld damit namenlos („Eingabefeld, leer"), und ein
+ *     Klick auf das Wort sprang nicht ins Feld. `useId()` erzeugt die Kennung —
+ *     von Hand vergeben ginge nicht, die Felder kommen mehrfach vor.
+ *     Ein von außen gesetztes `id` gewinnt weiterhin (`inputProps.id`).
+ *  2. `outline: 'none'` stand fest im Stil und schlug damit die Regel in
+ *     `app/globals.css` („REV-083"), die jedem Feld beim Durchtabben einen
+ *     sichtbaren Ring gibt — Inline-Stil sticht Stylesheet. Wer sich mit der
+ *     Tabulatortaste durch `/login` bewegte, sah nicht, wo er steht. Die Zeile
+ *     ist deshalb ersatzlos weg; den Ring zeichnet die globale Regel, und zwar
+ *     nur bei Tastaturbedienung (`:focus-visible`).
+ */
 export function AuthField({ label, ...inputProps }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const erzeugteId = useId();
+  const id = inputProps.id ?? erzeugteId;
   return (
     <div>
-      <label style={{
+      <label htmlFor={id} style={{
         display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
         color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase',
       }}>
@@ -58,11 +79,11 @@ export function AuthField({ label, ...inputProps }: { label: string } & React.In
       </label>
       <input
         {...inputProps}
+        id={id}
         style={{
           width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
           border: '1px solid var(--th-line-10)', borderRadius: 8,
           color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14,
-          outline: 'none',
           ...inputProps.style,
         }}
       />

@@ -106,26 +106,9 @@ export function passKorrekturenFor(tournamentId: string): PassNrCorrection[] {
   return PASS_BY_TOURNAMENT.get(tournamentId) ?? [];
 }
 
-/** Gibt es überhaupt Berichtigungen? Steuert die Hinweise in der Oberfläche. */
-export const HAS_CORRECTIONS = CORRECTIONS.length > 0 || PASS_KORREKTUREN.length > 0;
-
-/**
- * Alle Berichtigungen in einer Form, die die Oberfläche anzeigen kann — mit
- * je eigenem Satz, weil das eine die Punkte verschiebt und das andere nicht.
- */
-export const BERICHTIGUNGS_HINWEISE: {
-  tournamentId: string;
-  note: string;
-  folge: string;
-}[] = [
-  ...CORRECTIONS.map(k => ({
-    tournamentId: k.tournamentId,
-    note: k.note,
-    folge: 'Dadurch weichen einzelne Punktzahlen und Plätze von der ausgehängten Liste ab.',
-  })),
-  ...PASS_KORREKTUREN.map(k => ({
-    tournamentId: k.tournamentId,
-    note: k.note,
-    folge: 'Punkte und Plätze des Turniers bleiben dieselben — nur die Zeile gehört jemand anderem.',
-  })),
-];
+// Hier stand bis zum 13.09.2026 `HAS_CORRECTIONS` und `BERICHTIGUNGS_HINWEISE`
+// für den roten Kasten über der Rangliste. Der ist auf Wunsch des Betreibers
+// weg: Ein Warnkasten über der ganzen Wertung wegen einer einzelnen
+// vertauschten Zeile stellt die Sache größer dar, als sie ist. Genannt wird
+// die Berichtigung weiterhin — auf der Seite des betroffenen Turniers, über
+// `correctionsFor`/`passKorrekturenFor`.

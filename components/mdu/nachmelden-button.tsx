@@ -94,15 +94,21 @@ export function NachmeldenButton({ teamId, teamName, onSuccess }: { teamId: stri
   );
 }
 
+/**
+ * Das Eingabefeld steht IM `<label>`, nicht daneben: So gehört die Beschriftung
+ * ohne `id` zum Feld — ein Screenreader liest sie vor, ein Klick auf das Wort
+ * springt hinein. Vorher war das `<label>` nur ein Geschwisterelement, und die
+ * Felder hießen „Eingabefeld, leer".
+ */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</label>
+    <label style={{ display: 'block' }}>
+      <span style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</span>
       {children}
-    </div>
+    </label>
   );
 }
 
-const input: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' };
+const input: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14 };
 const btn: React.CSSProperties = { padding: '11px 20px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
 const ghost: React.CSSProperties = { padding: '11px 20px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };

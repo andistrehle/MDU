@@ -29,7 +29,6 @@ import {
 } from './players';
 import { FINAL_RANKING_2025_26 } from './ranking-final';
 import { playerSeasonStats, tournamentsOfSeason, RUNNING_STATS } from './tournament-results';
-import { HAS_CORRECTIONS } from './corrections';
 import { RUNNING_SEASON } from './season';
 import { VENUES } from './venues';
 
@@ -193,12 +192,6 @@ function buildRunningRanking(): Record<Division, RankingEntry[]> {
 }
 
 const RUNNING_BY_DIVISION: Record<Division, RankingEntry[]> = buildRunningRanking();
-
-/**
- * Weicht die laufende Wertung von der Auswertung des Betreibers ab? Genau
- * dann, wenn ein Turnier berichtigt ist — die Oberfläche sagt es dazu.
- */
-export const RUNNING_IS_CORRECTED = HAS_CORRECTIONS;
 
 /** Wertung der laufenden Saison einer Wertungsklasse. */
 export function runningRankingOf(division: Division): RankingEntry[] {

@@ -24,6 +24,7 @@ import { mdcPath } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/rangliste/archiv',
   title: 'Archiv',
   description:
     'Archiv der MDC-Wertungen: Saison-Endstand 2025/26 für Männer und Frauen mit ' +

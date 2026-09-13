@@ -8,6 +8,7 @@ import { formatNumber } from '@/lib/mdc/format';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/spieler',
   title: 'Spieler',
   description:
     'Alle Spielerinnen und Spieler mit MDC-Pass — mit Passnummer, Saisonpunkten und Profil.',

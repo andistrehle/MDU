@@ -24,6 +24,7 @@ export async function generateMetadata(
   const venue = getVenue(id);
   if (!venue) return { title: 'Spielort' };
   return mdcSeite({
+    pfad: `/spielorte/${venue.id}`,
     title: venue.name,
     description: `MDC-Spielort ${venue.name} in ${venue.zip} ${venue.city}: ${venueWeekdayLabel(venue)} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
   });

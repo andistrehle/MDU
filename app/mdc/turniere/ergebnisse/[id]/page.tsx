@@ -38,6 +38,7 @@ export async function generateMetadata(
   const turnier = getTournamentRecord(id);
   if (!turnier) return { title: 'Turnier' };
   return mdcSeite({
+    pfad: `/turniere/ergebnisse/${turnier.id}`,
     title: `${turnier.venueName}, ${formatDateLong(turnier.date)}`,
     description:
       `Ergebnisliste des MDC-Rankings am ${formatDateLong(turnier.date)} im ${turnier.venueName}: ` +

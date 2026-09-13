@@ -2,6 +2,7 @@
 // MDC — Startseite
 // ============================================================
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -26,6 +27,7 @@ import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
 import { formatDate, formatNumber, weekdayName } from '@/lib/mdc/format';
 import { heroSrc } from '@/lib/mdc/brand';
 import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
+import { mdcKanonisch } from '@/lib/mdc/metadata';
 
 /**
  * Hier steht der Wochenplan ab heute — die Seite muss also mit dem Datum
@@ -37,6 +39,16 @@ import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
  * Schreibvorgang (siehe `app/mdc/layout.tsx`).
  */
 export const revalidate = 1800;
+
+/**
+ * Nur die kanonische Adresse — Titel, Beschreibung und Vorschaubild stehen
+ * schon im Layout und gelten für die Startseite unverändert. Ein zusätzlicher
+ * `openGraph`-Block würde den des Layouts ersetzen, deshalb hier bewusst NICHT
+ * `mdcSeite()`: Die Seite braucht von ihm nur das eine Feld.
+ */
+export const metadata: Metadata = {
+  alternates: { canonical: mdcKanonisch('/') },
+};
 
 const STEPS = [
   {

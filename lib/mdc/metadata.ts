@@ -30,6 +30,17 @@ export interface SeitenAngaben {
   title: string;
   description: string;
   /**
+   * Die eigene Adresse OHNE `/mdc`-Präfix — also `/rangliste`, so wie sie auch
+   * `mdcPath()` bekommt. Daraus wird die kanonische Adresse auf
+   * mdc-ranking.de.
+   *
+   * Warum absolut und nicht relativ: `metadataBase` zeigt nur im
+   * Standalone-Build auf mdc-ranking.de; im MDU-Build löst ein relativer Wert
+   * gegen mdudarts.de auf, und genau das wäre der falsche Ort. Die MDC wohnt
+   * auf ihrer eigenen Domain, `mdudarts.de/mdc/...` leitet dorthin um.
+   */
+  pfad?: string;
+  /**
    * Von Suchmaschinen fernhalten. Gebraucht für Profile von Leuten, die noch
    * kein Turnier gespielt haben: Dort steht nur ein Name, und dafür trägt die
    * Veröffentlichung keine Begründung.
@@ -37,16 +48,32 @@ export interface SeitenAngaben {
   noindex?: boolean;
 }
 
-export function mdcSeite({ title, description, noindex }: SeitenAngaben): Metadata {
+/**
+ * Kanonische Adresse aus einem MDC-Pfad: `/rangliste` →
+ * `https://mdc-ranking.de/rangliste`, `/` → `https://mdc-ranking.de`.
+ */
+export function mdcKanonisch(pfad: string): string {
+  const rein = pfad.replace(/\/+$/, '');
+  if (rein === '') return MDC_ORIGIN;
+  return MDC_ORIGIN + (rein.startsWith('/') ? rein : `/${rein}`);
+}
+
+export function mdcSeite({ title, description, noindex, pfad }: SeitenAngaben): Metadata {
   const voll = title.endsWith(ANHANG) ? title : title + ANHANG;
   return {
     title,
     description,
+    ...(pfad !== undefined ? { alternates: { canonical: mdcKanonisch(pfad) } } : {}),
     openGraph: {
       type: 'website',
       locale: 'de_DE',
       siteName: 'Munich Darts Challenge',
-      ...(MDC_STANDALONE ? { url: MDC_ORIGIN } : {}),
+      // Mit `pfad` die Adresse DIESER Seite — vorher stand auf jeder Unterseite
+      // die Startseite als `og:url`, und geteilte Links wurden dort
+      // zusammengefasst.
+      ...(pfad !== undefined
+        ? { url: mdcKanonisch(pfad) }
+        : MDC_STANDALONE ? { url: MDC_ORIGIN } : {}),
       title: voll,
       description,
     },

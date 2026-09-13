@@ -21,6 +21,7 @@ import { mdcPath } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/turniere/ergebnisse',
   title: 'Turnierergebnisse',
   description:
     `Alle ausgewerteten MDC-Turniere: die laufende Saison ${RUNNING_SEASON.label} und ` +

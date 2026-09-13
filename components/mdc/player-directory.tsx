@@ -122,12 +122,14 @@ export function PlayerDirectory({ entries }: { entries: DirectoryEntry[] }) {
 
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                  <h3
+                  {/* h2, nicht h3: Über der Liste steht nur die
+                      Seitenüberschrift (h1), dazwischen keine weitere Ebene. */}
+                  <h2
                     className="mdc-display"
                     style={{ fontSize: '1.05rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                   >
                     {entry.lastName}
-                  </h3>
+                  </h2>
                   {entry.rank !== null && (
                     <span className="mdc-num" style={{ fontSize: '0.78rem', color: 'var(--mdc-red)', fontWeight: 700 }}>
                       #{entry.rank}

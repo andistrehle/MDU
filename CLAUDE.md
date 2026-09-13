@@ -308,8 +308,9 @@ fällt von selbst weg, sobald der Betreiber dort nachzieht — dann meldet
   zweiten Eintrag hängt `parseRankingRows` die Passnummer an
   („claudia-vaszi-251"), aus einem Menschen werden zwei, und der mit den
   Ergebnissen bekommt womöglich die falsche Nummer angezeigt (Claudia Vaszi
-  stand mit 196 da statt 251; Patrick Meyer 31/133 ist derselbe Fall und noch
-  offen). `/admin/passnummern` listet sie (`doppelteEintraege`) und legt die
+  stand mit 196 da statt 251; Patrick Meyer 31/133 war derselbe Fall, 133 ist
+  am 13.09.2026 stillgelegt). `/admin/passnummern` listet sie
+  (`doppelteEintraege`) und legt die
   Zeile **ohne einen einzigen Start** still — die Nummer wird wieder frei.
   Gezählt wird über die ERGEBNISZEILEN (`passNr` je Turnier), nicht über den
   Spieler: Dessen Nummer ist ja gerade das, was der Fehler verdreht. Die Zeile

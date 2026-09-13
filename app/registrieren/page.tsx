@@ -215,16 +215,20 @@ export default function RegisterPage() {
           onChange={e => setLastName(e.target.value)}
         />
         <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          {/* `htmlFor`/`id` wie in `AuthField`: ohne die Verknüpfung ist das
+              Feld für einen Screenreader namenlos. Und kein `outline: none` —
+              das schlug den Tastaturfokus aus `app/globals.css`. */}
+          <label htmlFor="registrieren-rolle" style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             Ich registriere mich als
           </label>
           <select
+            id="registrieren-rolle"
             value={intent}
             onChange={e => setIntent(e.target.value as 'player' | 'team_captain')}
             style={{
               width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
               border: '1px solid var(--th-line-10)', borderRadius: 8,
-              color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
+              color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14,
             }}
           >
             <option value="player">Spieler</option>
@@ -239,10 +243,11 @@ export default function RegisterPage() {
             TC-Wunsch → Pflicht, Spieler-Wunsch → optional. Geht in die Admin-Mail. */}
         {showComment && (
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            <label htmlFor="registrieren-kommentar" style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)', marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               Kommentar {commentRequired ? '(Pflichtfeld)' : '(optional)'}
             </label>
             <textarea
+              id="registrieren-kommentar"
               value={comment}
               onChange={e => setComment(e.target.value)}
               required={commentRequired}
@@ -254,7 +259,7 @@ export default function RegisterPage() {
               style={{
                 width: '100%', padding: '12px 16px', background: 'var(--th-bg-header)',
                 border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)',
-                fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
+                fontFamily: 'var(--font-manrope)', fontSize: 14,
                 resize: 'vertical', minHeight: 96, lineHeight: 1.5,
               }}
             />

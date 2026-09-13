@@ -16,6 +16,7 @@ import { mdcPath } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/impressum',
   title: 'Impressum',
   description: 'Anbieterkennzeichnung der Munich Darts Challenge nach § 5 DDG.',
 });

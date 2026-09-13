@@ -27,7 +27,7 @@ export async function generateMetadata(
   const { id } = await props.params;
   const post = getNewsPost(id);
   if (!post) return { title: 'Beitrag' };
-  return mdcSeite({ title: post.title, description: post.teaser });
+  return mdcSeite({ pfad: `/news/${post.id}`, title: post.title, description: post.teaser });
 }
 
 export default async function NewsBeitragPage(

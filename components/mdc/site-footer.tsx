@@ -106,7 +106,10 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
 
           {COLUMNS.map(column => (
             <div key={column.title}>
-              <h3
+              {/* h2, nicht h3: Die Fußzeile steht auch auf Seiten ohne eigene
+                  Zwischenüberschrift (zum Beispiel der 404-Seite) — dort
+                  übersprang eine h3 die zweite Ebene. */}
+              <h2
                 style={{
                   fontFamily: 'var(--mdc-font-display)',
                   textTransform: 'uppercase',
@@ -118,7 +121,7 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
                 }}
               >
                 {column.title}
-              </h3>
+              </h2>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: 9, fontSize: '0.9rem' }}>
                 {column.links.map(link => (
                   <li key={link.href}>
@@ -138,7 +141,7 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
           ))}
 
           <div>
-            <h3
+            <h2
               style={{
                 fontFamily: 'var(--mdc-font-display)',
                 textTransform: 'uppercase',
@@ -150,7 +153,7 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
               }}
             >
               Ligadart in München
-            </h3>
+            </h2>
             <p style={{ fontSize: '0.88rem', color: '#C9D6EA', lineHeight: 1.6, marginBottom: 12 }}>
               Du willst im Team spielen statt einzeln? Die Münchner Dart Union
               organisiert den Ligabetrieb — ein eigenständiges Projekt mit

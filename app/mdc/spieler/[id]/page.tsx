@@ -37,6 +37,7 @@ export async function generateMetadata(
   const ohneTurnier = appearancesOf(player.id).length === 0;
 
   return mdcSeite({
+    pfad: `/spieler/${player.id}`,
     title: playerName(player),
     description: player.passNr !== null
       ? `MDC-Profil von ${playerName(player)} (Passnr. ${player.passNr}) — Platzierung, Punkte und gespielte Turniere.`

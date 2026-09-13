@@ -30,6 +30,7 @@ import { mdcPath } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/turniere',
   title: 'Turniere',
   description:
     'Die nächsten MDC-Ranking-Termine in den Münchner Lokalen — dazu die zuletzt ' +

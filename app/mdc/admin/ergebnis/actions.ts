@@ -24,8 +24,8 @@ import { veroeffentlicheTurnier, type NeuerSpieler } from '@/lib/mdc/ergebnis-co
 import { loescheTurnier, verschiebeTurnier } from '@/lib/mdc/turnier-commit';
 import { CommitFehler } from '@/lib/mdc/github';
 import { getUploadConfig, getUploadStatus } from '@/lib/mdc/upload-config';
-import { pointsFor, TABLE_RANGE } from '@/lib/mdc/points';
-import { PLAYERS, getPlayerByPassNr, playerName } from '@/data/players';
+import { pointsFor } from '@/lib/mdc/points';
+import { getPlayerByPassNr, playerName } from '@/data/players';
 import { getVenue, venueName } from '@/data/venues';
 import { SEASONS, todayInMunich } from '@/data/season';
 import { getTournamentRecord } from '@/data/tournament-results';
@@ -445,25 +445,4 @@ export async function entferneHochgeladenesTurnier(
     console.error('[mdc] Turnier entfernen fehlgeschlagen', fehler);
     return { ok: false, fehler: 'Das Turnier konnte nicht entfernt werden. Bitte noch einmal versuchen.' };
   }
-}
-
-// Auch diese beiden prüfen den Zugang, obwohl sie nur lesen und nichts
-// ablegen. Eine Server-Action ist eine eigene Adresse im Netz: Ihre Kennung
-// steht zwar nur im Bündel der geschützten Seiten, aber „schwer zu erraten"
-// ist keine Zugangsbeschränkung — und `spielerListe` gibt Namen und
-// Passnummern aller Registrierten heraus, auch der Leute, die noch nie
-// gespielt haben und deshalb sonst nirgends öffentlich stehen.
-
-/** Feldgrößen, für die der Punkteschlüssel Werte führt — für den Hinweis. */
-export async function feldgroesseInTabelle(teilnehmer: number): Promise<boolean> {
-  if (!await zugangGeprueft()) return false;
-  return teilnehmer >= TABLE_RANGE.from && teilnehmer <= TABLE_RANGE.to;
-}
-
-/** Spielerliste für die Auswahlfelder (Name, Passnummer). */
-export async function spielerListe() {
-  if (!await zugangGeprueft()) return [];
-  return PLAYERS
-    .filter(p => p.passNr !== null)
-    .map(p => ({ passNr: p.passNr as number, name: playerName(p), nickname: p.nickname }));
 }

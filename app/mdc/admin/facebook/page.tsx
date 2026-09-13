@@ -88,7 +88,7 @@ export default async function AdminFacebookPage() {
             <p>
               <strong>Jede Woche von selbst:</strong> Ein Wochenlauf erzeugt jeden
               Montagmorgen denselben Text und legt ihn als Zusammenfassung ab
-              (GitHub → Actions → „MDC · Rangliste für Facebook"). Von dort lässt er sich auch
+              (GitHub → Actions → „MDC · Rangliste für Facebook“). Von dort lässt er sich auch
               am Handy kopieren. Die Bilder entstehen dagegen erst beim Aufruf dieser Seite —
               sie zeigen also immer den Stand von jetzt.
             </p>

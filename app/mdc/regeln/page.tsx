@@ -12,6 +12,7 @@ import {
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/regeln',
   title: 'Regeln',
   description:
     'Spielprinzip der Munich Darts Challenge: Einzelrangliste, Doppel-K.-o., Punkte nach ' +

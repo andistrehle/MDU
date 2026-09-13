@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   // Auf der eigenen Domain lösen relative Angaben (z. B. Vorschaubilder)
   // gegen mdc-ranking.de auf. Bewusst OHNE `alternates.canonical`: Ein im
   // Layout gesetzter Wert gälte für jede Unterseite und würde alle Seiten als
-  // Kopie der Startseite ausweisen. Doppelte Adressen gibt es ohnehin nicht —
-  // `/mdc/...` leitet auf die kurze Form um.
+  // Kopie der Startseite ausweisen. Die kanonische Adresse setzt jede Seite
+  // selbst über `pfad` in `mdcSeite()` (`lib/mdc/metadata.ts`).
   ...(MDC_STANDALONE ? { metadataBase: new URL(MDC_ORIGIN) } : {}),
   title: {
     default: 'Munich Darts Challenge (MDC) — Münchens Ranking-Serie für Einzelspieler',

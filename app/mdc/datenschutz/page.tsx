@@ -27,6 +27,7 @@ import { mdcPath } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/datenschutz',
   title: 'Datenschutz',
   description:
     'Datenschutzhinweise der Munich Darts Challenge: welche Daten veröffentlicht werden, ' +

@@ -331,7 +331,7 @@ export function FacebookEditor({
         </div>
 
         <p style={{ marginTop: 14, fontSize: '0.84rem', lineHeight: 1.65, color: 'var(--mdc-ink-dim)' }}>
-          Am Handy: lange auf das Bild drücken und „Bild sichern" wählen, das geht genauso.
+          Am Handy: lange auf das Bild drücken und „Bild sichern“ wählen, das geht genauso.
           Die Bilder entstehen bei jedem Aufruf neu — sie zeigen immer den Stand von jetzt.
         </p>
       </div>

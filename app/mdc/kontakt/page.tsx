@@ -8,6 +8,7 @@ import { mdcPath, MDC_FACEBOOK_GROUP } from '@/lib/mdc/site';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
 export const metadata: Metadata = mdcSeite({
+  pfad: '/kontakt',
   title: 'Kontakt',
   description: 'Kontakt zur Munich Darts Challenge — mitspielen, Spielort werden, Fragen zur Wertung.',
 });
