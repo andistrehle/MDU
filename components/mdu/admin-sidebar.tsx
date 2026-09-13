@@ -54,7 +54,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
       minHeight: '100vh',
     }}>
       <div style={{ padding: '0 6px 16px', borderBottom: '1px solid var(--th-line-6)', marginBottom: 14 }}>
-        <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={32} width={91} style={{ height: 32, width: 'auto' }} />
+        <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={32} width={71} style={{ height: 32, width: 'auto' }} />
         <div style={{ marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--th-text-faint2)', textTransform: 'uppercase' }}>
           Admin Konsole
         </div>

@@ -27,7 +27,7 @@ export function AuthShell({ title, subtitle, children }: {
       }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <Link href="/" style={{ display: 'inline-block' }}>
-            <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} />
+            <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={80} style={{ height: 36, width: 'auto' }} />
           </Link>
           <h1 style={{
             fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,

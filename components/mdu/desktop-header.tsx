@@ -75,7 +75,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24,
       }}>
         <Link href="/" style={{ display: 'block', flexShrink: 0 }}>
-          <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={103} style={{ height: 36, width: 'auto' }} priority />
+          <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={80} style={{ height: 36, width: 'auto' }} priority />
         </Link>
 
         {/* Desktop nav — hidden on mobile via .mdu-header-nav */}

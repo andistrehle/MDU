@@ -66,7 +66,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           borderBottom: '1px solid var(--th-line-6)',
           alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 40,
         }}>
-          <Image src="/mdu-logo.webp" unoptimized alt="MDU" height={26} width={74} style={{ height: 26, width: 'auto' }} />
+          <Image src="/mdu-logo.webp" unoptimized alt="MDU" height={26} width={58} style={{ height: 26, width: 'auto' }} />
           <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.18em', color: 'var(--th-text-faint2)', textTransform: 'uppercase' }}>Admin</span>
           <Link
             href="/mein-bereich"
