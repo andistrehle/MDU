@@ -31,6 +31,7 @@
 /** Neue Spieler der Herrenwertung, aus hochgeladenen Ergebniszetteln. */
 export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|171|LINDINGER|ROBERT|0|0||',
+  '0|318||JUSTIN|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
