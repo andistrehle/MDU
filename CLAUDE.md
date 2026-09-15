@@ -102,6 +102,19 @@ Name vom Zettel, Wertungsklasse aus der Spalte M/F, und die Passnummer kommt
 aus einer Liste der freien (Lücken des Registers zuerst, `passUebersicht()`);
 bei mehreren Neulingen bekommt jeder eine andere. Steht der Name trotz Kreuz
 schon im Stamm, wird das gemeldet statt still eine zweite Nummer anzulegen.
+**Spieler einsetzen geht über SUCHE, nicht über ein Auswahlfeld** (`SpielerWahl`
+in `components/mdc/ergebnis-upload.tsx`, seit 15.09.2026): Auf dem Zettel steht
+die Passnummer, im alten `<select>` stand der Name vorn und die über 500
+Einträge waren nach Namen sortiert — wer die 740 einsetzen wollte, musste den
+Menschen kennen oder an allen vorbeiscrollen. Jetzt tippt man, was auf dem
+Zettel steht: Ziffern suchen die Nummer (genau diese zuerst, dann die
+Präfixtreffer), Buchstaben den Namen oder Spitznamen, Umlaute auch ohne Punkte
+(„bohme" findet „Böhme"). Die Trefferliste steht IM FLUSS unter dem Feld und
+schwebt nicht darüber — `.mdc-card` hat `overflow: hidden`, ein absolut
+gesetztes Feld wäre am Kartenrand abgeschnitten. Der Schlüssel der Listenzeilen
+ist Nummer UND Name: Die Passnummer allein ist nicht garantiert eindeutig (302
+steht derzeit bei zwei Leuten), und doppelte React-Schlüssel ließen Einträge
+der vorigen Suche stehen.
 **Das Datum vom Zettel ersetzt die Auswahl NICHT stillschweigend**
 (`datumProbe` in `components/mdc/ergebnis-upload.tsx`): übernommen wird nur,
 was in einer Saison liegt, nicht in der Zukunft und höchstens vier Monate her
