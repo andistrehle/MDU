@@ -11,13 +11,24 @@ Adresse: **`/admin/ergebnis`** (auf mdudarts.de: `/mdc/admin/ergebnis`).
 
 ## Der Ablauf
 
-**1 · Turnier und Zettel.** Spielort und Datum stehen vorbelegt — vorausgewählt
-ist ein Lokal, das an diesem Wochentag spielt. Dann den Zettel fotografieren.
-Das Bild wird noch im Browser auf die lange Kante 1600 px verkleinert; es
-verlässt das Handy also klein, nicht mit vier Megabyte.
+**1 · Zettel.** **Mehrere Zettel gehen auf einmal** — bis zu zwölf. Am Handy
+einen nach dem anderen fotografieren („Noch einen fotografieren") oder alle
+Fotos des Abends auf einmal aus der Galerie wählen; die Vorschaubilder stehen
+untereinander, ein falsches lässt sich einzeln wieder wegnehmen. Spielort und
+Datum stehen als **Vorgabe** darüber — vorausgewählt ist ein Lokal, das an
+diesem Wochentag spielt. Sie greift nur dort, wo der Zettel selbst nichts
+hergibt: Jeder Zettel bringt sein eigenes Datum und seinen eigenen Spielort
+mit, soweit sie draufstehen.
+Die Bilder werden noch im Browser auf die lange Kante 1600 px verkleinert; sie
+verlassen das Handy also klein, nicht mit vier Megabyte das Stück.
 
-**2 · Prüfen.** Das ist der eigentliche Schritt. Die erkannte Liste steht Zeile
-für Zeile da:
+**2 · Prüfen.** Das ist der eigentliche Schritt. Jeder Zettel bekommt seine
+eigene Karte („Zettel 2 von 5") mit eigenem Spielort- und Datumsfeld; erkannt
+wurde beides vom Zettel, ändern lässt es sich hier. Ließ sich der Lokalname
+nicht eindeutig zuordnen, steht daneben, was gelesen wurde — geraten wird
+nicht. Ein Zettel, der gar nicht lesbar war, wird oben beim Namen genannt; die
+übrigen gehen trotzdem durch. Auf jeder Karte steht die erkannte Liste Zeile
+für Zeile:
 
 - **Die Reihenfolge ist die Platzierung.** Zeilen lassen sich nach oben und
   unten schieben und löschen.
@@ -46,9 +57,25 @@ für Zeile da:
   sonst still in der falschen Wertung. Liegt das eingestellte Datum in keiner
   Saison, sagt das jetzt schon Schritt 1 und die Freigabe bleibt gesperrt.
 
-Freigeben geht erst, wenn keine Zeile mehr offen ist.
+- **Den Spieler sucht man**, statt ihn in über 500 Namen zu suchen: Ins Feld
+  tippen, was auf dem Zettel steht — Ziffern finden die Passnummer, Buchstaben
+  den Namen. Gehört die getippte Nummer niemandem, sagt die Liste das.
 
-**3 · Freigeben.** Jetzt erst wird gerechnet und abgelegt.
+Freigeben geht erst, wenn auf **keinem** Zettel eine Zeile mehr offen ist.
+
+**3 · Freigeben.** Ein Knopf für den ganzen Stapel, und alles landet in **einem
+einzigen Commit**: Die Seite baut sich einmal neu statt fünfmal. **Alles oder
+nichts** — stimmt an einem Zettel etwas nicht, wird gar nichts geschrieben und
+oben steht, welcher es ist. Drei Dinge fallen erst im Stapel auf und werden
+abgelehnt:
+
+- zwei Zettel mit **gleichem Datum und gleichem Spielort** (das ist dasselbe
+  Turnier — der zweite überschriebe den ersten),
+- **dieselbe freie Passnummer für zwei verschiedene Neulinge**,
+- **derselbe Neuling mit zwei verschiedenen Nummern**.
+
+Die ersten beiden meldet die Seite schon beim Prüfen, solange sich noch etwas
+ändern lässt.
 
 **Nachträglich berichtigen.** Unter der Upload-Maske stehen alle Turniere, die
 über diese Seite hochgeladen wurden. Dort lassen sich **Datum und Spielort**
@@ -72,9 +99,9 @@ hochgeladen, dann gilt die Fassung der Seite).
 | Neue Spieler | `data/players-uploaded.ts` | Ja. |
 
 Beide Dateien werden in **einem** Commit geschrieben
-(`lib/mdc/ergebnis-commit.ts`, Git-Data-API). Zwei Commits wären zwei Neubauten
-— und dazwischen läge ein Stand, in dem ein Ergebnis auf einen Spieler zeigt,
-den es noch nicht gibt.
+(`lib/mdc/ergebnis-commit.ts`, Git-Data-API) — und zwar für den ganzen Stapel
+zusammen. Zwei Commits wären zwei Neubauten, und dazwischen läge ein Stand, in
+dem ein Ergebnis auf einen Spieler zeigt, den es noch nicht gibt.
 
 Der Commit steht am Ende als Link da: Man kann nachlesen, was genau geschrieben
 wurde.

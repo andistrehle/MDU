@@ -20,10 +20,11 @@
 import { headers } from 'next/headers';
 import { liesErgebniszettel, FotoNichtLesbarError } from '@/lib/mdc/ergebnis-foto';
 import { ordneSpielerZu, type Zuordnung } from '@/lib/mdc/spieler-zuordnung';
-import { veroeffentlicheTurnier, type NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
+import { veroeffentlicheTurniere, type Veroeffentlichung, type NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
 import { loescheTurnier, verschiebeTurnier } from '@/lib/mdc/turnier-commit';
 import { CommitFehler } from '@/lib/mdc/github';
 import { getUploadConfig, getUploadStatus } from '@/lib/mdc/upload-config';
+import { MAX_ZETTEL } from '@/lib/mdc/upload-grenzen';
 import { pointsFor } from '@/lib/mdc/points';
 import { getPlayerByPassNr, playerName } from '@/data/players';
 import { getVenue, venueName } from '@/data/venues';
@@ -67,8 +68,15 @@ export type ErkennenErgebnis =
   | { ok: true; vorschlag: Vorschlag }
   | { ok: false; fehler: string };
 
+/** Ein abgelegtes Turnier, so wie die Seite es danach nennt. */
+export interface AbgelegtesTurnier {
+  turnier: string;
+  starter: number;
+  ersetzt: boolean;
+}
+
 export type FreigabeErgebnis =
-  | { ok: true; url: string; ersetzt: boolean; turnier: string; punkte: number[] }
+  | { ok: true; url: string; turniere: AbgelegtesTurnier[] }
   | { ok: false; fehler: string };
 
 /**
@@ -217,16 +225,16 @@ export interface FreigabeEingabe {
   neueSpieler: NeuerSpieler[];
 }
 
-export async function gibErgebnisFrei(eingabe: FreigabeEingabe): Promise<FreigabeErgebnis> {
-  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
-
-  const status = getUploadStatus();
-  if (!status.canPublish) {
-    return { ok: false, fehler: `Das Ablegen ist nicht eingerichtet: ${status.missing.join(', ')}.` };
-  }
-
-  // ── Prüfungen. Jede einzelne verhindert eine Zahl, die hinterher niemand
-  //    mehr erklären kann. ──
+/**
+ * Prüft EINEN Zettel des Stapels. Gibt die fertige Ergebniszeile zurück — oder
+ * den Satz, der dem Menschen sagt, was nicht stimmt.
+ *
+ * Jede dieser Prüfungen verhindert eine Zahl, die hinterher niemand mehr
+ * erklären kann.
+ */
+function pruefeTurnier(
+  eingabe: FreigabeEingabe,
+): { ok: true; veroeffentlichung: Veroeffentlichung; turnier: string; starter: number } | { ok: false; fehler: string } {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(eingabe.datum)) {
     return { ok: false, fehler: 'Das Datum fehlt oder hat die falsche Form.' };
   }
@@ -300,23 +308,135 @@ export async function gibErgebnisFrei(eingabe: FreigabeEingabe): Promise<Freigab
     eingabe.zeilen.map((z, i) => `${z.passNr}:${punkte[i]}`).join(','),
   ].join('|');
 
-  try {
-    const commit = await veroeffentlicheTurnier({
+  return {
+    ok: true,
+    veroeffentlichung: {
       zeile,
       neueSpieler: eingabe.neueSpieler,
       beschreibung: `${venueName(eingabe.spielortId)}, ${eingabe.datum} (${teilnehmer} Starter)`,
+    },
+    turnier: `${venueName(eingabe.spielortId)}, ${eingabe.datum}`,
+    starter: teilnehmer,
+  };
+}
+
+/**
+ * Prüfungen, die es nur im STAPEL gibt — sie können erst auffallen, wenn
+ * mehrere Zettel zusammen abgelegt werden.
+ */
+function pruefeStapel(eingaben: FreigabeEingabe[]): string | null {
+  // Zwei Zettel mit demselben Datum UND demselben Spielort sind dasselbe
+  // Turnier. Im selben Commit würde der zweite den ersten überschreiben, und
+  // ein Turnierabend wäre still verschwunden.
+  const gesehen = new Map<string, number>();
+  for (const e of eingaben) {
+    const kennung = `${e.datum}|${e.spielortId}`;
+    gesehen.set(kennung, (gesehen.get(kennung) ?? 0) + 1);
+  }
+  const doppelt = [...gesehen].filter(([, anzahl]) => anzahl > 1).map(([k]) => k);
+  if (doppelt.length) {
+    const namen = doppelt.map(k => {
+      const [datum, ort] = k.split('|');
+      return `${venueName(ort)}, ${datum}`;
     });
+    return `Zwei Zettel tragen dasselbe Turnier: ${namen.join('; ')}. `
+      + 'Bitte Datum oder Spielort berichtigen — sonst überschreibt der eine den anderen.';
+  }
+
+  // Dieselbe freie Nummer auf zwei Zetteln: Zwei verschiedene Menschen bekämen
+  // denselben Pass.
+  const neue = eingaben.flatMap(e => e.neueSpieler);
+  const nachNummer = new Map<number, Set<string>>();
+  for (const s of neue) {
+    const name = `${s.firstName} ${s.lastName}`.trim().toUpperCase();
+    nachNummer.set(s.passNr, (nachNummer.get(s.passNr) ?? new Set()).add(name));
+  }
+  const kollision = [...nachNummer].filter(([, namen]) => namen.size > 1);
+  if (kollision.length) {
+    const text = kollision
+      .map(([nr, namen]) => `${nr} (${[...namen].join(' und ')})`)
+      .join(', ');
+    return `Dieselbe Passnummer soll an zwei verschiedene Neulinge gehen: ${text}. `
+      + 'Bitte für einen von beiden eine andere freie Nummer wählen.';
+  }
+
+  // Derselbe Name mit zwei verschiedenen Nummern: Aus einem Menschen würden
+  // zwei, und die Spieler-ID entsteht aus dem Namen.
+  const nachName = new Map<string, Set<number>>();
+  for (const s of neue) {
+    const name = `${s.firstName} ${s.lastName}`.trim().toUpperCase();
+    if (!name) continue;
+    nachName.set(name, (nachName.get(name) ?? new Set()).add(s.passNr));
+  }
+  const zweimal = [...nachName].filter(([, nummern]) => nummern.size > 1);
+  if (zweimal.length) {
+    const text = zweimal
+      .map(([name, nummern]) => `${name} (${[...nummern].join(' und ')})`)
+      .join(', ');
+    return `Derselbe Neuling soll zwei Passnummern bekommen: ${text}. `
+      + 'Bitte auf beiden Zetteln dieselbe Nummer wählen.';
+  }
+
+  return null;
+}
+
+/**
+ * Legt den ganzen Stapel ab — ein Commit, ein Neubau. Ein einzelner Zettel ist
+ * der Stapel mit einem Element; es gibt nur diesen einen Weg, damit die
+ * Prüfungen nicht zweimal gepflegt werden müssen.
+ *
+ * ALLES ODER NICHTS: Stimmt an einem Zettel etwas nicht, wird gar nichts
+ * geschrieben und gesagt, welcher es ist. Die Hälfte eines Abends abzulegen
+ * und die andere Hälfte mit einer Fehlermeldung stehen zu lassen, wäre der
+ * schlechtere Zustand — niemand wüsste hinterher, was schon drin ist.
+ */
+export async function gibErgebnisFrei(eingaben: FreigabeEingabe[]): Promise<FreigabeErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+
+  const status = getUploadStatus();
+  if (!status.canPublish) {
+    return { ok: false, fehler: `Das Ablegen ist nicht eingerichtet: ${status.missing.join(', ')}.` };
+  }
+
+  if (!Array.isArray(eingaben) || eingaben.length === 0) {
+    return { ok: false, fehler: 'Es gibt nichts abzulegen.' };
+  }
+  if (eingaben.length > MAX_ZETTEL) {
+    return { ok: false, fehler: `Mehr als ${MAX_ZETTEL} Zettel auf einmal gehen nicht.` };
+  }
+
+  const geprueft: { veroeffentlichung: Veroeffentlichung; turnier: string; starter: number }[] = [];
+  for (const [i, eingabe] of eingaben.entries()) {
+    const probe = pruefeTurnier(eingabe);
+    if (!probe.ok) {
+      return {
+        ok: false,
+        fehler: eingaben.length === 1
+          ? probe.fehler
+          : `Zettel ${i + 1} (${venueName(eingabe.spielortId)}, ${eingabe.datum}): ${probe.fehler}`,
+      };
+    }
+    geprueft.push(probe);
+  }
+
+  const stapelFehler = pruefeStapel(eingaben);
+  if (stapelFehler) return { ok: false, fehler: stapelFehler };
+
+  try {
+    const commit = await veroeffentlicheTurniere(geprueft.map(g => g.veroeffentlichung));
     return {
       ok: true,
       url: commit.url,
-      ersetzt: commit.schonVorhanden,
-      turnier: `${venueName(eingabe.spielortId)}, ${eingabe.datum}`,
-      punkte,
+      turniere: geprueft.map(g => ({
+        turnier: g.turnier,
+        starter: g.starter,
+        ersetzt: commit.ersetzt.includes(g.veroeffentlichung.beschreibung),
+      })),
     };
   } catch (fehler) {
     if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
     console.error('[mdc] Freigabe fehlgeschlagen', fehler);
-    return { ok: false, fehler: 'Das Ergebnis konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
+    return { ok: false, fehler: 'Die Ergebnisse konnten nicht abgelegt werden. Bitte noch einmal versuchen.' };
   }
 }
 

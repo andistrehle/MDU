@@ -73,62 +73,111 @@ const RESULTS_PFAD = 'data/results-uploaded.ts';
 const PLAYERS_PFAD = 'data/players-uploaded.ts';
 
 /**
- * Legt ein freigegebenes Turnier ab. Gibt die Adresse des Commits zurück —
- * damit ist nachprüfbar, was genau geschrieben wurde.
+ * Legt freigegebene Turniere ab — ALLE in EINEM Commit. Gibt die Adresse des
+ * Commits zurück; damit ist nachprüfbar, was genau geschrieben wurde.
+ *
+ * WARUM EIN COMMIT FÜR DEN GANZEN STAPEL: An einem Abend kommen mehrere Zettel
+ * zusammen (am 13.09.2026 waren es fünf). Je Turnier ein Commit hieße je
+ * Turnier ein Neubau bei Vercel — fünf Wartezeiten, fünfmal ISR-Kontingent,
+ * und dazwischen liegen Zwischenstände, in denen erst die Hälfte des Abends
+ * online ist. Hier wird einmal gelesen, alles zusammengetragen, einmal
+ * geschrieben.
  */
-export async function veroeffentlicheTurnier(
-  eingabe: Veroeffentlichung,
-): Promise<{ sha: string; url: string; schonVorhanden: boolean }> {
+export async function veroeffentlicheTurniere(
+  eingaben: Veroeffentlichung[],
+): Promise<{ sha: string; url: string; ersetzt: string[] }> {
+  if (!eingaben.length) throw new CommitFehler('Es gibt nichts abzulegen.');
   const ctx = kontext();
-  const [datum, spielort] = eingabe.zeile.split('|');
-  const kennung = `${datum}-${spielort}`;
 
   const resultsQuelle = await leseDatei(ctx, RESULTS_PFAD);
-  const vorhanden = leseListe(resultsQuelle, 'RESULTS_UPLOADED_RAW');
+  let liste = leseListe(resultsQuelle, 'RESULTS_UPLOADED_RAW');
+  const ersetzt: string[] = [];
 
-  // Dasselbe Turnier zweimal wäre die Punkte doppelt: Die alte Zeile wird
-  // ersetzt, nicht ergänzt. Das ist zugleich der Weg, ein Ergebnis zu
-  // berichtigen — einfach noch einmal freigeben.
-  const ohneAlte = vorhanden.filter(z => !z.startsWith(`${kennung}|`) && !z.startsWith(`${datum}|${spielort}|`));
-  const schonVorhanden = ohneAlte.length !== vorhanden.length;
-  const neueListe = [...ohneAlte, eingabe.zeile].sort();
+  for (const eingabe of eingaben) {
+    const [datum, spielort] = eingabe.zeile.split('|');
+    const kennung = `${datum}-${spielort}`;
+    // Dasselbe Turnier zweimal wäre die Punkte doppelt: Die alte Zeile wird
+    // ersetzt, nicht ergänzt. Das ist zugleich der Weg, ein Ergebnis zu
+    // berichtigen — einfach noch einmal freigeben.
+    const ohneAlte = liste.filter(
+      z => !z.startsWith(`${kennung}|`) && !z.startsWith(`${datum}|${spielort}|`),
+    );
+    if (ohneAlte.length !== liste.length) ersetzt.push(eingabe.beschreibung);
+    liste = [...ohneAlte, eingabe.zeile];
+  }
 
   const dateien = [{
     pfad: RESULTS_PFAD,
-    inhalt: ersetzeListe(resultsQuelle, 'RESULTS_UPLOADED_RAW', neueListe),
+    inhalt: ersetzeListe(resultsQuelle, 'RESULTS_UPLOADED_RAW', [...liste].sort()),
   }];
 
-  if (eingabe.neueSpieler.length) {
+  const alleNeuen = eingaben.flatMap(e => e.neueSpieler);
+  if (alleNeuen.length) {
     const playersQuelle = await leseDatei(ctx, PLAYERS_PFAD);
     let inhalt = playersQuelle;
     for (const division of ['men', 'women'] as const) {
-      const dazu = eingabe.neueSpieler.filter(s => s.division === division);
+      const dazu = alleNeuen.filter(s => s.division === division);
       if (!dazu.length) continue;
       const konstante = division === 'men'
         ? 'PLAYERS_UPLOADED_MEN_RAW'
         : 'PLAYERS_UPLOADED_WOMEN_RAW';
       const bisher = leseListe(inhalt, konstante);
+      // `bekannt` wächst mit: Steht derselbe Neuling auf zwei Zetteln des
+      // Stapels, darf er nicht zweimal in die Datei.
       const bekannt = new Set(bisher.map(z => z.split('|')[1]));
-      const zeilen = dazu
-        .filter(s => !bekannt.has(String(s.passNr)))
-        .map(s => `0|${s.passNr}|${s.lastName}|${s.firstName}|0|0||`);
+      const zeilen: string[] = [];
+      for (const s of dazu) {
+        if (bekannt.has(String(s.passNr))) continue;
+        bekannt.add(String(s.passNr));
+        zeilen.push(`0|${s.passNr}|${s.lastName}|${s.firstName}|0|0||`);
+      }
       if (!zeilen.length) continue;
       inhalt = ersetzeListe(inhalt, konstante, [...bisher, ...zeilen]);
     }
     if (inhalt !== playersQuelle) dateien.push({ pfad: PLAYERS_PFAD, inhalt });
   }
 
-  const nachricht = [
-    `MDC: Ergebnis ${eingabe.beschreibung}`,
-    '',
-    schonVorhanden
-      ? 'Ersetzt die zuvor hochgeladene Fassung desselben Turniers.'
-      : 'Vom Ergebniszettel hochgeladen und vor der Freigabe geprüft.',
-    eingabe.neueSpieler.length
-      ? `Neu im Stamm: ${eingabe.neueSpieler.map(s => `${s.firstName} ${s.lastName} (${s.passNr})`).join(', ')}.`
-      : '',
-  ].filter(Boolean).join('\n');
+  const commit = await committe(ctx, dateien, nachricht(eingaben, ersetzt, alleNeuen));
+  return { ...commit, ersetzt };
+}
 
-  const commit = await committe(ctx, dateien, nachricht);
-  return { ...commit, schonVorhanden };
+/**
+ * Die Commit-Nachricht.
+ *
+ * Absätze werden mit einer LEERZEILE verbunden, nicht mit einem Zeilenumbruch:
+ * Git nimmt die erste Zeile als Betreff und braucht danach eine leere Zeile.
+ * Ohne sie klebte in `git log --oneline` der ganze Text am Betreff — so stand
+ * es bis zum 15.09.2026 in jedem Upload-Commit.
+ *
+ * Ein einzelnes Turnier behält den Wortlaut von früher: Die Historie soll
+ * durch den Stapel nicht zweierlei Sprache sprechen.
+ */
+function nachricht(
+  eingaben: Veroeffentlichung[],
+  ersetzt: string[],
+  neueSpieler: NeuerSpieler[],
+): string {
+  const neue = neueSpieler.length
+    ? `Neu im Stamm: ${neueSpieler.map(s => `${s.firstName} ${s.lastName} (${s.passNr})`).join(', ')}.`
+    : '';
+
+  if (eingaben.length === 1) {
+    return [
+      `MDC: Ergebnis ${eingaben[0].beschreibung}`,
+      ersetzt.length
+        ? 'Ersetzt die zuvor hochgeladene Fassung desselben Turniers.'
+        : 'Vom Ergebniszettel hochgeladen und vor der Freigabe geprüft.',
+      neue,
+    ].filter(Boolean).join('\n\n');
+  }
+
+  return [
+    `MDC: ${eingaben.length} Ergebnisse vom Zettel`,
+    eingaben.map(e => `- ${e.beschreibung}`).join('\n'),
+    [
+      'Vom Ergebniszettel hochgeladen und vor der Freigabe geprüft.',
+      ersetzt.length ? `Ersetzt die zuvor hochgeladene Fassung von: ${ersetzt.join(', ')}.` : '',
+    ].filter(Boolean).join('\n'),
+    neue,
+  ].filter(Boolean).join('\n\n');
 }

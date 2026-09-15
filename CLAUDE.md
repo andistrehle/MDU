@@ -95,7 +95,30 @@ vollständige Angaben bleibt die Seite automatisch noindex.
 **Ergebnis-Upload:** Unter `/admin/ergebnis` kann die Turnierleitung den
 Ergebniszettel fotografieren; Claude Vision liest ihn, die erkannte Liste
 wird am Bildschirm geprüft und erst dann freigegeben. Die Punkte kommen
-immer aus `pointsFor`, nie vom Zettel. **Neulinge stehen auf dem Zettel:**
+immer aus `pointsFor`, nie vom Zettel.
+**MEHRERE ZETTEL AUF EINMAL (seit 15.09.2026):** Ein Abend bringt mehrere
+Turniere (am 13.09.2026 waren es fünf). Die Auswahl nimmt bis zu `MAX_ZETTEL`
+Fotos (`lib/mdc/upload-grenzen.ts`, 12 — die Zahl brauchen Browser UND
+Server-Aktion, deshalb eine eigene Datei: `'use server'` darf nichts außer
+Funktionen ausliefern, `ergebnis-commit.ts` ist `server-only`). Gelesen wird
+NACHEINANDER mit Zähler; ein unlesbarer Zettel wirft nicht den Stapel weg,
+er wird beim Namen genannt. **Datum und Spielort hängen am ZETTEL, nicht an
+der Seite:** Jede Zettelkarte hat ihre eigenen Felder, vorbelegt aus der
+Erkennung (`spielortAusText` ordnet den gelesenen Lokalnamen zu — nur bei
+GENAU EINEM Treffer, sonst steht da, was gelesen wurde, und die Vorgabe
+bleibt). Die Vorgabe oben greift nur, wo der Zettel nichts hergibt.
+**Freigegeben wird alles zusammen in EINEM Commit** (`veroeffentlicheTurniere`)
+— fünf Commits wären fünf Vercel-Neubauten und fünfmal ISR-Kontingent, mit
+Zwischenständen, in denen erst der halbe Abend online ist. **Alles oder
+nichts:** Stimmt an einem Zettel etwas nicht, wird gar nichts geschrieben und
+gesagt, welcher es ist. Drei Prüfungen gibt es nur im Stapel (`pruefeStapel`):
+zwei Zettel mit gleichem Datum UND Spielort (der zweite überschriebe den
+ersten), dieselbe freie Nummer für zwei verschiedene Neulinge, und derselbe
+Neuling mit zwei Nummern. Im Browser werden freie Nummern über den GANZEN
+Stapel verteilt, nicht je Zettel. Ein einzelner Zettel ist der Stapel mit
+einem Element — es gibt nur diesen einen Weg, damit die Prüfungen nicht
+zweimal gepflegt werden; Wortlaut und Commit-Nachricht bleiben dort wie
+bisher. **Neulinge stehen auf dem Zettel:**
 Kreuz in der Spalte „neu" + leere PASSNR → `ordneSpielerZu` rät gar nicht erst
 (`quelle: 'neu'`), die Oberfläche macht die Felder für den neuen Spieler auf,
 Name vom Zettel, Wertungsklasse aus der Spalte M/F, und die Passnummer kommt
