@@ -42,6 +42,8 @@ import { jackpotStand } from '../lib/mdc/jackpot';
 import { doppelteEintraege } from '../lib/mdc/passnummern';
 import { REGISTER_KORREKTUREN, type RegisterKorrektur } from '../data/register-korrekturen';
 import { AKTIVE_REGISTER_KORREKTUREN, ERLEDIGTE_REGISTER_KORREKTUREN } from '../data/register';
+import { GEAENDERTE_SPIELORTE, ERLEDIGTE_SPIELORT_AENDERUNGEN, WEEKDAY_NAMES } from '../data/venues';
+import { FELD_NAMEN, SPIELORT_FELDER, gleicherWert, type SpielortFeld } from '../data/spielorte-aenderungen';
 import type { Division, Season } from '../data/types';
 
 /** Was die Summenprobe von einer Ranglistenzeile braucht. */
@@ -316,6 +318,36 @@ if (PASS_KORREKTUREN.length > 0) {
   for (const k of ERLEDIGTE_REGISTER_KORREKTUREN) {
     console.log(`  ERLEDIGT  ${beschreibe(k)} — die Mappe sagt das inzwischen selbst. `
       + 'Eintrag aus data/register-korrekturen.ts entfernen.');
+  }
+}
+
+// ── Spielorte: was von der Seite aus geändert wurde ────────
+//
+// Dieselbe Logik wie beim Register: Jede Änderung merkt sich den alten Wert
+// und gilt nur, solange die Übersicht ihn noch führt. Zieht der Betreiber dort
+// nach, läuft der Eintrag ins Leere — das gehört gesagt, sonst schleppt ihn
+// niemand je wieder heraus.
+if (GEAENDERTE_SPIELORTE.length || ERLEDIGTE_SPIELORT_AENDERUNGEN.length) {
+  console.log('\nSpielorte (data/spielorte-aenderungen.ts)');
+
+  const alsText = (feld: SpielortFeld, wert: unknown): string => {
+    if (feld === 'weekdays') return (wert as number[]).map(d => WEEKDAY_NAMES[d as 1]).join(' & ');
+    if (feld === 'phones') return (wert as string[]).join(', ') || '—';
+    return String(wert);
+  };
+
+  for (const { basis, aenderung } of GEAENDERTE_SPIELORTE) {
+    const teile = SPIELORT_FELDER
+      .filter(feld => aenderung.neu[feld] !== undefined
+        && !gleicherWert(aenderung.neu[feld], basis[feld]))
+      .map(feld => `${FELD_NAMEN[feld]} ${alsText(feld, basis[feld])} → `
+        + `${alsText(feld, aenderung.neu[feld])}`);
+    console.log(`  aktiv     ${basis.name}: ${teile.join(', ')}`);
+  }
+
+  for (const a of ERLEDIGTE_SPIELORT_AENDERUNGEN) {
+    meldung(`ERLEDIGT oder gegenstandslos: Die Änderung an „${a.venueId}" passt auf keine `
+      + 'Zeile der Spielorte-Übersicht mehr. Eintrag aus data/spielorte-aenderungen.ts entfernen.');
   }
 }
 

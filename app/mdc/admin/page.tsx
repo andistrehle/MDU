@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Camera, KeyRound, Megaphone, Newspaper } from 'lucide-react';
+import { ArrowRight, CalendarDays, Camera, KeyRound, MapPin, Megaphone, Newspaper } from 'lucide-react';
 import { PageHero, DemoNotice } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { AdminDemo, type AdminPlayerOption } from '@/components/mdc/admin-demo';
@@ -151,6 +151,31 @@ export default function AdminPage() {
           >
             <div style={{ maxWidth: 560 }}>
               <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <MapPin size={19} style={{ color: 'var(--mdc-red)' }} />
+                Spielorte
+              </h2>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Ein Automat mehr, ein anderer Spieltag, neue Startzeit oder Adresse. Die
+                Änderung wirkt überall zugleich — Spielorte-Seite, Wochenplan,
+                Ergebnis-Upload. Ein einzelner Abend, der ausfällt, gehört dagegen in den
+                Kalender.
+              </p>
+            </div>
+            <Link href={mdcPath('/admin/spielorte')} className="mdc-btn mdc-btn-primary">
+              Spielorte ändern
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          <div
+            className="mdc-card"
+            style={{
+              padding: '22px 20px', display: 'flex', flexWrap: 'wrap', gap: 16,
+              alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ maxWidth: 560 }}>
+              <h2 className="mdc-display" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: 9 }}>
                 <Megaphone size={19} style={{ color: 'var(--mdc-red)' }} />
                 Rangliste für Facebook
               </h2>
@@ -171,8 +196,8 @@ export default function AdminPage() {
             Alles Weitere auf dieser Seite ist reine Oberfläche: Kein Eintrag wird
             gespeichert oder verschickt, alles lebt nur im Browser und ist nach dem
             Neuladen weg. So könnte ein Turnierabend digital ablaufen — gebaut sind
-            davon bisher der Ergebnis-Upload, der Kalender, die News, die Passnummern und der
-            Facebook-Beitrag oben.
+            davon bisher der Ergebnis-Upload, der Kalender, die News, die Passnummern, die
+            Spielorte und der Facebook-Beitrag oben.
           </DemoNotice>
 
           <AdminDemo venues={venues} players={players} />

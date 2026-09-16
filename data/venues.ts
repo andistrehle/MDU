@@ -17,6 +17,10 @@
 
 import type { Venue, Weekday } from './types';
 import { faelltAus, zusatzAm } from './kalender';
+import {
+  SPIELORT_AENDERUNGEN, aenderungFuer, greiftAuf, wendeAn,
+  type SpielortAenderung,
+} from './spielorte-aenderungen';
 
 /**
  * Sollen die Telefonnummern öffentlich angezeigt werden?
@@ -28,7 +32,17 @@ import { faelltAus, zusatzAm } from './kalender';
  */
 export const PHONES_PUBLIC = false;
 
-export const VENUES: Venue[] = [
+/**
+ * Die Spielorte, wie sie in der Übersicht des Betreibers stehen (Stand August
+ * 2026). Von Hand gepflegt — hier wird nichts von einem Programm überschrieben.
+ *
+ * Was die Turnierleitung an der Seite geändert hat, steht in
+ * `data/spielorte-aenderungen.ts` und wird darübergelegt. Geltend ist deshalb
+ * `VENUES`, nicht diese Liste; gebraucht wird sie trotzdem an zwei Stellen:
+ * von der Verwaltung (um den Unterschied zu zeigen) und von den Änderungen
+ * selbst (sie greifen nur, solange der alte Wert hier noch steht).
+ */
+export const VENUES_BASIS: Venue[] = [
   // ── Montag ────────────────────────────────────────────────
   {
     id: 'legendary',
@@ -50,7 +64,9 @@ export const VENUES: Venue[] = [
     weekdays: [1],
     time: '20:00',
     phones: ['089 65113113'],
-    boards: 3,
+    // Vier statt drei — vom Betreiber am 16.09.2026 gemeldet. Die
+    // Spielorte-Übersicht vom August führt noch drei.
+    boards: 4,
   },
   {
     id: 'bistro-118',
@@ -158,6 +174,31 @@ export const VENUES: Venue[] = [
     boards: 4,
   },
 ];
+
+/**
+ * Die geltenden Spielorte: die Übersicht des Betreibers, darübergelegt was
+ * unter `/admin/spielorte` geändert wurde.
+ *
+ * Alles auf der Seite rechnet mit DIESER Liste — Spielorte-Seite, Wochenplan,
+ * Ergebnis-Upload, Kalender. Eine Änderung wirkt damit überall zugleich,
+ * statt an einer Stelle zu stimmen und an der nächsten nicht.
+ */
+export const VENUES: Venue[] = VENUES_BASIS.map(wendeAn);
+
+/** Lokale, an denen gerade eine Änderung von der Seite hängt. */
+export const GEAENDERTE_SPIELORTE: { basis: Venue; aenderung: SpielortAenderung }[] =
+  VENUES_BASIS
+    .map(basis => ({ basis, aenderung: aenderungFuer(basis) }))
+    .filter((e): e is { basis: Venue; aenderung: SpielortAenderung } => e.aenderung !== undefined);
+
+/**
+ * Änderungen, die ins Leere laufen: Der Wert, auf den sie sich beziehen, steht
+ * so nicht mehr in der Übersicht — der Betreiber hat sie dort nachgezogen oder
+ * eine neue Saisonübersicht abgetippt. Sie wirken nicht mehr und können weg;
+ * `scripts/mdc-check-saison.ts` sagt es.
+ */
+export const ERLEDIGTE_SPIELORT_AENDERUNGEN: SpielortAenderung[] =
+  SPIELORT_AENDERUNGEN.filter(a => !VENUES_BASIS.some(basis => greiftAuf(a, basis)));
 
 /**
  * Zusätzlich zu den festen Spieltagen kann an diesen Tagen in JEDEM

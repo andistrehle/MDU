@@ -301,7 +301,28 @@ springt ein oder es gibt spontan eines am Wochenende). Landet als Commit in
 über den Plan, also wirkt es überall zugleich: Startseite, `/turniere`,
 Spielort-Seiten, Knopf in der Kopfzeile. Der Spielort ist immer eines der elf
 Lokale — freie Eingabe gibt es bewusst nicht (sonst kein Adresse/Karte/Seite).
-Dauerhafte Änderungen am Spieltag gehören in `data/venues.ts`, nicht hierher.
+Dauerhafte Änderungen am Spieltag gehören nicht hierher, sondern zu den
+Spielorten (siehe unten).
+**Spielorte (seit 16.09.2026 von der Seite aus änderbar):** Maßgeblich bleibt
+die Spielorte-Übersicht des Betreibers, abgetippt in `VENUES_BASIS`
+(`data/venues.ts`) — von Hand gepflegt, mit Kommentaren, nach Wochentagen
+gruppiert. Unter `/admin/spielorte` lassen sich Name, Adresse, fester
+Spieltag, Beginn, Telefon und **Automatenzahl** ändern; das landet als
+Commit in `data/spielorte-aenderungen.ts` (JSON-Array, Form nicht zerstören)
+und wird in `VENUES = VENUES_BASIS.map(wendeAn)` darübergelegt. Alles auf der
+Seite rechnet mit `VENUES`, eine Änderung wirkt also überall zugleich
+(Spielorte-Seite, Wochenplan, Ergebnis-Upload, Kalender). **Jeder Eintrag
+merkt sich den alten Wert (`vorher`) und greift nur, solange die Übersicht
+ihn noch führt** — zieht der Betreiber dort nach oder kommt eine neue
+Saisonübersicht, fällt er von allein weg und `scripts/mdc-check-saison.ts`
+meldet „ERLEDIGT". Ohne diese Bremse erzwänge eine alte Berichtigung später
+still den alten Wert. **Den Unterschied rechnet der Server**
+(`app/mdc/admin/spielorte/actions.ts`), nicht der Browser: Geschickt wird der
+ganze Satz Angaben, verglichen wird gegen `VENUES_BASIS`; wer einen Wert
+wieder auf den ursprünglichen stellt, löscht damit den Eintrag. **Lokale
+hinzufügen oder herausnehmen geht dort NICHT** — daran hängen Ergebnisse,
+Archiv und Spielort-Seiten, das gehört in `data/venues.ts` (frühere Lokale:
+`FORMER_VENUES`).
 **Jackpot:** `lib/mdc/jackpot.ts` rechnet den Topf der laufenden Saison aus den
 Teilnahmen (3 € je Teilnahme, Blatt „Einzelergebnisse" J5) plus Übertrag aus der
 Vorsaison (Männer 200 €, Frauen 220 €); 2 % des Männer-Topfs gehen an die Frauen,
