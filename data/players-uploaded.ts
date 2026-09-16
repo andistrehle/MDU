@@ -33,6 +33,7 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|171|LINDINGER|ROBERT|0|0||',
   '0|318||JUSTIN|0|0||',
   '0|319|BISTRO 118|MEHMET|0|0||',
+  '0|320|GORTH|MIKE|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
