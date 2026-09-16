@@ -91,6 +91,14 @@ export type RegisterKorrektur =
 export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
   {
     "art": "stillgelegt",
+    "passNr": 133,
+    "lastName": "MEYER",
+    "firstName": "PATRICK",
+    "stattdessen": 31,
+    "note": "Vom Betreiber entschieden am 13.09.2026: doppelt in der Mappe. Unter 133 steht kein einziges Turnier, unter 31 zwei."
+  },
+  {
+    "art": "stillgelegt",
     "passNr": 196,
     "lastName": "VASZI",
     "firstName": "CLAUDIA",
@@ -109,12 +117,14 @@ export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
     "note": "Vom Betreiber entschieden am 12.09.2026: Die Nummer behält Hundseder. Rolls Turnier vom 09.02.2026 bleibt bei ihm."
   },
   {
-    "art": "stillgelegt",
-    "passNr": 133,
-    "lastName": "MEYER",
-    "firstName": "PATRICK",
-    "stattdessen": 31,
-    "note": "Vom Betreiber entschieden am 13.09.2026: doppelt in der Mappe. Unter 133 steht kein einziges Turnier, unter 31 zwei."
+    "art": "vergeben",
+    "passNr": 320,
+    "gehoertZu": {
+      "lastName": "GORTH",
+      "firstName": "MIKE"
+    },
+    "division": "men",
+    "note": null
   },
   {
     "art": "vergeben",
