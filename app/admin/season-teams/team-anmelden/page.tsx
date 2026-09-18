@@ -84,12 +84,6 @@ export default function TeamAnmeldenPage() {
     return () => { alive = false; };
   }, []);
 
-  // Kontakt standardmäßig auf das anmeldende Admin-/Ligaleitungs-Konto.
-  useEffect(() => {
-    if (!user) return;
-    setDraft(d => (d.contact_name || d.contact_email) ? d : { ...d, contact_name: user.displayName ?? '', contact_email: user.email ?? '' });
-  }, [user]);
-
   function onChoice(teamId: string) {
     setChoice(teamId);
     setDone(null); setMsg(null); setPendingActiveSeason(null);
@@ -100,15 +94,19 @@ export default function TeamAnmeldenPage() {
     const assignment = getTeamAssignment(teamId, SEASON.id);
     const suggestedLeague: MainLeague | null =
       predet?.league ?? (assignment ? (mainLeagueForSubCode(assignment.leagueId) ?? null) : null);
-    setDraft(d => ({
+    const roster = getRankedRosterForTeam(teamId, SEASON.id);
+    // Kontakt = echter Kapitän aus dem Kader (NICHT das anmeldende Admin-Konto).
+    // Name vorbelegen, E-Mail trägt die Ligaleitung ein.
+    const captain = roster.find(e => e.isCaptain);
+    setDraft({
       ...emptyDraft(),
-      contact_name: d.contact_name, contact_email: d.contact_email,
+      contact_name: captain ? getPlayerDisplayName(captain.player) : '',
       source_team_id: teamId, is_new_team: false,
       team_name: team?.name ?? '', short_name: team?.short ?? '',
       venue_name: venue?.name ?? '', venue_address: venue?.address ?? '',
       requested_league: suggestedLeague,
-    }));
-    setPlayers(getRankedRosterForTeam(teamId, SEASON.id).map(e => ({
+    });
+    setPlayers(roster.map(e => ({
       player_id: e.player.id,
       first_name: e.player.firstName,
       last_name: e.player.lastName,
@@ -169,6 +167,7 @@ export default function TeamAnmeldenPage() {
     const res = await applyApprovedTeamRegistration(id, {
       reviewNote: `Von der Ligaleitung angemeldet (${user?.displayName ?? 'Admin'})`,
       allowActiveSeason,
+      onBehalf: true,
     });
     setBusy(false);
     if (res.activeSeasonWarning) { setPendingActiveSeason(id); return; }
@@ -176,7 +175,7 @@ export default function TeamAnmeldenPage() {
     const f = res.finalize;
     const extra = f ? ` · Passnummern: ${f.created ?? 0} neu, ${f.linked ?? 0} übernommen${f.ambiguous?.length ? `, ${f.ambiguous.length} unklar` : ''}` : '';
     setDone(`„${draft.team_name}" ist angemeldet und freigegeben (${MAIN_LEAGUE_LABELS[draft.requested_league as MainLeague] ?? draft.requested_league}).${extra}`);
-    setChoice(''); setPlayers([]); setDraft(d => ({ ...emptyDraft(), contact_name: d.contact_name, contact_email: d.contact_email }));
+    setChoice(''); setPlayers([]); setDraft(emptyDraft());
   }
 
   return (

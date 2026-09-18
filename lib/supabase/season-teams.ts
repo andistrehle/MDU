@@ -184,6 +184,41 @@ export async function setSeasonTeamVenue(seasonId: string, teamId: string, name:
   return { error: error?.message ?? null };
 }
 
+/**
+ * Ansprechpartner/„Kapitän-Kontakt" eines freigegebenen Teams ändern. Die
+ * angezeigten Kontaktdaten stehen in der Anmeldung (team_registrations), nicht
+ * in der Saisonzuordnung — deshalb wird dort geschrieben (RLS: treg_update_admin).
+ *
+ * `clearCaptainUser`: bei einer Anmeldung IM NAMEN der Mannschaft hat die RPC
+ * captain_user_id = submitted_by gesetzt, also das anmeldende Admin-/
+ * Ligaleitungs-Konto. Ist das Team gar nicht dem Konto zugeordnet, lässt sich
+ * das Kapitäns-KONTO hier leeren (der echte Kapitän bleibt über captain_player_id
+ * erhalten). Bewusst optional, damit ein selbst angemeldeter Kapitän nicht
+ * versehentlich seine Konto-Verknüpfung verliert (RLS: sta_admin_write).
+ */
+export async function setSeasonTeamContact(
+  seasonId: string, teamId: string, registrationId: string | null,
+  contact: { name: string; email: string; phone: string },
+  clearCaptainUser = false,
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const name = contact.name.trim();
+  const email = contact.email.trim();
+  if (!name) return { error: 'Bitte einen Namen für den Ansprechpartner angeben.' };
+  if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail angeben (Pflichtfeld).' };
+  if (!registrationId) return { error: 'Zu diesem Team gibt es keine Anmeldung zum Bearbeiten.' };
+  const { error } = await supabase.from('team_registrations')
+    .update({ contact_name: name, contact_email: email, contact_phone: contact.phone.trim() || null })
+    .eq('id', registrationId);
+  if (error) return { error: error.message };
+  if (clearCaptainUser) {
+    const { error: e2 } = await supabase.from('season_team_assignments')
+      .update({ captain_user_id: null }).eq('season_id', seasonId).eq('team_id', teamId);
+    if (e2) return { error: e2.message };
+  }
+  return { error: null };
+}
+
 /** Neuen Spieler zum Kader eines freigegebenen Teams hinzufügen (Status
  *  pending_review → bekommt beim nächsten Freigeben Profil + Passnummer). */
 export async function addRosterPlayer(seasonId: string, teamId: string, first: string, last: string): Promise<{ error: string | null }> {

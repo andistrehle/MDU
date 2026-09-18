@@ -366,7 +366,7 @@ export async function reviewRegistration(
  */
 export async function applyApprovedTeamRegistration(
   registrationId: string,
-  opts: { reviewNote?: string; allowActiveSeason?: boolean } = {},
+  opts: { reviewNote?: string; allowActiveSeason?: boolean; onBehalf?: boolean } = {},
 ): Promise<{ error: string | null; resultTeamId?: string | null; activeSeasonWarning?: boolean; finalize?: FinalizeSummary }> {
   if (!supabase) return { error: NOT_CONFIGURED };
 
@@ -396,6 +396,19 @@ export async function applyApprovedTeamRegistration(
 
   const res = (data ?? {}) as { ok?: boolean; error?: string; team_id?: string | null; season_id?: string | null };
   if (res.ok === false) return { error: res.error ?? 'Automatische Übernahme fehlgeschlagen.' };
+
+  // Anmeldung im Namen der Mannschaft (Ligaleitung/Admin): Die RPC setzt
+  // captain_user_id = reg.submitted_by — das wäre hier das Admin-Konto. Der
+  // echte Kapitän steckt korrekt in captain_player_id (aus dem Kader). Das
+  // Kapitäns-KONTO gehört aber nicht dem Admin, also vor dem Finalisieren
+  // wieder leeren (RLS: sta_admin_write erlaubt das). Sonst würde zusätzlich
+  // linkCaptain() in finalizeNewRosterPlayers das Admin-Konto mit dem
+  // Kapitäns-Spielerprofil verknüpfen.
+  if (opts.onBehalf && res.team_id && res.season_id) {
+    await supabase.from('season_team_assignments')
+      .update({ captain_user_id: null })
+      .eq('season_id', res.season_id).eq('team_id', res.team_id);
+  }
 
   // Direkt im Anschluss die neuen Spieler „scharf schalten": Profile anlegen und
   // Passnummern vergeben bzw. bestehende wiederverwenden — kein separater Klick

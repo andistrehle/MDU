@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setSeasonTeamContact, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
@@ -166,6 +166,24 @@ export default function AdminSeasonTeamsPage() {
     setVenueEditTeam(null);
   }
 
+  // Ansprechpartner/„Kapitän-Kontakt" bearbeiten (v. a. bei im Namen der
+  // Mannschaft angemeldeten Teams, wo der Kontakt sonst auf dem Admin-Konto steht).
+  const [contactEditTeam, setContactEditTeam] = useState<string | null>(null);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [clearCaptainUser, setClearCaptainUser] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  async function onSaveContact(teamId: string, registrationId: string | null) {
+    setSavingContact(true);
+    const { error } = await setSeasonTeamContact(seasonId, teamId, registrationId,
+      { name: contactName, email: contactEmail, phone: contactPhone }, clearCaptainUser);
+    setSavingContact(false);
+    if (error) { setFinalizeMsg({ teamId, kind: 'err', text: error }); return; }
+    setTeams(await listSeasonTeams(seasonId));
+    setContactEditTeam(null);
+  }
+
   const [deletingRow, setDeletingRow] = useState<string | null>(null);
   async function onDeletePlayer(teamId: string, row: SeasonRosterRow) {
     const name = `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim() || 'diesen Spieler';
@@ -310,12 +328,38 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ color: 'var(--th-text-muted)' }}>Liga/Wettbewerb</span>
               <span style={{ color: t.assigned_competition_id ? 'var(--th-text-strong)' : 'var(--th-text-faint2)' }}>{t.assigned_competition_id ?? 'noch nicht zugewiesen'}</span>
               <span style={{ color: 'var(--th-text-muted)' }}>Kapitän/Kontakt</span>
-              <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                {t.contact_name ? <span>{t.contact_name}</span> : <span style={{ color: 'var(--th-text-faint2)' }}>–</span>}
-                {t.contact_phone && <PhoneActions phone={t.contact_phone} />}
-                {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
-                {!t.contact_phone && <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>(keine Telefonnummer angegeben)</span>}
-              </span>
+              {contactEditTeam === t.team_id ? (
+                <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Name des Kapitäns / Ansprechpartners"
+                    style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
+                  <input value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="E-Mail (Pflicht)" inputMode="email"
+                    style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
+                  <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Telefon (optional)" inputMode="tel"
+                    style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
+                  <label style={{ display: 'flex', gap: 7, alignItems: 'flex-start', fontSize: 11.5, color: 'var(--th-text-muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={clearCaptainUser} onChange={e => setClearCaptainUser(e.target.checked)} style={{ marginTop: 2 }} />
+                    <span>Im Namen der Mannschaft angemeldet – kein eigenes Kapitäns-Konto (entfernt die Konto-Verknüpfung, der echte Kapitän im Kader bleibt).</span>
+                  </label>
+                  <span style={{ display: 'flex', gap: 6 }}>
+                    <button type="button" onClick={() => onSaveContact(t.team_id, t.registration_id)} disabled={savingContact || !contactName.trim()}
+                      style={{ padding: '6px 12px', borderRadius: 7, cursor: savingContact ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
+                      {savingContact ? 'Speichere …' : 'Speichern'}
+                    </button>
+                    <button type="button" onClick={() => setContactEditTeam(null)}
+                      style={{ padding: '6px 10px', borderRadius: 7, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-muted)', border: '1px solid var(--th-line-10)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>Abbrechen</button>
+                  </span>
+                </span>
+              ) : (
+                <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                  {t.contact_name ? <span>{t.contact_name}</span> : <span style={{ color: 'var(--th-text-faint2)' }}>–</span>}
+                  {t.contact_phone && <PhoneActions phone={t.contact_phone} />}
+                  {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
+                  {!t.contact_phone && <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>(keine Telefonnummer angegeben)</span>}
+                  <button type="button" title="Ansprechpartner ändern"
+                    onClick={() => { setContactEditTeam(t.team_id); setContactName(t.contact_name ?? ''); setContactEmail(t.contact_email ?? ''); setContactPhone(t.contact_phone ?? ''); setClearCaptainUser(false); }}
+                    style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', fontSize: 12 }}>✎</button>
+                </span>
+              )}
               <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                 <span>{memberCount} × {PLAYER_FEE_EUR} € = <strong>{fee} €</strong></span>
