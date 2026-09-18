@@ -144,7 +144,8 @@ export default function TeamAnmeldenPage() {
     if (!draft.team_name.trim()) m.push('Teamname');
     if (!draft.requested_league) m.push('Liga');
     if (!draft.contact_name.trim()) m.push('Ansprechpartner');
-    if (!/^\S+@\S+\.\S+$/.test(draft.contact_email)) m.push('gültige Kontakt-E-Mail');
+    // E-Mail optional (im Namen der Mannschaft oft unbekannt) — nur Format prüfen, wenn ausgefüllt.
+    if (draft.contact_email.trim() && !/^\S+@\S+\.\S+$/.test(draft.contact_email)) m.push('gültige Kontakt-E-Mail');
     if (!draft.venue_name?.trim()) m.push('Spielstätte (Name)');
     if (!draft.venue_address?.trim()) m.push('Spielstätte (Adresse)');
     if (players.filter(p => p.display_name.trim()).length === 0) m.push('mindestens ein Spieler');

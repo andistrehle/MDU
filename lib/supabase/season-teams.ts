@@ -205,7 +205,10 @@ export async function setSeasonTeamContact(
   const name = contact.name.trim();
   const email = contact.email.trim();
   if (!name) return { error: 'Bitte einen Namen für den Ansprechpartner angeben.' };
-  if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Bitte eine gültige E-Mail angeben (Pflichtfeld).' };
+  // E-Mail ist optional (im Namen der Mannschaft angemeldet → oft unbekannt).
+  // NUR das Format prüfen, wenn etwas eingetragen ist. Leer wird als '' gespeichert
+  // (die Spalte ist NOT NULL, ein Leerstring erfüllt das; die Anzeige blendet ihn aus).
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) return { error: 'Die E-Mail sieht nicht gültig aus — bitte korrigieren oder leer lassen.' };
   if (!registrationId) return { error: 'Zu diesem Team gibt es keine Anmeldung zum Bearbeiten.' };
   const { error } = await supabase.from('team_registrations')
     .update({ contact_name: name, contact_email: email, contact_phone: contact.phone.trim() || null })

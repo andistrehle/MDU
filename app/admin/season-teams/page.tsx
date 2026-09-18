@@ -332,7 +332,7 @@ export default function AdminSeasonTeamsPage() {
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Name des Kapitäns / Ansprechpartners"
                     style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
-                  <input value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="E-Mail (Pflicht)" inputMode="email"
+                  <input value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="E-Mail (optional)" inputMode="email"
                     style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
                   <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Telefon (optional)" inputMode="tel"
                     style={{ padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
