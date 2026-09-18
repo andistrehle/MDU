@@ -544,6 +544,18 @@ export default function AdminSeasonTeamsPage() {
         )}
       </div>
 
+      {/* Team im Namen der Mannschaft anmelden (Ligaleitung/Admin) */}
+      <div style={{ marginBottom: 18 }}>
+        <Link href="/admin/season-teams/team-anmelden" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 8,
+          background: 'var(--th-accent)', color: '#fff', textDecoration: 'none',
+          fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5,
+        }}>＋ Team anmelden</Link>
+        <span style={{ marginLeft: 10, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>
+          Mannschaft im Namen des Teams anmelden &amp; sofort freigeben (Kader aus Vorsaison, anpassbar).
+        </span>
+      </div>
+
       {/* Saison verwalten — aktive Saison + Umschalten (nur Super Admin) */}
       {canSwitch && (
         <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 18px', marginBottom: 18, maxWidth: 900, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
