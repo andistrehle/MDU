@@ -145,6 +145,16 @@ export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
     },
     "division": "women",
     "note": null
+  },
+  {
+    "art": "vergeben",
+    "passNr": 495,
+    "gehoertZu": {
+      "lastName": "WÜRMTAL",
+      "firstName": "IAN"
+    },
+    "division": "men",
+    "note": null
   }
 ];
 
