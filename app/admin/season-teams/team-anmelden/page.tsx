@@ -142,6 +142,8 @@ export default function TeamAnmeldenPage() {
     }));
   }
   function removePlayer(i: number) { setPlayers(ps => ps.filter((_, idx) => idx !== i)); }
+  // Genau ein Kapitän je Kader (Radio-Verhalten): den gewählten an, alle anderen aus.
+  function setCaptain(i: number) { setPlayers(ps => ps.map((p, idx) => ({ ...p, is_captain: idx === i }))); }
   function addPlayer() {
     const n = newName.trim();
     if (!n) return;
@@ -272,11 +274,19 @@ export default function TeamAnmeldenPage() {
 
                 <div>
                   <label style={label}>Kader ({players.filter(p => p.display_name.trim()).length})</label>
+                  <p style={{ fontSize: 11.5, color: 'var(--th-text-faint)', margin: '0 0 6px' }}>„Kapitän" beim Mannschaftsführer antippen (genau einer).</p>
                   <div style={{ display: 'grid', gap: 6 }}>
                     {players.map((p, i) => (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, alignItems: 'center' }}>
                         <input value={p.display_name} onChange={e => editPlayer(i, e.target.value)} style={inputStyle}
                           placeholder="Vor- und Nachname" />
+                        <button type="button" onClick={() => setCaptain(i)} title="Als Kapitän markieren"
+                          style={{ padding: '8px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                            border: `1px solid ${p.is_captain ? 'var(--th-accent)' : 'var(--th-line-18)'}`,
+                            background: p.is_captain ? 'var(--th-accent)' : 'transparent',
+                            color: p.is_captain ? '#fff' : 'var(--th-text-muted)' }}>
+                          {p.is_captain ? '★ Kapitän' : 'Kapitän'}
+                        </button>
                         <button type="button" onClick={() => removePlayer(i)}
                           style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--th-line-18)', background: 'transparent', color: 'var(--th-text-muted)', cursor: 'pointer' }}>
                           entfernen
