@@ -128,6 +128,16 @@ export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
   },
   {
     "art": "vergeben",
+    "passNr": 343,
+    "gehoertZu": {
+      "lastName": "FRITSCHE",
+      "firstName": "CHRISTIAN (FISCH)"
+    },
+    "division": "men",
+    "note": null
+  },
+  {
+    "art": "vergeben",
     "passNr": 490,
     "gehoertZu": {
       "lastName": "GLASHAUSER",
