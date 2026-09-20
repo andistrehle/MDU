@@ -596,7 +596,7 @@ export default function AdminSeasonTeamsPage() {
           fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5,
         }}>＋ Team anmelden</Link>
         <span style={{ marginLeft: 10, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>
-          Mannschaft im Namen des Teams anmelden &amp; sofort freigeben (Kader aus Vorsaison, anpassbar).
+          Mannschaft im Namen des Teams anmelden &amp; sofort freigeben — bestehendes Team (Kader aus Vorsaison) oder neue Mannschaft.
         </span>
       </div>
 

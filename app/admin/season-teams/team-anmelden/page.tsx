@@ -75,8 +75,19 @@ export default function TeamAnmeldenPage() {
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [pendingActiveSeason, setPendingActiveSeason] = useState<string | null>(null);
+  // Bestehendes Team (Kader aus der Vorsaison) oder eine ganz neue Mannschaft.
+  const [mode, setMode] = useState<'existing' | 'new'>('existing');
 
   const predetermined = useMemo(() => (choice ? getPredeterminedLeagueForTeam(choice) : null), [choice]);
+  const formVisible = mode === 'new' || (mode === 'existing' && !!choice);
+
+  function onMode(m: 'existing' | 'new') {
+    setMode(m);
+    setChoice(''); setPlayers([]); setNewName('');
+    setDone(null); setMsg(null); setPendingActiveSeason(null);
+    // Neues Team: leerer Entwurf, is_new_team → die RPC legt die Mannschaft an.
+    setDraft({ ...emptyDraft(), is_new_team: m === 'new' });
+  }
 
   useEffect(() => {
     let alive = true;
@@ -140,7 +151,7 @@ export default function TeamAnmeldenPage() {
 
   function validate(): string[] {
     const m: string[] = [];
-    if (!choice) m.push('Mannschaft');
+    if (mode === 'existing' && !choice) m.push('Mannschaft');
     if (!draft.team_name.trim()) m.push('Teamname');
     if (!draft.requested_league) m.push('Liga');
     if (!draft.contact_name.trim()) m.push('Ansprechpartner');
@@ -156,7 +167,9 @@ export default function TeamAnmeldenPage() {
     setBusy(true); setMsg(null);
     const s = regSeasonId ? { id: regSeasonId } : await getRegistrationSeason();
     if (!s) { setBusy(false); setMsg({ kind: 'err', text: 'Aktuell ist keine Saison zur Anmeldung geöffnet.' }); return; }
-    const payload: RegistrationDraft = { ...draft, season_id: s.id, is_new_team: false, source_team_id: choice };
+    const payload: RegistrationDraft = { ...draft, season_id: s.id,
+      is_new_team: mode === 'new',
+      source_team_id: mode === 'new' ? null : choice };
 
     // 1) Anmeldung anlegen (Entwurf) …
     const { id, error } = await createRegistration(payload, players.filter(p => p.display_name.trim()));
@@ -176,13 +189,13 @@ export default function TeamAnmeldenPage() {
     const f = res.finalize;
     const extra = f ? ` · Passnummern: ${f.created ?? 0} neu, ${f.linked ?? 0} übernommen${f.ambiguous?.length ? `, ${f.ambiguous.length} unklar` : ''}` : '';
     setDone(`„${draft.team_name}" ist angemeldet und freigegeben (${MAIN_LEAGUE_LABELS[draft.requested_league as MainLeague] ?? draft.requested_league}).${extra}`);
-    setChoice(''); setPlayers([]); setDraft(emptyDraft());
+    setMode('existing'); setChoice(''); setPlayers([]); setDraft(emptyDraft());
   }
 
   return (
     <AdminGuard
       title="Team anmelden"
-      subtitle="Meldet eine Mannschaft im Namen des Teams an und gibt sie sofort frei. Kader aus der Vorsaison, anpassbar; Passnummern automatisch."
+      subtitle="Meldet eine Mannschaft im Namen des Teams an und gibt sie sofort frei — bestehendes Team (Kader aus der Vorsaison) oder eine ganz neue Mannschaft. Passnummern automatisch."
       require="league"
     >
       <div style={{ maxWidth: 720, padding: '0 0 60px' }}>
@@ -199,20 +212,43 @@ export default function TeamAnmeldenPage() {
             {done && <Notice kind="ok">{done}</Notice>}
             {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
 
-            <div style={{ marginBottom: 14 }}>
-              <label style={label}>Mannschaft</label>
-              <select value={choice} onChange={e => onChoice(e.target.value)} style={inputStyle}>
-                <option value="">— bitte wählen —</option>
-                {TEAM_OPTIONS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-              {predetermined && (
-                <p style={{ fontSize: 12, color: 'var(--th-text-muted)', margin: '6px 0 0' }}>
-                  Vorgeschlagene Liga laut Auf-/Abstieg: <b>{predetermined.label}</b>
-                </p>
-              )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              {(['existing', 'new'] as const).map(m => (
+                <button key={m} type="button" onClick={() => onMode(m)}
+                  style={{
+                    flex: 1, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                    border: `1px solid ${mode === m ? 'var(--th-accent)' : 'var(--th-line-18)'}`,
+                    background: mode === m ? 'var(--th-accent)' : 'transparent',
+                    color: mode === m ? '#fff' : 'var(--th-text-muted)',
+                  }}>
+                  {m === 'existing' ? 'Bestehendes Team' : 'Neues Team'}
+                </button>
+              ))}
             </div>
 
-            {choice && (
+            {mode === 'existing' && (
+              <div style={{ marginBottom: 14 }}>
+                <label style={label}>Mannschaft</label>
+                <select value={choice} onChange={e => onChoice(e.target.value)} style={inputStyle}>
+                  <option value="">— bitte wählen —</option>
+                  {TEAM_OPTIONS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+                {predetermined && (
+                  <p style={{ fontSize: 12, color: 'var(--th-text-muted)', margin: '6px 0 0' }}>
+                    Vorgeschlagene Liga laut Auf-/Abstieg: <b>{predetermined.label}</b>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {mode === 'new' && (
+              <p style={{ fontSize: 12, color: 'var(--th-text-muted)', margin: '0 0 14px' }}>
+                Neue Mannschaft: Name, Liga, Spielstätte, Kontakt und Kader unten selbst eintragen. Die Passnummern
+                werden beim Freigeben automatisch vergeben.
+              </p>
+            )}
+
+            {formVisible && (
               <div style={{ display: 'grid', gap: 14 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 10 }}>
                   <div><label style={label}>Teamname</label><input value={draft.team_name} onChange={e => set('team_name', e.target.value)} style={inputStyle} /></div>
