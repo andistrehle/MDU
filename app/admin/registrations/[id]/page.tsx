@@ -9,6 +9,7 @@ import { canApproveRegistrations } from '@/lib/auth/roles';
 import {
   getRegistration, getRegistrationPlayers, reviewRegistration, applyApprovedTeamRegistration,
   updateRegistrationSeason, updateRegistrationAssignedCompetition, deleteRegistration,
+  updateRegistrationPlayerName,
   REGISTRATION_STATUS_LABELS, type TeamRegistration, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
 import {
@@ -50,6 +51,27 @@ export default function RegistrationDetailPage() {
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmActiveSeason, setConfirmActiveSeason] = useState(false);
   const [assignedCompetition, setAssignedCompetition] = useState('');
+  // Inline-Korrektur eines gemeldeten Spielernamens (z. B. Spitzname → echter Name).
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [savingName, setSavingName] = useState(false);
+
+  // Kader + Namensabgleich neu laden (nach einer Namenskorrektur).
+  async function reloadPlayers() {
+    const pls = await getRegistrationPlayers(id);
+    setPlayers(pls);
+    setNameMatches(await matchRegistrationRosterToDbPlayers(pls));
+  }
+
+  async function onSavePlayerName(rowId: string | undefined) {
+    if (!rowId) return;
+    setSavingName(true);
+    const { error } = await updateRegistrationPlayerName(rowId, editName);
+    setSavingName(false);
+    if (error) { setMsg(error); return; }
+    setEditIdx(null); setEditName('');
+    await reloadPlayers();
+  }
 
   // Aktuell gewählte Ziel-Saison (für Anzeige + Validierung).
   const targetSeason = seasons.find(s => s.id === targetSeasonId) ?? null;
@@ -261,6 +283,25 @@ export default function RegistrationDetailPage() {
                   // DB-Abgleich für Konten OHNE Vorsaison-Team (z. B. frisch registrierte Kapitäne).
                   const m = nameMatches[i];
                   const ambiguous = sug?.confidence === 'ambiguous' || m?.status === 'ambiguous';
+                  // Namen korrigieren ist nur vor der Freigabe sinnvoll (danach hängt
+                  // der Spieler bereits im Kader / hat ggf. eine Passnummer).
+                  const canEditRoster = canReview && !reg.applied_at;
+                  if (editIdx === i) {
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <input value={editName} onChange={e => setEditName(e.target.value)} autoFocus
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onSavePlayerName(p.id); } if (e.key === 'Escape') setEditIdx(null); }}
+                          placeholder="Vor- und Nachname"
+                          style={{ flex: 1, minWidth: 180, padding: '7px 10px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none' }} />
+                        <button type="button" onClick={() => onSavePlayerName(p.id)} disabled={savingName || !editName.trim()}
+                          style={{ padding: '7px 12px', borderRadius: 7, cursor: savingName ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
+                          {savingName ? 'Speichere …' : 'Speichern'}
+                        </button>
+                        <button type="button" onClick={() => { setEditIdx(null); setEditName(''); }}
+                          style={{ padding: '7px 10px', borderRadius: 7, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-muted)', border: '1px solid var(--th-line-10)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>Abbrechen</button>
+                      </div>
+                    );
+                  }
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                       <span style={{ flex: 1 }}>
@@ -277,6 +318,11 @@ export default function RegistrationDetailPage() {
                                 : null}
                       </span>
                       {p.is_captain && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--th-gold)', textTransform: 'uppercase' }}>Kapitän</span>}
+                      {canEditRoster && p.id && (
+                        <button type="button" title="Namen korrigieren"
+                          onClick={() => { setEditIdx(i); setEditName(p.display_name ?? ''); setMsg(null); }}
+                          style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', fontSize: 12 }}>✎</button>
+                      )}
                     </div>
                   );
                 })}

@@ -142,6 +142,26 @@ export async function getRegistrationPlayers(registrationId: string): Promise<Re
 
 // ── Schreiben ─────────────────────────────────────────────────
 
+/**
+ * Namen einer gemeldeten Kaderzeile korrigieren (vor der Freigabe). Nutzt die
+ * Ligaleitung z. B., wenn ein Spieler unter einem Spitznamen gemeldet wurde
+ * („Jojo Schwaiger" → „Johannes Schwaiger"): Nach der Korrektur greift die
+ * Namenszuordnung, und beim Freigeben verknüpft finalize den BESTEHENDEN
+ * Spieler (Passnummer/Historie bleiben) statt ein neues Profil anzulegen.
+ * Verknüpfung wird gelöst (player_id/is_existing_player), damit die Auflösung
+ * ausschließlich über den korrigierten Namen läuft. RLS: trp_update (Admin).
+ */
+export async function updateRegistrationPlayerName(rowId: string, fullName: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const display = fullName.trim();
+  if (!display) return { error: 'Bitte einen Namen angeben.' };
+  const { first, last } = splitDisplayName(display);
+  const { error } = await supabase.from('team_registration_players')
+    .update({ display_name: display, first_name: first, last_name: last, player_id: null, is_existing_player: false })
+    .eq('id', rowId);
+  return { error: error?.message ?? null };
+}
+
 /** Legt einen Entwurf an und gibt die neue id zurück. */
 export async function createRegistration(
   draft: RegistrationDraft,
