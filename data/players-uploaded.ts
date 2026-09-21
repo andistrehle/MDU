@@ -34,10 +34,12 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|318||JUSTIN|0|0||',
   '0|319|BISTRO 118|MEHMET|0|0||',
   '0|320|GORTH|MIKE|0|0||',
+  '0|339|KOLLER|ANDREAS|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
 export const PLAYERS_UPLOADED_WOMEN_RAW: string[] = [
   '0|155|LINDINGER|DIANA|0|0||',
   '0|316|PÖPPERL|KARIN|0|0||',
+  '0|330|JOST|ILONA|0|0||',
 ];
