@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { HomeContent } from '@/components/mdu/home-content';
-import { ForceTheme } from '@/components/mdu/force-theme';
+import { DesignToggle } from '@/components/mdu/design-toggle';
 
 // ============================================================
 // DESIGN-VORSCHAU (nicht verlinkt, noindex)
@@ -23,9 +23,10 @@ export const metadata: Metadata = {
 export default function HeroVorschauPage() {
   return (
     <>
-      {/* Vor dem Paint auf dunkel stellen (minimiert das Umschalt-Flackern). */}
-      <script dangerouslySetInnerHTML={{ __html: `try{document.documentElement.dataset.theme='dark';}catch(e){}` }} />
-      <ForceTheme theme="dark" />
+      {/* Vor dem Paint auf Old School (hell) stellen — Standard der Vorschau;
+          per Umschalter unten links auf New Design (dunkel) wechselbar. */}
+      <script dangerouslySetInnerHTML={{ __html: `try{document.documentElement.dataset.theme='light';}catch(e){}` }} />
+      <DesignToggle initial="light" />
       <HomeContent hero="fullbleed" />
     </>
   );
