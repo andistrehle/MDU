@@ -314,6 +314,20 @@ export function proxy(request: NextRequest) {
     return withSecurityHeaders(NextResponse.next());
   }
 
+  // ── BeDV-Demo (`/bedv`) ──
+  // Unverbindliche Design- und Funktionsdemo für den Bayerischen
+  // Elektronik-Dart Verein — eigenständig wie die MDC. Weder der
+  // Coming-Soon-Schalter der MDU noch ihr Anmelde-Guard dürfen hier
+  // greifen: Ein MDU-Wartungsmodus würde sonst mitten im Verkaufsgespräch
+  // die Demo abschalten. Die Sicherheits-Header gelten weiterhin.
+  //
+  // Der Anmelde-Guard unten wäre ohnehin nicht zuständig (`/bedv/mein-bereich`
+  // beginnt nicht mit `/mein-bereich`), aber darauf soll sich niemand
+  // verlassen müssen — die Demo kennt gar keine Anmeldung.
+  if (pathname === '/bedv' || pathname.startsWith('/bedv/')) {
+    return withSecurityHeaders(NextResponse.next());
+  }
+
   // ── Coming-Soon-/Wartungsmodus (lib/site-config.ts) ──
   // Bei aktivem COMING_SOON wird JEDER Aufruf auf die Holding-Seite
   // umgeschrieben. Ausnahme: eine Vorschau-Sitzung (Cookie), damit man sich

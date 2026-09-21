@@ -20,6 +20,7 @@
 
 import { usePathname } from 'next/navigation';
 import { isMdcPath, MDC_STANDALONE } from '@/lib/mdc/site';
+import { isBedvPath } from '@/lib/bedv/site';
 import { AuthProvider } from '@/lib/auth/auth-context';
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -33,7 +34,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   if (MDC_STANDALONE) return <AuthProvider>{children}</AuthProvider>;
 
   // In der MDU-Ausprägung entscheidet der Pfad: Unter `/mdc` läuft die
-  // eigenständige Seite ohne MDU-Kontext.
-  if (isMdcPath(pathname)) return <>{children}</>;
+  // eigenständige Seite ohne MDU-Kontext. Unter `/bedv` ebenso — die
+  // BeDV-Demo hat ihre eigene (reine Oberflächen-)Rollenwahl und würde von
+  // einer Supabase-Abfrage an das MDU-Konto-System nur ausgebremst.
+  if (isMdcPath(pathname) || isBedvPath(pathname)) return <>{children}</>;
   return <AuthProvider>{children}</AuthProvider>;
 }

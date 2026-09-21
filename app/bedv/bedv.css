@@ -1,0 +1,640 @@
+/* ============================================================
+   BeDV-Demo — Design-System
+   ============================================================
+
+   Vollständig getrennt von MDU und MDC: Alles hängt unter `.bedv-root`,
+   damit sich die drei Projekte im selben Next-Rahmen nicht ins Gehege
+   kommen.
+
+   FARBWELT
+   Der BeDV ist ein bayerischer Landesverband — also Blau als Grundton, aber
+   ein tiefes, ruhiges Blau statt des hellen Wappenblaus: Es trägt Tabellen,
+   ohne selbst zu rufen. Dazu genau EINE Signalfarbe (Bernstein) für das,
+   was zählt: Tabellenführung, Pokal, aktueller Spieltag. Grün und Rot
+   bleiben den Ergebnissen vorbehalten (Sieg/Niederlage) und tauchen sonst
+   nirgends auf — sonst verlieren sie ihre Bedeutung.
+
+   KONTRAST (nachgemessen, nicht geschätzt)
+     --bedv-blue        #1657C4 auf Weiß        6,0:1   ✓ AA
+     --bedv-accent-deep #8A5A05 auf Weiß        5,8:1   ✓ AA
+     --bedv-green       #0E7A4A auf Weiß        4,9:1   ✓ AA
+     --bedv-red         #C7251B auf Weiß        5,4:1   ✓ AA
+     --bedv-ink-dim     #5C6880 auf Weiß        5,3:1   ✓ AA
+     --bedv-ink-faint   #7D8AA3 auf Weiß        3,4:1   — nur Zierde
+   Bernstein (#F0A81C) steht NIE als Text auf Weiß, sondern immer als
+   Fläche mit dunkler Schrift darauf. Wer das ändert, macht Tabellenplätze
+   unlesbar.
+
+   AUFBAU
+   Helle Seite, dunkler Kopfbereich. Der Kontrast zwischen dem tiefblauen
+   Hero und den weißen Karten darunter ist der eigentliche Effekt — er
+   braucht keine Animation.
+   ============================================================ */
+
+.bedv-root {
+  /* Blau */
+  --bedv-navy-950:  #06101F;
+  --bedv-navy-900:  #0A1B35;
+  --bedv-navy-800:  #102A55;
+  --bedv-navy-700:  #163A73;
+  --bedv-blue:      #1657C4;
+  --bedv-blue-deep: #10408F;
+  --bedv-blue-bright: #3B82F6;
+  --bedv-blue-soft: #DCE8FB;
+  --bedv-blue-mist: #EEF4FD;
+
+  /* Signalfarbe */
+  --bedv-accent:      #F0A81C;
+  --bedv-accent-soft: #FDF0D6;
+  --bedv-accent-deep: #8A5A05;
+
+  /* Ergebnisfarben — ausschließlich für Sieg/Niederlage */
+  --bedv-green:      #0E7A4A;
+  --bedv-green-soft: #DFF3E8;
+  --bedv-red:        #C7251B;
+  --bedv-red-soft:   #FBE4E2;
+
+  /* Nebenfarben für Spielklassen */
+  --bedv-teal:   #0E7490;
+  --bedv-violet: #6D4AC4;
+
+  /* Flächen */
+  --bedv-page:   #FFFFFF;
+  --bedv-tint:   #F5F8FC;
+  --bedv-tint-2: #EAF0F8;
+  --bedv-card:   #FFFFFF;
+
+  /* Schrift */
+  --bedv-ink:       #0D1524;
+  --bedv-ink-soft:  #3F4B63;
+  --bedv-ink-dim:   #5C6880;
+  --bedv-ink-faint: #7D8AA3;
+  --bedv-on-dark:       #F2F6FC;
+  --bedv-on-dark-dim:   #A9BCDA;
+  --bedv-on-dark-faint: #7C93B8;
+
+  /* Linien */
+  --bedv-line:      #E2E8F2;
+  --bedv-line-soft: #EFF3F9;
+  --bedv-line-hard: #C9D5E7;
+  --bedv-line-dark: rgba(255, 255, 255, 0.12);
+
+  /* Schatten */
+  --bedv-shadow-sm: 0 1px 2px rgba(10, 27, 53, 0.06);
+  --bedv-shadow:    0 2px 10px rgba(10, 27, 53, 0.08);
+  --bedv-shadow-lg: 0 12px 34px rgba(10, 27, 53, 0.14);
+
+  /* Schriftfamilien — bewusst andere als MDU (Saira/Manrope) und
+     MDC, damit die drei Projekte nicht wie Geschwister wirken. */
+  --bedv-font-display: var(--font-outfit), 'Segoe UI', system-ui, sans-serif;
+  --bedv-font-body:    var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  --bedv-shell: 1200px;
+  --bedv-radius: 14px;
+
+  color-scheme: light;
+  background: var(--bedv-page);
+  color: var(--bedv-ink);
+  font-family: var(--bedv-font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Der MDU-Rahmen (dunkles Grundblatt, Abstand für ihre Bottom-Nav) darf hier
+   nicht durchschlagen — dieselbe Vorsorge wie in `app/mdc/mdc.css`. */
+html:has(.bedv-root),
+body:has(.bedv-root) { background: #FFFFFF; }
+body:has(.bedv-root) { padding-bottom: 0 !important; }
+
+.bedv-root ::selection { background: var(--bedv-blue); color: #fff; }
+
+/* Verweise erben die Textfarbe — ohne Spezifität (`:where`), sonst stäche
+   diese Regel jede Knopf- und Navigationsfarbe aus. */
+:where(.bedv-root a) { color: inherit; text-decoration: none; }
+
+.bedv-root :focus-visible {
+  outline: 2px solid var(--bedv-blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.bedv-root h1, .bedv-root h2, .bedv-root h3, .bedv-root h4 {
+  font-family: var(--bedv-font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.bedv-root p { margin: 0; }
+
+/* ── Grundraster ───────────────────────────────────────── */
+
+.bedv-shell {
+  width: 100%;
+  max-width: var(--bedv-shell);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (max-width: 480px) { .bedv-shell { padding-inline: 16px; } }
+
+.bedv-section { padding-block: 52px; }
+.bedv-section--tight { padding-block: 34px; }
+.bedv-section--tinted { background: var(--bedv-tint); }
+@media (max-width: 768px) {
+  .bedv-section { padding-block: 36px; }
+  .bedv-section--tight { padding-block: 26px; }
+}
+
+/* Abschnittskopf: Titel links, Verweis rechts. */
+.bedv-sectionhead {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.bedv-eyebrow {
+  font-family: var(--bedv-font-display);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--bedv-blue);
+  display: flex; align-items: center; gap: 8px;
+}
+.bedv-eyebrow::before {
+  content: ''; width: 18px; height: 2px; background: var(--bedv-accent);
+  border-radius: 2px; flex: none;
+}
+.bedv-sectionhead h2 { font-size: clamp(1.4rem, 3.4vw, 1.85rem); margin-top: 6px; }
+
+/* ── Karten ────────────────────────────────────────────── */
+
+.bedv-card {
+  background: var(--bedv-card);
+  border: 1px solid var(--bedv-line);
+  border-radius: var(--bedv-radius);
+  box-shadow: var(--bedv-shadow-sm);
+}
+
+/* Anklickbare Karte: hebt sich beim Zeigen leicht an. Bewusst klein —
+   2 px und ein weicherer Schatten reichen, alles darüber wirkt spielerisch. */
+.bedv-card--link {
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  display: block;
+}
+.bedv-card--link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--bedv-shadow);
+  border-color: var(--bedv-line-hard);
+}
+.bedv-card--link:active { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bedv-card--link, .bedv-card--link:hover { transition: none; transform: none; }
+}
+
+/* ── Abzeichen ─────────────────────────────────────────── */
+
+.bedv-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--bedv-font-display);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  background: var(--bedv-blue-mist); color: var(--bedv-blue-deep);
+}
+.bedv-badge--accent { background: var(--bedv-accent-soft); color: var(--bedv-accent-deep); }
+.bedv-badge--green  { background: var(--bedv-green-soft);  color: var(--bedv-green); }
+.bedv-badge--red    { background: var(--bedv-red-soft);    color: var(--bedv-red); }
+.bedv-badge--quiet  { background: var(--bedv-tint-2);      color: var(--bedv-ink-dim); }
+.bedv-badge--dark   { background: rgba(255,255,255,0.13);  color: var(--bedv-on-dark); }
+.bedv-badge--demo   { background: var(--bedv-tint-2); color: var(--bedv-ink-dim); text-transform: none; letter-spacing: 0; font-weight: 600; }
+
+/* ── Knöpfe ────────────────────────────────────────────── */
+
+.bedv-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--bedv-font-display);
+  font-size: 0.92rem; font-weight: 600; letter-spacing: 0.01em;
+  padding: 10px 18px; border-radius: 10px; border: 1px solid transparent;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.bedv-btn:active { transform: translateY(1px); }
+.bedv-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.bedv-btn--primary { background: var(--bedv-blue); color: #fff; }
+.bedv-btn--primary:hover:not(:disabled) { background: var(--bedv-blue-deep); }
+
+.bedv-btn--accent { background: var(--bedv-accent); color: #3A2600; }
+.bedv-btn--accent:hover:not(:disabled) { background: #D9940C; }
+
+.bedv-btn--ghost {
+  background: var(--bedv-card); color: var(--bedv-ink);
+  border-color: var(--bedv-line-hard);
+}
+.bedv-btn--ghost:hover:not(:disabled) { background: var(--bedv-tint); border-color: var(--bedv-blue); color: var(--bedv-blue-deep); }
+
+.bedv-btn--quiet { background: transparent; color: var(--bedv-blue-deep); padding-inline: 10px; }
+.bedv-btn--quiet:hover:not(:disabled) { background: var(--bedv-blue-mist); }
+
+.bedv-btn--ondark { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.22); }
+.bedv-btn--ondark:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+
+.bedv-btn--sm { font-size: 0.82rem; padding: 7px 13px; border-radius: 8px; }
+.bedv-btn--block { width: 100%; }
+
+/* ── Tabellen ──────────────────────────────────────────── */
+
+.bedv-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.bedv-table th {
+  font-family: var(--bedv-font-display);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--bedv-ink-dim); text-align: right;
+  padding: 10px 8px; border-bottom: 1px solid var(--bedv-line-hard);
+  white-space: nowrap;
+}
+.bedv-table th:first-child, .bedv-table td:first-child { text-align: center; }
+.bedv-table th:nth-child(2), .bedv-table td:nth-child(2) { text-align: left; }
+.bedv-table td {
+  padding: 9px 8px; text-align: right;
+  border-bottom: 1px solid var(--bedv-line-soft);
+  font-variant-numeric: tabular-nums;
+}
+.bedv-table tbody tr { transition: background 0.12s ease; }
+.bedv-table tbody tr:hover { background: var(--bedv-blue-mist); }
+.bedv-table tbody tr:last-child td { border-bottom: none; }
+.bedv-table .bedv-num { font-variant-numeric: tabular-nums; }
+.bedv-table .bedv-strong { font-weight: 700; color: var(--bedv-ink); }
+
+/* Platzmarkierung: ein schmaler Balken links statt einer eingefärbten
+   Zeile — so bleibt die Zeile lesbar und der Hinweis trotzdem eindeutig. */
+.bedv-rank { position: relative; }
+.bedv-rank::before {
+  content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px;
+  border-radius: 2px; background: transparent;
+}
+.bedv-rank--gold::before   { background: var(--bedv-accent); }
+.bedv-rank--up::before     { background: var(--bedv-green); }
+.bedv-rank--down::before   { background: var(--bedv-red); }
+
+/* ── Formkurve ─────────────────────────────────────────── */
+
+.bedv-form { display: inline-flex; gap: 3px; }
+.bedv-form span {
+  width: 17px; height: 17px; border-radius: 4px;
+  font-size: 0.6rem; font-weight: 800; line-height: 17px; text-align: center;
+  font-family: var(--bedv-font-display);
+}
+.bedv-form .s { background: var(--bedv-green-soft); color: var(--bedv-green); }
+.bedv-form .u { background: var(--bedv-tint-2);     color: var(--bedv-ink-dim); }
+.bedv-form .n { background: var(--bedv-red-soft);   color: var(--bedv-red); }
+
+/* ── Reiter ────────────────────────────────────────────── */
+
+.bedv-tabs {
+  display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--bedv-line);
+}
+.bedv-tabs::-webkit-scrollbar { display: none; }
+.bedv-tab {
+  font-family: var(--bedv-font-display);
+  font-size: 0.86rem; font-weight: 600; letter-spacing: 0.02em;
+  padding: 11px 15px; white-space: nowrap; cursor: pointer;
+  color: var(--bedv-ink-dim); border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.bedv-tab:hover { color: var(--bedv-ink); }
+.bedv-tab[aria-selected='true'] { color: var(--bedv-blue-deep); border-bottom-color: var(--bedv-blue); }
+
+/* ── Eingabefelder ─────────────────────────────────────── */
+
+.bedv-label {
+  display: block; font-size: 0.78rem; font-weight: 600;
+  color: var(--bedv-ink-soft); margin-bottom: 5px;
+}
+.bedv-input, .bedv-select, .bedv-textarea {
+  width: 100%; font: inherit; color: var(--bedv-ink);
+  background: var(--bedv-card);
+  border: 1px solid var(--bedv-line-hard); border-radius: 9px;
+  padding: 9px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.bedv-input:focus, .bedv-select:focus, .bedv-textarea:focus {
+  outline: none; border-color: var(--bedv-blue);
+  box-shadow: 0 0 0 3px var(--bedv-blue-mist);
+}
+.bedv-input::placeholder { color: var(--bedv-ink-faint); }
+.bedv-textarea { min-height: 96px; resize: vertical; }
+
+/* ── Schrittanzeige ────────────────────────────────────── */
+
+.bedv-steps { display: flex; align-items: center; gap: 0; }
+.bedv-step {
+  display: flex; align-items: center; gap: 8px; flex: none;
+}
+.bedv-step-dot {
+  width: 28px; height: 28px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  font-family: var(--bedv-font-display); font-size: 0.8rem; font-weight: 700;
+  background: var(--bedv-tint-2); color: var(--bedv-ink-dim);
+  border: 1px solid var(--bedv-line-hard);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.bedv-step--aktiv .bedv-step-dot { background: var(--bedv-blue); color: #fff; border-color: var(--bedv-blue); }
+.bedv-step--fertig .bedv-step-dot { background: var(--bedv-green); color: #fff; border-color: var(--bedv-green); }
+.bedv-step-linie { height: 2px; flex: 1 1 14px; min-width: 14px; background: var(--bedv-line-hard); border-radius: 2px; }
+.bedv-step-linie--fertig { background: var(--bedv-green); }
+
+/* ── Ladeflächen ───────────────────────────────────────── */
+
+.bedv-skeleton {
+  background: linear-gradient(90deg, var(--bedv-tint-2) 25%, var(--bedv-tint) 50%, var(--bedv-tint-2) 75%);
+  background-size: 200% 100%;
+  animation: bedv-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes bedv-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Bewegung ──────────────────────────────────────────── */
+
+.bedv-fade-up { animation: bedv-fade-up 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+@keyframes bedv-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.bedv-pop { animation: bedv-pop 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+@keyframes bedv-pop {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Die Dartscheibe im Hero dreht sich sehr langsam — eine volle Umdrehung
+   dauert zwei Minuten. Das nimmt man nicht als Bewegung wahr, es sorgt nur
+   dafür, dass das Bild nicht tot wirkt. */
+.bedv-spin-slow { animation: bedv-spin 120s linear infinite; transform-origin: 50% 50%; }
+@keyframes bedv-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bedv-root *, .bedv-root *::before, .bedv-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Dunkle Flächen (Hero, Kopfzeile, Fußzeile) ────────── */
+
+.bedv-dark {
+  background:
+    radial-gradient(120% 100% at 15% 0%, rgba(59, 130, 246, 0.22) 0%, transparent 55%),
+    radial-gradient(90% 80% at 92% 12%, rgba(240, 168, 28, 0.14) 0%, transparent 60%),
+    linear-gradient(168deg, var(--bedv-navy-900) 0%, var(--bedv-navy-950) 100%);
+  color: var(--bedv-on-dark);
+}
+.bedv-dark h1, .bedv-dark h2, .bedv-dark h3 { color: #fff; }
+
+/* Feines Raster über den dunklen Flächen — gibt Tiefe, ohne ein Bild zu
+   brauchen. Maskiert, damit es zum Rand hin verschwindet. */
+.bedv-grid-overlay {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.4;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: radial-gradient(75% 65% at 50% 35%, #000 20%, transparent 100%);
+}
+
+/* ── Kopfzeile ─────────────────────────────────────────── */
+
+.bedv-header {
+  position: sticky; top: 0; z-index: 60;
+  background: rgba(10, 27, 53, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--bedv-line-dark);
+  color: var(--bedv-on-dark);
+}
+.bedv-navlink {
+  font-family: var(--bedv-font-display);
+  font-size: 0.87rem; font-weight: 600; letter-spacing: 0.01em;
+  padding: 7px 11px; border-radius: 8px;
+  color: var(--bedv-on-dark-dim);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.bedv-navlink:hover { color: #fff; background: rgba(255,255,255,0.09); }
+.bedv-navlink[data-aktiv='true'] { color: #fff; background: rgba(255,255,255,0.13); }
+
+/* ── Untere Navigation (Handy) ─────────────────────────── */
+
+.bedv-bottomnav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+  display: none;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--bedv-line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bedv-bottomnav a, .bedv-bottomnav button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 9px 2px 8px; background: none; border: none; cursor: pointer;
+  font-family: var(--bedv-font-display); font-size: 0.64rem; font-weight: 600;
+  color: var(--bedv-ink-dim); letter-spacing: 0.01em;
+}
+.bedv-bottomnav a[data-aktiv='true'] { color: var(--bedv-blue); }
+
+@media (max-width: 900px) {
+  .bedv-bottomnav { display: flex; }
+  .bedv-root { padding-bottom: 66px; }
+}
+
+/* ── Waagrecht scrollende Reihen ───────────────────────── */
+
+.bedv-scroller {
+  display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; padding-bottom: 4px;
+  /* Randabstand mitscrollen lassen, sonst klebt die erste Karte am Rand. */
+  margin-inline: -20px; padding-inline: 20px;
+}
+.bedv-scroller::-webkit-scrollbar { display: none; }
+.bedv-scroller > * { scroll-snap-align: start; flex: none; }
+@media (max-width: 480px) { .bedv-scroller { margin-inline: -16px; padding-inline: 16px; } }
+
+/* ── Tabellen auf schmalen Geräten ─────────────────────── */
+
+/* Spalten, die auf dem Handy nichts erklären, verschwinden. Die Tabelle
+   wird dadurch schmaler statt kleiner — Wegquetschen macht Zahlen
+   unlesbar, Weglassen nicht. */
+@media (max-width: 720px) {
+  .bedv-col-md { display: none; }
+  .bedv-table { font-size: 0.86rem; }
+  .bedv-table th, .bedv-table td { padding: 8px 5px; }
+}
+@media (max-width: 480px) {
+  .bedv-col-sm { display: none; }
+}
+
+/* ── Kleinigkeiten ─────────────────────────────────────── */
+
+.bedv-kicker {
+  font-family: var(--bedv-font-display);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--bedv-ink-faint);
+}
+.bedv-score {
+  font-family: var(--bedv-font-display);
+  font-variant-numeric: tabular-nums; font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.bedv-divider { height: 1px; background: var(--bedv-line); border: none; margin: 0; }
+
+.bedv-prose p + p { margin-top: 0.95em; }
+.bedv-prose { color: var(--bedv-ink-soft); line-height: 1.72; font-size: 1.02rem; }
+.bedv-prose strong { color: var(--bedv-ink); font-weight: 650; }
+
+/* Gleichmäßiges Kachelraster ohne Tailwind-Zwischenschritte. */
+.bedv-grid { display: grid; gap: 14px; }
+.bedv-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bedv-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bedv-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 980px) {
+  .bedv-grid--3, .bedv-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .bedv-grid--2, .bedv-grid--3, .bedv-grid--4 { grid-template-columns: minmax(0, 1fr); }
+  .bedv-grid--keep2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Ladekringel (Suche, Formulare). */
+.bedv-spin-fast { animation: bedv-spin-fast 0.9s linear infinite; }
+@keyframes bedv-spin-fast { to { transform: rotate(360deg); } }
+
+/* Aufklappende Schicht (Glocke, „Mehr"). */
+.bedv-pop-down { animation: bedv-pop-down 0.16s ease-out both; transform-origin: top right; }
+@keyframes bedv-pop-down {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Kopfzeile: Navigation und Suchfeld ────────────────── */
+
+/* Der Suchknopf ist auf dem Desktop ein Feld mit Beispieltext, auf dem
+   Handy nur die Lupe. Der Beispieltext ist Teil des Verkaufs: Er sagt ohne
+   Erklärung, dass man hier Mannschaften UND Spieler findet. */
+.bedv-suchknopf {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.14);
+  color: var(--bedv-on-dark-dim); border-radius: 9px;
+  height: 36px; padding: 0 10px; font: inherit; font-size: 0.85rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.bedv-suchknopf:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.26); }
+.bedv-suchknopf-text { display: none; }
+.bedv-suchknopf-kbd {
+  display: none; font-family: var(--bedv-font-body); font-size: 0.68rem;
+  background: rgba(255,255,255,0.12); border-radius: 5px; padding: 2px 5px;
+  color: var(--bedv-on-dark-faint);
+}
+.bedv-nur-breit { display: none; }
+
+@media (min-width: 901px) {
+  .bedv-nav-desktop { display: flex !important; }
+  .bedv-suchknopf-text { display: inline; min-width: 170px; text-align: left; }
+  .bedv-suchknopf-kbd { display: inline; }
+  .bedv-nur-breit { display: inline; }
+}
+
+@keyframes bedv-sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+@media (max-width: 760px) {
+  .bedv-footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .bedv-footer-grid > :first-child { grid-column: 1 / -1; }
+}
+
+/* ── Kopfbereich der Startseite ────────────────────────── */
+
+/* Die Scheibe liegt hinter dem Text und ragt rechts aus dem Bild. Auf
+   schmalen Geräten verschwindet sie ganz: Dort ist jeder Pixel für die
+   Überschrift da, und eine halb verdeckte Scheibe hinter Text ist nur
+   unruhig. */
+.bedv-hero-scheibe {
+  position: absolute; right: -90px; top: 50%; transform: translateY(-50%);
+  opacity: 0.55; pointer-events: none; display: none;
+}
+/* Der Pfeil STECKT in der Scheibe — Spitze im Triple-20-Feld, Schaft schräg
+   nach unten rechts, so wie man ihn von vorne sieht.
+   
+   Die Angaben beziehen sich auf den 520 × 520 großen Kasten der Scheibe
+   (`.bedv-hero-scheibe` ist absolut gesetzt und damit der Bezugsrahmen):
+   Mittelpunkt liegt bei 260/260, das 20er-Feld rund 130 px darüber.
+   
+   `transform-origin` sitzt auf der SPITZE (sie liegt im SVG bei 5 % / 50 %).
+   Ohne das wandert die Spitze beim Drehen mit, und der Pfeil sieht aus, als
+   flöge er quer durch die Scheibe hindurch. */
+.bedv-hero-dart {
+  position: absolute; right: 95px; top: 100px;
+  transform: rotate(24deg); transform-origin: 5% 50%;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.55));
+}
+@media (min-width: 860px) {
+  .bedv-hero-scheibe { display: block; }
+}
+@media (min-width: 1180px) {
+  .bedv-hero-scheibe { right: -40px; opacity: 0.7; }
+}
+
+/* Der Demo-Hinweis über der Überschrift. Wie ein Abzeichen, aber umbruchfähig. */
+.bedv-hero-hinweis {
+  display: inline-block; margin-bottom: 16px;
+  font-family: var(--bedv-font-display);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  line-height: 1.5; padding: 4px 11px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.13); color: var(--bedv-on-dark);
+  max-width: 100%;
+}
+
+@media (max-width: 1000px) {
+  .bedv-news-layout { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+@media (max-width: 1000px) {
+  .bedv-liga-split { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* ── Pokal-Turnierbaum ─────────────────────────────────── */
+
+.bedv-baum-huelle { overflow-x: auto; padding-bottom: 8px; }
+.bedv-baum { display: flex; gap: 0; min-width: 900px; }
+.bedv-baum-spalte { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.bedv-baum-kopf {
+  text-align: center; padding-bottom: 10px; margin-bottom: 6px;
+  border-bottom: 2px solid var(--bedv-line);
+}
+.bedv-baum-partien {
+  flex: 1; display: flex; flex-direction: column; justify-content: space-around;
+  gap: 10px; padding-inline: 8px;
+}
+.bedv-baum-partie { position: relative; }
+
+/* Verbindung zur nächsten Runde: waagrechter Strich aus der Mitte der
+   Karte heraus. Bewusst keine Winkel — auf einem Baum mit 15 Partien
+   werden aus hübschen Kurven schnell Striche, die nicht mehr treffen. */
+.bedv-baum-linie {
+  position: absolute; right: -8px; top: 50%; width: 8px; height: 2px;
+  background: var(--bedv-line-hard);
+}
+
+@media (max-width: 900px) {
+  .bedv-baum-huelle { overflow-x: visible; }
+  .bedv-baum { flex-direction: column; min-width: 0; gap: 26px; }
+  .bedv-baum-partien { gap: 10px; padding-inline: 0; }
+  .bedv-baum-linie { display: none; }
+}

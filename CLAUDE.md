@@ -409,6 +409,45 @@ Adresse eines anderen Spielers ergeben. Weil die Profiladresse aus dem Namen
 entsteht, ändert sie sich mit: `alteId` in der Korrektur merkt sich die
 frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
 
+## Drittes Projekt im Repo: BeDV-Demo (`/bedv`)
+Unter **`/bedv`** liegt eine unverbindliche **Design- und Funktionsdemo** für den
+Bayerischen Elektronik-Dart Verein e. V. — **kein Auftrag des BeDV, keine
+offizielle Seite des Verbands, dauerhaft `noindex`** (`BEDV_INDEXABLE = false`
+in `lib/bedv/site.ts`; das ist keine Vorsichtsmaßnahme auf Zeit wie bei der
+MDU, sondern soll so bleiben). Zweck: dem Verband zeigen, wie eine moderne
+BeDV-Plattform aussehen könnte.
+Eigenständig wie die MDC: eigene Datenschicht (`data/bedv/`), eigene Bausteine
+(`components/bedv/`), eigenes Erscheinungsbild (`app/bedv/bedv.css`, alles unter
+`.bedv-root`), eigene Schriften (Outfit + Inter). Die MDU-Oberfläche blendet
+sich über `components/mdu/global-chrome.tsx` aus, der Supabase-Kontext entfällt
+(`components/mdu/app-providers.tsx`), und `proxy.ts` lässt `/bedv` an
+Coming-Soon-Schalter und Anmelde-Guard vorbei.
+**ALLE Inhalte sind erfunden** (`demo: true` an jedem Datensatz). Von
+edart-bayern.de wurde NICHTS übernommen — die Seite war beim Bauen nicht
+erreichbar (Egress-Sperre der Session, HTTP 403 für jeden fremden Host). Auch
+kein Logo „aus dem Gedächtnis": Das Verbandszeichen in
+`components/bedv/brand/logo.tsx` ist ein eigener Entwurf. Wer echte Daten
+einspielt, ändert nur `data/bedv/*` — Tabellen, Ranglisten und Highlights
+rechnen sich daraus.
+**Gerechnet statt abgetippt:** Die 18 Einzelspiele einer Begegnung summieren
+sich exakt auf das Gesamtergebnis (`einzelspieleVon` in `data/bedv/spiele.ts`),
+damit Spielbericht und Tabelle nie auseinanderlaufen. Der Zufall ist
+deterministisch (`lib/bedv/rng.ts`) — mit `Math.random()` gäbe es
+Hydration-Fehler. Der Spieltagskalender ist **relativ zum heutigen Tag**
+gerechnet (`data/bedv/saison.ts`), damit „Nächste Spiele" bei jeder Vorführung
+stimmt.
+**ISR:** über 600 Seiten, deshalb im Layout `revalidate = 86400`; nur
+datumsabhängige Seiten kürzer (Startseite/Ergebnisse 1800, Termine/Mein
+Bereich/Spielbericht 3600). Vor jedem neuen `revalidate` überlegen, für wie
+viele Seiten er gilt.
+**Keine ENV, kein Server:** keine Anmeldung, keine Datenbank, kein Versand,
+keine OCR-Schnittstelle, kein Kartendienst. Der Demo-Login legt nur eine Rolle
+im `localStorage` ab. Der Papierbogen-Upload zeigt das Foto ausschließlich
+lokal (`URL.createObjectURL`) — es wird nichts hochgeladen. Wird daran je etwas
+geändert, braucht die Demo einen Datenschutzhinweis.
+Einzelheiten, Vorführablauf und was bei einem echten Auftrag noch fehlt:
+**`docs/bedv-demo.md`**.
+
 ## Stolperfallen
 - **`app/favicon.ico` gilt für ALLE Seiten des Projekts, auch für `/mdc`.** Next behandelt
   diese Datei besonders: Ihr `<link>` steht in jedem Kopf und lässt sich — anders als
