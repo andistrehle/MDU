@@ -7,7 +7,7 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam, findLeague } from '@/lib/data';
-import { getCaptainTeamView, getTeamPaid, teamFeeEuro, PLAYER_FEE_EUR } from '@/lib/supabase/season-teams';
+import { getCaptainTeamView, getTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR } from '@/lib/supabase/season-teams';
 import { StartgeldPay } from '@/components/mdu/startgeld-pay';
 
 export default function MeinTeamPage() {
@@ -95,7 +95,7 @@ export default function MeinTeamPage() {
                     Startgeld {dbView.seasonName ? `· ${dbView.seasonName}` : ''}
                   </div>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-                    {feeCount} Spieler × {PLAYER_FEE_EUR} € = <strong style={{ color: 'var(--th-text-strong)' }}>{teamFeeEuro(feeCount)} €</strong>
+                    {feeCount} Spieler × {PLAYER_FEE_EUR} € + {TEAM_FEE_EUR} € = <strong style={{ color: 'var(--th-text-strong)' }}>{teamFeeEuro(feeCount)} €</strong>
                   </div>
                 </div>
                 <span style={{

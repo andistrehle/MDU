@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setSeasonTeamContact, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setSeasonTeamContact, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
@@ -276,7 +276,7 @@ export default function AdminSeasonTeamsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span style={colLabel}>Saisonbeitrag</span>
-            <span title={`${memberCount} × ${PLAYER_FEE_EUR} € = ${fee} €`} style={{
+            <span title={`${memberCount} × ${PLAYER_FEE_EUR} € + ${TEAM_FEE_EUR} € = ${fee} €`} style={{
               display: 'inline-flex', alignItems: 'center',
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase',
               padding: '2px 9px', borderRadius: 20,
@@ -362,7 +362,7 @@ export default function AdminSeasonTeamsPage() {
               )}
               <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-                <span>{memberCount} × {PLAYER_FEE_EUR} € = <strong>{fee} €</strong></span>
+                <span>{memberCount} × {PLAYER_FEE_EUR} € + {TEAM_FEE_EUR} € = <strong>{fee} €</strong></span>
                 <button
                   type="button"
                   onClick={() => onTogglePaid(t.team_id, !paid)}
@@ -565,7 +565,7 @@ export default function AdminSeasonTeamsPage() {
     const list = teams ?? [];
     let paidCount = 0, totalFee = 0, openFee = 0;
     for (const t of list) {
-      const fee = rosterFor(t.team_id).length * PLAYER_FEE_EUR;
+      const fee = teamFeeEuro(rosterFor(t.team_id).length);
       totalFee += fee;
       if (paidTeams.has(t.team_id)) paidCount += 1; else openFee += fee;
     }
@@ -638,7 +638,7 @@ export default function AdminSeasonTeamsPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, padding: '12px 16px 0' }}>
             <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Startgeld · Saisonbeiträge</span>
-            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler</span>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler + {TEAM_FEE_EUR} € / Team</span>
           </div>
           <div style={{ display: 'flex', padding: '10px 6px 14px' }}>
             {([

@@ -582,12 +582,19 @@ export async function getCaptainTeamView(teamId: string, seasonId?: string): Pro
 
 // ── Startgeld / Zahlungsstatus (Bezahlt / offen) ──────────────
 
-/** Startgeld pro Spieler in Euro. Betrag eines Teams = Kadergröße × dieser Wert. */
+/** Startgeld pro Spieler in Euro. */
 export const PLAYER_FEE_EUR = 20;
+/** Zusätzlicher Mannschaftsbeitrag je Team in Euro (einmal pro Mannschaft, zusätzlich zum Spieler-Startgeld). */
+export const TEAM_FEE_EUR = 20;
 
-/** Betrag aus Kadergröße berechnen (Anzahl Mitglieder × 20 €). */
+/**
+ * Startgeld eines Teams: Kadergröße × Spieler-Startgeld + einmaliger
+ * Mannschaftsbeitrag (z. B. 11 × 20 € + 20 € = 240 €). Ein leerer Kader (0
+ * Mitglieder) kostet nichts — dann ist es keine echte Mannschaft.
+ */
 export function teamFeeEuro(memberCount: number): number {
-  return memberCount * PLAYER_FEE_EUR;
+  if (memberCount <= 0) return 0;
+  return memberCount * PLAYER_FEE_EUR + TEAM_FEE_EUR;
 }
 
 /** Ist das Startgeld dieses Teams für die Saison als bezahlt markiert? */
