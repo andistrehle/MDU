@@ -29,7 +29,8 @@ import type { Division } from './types';
 const ROH = [...REGISTER_MEN_RAW, ...REGISTER_WOMEN_RAW];
 
 /**
- * Die Berichtigungen auf die Zeilen der Arbeitsmappe legen — VOR dem Einlesen.
+ * Erster Schritt: stillgelegte Zeilen raus, beim falschen Inhaber den Namen
+ * tauschen. Beides VOR dem Einlesen.
  *
  * Die Reihenfolge ist wesentlich: Die Spieler-ID entsteht beim Einlesen, und
  * bei zwei gleichen Namen hängt `parseRankingRows` an den zweiten die
@@ -37,12 +38,9 @@ const ROH = [...REGISTER_MEN_RAW, ...REGISTER_WOMEN_RAW];
  * einen anderen Namen, behielte der Übriggebliebene die angehängte Nummer in
  * seiner Adresse — und wäre damit immer noch ein anderer Mensch als der in der
  * Rangliste.
- *
- * Drei Handgriffe: stillgelegte Zeilen raus, beim falschen Inhaber den Namen
- * tauschen, hier vergebene Nummern hinten anhängen.
  */
-function mitKorrekturen(zeilen: string[], division: Division): string[] {
-  const bearbeitet = zeilen.flatMap(zeile => {
+function bereinigt(zeilen: string[]): string[] {
+  return zeilen.flatMap(zeile => {
     const teile = zeile.split('|');
     const passNr = Number(teile[1]);
     const treffer = REGISTER_KORREKTUREN.find(
@@ -53,18 +51,40 @@ function mitKorrekturen(zeilen: string[], division: Division): string[] {
     if (treffer.art === 'inhaber') return [alsZeile(passNr, treffer.gehoertZu)];
     return [zeile];
   });
-
-  // Hier vergebene Nummern, die die Mappe noch nicht kennt.
-  const schonDa = new Set(ROH.map(z => Number(z.split('|')[1])));
-  const dazu = REGISTER_KORREKTUREN
-    .filter(k => k.art === 'vergeben' && k.division === division && !schonDa.has(k.passNr))
-    .map(k => alsZeile(k.passNr, (k as Extract<RegisterKorrektur, { art: 'vergeben' }>).gehoertZu));
-
-  return [...bearbeitet, ...dazu];
 }
 
-export const REGISTER_MEN = parseRankingRows(mitKorrekturen(REGISTER_MEN_RAW, 'men'), 'men');
-export const REGISTER_WOMEN = parseRankingRows(mitKorrekturen(REGISTER_WOMEN_RAW, 'women'), 'women');
+const BEREINIGT_MEN = bereinigt(REGISTER_MEN_RAW);
+const BEREINIGT_WOMEN = bereinigt(REGISTER_WOMEN_RAW);
+
+/**
+ * Welche Nummern kommen nach den Berichtigungen noch aus dem Grundbestand?
+ *
+ * ENTSCHEIDEND ist „nach den Berichtigungen". Hier stand bis zum 26.09.2026
+ * der ROHE Bestand, und das hat einen echten Schaden angerichtet: Passnr. 196
+ * war an Mario Markovinovic vergeben, der Grundbestand führte die Nummer aber
+ * (fälschlich, als zweite Zeile) noch auf Claudia Vaszi. Die Stilllegung
+ * dieser Zeile griff — die Vergabe aber nicht, weil sie auf die rohe Liste
+ * schaute und die Nummer dort ja noch stand. Ergebnis: Markovinovic ohne
+ * Nummer, und sein Turnier vom 23.09. lief unter Claudia Vaszi.
+ *
+ * Die beiden Arten müssen zusammenspielen: Was die eine freiräumt, muss die
+ * andere vergeben dürfen. Deshalb zählt der bereinigte Bestand, nicht der rohe.
+ */
+const NUMMERN_IM_BESTAND = new Set(
+  [...BEREINIGT_MEN, ...BEREINIGT_WOMEN].map(z => Number(z.split('|')[1])),
+);
+
+/** Zweiter Schritt: hier vergebene Nummern anhängen, die sonst niemand führt. */
+function mitVergebenen(zeilen: string[], division: Division): string[] {
+  const dazu = REGISTER_KORREKTUREN
+    .filter(k => k.art === 'vergeben' && k.division === division && !NUMMERN_IM_BESTAND.has(k.passNr))
+    .map(k => alsZeile(k.passNr, (k as Extract<RegisterKorrektur, { art: 'vergeben' }>).gehoertZu));
+
+  return [...zeilen, ...dazu];
+}
+
+export const REGISTER_MEN = parseRankingRows(mitVergebenen(BEREINIGT_MEN, 'men'), 'men');
+export const REGISTER_WOMEN = parseRankingRows(mitVergebenen(BEREINIGT_WOMEN, 'women'), 'women');
 
 /**
  * Greift die Berichtigung heute noch?
@@ -77,7 +97,10 @@ export const REGISTER_WOMEN = parseRankingRows(mitKorrekturen(REGISTER_WOMEN_RAW
  */
 function greiftNoch(k: RegisterKorrektur): boolean {
   if (k.art === 'vergeben') {
-    return !ROH.some(zeile => Number(zeile.split('|')[1]) === k.passNr);
+    // Wieder der bereinigte Bestand, aus demselben Grund wie oben: Sonst gilt
+    // eine Vergabe als „erledigt", obwohl die Nummer durch eine Stilllegung
+    // gerade erst frei geworden ist.
+    return !NUMMERN_IM_BESTAND.has(k.passNr);
   }
   return ROH.some(zeile => {
     const teile = zeile.split('|');

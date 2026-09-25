@@ -91,6 +91,14 @@ export type RegisterKorrektur =
 export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
   {
     "art": "stillgelegt",
+    "passNr": 196,
+    "lastName": "VASZI",
+    "firstName": "CLAUDIA",
+    "stattdessen": 251,
+    "note": "Vom Betreiber entschieden am 26.09.2026: Claudia Vaszi behält 251 (dort stehen alle 63 Turniere), 196 gehört Mario Markovinovic. Der Start vom 23.09.2026 im 70er (Platz 7) ist seiner — vom Betreiber bestätigt."
+  },
+  {
+    "art": "stillgelegt",
     "passNr": 133,
     "lastName": "MEYER",
     "firstName": "PATRICK",
