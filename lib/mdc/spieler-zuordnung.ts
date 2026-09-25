@@ -22,7 +22,7 @@
 // Das ist bewusst so herum: Der Name auf dem Zettel ist eine Kurzform, die
 // Nummer ist der Schlüssel. Wer sich für jede solche Zeile durch Hunderte
 // Namen scrollen müsste, würde das Werkzeug nach zwei Abenden nicht mehr
-// benutzen — und genau dann wird wieder von Hand in die Mappe getippt.
+// benutzen — und genau dann wird der Abend wieder auf Papier ausgewertet.
 // Gelesen und geprüft wird trotzdem: Der eingesetzte Name steht direkt neben
 // dem, was auf dem Zettel stand.
 // ============================================================

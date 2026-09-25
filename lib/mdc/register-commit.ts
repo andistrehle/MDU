@@ -81,8 +81,8 @@ export async function speichereRegisterKorrektur(
     grund,
     eintrag.note ? `Grund: ${eintrag.note}` : '',
     '',
-    'Gilt nur, solange die Mappe es braucht; dort nachgezogen,',
-    'meldet scripts/mdc-check-saison.ts „ERLEDIGT".',
+    'Gilt ab sofort. Der Grundbestand (Stand 08.09.2026) bleibt unberührt;',
+    'geprüft wird das von scripts/mdc-check-saison.ts.',
   ].filter(Boolean).join('\n');
 
   const commit = await committe(
@@ -93,7 +93,7 @@ export async function speichereRegisterKorrektur(
   return { ...commit, neu: alt === undefined };
 }
 
-/** Nimmt eine Berichtigung zurück — dann gilt wieder, was in der Mappe steht. */
+/** Nimmt eine Berichtigung zurück — dann gilt wieder der Grundbestand. */
 export async function loescheRegisterKorrektur(passNr: number): Promise<{ sha: string; url: string }> {
   const ctx = kontext();
   const quelle = await leseDatei(ctx, PFAD);

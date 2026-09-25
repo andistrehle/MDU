@@ -14,11 +14,10 @@
 // Was hier geht: die Zeile OHNE Starts stilllegen. Dann gilt die andere, und
 // die Person ist wieder eine.
 //
-// Was hier bewusst NICHT geht: die Nummer mit Starts stilllegen (die
-// Ergebnisse verlören ihren Menschen) oder eine Nummer vergeben. Der Stamm
-// entsteht aus der Arbeitsmappe; die Stilllegung ist eine Berichtigung, die
-// den nächsten Import übersteht — die Mappe bleibt die Quelle und gehört
-// trotzdem nachgezogen.
+// Was hier bewusst NICHT geht: die Nummer MIT Starts stilllegen (die
+// Ergebnisse verlören ihren Menschen) oder eine Nummer vergeben. Gehören die
+// Starts in Wahrheit dem anderen, ist das eine Entscheidung, die von Hand
+// getroffen werden muss — so geschehen bei Passnr. 196 am 26.09.2026.
 // ============================================================
 
 import { useState } from 'react';
@@ -41,9 +40,9 @@ export interface DoppelAnzeige {
 
 export function RegisterDoppelt({ doppelt, korrekturen, erledigt, canPublish, missing }: {
   doppelt: DoppelAnzeige[];
-  /** Schon stillgelegte Zeilen — die Mappe führt sie noch. */
+  /** Schon stillgelegte Zeilen — der Grundbestand führt sie noch. */
   korrekturen: Stillgelegt[];
-  /** Stillgelegte Zeilen, die es in der Mappe nicht mehr gibt. */
+  /** Stillgelegte Zeilen, die es im Grundbestand nicht mehr gibt. */
   erledigt: Stillgelegt[];
   canPublish: boolean;
   missing: string[];

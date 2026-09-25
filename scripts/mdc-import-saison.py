@@ -3,6 +3,21 @@
 # MDC — eine Saison aus der Arbeitsmappe des Betreibers einlesen
 # ============================================================
 #
+# ╔══════════════════════════════════════════════════════════╗
+# ║  NICHT MEHR BENUTZEN — Stand 26.09.2026                  ║
+# ║                                                          ║
+# ║  Die Arbeitsmappe wird nicht mehr geführt; Ergebnisse     ║
+# ║  kommen über /admin/ergebnis herein und landen in         ║
+# ║  `data/results-uploaded.ts`.                             ║
+# ║                                                          ║
+# ║  Ein Lauf würde `data/results-<saison>.generated.ts`      ║
+# ║  überschreiben. Alles, was seit dem 08.09.2026 über die    ║
+# ║  Seite kam, stünde dann doppelt oder gar nicht da.        ║
+# ║                                                          ║
+# ║  Das Skript bleibt als Beleg, wie der Grundbestand        ║
+# ║  entstanden ist.                                         ║
+# ╚══════════════════════════════════════════════════════════╝
+#
 # Quelle ist die Excel-Arbeitsmappe, mit der die MDC ihre Saison führt
 # („MDC_2025_2026.xlsm", „MDC_2026_2027.xlsm"). Sie liegt bewusst NICHT im
 # Repository: rund 9 MB und darin das komplette Teilnehmerregister mit allen

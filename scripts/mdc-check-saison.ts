@@ -27,7 +27,7 @@
 
 import {
   tournamentsOfSeason, seasonStats, getTournamentRecord, AKTIVE_PASS_KORREKTUREN,
-  PARALLEL_GEPRUEFT, MAPPE_IDS,
+  PARALLEL_GEPRUEFT, GRUNDBESTAND_IDS,
 } from '../data/tournament-results';
 import { CORRECTIONS, PASS_KORREKTUREN } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
@@ -95,22 +95,23 @@ function pruefe(saison: Season, wertung: Record<Division, WertungsZeile[]>) {
   }
   console.log(`  ${zeilen} Zeilen gegen den Punkteschlüssel gerechnet`);
 
-  // ── Summenprobe gegen die Wertung der Arbeitsmappe ──
+  // ── Summenprobe gegen die mitgelieferte Saisonrangliste ──
   //
-  // Verglichen werden die Turniere AUS DER MAPPE gegen die Wertung AUS DER
-  // MAPPE — beides derselbe Stand, beides muss aufgehen. Hochgeladene Turniere
-  // bleiben außen vor: Die Mappe kennt sie noch nicht, ihre Punkte dürfen die
-  // dortige Wertung also übersteigen. Würde man sie mitzählen, meldete diese
-  // Probe jeden hochgeladenen Abend als Abweichung und wäre wertlos.
+  // Verglichen werden die Turniere DES GRUNDBESTANDS gegen die Rangliste DES
+  // GRUNDBESTANDS — beides derselbe Stand vom 08.09.2026, beides muss
+  // aufgehen. Später hochgeladene Turniere bleiben außen vor: Sie kamen nach
+  // diesem Stand und dürfen die damalige Rangliste übersteigen. Würde man sie
+  // mitzählen, meldete diese Probe jeden neuen Abend als Abweichung und wäre
+  // wertlos.
   const konten = new Map<string, { points: number; starts: number }>();
   for (const t of tournamentsOfSeason(saison.id)) {
-    // Maßgeblich ist, ob die MAPPE das Turnier kennt — nicht, welche Fassung
-    // heute gilt. Seit die Homepage Hauptquelle ist, liefert bei doppelt
-    // geführten Turnieren die Seite die Zeilen; für diese Probe zählen sie
-    // trotzdem mit, sonst fehlten der Wertung der Mappe genau deren Punkte.
-    // Weichen die beiden Fassungen voneinander ab, meldet das die Gegenprobe
-    // weiter unten — dann kann auch diese Summe nicht aufgehen.
-    if (!MAPPE_IDS.has(t.id)) continue;
+    // Maßgeblich ist, ob der GRUNDBESTAND das Turnier kennt — nicht, welche
+    // Fassung heute gilt. Bei doppelt geführten Abenden liefert die Seite die
+    // Zeilen; für diese Probe zählen sie trotzdem mit, sonst fehlten der alten
+    // Rangliste genau deren Punkte. Weichen die beiden Fassungen voneinander
+    // ab, meldet das die Gegenprobe weiter unten — dann kann auch diese Summe
+    // nicht aufgehen.
+    if (!GRUNDBESTAND_IDS.has(t.id)) continue;
     for (const r of t.results) {
       if (!r.playerId) continue;
       const konto = konten.get(r.playerId) ?? { points: 0, starts: 0 };
@@ -120,7 +121,7 @@ function pruefe(saison: Season, wertung: Record<Division, WertungsZeile[]>) {
     }
   }
 
-  // Berichtigte Turniere weichen absichtlich von der Mappe ab (siehe
+  // Berichtigte Turniere weichen absichtlich vom Grundbestand ab (siehe
   // `data/corrections.ts`). Wer in einem steckt, wird übergangen statt falsch
   // gemeldet — die Berichtigung selbst wird weiter unten eigens geprüft.
   const berichtigt = new Set<string>();
@@ -216,9 +217,10 @@ if (CORRECTIONS.length > 0) {
     if (turnier.participantsInWorkbook !== eintrag.workbookParticipants) {
       // Als Fehler und nicht als Hinweis: Eine überholte Berichtigung würde
       // sonst still weiterlaufen und die Zahlen verfälschen.
-      meldung(`ERLEDIGT: ${eintrag.tournamentId} — die Mappe führt jetzt ` +
+      meldung(`GEGENSTANDSLOS: ${eintrag.tournamentId} — der Grundbestand führt ` +
         `${turnier.participantsInWorkbook} statt ${eintrag.workbookParticipants} Starter. ` +
-        'Eintrag aus data/corrections.ts entfernen.');
+        'Die Berichtigung passt nicht mehr dazu und gehört geprüft ' +
+        '(data/corrections.ts).');
       continue;
     }
     const zeile = turnier.results.find(r => r.passNr === eintrag.passNr);
@@ -233,14 +235,16 @@ if (CORRECTIONS.length > 0) {
   }
 }
 
-// ── Gegenprobe: Mappe gegen Homepage ───────────────────────
+// ── Gegenprobe aus der Übergangszeit ───────────────────────
 //
-// Seit dem 12.09.2026 ist die Homepage die Hauptquelle; die Arbeitsmappe läuft
-// anfangs parallel weiter. Genau dafür ist dieser Abschnitt da: Wo beide
-// dasselbe Turnier führen, wird verglichen. „identisch" heißt, der Abend ist
-// zweimal unabhängig richtig erfasst worden — das ist der Sinn der Übung.
+// Im September 2026 hat der Betreiber einige Abende doppelt erfasst: einmal
+// über den Zettel, einmal in der Mappe. Wo beide Quellen dasselbe Turnier
+// führen, wird hier verglichen. „identisch" heißt, der Abend ist zweimal
+// unabhängig richtig erfasst worden — das war der Sinn der Übung.
+//
+// Dazukommen kann nichts mehr; die Mappe wird nicht mehr geführt.
 if (PARALLEL_GEPRUEFT.length > 0) {
-  console.log('\nGegenprobe Homepage ↔ Arbeitsmappe');
+  console.log('\nGegenprobe Zettel ↔ Grundbestand');
   for (const p of PARALLEL_GEPRUEFT) {
     if (p.gleich) {
       console.log(`  identisch  ${p.id}`);
@@ -249,8 +253,8 @@ if (PARALLEL_GEPRUEFT.length > 0) {
     // Kein Fehler im Sinne von „kaputt": Es gilt die Fassung der Seite. Aber
     // eine der beiden ist falsch, und das gehört angesehen.
     meldung(`ABWEICHUNG: ${p.id} steht in beiden Quellen verschieden.\n`
-      + `      Seite: ${p.seite}\n`
-      + `      Mappe: ${p.mappe}\n`
+      + `      Seite:        ${p.seite}\n`
+      + `      Grundbestand: ${p.mappe}\n`
       + '      Es gilt die Fassung der Seite. Bitte prüfen, welche stimmt.');
   }
 }
@@ -268,8 +272,9 @@ if (PASS_KORREKTUREN.length > 0) {
     // Entweder hat der Betreiber sie berichtigt — dann kann der Eintrag weg —
     // oder er war von Anfang an falsch. Beides gehört gemeldet.
     if (!AKTIVE_PASS_KORREKTUREN.includes(eintrag)) {
-      meldung(`ERLEDIGT oder gegenstandslos: ${eintrag.tournamentId} führt keine `
-        + `Passnr. ${eintrag.falschePassNr} (mehr). Eintrag aus data/corrections.ts entfernen.`);
+      meldung(`GEGENSTANDSLOS: ${eintrag.tournamentId} führt keine `
+        + `Passnr. ${eintrag.falschePassNr}. Die Berichtigung greift ins Leere und `
+        + 'gehört geprüft (data/corrections.ts).');
       continue;
     }
     const zeile = turnier.results.find(r => r.passNr === eintrag.passNr);
@@ -316,8 +321,13 @@ if (PASS_KORREKTUREN.length > 0) {
     console.log(`  aktiv     ${beschreibe(k)}`);
   }
   for (const k of ERLEDIGTE_REGISTER_KORREKTUREN) {
-    console.log(`  ERLEDIGT  ${beschreibe(k)} — die Mappe sagt das inzwischen selbst. `
-      + 'Eintrag aus data/register-korrekturen.ts entfernen.');
+    // Kann nur auftreten, wenn jemand den Grundbestand neu eingelesen hat —
+    // vorgesehen ist das nicht mehr. Deshalb kein stiller Hinweis, sondern
+    // eine Meldung: Es hieße, dass sich unter der Berichtigung der Boden
+    // verschoben hat.
+    meldung(`WIRKUNGSLOS: ${beschreibe(k)} — der Grundbestand sagt das inzwischen `
+      + 'selbst oder passt nicht mehr dazu. Bitte prüfen, ob der Eintrag weg kann '
+      + '(data/register-korrekturen.ts).');
   }
 }
 
@@ -346,8 +356,9 @@ if (GEAENDERTE_SPIELORTE.length || ERLEDIGTE_SPIELORT_AENDERUNGEN.length) {
   }
 
   for (const a of ERLEDIGTE_SPIELORT_AENDERUNGEN) {
-    meldung(`ERLEDIGT oder gegenstandslos: Die Änderung an „${a.venueId}" passt auf keine `
-      + 'Zeile der Spielorte-Übersicht mehr. Eintrag aus data/spielorte-aenderungen.ts entfernen.');
+    meldung(`WIRKUNGSLOS: Die Änderung an „${a.venueId}" passt auf keine Zeile der `
+      + 'Spielorte-Übersicht mehr. Bitte prüfen, ob der Eintrag weg kann '
+      + '(data/spielorte-aenderungen.ts).');
   }
 }
 

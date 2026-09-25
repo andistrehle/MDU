@@ -12,16 +12,23 @@
 //   2025/26   abgeschlossen, 744 Turniere
 //   2026/27   läuft, wächst mit jedem freigegebenen Ergebniszettel
 //
-// SEIT 12.09.2026 IST DIE HOMEPAGE DIE HAUPTQUELLE. Führt die Arbeitsmappe
-// dasselbe Turnier, gewinnt die hier freigegebene Fassung — die Mappe läuft
-// in der Übergangszeit als Gegenprobe mit (`PARALLEL_GEPRUEFT`).
+// ZWEI QUELLEN, EINE DAVON EINGEFROREN:
 //
-// Die Summe der Punkte je Spieler ergibt exakt die Rangliste derselben Saison;
-// beides kommt aus derselben Mappe und wird beim Import gegeneinander
-// gerechnet (`scripts/mdc-check-saison.ts` prüft es noch einmal hier).
+//   Grundbestand   `results-<saison>.generated.ts`, Stand 08.09.2026 — der
+//                  letzte Import aus den Arbeitsmappen. Ändert sich nicht mehr.
+//   Seite          `results-uploaded.ts`, geschrieben von `/admin/ergebnis`.
+//                  Hier kommt seither jedes Turnier herein.
 //
-// Was hier bewusst NICHT steht: Turnierbäume, Legs, Meldestände. Die Mappe
-// führt nur Platzierung und Punkte — erfunden wird der Rest nicht.
+// Führen beide dasselbe Turnier, gewinnt die Fassung der Seite — sie ist gegen
+// den Zettel geprüft. `PARALLEL_GEPRUEFT` hält solche Doppelungen fest, damit
+// `scripts/mdc-check-saison.ts` sie vergleichen kann; seit dem Ende der
+// Mappenpflege kann nichts Neues mehr dazukommen.
+//
+// Die Summe der Punkte je Spieler ergibt exakt die Rangliste derselben Saison
+// — beides kam aus derselben Quelle, und der Prüflauf rechnet es gegen.
+//
+// Was hier bewusst NICHT steht: Turnierbäume, Legs, Meldestände. Erfasst wird
+// nur Platzierung und Punkte — erfunden wird der Rest nicht.
 // ============================================================
 
 import { pointsFor } from '@/lib/mdc/points';
@@ -200,20 +207,23 @@ function uploadedBySeason(): Record<string, string[]> {
 /**
  * Turniere, die in BEIDEN Quellen stehen — und ob sie dort dasselbe sagen.
  *
- * Das ist die Gegenprobe, solange die Arbeitsmappe parallel weitergeführt
- * wird: Stimmen beide überein, war der Abend richtig erfasst. Weichen sie ab,
- * gehört das angesehen statt stillschweigend entschieden.
- * `scripts/mdc-check-saison.ts` listet es auf.
+ * Die Gegenprobe aus der Übergangszeit, als der Betreiber im September 2026
+ * einige Abende doppelt erfasst hat: einmal über den Zettel, einmal in der
+ * Mappe. Stimmen beide überein, war der Abend zweimal unabhängig richtig
+ * erfasst. `scripts/mdc-check-saison.ts` listet es auf.
+ *
+ * Dazukommen kann nichts mehr — die Mappe wird nicht mehr geführt. Die Liste
+ * bleibt als Beleg dieser Gegenprobe stehen.
  */
 export const PARALLEL_GEPRUEFT: { id: string; gleich: boolean; mappe: string; seite: string }[] = [];
 
 /**
- * Turniere, die die Arbeitsmappe führt — unabhängig davon, welche Fassung
- * heute gilt. `scripts/mdc-check-saison.ts` braucht das für die Summenprobe:
- * Die Wertung der Mappe kann nur mit den Turnieren aufgehen, die die Mappe
- * auch kennt.
+ * Turniere des Grundbestands — unabhängig davon, welche Fassung heute gilt.
+ * `scripts/mdc-check-saison.ts` braucht das für die Summenprobe: Die
+ * mitgelieferte Saisonrangliste kann nur mit den Turnieren aufgehen, die der
+ * Grundbestand auch kennt.
  */
-export const MAPPE_IDS: Set<string> = new Set(
+export const GRUNDBESTAND_IDS: Set<string> = new Set(
   Object.values(RAW).flat().map(raw => {
     const [date, venueId] = raw.split('|');
     return `${date}-${venueId}`;

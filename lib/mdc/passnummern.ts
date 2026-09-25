@@ -24,7 +24,7 @@
 //              eigene Rangliste auf (`data/tournament-results.ts`).
 //
 //   ZWEIMAL    Derselbe Mensch steht im Register unter ZWEI Nummern. Das ist
-//   IM         ein Fehler in der Mappe und richtet Schaden an: Aus einem
+//   IM         ein Fehler im Grundbestand und richtet Schaden an: Aus einem
 //   REGISTER   Menschen werden zwei, und der mit den Ergebnissen bekommt
 //              womöglich die falsche Nummer angezeigt. Auflösen kann das die
 //              Seite selbst — siehe `data/register-korrekturen.ts`.

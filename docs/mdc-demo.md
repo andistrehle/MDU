@@ -428,17 +428,22 @@ leeren Tabelle:
 - `/mdc/rangliste/archiv` — Endstand 2025/26 (mit Ausschüttung) und Sommer-Ranking 2026
 - Startseite — Abschnitt „Saison 2026/27", darunter „Archiv · Endstand 2025/26"
 
-### Eine neue Fassung der Mappe einlesen
+### Eine neue Fassung der Mappe einlesen — NICHT MEHR
 
-```bash
-python3 scripts/mdc-import-saison.py MDC_2026_2027.xlsm 2026-27
-npx tsx scripts/mdc-check-saison.ts
-npx tsc --noEmit && npm run build
-```
+Seit dem 26.09.2026 wird die Arbeitsmappe nicht mehr geführt; alles läuft über
+die Seite. Der Grundbestand (`data/*.generated.ts`, `data/ranking-*.ts`) ist
+der eingefrorene Stand vom 08.09.2026.
 
-Der Import überschreibt die drei erzeugten Dateien der Saison komplett. Er
-bricht ab, sobald etwas nicht zusammenpasst — eine halb eingelesene Saison
-gibt es nicht. Von Hand ist an den erzeugten Dateien nichts zu tun.
+**Die Importskripte dürfen nicht mehr laufen.** Ein Lauf überschriebe die
+erzeugten Dateien und zöge allen Berichtigungen den Boden weg: Die merken sich,
+was vorher dastand, und greifen nur, solange das noch stimmt. Nach einem Lauf
+mit einer alten Mappe wären Nummernvergaben wirkungslos, Stilllegungen
+aufgehoben und über die Seite hochgeladene Abende doppelt oder verschwunden.
+Im Kopf beider Skripte steht die Warnung; sie bleiben nur als Beleg, wie der
+Grundbestand entstanden ist.
+
+Geprüft wird weiterhin mit `npx tsx scripts/mdc-check-saison.ts` — das muss
+„Alles stimmig" melden.
 
 Was der laufenden Wertung bewusst fehlt: die Ausschüttung. Sie steht erst am
 Saisonende fest (siehe `components/mdc/division-switch.tsx`).

@@ -119,11 +119,12 @@ export async function korrigiereName(eingabe: NameEingabe): Promise<NameErgebnis
     return {
       ok: false,
       fehler: `Passnr. ${passNr} ist frei — dort gibt es keinen Namen zu berichtigen. `
-        + 'Neue Nummern werden im Blatt „Teilnehmer" der Arbeitsmappe vergeben.',
+        + 'Freie Nummern werden oben unter „Passnummer vergeben" ausgegeben.',
     };
   }
 
-  // (2) Trägt die Nummer mehr als einen Menschen? Dann hilft nur die Mappe.
+  // (2) Trägt die Nummer mehr als einen Menschen? Dann ist das keine
+  //     Namensfrage, sondern ein doppelter Eintrag — der gehört stillgelegt.
   const betroffene = new Set([
     ...(heutiger ? [heutiger.id] : []),
     ...frueher.map(p => p.id),
@@ -282,7 +283,7 @@ export async function legeNummerStill(
   }
 }
 
-/** Berichtigung zurücknehmen — dann gilt wieder, was in der Mappe steht. */
+/** Berichtigung zurücknehmen — dann gilt wieder der Grundbestand. */
 export async function hebeRegisterKorrekturAuf(passNr: number): Promise<RegisterErgebnis> {
   if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
   const nichtBereit = bereit();
@@ -305,9 +306,8 @@ export async function hebeRegisterKorrekturAuf(passNr: number): Promise<Register
 // Bis September 2026 konnte die Seite gar nichts am Register ändern: Der Stamm
 // entstand aus der Arbeitsmappe, und wer einen Pass bekam, wurde dort
 // eingetragen. Das war unbequem genug, dass es an einem Turnierabend liegen
-// blieb — deshalb geht beides jetzt hier, und zwar so, dass jeder Eintrag den
-// nächsten Import übersteht und von selbst wegfällt, sobald die Mappe
-// nachgezogen ist.
+// blieb — deshalb geht beides jetzt hier. Seit dem 26.09.2026 ist das der
+// einzige Weg: Die Mappe wird nicht mehr geführt.
 //
 // An den ERGEBNISSEN ändert das nie etwas. Jede Saison löst ihre Passnummern
 // über ihre eigene Rangliste auf; wer eine Nummer abgibt, behält alle Turniere

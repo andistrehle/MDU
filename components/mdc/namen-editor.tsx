@@ -269,7 +269,7 @@ export function NamenEditor({ spieler, korrekturen, status }: {
                   onChange={e => setFirstName(e.target.value)}
                 />
                 <span style={{ display: 'block', marginTop: 5, fontSize: '0.78rem', color: 'var(--mdc-ink-dim)' }}>
-                  {'Spitzname wie in der Mappe in Klammern: MARKUS (JACKY)'}
+                  {'Spitzname in Klammern: MARKUS (JACKY)'}
                 </span>
               </label>
             </div>

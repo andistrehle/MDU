@@ -18,7 +18,7 @@
 //                müssen.
 //
 // Beides landet als Berichtigung in `data/register-korrekturen.ts`, übersteht
-// jeden Import und fällt von selbst weg, sobald die Mappe nachgezogen ist.
+// jeden neuen Einlesevorgang; vorgesehen ist keiner mehr.
 //
 // AN DEN ERGEBNISSEN ÄNDERT DAS NIE ETWAS — und das steht auch auf der Karte.
 // Jede Saison löst ihre Passnummern über ihre eigene Rangliste auf: Rolls
@@ -416,7 +416,7 @@ export function NummernVergabe({
                   {v.gehoertZu.firstName} {v.gehoertZu.lastName}
                   {v.art === 'inhaber' && (
                     <span style={{ color: 'var(--mdc-ink-dim)' }}>
-                      {' '}— in der Mappe steht dort {v.firstName} {v.lastName}
+                      {' '}— im Grundbestand steht dort {v.firstName} {v.lastName}
                     </span>
                   )}
                   {v.art === 'vergeben' && (

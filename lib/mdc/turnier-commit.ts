@@ -21,9 +21,9 @@
 // (`veroeffentlicheTurniere`), und die Korrektur steht wieder neben dem Bild,
 // aus dem sie stammt.
 //
-// Turniere aus der Arbeitsmappe fasst dieses Modul NICHT an. Die stehen in den
-// erzeugten Saisondateien und werden beim nächsten Import überschrieben — dort
-// führt der Weg über die Mappe.
+// Turniere des Grundbestands fasst dieses Modul NICHT an. Die stehen in den
+// erzeugten Saisondateien (Stand 08.09.2026); berichtigt werden sie über
+// `data/corrections.ts` oder indem der Zettel neu hochgeladen wird.
 // ============================================================
 
 import 'server-only';

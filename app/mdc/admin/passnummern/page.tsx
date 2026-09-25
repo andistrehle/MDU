@@ -158,37 +158,34 @@ export default async function AdminPassnummernPage() {
 
           <div style={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'var(--mdc-ink-dim)', maxWidth: 720 }}>
             <p>
-              <strong>Woher die Nummern kommen:</strong> {'aus dem Blatt „Teilnehmer" der'}
-              {' '}Arbeitsmappe. Das ist die maßgebliche Liste — eine Nummer, die dort einen Namen
-              trägt, ist vergeben, auch wenn die Person noch nie gespielt hat. Eine Nummer
-              ohne Namen ist frei. Die Seite liest das Register beim Einlesen einer Saison
-              mit ein.
+              <strong>Woher die Nummern kommen:</strong> Der Grundstock stammt aus dem
+              {' '}{'Blatt „Teilnehmer"'} der alten Arbeitsmappe, eingelesen am 08.09.2026.
+              Das war der letzte Import — <strong>gepflegt wird das Register seitdem hier</strong>.
+              Eine Nummer, die einen Namen trägt, ist vergeben, auch wenn die Person noch nie
+              gespielt hat. Eine Nummer ohne Namen ist frei.
             </p>
             <p style={{ marginTop: 12 }}>
-              <strong>Vergeben und umschreiben geht trotzdem hier</strong> (ganz oben): Eine
-              freie Nummer an jemanden ausgeben — auch an einen, der schon gespielt hat —
-              oder eine vergebene Nummer jemand anderem zuschreiben, wenn die Mappe noch den
-              Vorgänger führt. Beides wird als eigene Berichtigung abgelegt, übersteht jeden
-              Import und fällt von selbst weg, sobald die Mappe nachgezogen ist. An den
-              Turnieren ändert es nichts: Wer eine Nummer abgibt, behält alle Ergebnisse und
-              steht künftig als {'„früher Passnr. …"'} da.
+              <strong>Vergeben und umschreiben</strong> (ganz oben): Eine freie Nummer an
+              jemanden ausgeben — auch an einen, der schon gespielt hat — oder eine vergebene
+              Nummer jemand anderem zuschreiben. Beides wird als eigener Eintrag abgelegt und
+              gilt ab sofort; nachtragen muss man es nirgends mehr. An den Turnieren ändert
+              es nichts: Wer eine Nummer abgibt, behält alle Ergebnisse und steht künftig als
+              {' '}{'„früher Passnr. …"'} da.
             </p>
             <p style={{ marginTop: 12 }}>
-              <strong>Namen sind die Ausnahme:</strong> Die kann die Seite selbst berichtigen
-              (oben). Die Korrektur wird als eigener Eintrag abgelegt und beim nächsten
-              Einlesen nicht überschrieben — sie gilt für Register, laufende Wertung und
-              Archiv zugleich, weil sie an der Passnummer hängt. Nur deshalb entstehen aus
-              einem Menschen nicht zwei. Schön wäre trotzdem, den richtigen Namen auch in
-              der Mappe nachzuziehen.
+              <strong>Namen berichtigen</strong> geht genauso (oben). Die Korrektur hängt an
+              der Passnummer und gilt damit für Register, laufende Wertung und Archiv
+              zugleich. Nur deshalb entstehen aus einem Menschen nicht zwei.
             </p>
             <p style={{ marginTop: 12 }}>
-              <strong>Zwei Nummern für einen Menschen</strong> sind die zweite Ausnahme.
-              Steht jemand im Blatt {'„Teilnehmer"'} doppelt, macht die Seite daraus zwei
-              Personen — die Spieler-Adresse entsteht aus dem Namen, und beim zweiten Eintrag
-              hängt die Nummer daran. Die Zeile ohne einen einzigen Start lässt sich oben
-              stilllegen; die Nummer wird damit wieder frei. Die mit den Turnieren nicht: Da
-              verlören Ergebnisse ihren Menschen. In der Mappe gehört die doppelte Zeile
-              trotzdem gelöscht — danach meldet der Prüflauf {'„ERLEDIGT"'}.
+              <strong>Zwei Nummern für einen Menschen</strong> sind der Sonderfall. Stand
+              jemand im alten Blatt doppelt, macht die Seite daraus zwei Personen — die
+              Spieler-Adresse entsteht aus dem Namen, und beim zweiten Eintrag hängt die
+              Nummer daran. Die Zeile <strong>ohne einen einzigen Start</strong> lässt sich
+              oben stilllegen; die Nummer wird damit wieder frei. Die mit Turnieren nicht:
+              Da verlören die Ergebnisse ihren Menschen. Gehören die Turniere in Wahrheit dem
+              anderen, ist das eine Entscheidung, die von Hand getroffen werden muss — so
+              geschehen bei Passnr. 196 am 26.09.2026.
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Der Reihe nach vergeben:</strong> Die kleinste freie Nummer steht oben.

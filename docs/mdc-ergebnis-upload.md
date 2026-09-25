@@ -123,31 +123,31 @@ wurde.
 
 ## Verhältnis zur Arbeitsmappe (geändert am 12.09.2026)
 
-**Die Homepage ist die Hauptquelle.** Steht dasselbe Turnier (gleiches Datum,
-gleiches Lokal) auch in der Arbeitsmappe, **gewinnt die hier freigegebene
-Fassung**. Bis zum 12.09.2026 war es umgekehrt.
+**Die Homepage ist die einzige Quelle.** Seit dem 26.09.2026 wird die
+Arbeitsmappe nicht mehr geführt. Was davor eingelesen wurde — Stand
+08.09.2026 — liegt als **Grundbestand** im Projekt und ändert sich nicht mehr;
+alles seither kommt über diese Seite.
 
-Der Grund: Was hier freigegeben wurde, ist am Bildschirm Zeile für Zeile gegen
-den Zettel geprüft worden, und Berichtigungen (`data/corrections.ts`) hängen an
-dieser Fassung. Gewönne die Mappe, würde beides beim nächsten Import still
-überschrieben — und niemand merkte es.
+Steht ein Turnier in beidem (gleiches Datum, gleiches Lokal), **gewinnt die
+hier freigegebene Fassung**: Sie ist am Bildschirm Zeile für Zeile gegen den
+Zettel geprüft worden, und Berichtigungen hängen an ihr.
 
-**Die Mappe läuft anfangs parallel als Gegenprobe.** Genau dafür ist sie jetzt
-da: `npx tsx scripts/mdc-check-saison.ts` vergleicht jedes doppelt geführte
-Turnier und meldet
+Aus der Übergangszeit im September 2026, als einige Abende doppelt erfasst
+wurden, bleibt eine Gegenprobe: `npx tsx scripts/mdc-check-saison.ts`
+vergleicht jedes doppelt geführte Turnier und meldet
 
 ```
-Gegenprobe Homepage ↔ Arbeitsmappe
+Gegenprobe Zettel ↔ Grundbestand
   identisch  2026-09-06-siebziger
 ```
 
 Steht dort `ABWEICHUNG`, sagen beide Quellen etwas Verschiedenes — dann
 angesehen werden, welche stimmt. Es gilt die Fassung der Seite, aber
-stillschweigend entschieden wird das nicht.
+stillschweigend entschieden wird das nicht. Dazukommen kann nichts mehr.
 
-Ein Ergebnis berichtigen heißt weiterhin: dasselbe Turnier noch einmal
-hochladen. Die alte Zeile wird ersetzt, nicht ergänzt — und das geht jetzt
-auch, wenn die Mappe das Turnier schon führt.
+Ein Ergebnis berichtigen heißt: dasselbe Turnier noch einmal hochladen (die
+alte Zeile wird ersetzt, nicht ergänzt) — oder es unter der Upload-Maske
+aufklappen und Datum, Spielort und einzelne Spieler dort ändern.
 
 ---
 

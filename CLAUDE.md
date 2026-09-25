@@ -71,13 +71,22 @@ Details, Datenherkunft und offene Punkte: **`docs/mdc-demo.md`**.
 Requests.** Jeder PR erzeugt einen Vercel-Kommentar und damit eine E-Mail an den
 Betreiber; bei kleinen Anpassungen (Farbe, Logo, neuer Spielort) steht das in
 keinem Verhältnis. Ein PR nur, wenn es wirklich etwas zu prüfen gibt.
-Wichtig: **Alle Daten sind echt** (echte Personen) — Ranglisten und
-Einzelergebnisse beider Saisons, importiert aus den Excel-Mappen des Betreibers
-(`scripts/mdc-import-saison.py <mappe> <saison>`; die Mappen selbst gehören
-nicht ins Repo, sie enthalten das komplette Teilnehmerregister). Erzeugt werden
-je Saison `data/results-<saison>.generated.ts` und `data/ranking-<saison>-*.ts`
-— diese Dateien nie von Hand ändern. Prüfen mit
-`npx tsx scripts/mdc-check-saison.ts`. Demo-Turniere gibt es nicht mehr.
+Wichtig: **Alle Daten sind echt** (echte Personen). Demo-Turniere gibt es
+nicht mehr.
+**DIE ARBEITSMAPPE IST GESCHICHTE (seit 26.09.2026, vom Betreiber so
+festgelegt): „Es wird keine Mappe mehr hochgeladen, wir verwalten jetzt alles
+über die Homepage."** Der **Grundbestand** — `data/register.generated.ts`,
+`data/results-2025-26.generated.ts`, `data/results-2026-27.generated.ts`,
+`data/ranking-*.ts` — ist der eingefrorene Stand des letzten Imports vom
+08.09.2026 und ändert sich nicht mehr. Alles seither kommt über die Seite und
+liegt DARÜBER: Ergebnisse (`results-uploaded.ts`), Spieler
+(`players-uploaded.ts`), Register (`register-korrekturen.ts`), Namen
+(`namen.ts`), Spielorte (`spielorte-aenderungen.ts`), Kalender, News.
+Die Importskripte `scripts/mdc-import-*.py` tragen eine Warnung im Kopf und
+**dürfen nicht mehr laufen**: Ein Lauf überschriebe den Grundbestand und zöge
+allen Berichtigungen den Boden weg — sie merken sich, was vorher dastand, und
+greifen nur, solange das noch stimmt. Prüfen mit
+`npx tsx scripts/mdc-check-saison.ts` (muss „Alles stimmig" melden).
 **Zweite Domain (seit 06.09.2026 live):** Die MDC läuft unter
 **mdc-ranking.de** — dasselbe Repo ist ein zweites Mal bei Vercel deployed,
 dort schaltet `NEXT_PUBLIC_MDC_STANDALONE=1` auf Wurzelpfade um
@@ -162,29 +171,34 @@ Freigegebene Turniere landen als
 Commit in `data/results-uploaded.ts` (neue Spieler in
 `data/players-uploaded.ts`) — beides von der Seite geschrieben, die Form
 aber ganz normal von Hand änderbar. **Seit 12.09.2026 ist die HOMEPAGE die
-Hauptquelle** (vorher die Mappe): Führt die Arbeitsmappe dasselbe Turnier,
-gewinnt die hier freigegebene Fassung — sie ist gegen den Zettel geprüft, und
-die Berichtigungen hängen an ihr. Die Mappe läuft anfangs als Gegenprobe
-parallel: `PARALLEL_GEPRUEFT` in `data/tournament-results.ts` sammelt jedes
-doppelt geführte Turnier, `scripts/mdc-check-saison.ts` meldet „identisch" oder
-„ABWEICHUNG". Die Summenprobe gegen die Wertung der Mappe zählt Turniere, die
-die Mappe KENNT (`MAPPE_IDS`), unabhängig davon, welche Fassung gilt.
-**Turniere der Arbeitsmappe berichtigen:** `data/corrections.ts` kennt ZWEI
+Hauptquelle**: Führt der Grundbestand dasselbe Turnier, gewinnt die hier
+freigegebene Fassung — sie ist gegen den Zettel geprüft, und die Berichtigungen
+hängen an ihr. Aus der Übergangszeit im September 2026, als einige Abende
+doppelt erfasst wurden, bleibt die Gegenprobe: `PARALLEL_GEPRUEFT` in
+`data/tournament-results.ts` sammelt jedes doppelt geführte Turnier,
+`scripts/mdc-check-saison.ts` meldet „identisch" oder „ABWEICHUNG"; dazukommen
+kann nichts mehr. Die Summenprobe gegen die mitgelieferte Saisonrangliste zählt
+nur Turniere des Grundbestands (`GRUNDBESTAND_IDS`), unabhängig davon, welche
+Fassung gilt — später hochgeladene Abende dürfen die alte Rangliste
+übersteigen.
+**Turniere des Grundbestands berichtigen:** `data/corrections.ts` kennt ZWEI
 Arten, beide überstehen jeden neuen Import und lassen die erzeugten Dateien in
 Ruhe. `CORRECTIONS` trägt eine **fehlende Zeile** nach (Turnier wird komplett
 neu durchgerechnet, weil der Punkteschlüssel an der Feldgröße hängt);
 `PASS_KORREKTUREN` tauscht eine **verwechselte Passnummer** (Platz, Punkte und
 Feldgröße bleiben, nur die Zeile gehört jemand anderem — 07.09.2026 Harlekin:
-57 statt 67). Beide greifen nur, solange die Mappe sie braucht; sobald der
-Betreiber dort berichtigt, meldet `scripts/mdc-check-saison.ts` „ERLEDIGT".
+57 statt 67). Beide greifen nur, solange der Grundbestand sie braucht; passt
+eine nicht mehr, meldet `scripts/mdc-check-saison.ts` „GEGENSTANDSLOS".
+Nur für Turniere des Grundbestands — was über die Seite kam, wird unter
+`/admin/ergebnis` berichtigt.
 Die laufende Wertung entsteht aus den berichtigten Ergebnissen, die Änderung
 wirkt also auch in Rangliste, Jackpot und Spielerprofil.
 **Nachträglich berichtigen:** Unter der Upload-Maske listet
 `components/mdc/turnier-korrektur.tsx` alle hochgeladenen Turniere; Datum und
 Spielort lassen sich ändern, das Turnier ganz entfernen
 (`lib/mdc/turnier-commit.ts`, schreibt dieselbe Datei). Nur `source: 'upload'` —
-Mappen-Turniere stehen nicht in der Liste und werden serverseitig abgelehnt,
-sie kämen beim nächsten Import zurück.
+Turniere des Grundbestands stehen nicht in der Liste und werden serverseitig
+abgelehnt.
 **Seit 25.09.2026 auch die SPIELER einzelner Plätze** (`ersetzeTurnierSpieler`
 → `berichtigeTurnierSpieler`): Austauschen über dieselbe Suche wie beim
 Hochladen (`components/mdc/spieler-wahl.tsx`, dafür aus `ergebnis-upload.tsx`
@@ -352,7 +366,7 @@ Teilnahmen (3 € je Teilnahme, Blatt „Einzelergebnisse" J5) plus Übertrag au
 Vorsaison (Männer 200 €, Frauen 220 €); 2 % des Männer-Topfs gehen an die Frauen,
 davon 65 % über die Einzelrangliste, 35 % ins folgende Turnier. Gerechnet statt
 abgeschrieben, damit der Betrag mit jedem Import mitwächst. Zwei bewusste
-Abweichungen von der Mappe stehen im Kopf der Datei (`+175` → `+200` auf Anweisung
+Abweichungen von der alten Mappenrechnung stehen im Kopf der Datei (`+175` → `+200` auf Anweisung
 des Betreibers; „Mädels2%" verweist dort auf die leere Hilfsspalte AW13 und käme
 auf 3,50 € statt der abgezogenen 16,54 € — hier gilt für beide Seiten derselbe
 Betrag). Ausgeschüttet wird nur an Spieler mit mindestens 15 Teilnahmen
@@ -362,12 +376,11 @@ steht so auch auf der Regelseite. Angezeigt im gemeinsamen
 Wertung als Zwischenstand — dort MIT Anteil und Euro je Platz, ausdrücklich als
 Stand von heute (`withPayout` in `lib/mdc/rows.ts` rechnet den Betrag aus dem
 aktuellen Jackpot, statt ihn abzulegen).
-**Passnummern-Register (seit 08.09.2026 maßgeblich):** Blatt „Teilnehmer" der
-Arbeitsmappe ist die verbindliche Liste „welche Nummer gehört wem" — auch für
-Leute, die noch nie gespielt haben. Einlesen mit
-`python3 scripts/mdc-import-register.py <mappe.xlsm>` → `data/register.generated.ts`
-(bewusst getrennt vom Saison-Import, damit eine alte Mappe nicht das aktuelle
-Register überschreibt). `data/register.ts` wertet es aus, `data/players.ts`
+**Passnummern-Register:** Die verbindliche Liste „welche Nummer gehört wem" —
+auch für Leute, die noch nie gespielt haben. Der Grundstock kam am 08.09.2026
+aus dem Blatt „Teilnehmer" (`data/register.generated.ts`, eingefroren);
+gepflegt wird seither ausschließlich über `/admin/passnummern`.
+`data/register.ts` wertet beides zusammen aus, `data/players.ts`
 baut darauf: Registereinträge ohne Wertung kommen als Spieler dazu (damit sie
 auf einem Zettel auftauchen dürfen), und wessen Nummer im Register jemand
 anderem gehört, verliert sie und bekommt `formerPassNr` — er behält alle
@@ -381,9 +394,11 @@ Fehlermeldung die Nummern, mit denen gespielt wurde, die im Register aber ohne
 Namen stehen (die sehen frei aus und sind es nicht).
 **Das Register lässt sich seit 12.09.2026 von der Seite aus berichtigen**
 (`data/register-korrekturen.ts`, geschrieben von `lib/mdc/register-commit.ts`).
-Maßgeblich bleibt die Mappe: Jeder Eintrag übersteht den nächsten Import UND
-fällt von selbst weg, sobald der Betreiber dort nachzieht — dann meldet
-`scripts/mdc-check-saison.ts` „ERLEDIGT". Drei Arten, alle aus echten Fällen:
+HIER STEHT DIE GELTENDE FASSUNG; der Grundbestand ist nur noch der
+Anfangsstand. Jeder Eintrag überstünde auch einen neuen Import — der ist nicht
+mehr vorgesehen, und ein Eintrag, der dann ins Leere liefe, meldet
+`scripts/mdc-check-saison.ts` als „WIRKUNGSLOS". Drei Arten, alle aus echten
+Fällen:
 - `stillgelegt` — **derselbe Mensch steht zweimal im Blatt „Teilnehmer"**. Das
   ist kein Schönheitsfehler: Die Spieler-ID entsteht aus dem Namen, beim
   zweiten Eintrag hängt `parseRankingRows` die Passnummer an
@@ -397,12 +412,12 @@ fällt von selbst weg, sobald der Betreiber dort nachzieht — dann meldet
   Spieler: Dessen Nummer ist ja gerade das, was der Fehler verdreht. Die Zeile
   MIT Starts geht nicht (Ergebnisse verlören ihren Menschen), die letzte Zeile
   einer Person auch nicht.
-- `inhaber` — **die Nummer gehört jemand anderem** als die Mappe sagt
+- `inhaber` — **die Nummer gehört jemand anderem** als der Grundbestand sagt
   (Passnr. 281 stand auf Morris Roll, behalten soll sie Markus Hundseder).
   Der neue Inhaber muss heute NUMMERNLOS sein (sonst hätte er zwei) und in
   derselben Wertungsklasse stehen.
 - `vergeben` — **eine freie Nummer wird hier vergeben**, nicht erst in der
-  Mappe: an jemanden im Stamm ohne Nummer oder an einen ganz Neuen. Geprüft
+  alten Mappe: an jemanden im Stamm ohne Nummer oder an einen ganz Neuen. Geprüft
   wird, dass die Nummer wirklich frei ist und der neue Name nicht die Adresse
   eines bestehenden Spielers ergibt (sonst würden aus zwei Menschen einer).
 Die Nummer wird **ausgewählt, nicht getippt** (`<select>` mit drei Gruppen:
@@ -411,9 +426,12 @@ MIT Namen) — am Handy soll niemand raten müssen, welche Nummer frei ist, und
 beim Umschreiben wählt man einen Menschen und keine Zahl.
 Gefiltert und ergänzt wird **vor** `parseRankingRows` (sonst behielte ein
 Übriggebliebener die angehängte Nummer in seiner Adresse), und `stillgelegt`/
-`inhaber` greifen nur, solange auch der NAME der Mappenzeile passt — eine
-später neu vergebene Nummer darf nicht still unter eine alte Berichtigung
-fallen. **An Ergebnissen ändert das alles nie etwas**: Jede Saison löst ihre
+`inhaber` greifen nur, solange auch der NAME der Grundbestandszeile passt —
+eine später neu vergebene Nummer darf nicht still unter eine alte Berichtigung
+fallen. **`vergeben` prüft gegen den BEREINIGTEN Bestand, nicht den rohen**:
+Was eine Stilllegung freiräumt, muss eine Vergabe besetzen dürfen. Stand dort
+der rohe, blieb eine Vergabe wirkungslos — genau so verlor Mario Markovinovic
+am 26.09.2026 seine 196, und sein Turnier lief unter Claudia Vaszi. **An Ergebnissen ändert das alles nie etwas**: Jede Saison löst ihre
 Passnummern über ihre eigene Rangliste auf, wer eine Nummer abgibt, behält
 seine Turniere und wird als „früher Passnr. X" ausgewiesen.
 **Namen berichtigen** ist das Einzige, was dort geschrieben wird
@@ -428,7 +446,7 @@ Spieler-ID aus dem Namen entsteht. `homeVenueId` kommt weiterhin aus dem ROHEN
 Nachnamen, sonst verlöre der Spieler sein Stammlokal. Drei Prüfungen in
 `app/mdc/admin/passnummern/actions.ts`: die Nummer muss jemandem gehören, sie
 darf nicht bei zwei Menschen stehen (die Korrektur hängt an der Nummer und
-würde beide umbenennen — Fall für die Mappe), und der neue Name darf nicht die
+würde beide umbenennen — der doppelte Eintrag gehört stillgelegt), und der neue Name darf nicht die
 Adresse eines anderen Spielers ergeben. Weil die Profiladresse aus dem Namen
 entsteht, ändert sie sich mit: `alteId` in der Korrektur merkt sich die
 frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.

@@ -1,11 +1,12 @@
 // ============================================================
-// MDC — Berichtigungen gegenüber der Arbeitsmappe
+// MDC — Berichtigungen am Grundbestand
 // ============================================================
 //
-// Normalfall: Die Webseite zeigt genau den Stand der Arbeitsmappe und rechnet
-// nichts um. Hier stehen die Ausnahmen — Turniere, bei denen der
-// handschriftliche Ergebniszettel etwas anderes sagt als die Auswertung UND
-// der Betreiber entschieden hat, dass der Zettel stimmt.
+// Der Grundbestand (`results-*.generated.ts`) ist der Stand vom 08.09.2026,
+// dem letzten Import aus der Arbeitsmappe. Normalfall: Die Seite zeigt ihn
+// unverändert. Hier stehen die Ausnahmen — Turniere, bei denen der
+// handschriftliche Ergebniszettel etwas anderes sagt als die damalige
+// Auswertung UND der Betreiber entschieden hat, dass der Zettel stimmt.
 //
 // Was eine Berichtigung tut:
 //
@@ -16,13 +17,13 @@
 //   • Die Wertung der Saison wird aus den so berichtigten Ergebnissen
 //     aufaddiert, nicht aus der Punktespalte der Auswertung.
 //
-// Die erzeugten Dateien (`results-*.generated.ts`) bleiben unangetastet — sie
-// sind die Mappe. Die Berichtigung liegt daneben und übersteht damit jeden
-// neuen Import.
+// Die erzeugten Dateien bleiben unangetastet. Die Berichtigung liegt daneben
+// und bleibt damit auch dann stehen, wenn jemand den Grundbestand noch einmal
+// einliest — vorgesehen ist das nicht mehr.
 //
-// Erledigt wird eine Berichtigung, indem der Betreiber die Zeile in der Mappe
-// nachträgt. `scripts/mdc-check-saison.ts` meldet dann „ERLEDIGT" und der
-// Eintrag hier kann weg.
+// NUR FÜR TURNIERE DES GRUNDBESTANDS. Was seit dem 08.09.2026 über die Seite
+// hochgeladen wurde, wird direkt unter `/admin/ergebnis` berichtigt (Datum,
+// Spielort, einzelne Spieler) — dafür braucht es hier nichts.
 // ============================================================
 
 export interface ResultCorrection {

@@ -2,9 +2,9 @@
 // MDC — ein einzelnes Turnier
 // ============================================================
 //
-// Zeigt genau das, was in der Auswertung des Betreibers steht: Platzierung,
-// Passnummer und Punkte. Legs, Turnierbaum und Meldestand führt die Mappe
-// nicht — hier steht deshalb auch keiner.
+// Zeigt genau das, was erfasst ist: Platzierung, Passnummer und Punkte. Legs,
+// Turnierbaum und Meldestand werden nirgends geführt — hier steht deshalb auch
+// keiner.
 // ============================================================
 
 import type { Metadata } from 'next';

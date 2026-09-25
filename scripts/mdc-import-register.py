@@ -3,8 +3,26 @@
 # MDC — das Passnummern-Register aus der Arbeitsmappe einlesen
 # ============================================================
 #
-# Quelle ist das Blatt „Teilnehmer" der Arbeitsmappe des Betreibers. Es ist
-# seit September 2026 die maßgebliche Liste: Wem gehört welche Nummer.
+# ╔══════════════════════════════════════════════════════════╗
+# ║  NICHT MEHR BENUTZEN — Stand 26.09.2026                  ║
+# ║                                                          ║
+# ║  Die Arbeitsmappe wird nicht mehr geführt; das Register   ║
+# ║  wird ausschließlich über /admin/passnummern gepflegt.    ║
+# ║                                                          ║
+# ║  Ein Lauf würde `data/register.generated.ts` überschreiben ║
+# ║  und damit den Boden unter allen Berichtigungen in        ║
+# ║  `data/register-korrekturen.ts` wegziehen: Die merken     ║
+# ║  sich, was vorher dastand, und greifen nur, solange das    ║
+# ║  noch stimmt. Nach einem Lauf mit einer alten Mappe wären  ║
+# ║  sie wirkungslos — Nummern fielen an frühere Inhaber       ║
+# ║  zurück, Stilllegungen wären aufgehoben.                  ║
+# ║                                                          ║
+# ║  Das Skript bleibt als Beleg, wie der Grundbestand vom    ║
+# ║  08.09.2026 entstanden ist.                              ║
+# ╚══════════════════════════════════════════════════════════╝
+#
+# Quelle war das Blatt „Teilnehmer" der Arbeitsmappe des Betreibers: Wem
+# gehört welche Nummer. Zuletzt gelaufen am 08.09.2026.
 #
 #   Aufruf:  python3 scripts/mdc-import-register.py <mappe.xlsm>
 #   Braucht: pip install openpyxl

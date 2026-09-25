@@ -83,7 +83,7 @@ export async function speichereName(
   return { ...commit, neu: alt === undefined };
 }
 
-/** Nimmt eine Korrektur zurück — dann gilt wieder der Name aus der Mappe. */
+/** Nimmt eine Korrektur zurück — dann gilt wieder der Name des Grundbestands. */
 export async function loescheName(passNr: number): Promise<{ sha: string; url: string }> {
   const ctx = kontext();
   const quelle = await leseDatei(ctx, PFAD);

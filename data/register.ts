@@ -2,16 +2,20 @@
 // MDC — Passnummern-Register
 // ============================================================
 //
-// Seit September 2026 führt der Betreiber im Blatt „Teilnehmer" seiner
-// Arbeitsmappe eine vollständige Liste: welche Nummer welchem Menschen
-// gehört. Sie ist ab jetzt die maßgebliche Antwort darauf — und zwar für
-// immer, also auch für jemanden, der aufgehört hat.
+// Wem welche Nummer gehört — auch für Leute, die noch nie gespielt haben.
 //
-// Warum das etwas ändert: Bis dahin konnte die Seite nur aus den Wertungen
-// schließen, wer eine Nummer trägt. Wer nie gespielt hat, kam darin nicht vor,
-// und seine Nummer sah aus wie frei. Genau so sind die Nummern entstanden, die
-// bei zwei Menschen stehen. Das Register kennt auch die, die noch nicht
-// gespielt haben — und damit ist eine Lücke jetzt wirklich eine Lücke.
+// DER GRUNDBESTAND stammt aus dem Blatt „Teilnehmer" der Arbeitsmappe,
+// eingelesen am 08.09.2026 (`register.generated.ts`). Das war der letzte
+// Import; seit dem 26.09.2026 wird das Register ausschließlich über die Seite
+// gepflegt (`data/register-korrekturen.ts`), ein neuer Import ist nicht mehr
+// vorgesehen. Der Grundbestand ist damit kein lebendes Blatt mehr, sondern der
+// eingefrorene Anfangsstand.
+//
+// Warum es das überhaupt braucht: Vorher konnte die Seite nur aus den
+// Wertungen schließen, wer eine Nummer trägt. Wer nie gespielt hat, kam darin
+// nicht vor, und seine Nummer sah aus wie frei. Genau so sind die Nummern
+// entstanden, die bei zwei Menschen stehen. Das Register kennt auch die, die
+// noch nicht gespielt haben — und damit ist eine Lücke wirklich eine Lücke.
 //
 // Was das Register NICHT ändert: die Ergebnisse. Jede Saison löst ihre
 // Passnummern weiterhin über ihre eigene Rangliste auf
@@ -89,11 +93,13 @@ export const REGISTER_WOMEN = parseRankingRows(mitVergebenen(BEREINIGT_WOMEN, 'w
 /**
  * Greift die Berichtigung heute noch?
  *
- *   stillgelegt/inhaber  ja, solange die Mappe die Zeile so führt
- *   vergeben             ja, solange die Mappe die Nummer NICHT führt
+ *   stillgelegt/inhaber  ja, solange der Grundbestand die Zeile so führt
+ *   vergeben             ja, solange die Nummer sonst niemandem gehört
  *
- * Zieht der Betreiber die Mappe nach, fällt der Eintrag von selbst heraus und
- * der Prüflauf meldet „ERLEDIGT".
+ * Der Grundbestand ist eingefroren (letzter Import 08.09.2026), also kann ein
+ * Eintrag nicht mehr von selbst herausfallen — diese Prüfung bleibt trotzdem
+ * stehen: Sie ist die Absicherung für den Fall, dass doch noch einmal jemand
+ * einliest. Fällt dann etwas heraus, meldet der Prüflauf „ERLEDIGT".
  */
 function greiftNoch(k: RegisterKorrektur): boolean {
   if (k.art === 'vergeben') {
@@ -111,7 +117,10 @@ function greiftNoch(k: RegisterKorrektur): boolean {
 export const AKTIVE_REGISTER_KORREKTUREN: RegisterKorrektur[] =
   REGISTER_KORREKTUREN.filter(greiftNoch);
 
-/** Berichtigungen, die ins Leere laufen — in der Mappe nachgezogen, hier löschbar. */
+/**
+ * Berichtigungen, die ins Leere laufen: Der Grundbestand sagt dasselbe schon
+ * selbst. Solange niemand neu einliest, bleibt diese Liste leer.
+ */
 export const ERLEDIGTE_REGISTER_KORREKTUREN: RegisterKorrektur[] =
   REGISTER_KORREKTUREN.filter(k => !greiftNoch(k));
 

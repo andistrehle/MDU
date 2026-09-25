@@ -293,11 +293,9 @@ function pruefeTurnier(
     }
   }
 
-  // Früher wurde hier abgelehnt, wenn die Arbeitsmappe dasselbe Turnier schon
-  // führte — die Mappe hatte Vorrang. Seit dem 12.09.2026 ist die Homepage die
-  // Hauptquelle: Ein erneutes Hochladen IST der Weg, ein Ergebnis zu
-  // berichtigen, auch wenn es in der Mappe steht. Die Mappe läuft als
-  // Gegenprobe weiter (`scripts/mdc-check-saison.ts` vergleicht beide).
+  // Führt der Grundbestand dasselbe Turnier, gewinnt die hier freigegebene
+  // Fassung: Ein erneutes Hochladen IST der Weg, ein Ergebnis zu berichtigen.
+  // Der Prüflauf vergleicht beide Fassungen, solange es sie doppelt gibt.
 
   // ── Punkte. Nicht vom Zettel abgeschrieben, sondern aus Platz und Feldgröße
   //    gerechnet — der Schlüssel ist die verbindliche Quelle. ──
@@ -504,16 +502,17 @@ export async function verschiebeHochgeladenesTurnier(
   if (alt.source !== 'upload') {
     return {
       ok: false,
-      fehler: 'Dieses Turnier stammt aus der Arbeitsmappe des Betreibers. Geändert wird es '
-        + 'dort — beim nächsten Einlesen käme die Mappe sonst zurück und überschriebe es.',
+      fehler: 'Dieses Turnier gehört zum eingelesenen Grundbestand (Stand 08.09.2026) und '
+        + 'lässt sich hier nicht verschieben. Entweder den Zettel neu hochladen oder die '
+        + 'Berichtigung in data/corrections.ts eintragen.',
     };
   }
   if (eingabe.datum === eingabe.altesDatum && eingabe.spielortId === eingabe.alterSpielortId) {
     return { ok: false, fehler: 'Datum und Spielort sind unverändert.' };
   }
 
-  // Steht am Ziel schon ein Turnier aus der Mappe, würde es durch das
-  // verschobene ERSETZT — seit dem 12.09.2026 ist die Homepage die Hauptquelle.
+  // Steht am Ziel schon ein Turnier des Grundbestands, würde es durch das
+  // verschobene ERSETZT — die Fassung der Seite gewinnt.
   // Das still zu tun wäre falsch: Hier verschiebt jemand ein Datum, er will
   // nicht nebenbei einen anderen Abend überschreiben.
   const amZiel = getTournamentRecord(`${eingabe.datum}-${eingabe.spielortId}`);

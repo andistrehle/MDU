@@ -8,11 +8,15 @@
 // Ergebnisse. Von Hand bearbeiten ist erlaubt; nur die Form muss stimmen,
 // weil die Verwaltung sie wieder einliest.
 //
-// Maßgeblich bleibt das Blatt „Teilnehmer" der Arbeitsmappe
-// (`data/register.generated.ts`). Diese Datei legt sich darüber — und zwar so,
-// dass jeder Eintrag den nächsten Import übersteht UND von selbst wegfällt,
-// sobald der Betreiber die Mappe nachzieht. Dann meldet
-// `scripts/mdc-check-saison.ts` „ERLEDIGT".
+// HIER STEHT DIE GELTENDE FASSUNG. Der Grundbestand in
+// `data/register.generated.ts` ist der Stand vom 08.09.2026, dem letzten
+// Import aus der Arbeitsmappe — eingefroren, weil seit dem 26.09.2026 alles
+// über die Seite läuft. Was hier steht, legt sich darüber und bleibt stehen.
+//
+// Jeder Eintrag überstünde auch einen neuen Import und fiele von selbst weg,
+// wenn der Grundbestand dasselbe sagte (`scripts/mdc-check-saison.ts` meldete
+// das als „ERLEDIGT"). Das ist Absicherung für einen Fall, der nicht mehr
+// vorgesehen ist — verlassen muss sich darauf niemand.
 //
 // DREI ARTEN, alle drei aus echten Fällen entstanden:
 //
