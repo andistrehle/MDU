@@ -98,12 +98,14 @@ export const REGISTER_KORREKTUREN: RegisterKorrektur[] = [
     "note": "Vom Betreiber entschieden am 13.09.2026: doppelt in der Mappe. Unter 133 steht kein einziges Turnier, unter 31 zwei."
   },
   {
-    "art": "stillgelegt",
+    "art": "vergeben",
     "passNr": 196,
-    "lastName": "VASZI",
-    "firstName": "CLAUDIA",
-    "stattdessen": 251,
-    "note": "Vom Betreiber gemeldet am 12.09.2026: richtig ist 251. Unter 196 steht kein einziges Turnier, unter 251 alle 63."
+    "gehoertZu": {
+      "lastName": "MARKOVINOVIC",
+      "firstName": "MARIO"
+    },
+    "division": "men",
+    "note": null
   },
   {
     "art": "inhaber",
