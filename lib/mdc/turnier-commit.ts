@@ -7,11 +7,19 @@
 // `data/results-uploaded.ts` von Hand zu ändern — im Lokal am Handy also gar
 // nicht.
 //
-// Geändert werden nur Datum und Spielort. Die Ergebnisliste selbst bleibt, wie
-// sie freigegeben wurde: Stimmen die Namen oder die Reihenfolge nicht, gehört
-// der Zettel noch einmal hochgeladen — dieselbe Kennung ersetzt die alte Zeile
-// (`veroeffentlicheTurnier`). Hier Platzierungen zu verschieben hieße, an
-// Ergebnissen zu drehen, ohne den Zettel danebenzuhalten.
+// Geändert werden Datum, Spielort UND — seit 25.09.2026 — die Spieler der
+// einzelnen Plätze. Beim Austausch gilt: DIE PUNKTE HÄNGEN AM PLATZ, nicht am
+// Menschen. Wer herausfällt, verliert die Punkte dieses Turniers; wer
+// hereinkommt, bekommt genau sie. Das ist kein Kunstgriff, sondern der
+// Punkteschlüssel selbst: Er rechnet aus Platz und Feldgröße, und beides
+// ändert sich beim Austausch nicht.
+//
+// Die ZAHL der Zeilen lässt sich hier NICHT ändern. An ihr hängt die
+// Feldgröße, und die bestimmt jede einzelne Punktzahl des Turniers — ein
+// Starter mehr oder weniger rechnet den ganzen Abend neu. Dafür gehört der
+// Zettel noch einmal hochgeladen; dieselbe Kennung ersetzt die alte Zeile
+// (`veroeffentlicheTurniere`), und die Korrektur steht wieder neben dem Bild,
+// aus dem sie stammt.
 //
 // Turniere aus der Arbeitsmappe fasst dieses Modul NICHT an. Die stehen in den
 // erzeugten Saisondateien und werden beim nächsten Import überschrieben — dort
@@ -34,6 +42,14 @@ export function turnierKennung(datum: string, spielortId: string): string {
 function zerlege(zeile: string): { datum: string; spielortId: string; rest: string } {
   const [datum, spielortId, ...rest] = zeile.split('|');
   return { datum, spielortId, rest: rest.join('|') };
+}
+
+/** Die Ergebnisse einer Zeile: `301:220,558:207` → Platz für Platz. */
+function zerlegeErgebnisse(rest: string): { passNr: number; punkte: number }[] {
+  return rest.split(',').filter(Boolean).map(paar => {
+    const [nr, punkte] = paar.split(':');
+    return { passNr: Number(nr), punkte: Number(punkte) };
+  });
 }
 
 async function ladeZeilen(): Promise<{ ctx: ReturnType<typeof kontext>; quelle: string; zeilen: string[] }> {
@@ -111,6 +127,71 @@ export async function loescheTurnier(
       `MDC: Hochgeladenes Turnier entfernt — ${beschreibung}`,
       '',
       'Die Punkte dieses Turniers zählen damit nicht mehr in der Wertung.',
+    ].join('\n'),
+  );
+}
+
+/**
+ * Tauscht die Spieler eines hochgeladenen Turniers aus — Platz für Platz.
+ *
+ * `passNummern` steht in Platzreihenfolge und muss GENAU SO LANG sein wie die
+ * abgelegte Liste. Die Punkte werden nicht neu gerechnet, sondern bleiben an
+ * ihrem Platz stehen: Sie stammen aus `pointsFor(Platz, Feldgröße)`, und an
+ * beidem ändert ein Austausch nichts. Wer den Platz räumt, verliert sie; wer
+ * ihn einnimmt, bekommt sie.
+ *
+ * Passt die Länge nicht, wird abgebrochen statt geraten. Das ist der Fall, in
+ * dem inzwischen jemand anders dasselbe Turnier neu hochgeladen hat — dann
+ * gehört die Seite neu geladen, nicht eine halb veraltete Liste geschrieben.
+ */
+export async function ersetzeTurnierSpieler(
+  turnier: { datum: string; spielortId: string },
+  passNummern: number[],
+  beschreibung: string,
+  /** Was sich ändert, je Zeile ein Satz — für die Commit-Nachricht. */
+  aenderungen: string[],
+): Promise<{ sha: string; url: string }> {
+  const { ctx, quelle, zeilen } = await ladeZeilen();
+
+  const gesucht = `${turnier.datum}|${turnier.spielortId}|`;
+  const treffer = zeilen.find(z => z.startsWith(gesucht));
+  if (!treffer) {
+    throw new CommitFehler(
+      `Das Turnier vom ${turnier.datum} ist in den hochgeladenen Ergebnissen nicht (mehr) zu `
+      + 'finden. Vielleicht hat es inzwischen jemand anders geändert — bitte die Seite neu laden.',
+    );
+  }
+
+  const { rest } = zerlege(treffer);
+  const bisher = zerlegeErgebnisse(rest);
+  if (bisher.length !== passNummern.length) {
+    throw new CommitFehler(
+      `Die Liste hat sich inzwischen geändert: abgelegt sind ${bisher.length} Plätze, `
+      + `geschickt wurden ${passNummern.length}. Bitte die Seite neu laden.`,
+    );
+  }
+
+  // Punkte bleiben am Platz, nur die Nummer davor wechselt.
+  const neueErgebnisse = bisher
+    .map((e, i) => `${passNummern[i]}:${e.punkte}`)
+    .join(',');
+  const neueZeile = [turnier.datum, turnier.spielortId, neueErgebnisse].join('|');
+  if (neueZeile === treffer) {
+    throw new CommitFehler('An dieser Liste ändert sich nichts.');
+  }
+
+  const neueListe = [...zeilen.filter(z => z !== treffer), neueZeile].sort();
+
+  return committe(
+    ctx,
+    [{ pfad: PFAD, inhalt: ersetzeListe(quelle, KONSTANTE, neueListe) }],
+    [
+      `MDC: Ergebnisliste berichtigt — ${beschreibung}`,
+      '',
+      ...aenderungen.map(a => `- ${a}`),
+      '',
+      'Die Punkte hängen am Platz: Wer herausfällt, verliert sie, wer hereinkommt,',
+      'bekommt sie. Feldgröße und Platzierungen sind unverändert.',
     ].join('\n'),
   );
 }

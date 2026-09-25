@@ -184,8 +184,23 @@ wirkt also auch in Rangliste, Jackpot und Spielerprofil.
 Spielort lassen sich ändern, das Turnier ganz entfernen
 (`lib/mdc/turnier-commit.ts`, schreibt dieselbe Datei). Nur `source: 'upload'` —
 Mappen-Turniere stehen nicht in der Liste und werden serverseitig abgelehnt,
-sie kämen beim nächsten Import zurück. An der Ergebnisliste ändert das nichts:
-Dafür den Zettel neu hochladen, gleiche Kennung ersetzt die alte Zeile.
+sie kämen beim nächsten Import zurück.
+**Seit 25.09.2026 auch die SPIELER einzelner Plätze** (`ersetzeTurnierSpieler`
+→ `berichtigeTurnierSpieler`): Austauschen über dieselbe Suche wie beim
+Hochladen (`components/mdc/spieler-wahl.tsx`, dafür aus `ergebnis-upload.tsx`
+herausgelöst — zwei Stellen, eine Suche), dazu Pfeile zum Verschieben.
+**DIE PUNKTE HÄNGEN AM PLATZ:** Die abgelegte Zeile ist
+`passNr:punkte,…` in Platzreihenfolge; getauscht wird nur die Nummer vor dem
+Doppelpunkt. Wer den Platz räumt, verliert die Punkte des Turniers, wer ihn
+einnimmt, bekommt genau sie — anders ginge es auch nicht, `pointsFor` rechnet
+aus Platz und Feldgröße, nicht aus dem Namen. **Die ZAHL der Plätze bleibt**
+(Längenprüfung im Commit-Modul UND in der Aktion): An ihr hängt die Feldgröße
+und damit jede Punktzahl des Abends. Fehlt oder steht jemand zu viel drin,
+gehört der Zettel neu hochgeladen — gleiche Kennung ersetzt die alte Zeile.
+Neue Spieler lassen sich dort NICHT anlegen (`onNeu` bleibt weg): Die Maske
+kennt weder Wertungsklasse noch freie Nummern. Geprüft wird serverseitig, dass
+jede Nummer jemandem gehört und keine doppelt vorkommt; die Commit-Nachricht
+nennt jeden Wechsel mit Platz, Punkten und beiden Namen.
 `/admin` ist per Passwortabfrage des Browsers geschützt (HTTP Basic in
 `proxy.ts`, KEIN Cookie — die Zusage „keine Cookies" im Datenschutz gilt
 weiter). Nötige ENV im MDC-Projekt: `MDC_ADMIN_PASSWORD`, `MDC_OCR_API_KEY`,

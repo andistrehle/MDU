@@ -77,6 +77,17 @@ export default async function ErgebnisUploadPage() {
         spielortName: t.venueName,
         starter: t.participants,
         sieger: sieger ? playerName(sieger) : `Passnr. ${erster.passNr}`,
+        // Die ganze Liste, damit sich einzelne Plätze austauschen lassen. Der
+        // Name ist der von HEUTE — er kann sich seit dem Hochladen geändert
+        // haben (Namensberichtigung, neue Nummer).
+        zeilen: t.results.map(r => {
+          const mensch = r.playerId ? getPlayer(r.playerId) : undefined;
+          return {
+            passNr: r.passNr,
+            punkte: r.points,
+            name: mensch ? playerName(mensch) : null,
+          };
+        }),
       };
     });
 
@@ -104,6 +115,7 @@ export default async function ErgebnisUploadPage() {
           <TurnierKorrektur
             turniere={hochgeladen}
             venues={VENUES.map(v => ({ id: v.id, name: v.name, weekday: venueWeekdayShort(v) }))}
+            spieler={spieler}
             canPublish={getUploadStatus().canPublish}
           />
 

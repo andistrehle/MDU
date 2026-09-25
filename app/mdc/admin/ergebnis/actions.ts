@@ -21,7 +21,7 @@ import { headers } from 'next/headers';
 import { liesErgebniszettel, FotoNichtLesbarError } from '@/lib/mdc/ergebnis-foto';
 import { ordneSpielerZu, type Zuordnung } from '@/lib/mdc/spieler-zuordnung';
 import { veroeffentlicheTurniere, type Veroeffentlichung, type NeuerSpieler } from '@/lib/mdc/ergebnis-commit';
-import { loescheTurnier, verschiebeTurnier } from '@/lib/mdc/turnier-commit';
+import { ersetzeTurnierSpieler, loescheTurnier, verschiebeTurnier } from '@/lib/mdc/turnier-commit';
 import { CommitFehler } from '@/lib/mdc/github';
 import { getUploadConfig, getUploadStatus } from '@/lib/mdc/upload-config';
 import { MAX_ZETTEL } from '@/lib/mdc/upload-grenzen';
@@ -564,5 +564,116 @@ export async function entferneHochgeladenesTurnier(
     if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
     console.error('[mdc] Turnier entfernen fehlgeschlagen', fehler);
     return { ok: false, fehler: 'Das Turnier konnte nicht entfernt werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+// ------------------------------------------------------------
+// Nachträglich berichtigen — die Spieler einzelner Plätze
+// ------------------------------------------------------------
+//
+// Der Fall aus der Praxis: Auf dem Zettel stand eine Passnummer, die zu
+// jemand anderem gehört, oder zwei Namen wurden verwechselt. Bisher half nur,
+// den ganzen Zettel noch einmal hochzuladen.
+//
+// DIE PUNKTE HÄNGEN AM PLATZ. Wer einen Platz räumt, verliert die Punkte
+// dieses Turniers; wer ihn einnimmt, bekommt genau sie. Anders ginge es auch
+// gar nicht: Der Schlüssel rechnet aus Platz und Feldgröße, nicht aus dem
+// Namen.
+//
+// Die ZAHL der Plätze bleibt, wie sie ist — an ihr hängt die Feldgröße und
+// damit jede einzelne Punktzahl des Abends.
+
+export interface ZeilenAenderung {
+  datum: string;
+  spielortId: string;
+  /** Die Passnummern in Platzreihenfolge — so viele wie bisher. */
+  passNummern: number[];
+}
+
+export async function berichtigeTurnierSpieler(
+  eingabe: ZeilenAenderung,
+): Promise<TurnierErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereitFuerAenderung();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  const alt = getTournamentRecord(`${eingabe.datum}-${eingabe.spielortId}`);
+  if (!alt) {
+    return { ok: false, fehler: 'Dieses Turnier ist nicht (mehr) zu finden. Bitte die Seite neu laden.' };
+  }
+  if (alt.source !== 'upload') {
+    return {
+      ok: false,
+      fehler: 'Dieses Turnier stammt aus der Arbeitsmappe und lässt sich hier nicht ändern. '
+        + 'Beim nächsten Einlesen käme die alte Fassung zurück.',
+    };
+  }
+
+  const neu = eingabe.passNummern;
+  if (!Array.isArray(neu) || neu.length !== alt.results.length) {
+    return {
+      ok: false,
+      fehler: `Die Liste hat ${alt.results.length} Plätze, geschickt wurden ${neu?.length ?? 0}. `
+        + 'Bitte die Seite neu laden.',
+    };
+  }
+  if (neu.some(n => !Number.isInteger(n) || n < 1)) {
+    return { ok: false, fehler: 'Mindestens ein Platz hat keine gültige Passnummer.' };
+  }
+
+  // Jede Nummer muss zu jemandem gehören. Neu anlegen geht hier bewusst nicht:
+  // Wer noch keine Nummer hat, kommt über den Zettel herein — dort steht die
+  // Wertungsklasse und die Nummer wird aus den freien vergeben.
+  const ohneMenschen = neu.filter(n => !getPlayerByPassNr(n));
+  if (ohneMenschen.length) {
+    return {
+      ok: false,
+      fehler: `Diese Passnummern gehören zu niemandem: ${[...new Set(ohneMenschen)].join(', ')}. `
+        + 'Wer noch keine Nummer hat, muss erst über einen Zettel oder unter Passnummern angelegt werden.',
+    };
+  }
+
+  const doppelt = neu.filter((n, i) => neu.indexOf(n) !== i);
+  if (doppelt.length) {
+    const namen = [...new Set(doppelt)].map(n => {
+      const spieler = getPlayerByPassNr(n);
+      return spieler ? `${playerName(spieler)} (${n})` : String(n);
+    });
+    return {
+      ok: false,
+      fehler: `Doppelt in der Liste: ${namen.join(', ')}. Jeder Spieler steht genau einmal drin.`,
+    };
+  }
+
+  // Was sich ändert — für die Commit-Nachricht und damit später nachlesbar
+  // bleibt, wer wessen Punkte bekommen hat.
+  const nenne = (passNr: number) => {
+    const spieler = getPlayerByPassNr(passNr);
+    return spieler ? `${playerName(spieler)} (${passNr})` : `Passnr. ${passNr}`;
+  };
+  const aenderungen: string[] = [];
+  alt.results.forEach((zeile, i) => {
+    if (zeile.passNr === neu[i]) return;
+    aenderungen.push(
+      `Platz ${zeile.rank} (${zeile.points} Punkte): ${nenne(zeile.passNr)} → ${nenne(neu[i])}`,
+    );
+  });
+  if (!aenderungen.length) {
+    return { ok: false, fehler: 'An dieser Liste ändert sich nichts.' };
+  }
+
+  try {
+    const beschreibung = `${venueName(eingabe.spielortId)}, ${eingabe.datum}`;
+    const commit = await ersetzeTurnierSpieler(
+      { datum: eingabe.datum, spielortId: eingabe.spielortId },
+      neu,
+      beschreibung,
+      aenderungen,
+    );
+    return { ok: true, url: commit.url, turnier: beschreibung };
+  } catch (fehler) {
+    if (fehler instanceof CommitFehler) return { ok: false, fehler: fehler.message };
+    console.error('[mdc] Ergebnisliste berichtigen fehlgeschlagen', fehler);
+    return { ok: false, fehler: 'Die Änderung konnte nicht abgelegt werden. Bitte noch einmal versuchen.' };
   }
 }

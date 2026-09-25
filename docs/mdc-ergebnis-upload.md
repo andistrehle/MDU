@@ -83,12 +83,22 @@ Die ersten beiden meldet die Seite schon beim Prüfen, solange sich noch etwas
 ändern lässt.
 
 **Nachträglich berichtigen.** Unter der Upload-Maske stehen alle Turniere, die
-über diese Seite hochgeladen wurden. Dort lassen sich **Datum und Spielort**
-ändern oder das Turnier ganz entfernen — für den Fall, dass das Datum falsch
+über diese Seite hochgeladen wurden. Dort lassen sich **Datum, Spielort und die
+Spieler einzelner Plätze** ändern oder das Turnier ganz entfernen — für den Fall, dass das Datum falsch
 vom Zettel gelesen wurde und es erst Tage später auffällt (passiert im
-September 2026 beim 70er: 29.09. statt 09.09.). Geändert wird nur die
-Kopfzeile; stimmen Namen oder Reihenfolge nicht, gehört der Zettel noch einmal
-hochgeladen — dasselbe Datum und Lokal ersetzt die alte Fassung. In der Liste
+September 2026 beim 70er: 29.09. statt 09.09.). **Spieler austauschen:** Jeder Platz hat ein Suchfeld — Nummer oder Name
+tippen, fertig; Pfeile schieben einen Platz nach oben oder unten. **Die Punkte
+hängen dabei am Platz:** Wer herausfällt, verliert die Punkte dieses Turniers,
+wer hereinkommt, bekommt genau sie. Das ist keine Eigenheit der Maske, sondern
+der Punkteschlüssel — er rechnet aus Platz und Feldgröße, nicht aus dem Namen.
+Was sich ändert, steht farbig markiert mit „vorher: …" daneben und danach in
+der Commit-Nachricht.
+
+Zwei Dinge gehen dort **nicht**: Die **Zahl der Plätze** lässt sich nicht
+ändern (an ihr hängt die Feldgröße und damit jede Punktzahl des Abends), und
+**neue Spieler** lassen sich nicht anlegen (die Maske kennt weder
+Wertungsklasse noch freie Nummern). Für beides den Zettel noch einmal
+hochladen — dasselbe Datum und Lokal ersetzt die alte Fassung. In der Liste
 stehen nur Turniere, die über diese Seite hochgeladen wurden; was ausschließlich
 in der Arbeitsmappe steht, gehört dort geändert (oder einmal als Zettel
 hochgeladen, dann gilt die Fassung der Seite).
