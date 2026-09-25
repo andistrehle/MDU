@@ -138,11 +138,20 @@ gesetztes Feld wäre am Kartenrand abgeschnitten. Der Schlüssel der Listenzeile
 ist Nummer UND Name: Die Passnummer allein ist nicht garantiert eindeutig (302
 steht derzeit bei zwei Leuten), und doppelte React-Schlüssel ließen Einträge
 der vorigen Suche stehen.
-**Das Datum vom Zettel ersetzt die Auswahl NICHT stillschweigend**
-(`datumProbe` in `components/mdc/ergebnis-upload.tsx`): übernommen wird nur,
-was in einer Saison liegt, nicht in der Zukunft und höchstens vier Monate her
-ist — sonst bleibt das gewählte Datum stehen und die Seite sagt, was gelesen
-wurde. Die Jahreszahl ist die anfälligste Stelle der Erkennung (11.09.2026 kam
+**Das eingestellte Datum GILT — der Zettel ersetzt es nie** (seit 25.09.2026,
+vom Betreiber so angewiesen). Bis dahin übernahm ein plausibel gelesenes Datum
+die Auswahl stillschweigend; das ist abgeschafft. `datumPlausibel` in
+`components/mdc/ergebnis-upload.tsx` ENTSCHEIDET nichts mehr, es beurteilt nur:
+Weicht das gelesene Datum ab, steht der Unterschied an der Zettelkarte, und ein
+Knopf übernimmt es mit einem Tipp — angeboten aber nur, wenn es in einer Saison
+liegt, nicht in der Zukunft und höchstens vier Monate her ist (sonst wäre der
+Knopf eine Falle, die Freigabe lehnte es danach ab). Stimmen beide überein,
+steht auch das da — sonst wüsste man nicht, ob verglichen oder nur nichts
+gelesen wurde. Gesperrt wird nichts: Wer den Zettel in der Hand hat,
+entscheidet. Beim SPIELORT ist es bewusst anders — ein Stapel bringt fünf
+Lokale eines Abends mit, eine einzelne Vorgabe kann dort nicht für alle
+stimmen, deshalb trägt sich jeder Zettel seinen eigenen ein (nur bei einem
+eindeutigen Treffer). Die Jahreszahl ist die anfälligste Stelle der Erkennung (11.09.2026 kam
 als 2016 zurück); schlimmer als der offensichtliche Fall wäre 2026 → 2025, das
 liegt in der VORSAISON und wäre still in der falschen Wertung gelandet. Das
 heutige Datum steht deshalb auch im OCR-Prompt (`liesErgebniszettel(bild,

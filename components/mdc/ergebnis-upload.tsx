@@ -132,24 +132,32 @@ function saisonFuer(datum: string): string | null {
 }
 
 /**
- * Darf das Datum vom Zettel das ausgewählte ersetzen?
+ * DAS EINGESTELLTE DATUM GILT — immer.
  *
- * Die Jahreszahl ist die anfälligste Stelle der ganzen Erkennung — 2026 und
- * 2016 sehen handgeschrieben fast gleich aus. Ein verlesenes Jahr fiel früher
- * erst bei der Freigabe auf, und im schlimmsten Fall gar nicht: Aus 2026 wird
- * 2025, das liegt in der Vorsaison, und das Turnier landete stillschweigend in
- * der falschen Wertung. Deshalb wird nur übernommen, was in einer Saison liegt
- * UND zeitlich zum heutigen Tag passt. Alles andere bleibt stehen und wird
- * gesagt — entschieden wird es von dem, der den Zettel in der Hand hat.
+ * Bis zum 25.09.2026 ersetzte ein plausibel gelesenes Datum stillschweigend
+ * das ausgewählte. Vom Betreiber abbestellt, und zu Recht: Wer den Zettel in
+ * der Hand hat, weiß, von welchem Abend er ist; die Erkennung rät. Eine
+ * Maschine, die die Eingabe des Menschen überschreibt, ist auch dann falsch,
+ * wenn sie meistens richtig liegt — man merkt es nur nicht.
+ *
+ * Diese Funktion entscheidet deshalb nichts mehr, sie beurteilt nur noch: Ist
+ * das, was auf dem Zettel gelesen wurde, überhaupt möglich? Davon hängt die
+ * Wortwahl des Hinweises ab und ob ein Knopf angeboten wird, das gelesene
+ * Datum mit einem Tipp zu übernehmen.
+ *
+ * Die Jahreszahl ist die anfälligste Stelle der ganzen Erkennung: 2026 und
+ * 2016 sehen handgeschrieben fast gleich aus (passiert am 11.09.2026).
+ * Schlimmer als der offensichtliche Fall wäre 2026 → 2025 — das liegt in der
+ * VORSAISON und sähe völlig unauffällig aus.
  */
-function datumProbe(vomZettel: string, heute: string): { uebernehmen: boolean; grund: string | null } {
+function datumPlausibel(vomZettel: string, heute: string): { plausibel: boolean; grund: string | null } {
   if (saisonFuer(vomZettel) === null) {
-    return { uebernehmen: false, grund: 'das liegt in keiner Saison' };
+    return { plausibel: false, grund: 'das liegt in keiner Saison' };
   }
   const tage = (Date.parse(`${vomZettel}T12:00:00`) - Date.parse(`${heute}T12:00:00`)) / 86400000;
-  if (tage > 1) return { uebernehmen: false, grund: 'das liegt in der Zukunft' };
-  if (tage < -120) return { uebernehmen: false, grund: 'das ist über vier Monate her' };
-  return { uebernehmen: true, grund: null };
+  if (tage > 1) return { plausibel: false, grund: 'das liegt in der Zukunft' };
+  if (tage < -120) return { plausibel: false, grund: 'das ist über vier Monate her' };
+  return { plausibel: true, grund: null };
 }
 
 function deutschesDatum(datum: string): string {
@@ -228,7 +236,11 @@ interface Zettel {
   /** Was die Erkennung angemerkt hat (durchgestrichene Zeilen, Unleserliches). */
   hinweise: string[];
   teilnehmerLautZettel: number | null;
-  zettelDatum: { wert: string; uebernommen: boolean; grund: string | null } | null;
+  /**
+   * Was die Erkennung als Datum gelesen hat — NUR zum Vergleichen. Das
+   * eingestellte Datum wird davon nie überschrieben.
+   */
+  zettelDatum: { wert: string; plausibel: boolean; grund: string | null } | null;
   /** Der Lokalname, wie er auf dem Zettel stand — `null`, wenn keiner drauf war. */
   spielortLautZettel: string | null;
   /** Ließ sich daraus ein Spielort erkennen? Sonst gilt die Vorgabe von oben. */
@@ -411,22 +423,23 @@ export function ErgebnisUpload({
         if (nummer) belegt.add(nummer);
       }
 
-      // NICHT stillschweigend überschreiben: Was der Zettel als Datum sagt,
-      // wird nur übernommen, wenn es auch plausibel ist — siehe `datumProbe`.
-      // Gesagt wird es in beiden Fällen, an der Karte dieses Zettels.
+      // DAS EINGESTELLTE DATUM GILT. Was der Zettel sagt, wird daneben
+      // gestellt, nie eingesetzt — siehe `datumPlausibel`. Beim Spielort ist
+      // es anders: Ein Stapel bringt fünf Lokale eines Abends mit, eine
+      // einzelne Vorgabe kann dort gar nicht für alle stimmen.
       const vomZettel = vorschlag.datumLautZettel;
-      const probe = vomZettel ? datumProbe(vomZettel, heute) : null;
+      const probe = vomZettel ? datumPlausibel(vomZettel, heute) : null;
       const erkannterOrt = spielortAusText(vorschlag.spielortLautZettel, venues);
 
       gelesen.push({
         key: foto.key,
-        datum: probe?.uebernehmen && vomZettel ? vomZettel : datum,
+        datum,
         spielortId: erkannterOrt ?? spielortId,
         zeilen,
         hinweise: vorschlag.hinweise,
         teilnehmerLautZettel: vorschlag.teilnehmerLautZettel,
         zettelDatum: vomZettel
-          ? { wert: vomZettel, uebernommen: !!probe?.uebernehmen, grund: probe?.grund ?? null }
+          ? { wert: vomZettel, plausibel: !!probe?.plausibel, grund: probe?.grund ?? null }
           : null,
         spielortLautZettel: vorschlag.spielortLautZettel,
         spielortUebernommen: erkannterOrt !== null,
@@ -579,8 +592,14 @@ export function ErgebnisUpload({
           <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
             Mehrere Zettel gehen auf einmal — bis zu {MAX_ZETTEL}. Jeder wird
             einzeln gelesen und einzeln geprüft, am Ende steht EINE Freigabe.
-            Spielort und Datum holt sich jeder Zettel von sich selbst, soweit
-            sie draufstehen; die Vorgabe hier greift nur, wo nichts zu erkennen war.
+          </p>
+          <p style={{ marginTop: 8, fontSize: '0.9rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
+            <strong>Das Datum hier gilt</strong> — für jeden Zettel des Stapels. Liest die
+            Erkennung auf einem Zettel ein anderes, wird es <em>daneben gestellt</em> und nicht
+            eingesetzt; übernehmen kannst du es dort mit einem Tipp. Der <strong>Spielort</strong>
+            {' '}ist eine Vorgabe: Kommen fünf Lokale eines Abends zusammen, kann eine Auswahl
+            nicht für alle stimmen — steht der Name lesbar auf dem Zettel, trägt ihn der
+            jeweilige Zettel selbst ein.
           </p>
 
           <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginTop: 16 }}>
@@ -593,7 +612,7 @@ export function ErgebnisUpload({
               onAendern={setSpielortId}
             />
             <label style={feldStil}>
-              <span style={labelStil}>Datum (Vorgabe)</span>
+              <span style={labelStil}>Datum · gilt für alle Zettel</span>
               <input
                 type="date"
                 value={datum}
@@ -917,7 +936,11 @@ function ZettelKarte({
           <input
             type="date"
             value={zettel.datum}
-            onChange={e => onAendern({ datum: e.target.value, zettelDatum: null })}
+            /* `zettelDatum` bleibt stehen: Der Hinweis unten entsteht aus dem
+               VERGLEICH der beiden. Wer das Datum von Hand ändert, soll
+               weiterhin sehen, was auf dem Zettel gelesen wurde — und nicht
+               den Hinweis dadurch abschalten, dass er ihn berührt. */
+            onChange={e => onAendern({ datum: e.target.value })}
             disabled={gesperrt}
             style={{
               ...eingabeStil,
@@ -938,23 +961,50 @@ function ZettelKarte({
       )}
 
       {/* ── Was der Zettel zum Datum sagt ──
-          Das Jahr ist die anfälligste Stelle der ganzen Erkennung: 2026 und
-          2016 sehen handschriftlich fast gleich aus, und ein verlesenes Jahr
-          fiel früher erst bei der Freigabe auf — nach dem ganzen Prüfen. */}
+          Nur ein Vergleich, nie ein Eingriff: Das eingestellte Datum bleibt
+          stehen. Stimmen beide überein, steht das genauso da — dann weiß man,
+          dass wirklich verglichen wurde und nicht bloß nichts gelesen.
+          Weichen sie ab, entscheidet ein Tipp auf den Knopf, nicht die
+          Maschine. */}
       {zettel.zettelDatum && (
-        <p
-          style={{
-            marginTop: 10, fontSize: '0.86rem', lineHeight: 1.6,
-            color: zettel.zettelDatum.uebernommen ? 'var(--mdc-ink-dim)' : 'var(--mdc-warn-ink)',
-          }}
-        >
-          {zettel.zettelDatum.uebernommen
-            ? `Datum vom Zettel übernommen: ${deutschesDatum(zettel.zettelDatum.wert)}.`
-            : `Auf dem Zettel wurde „${deutschesDatum(zettel.zettelDatum.wert)}“ gelesen — `
-              + `${zettel.zettelDatum.grund}, vermutlich ist die Jahreszahl verlesen. Es bleibt `
-              + `beim Datum ${deutschesDatum(zettel.datum)}; bitte einmal gegen den `
-              + 'Zettel vergleichen.'}
-        </p>
+        zettel.zettelDatum.wert === zettel.datum ? (
+          <p style={{ marginTop: 10, fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-ink-dim)' }}>
+            Auf dem Zettel steht dasselbe Datum — {deutschesDatum(zettel.datum)}.
+          </p>
+        ) : (
+          <div
+            style={{
+              marginTop: 10, padding: '10px 12px', borderRadius: 9,
+              background: 'var(--mdc-warn-tint)', border: '1px solid var(--mdc-warn-line)',
+              fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-warn-ink)',
+            }}
+          >
+            <p>
+              <strong>Der Zettel sagt ein anderes Datum.</strong> Gelesen wurde{' '}
+              {'„'}{deutschesDatum(zettel.zettelDatum.wert)}{'“'}
+              {zettel.zettelDatum.grund ? ` — ${zettel.zettelDatum.grund}, vermutlich ist die Jahreszahl verlesen` : ''}
+              . Eingestellt ist <strong>{deutschesDatum(zettel.datum)}</strong>, und dabei bleibt es.
+            </p>
+            {/* Angeboten wird nur, was auch ablegbar wäre. Ein Datum ohne
+                Saison mit einem Tipp übernehmen zu können, wäre eine Falle:
+                Die Freigabe lehnte es danach ab. */}
+            {zettel.zettelDatum.plausibel ? (
+              <button
+                type="button"
+                onClick={() => onAendern({ datum: zettel.zettelDatum!.wert })}
+                disabled={gesperrt}
+                className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                style={{ marginTop: 8 }}
+              >
+                {deutschesDatum(zettel.zettelDatum.wert)} übernehmen
+              </button>
+            ) : (
+              <p style={{ marginTop: 6 }}>
+                Übernehmen geht nicht — dieses Datum ließe sich gar nicht ablegen.
+              </p>
+            )}
+          </div>
+        )
       )}
 
       {datumOhneSaison && (

@@ -15,10 +15,12 @@ Adresse: **`/admin/ergebnis`** (auf mdudarts.de: `/mdc/admin/ergebnis`).
 einen nach dem anderen fotografieren („Noch einen fotografieren") oder alle
 Fotos des Abends auf einmal aus der Galerie wählen; die Vorschaubilder stehen
 untereinander, ein falsches lässt sich einzeln wieder wegnehmen. Spielort und
-Datum stehen als **Vorgabe** darüber — vorausgewählt ist ein Lokal, das an
-diesem Wochentag spielt. Sie greift nur dort, wo der Zettel selbst nichts
-hergibt: Jeder Zettel bringt sein eigenes Datum und seinen eigenen Spielort
-mit, soweit sie draufstehen.
+Datum stehen darüber — vorausgewählt ist ein Lokal, das an diesem Wochentag
+spielt. **Das Datum gilt für jeden Zettel des Stapels** und wird von der
+Erkennung nie überschrieben. Der **Spielort** ist dagegen nur eine Vorgabe:
+Kommen fünf Lokale eines Abends zusammen, kann eine Auswahl nicht für alle
+stimmen — steht der Name lesbar auf dem Zettel, trägt ihn der jeweilige Zettel
+selbst ein. Beides ist je Zettel änderbar.
 Die Bilder werden noch im Browser auf die lange Kante 1600 px verkleinert; sie
 verlassen das Handy also klein, nicht mit vier Megabyte das Stück.
 
@@ -48,14 +50,17 @@ für Zeile:
   Spieler anlegen" genauso erfassen.
 - **Die Punkte stehen daneben** und ändern sich mit jeder Zeile, die dazukommt
   oder wegfällt. Sie werden nie eingetippt.
-- **Das Datum vom Zettel wird nicht mehr stillschweigend übernommen.** Es
-  ersetzt die Auswahl nur, wenn es in einer Saison liegt, nicht in der Zukunft
-  und nicht über vier Monate her ist. Sonst bleibt das ausgewählte Datum stehen
-  und darüber steht, was gelesen wurde. Hintergrund: 2026 und 2016 sehen
-  handgeschrieben fast gleich aus (passiert am 11.09.2026). Im schlimmsten Fall
-  wird aus 2026 ein 2025 — das liegt in der Vorsaison, und das Turnier landete
-  sonst still in der falschen Wertung. Liegt das eingestellte Datum in keiner
-  Saison, sagt das jetzt schon Schritt 1 und die Freigabe bleibt gesperrt.
+- **Das Datum, das du eingibst, gilt — der Zettel ersetzt es nie.** Liest die
+  Erkennung etwas anderes, steht der Unterschied an der Zettelkarte: was
+  gelesen wurde, was eingestellt ist, und dass es beim eingestellten bleibt.
+  Ist das gelesene Datum plausibel, übernimmst du es mit einem Tipp auf den
+  Knopf daneben; ist es das nicht, steht dabei, warum es gar nicht ginge.
+  Stimmen beide überein, steht auch das da — dann weißt du, dass verglichen
+  wurde und nicht bloß nichts gelesen. Hintergrund: 2026 und 2016 sehen
+  handgeschrieben fast gleich aus (passiert am 11.09.2026), und im schlimmsten
+  Fall wird aus 2026 ein 2025 — das liegt in der Vorsaison und sähe völlig
+  unauffällig aus. Liegt das eingestellte Datum in keiner Saison, sagt das
+  schon Schritt 1 und die Freigabe bleibt gesperrt.
 
 - **Den Spieler sucht man**, statt ihn in über 500 Namen zu suchen: Ins Feld
   tippen, was auf dem Zettel steht — Ziffern finden die Passnummer, Buchstaben
