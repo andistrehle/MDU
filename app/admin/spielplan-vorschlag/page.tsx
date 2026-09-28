@@ -45,18 +45,29 @@ export default function SpielplanVorschlagPage() {
           </h2>
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.65, color: 'var(--th-text-body)' }}>
             <p style={{ margin: '0 0 10px' }}>
-              Meister werden über die Tabelle entschieden (kein Titel-Playoff). Auf-/Abstieg zwischen den Ligen wird als
-              Relegation ausgespielt — jeweils <b>2–3 Teams</b> aus den angrenzenden Ligen, alles bis <b>Anfang Juni 2027</b>.
+              Meister über die Tabelle (kein Titel-Playoff). Auf-/Abstieg wird als <b>Aufstiegs-Playoff</b> ausgespielt und ist
+              bewusst <b>asymmetrisch</b>: an den oberen Grenzen steigen mehr auf als ab, damit sich <b>La- und A-Liga über die
+              Jahre füllen</b>. Die Playoffs entscheiden selbst, wie viele hoch- bzw. runtergehen. Alles bis <b>Anfang Juni 2027</b>
+              (reservierte Wochenenden im Mai).
             </p>
             <ul style={{ margin: 0, paddingLeft: 18 }}>
-              <li><b>La ↔ A:</b> untere 2 der La Liga gegen die oberen 2 der A Liga (Kreuz-Halbfinale + Platzierungsspiel).</li>
-              <li><b>A ↔ B:</b> untere 2 der A Liga gegen die Meister/Vize aus B1 und B2.</li>
-              <li><b>B ↔ C:</b> untere je 1–2 aus B1/B2 gegen die oberen 2–3 der C Liga.</li>
-              <li><b>Format je Runde:</b> Hin-/Rückspiel oder Mini-Turnier an einem reservierten Wochenende (Mai–Anfang Juni).</li>
+              <li>
+                <b>La-Relegation (La wächst 6 → 8):</b> die <b>Top 3 der A</b> + die <b>2 Letzten der La</b> = 5 Teams spielen um
+                <b> 4 La-Plätze</b>. 1 Team scheidet aus. → 2–3 aus der A hoch, 0–1 aus der La runter.
+              </li>
+              <li>
+                <b>A-Relegation (A wächst ~9 → ~10):</b> die <b>2 Letzten der A</b> + <b>4 aus der B</b> (B1-Meister, B1-Vize,
+                B2-Meister, B2-Vize) = 6 Teams spielen um <b>4 A-Plätze</b>. → 2–3 aus der B hoch, 1–2 aus der A runter.
+              </li>
+              <li>
+                <b>B ↔ C (ausgeglichen):</b> gleich viele hoch wie runter (z. B. 2 ↔ 2) — über Tabelle oder kurze Relegation.
+                B normalisiert sich Richtung 12–13 und wird wieder in B1/B2 geteilt.
+              </li>
+              <li><b>Format je Runde:</b> Mini-Turnier oder Hin-/Rückspiel an einem reservierten Wochenende (Mai–Anfang Juni).</li>
             </ul>
             <p style={{ margin: '10px 0 0', color: 'var(--th-text-faint)', fontSize: 12 }}>
-              Genaue Team-Zahlen je Relegationsrunde legen wir fest, sobald die Ligagrößen final sind — 2–3 aus einer 6er-Liga
-              ist viel, dort eher 2.
+              Voraussichtliche Größen nächste Saison: <b>La 8</b>, <b>A ~10</b>, <b>B ~12–13</b> (B1/B2), <b>C ~7</b>. Genaue
+              Endzahlen ergeben sich aus den Playoff-Ergebnissen.
             </p>
           </div>
         </div>
