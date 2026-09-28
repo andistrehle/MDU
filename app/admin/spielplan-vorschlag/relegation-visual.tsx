@@ -108,12 +108,13 @@ export function RelegationVisual() {
 
       {/* Playoff-Termine */}
       <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.7 }}>
-        <b style={{ color: 'var(--th-text-strong)' }}>Playoff-Termine</b> (nach dem letzten Spieltag 16.–18.04.2027):
+        <b style={{ color: 'var(--th-text-strong)' }}>Playoff-Termine</b> (letzter regulärer Spieltag: 16.–18.04.2027):
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <span><b>23.–25.04.2027</b> — Playoff B ↔ C</span>
-          <span><b>07.–09.05.2027</b> — Playoff A ↔ B</span>
-          <span><b>21.–23.05.2027</b> — Playoff La ↔ A</span>
-          <span style={{ color: 'var(--th-text-faint)' }}>Reserve / Entscheidungsspiele: 28.–30.05. · spätestens 04.–06.06.2027</span>
+          <span style={{ color: 'var(--th-text-faint)' }}>Puffer / Nachholspiele: 23.04.–06.05.2027 (inkl. 1. Mai frei)</span>
+          <span><b>07.–09.05.2027</b> — Playoff B ↔ C</span>
+          <span><b>21.–23.05.2027</b> — Playoff A ↔ B</span>
+          <span><b>28.–30.05.2027</b> — Playoff La ↔ A</span>
+          <span style={{ color: 'var(--th-text-faint)' }}>Reserve / Entscheidungsspiele: 04.–06.06.2027</span>
         </div>
         <div style={{ marginTop: 6, color: 'var(--th-text-faint)', fontSize: 11.5 }}>
           Ferien (1. Mai, Pfingsten) ausgelassen. Termine gelten für Startvariante 16.10.; bei Start 23.10. jeweils ~1 Woche später.
@@ -124,7 +125,7 @@ export function RelegationVisual() {
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
         <PlayoffCard
           title="Playoff um die La-Liga"
-          subtitle="21.–23.05.2027 · damit die La-Liga auf 7 wächst"
+          subtitle="28.–30.05.2027 · damit die La-Liga auf 7 wächst"
           inputs={[
             { text: 'A-Liga · 1.', kind: 'a' }, { text: 'A-Liga · 2.', kind: 'a' }, { text: 'A-Liga · 3.', kind: 'a' },
             { text: 'La-Liga · 5.', kind: 'la' }, { text: 'La-Liga · 6.', kind: 'la' },
@@ -134,7 +135,7 @@ export function RelegationVisual() {
         />
         <PlayoffCard
           title="Playoff um die A-Liga"
-          subtitle="07.–09.05.2027 · damit die A-Liga auf 10 wächst"
+          subtitle="21.–23.05.2027 · damit die A-Liga auf 10 wächst"
           inputs={[
             { text: 'A-Liga · vorletzter', kind: 'a' }, { text: 'A-Liga · letzter', kind: 'a' },
             { text: 'B1 · Meister', kind: 'b' }, { text: 'B1 · Vize', kind: 'b' },
@@ -145,7 +146,7 @@ export function RelegationVisual() {
         />
         <PlayoffCard
           title="Playoff um B / C"
-          subtitle="23.–25.04.2027 · damit die große B-Liga wieder kleiner wird"
+          subtitle="07.–09.05.2027 · damit die große B-Liga wieder kleiner wird"
           inputs={[
             { text: 'B1 · vorletzter', kind: 'b' }, { text: 'B1 · letzter', kind: 'b' },
             { text: 'B2 · vorletzter', kind: 'b' }, { text: 'B2 · letzter', kind: 'b' },
