@@ -1,0 +1,136 @@
+// Anschauliche Darstellung von Auf-/Abstieg + Playoffs — bewusst ohne Fachjargon,
+// damit es auch ohne Vorwissen verständlich ist. Rein statisch (nur Anzeige).
+
+import type { CSSProperties } from 'react';
+
+const UP = 'var(--th-win)';      // grün = Aufsteiger
+const DOWN = '#e5484d';          // rot = Absteiger
+
+function LeagueBar({ name, size, accent }: { name: string; size: string; accent: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '14px 16px', borderRadius: 12, background: 'var(--th-bg-card)',
+      border: '1px solid var(--th-line-8)', borderLeft: `5px solid ${accent}`,
+    }}>
+      <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--th-text-strong)' }}>{name}</span>
+      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-muted)' }}>{size}</span>
+    </div>
+  );
+}
+
+function badge(color: string): CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 999,
+    fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, color: '#fff', background: color,
+  };
+}
+
+function ArrowRow({ up, down, balanced }: { up?: string; down?: string; balanced?: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', padding: '8px 0', flexWrap: 'wrap' }}>
+      {balanced ? (
+        <span style={badge('var(--th-text-faint)')}>⇅ {balanced}</span>
+      ) : (
+        <>
+          {up && <span style={badge(UP)}>▲ {up}</span>}
+          {down && <span style={badge(DOWN)}>▼ {down}</span>}
+        </>
+      )}
+    </div>
+  );
+}
+
+function chip(text: string, kind: 'a' | 'la' | 'b') {
+  const bg = kind === 'la' ? 'var(--th-accent-a12)' : kind === 'a' ? 'rgba(91,224,140,0.12)' : 'rgba(255,255,255,0.06)';
+  const bd = kind === 'la' ? 'var(--th-accent-a25)' : kind === 'a' ? 'rgba(91,224,140,0.3)' : 'var(--th-line-10)';
+  return (
+    <span key={text} style={{
+      padding: '6px 11px', borderRadius: 8, background: bg, border: `1px solid ${bd}`,
+      fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)',
+    }}>{text}</span>
+  );
+}
+
+function PlayoffCard({ title, subtitle, inputs, outUp, outDown }: {
+  title: string; subtitle: string;
+  inputs: { text: string; kind: 'a' | 'la' | 'b' }[];
+  outUp: string; outDown: string;
+}) {
+  return (
+    <div style={{ padding: '16px', borderRadius: 14, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)' }}>
+      <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 17, textTransform: 'uppercase', color: 'var(--th-text-strong)' }}>{title}</div>
+      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', margin: '2px 0 12px' }}>{subtitle}</div>
+
+      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--th-text-faint)', marginBottom: 7 }}>Diese Teams spielen ({inputs.length})</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{inputs.map(i => chip(i.text, i.kind))}</div>
+
+      <div style={{ textAlign: 'center', fontSize: 22, color: 'var(--th-text-faint)', margin: '6px 0 2px' }}>▼</div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ ...badge(UP), fontSize: 13 }}>▲ {outUp}</span>
+        <span style={{ ...badge(DOWN), fontSize: 13 }}>▼ {outDown}</span>
+      </div>
+    </div>
+  );
+}
+
+export function RelegationVisual() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.6, color: 'var(--th-text-body)' }}>
+        <b>Kurz gesagt:</b> Oben steigen mehr Teams auf als ab — so werden La- und A-Liga von Jahr zu Jahr größer.
+        Unten (B↔C) wird ausgeglichen, damit die große B-Liga wieder kleiner wird. Wer aufsteigt, entscheiden am
+        Saisonende die Playoffs (Mai–Anfang Juni).
+      </p>
+
+      {/* Liga-Pyramide */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <LeagueBar name="La Liga" size="6 → 8 Teams" accent="var(--th-gold)" />
+        <ArrowRow up="3 steigen auf" down="1 steigt ab" />
+        <LeagueBar name="A Liga" size="9 → 10 Teams" accent="var(--th-accent)" />
+        <ArrowRow up="5 steigen auf" down="2 steigen ab" />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <LeagueBar name="B1" size="8 Teams" accent="#6E7177" />
+          <LeagueBar name="B2" size="7 Teams" accent="#6E7177" />
+        </div>
+        <ArrowRow balanced="gleich viele hoch wie runter" />
+        <LeagueBar name="C Liga" size="~7 Teams" accent="#8A6D3B" />
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', textAlign: 'center' }}>
+        Am Ende: La <b>8</b> · A <b>10</b> · B <b>~12</b> (wieder B1/B2) · C <b>~7</b> — zusammen weiter 37 Teams.
+      </div>
+
+      {/* Playoffs */}
+      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
+        <PlayoffCard
+          title="Playoff um die La-Liga"
+          subtitle="Damit die La-Liga auf 8 wächst"
+          inputs={[
+            { text: 'A-Liga · 1.', kind: 'a' }, { text: 'A-Liga · 2.', kind: 'a' }, { text: 'A-Liga · 3.', kind: 'a' },
+            { text: 'La-Liga · 5.', kind: 'la' }, { text: 'La-Liga · 6.', kind: 'la' },
+          ]}
+          outUp="4 Teams → La Liga"
+          outDown="1 Team → A Liga"
+        />
+        <PlayoffCard
+          title="Playoff um die A-Liga"
+          subtitle="Damit die A-Liga auf 10 wächst"
+          inputs={[
+            { text: 'A-Liga · vorletzter', kind: 'a' }, { text: 'A-Liga · letzter', kind: 'a' },
+            { text: 'B1 · Meister', kind: 'b' }, { text: 'B1 · Vize', kind: 'b' },
+            { text: 'B2 · Meister', kind: 'b' }, { text: 'B2 · Vize', kind: 'b' },
+          ]}
+          outUp="5 Teams → A Liga"
+          outDown="1 Team → B Liga"
+        />
+      </div>
+
+      <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', lineHeight: 1.55 }}>
+        Warum „5 rauf" bei der A-Liga, obwohl nur 2 unten mitspielen? Weil die A-Liga oben gleichzeitig 2 Teams an die
+        wachsende La-Liga abgibt. 2 gehen also hoch, ~2–3 kommen von unten nach — unterm Strich <b>+1</b> (9 → 10).
+      </p>
+    </div>
+  );
+}
