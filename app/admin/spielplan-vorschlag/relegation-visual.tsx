@@ -41,9 +41,12 @@ function ArrowRow({ up, down, balanced }: { up?: string; down?: string; balanced
   );
 }
 
-function chip(text: string, kind: 'a' | 'la' | 'b') {
-  const bg = kind === 'la' ? 'var(--th-accent-a12)' : kind === 'a' ? 'rgba(91,224,140,0.12)' : 'rgba(255,255,255,0.06)';
-  const bd = kind === 'la' ? 'var(--th-accent-a25)' : kind === 'a' ? 'rgba(91,224,140,0.3)' : 'var(--th-line-10)';
+type ChipKind = 'a' | 'la' | 'b' | 'c';
+function chip(text: string, kind: ChipKind) {
+  const bg = kind === 'la' ? 'var(--th-accent-a12)' : kind === 'a' ? 'rgba(91,224,140,0.12)'
+    : kind === 'c' ? 'rgba(232,184,74,0.12)' : 'rgba(255,255,255,0.06)';
+  const bd = kind === 'la' ? 'var(--th-accent-a25)' : kind === 'a' ? 'rgba(91,224,140,0.3)'
+    : kind === 'c' ? 'rgba(232,184,74,0.3)' : 'var(--th-line-10)';
   return (
     <span key={text} style={{
       padding: '6px 11px', borderRadius: 8, background: bg, border: `1px solid ${bd}`,
@@ -54,7 +57,7 @@ function chip(text: string, kind: 'a' | 'la' | 'b') {
 
 function PlayoffCard({ title, subtitle, inputs, outUp, outDown }: {
   title: string; subtitle: string;
-  inputs: { text: string; kind: 'a' | 'la' | 'b' }[];
+  inputs: { text: string; kind: ChipKind }[];
   outUp: string; outDown: string;
 }) {
   return (
@@ -80,8 +83,8 @@ export function RelegationVisual() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.6, color: 'var(--th-text-body)' }}>
         <b>Kurz gesagt:</b> Oben steigen mehr Teams auf als ab — so werden La- und A-Liga von Jahr zu Jahr größer.
-        Unten (B↔C) wird ausgeglichen, damit die große B-Liga wieder kleiner wird. Wer aufsteigt, entscheiden am
-        Saisonende die Playoffs (Mai–Anfang Juni).
+        Ganz unten (B↔C) verschiebt sich netto 1 Team nach unten, damit die große B-Liga wieder kleiner wird. Wer
+        auf-/absteigt, entscheiden am Saisonende drei Playoff-Runden (Mai–Anfang Juni).
       </p>
 
       {/* Liga-Pyramide */}
@@ -94,12 +97,12 @@ export function RelegationVisual() {
           <LeagueBar name="B1" size="8 Teams" accent="#6E7177" />
           <LeagueBar name="B2" size="7 Teams" accent="#6E7177" />
         </div>
-        <ArrowRow balanced="gleich viele hoch wie runter" />
-        <LeagueBar name="C Liga" size="~7 Teams" accent="#8A6D3B" />
+        <ArrowRow balanced="Playoff: 3 Plätze B · 3 Plätze C" />
+        <LeagueBar name="C Liga" size="~7 → ~8 Teams" accent="#8A6D3B" />
       </div>
 
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', textAlign: 'center' }}>
-        Am Ende: La <b>8</b> · A <b>10</b> · B <b>~12</b> (wieder B1/B2) · C <b>~7</b> — zusammen weiter 37 Teams.
+        Am Ende: La <b>8</b> · A <b>10</b> · B <b>~11</b> (wieder B1/B2) · C <b>~8</b> — zusammen weiter 37 Teams.
       </div>
 
       {/* Playoffs */}
@@ -124,6 +127,17 @@ export function RelegationVisual() {
           ]}
           outUp="5 Teams → A Liga"
           outDown="1 Team → B Liga"
+        />
+        <PlayoffCard
+          title="Playoff um B / C"
+          subtitle="Damit die große B-Liga wieder kleiner wird"
+          inputs={[
+            { text: 'B1 · vorletzter', kind: 'b' }, { text: 'B1 · letzter', kind: 'b' },
+            { text: 'B2 · vorletzter', kind: 'b' }, { text: 'B2 · letzter', kind: 'b' },
+            { text: 'C-Liga · 1.', kind: 'c' }, { text: 'C-Liga · 2.', kind: 'c' },
+          ]}
+          outUp="3 Teams → B Liga"
+          outDown="3 Teams → C Liga"
         />
       </div>
 
