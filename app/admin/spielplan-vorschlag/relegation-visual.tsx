@@ -82,40 +82,41 @@ export function RelegationVisual() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.6, color: 'var(--th-text-body)' }}>
-        <b>Kurz gesagt:</b> Oben steigen mehr Teams auf als ab — so werden La- und A-Liga von Jahr zu Jahr größer.
-        Ganz unten (B↔C) verschiebt sich netto 1 Team nach unten, damit die große B-Liga wieder kleiner wird. Wer
-        auf-/absteigt, entscheiden am Saisonende drei Playoff-Runden (Mai–Anfang Juni).
+        <b>Kurz gesagt:</b> Oben steigen mehr Teams auf als ab — so werden La- und A-Liga größer. Jede Playoff-Runde
+        ist eine kleine Rangliste: die oberen Plätze steigen auf, die unteren ab. Unten (B↔C) ist es ausgeglichen
+        (3 hoch, 3 runter); die große B-Liga wird trotzdem kleiner, weil sie oben mehr an die A abgibt als zurückbekommt.
+        Entschieden wird am Saisonende (Mai–Anfang Juni).
       </p>
 
       {/* Liga-Pyramide */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <LeagueBar name="La Liga" size="6 → 8 Teams" accent="var(--th-gold)" />
-        <ArrowRow up="3 steigen auf" down="1 steigt ab" />
+        <LeagueBar name="La Liga" size="6 → 7 Teams" accent="var(--th-gold)" />
+        <ArrowRow up="3 steigen auf" down="2 steigen ab" />
         <LeagueBar name="A Liga" size="9 → 10 Teams" accent="var(--th-accent)" />
-        <ArrowRow up="5 steigen auf" down="2 steigen ab" />
+        <ArrowRow up="4 steigen auf" down="2 steigen ab" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <LeagueBar name="B1" size="8 Teams" accent="#6E7177" />
           <LeagueBar name="B2" size="7 Teams" accent="#6E7177" />
         </div>
-        <ArrowRow balanced="Playoff: 3 Plätze B · 3 Plätze C" />
-        <LeagueBar name="C Liga" size="~7 → ~8 Teams" accent="#8A6D3B" />
+        <ArrowRow balanced="3 hoch · 3 runter" />
+        <LeagueBar name="C Liga" size="~7 Teams" accent="#8A6D3B" />
       </div>
 
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', textAlign: 'center' }}>
-        Am Ende: La <b>8</b> · A <b>10</b> · B <b>~11</b> (wieder B1/B2) · C <b>~8</b> — zusammen weiter 37 Teams.
+        Am Ende: La <b>7</b> · A <b>10</b> · B <b>~13</b> (wieder B1/B2) · C <b>~7</b> — zusammen weiter 37 Teams.
       </div>
 
       {/* Playoffs */}
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
         <PlayoffCard
           title="Playoff um die La-Liga"
-          subtitle="Damit die La-Liga auf 8 wächst"
+          subtitle="Damit die La-Liga auf 7 wächst"
           inputs={[
             { text: 'A-Liga · 1.', kind: 'a' }, { text: 'A-Liga · 2.', kind: 'a' }, { text: 'A-Liga · 3.', kind: 'a' },
             { text: 'La-Liga · 5.', kind: 'la' }, { text: 'La-Liga · 6.', kind: 'la' },
           ]}
-          outUp="4 Teams → La Liga"
-          outDown="1 Team → A Liga"
+          outUp="3 Teams → La Liga"
+          outDown="2 Teams → A Liga"
         />
         <PlayoffCard
           title="Playoff um die A-Liga"
@@ -125,8 +126,8 @@ export function RelegationVisual() {
             { text: 'B1 · Meister', kind: 'b' }, { text: 'B1 · Vize', kind: 'b' },
             { text: 'B2 · Meister', kind: 'b' }, { text: 'B2 · Vize', kind: 'b' },
           ]}
-          outUp="5 Teams → A Liga"
-          outDown="1 Team → B Liga"
+          outUp="4 Teams → A Liga"
+          outDown="2 Teams → B Liga"
         />
         <PlayoffCard
           title="Playoff um B / C"
@@ -142,8 +143,9 @@ export function RelegationVisual() {
       </div>
 
       <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', lineHeight: 1.55 }}>
-        Warum „5 rauf" bei der A-Liga, obwohl nur 2 unten mitspielen? Weil die A-Liga oben gleichzeitig 2 Teams an die
-        wachsende La-Liga abgibt. 2 gehen also hoch, ~2–3 kommen von unten nach — unterm Strich <b>+1</b> (9 → 10).
+        Die A-Liga gibt oben netto 1 Team an die La ab (3 hoch, 2 runter) und holt unten netto 2 (4 hoch, 2 runter) —
+        unterm Strich <b>+1</b> (9 → 10). Die B-Liga verliert oben mehr an die A, als sie zurückbekommt, und wird so
+        wieder kleiner (15 → ~13).
       </p>
     </div>
   );
