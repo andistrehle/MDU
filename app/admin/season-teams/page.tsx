@@ -600,6 +600,19 @@ export default function AdminSeasonTeamsPage() {
         </span>
       </div>
 
+      {/* Spielplan-Vorschlag 2026/2027 (reiner Vorschlag, keine DB-Speicherung) */}
+      <div style={{ marginBottom: 18 }}>
+        <Link href="/admin/spielplan-vorschlag" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 8,
+          background: 'transparent', color: 'var(--th-accent)', textDecoration: 'none',
+          border: '1px solid var(--th-line-18)',
+          fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5,
+        }}>🗓 Spielplan-Vorschlag 2026/2027</Link>
+        <span style={{ marginLeft: 10, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>
+          Generierter Vorschlag zum Abstimmen (Doppelrunde, B1/B2-Split, Derbys früh, Ferien frei) — schreibt nichts.
+        </span>
+      </div>
+
       {/* Saison verwalten — aktive Saison + Umschalten (nur Super Admin) */}
       {canSwitch && (
         <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '14px 18px', marginBottom: 18, maxWidth: 900, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
