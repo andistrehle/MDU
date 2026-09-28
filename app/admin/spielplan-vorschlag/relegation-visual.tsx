@@ -83,9 +83,9 @@ export function RelegationVisual() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.6, color: 'var(--th-text-body)' }}>
         <b>Kurz gesagt:</b> Oben steigen mehr Teams auf als ab — so werden La- und A-Liga größer. Jede Playoff-Runde
-        ist eine kleine Rangliste: die oberen Plätze steigen auf, die unteren ab. Unten (B↔C) ist es ausgeglichen
-        (3 hoch, 3 runter); die große B-Liga wird trotzdem kleiner, weil sie oben mehr an die A abgibt als zurückbekommt.
-        Entschieden wird am Saisonende (Mai–Anfang Juni).
+        ist eine kleine Rangliste: die oberen Plätze kommen in die höhere Liga, die unteren in die tiefere. Die große
+        B-Liga gibt oben mehr an die A ab, als sie zurückbekommt, und schrumpft dadurch (15 → ~12); die C-Liga wächst
+        leicht (~7 → ~8). Entschieden wird am Saisonende (Mai–Anfang Juni).
       </p>
 
       {/* Liga-Pyramide */}
@@ -98,12 +98,12 @@ export function RelegationVisual() {
           <LeagueBar name="B1" size="8 Teams" accent="#6E7177" />
           <LeagueBar name="B2" size="7 Teams" accent="#6E7177" />
         </div>
-        <ArrowRow balanced="3 hoch · 3 runter" />
-        <LeagueBar name="C Liga" size="~7 Teams" accent="#8A6D3B" />
+        <ArrowRow balanced="Playoff: 3 Plätze B · 3 Plätze C" />
+        <LeagueBar name="C Liga" size="~7 → ~8 Teams" accent="#8A6D3B" />
       </div>
 
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', textAlign: 'center' }}>
-        Am Ende: La <b>7</b> · A <b>10</b> · B <b>~13</b> (wieder B1/B2) · C <b>~7</b> — zusammen weiter 37 Teams.
+        Am Ende: La <b>7</b> · A <b>10</b> · B <b>~12</b> (wieder B1/B2) · C <b>~8</b> — zusammen weiter 37 Teams.
       </div>
 
       {/* Playoffs */}
@@ -144,8 +144,8 @@ export function RelegationVisual() {
 
       <p style={{ margin: 0, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', lineHeight: 1.55 }}>
         Die A-Liga gibt oben netto 1 Team an die La ab (3 hoch, 2 runter) und holt unten netto 2 (4 hoch, 2 runter) —
-        unterm Strich <b>+1</b> (9 → 10). Die B-Liga verliert oben mehr an die A, als sie zurückbekommt, und wird so
-        wieder kleiner (15 → ~13).
+        unterm Strich <b>+1</b> (9 → 10). Beim untersten Playoff gehen 2 C-Teams rein, aber 3 C-Plätze raus — deshalb
+        wächst die C leicht (~7 → ~8), und die B wird kleiner (15 → ~12).
       </p>
     </div>
   );
