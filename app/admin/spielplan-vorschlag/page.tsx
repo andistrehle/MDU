@@ -56,8 +56,10 @@ export default function SpielplanVorschlagPage() {
                 <b> 4 La-Plätze</b>. 1 Team scheidet aus. → 2–3 aus der A hoch, 0–1 aus der La runter.
               </li>
               <li>
-                <b>A-Relegation (A wächst ~9 → ~10):</b> die <b>2 Letzten der A</b> + <b>4 aus der B</b> (B1-Meister, B1-Vize,
-                B2-Meister, B2-Vize) = 6 Teams spielen um <b>4 A-Plätze</b>. → 2–3 aus der B hoch, 1–2 aus der A runter.
+                <b>A-Relegation (A wächst 9 → 10):</b> die <b>2 Letzten der A</b> + <b>4 aus der B</b> (B1-Meister, B1-Vize,
+                B2-Meister, B2-Vize) = 6 Teams spielen um <b>5 A-Plätze</b> (nur 1 Absteiger). → 3–5 aus der B hoch,
+                0–1 aus der A runter. <i>Wichtig: 5 Plätze, weil die A oben gleichzeitig ~2 Teams an die wachsende La abgibt —
+                bei nur 3–4 Plätzen würde die A schrumpfen bzw. stagnieren.</i>
               </li>
               <li>
                 <b>B ↔ C (ausgeglichen):</b> gleich viele hoch wie runter (z. B. 2 ↔ 2) — über Tabelle oder kurze Relegation.
