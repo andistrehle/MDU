@@ -4,16 +4,23 @@ import { useState } from 'react';
 
 // Anzeige-Komponente für den generierten Spielplan-Vorschlag 2026/2027.
 // Die Daten kommen aus spielplan.json (vom Generator erzeugt) und werden hier
-// nur dargestellt — Variante (Startdatum) und Liga umschaltbar.
+// nur dargestellt — Liga umschaltbar. Jeder Spieltag zeigt über weekendIndex
+// auf ein Wochenende der gemeinsamen Kalenderliste (data.weekends).
+//
+// Terminierung: Die A-Liga (18 Spieltage) belegt jedes Wochenende ab 16.10.
+// Alle anderen Ligen starten eine Woche später (23.10.) und sind mit
+// spielfreien Wochenenden gleichmäßig entzerrt, damit sie ebenfalls erst am
+// letzten Wochenende (16.–18.04.2027) enden — nicht schon im Januar/Februar.
 
 type Game = { home: string; away: string; venue: string; derby: boolean };
-type Matchday = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null };
-type Variant = { key: string; label: string; startFri: string; out: { fri: string; sun: string }[]; skipped: { fri: string; label: string }[] };
+type Matchday = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null; weekendIndex: number };
+type Weekend = { fri: string; sun: string };
 export type SpielplanData = {
   generatedAt: string;
   leagues: { key: string; label: string; teams: { name: string; venue: string }[] }[];
   schedule: Record<string, Matchday[]>;
-  variants: Variant[];
+  weekends: Weekend[];
+  skipped: { fri: string; label: string }[];
   maxMatchday: number;
   venueClusterObjective: number;
 };
@@ -24,14 +31,11 @@ const fmt = (isoDate: string) => {
 };
 
 export function SpielplanView({ data }: { data: SpielplanData }) {
-  const [variant, setVariant] = useState(data.variants[0]?.key ?? 'v1');
   const [league, setLeague] = useState(data.leagues[0]?.key ?? 'la');
 
-  const v = data.variants.find(x => x.key === variant) ?? data.variants[0];
   const lg = data.leagues.find(x => x.key === league);
   const md = data.schedule[league] ?? [];
-  // Spieltag-Nr → Wochenend-Datum der aktuellen Variante
-  const dateFor = (nr: number) => v?.out[nr - 1];
+  const dateFor = (m: Matchday): Weekend | undefined => data.weekends[m.weekendIndex];
 
   const pill = (active: boolean): React.CSSProperties => ({
     padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 700,
@@ -41,12 +45,16 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
     color: active ? '#fff' : 'var(--th-text-muted)',
   });
 
+  const startWknd = md.length ? dateFor(md[0]) : undefined;
+
   return (
     <div style={{ maxWidth: 900, padding: '0 0 60px' }}>
-      {/* Variante (Startdatum) */}
-      <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Startvariante</div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-        {data.variants.map(x => <button key={x.key} type="button" style={pill(x.key === variant)} onClick={() => setVariant(x.key)}>{x.label}</button>)}
+      {/* Terminierungs-Hinweis */}
+      <div style={{ margin: '0 0 16px', padding: '10px 14px', borderRadius: 10, fontSize: 12.5, fontFamily: 'var(--font-manrope)', lineHeight: 1.6,
+        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', color: 'var(--th-text-body)' }}>
+        Alle Ligen enden gemeinsam am <b>16.–18.04.2027</b>. Die <b>A-Liga</b> (18 Spieltage) spielt ab <b>16.–18.10.2026</b> jedes freie
+        Wochenende durch; <b>alle anderen Ligen starten am 23.–25.10.2026</b> und sind mit spielfreien Wochenenden entzerrt, damit sie
+        nicht schon im Winter durch sind.
       </div>
 
       {/* Liga */}
@@ -55,25 +63,40 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
         {data.leagues.map(x => <button key={x.key} type="button" style={pill(x.key === league)} onClick={() => setLeague(x.key)}>{x.label} ({x.teams.length})</button>)}
       </div>
 
+      {/* Liga-Kurzinfo */}
+      {lg && (
+        <div style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)' }}>
+          {lg.teams.length} Teams · {md.length} Spieltage · Start {startWknd ? `${fmt(startWknd.fri)}` : '—'} · Ende 16.–18.04.2027
+        </div>
+      )}
+
       {/* Ferien-Hinweis */}
-      {v && v.skipped.length > 0 && (
+      {data.skipped.length > 0 && (
         <div style={{ margin: '0 0 16px', padding: '10px 14px', borderRadius: 10, fontSize: 12.5, fontFamily: 'var(--font-manrope)',
           background: 'var(--th-accent-a07)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-muted)' }}>
           <b>Frei gelassene Wochenenden (Ferien/Feiertage, geschätzt — in der Terminsitzung final abgleichen):</b><br />
-          {v.skipped.map(s => `${fmt(s.fri)} – ${s.label}`).join(' · ')}
+          {data.skipped.map(s => `${fmt(s.fri)} – ${s.label}`).join(' · ')}
         </div>
       )}
 
       {/* Spieltage */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {md.map(m => {
-          const d = dateFor(m.nr);
+        {md.map((m, mi) => {
+          const d = dateFor(m);
+          const prev = mi > 0 ? md[mi - 1] : undefined;
+          // spielfreie Wochenenden zwischen zwei Spieltagen derselben Runde (Entzerrung)
+          const gap = prev && prev.half === m.half ? m.weekendIndex - prev.weekendIndex - 1 : 0;
           const isHalfStart = m.nr === 1 || m.half === 'rueck' && md.find(x => x.half === 'rueck')?.nr === m.nr;
           return (
             <div key={m.nr}>
               {isHalfStart && (
                 <div style={{ margin: '10px 0 6px', fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--th-text-strong)' }}>
                   {m.half === 'hin' ? 'Hinrunde' : 'Rückrunde'}
+                </div>
+              )}
+              {gap > 0 && (
+                <div style={{ margin: '2px 0 6px', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', textAlign: 'center' }}>
+                  · {gap} spielfreies Wochenende{gap > 1 ? 'n' : ''} ·
                 </div>
               )}
               <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
@@ -110,7 +133,7 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
 
       {lg && (
         <p style={{ marginTop: 16, fontSize: 11.5, color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)' }}>
-          ⚔ = Derby (beide Teams im selben Lokal, {'>'}bewusst früh angesetzt). Rückrunde spiegelt die Reihenfolge der Hinrunde (Heimrecht getauscht).
+          ⚔ = Derby (beide Teams im selben Lokal, bewusst früh angesetzt). Rückrunde spiegelt die Reihenfolge der Hinrunde (Heimrecht getauscht).
         </p>
       )}
     </div>

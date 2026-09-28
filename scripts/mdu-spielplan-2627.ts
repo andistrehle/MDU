@@ -149,7 +149,7 @@ const hinFix = bestRun.fix;
 
 // Volle Doppelrunde (Hin + Rück gespiegelt)
 type Game = { home: string; away: string; venue: string; derby: boolean };
-type MatchdayOut = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null };
+type MatchdayOut = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null; weekendIndex: number };
 const schedule: Record<string, MatchdayOut[]> = {};
 perLeagueHinRounds.forEach((rounds, li) => {
   const lg = LEAGUES[li];
@@ -165,8 +165,8 @@ perLeagueHinRounds.forEach((rounds, li) => {
       hg.push({ home: nm(hHome), away: nm(hAway), venue: vn(hHome), derby });
       rg.push({ home: nm(hAway), away: nm(hHome), venue: vn(hAway), derby });
     });
-    hin.push({ nr: hw + 1, half: 'hin', games: hg, bye: rd.bye != null ? nm(rd.bye) : null });
-    rueck.push({ nr: rounds.length + hw + 1, half: 'rueck', games: rg, bye: rd.bye != null ? nm(rd.bye) : null });
+    hin.push({ nr: hw + 1, half: 'hin', games: hg, bye: rd.bye != null ? nm(rd.bye) : null, weekendIndex: 0 });
+    rueck.push({ nr: rounds.length + hw + 1, half: 'rueck', games: rg, bye: rd.bye != null ? nm(rd.bye) : null, weekendIndex: 0 });
   });
   schedule[lg.key] = [...hin, ...rueck];
 });
@@ -197,17 +197,42 @@ function weekends(startFri: string, count: number) {
   }
   return { out, skipped };
 }
-const maxMd = Math.max(...Object.values(schedule).map(s => s.length));
-const variants = [
-  { key: 'v1', label: 'Start 16.–18.10.2026', startFri: '2026-10-16' },
-  { key: 'v2', label: 'Start 23.–25.10.2026', startFri: '2026-10-23' },
-].map(v => ({ ...v, ...weekends(v.startFri, maxMd) }));
+const maxMd = Math.max(...Object.values(schedule).map(s => s.length)); // A-Liga = 18
+const lastSlot = maxMd - 1;
+
+// ── Entzerrung: alle Ligen enden gemeinsam am letzten Wochenende (16.–18.04.2027) ──
+// A-Liga (längste) belegt jedes Wochenende (Slot 0…lastSlot). Alle anderen starten
+// eine Woche später (Slot 1 = 23.10.) und werden mit spielfreien Wochenenden
+// gleichmäßig über den gleichen Zeitraum verteilt, sodass sie ebenfalls am
+// letzten Wochenende enden statt schon im Januar/Februar.
+function spreadSlots(M: number, startSlot: number): number[] {
+  const s: number[] = [];
+  for (let i = 0; i < M; i++) {
+    s.push(M <= 1 ? startSlot : startSlot + Math.round((i * (lastSlot - startSlot)) / (M - 1)));
+  }
+  for (let i = 1; i < M; i++) if (s[i] <= s[i - 1]) s[i] = s[i - 1] + 1; // streng steigend
+  return s;
+}
+for (const lg of LEAGUES) {
+  const arr = schedule[lg.key];
+  const startSlot = lg.key === 'a' ? 0 : 1; // nur A startet am 16.10., alle anderen am 23.10.
+  const slots = spreadSlots(arr.length, startSlot);
+  arr.forEach((m, i) => { m.weekendIndex = slots[i]; });
+}
+
+// Ein gemeinsamer Wochenend-Kalender ab 16.10.2026 (Ferien ausgelassen);
+// jeder Spieltag zeigt über weekendIndex auf einen Eintrag dieser Liste.
+const cal = weekends('2026-10-16', maxMd);
 
 const outObj = {
   generatedAt: new Date().toISOString(),
   note: 'Vorschlag – keine DB-Speicherung. Ferientermine geschätzt.',
   leagues: LEAGUES.map(l => ({ key: l.key, label: l.label, teams: l.teams })),
-  schedule, variants, maxMatchday: maxMd, venueClusterObjective: bestRun.obj,
+  schedule,
+  weekends: cal.out,      // [{fri,sun}] – Index = weekendIndex der Spieltage
+  skipped: cal.skipped,   // ausgelassene Ferienwochenenden
+  maxMatchday: maxMd,
+  venueClusterObjective: bestRun.obj,
 };
 const outPath = join(process.cwd(), 'app/admin/spielplan-vorschlag/spielplan.json');
 writeFileSync(outPath, JSON.stringify(outObj, null, 2) + '\n');

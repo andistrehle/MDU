@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T15:33:44.833Z",
+  "generatedAt": "2026-09-28T19:41:22.461Z",
   "note": "Vorschlag – keine DB-Speicherung. Ferientermine geschätzt.",
   "leagues": [
     {
@@ -206,7 +206,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 1
       },
       {
         "nr": 2,
@@ -231,7 +232,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 3
       },
       {
         "nr": 3,
@@ -256,7 +258,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 5
       },
       {
         "nr": 4,
@@ -281,7 +284,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 6
       },
       {
         "nr": 5,
@@ -306,7 +310,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 8
       },
       {
         "nr": 6,
@@ -331,7 +336,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 10
       },
       {
         "nr": 7,
@@ -356,7 +362,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 12
       },
       {
         "nr": 8,
@@ -381,7 +388,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 13
       },
       {
         "nr": 9,
@@ -406,7 +414,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 15
       },
       {
         "nr": 10,
@@ -431,7 +440,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 17
       }
     ],
     "a": [
@@ -464,7 +474,8 @@
             "derby": true
           }
         ],
-        "bye": "Belfort Evolution"
+        "bye": "Belfort Evolution",
+        "weekendIndex": 0
       },
       {
         "nr": 2,
@@ -495,7 +506,8 @@
             "derby": false
           }
         ],
-        "bye": "Spartans VI"
+        "bye": "Spartans VI",
+        "weekendIndex": 1
       },
       {
         "nr": 3,
@@ -526,7 +538,8 @@
             "derby": false
           }
         ],
-        "bye": "DC Animals"
+        "bye": "DC Animals",
+        "weekendIndex": 2
       },
       {
         "nr": 4,
@@ -557,7 +570,8 @@
             "derby": false
           }
         ],
-        "bye": "Fiaker Deife"
+        "bye": "Fiaker Deife",
+        "weekendIndex": 3
       },
       {
         "nr": 5,
@@ -588,7 +602,8 @@
             "derby": false
           }
         ],
-        "bye": "Illuminati"
+        "bye": "Illuminati",
+        "weekendIndex": 4
       },
       {
         "nr": 6,
@@ -619,7 +634,8 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates V"
+        "bye": "Jolly Pirates V",
+        "weekendIndex": 5
       },
       {
         "nr": 7,
@@ -650,7 +666,8 @@
             "derby": false
           }
         ],
-        "bye": "Oldies & Co"
+        "bye": "Oldies & Co",
+        "weekendIndex": 6
       },
       {
         "nr": 8,
@@ -681,7 +698,8 @@
             "derby": false
           }
         ],
-        "bye": "Freibad Bazis"
+        "bye": "Freibad Bazis",
+        "weekendIndex": 7
       },
       {
         "nr": 9,
@@ -712,7 +730,8 @@
             "derby": false
           }
         ],
-        "bye": "Treff Nix Freimann"
+        "bye": "Treff Nix Freimann",
+        "weekendIndex": 8
       },
       {
         "nr": 10,
@@ -743,7 +762,8 @@
             "derby": true
           }
         ],
-        "bye": "Belfort Evolution"
+        "bye": "Belfort Evolution",
+        "weekendIndex": 9
       },
       {
         "nr": 11,
@@ -774,7 +794,8 @@
             "derby": false
           }
         ],
-        "bye": "Spartans VI"
+        "bye": "Spartans VI",
+        "weekendIndex": 10
       },
       {
         "nr": 12,
@@ -805,7 +826,8 @@
             "derby": false
           }
         ],
-        "bye": "DC Animals"
+        "bye": "DC Animals",
+        "weekendIndex": 11
       },
       {
         "nr": 13,
@@ -836,7 +858,8 @@
             "derby": false
           }
         ],
-        "bye": "Fiaker Deife"
+        "bye": "Fiaker Deife",
+        "weekendIndex": 12
       },
       {
         "nr": 14,
@@ -867,7 +890,8 @@
             "derby": false
           }
         ],
-        "bye": "Illuminati"
+        "bye": "Illuminati",
+        "weekendIndex": 13
       },
       {
         "nr": 15,
@@ -898,7 +922,8 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates V"
+        "bye": "Jolly Pirates V",
+        "weekendIndex": 14
       },
       {
         "nr": 16,
@@ -929,7 +954,8 @@
             "derby": false
           }
         ],
-        "bye": "Oldies & Co"
+        "bye": "Oldies & Co",
+        "weekendIndex": 15
       },
       {
         "nr": 17,
@@ -960,7 +986,8 @@
             "derby": false
           }
         ],
-        "bye": "Freibad Bazis"
+        "bye": "Freibad Bazis",
+        "weekendIndex": 16
       },
       {
         "nr": 18,
@@ -991,7 +1018,8 @@
             "derby": false
           }
         ],
-        "bye": "Treff Nix Freimann"
+        "bye": "Treff Nix Freimann",
+        "weekendIndex": 17
       }
     ],
     "b1": [
@@ -1024,7 +1052,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 1
       },
       {
         "nr": 2,
@@ -1055,7 +1084,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 2
       },
       {
         "nr": 3,
@@ -1086,7 +1116,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 3
       },
       {
         "nr": 4,
@@ -1117,7 +1148,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 5
       },
       {
         "nr": 5,
@@ -1148,7 +1180,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 6
       },
       {
         "nr": 6,
@@ -1179,7 +1212,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 7
       },
       {
         "nr": 7,
@@ -1210,7 +1244,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 8
       },
       {
         "nr": 8,
@@ -1241,7 +1276,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 10
       },
       {
         "nr": 9,
@@ -1272,7 +1308,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 11
       },
       {
         "nr": 10,
@@ -1303,7 +1340,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 12
       },
       {
         "nr": 11,
@@ -1334,7 +1372,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 13
       },
       {
         "nr": 12,
@@ -1365,7 +1404,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 15
       },
       {
         "nr": 13,
@@ -1396,7 +1436,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 16
       },
       {
         "nr": 14,
@@ -1427,7 +1468,8 @@
             "derby": false
           }
         ],
-        "bye": null
+        "bye": null,
+        "weekendIndex": 17
       }
     ],
     "b2": [
@@ -1454,7 +1496,8 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates Sound Warrior's"
+        "bye": "Jolly Pirates Sound Warrior's",
+        "weekendIndex": 1
       },
       {
         "nr": 2,
@@ -1479,7 +1522,8 @@
             "derby": false
           }
         ],
-        "bye": "Leider Geil"
+        "bye": "Leider Geil",
+        "weekendIndex": 2
       },
       {
         "nr": 3,
@@ -1504,7 +1548,8 @@
             "derby": false
           }
         ],
-        "bye": "Team Desaster"
+        "bye": "Team Desaster",
+        "weekendIndex": 3
       },
       {
         "nr": 4,
@@ -1529,7 +1574,8 @@
             "derby": false
           }
         ],
-        "bye": "Lucky Darts Two"
+        "bye": "Lucky Darts Two",
+        "weekendIndex": 5
       },
       {
         "nr": 5,
@@ -1554,7 +1600,8 @@
             "derby": false
           }
         ],
-        "bye": "Wakan Tanka"
+        "bye": "Wakan Tanka",
+        "weekendIndex": 6
       },
       {
         "nr": 6,
@@ -1579,7 +1626,8 @@
             "derby": false
           }
         ],
-        "bye": "De Vogelwuid'n"
+        "bye": "De Vogelwuid'n",
+        "weekendIndex": 7
       },
       {
         "nr": 7,
@@ -1604,7 +1652,8 @@
             "derby": false
           }
         ],
-        "bye": "Flying Fighters"
+        "bye": "Flying Fighters",
+        "weekendIndex": 8
       },
       {
         "nr": 8,
@@ -1629,7 +1678,8 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates Sound Warrior's"
+        "bye": "Jolly Pirates Sound Warrior's",
+        "weekendIndex": 10
       },
       {
         "nr": 9,
@@ -1654,7 +1704,8 @@
             "derby": false
           }
         ],
-        "bye": "Leider Geil"
+        "bye": "Leider Geil",
+        "weekendIndex": 11
       },
       {
         "nr": 10,
@@ -1679,7 +1730,8 @@
             "derby": false
           }
         ],
-        "bye": "Team Desaster"
+        "bye": "Team Desaster",
+        "weekendIndex": 12
       },
       {
         "nr": 11,
@@ -1704,7 +1756,8 @@
             "derby": false
           }
         ],
-        "bye": "Lucky Darts Two"
+        "bye": "Lucky Darts Two",
+        "weekendIndex": 13
       },
       {
         "nr": 12,
@@ -1729,7 +1782,8 @@
             "derby": false
           }
         ],
-        "bye": "Wakan Tanka"
+        "bye": "Wakan Tanka",
+        "weekendIndex": 15
       },
       {
         "nr": 13,
@@ -1754,7 +1808,8 @@
             "derby": false
           }
         ],
-        "bye": "De Vogelwuid'n"
+        "bye": "De Vogelwuid'n",
+        "weekendIndex": 16
       },
       {
         "nr": 14,
@@ -1779,7 +1834,8 @@
             "derby": false
           }
         ],
-        "bye": "Flying Fighters"
+        "bye": "Flying Fighters",
+        "weekendIndex": 17
       }
     ],
     "c": [
@@ -1806,7 +1862,8 @@
             "derby": false
           }
         ],
-        "bye": "DartPromillos"
+        "bye": "DartPromillos",
+        "weekendIndex": 1
       },
       {
         "nr": 2,
@@ -1831,7 +1888,8 @@
             "derby": false
           }
         ],
-        "bye": "5 Sterne Boazn Team"
+        "bye": "5 Sterne Boazn Team",
+        "weekendIndex": 2
       },
       {
         "nr": 3,
@@ -1856,7 +1914,8 @@
             "derby": false
           }
         ],
-        "bye": "Black Devils"
+        "bye": "Black Devils",
+        "weekendIndex": 3
       },
       {
         "nr": 4,
@@ -1881,7 +1940,8 @@
             "derby": false
           }
         ],
-        "bye": "Würmtal Bazis"
+        "bye": "Würmtal Bazis",
+        "weekendIndex": 5
       },
       {
         "nr": 5,
@@ -1906,7 +1966,8 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates XY"
+        "bye": "Jolly Pirates XY",
+        "weekendIndex": 6
       },
       {
         "nr": 6,
@@ -1931,7 +1992,8 @@
             "derby": false
           }
         ],
-        "bye": "Funny Darters Munich"
+        "bye": "Funny Darters Munich",
+        "weekendIndex": 7
       },
       {
         "nr": 7,
@@ -1956,7 +2018,8 @@
             "derby": false
           }
         ],
-        "bye": "Team Desaster Mädels"
+        "bye": "Team Desaster Mädels",
+        "weekendIndex": 8
       },
       {
         "nr": 8,
@@ -1981,7 +2044,8 @@
             "derby": false
           }
         ],
-        "bye": "DartPromillos"
+        "bye": "DartPromillos",
+        "weekendIndex": 10
       },
       {
         "nr": 9,
@@ -2006,7 +2070,8 @@
             "derby": false
           }
         ],
-        "bye": "5 Sterne Boazn Team"
+        "bye": "5 Sterne Boazn Team",
+        "weekendIndex": 11
       },
       {
         "nr": 10,
@@ -2031,7 +2096,8 @@
             "derby": false
           }
         ],
-        "bye": "Black Devils"
+        "bye": "Black Devils",
+        "weekendIndex": 12
       },
       {
         "nr": 11,
@@ -2056,7 +2122,8 @@
             "derby": false
           }
         ],
-        "bye": "Würmtal Bazis"
+        "bye": "Würmtal Bazis",
+        "weekendIndex": 13
       },
       {
         "nr": 12,
@@ -2081,7 +2148,8 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates XY"
+        "bye": "Jolly Pirates XY",
+        "weekendIndex": 15
       },
       {
         "nr": 13,
@@ -2106,7 +2174,8 @@
             "derby": false
           }
         ],
-        "bye": "Funny Darters Munich"
+        "bye": "Funny Darters Munich",
+        "weekendIndex": 16
       },
       {
         "nr": 14,
@@ -2131,244 +2200,121 @@
             "derby": false
           }
         ],
-        "bye": "Team Desaster Mädels"
+        "bye": "Team Desaster Mädels",
+        "weekendIndex": 17
       }
     ]
   },
-  "variants": [
+  "weekends": [
     {
-      "key": "v1",
-      "label": "Start 16.–18.10.2026",
-      "startFri": "2026-10-16",
-      "out": [
-        {
-          "fri": "2026-10-16",
-          "sun": "2026-10-18"
-        },
-        {
-          "fri": "2026-10-23",
-          "sun": "2026-10-25"
-        },
-        {
-          "fri": "2026-11-13",
-          "sun": "2026-11-15"
-        },
-        {
-          "fri": "2026-11-20",
-          "sun": "2026-11-22"
-        },
-        {
-          "fri": "2026-11-27",
-          "sun": "2026-11-29"
-        },
-        {
-          "fri": "2026-12-04",
-          "sun": "2026-12-06"
-        },
-        {
-          "fri": "2026-12-11",
-          "sun": "2026-12-13"
-        },
-        {
-          "fri": "2026-12-18",
-          "sun": "2026-12-20"
-        },
-        {
-          "fri": "2027-01-08",
-          "sun": "2027-01-10"
-        },
-        {
-          "fri": "2027-01-15",
-          "sun": "2027-01-17"
-        },
-        {
-          "fri": "2027-01-22",
-          "sun": "2027-01-24"
-        },
-        {
-          "fri": "2027-01-29",
-          "sun": "2027-01-31"
-        },
-        {
-          "fri": "2027-02-05",
-          "sun": "2027-02-07"
-        },
-        {
-          "fri": "2027-02-26",
-          "sun": "2027-02-28"
-        },
-        {
-          "fri": "2027-03-05",
-          "sun": "2027-03-07"
-        },
-        {
-          "fri": "2027-03-12",
-          "sun": "2027-03-14"
-        },
-        {
-          "fri": "2027-03-19",
-          "sun": "2027-03-21"
-        },
-        {
-          "fri": "2027-04-16",
-          "sun": "2027-04-18"
-        }
-      ],
-      "skipped": [
-        {
-          "fri": "2026-10-30",
-          "label": "Allerheiligen + Herbstferien"
-        },
-        {
-          "fri": "2026-11-06",
-          "label": "Allerheiligen + Herbstferien"
-        },
-        {
-          "fri": "2026-12-25",
-          "label": "Weihnachtsferien"
-        },
-        {
-          "fri": "2027-01-01",
-          "label": "Weihnachtsferien"
-        },
-        {
-          "fri": "2027-02-12",
-          "label": "Faschingsferien"
-        },
-        {
-          "fri": "2027-02-19",
-          "label": "Faschingsferien"
-        },
-        {
-          "fri": "2027-03-26",
-          "label": "Ostern + Osterferien"
-        },
-        {
-          "fri": "2027-04-02",
-          "label": "Ostern + Osterferien"
-        },
-        {
-          "fri": "2027-04-09",
-          "label": "Ostern + Osterferien"
-        }
-      ]
+      "fri": "2026-10-16",
+      "sun": "2026-10-18"
     },
     {
-      "key": "v2",
-      "label": "Start 23.–25.10.2026",
-      "startFri": "2026-10-23",
-      "out": [
-        {
-          "fri": "2026-10-23",
-          "sun": "2026-10-25"
-        },
-        {
-          "fri": "2026-11-13",
-          "sun": "2026-11-15"
-        },
-        {
-          "fri": "2026-11-20",
-          "sun": "2026-11-22"
-        },
-        {
-          "fri": "2026-11-27",
-          "sun": "2026-11-29"
-        },
-        {
-          "fri": "2026-12-04",
-          "sun": "2026-12-06"
-        },
-        {
-          "fri": "2026-12-11",
-          "sun": "2026-12-13"
-        },
-        {
-          "fri": "2026-12-18",
-          "sun": "2026-12-20"
-        },
-        {
-          "fri": "2027-01-08",
-          "sun": "2027-01-10"
-        },
-        {
-          "fri": "2027-01-15",
-          "sun": "2027-01-17"
-        },
-        {
-          "fri": "2027-01-22",
-          "sun": "2027-01-24"
-        },
-        {
-          "fri": "2027-01-29",
-          "sun": "2027-01-31"
-        },
-        {
-          "fri": "2027-02-05",
-          "sun": "2027-02-07"
-        },
-        {
-          "fri": "2027-02-26",
-          "sun": "2027-02-28"
-        },
-        {
-          "fri": "2027-03-05",
-          "sun": "2027-03-07"
-        },
-        {
-          "fri": "2027-03-12",
-          "sun": "2027-03-14"
-        },
-        {
-          "fri": "2027-03-19",
-          "sun": "2027-03-21"
-        },
-        {
-          "fri": "2027-04-16",
-          "sun": "2027-04-18"
-        },
-        {
-          "fri": "2027-04-23",
-          "sun": "2027-04-25"
-        }
-      ],
-      "skipped": [
-        {
-          "fri": "2026-10-30",
-          "label": "Allerheiligen + Herbstferien"
-        },
-        {
-          "fri": "2026-11-06",
-          "label": "Allerheiligen + Herbstferien"
-        },
-        {
-          "fri": "2026-12-25",
-          "label": "Weihnachtsferien"
-        },
-        {
-          "fri": "2027-01-01",
-          "label": "Weihnachtsferien"
-        },
-        {
-          "fri": "2027-02-12",
-          "label": "Faschingsferien"
-        },
-        {
-          "fri": "2027-02-19",
-          "label": "Faschingsferien"
-        },
-        {
-          "fri": "2027-03-26",
-          "label": "Ostern + Osterferien"
-        },
-        {
-          "fri": "2027-04-02",
-          "label": "Ostern + Osterferien"
-        },
-        {
-          "fri": "2027-04-09",
-          "label": "Ostern + Osterferien"
-        }
-      ]
+      "fri": "2026-10-23",
+      "sun": "2026-10-25"
+    },
+    {
+      "fri": "2026-11-13",
+      "sun": "2026-11-15"
+    },
+    {
+      "fri": "2026-11-20",
+      "sun": "2026-11-22"
+    },
+    {
+      "fri": "2026-11-27",
+      "sun": "2026-11-29"
+    },
+    {
+      "fri": "2026-12-04",
+      "sun": "2026-12-06"
+    },
+    {
+      "fri": "2026-12-11",
+      "sun": "2026-12-13"
+    },
+    {
+      "fri": "2026-12-18",
+      "sun": "2026-12-20"
+    },
+    {
+      "fri": "2027-01-08",
+      "sun": "2027-01-10"
+    },
+    {
+      "fri": "2027-01-15",
+      "sun": "2027-01-17"
+    },
+    {
+      "fri": "2027-01-22",
+      "sun": "2027-01-24"
+    },
+    {
+      "fri": "2027-01-29",
+      "sun": "2027-01-31"
+    },
+    {
+      "fri": "2027-02-05",
+      "sun": "2027-02-07"
+    },
+    {
+      "fri": "2027-02-26",
+      "sun": "2027-02-28"
+    },
+    {
+      "fri": "2027-03-05",
+      "sun": "2027-03-07"
+    },
+    {
+      "fri": "2027-03-12",
+      "sun": "2027-03-14"
+    },
+    {
+      "fri": "2027-03-19",
+      "sun": "2027-03-21"
+    },
+    {
+      "fri": "2027-04-16",
+      "sun": "2027-04-18"
+    }
+  ],
+  "skipped": [
+    {
+      "fri": "2026-10-30",
+      "label": "Allerheiligen + Herbstferien"
+    },
+    {
+      "fri": "2026-11-06",
+      "label": "Allerheiligen + Herbstferien"
+    },
+    {
+      "fri": "2026-12-25",
+      "label": "Weihnachtsferien"
+    },
+    {
+      "fri": "2027-01-01",
+      "label": "Weihnachtsferien"
+    },
+    {
+      "fri": "2027-02-12",
+      "label": "Faschingsferien"
+    },
+    {
+      "fri": "2027-02-19",
+      "label": "Faschingsferien"
+    },
+    {
+      "fri": "2027-03-26",
+      "label": "Ostern + Osterferien"
+    },
+    {
+      "fri": "2027-04-02",
+      "label": "Ostern + Osterferien"
+    },
+    {
+      "fri": "2027-04-09",
+      "label": "Ostern + Osterferien"
     }
   ],
   "maxMatchday": 18,

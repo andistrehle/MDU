@@ -111,12 +111,12 @@ export function RelegationVisual() {
       <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.7 }}>
         <b style={{ color: 'var(--th-text-strong)' }}>Playoff-Termine</b> (letzter regulärer Spieltag: 16.–18.04.2027):
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <span style={{ color: 'var(--th-text-faint)' }}>Puffer / Nachholspiele: 23.04.–06.05.2027</span>
+          <span style={{ color: 'var(--th-text-faint)' }}>1 Woche Puffer / Nachholspiele, dann direkt die Playoffs:</span>
           <span>Playoffs (Einfachrunde, alle 3 Gruppen parallel · je 5 Spieltage):</span>
-          <span style={{ paddingLeft: 10 }}><b>ST1</b> 07.–09.05. · <b>ST2</b> 21.–23.05. · <b>ST3</b> 28.–30.05. · <b>ST4</b> 04.–06.06. · <b>ST5</b> 11.–13.06.2027</span>
+          <span style={{ paddingLeft: 10 }}><b>ST1</b> 23.–25.04. · <b>ST2</b> 07.–09.05. · <b>ST3</b> 21.–23.05. · <b>ST4</b> 28.–30.05. · <b>ST5</b> 04.–06.06.2027</span>
         </div>
         <div style={{ marginTop: 6, color: 'var(--th-text-faint)', fontSize: 11.5 }}>
-          Ferien (1. Mai, Pfingsten am 14.05.) ausgelassen. Termine gelten für Startvariante 16.10.; bei Start 23.10. jeweils ~1 Woche später.
+          Ferien/Feiertage ausgelassen (1. Mai am 30.04.–02.05., Pfingsten am 14.–16.05.). Fertig bis Anfang Juni 2027.
         </div>
       </div>
 
