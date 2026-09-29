@@ -41,7 +41,7 @@ export function teamSheet(data: SpielplanData, lg: SpielplanData['leagues'][numb
     `<tr class="${x.derby ? 'derby' : ''}"><td class="st">${x.nr}</td><td class="wk">${wkText(data, x.w)}</td>` +
     `<td class="ha"><span class="${x.ha === 'H' ? 'bH' : 'bA'}">${x.ha === 'H' ? 'Heim' : 'Ausw.'}</span></td>` +
     `<td class="opp">${esc(x.opp)}${x.derby ? ' <span class="db">⚔</span>' : ''}</td><td class="loc">${esc(x.venue)}</td>${terminCell()}</tr>`).join('');
-  return `<section class="sheet">
+  return `<section class="sheet team">
     ${header(team, lg.label, LG_COLOR[LG_SHORT[lg.key]], 'Terminplanung TC-Sitzung · Start 23.–25.10.2026 · Ende 7.–9.05.2027')}
     <p class="hint"><b>Vorschlag</b> = Rahmen-Wochenende (Fr–So). Den genauen Termin macht ihr mit dem Gegner aus und tragt Datum &amp; Uhrzeit ein. <span class="db">⚔</span> = Derby (gleiches Lokal).</p>
     <table><thead><tr><th>ST</th><th>Vorschlag</th><th>H/A</th><th>Gegner</th><th>Spielort</th><th class="tw">Genauer Termin</th></tr></thead><tbody>${rows}</tbody></table>
@@ -99,8 +99,9 @@ h1,.brand,.chip,th{ font-family:'Saira Condensed','Arial Narrow','Segoe UI',sans
 .toolbar button{ padding:9px 16px; border:0; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; }
 .toolbar .p{ background:#2E7526; color:#fff; } .toolbar .c{ background:#3a3f49; color:#fff; }
 .wrap{ padding:16px; }
-.sheet{ background:#fff; max-width:190mm; margin:0 auto 14px; padding:16px 18px; border-radius:10px; page-break-after:always; }
-.sheet:last-child{ page-break-after:auto; }
+.sheet{ background:#fff; max-width:190mm; margin:0 auto 14px; padding:16px 18px; border-radius:10px; page-break-after:always; break-after:page; }
+.sheet:last-child{ page-break-after:auto; break-after:auto; }
+.sheet.team{ page-break-inside:avoid; break-inside:avoid; }
 .hd{ display:flex; align-items:center; gap:16px; border-bottom:2px solid #B8860B; padding-bottom:9px; margin-bottom:11px; }
 .logo{ height:54px; width:auto; }
 .htxt{ flex:1; min-width:0; }
