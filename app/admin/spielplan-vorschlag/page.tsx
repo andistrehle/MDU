@@ -12,7 +12,6 @@
 
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { SpielplanView, type SpielplanData } from './spielplan-view';
-import { RelegationVisual } from './relegation-visual';
 import data from './spielplan.json';
 
 export default function SpielplanVorschlagPage() {
@@ -38,14 +37,6 @@ export default function SpielplanVorschlagPage() {
         </div>
 
         <SpielplanView data={d} />
-
-        {/* Playoff-/Relegations-Konzept */}
-        <div style={{ marginTop: 28 }}>
-          <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: '0 0 10px' }}>
-            Playoffs / Relegation (Vorschlag)
-          </h2>
-          <RelegationVisual />
-        </div>
 
         <p style={{ marginTop: 22, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>
           Erzeugt am {new Date(d.generatedAt).toLocaleString('de-DE')} · Nur ein Vorschlag · keine Speicherung in der Datenbank.

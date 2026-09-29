@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T07:29:27.530Z",
+  "generatedAt": "2026-09-29T08:07:45.993Z",
   "note": "Vorschlag – keine DB-Speicherung. Ferientermine geschätzt.",
   "leagues": [
     {
@@ -207,7 +207,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 1
+        "weekendIndex": 0
       },
       {
         "nr": 2,
@@ -233,7 +233,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 3
+        "weekendIndex": 2
       },
       {
         "nr": 3,
@@ -259,7 +259,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 5
+        "weekendIndex": 4
       },
       {
         "nr": 4,
@@ -285,7 +285,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 6
+        "weekendIndex": 7
       },
       {
         "nr": 5,
@@ -311,7 +311,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 8
+        "weekendIndex": 9
       },
       {
         "nr": 6,
@@ -337,7 +337,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 10
+        "weekendIndex": 11
       },
       {
         "nr": 7,
@@ -363,7 +363,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 12
+        "weekendIndex": 13
       },
       {
         "nr": 8,
@@ -389,7 +389,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 13
+        "weekendIndex": 16
       },
       {
         "nr": 9,
@@ -415,7 +415,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 15
+        "weekendIndex": 18
       },
       {
         "nr": 10,
@@ -441,7 +441,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 17
+        "weekendIndex": 20
       }
     ],
     "a": [
@@ -571,7 +571,7 @@
           }
         ],
         "bye": "Fiaker Deife",
-        "weekendIndex": 3
+        "weekendIndex": 4
       },
       {
         "nr": 5,
@@ -603,7 +603,7 @@
           }
         ],
         "bye": "Illuminati",
-        "weekendIndex": 4
+        "weekendIndex": 5
       },
       {
         "nr": 6,
@@ -635,7 +635,7 @@
           }
         ],
         "bye": "Jolly Pirates V",
-        "weekendIndex": 5
+        "weekendIndex": 6
       },
       {
         "nr": 7,
@@ -667,7 +667,7 @@
           }
         ],
         "bye": "Oldies & Co",
-        "weekendIndex": 6
+        "weekendIndex": 7
       },
       {
         "nr": 8,
@@ -699,7 +699,7 @@
           }
         ],
         "bye": "Freibad Bazis",
-        "weekendIndex": 7
+        "weekendIndex": 8
       },
       {
         "nr": 9,
@@ -731,7 +731,7 @@
           }
         ],
         "bye": "Treff Nix Freimann",
-        "weekendIndex": 8
+        "weekendIndex": 9
       },
       {
         "nr": 10,
@@ -763,7 +763,7 @@
           }
         ],
         "bye": "Belfort Evolution",
-        "weekendIndex": 9
+        "weekendIndex": 11
       },
       {
         "nr": 11,
@@ -795,7 +795,7 @@
           }
         ],
         "bye": "Spartans VI",
-        "weekendIndex": 10
+        "weekendIndex": 12
       },
       {
         "nr": 12,
@@ -827,7 +827,7 @@
           }
         ],
         "bye": "DC Animals",
-        "weekendIndex": 11
+        "weekendIndex": 13
       },
       {
         "nr": 13,
@@ -859,7 +859,7 @@
           }
         ],
         "bye": "Fiaker Deife",
-        "weekendIndex": 12
+        "weekendIndex": 14
       },
       {
         "nr": 14,
@@ -891,7 +891,7 @@
           }
         ],
         "bye": "Illuminati",
-        "weekendIndex": 13
+        "weekendIndex": 15
       },
       {
         "nr": 15,
@@ -923,7 +923,7 @@
           }
         ],
         "bye": "Jolly Pirates V",
-        "weekendIndex": 14
+        "weekendIndex": 16
       },
       {
         "nr": 16,
@@ -955,7 +955,7 @@
           }
         ],
         "bye": "Oldies & Co",
-        "weekendIndex": 15
+        "weekendIndex": 18
       },
       {
         "nr": 17,
@@ -987,7 +987,7 @@
           }
         ],
         "bye": "Freibad Bazis",
-        "weekendIndex": 16
+        "weekendIndex": 19
       },
       {
         "nr": 18,
@@ -1019,7 +1019,7 @@
           }
         ],
         "bye": "Treff Nix Freimann",
-        "weekendIndex": 17
+        "weekendIndex": 20
       }
     ],
     "b1": [
@@ -1053,7 +1053,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 1
+        "weekendIndex": 0
       },
       {
         "nr": 2,
@@ -1213,7 +1213,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 7
+        "weekendIndex": 8
       },
       {
         "nr": 7,
@@ -1245,7 +1245,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 8
+        "weekendIndex": 9
       },
       {
         "nr": 8,
@@ -1277,7 +1277,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 10
+        "weekendIndex": 11
       },
       {
         "nr": 9,
@@ -1309,7 +1309,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 11
+        "weekendIndex": 12
       },
       {
         "nr": 10,
@@ -1341,7 +1341,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 12
+        "weekendIndex": 14
       },
       {
         "nr": 11,
@@ -1373,7 +1373,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 13
+        "weekendIndex": 15
       },
       {
         "nr": 12,
@@ -1405,7 +1405,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 15
+        "weekendIndex": 17
       },
       {
         "nr": 13,
@@ -1437,7 +1437,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 16
+        "weekendIndex": 18
       },
       {
         "nr": 14,
@@ -1469,7 +1469,7 @@
           }
         ],
         "bye": null,
-        "weekendIndex": 17
+        "weekendIndex": 20
       }
     ],
     "b2": [
@@ -1497,7 +1497,7 @@
           }
         ],
         "bye": "Jolly Pirates Sound Warrior's",
-        "weekendIndex": 1
+        "weekendIndex": 0
       },
       {
         "nr": 2,
@@ -1627,7 +1627,7 @@
           }
         ],
         "bye": "De Vogelwuid'n",
-        "weekendIndex": 7
+        "weekendIndex": 8
       },
       {
         "nr": 7,
@@ -1653,7 +1653,7 @@
           }
         ],
         "bye": "Flying Fighters",
-        "weekendIndex": 8
+        "weekendIndex": 9
       },
       {
         "nr": 8,
@@ -1679,7 +1679,7 @@
           }
         ],
         "bye": "Jolly Pirates Sound Warrior's",
-        "weekendIndex": 10
+        "weekendIndex": 11
       },
       {
         "nr": 9,
@@ -1705,7 +1705,7 @@
           }
         ],
         "bye": "Leider Geil",
-        "weekendIndex": 11
+        "weekendIndex": 12
       },
       {
         "nr": 10,
@@ -1731,7 +1731,7 @@
           }
         ],
         "bye": "Team Desaster",
-        "weekendIndex": 12
+        "weekendIndex": 14
       },
       {
         "nr": 11,
@@ -1757,7 +1757,7 @@
           }
         ],
         "bye": "Lucky Darts Two",
-        "weekendIndex": 13
+        "weekendIndex": 15
       },
       {
         "nr": 12,
@@ -1783,7 +1783,7 @@
           }
         ],
         "bye": "Wakan Tanka",
-        "weekendIndex": 15
+        "weekendIndex": 17
       },
       {
         "nr": 13,
@@ -1809,7 +1809,7 @@
           }
         ],
         "bye": "De Vogelwuid'n",
-        "weekendIndex": 16
+        "weekendIndex": 18
       },
       {
         "nr": 14,
@@ -1835,7 +1835,7 @@
           }
         ],
         "bye": "Flying Fighters",
-        "weekendIndex": 17
+        "weekendIndex": 20
       }
     ],
     "c": [
@@ -1863,7 +1863,7 @@
           }
         ],
         "bye": "DartPromillos",
-        "weekendIndex": 1
+        "weekendIndex": 0
       },
       {
         "nr": 2,
@@ -1993,7 +1993,7 @@
           }
         ],
         "bye": "Funny Darters Munich",
-        "weekendIndex": 7
+        "weekendIndex": 8
       },
       {
         "nr": 7,
@@ -2019,7 +2019,7 @@
           }
         ],
         "bye": "Team Desaster Mädels",
-        "weekendIndex": 8
+        "weekendIndex": 9
       },
       {
         "nr": 8,
@@ -2045,7 +2045,7 @@
           }
         ],
         "bye": "DartPromillos",
-        "weekendIndex": 10
+        "weekendIndex": 11
       },
       {
         "nr": 9,
@@ -2071,7 +2071,7 @@
           }
         ],
         "bye": "5 Sterne Boazn Team",
-        "weekendIndex": 11
+        "weekendIndex": 12
       },
       {
         "nr": 10,
@@ -2097,7 +2097,7 @@
           }
         ],
         "bye": "Black Devils",
-        "weekendIndex": 12
+        "weekendIndex": 14
       },
       {
         "nr": 11,
@@ -2123,7 +2123,7 @@
           }
         ],
         "bye": "Würmtal Bazis",
-        "weekendIndex": 13
+        "weekendIndex": 15
       },
       {
         "nr": 12,
@@ -2149,7 +2149,7 @@
           }
         ],
         "bye": "Jolly Pirates VII",
-        "weekendIndex": 15
+        "weekendIndex": 17
       },
       {
         "nr": 13,
@@ -2175,7 +2175,7 @@
           }
         ],
         "bye": "Funny Darters Munich",
-        "weekendIndex": 16
+        "weekendIndex": 18
       },
       {
         "nr": 14,
@@ -2201,15 +2201,11 @@
           }
         ],
         "bye": "Team Desaster Mädels",
-        "weekendIndex": 17
+        "weekendIndex": 20
       }
     ]
   },
   "weekends": [
-    {
-      "fri": "2026-10-16",
-      "sun": "2026-10-18"
-    },
     {
       "fri": "2026-10-23",
       "sun": "2026-10-25"
@@ -2277,6 +2273,22 @@
     {
       "fri": "2027-04-16",
       "sun": "2027-04-18"
+    },
+    {
+      "fri": "2027-04-23",
+      "sun": "2027-04-25"
+    },
+    {
+      "fri": "2027-05-07",
+      "sun": "2027-05-09"
+    },
+    {
+      "fri": "2027-05-21",
+      "sun": "2027-05-23"
+    },
+    {
+      "fri": "2027-05-28",
+      "sun": "2027-05-30"
     }
   ],
   "skipped": [
@@ -2315,6 +2327,14 @@
     {
       "fri": "2027-04-09",
       "label": "Ostern + Osterferien"
+    },
+    {
+      "fri": "2027-04-30",
+      "label": "1. Mai"
+    },
+    {
+      "fri": "2027-05-14",
+      "label": "Pfingsten"
     }
   ],
   "maxMatchday": 18,

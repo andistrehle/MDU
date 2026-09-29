@@ -185,11 +185,12 @@ const overlapsHoliday = (fri: Date) => {
   const sun = new Date(fri); sun.setUTCDate(sun.getUTCDate() + 2);
   return HOLIDAYS.find(([s, e]) => iso(fri) <= e && s <= iso(sun));
 };
-function weekends(startFri: string, count: number) {
+// Alle Spielwochenenden von startFri bis einschließlich endInclusive (Ferien raus).
+function weekends(startFri: string, endInclusive: string) {
   const out: { fri: string; sun: string }[] = [];
   const skipped: { fri: string; label: string }[] = [];
   const d = new Date(startFri + 'T00:00:00Z');
-  while (out.length < count) {
+  while (iso(d) <= endInclusive) {
     const h = overlapsHoliday(d);
     if (h) skipped.push({ fri: iso(d), label: h[2] });
     else { const sun = new Date(d); sun.setUTCDate(sun.getUTCDate() + 2); out.push({ fri: iso(d), sun: iso(sun) }); }
@@ -197,32 +198,32 @@ function weekends(startFri: string, count: number) {
   }
   return { out, skipped };
 }
-const maxMd = Math.max(...Object.values(schedule).map(s => s.length)); // A-Liga = 18
-const lastSlot = maxMd - 1;
 
-// ── Entzerrung: alle Ligen enden gemeinsam am letzten Wochenende (16.–18.04.2027) ──
-// A-Liga (längste) belegt jedes Wochenende (Slot 0…lastSlot). Alle anderen starten
-// eine Woche später (Slot 1 = 23.10.) und werden mit spielfreien Wochenenden
-// gleichmäßig über den gleichen Zeitraum verteilt, sodass sie ebenfalls am
-// letzten Wochenende enden statt schon im Januar/Februar.
-function spreadSlots(M: number, startSlot: number): number[] {
+// Gemeinsamer Wochenend-Kalender: ALLE Ligen starten am 23.–25.10.2026, letztes
+// Spielwochenende ist Ende Mai (28.–30.05.2027). Keine Playoffs mehr — die
+// reguläre Runde nutzt die ganze Zeit bis Ende Mai. Ferien sind ausgelassen.
+const cal = weekends('2026-10-23', '2027-05-31');
+const lastSlot = cal.out.length - 1; // letztes Wochenende = Ende Mai
+
+// ── Entzerrung: jede Liga von Slot 0 (23.10.) bis Slot lastSlot (Ende Mai) ──
+// gleichmäßig über spielfreie Wochenenden verteilt. Die A-Liga (18 Spieltage)
+// spielt fast durch, die kleineren Ligen haben größere Lücken — enden aber alle
+// spätestens Ende Mai (kleine Ligen dürften auch etwas früher enden).
+function spreadSlots(M: number): number[] {
   const s: number[] = [];
   for (let i = 0; i < M; i++) {
-    s.push(M <= 1 ? startSlot : startSlot + Math.round((i * (lastSlot - startSlot)) / (M - 1)));
+    s.push(M <= 1 ? 0 : Math.round((i * lastSlot) / (M - 1)));
   }
   for (let i = 1; i < M; i++) if (s[i] <= s[i - 1]) s[i] = s[i - 1] + 1; // streng steigend
   return s;
 }
 for (const lg of LEAGUES) {
   const arr = schedule[lg.key];
-  const startSlot = lg.key === 'a' ? 0 : 1; // nur A startet am 16.10., alle anderen am 23.10.
-  const slots = spreadSlots(arr.length, startSlot);
+  const slots = spreadSlots(arr.length);
   arr.forEach((m, i) => { m.weekendIndex = slots[i]; });
 }
 
-// Ein gemeinsamer Wochenend-Kalender ab 16.10.2026 (Ferien ausgelassen);
-// jeder Spieltag zeigt über weekendIndex auf einen Eintrag dieser Liste.
-const cal = weekends('2026-10-16', maxMd);
+const maxMd = Math.max(...Object.values(schedule).map(s => s.length)); // A-Liga = 18
 
 const outObj = {
   generatedAt: new Date().toISOString(),
