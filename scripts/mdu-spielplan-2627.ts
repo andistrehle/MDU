@@ -109,69 +109,12 @@ perLeagueHinRounds.forEach((rounds, li) => {
   rounds.forEach((rd, hw) => rd.games.forEach(([a, b]) => baseFix.push({ li, hw, a, b, homeA: true })));
 });
 
-function objective(fix: Fix[]): number {
-  const load = new Map<string, number>();
-  const add = (w: number, venue: string) => { const k = `${w}|${venue}`; load.set(k, (load.get(k) ?? 0) + 1); };
-  for (const f of fix) {
-    const lg = LEAGUES[f.li];
-    add(f.hw, lg.teams[f.homeA ? f.a : f.b].venue);
-    add(hinLen[f.li] + f.hw, lg.teams[f.homeA ? f.b : f.a].venue);
-  }
-  let obj = 0;
-  for (const c of load.values()) obj += (c * (c - 1)) / 2;
-  return obj;
-}
-
-// Greedy Local Search + Zufalls-Restarts (Heim/Auswärts der Hin-Fixtures)
-function optimize(seedFix: Fix[]): { fix: Fix[]; obj: number } {
-  const fix = seedFix.map(f => ({ ...f }));
-  let best = objective(fix);
-  for (let pass = 0; pass < 20; pass++) {
-    let improved = false;
-    for (const f of fix) {
-      f.homeA = !f.homeA;
-      const o = objective(fix);
-      if (o < best) { best = o; improved = true; } else { f.homeA = !f.homeA; }
-    }
-    if (!improved) break;
-  }
-  return { fix, obj: best };
-}
-let rng = 123456789 >>> 0;
-const rand = () => { rng ^= rng << 13; rng ^= rng >>> 17; rng ^= rng << 5; rng >>>= 0; return rng / 4294967296; };
-let bestRun = optimize(baseFix);
-for (let restart = 0; restart < 60; restart++) {
-  const seed = baseFix.map(f => ({ ...f, homeA: rand() < 0.5 }));
-  const r = optimize(seed);
-  if (r.obj < bestRun.obj) bestRun = r;
-}
-const hinFix = bestRun.fix;
-
-// Volle Doppelrunde (Hin + Rück gespiegelt)
-type Game = { home: string; away: string; venue: string; derby: boolean };
-type MatchdayOut = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null; weekendIndex: number };
-const schedule: Record<string, MatchdayOut[]> = {};
-perLeagueHinRounds.forEach((rounds, li) => {
-  const lg = LEAGUES[li];
-  const nm = (i: number) => lg.teams[i].name;
-  const vn = (i: number) => lg.teams[i].venue;
-  const hin: MatchdayOut[] = []; const rueck: MatchdayOut[] = [];
-  rounds.forEach((rd, hw) => {
-    const hg: Game[] = []; const rg: Game[] = [];
-    rd.games.forEach(([a, b]) => {
-      const f = hinFix.find(x => x.li === li && x.hw === hw && x.a === a && x.b === b)!;
-      const hHome = f.homeA ? a : b, hAway = f.homeA ? b : a;
-      const derby = vn(a) === vn(b);
-      hg.push({ home: nm(hHome), away: nm(hAway), venue: vn(hHome), derby });
-      rg.push({ home: nm(hAway), away: nm(hHome), venue: vn(hAway), derby });
-    });
-    hin.push({ nr: hw + 1, half: 'hin', games: hg, bye: rd.bye != null ? nm(rd.bye) : null, weekendIndex: 0 });
-    rueck.push({ nr: rounds.length + hw + 1, half: 'rueck', games: rg, bye: rd.bye != null ? nm(rd.bye) : null, weekendIndex: 0 });
-  });
-  schedule[lg.key] = [...hin, ...rueck];
-});
-
-// ── Kalender (Ferien Bayern 2026/27 — GESCHÄTZT, in Terminsitzung abgleichen) ──
+// ── Kalender + Entzerrung ZUERST (vor der Heim/Auswärts-Optimierung) ──────────
+// Die Entzerrung (welcher Spieltag auf welches Wochenende fällt) hängt nur an
+// Ligagröße und Spieltag-Position, NICHT am Heimrecht. Steht sie vorher fest,
+// kann die Optimierung die ECHTEN Wochenenden nach der Entzerrung nutzen statt
+// der Spieltag-Nummern — und so Heimspiele desselben Lokals am selben Wochenende
+// über ALLE Ligen und ALLE Spielstätten hinweg minimieren.
 const HOLIDAYS: [string, string, string][] = [
   ['2026-10-30', '2026-11-08', 'Allerheiligen + Herbstferien'],
   ['2026-12-23', '2027-01-05', 'Weihnachtsferien'],
@@ -198,30 +141,86 @@ function weekends(startFri: string, endInclusive: string) {
   }
   return { out, skipped };
 }
-
-// Gemeinsamer Wochenend-Kalender: ALLE Ligen starten am 23.–25.10.2026, letztes
-// Spielwochenende ist Ende Mai (28.–30.05.2027). Keine Playoffs mehr — die
-// reguläre Runde nutzt die ganze Zeit bis Ende Mai. Ferien sind ausgelassen.
+// Gemeinsamer Kalender: ALLE Ligen starten am 23.–25.10.2026, letztes Spiel-
+// wochenende Ende Mai (28.–30.05.2027). Ferien ausgelassen, keine Playoffs.
 const cal = weekends('2026-10-23', '2027-05-31');
 const lastSlot = cal.out.length - 1; // letztes Wochenende = Ende Mai
 
-// ── Entzerrung: jede Liga von Slot 0 (23.10.) bis Slot lastSlot (Ende Mai) ──
-// gleichmäßig über spielfreie Wochenenden verteilt. Die A-Liga (18 Spieltage)
-// spielt fast durch, die kleineren Ligen haben größere Lücken — enden aber alle
-// spätestens Ende Mai (kleine Ligen dürften auch etwas früher enden).
+// Entzerrung: M Spieltage gleichmäßig auf die Wochenenden [0…lastSlot].
 function spreadSlots(M: number): number[] {
   const s: number[] = [];
-  for (let i = 0; i < M; i++) {
-    s.push(M <= 1 ? 0 : Math.round((i * lastSlot) / (M - 1)));
-  }
+  for (let i = 0; i < M; i++) s.push(M <= 1 ? 0 : Math.round((i * lastSlot) / (M - 1)));
   for (let i = 1; i < M; i++) if (s[i] <= s[i - 1]) s[i] = s[i - 1] + 1; // streng steigend
   return s;
 }
-for (const lg of LEAGUES) {
-  const arr = schedule[lg.key];
-  const slots = spreadSlots(arr.length);
-  arr.forEach((m, i) => { m.weekendIndex = slots[i]; });
+// Spieltag-Index (0-basiert; erst alle Hin-, dann alle Rück-Spieltage) → Wochenende.
+const leagueSlots: number[][] = LEAGUES.map((_, li) => spreadSlots(2 * hinLen[li]));
+const hinWknd = (li: number, hw: number) => leagueSlots[li][hw];
+const rueckWknd = (li: number, hw: number) => leagueSlots[li][hinLen[li] + hw];
+
+// Zielfunktion: Summe über echte Wochenenden × Lokal der Paar-Kollisionen
+// C(Heimspiele, 2). Kleiner = weniger gleichzeitige Heimspiele je Spielstätte.
+function objective(fix: Fix[]): number {
+  const load = new Map<string, number>();
+  const add = (w: number, venue: string) => { const k = `${w}|${venue}`; load.set(k, (load.get(k) ?? 0) + 1); };
+  for (const f of fix) {
+    const lg = LEAGUES[f.li];
+    add(hinWknd(f.li, f.hw), lg.teams[f.homeA ? f.a : f.b].venue);
+    add(rueckWknd(f.li, f.hw), lg.teams[f.homeA ? f.b : f.a].venue);
+  }
+  let obj = 0;
+  for (const c of load.values()) obj += (c * (c - 1)) / 2;
+  return obj;
 }
+
+// Greedy Local Search + Zufalls-Restarts (Heim/Auswärts der Hin-Fixtures)
+function optimize(seedFix: Fix[]): { fix: Fix[]; obj: number } {
+  const fix = seedFix.map(f => ({ ...f }));
+  let best = objective(fix);
+  for (let pass = 0; pass < 20; pass++) {
+    let improved = false;
+    for (const f of fix) {
+      f.homeA = !f.homeA;
+      const o = objective(fix);
+      if (o < best) { best = o; improved = true; } else { f.homeA = !f.homeA; }
+    }
+    if (!improved) break;
+  }
+  return { fix, obj: best };
+}
+let rng = 123456789 >>> 0;
+const rand = () => { rng ^= rng << 13; rng ^= rng >>> 17; rng ^= rng << 5; rng >>>= 0; return rng / 4294967296; };
+let bestRun = optimize(baseFix);
+for (let restart = 0; restart < 400; restart++) {
+  const seed = baseFix.map(f => ({ ...f, homeA: rand() < 0.5 }));
+  const r = optimize(seed);
+  if (r.obj < bestRun.obj) bestRun = r;
+}
+const hinFix = bestRun.fix;
+
+// Volle Doppelrunde (Hin + Rück gespiegelt)
+type Game = { home: string; away: string; venue: string; derby: boolean };
+type MatchdayOut = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null; weekendIndex: number };
+const schedule: Record<string, MatchdayOut[]> = {};
+perLeagueHinRounds.forEach((rounds, li) => {
+  const lg = LEAGUES[li];
+  const nm = (i: number) => lg.teams[i].name;
+  const vn = (i: number) => lg.teams[i].venue;
+  const hin: MatchdayOut[] = []; const rueck: MatchdayOut[] = [];
+  rounds.forEach((rd, hw) => {
+    const hg: Game[] = []; const rg: Game[] = [];
+    rd.games.forEach(([a, b]) => {
+      const f = hinFix.find(x => x.li === li && x.hw === hw && x.a === a && x.b === b)!;
+      const hHome = f.homeA ? a : b, hAway = f.homeA ? b : a;
+      const derby = vn(a) === vn(b);
+      hg.push({ home: nm(hHome), away: nm(hAway), venue: vn(hHome), derby });
+      rg.push({ home: nm(hAway), away: nm(hHome), venue: vn(hAway), derby });
+    });
+    hin.push({ nr: hw + 1, half: 'hin', games: hg, bye: rd.bye != null ? nm(rd.bye) : null, weekendIndex: hinWknd(li, hw) });
+    rueck.push({ nr: rounds.length + hw + 1, half: 'rueck', games: rg, bye: rd.bye != null ? nm(rd.bye) : null, weekendIndex: rueckWknd(li, hw) });
+  });
+  schedule[lg.key] = [...hin, ...rueck];
+});
 
 const maxMd = Math.max(...Object.values(schedule).map(s => s.length)); // A-Liga = 18
 
