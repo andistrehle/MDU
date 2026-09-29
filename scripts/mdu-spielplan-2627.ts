@@ -115,13 +115,16 @@ perLeagueHinRounds.forEach((rounds, li) => {
 // kann die Optimierung die ECHTEN Wochenenden nach der Entzerrung nutzen statt
 // der Spieltag-Nummern — und so Heimspiele desselben Lokals am selben Wochenende
 // über ALLE Ligen und ALLE Spielstätten hinweg minimieren.
+// Bayern 2026/27 (vom Betreiber bestätigt, mit umschließenden Wochenenden) +
+// 1. Mai (Feiertag, Wochenende frei). Pfingstferien blockieren die letzten
+// Mai-Wochenenden → Saison endet am letzten Mai-WE davor (7.–9.05.2027).
 const HOLIDAYS: [string, string, string][] = [
-  ['2026-10-30', '2026-11-08', 'Allerheiligen + Herbstferien'],
-  ['2026-12-23', '2027-01-05', 'Weihnachtsferien'],
-  ['2027-02-13', '2027-02-19', 'Faschingsferien'],
-  ['2027-03-26', '2027-04-11', 'Ostern + Osterferien'],
+  ['2026-10-31', '2026-11-08', 'Herbstferien'],
+  ['2026-12-24', '2027-01-10', 'Weihnachtsferien'],
+  ['2027-02-06', '2027-02-14', 'Frühjahrsferien'],
+  ['2027-03-20', '2027-04-04', 'Osterferien'],
   ['2027-05-01', '2027-05-01', '1. Mai'],
-  ['2027-05-14', '2027-05-17', 'Pfingsten'],
+  ['2027-05-15', '2027-05-30', 'Pfingstferien'],
 ];
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const overlapsHoliday = (fri: Date) => {
@@ -141,10 +144,11 @@ function weekends(startFri: string, endInclusive: string) {
   }
   return { out, skipped };
 }
-// Gemeinsamer Kalender: ALLE Ligen starten am 23.–25.10.2026, letztes Spiel-
-// wochenende Ende Mai (28.–30.05.2027). Ferien ausgelassen, keine Playoffs.
-const cal = weekends('2026-10-23', '2027-05-31');
-const lastSlot = cal.out.length - 1; // letztes Wochenende = Ende Mai
+// Gemeinsamer Kalender: ALLE Ligen starten am 23.–25.10.2026. Die Pfingstferien
+// (15.–30.05.) blockieren die letzten Mai-Wochenenden, deshalb ist das letzte
+// Spielwochenende das davor (7.–9.05.2027). Ferien ausgelassen, keine Playoffs.
+const cal = weekends('2026-10-23', '2027-05-14');
+const lastSlot = cal.out.length - 1; // letztes Wochenende = 7.–9.05.2027
 
 // Entzerrung: M Spieltage gleichmäßig auf die Wochenenden [0…lastSlot].
 function spreadSlots(M: number): number[] {

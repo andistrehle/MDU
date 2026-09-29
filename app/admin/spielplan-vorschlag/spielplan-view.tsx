@@ -53,9 +53,9 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
       {/* Terminierungs-Hinweis */}
       <div style={{ margin: '0 0 16px', padding: '10px 14px', borderRadius: 10, fontSize: 12.5, fontFamily: 'var(--font-manrope)', lineHeight: 1.6,
         background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', color: 'var(--th-text-body)' }}>
-<b>Alle Ligen starten am 23.–25.10.2026</b> und sind mit spielfreien Wochenenden so entzerrt, dass sie <b>spätestens Ende Mai 2027
-        (28.–30.05.)</b> enden. Die <b>A-Liga</b> (18 Spieltage) spielt fast durch, die kleineren Ligen haben größere Lücken. Keine Playoffs
-        — die reguläre Runde nutzt die ganze Zeit bis Ende Mai.
+<b>Alle Ligen starten am 23.–25.10.2026</b> und enden am <b>7.–9.05.2027</b> (letztes Wochenende vor den Pfingstferien). Die
+        <b> A-Liga</b> (18 Spieltage) spielt jedes freie Wochenende durch, die kleineren Ligen sind mit spielfreien Wochenenden dazwischen
+        entzerrt. Keine Playoffs. Ferien frei (Herbst, Weihnachten, Fasching, Ostern, 1. Mai, Pfingsten).
       </div>
 
       {/* Liga */}
