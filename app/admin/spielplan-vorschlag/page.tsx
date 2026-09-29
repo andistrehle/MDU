@@ -10,12 +10,15 @@
 // Datenquelle: spielplan.json (vom Generator scripts/mdu-spielplan-2627.ts).
 // ============================================================
 
+import { useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { SpielplanView, type SpielplanData } from './spielplan-view';
+import { SpielorteView } from './spielorte-view';
 import data from './spielplan.json';
 
 export default function SpielplanVorschlagPage() {
   const d = data as unknown as SpielplanData;
+  const [ansicht, setAnsicht] = useState<'liga' | 'spielort'>('liga');
   return (
     <AdminGuard
       title="Spielplan-Vorschlag 2026/2027"
@@ -36,7 +39,21 @@ export default function SpielplanVorschlagPage() {
           </ul>
         </div>
 
-        <SpielplanView data={d} />
+        {/* Ansicht umschalten: nach Liga oder nach Spielort */}
+        <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Ansicht</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+          {([['liga', 'Nach Liga'], ['spielort', 'Nach Spielort']] as const).map(([key, label]) => (
+            <button key={key} type="button" onClick={() => setAnsicht(key)}
+              style={{
+                padding: '8px 16px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-manrope)',
+                border: `1px solid ${ansicht === key ? 'var(--th-accent)' : 'var(--th-line-18)'}`,
+                background: ansicht === key ? 'var(--th-accent)' : 'transparent',
+                color: ansicht === key ? '#fff' : 'var(--th-text-muted)',
+              }}>{label}</button>
+          ))}
+        </div>
+
+        {ansicht === 'liga' ? <SpielplanView data={d} /> : <SpielorteView data={d} />}
 
         <p style={{ marginTop: 22, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>
           Erzeugt am {new Date(d.generatedAt).toLocaleString('de-DE')} · Nur ein Vorschlag · keine Speicherung in der Datenbank.
