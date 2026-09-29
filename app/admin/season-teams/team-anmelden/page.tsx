@@ -29,7 +29,7 @@ import {
   createRegistration, submitRegistration, applyApprovedTeamRegistration,
   splitDisplayName, type RegistrationDraft, type RegistrationPlayer,
 } from '@/lib/supabase/registrations';
-import { getRegistrationSeason } from '@/lib/supabase/seasons';
+import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 
 const SEASON = getCurrentSeason();
 const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -65,7 +65,11 @@ function makePlayer(display: string, extra?: Partial<RegistrationPlayer>): Regis
 export default function TeamAnmeldenPage() {
   const { user } = useAuth();
 
-  const [regSeasonId, setRegSeasonId] = useState<string | null>(null);
+  // Ziel-Saison: bevorzugt die Anmelde-Saison (registration_open/upcoming).
+  // Ist keine offen (z. B. die neue Saison wurde schon aktiviert), fällt die
+  // Nachmeldung auf die AKTIVE Saison zurück — die Freigabe verlangt dann die
+  // ausdrückliche Bestätigung (allowActiveSeason / ACTIVE_SEASON-Pfad unten).
+  const [target, setTarget] = useState<{ id: string; name: string; isActive: boolean } | null>(null);
   const [seasonChecked, setSeasonChecked] = useState(false);
   const [choice, setChoice] = useState('');
   const [draft, setDraft] = useState<RegistrationDraft>(emptyDraft());
@@ -91,7 +95,13 @@ export default function TeamAnmeldenPage() {
 
   useEffect(() => {
     let alive = true;
-    getRegistrationSeason().then(s => { if (alive) { setRegSeasonId(s?.id ?? null); setSeasonChecked(true); } });
+    (async () => {
+      const reg = await getRegistrationSeason();
+      if (reg) { if (alive) { setTarget({ id: reg.id, name: reg.name, isActive: false }); setSeasonChecked(true); } return; }
+      // Keine Anmelde-/geplante Saison offen → in die laufende (aktive) Saison nachmelden.
+      const act = await getActiveSeason();
+      if (alive) { setTarget(act ? { id: act.id, name: act.name, isActive: true } : null); setSeasonChecked(true); }
+    })();
     return () => { alive = false; };
   }, []);
 
@@ -167,9 +177,8 @@ export default function TeamAnmeldenPage() {
 
   async function run(allowActiveSeason: boolean) {
     setBusy(true); setMsg(null);
-    const s = regSeasonId ? { id: regSeasonId } : await getRegistrationSeason();
-    if (!s) { setBusy(false); setMsg({ kind: 'err', text: 'Aktuell ist keine Saison zur Anmeldung geöffnet.' }); return; }
-    const payload: RegistrationDraft = { ...draft, season_id: s.id,
+    if (!target) { setBusy(false); setMsg({ kind: 'err', text: 'Weder eine Anmelde-Saison noch eine aktive Saison gefunden.' }); return; }
+    const payload: RegistrationDraft = { ...draft, season_id: target.id,
       is_new_team: mode === 'new',
       source_team_id: mode === 'new' ? null : choice };
 
@@ -205,12 +214,18 @@ export default function TeamAnmeldenPage() {
           <Link href="/admin/season-teams" style={{ fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>← Saison-Teams</Link>
         </div>
 
-        {seasonChecked && !regSeasonId && (
-          <Notice kind="err">Aktuell ist keine Saison zur Anmeldung geöffnet.</Notice>
+        {seasonChecked && !target && (
+          <Notice kind="err">Aktuell ist weder eine Saison zur Anmeldung geöffnet noch eine Saison aktiv.</Notice>
         )}
 
-        {regSeasonId && (
+        {target && (
           <>
+            {target.isActive && (
+              <Notice kind="err">
+                Es ist keine Anmelde-Saison geöffnet — die Nachmeldung läuft in die <b>laufende Saison „{target.name}"</b>.
+                Beim „Anmelden &amp; freigeben" wird das noch einmal ausdrücklich bestätigt.
+              </Notice>
+            )}
             {done && <Notice kind="ok">{done}</Notice>}
             {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
 
