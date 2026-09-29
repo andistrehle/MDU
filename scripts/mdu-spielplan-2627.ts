@@ -66,7 +66,7 @@ const LEAGUES: { key: string; label: string; teams: TeamIn[] }[] = [
     { name: 'Black Devils', venue: 'Flotte Biene' },
     { name: 'Funny Darters Munich', venue: "Sportsbar 'Live'" },
     { name: '5 Sterne Boazn Team', venue: 'Trappentreu Stüberl' },
-    { name: 'Jolly Pirates XY', venue: 'Jolly Roger' },
+    { name: 'Jolly Pirates VII', venue: 'Jolly Roger' },
   ]},
 ];
 LEAGUES.forEach(l => l.teams.forEach(t => (t.venue = A(t.venue))));

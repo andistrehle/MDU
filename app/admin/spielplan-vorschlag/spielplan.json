@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T19:41:22.461Z",
+  "generatedAt": "2026-09-29T07:29:27.530Z",
   "note": "Vorschlag – keine DB-Speicherung. Ferientermine geschätzt.",
   "leagues": [
     {
@@ -175,7 +175,7 @@
           "venue": "Trappentreu Stüberl"
         },
         {
-          "name": "Jolly Pirates XY",
+          "name": "Jolly Pirates VII",
           "venue": "Jolly Roger"
         }
       ]
@@ -1845,7 +1845,7 @@
         "games": [
           {
             "home": "Würmtal Bazis",
-            "away": "Jolly Pirates XY",
+            "away": "Jolly Pirates VII",
             "venue": "DJK Würmtal",
             "derby": false
           },
@@ -1870,7 +1870,7 @@
         "half": "hin",
         "games": [
           {
-            "home": "Jolly Pirates XY",
+            "home": "Jolly Pirates VII",
             "away": "DartPromillos",
             "venue": "Jolly Roger",
             "derby": false
@@ -1903,7 +1903,7 @@
           },
           {
             "home": "Funny Darters Munich",
-            "away": "Jolly Pirates XY",
+            "away": "Jolly Pirates VII",
             "venue": "Sportsbar 'Live'",
             "derby": false
           },
@@ -1935,7 +1935,7 @@
           },
           {
             "home": "Team Desaster Mädels",
-            "away": "Jolly Pirates XY",
+            "away": "Jolly Pirates VII",
             "venue": "DC Moosach",
             "derby": false
           }
@@ -1966,7 +1966,7 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates XY",
+        "bye": "Jolly Pirates VII",
         "weekendIndex": 6
       },
       {
@@ -1986,7 +1986,7 @@
             "derby": false
           },
           {
-            "home": "Jolly Pirates XY",
+            "home": "Jolly Pirates VII",
             "away": "5 Sterne Boazn Team",
             "venue": "Jolly Roger",
             "derby": false
@@ -2007,7 +2007,7 @@
           },
           {
             "home": "Black Devils",
-            "away": "Jolly Pirates XY",
+            "away": "Jolly Pirates VII",
             "venue": "Flotte Biene",
             "derby": false
           },
@@ -2026,7 +2026,7 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Jolly Pirates XY",
+            "home": "Jolly Pirates VII",
             "away": "Würmtal Bazis",
             "venue": "Jolly Roger",
             "derby": false
@@ -2053,7 +2053,7 @@
         "games": [
           {
             "home": "DartPromillos",
-            "away": "Jolly Pirates XY",
+            "away": "Jolly Pirates VII",
             "venue": "70er",
             "derby": false
           },
@@ -2084,7 +2084,7 @@
             "derby": false
           },
           {
-            "home": "Jolly Pirates XY",
+            "home": "Jolly Pirates VII",
             "away": "Funny Darters Munich",
             "venue": "Jolly Roger",
             "derby": false
@@ -2116,7 +2116,7 @@
             "derby": false
           },
           {
-            "home": "Jolly Pirates XY",
+            "home": "Jolly Pirates VII",
             "away": "Team Desaster Mädels",
             "venue": "Jolly Roger",
             "derby": false
@@ -2148,7 +2148,7 @@
             "derby": false
           }
         ],
-        "bye": "Jolly Pirates XY",
+        "bye": "Jolly Pirates VII",
         "weekendIndex": 15
       },
       {
@@ -2169,7 +2169,7 @@
           },
           {
             "home": "5 Sterne Boazn Team",
-            "away": "Jolly Pirates XY",
+            "away": "Jolly Pirates VII",
             "venue": "Trappentreu Stüberl",
             "derby": false
           }
@@ -2188,7 +2188,7 @@
             "derby": false
           },
           {
-            "home": "Jolly Pirates XY",
+            "home": "Jolly Pirates VII",
             "away": "Black Devils",
             "venue": "Jolly Roger",
             "derby": false
