@@ -158,18 +158,55 @@ const leagueSlots: number[][] = LEAGUES.map((_, li) => spreadSlots(2 * hinLen[li
 const hinWknd = (li: number, hw: number) => leagueSlots[li][hw];
 const rueckWknd = (li: number, hw: number) => leagueSlots[li][hinLen[li] + hw];
 
-// Zielfunktion: Summe über echte Wochenenden × Lokal der Paar-Kollisionen
-// C(Heimspiele, 2). Kleiner = weniger gleichzeitige Heimspiele je Spielstätte.
+// Zielfunktion (mehrere Regeln zugleich, kleiner = besser):
+//  · KAPAZITÄT je Lokal: Fiaker Stüberl / Flotte Biene / Jolly Roger vertragen bis
+//    3 Heimspiele am selben Wochenende, alle anderen höchstens 2 (mehr wird hart
+//    bestraft; Lokale mit ≤2 Teams ergeben ohnehin nie mehr). Die 3 bekommt nur
+//    einen winzigen Nachteil, damit sie genutzt wird, wenn sie den Wechsel schont.
+//  · BISTRO 118: Leider Geil nie zeitgleich heim mit De Hutzeldarter/Black Storm
+//    (alle drei im Bistro, nur 2 Automaten).
+//  · HEIM/AUSWÄRTS-WECHSEL je Team: möglichst H/A/H/A — jeder „Break" (zwei gleiche
+//    hintereinander) kostet, Serien ab 3 kosten überproportional.
+const PRIO_WEIGHT = 1000; // Bistro-Regel (hart)
+const CAP_WEIGHT = 1000;  // Kapazität überschritten (hart)
+const CAP: Record<string, number> = { 'Fiaker Stüberl': 3, 'Flotte Biene': 3, 'Jolly Roger': 3 };
+const THREE_TIE = 0.1;    // kleiner Nachteil für 3 parallel (erlaubt, aber nicht ohne Grund)
+const BREAK_WEIGHT = 1;   // jeder Break
+const RUN3_WEIGHT = 40;   // je zusätzlichem Spiel in einer Serie ab 3 (verhindert lange Serien)
 function objective(fix: Fix[]): number {
   const load = new Map<string, number>();
   const add = (w: number, venue: string) => { const k = `${w}|${venue}`; load.set(k, (load.get(k) ?? 0) + 1); };
+  const homeOn = new Map<number, Set<string>>(); // Wochenende → Heim-Teamnamen (Bistro-Regel)
+  const mark = (w: number, name: string) => { (homeOn.get(w) ?? homeOn.set(w, new Set()).get(w)!).add(name); };
+  const seq = new Map<string, { w: number; h: 0 | 1 }[]>(); // Team → (Wochenende, heim?) für die Serien
+  const push = (name: string, w: number, h: 0 | 1) => { (seq.get(name) ?? seq.set(name, []).get(name)!).push({ w, h }); };
   for (const f of fix) {
     const lg = LEAGUES[f.li];
-    add(hinWknd(f.li, f.hw), lg.teams[f.homeA ? f.a : f.b].venue);
-    add(rueckWknd(f.li, f.hw), lg.teams[f.homeA ? f.b : f.a].venue);
+    const hw = hinWknd(f.li, f.hw), rw = rueckWknd(f.li, f.hw);
+    const hHome = lg.teams[f.homeA ? f.a : f.b], hAway = lg.teams[f.homeA ? f.b : f.a];
+    add(hw, hHome.venue); add(rw, hAway.venue);          // Rückrunde: Heimrecht getauscht
+    mark(hw, hHome.name); mark(rw, hAway.name);
+    push(hHome.name, hw, 1); push(hAway.name, hw, 0);    // Hinspiel
+    push(hAway.name, rw, 1); push(hHome.name, rw, 0);    // Rückspiel
   }
   let obj = 0;
-  for (const c of load.values()) obj += (c * (c - 1)) / 2;
+  for (const [k, c] of load) {                            // Kapazität je Lokal & Wochenende
+    const venue = k.slice(k.indexOf('|') + 1);
+    const cap = CAP[venue] ?? 2;
+    if (c > cap) obj += CAP_WEIGHT * (c - cap);
+    else if (c === 3) obj += THREE_TIE;
+  }
+  for (const set of homeOn.values()) {                    // Bistro-Regel
+    if (set.has('Leider Geil') && (set.has('De Hutzeldarter') || set.has('Black Storm'))) obj += PRIO_WEIGHT;
+  }
+  for (const arr of seq.values()) {                       // Heim/Auswärts-Serien je Team
+    arr.sort((x, y) => x.w - y.w);
+    let run = 1;
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i].h === arr[i - 1].h) { obj += BREAK_WEIGHT; run++; if (run >= 3) obj += RUN3_WEIGHT * (run - 2); }
+      else run = 1;
+    }
+  }
   return obj;
 }
 
@@ -191,7 +228,7 @@ function optimize(seedFix: Fix[]): { fix: Fix[]; obj: number } {
 let rng = 123456789 >>> 0;
 const rand = () => { rng ^= rng << 13; rng ^= rng >>> 17; rng ^= rng << 5; rng >>>= 0; return rng / 4294967296; };
 let bestRun = optimize(baseFix);
-for (let restart = 0; restart < 400; restart++) {
+for (let restart = 0; restart < 1200; restart++) {
   const seed = baseFix.map(f => ({ ...f, homeA: rand() < 0.5 }));
   const r = optimize(seed);
   if (r.obj < bestRun.obj) bestRun = r;
@@ -232,10 +269,25 @@ const outObj = {
   weekends: cal.out,      // [{fri,sun}] – Index = weekendIndex der Spieltage
   skipped: cal.skipped,   // ausgelassene Ferienwochenenden
   maxMatchday: maxMd,
-  venueClusterObjective: bestRun.obj,
+  objectiveScore: bestRun.obj, // kombinierter Zielwert (Kapazität + Bistro + Serien)
 };
 const outPath = join(process.cwd(), 'app/admin/spielplan-vorschlag/spielplan.json');
 writeFileSync(outPath, JSON.stringify(outObj, null, 2) + '\n');
+
+// ── Diagnose: die drei Regeln nachmessen ──────────────────────
+const cap: Record<string, number> = { 'Fiaker Stüberl': 3, 'Flotte Biene': 3, 'Jolly Roger': 3 };
+const cnt = new Map<string, number>(); const homeNames = new Map<number, Set<string>>(); const teamSeq = new Map<string, { w: number; h: string }[]>();
+for (const [key, mds] of Object.entries(schedule)) for (const m of mds) for (const g of m.games) {
+  cnt.set(m.weekendIndex + '|' + g.venue, (cnt.get(m.weekendIndex + '|' + g.venue) ?? 0) + 1);
+  (homeNames.get(m.weekendIndex) ?? homeNames.set(m.weekendIndex, new Set()).get(m.weekendIndex)!).add(g.home);
+  (teamSeq.get(g.home) ?? teamSeq.set(g.home, []).get(g.home)!).push({ w: m.weekendIndex, h: 'H' });
+  (teamSeq.get(g.away) ?? teamSeq.set(g.away, []).get(g.away)!).push({ w: m.weekendIndex, h: 'A' });
+}
+const over = [...cnt].filter(([k, c]) => c > (cap[k.slice(k.indexOf('|') + 1)] ?? 2)).map(([k, c]) => k.slice(k.indexOf('|') + 1) + '(' + c + ')');
+const bistro = [...homeNames.values()].filter(s => s.has('Leider Geil') && (s.has('De Hutzeldarter') || s.has('Black Storm'))).length;
+let maxStreak = 0, teams3 = 0;
+for (const arr of teamSeq.values()) { arr.sort((a, b) => a.w - b.w); let r = 1, mx = 1; for (let i = 1; i < arr.length; i++) { if (arr[i].h === arr[i - 1].h) { r++; mx = Math.max(mx, r); } else r = 1; } if (mx >= 3) teams3++; maxStreak = Math.max(maxStreak, mx); }
 console.log('Geschrieben:', outPath);
-console.log('Objective (Lokal-Heim-Paare/Wochenende, kleiner=besser):', bestRun.obj);
 console.log('Spieltage je Liga:', Object.fromEntries(Object.entries(schedule).map(([k, s]) => [k, s.length])));
+console.log('Kapazität überschritten:', over.length ? over.join(', ') : 'nirgends');
+console.log('Bistro-Verstöße (Leider Geil):', bistro, '· max Heim/Auswärts-Streak:', maxStreak, '· Teams mit ≥3 am Stück:', teams3);

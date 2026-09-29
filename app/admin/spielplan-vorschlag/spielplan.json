@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T08:33:04.961Z",
+  "generatedAt": "2026-09-29T18:16:28.898Z",
   "note": "Vorschlag – keine DB-Speicherung. Ferientermine geschätzt.",
   "leagues": [
     {
@@ -188,9 +188,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Jolly Pirates Kneipenterroristen",
-            "away": "Spartans München",
-            "venue": "Jolly Roger",
+            "home": "Spartans München",
+            "away": "Jolly Pirates Kneipenterroristen",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -200,9 +200,9 @@
             "derby": true
           },
           {
-            "home": "Alptraum",
-            "away": "Silberpfeile II",
-            "venue": "Di's Stüberl",
+            "home": "Silberpfeile II",
+            "away": "Alptraum",
+            "venue": "Wirtshaus bei Toni",
             "derby": false
           }
         ],
@@ -220,15 +220,15 @@
             "derby": false
           },
           {
-            "home": "Silberpfeile II",
-            "away": "Gambas",
-            "venue": "Wirtshaus bei Toni",
+            "home": "Gambas",
+            "away": "Silberpfeile II",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Ohne Jackie",
-            "away": "Jolly Pirates Kneipenterroristen",
-            "venue": "Fiaker Stüberl",
+            "home": "Jolly Pirates Kneipenterroristen",
+            "away": "Ohne Jackie",
+            "venue": "Jolly Roger",
             "derby": false
           }
         ],
@@ -240,9 +240,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Gambas",
-            "away": "Spartans München",
-            "venue": "Fiaker Stüberl",
+            "home": "Spartans München",
+            "away": "Gambas",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -252,9 +252,9 @@
             "derby": false
           },
           {
-            "home": "Silberpfeile II",
-            "away": "Ohne Jackie",
-            "venue": "Wirtshaus bei Toni",
+            "home": "Ohne Jackie",
+            "away": "Silberpfeile II",
+            "venue": "Fiaker Stüberl",
             "derby": false
           }
         ],
@@ -266,9 +266,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Spartans München",
-            "away": "Ohne Jackie",
-            "venue": "Flotte Biene",
+            "home": "Ohne Jackie",
+            "away": "Spartans München",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
@@ -292,21 +292,21 @@
         "half": "hin",
         "games": [
           {
-            "home": "Silberpfeile II",
-            "away": "Spartans München",
-            "venue": "Wirtshaus bei Toni",
+            "home": "Spartans München",
+            "away": "Silberpfeile II",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
-            "home": "Ohne Jackie",
-            "away": "Alptraum",
-            "venue": "Fiaker Stüberl",
+            "home": "Alptraum",
+            "away": "Ohne Jackie",
+            "venue": "Di's Stüberl",
             "derby": false
           },
           {
-            "home": "Gambas",
-            "away": "Jolly Pirates Kneipenterroristen",
-            "venue": "Fiaker Stüberl",
+            "home": "Jolly Pirates Kneipenterroristen",
+            "away": "Gambas",
+            "venue": "Jolly Roger",
             "derby": false
           }
         ],
@@ -318,9 +318,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Spartans München",
-            "away": "Jolly Pirates Kneipenterroristen",
-            "venue": "Flotte Biene",
+            "home": "Jolly Pirates Kneipenterroristen",
+            "away": "Spartans München",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -330,9 +330,9 @@
             "derby": true
           },
           {
-            "home": "Silberpfeile II",
-            "away": "Alptraum",
-            "venue": "Wirtshaus bei Toni",
+            "home": "Alptraum",
+            "away": "Silberpfeile II",
+            "venue": "Di's Stüberl",
             "derby": false
           }
         ],
@@ -350,15 +350,15 @@
             "derby": false
           },
           {
-            "home": "Gambas",
-            "away": "Silberpfeile II",
-            "venue": "Fiaker Stüberl",
+            "home": "Silberpfeile II",
+            "away": "Gambas",
+            "venue": "Wirtshaus bei Toni",
             "derby": false
           },
           {
-            "home": "Jolly Pirates Kneipenterroristen",
-            "away": "Ohne Jackie",
-            "venue": "Jolly Roger",
+            "home": "Ohne Jackie",
+            "away": "Jolly Pirates Kneipenterroristen",
+            "venue": "Fiaker Stüberl",
             "derby": false
           }
         ],
@@ -370,9 +370,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Spartans München",
-            "away": "Gambas",
-            "venue": "Flotte Biene",
+            "home": "Gambas",
+            "away": "Spartans München",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
@@ -382,9 +382,9 @@
             "derby": false
           },
           {
-            "home": "Ohne Jackie",
-            "away": "Silberpfeile II",
-            "venue": "Fiaker Stüberl",
+            "home": "Silberpfeile II",
+            "away": "Ohne Jackie",
+            "venue": "Wirtshaus bei Toni",
             "derby": false
           }
         ],
@@ -396,9 +396,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Ohne Jackie",
-            "away": "Spartans München",
-            "venue": "Fiaker Stüberl",
+            "home": "Spartans München",
+            "away": "Ohne Jackie",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -422,21 +422,21 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Spartans München",
-            "away": "Silberpfeile II",
-            "venue": "Flotte Biene",
+            "home": "Silberpfeile II",
+            "away": "Spartans München",
+            "venue": "Wirtshaus bei Toni",
             "derby": false
           },
           {
-            "home": "Alptraum",
-            "away": "Ohne Jackie",
-            "venue": "Di's Stüberl",
+            "home": "Ohne Jackie",
+            "away": "Alptraum",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Jolly Pirates Kneipenterroristen",
-            "away": "Gambas",
-            "venue": "Jolly Roger",
+            "home": "Gambas",
+            "away": "Jolly Pirates Kneipenterroristen",
+            "venue": "Fiaker Stüberl",
             "derby": false
           }
         ],
@@ -450,9 +450,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Spartans VI",
-            "away": "Jolly Pirates V",
-            "venue": "Flotte Biene",
+            "home": "Jolly Pirates V",
+            "away": "Spartans VI",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -482,9 +482,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Jolly Pirates V",
-            "away": "Illuminati",
-            "venue": "Jolly Roger",
+            "home": "Illuminati",
+            "away": "Jolly Pirates V",
+            "venue": "Ambasador",
             "derby": false
           },
           {
@@ -514,15 +514,15 @@
         "half": "hin",
         "games": [
           {
-            "home": "Belfort Evolution",
-            "away": "Spartans VI",
-            "venue": "Belfort Seven",
+            "home": "Spartans VI",
+            "away": "Belfort Evolution",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
-            "home": "Jolly Pirates V",
-            "away": "Oldies & Co",
-            "venue": "Jolly Roger",
+            "home": "Oldies & Co",
+            "away": "Jolly Pirates V",
+            "venue": "Di's Stüberl",
             "derby": false
           },
           {
@@ -564,9 +564,9 @@
             "derby": false
           },
           {
-            "home": "Illuminati",
-            "away": "Treff Nix Freimann",
-            "venue": "Ambasador",
+            "home": "Treff Nix Freimann",
+            "away": "Illuminati",
+            "venue": "Gaststätte ESV Freimann",
             "derby": false
           }
         ],
@@ -578,21 +578,21 @@
         "half": "hin",
         "games": [
           {
-            "home": "Spartans VI",
-            "away": "DC Animals",
-            "venue": "Flotte Biene",
+            "home": "DC Animals",
+            "away": "Spartans VI",
+            "venue": "Kegelkeller",
             "derby": false
           },
           {
-            "home": "Oldies & Co",
-            "away": "Freibad Bazis",
-            "venue": "Di's Stüberl",
-            "derby": false
-          },
-          {
-            "home": "Fiaker Deife",
-            "away": "Belfort Evolution",
+            "home": "Freibad Bazis",
+            "away": "Oldies & Co",
             "venue": "Fiaker Stüberl",
+            "derby": false
+          },
+          {
+            "home": "Belfort Evolution",
+            "away": "Fiaker Deife",
+            "venue": "Belfort Seven",
             "derby": false
           },
           {
@@ -616,9 +616,9 @@
             "derby": false
           },
           {
-            "home": "DC Animals",
-            "away": "Fiaker Deife",
-            "venue": "Kegelkeller",
+            "home": "Fiaker Deife",
+            "away": "DC Animals",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
@@ -642,9 +642,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Fiaker Deife",
-            "away": "Spartans VI",
-            "venue": "Fiaker Stüberl",
+            "home": "Spartans VI",
+            "away": "Fiaker Deife",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -654,15 +654,15 @@
             "derby": false
           },
           {
-            "home": "Illuminati",
-            "away": "DC Animals",
-            "venue": "Ambasador",
+            "home": "DC Animals",
+            "away": "Illuminati",
+            "venue": "Kegelkeller",
             "derby": false
           },
           {
-            "home": "Jolly Pirates V",
-            "away": "Belfort Evolution",
-            "venue": "Jolly Roger",
+            "home": "Belfort Evolution",
+            "away": "Jolly Pirates V",
+            "venue": "Belfort Seven",
             "derby": false
           }
         ],
@@ -674,9 +674,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Treff Nix Freimann",
-            "away": "Spartans VI",
-            "venue": "Gaststätte ESV Freimann",
+            "home": "Spartans VI",
+            "away": "Treff Nix Freimann",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -686,9 +686,9 @@
             "derby": false
           },
           {
-            "home": "DC Animals",
-            "away": "Jolly Pirates V",
-            "venue": "Kegelkeller",
+            "home": "Jolly Pirates V",
+            "away": "DC Animals",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -712,21 +712,21 @@
             "derby": false
           },
           {
-            "home": "Jolly Pirates V",
-            "away": "Fiaker Deife",
-            "venue": "Jolly Roger",
+            "home": "Fiaker Deife",
+            "away": "Jolly Pirates V",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Belfort Evolution",
-            "away": "Freibad Bazis",
-            "venue": "Belfort Seven",
+            "home": "Freibad Bazis",
+            "away": "Belfort Evolution",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Oldies & Co",
-            "away": "DC Animals",
-            "venue": "Di's Stüberl",
+            "home": "DC Animals",
+            "away": "Oldies & Co",
+            "venue": "Kegelkeller",
             "derby": false
           }
         ],
@@ -738,9 +738,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Jolly Pirates V",
-            "away": "Spartans VI",
-            "venue": "Jolly Roger",
+            "home": "Spartans VI",
+            "away": "Jolly Pirates V",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -770,9 +770,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Illuminati",
-            "away": "Jolly Pirates V",
-            "venue": "Ambasador",
+            "home": "Jolly Pirates V",
+            "away": "Illuminati",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -802,15 +802,15 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Spartans VI",
-            "away": "Belfort Evolution",
-            "venue": "Flotte Biene",
+            "home": "Belfort Evolution",
+            "away": "Spartans VI",
+            "venue": "Belfort Seven",
             "derby": false
           },
           {
-            "home": "Oldies & Co",
-            "away": "Jolly Pirates V",
-            "venue": "Di's Stüberl",
+            "home": "Jolly Pirates V",
+            "away": "Oldies & Co",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -852,9 +852,9 @@
             "derby": false
           },
           {
-            "home": "Treff Nix Freimann",
-            "away": "Illuminati",
-            "venue": "Gaststätte ESV Freimann",
+            "home": "Illuminati",
+            "away": "Treff Nix Freimann",
+            "venue": "Ambasador",
             "derby": false
           }
         ],
@@ -866,21 +866,21 @@
         "half": "rueck",
         "games": [
           {
-            "home": "DC Animals",
-            "away": "Spartans VI",
-            "venue": "Kegelkeller",
+            "home": "Spartans VI",
+            "away": "DC Animals",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
-            "home": "Freibad Bazis",
-            "away": "Oldies & Co",
+            "home": "Oldies & Co",
+            "away": "Freibad Bazis",
+            "venue": "Di's Stüberl",
+            "derby": false
+          },
+          {
+            "home": "Fiaker Deife",
+            "away": "Belfort Evolution",
             "venue": "Fiaker Stüberl",
-            "derby": false
-          },
-          {
-            "home": "Belfort Evolution",
-            "away": "Fiaker Deife",
-            "venue": "Belfort Seven",
             "derby": false
           },
           {
@@ -904,9 +904,9 @@
             "derby": false
           },
           {
-            "home": "Fiaker Deife",
-            "away": "DC Animals",
-            "venue": "Fiaker Stüberl",
+            "home": "DC Animals",
+            "away": "Fiaker Deife",
+            "venue": "Kegelkeller",
             "derby": false
           },
           {
@@ -930,9 +930,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Spartans VI",
-            "away": "Fiaker Deife",
-            "venue": "Flotte Biene",
+            "home": "Fiaker Deife",
+            "away": "Spartans VI",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
@@ -942,15 +942,15 @@
             "derby": false
           },
           {
-            "home": "DC Animals",
-            "away": "Illuminati",
-            "venue": "Kegelkeller",
+            "home": "Illuminati",
+            "away": "DC Animals",
+            "venue": "Ambasador",
             "derby": false
           },
           {
-            "home": "Belfort Evolution",
-            "away": "Jolly Pirates V",
-            "venue": "Belfort Seven",
+            "home": "Jolly Pirates V",
+            "away": "Belfort Evolution",
+            "venue": "Jolly Roger",
             "derby": false
           }
         ],
@@ -962,9 +962,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Spartans VI",
-            "away": "Treff Nix Freimann",
-            "venue": "Flotte Biene",
+            "home": "Treff Nix Freimann",
+            "away": "Spartans VI",
+            "venue": "Gaststätte ESV Freimann",
             "derby": false
           },
           {
@@ -974,9 +974,9 @@
             "derby": false
           },
           {
-            "home": "Jolly Pirates V",
-            "away": "DC Animals",
-            "venue": "Jolly Roger",
+            "home": "DC Animals",
+            "away": "Jolly Pirates V",
+            "venue": "Kegelkeller",
             "derby": false
           },
           {
@@ -1000,21 +1000,21 @@
             "derby": false
           },
           {
-            "home": "Fiaker Deife",
-            "away": "Jolly Pirates V",
-            "venue": "Fiaker Stüberl",
+            "home": "Jolly Pirates V",
+            "away": "Fiaker Deife",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
-            "home": "Freibad Bazis",
-            "away": "Belfort Evolution",
-            "venue": "Fiaker Stüberl",
+            "home": "Belfort Evolution",
+            "away": "Freibad Bazis",
+            "venue": "Belfort Seven",
             "derby": false
           },
           {
-            "home": "DC Animals",
-            "away": "Oldies & Co",
-            "venue": "Kegelkeller",
+            "home": "Oldies & Co",
+            "away": "DC Animals",
+            "venue": "Di's Stüberl",
             "derby": false
           }
         ],
@@ -1034,8 +1034,8 @@
             "derby": false
           },
           {
-            "home": "Black Storm",
-            "away": "De Hutzeldarter",
+            "home": "De Hutzeldarter",
+            "away": "Black Storm",
             "venue": "Bistro 118",
             "derby": true
           },
@@ -1046,9 +1046,9 @@
             "derby": false
           },
           {
-            "home": "München 08/15",
-            "away": "Master of Desaster",
-            "venue": "Flotte Biene",
+            "home": "Master of Desaster",
+            "away": "München 08/15",
+            "venue": "Fiaker Stüberl",
             "derby": false
           }
         ],
@@ -1060,9 +1060,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Game Over",
-            "away": "Black Storm",
-            "venue": "Wirtshaus zum Lustigen Bauer",
+            "home": "Black Storm",
+            "away": "Game Over",
+            "venue": "Bistro 118",
             "derby": false
           },
           {
@@ -1072,9 +1072,9 @@
             "derby": false
           },
           {
-            "home": "De Hutzeldarter",
-            "away": "München 08/15",
-            "venue": "Bistro 118",
+            "home": "München 08/15",
+            "away": "De Hutzeldarter",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -1092,9 +1092,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "De Hutzeldarter",
-            "away": "Game Over",
-            "venue": "Bistro 118",
+            "home": "Game Over",
+            "away": "De Hutzeldarter",
+            "venue": "Wirtshaus zum Lustigen Bauer",
             "derby": false
           },
           {
@@ -1124,9 +1124,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Game Over",
-            "away": "Lucky Darts One",
-            "venue": "Wirtshaus zum Lustigen Bauer",
+            "home": "Lucky Darts One",
+            "away": "Game Over",
+            "venue": "Players",
             "derby": false
           },
           {
@@ -1136,9 +1136,9 @@
             "derby": false
           },
           {
-            "home": "Dart's Vaders",
-            "away": "München 08/15",
-            "venue": "Ambasador",
+            "home": "München 08/15",
+            "away": "Dart's Vaders",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -1174,9 +1174,9 @@
             "derby": false
           },
           {
-            "home": "Black Storm",
-            "away": "Dart's Vaders",
-            "venue": "Bistro 118",
+            "home": "Dart's Vaders",
+            "away": "Black Storm",
+            "venue": "Ambasador",
             "derby": false
           }
         ],
@@ -1188,9 +1188,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "München 08/15",
-            "away": "Game Over",
-            "venue": "Flotte Biene",
+            "home": "Game Over",
+            "away": "München 08/15",
+            "venue": "Wirtshaus zum Lustigen Bauer",
             "derby": false
           },
           {
@@ -1200,9 +1200,9 @@
             "derby": false
           },
           {
-            "home": "Lucky Darts One",
-            "away": "Black Storm",
-            "venue": "Players",
+            "home": "Black Storm",
+            "away": "Lucky Darts One",
+            "venue": "Bistro 118",
             "derby": false
           },
           {
@@ -1220,9 +1220,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Game Over",
-            "away": "Wild Indians",
-            "venue": "Wirtshaus zum Lustigen Bauer",
+            "home": "Wild Indians",
+            "away": "Game Over",
+            "venue": "Trappentreu Stüberl",
             "derby": false
           },
           {
@@ -1232,15 +1232,15 @@
             "derby": false
           },
           {
-            "home": "Master of Desaster",
-            "away": "Dart's Vaders",
-            "venue": "Fiaker Stüberl",
+            "home": "Dart's Vaders",
+            "away": "Master of Desaster",
+            "venue": "Ambasador",
             "derby": false
           },
           {
-            "home": "De Hutzeldarter",
-            "away": "Lucky Darts One",
-            "venue": "Bistro 118",
+            "home": "Lucky Darts One",
+            "away": "De Hutzeldarter",
+            "venue": "Players",
             "derby": false
           }
         ],
@@ -1258,8 +1258,8 @@
             "derby": false
           },
           {
-            "home": "De Hutzeldarter",
-            "away": "Black Storm",
+            "home": "Black Storm",
+            "away": "De Hutzeldarter",
             "venue": "Bistro 118",
             "derby": true
           },
@@ -1270,9 +1270,9 @@
             "derby": false
           },
           {
-            "home": "Master of Desaster",
-            "away": "München 08/15",
-            "venue": "Fiaker Stüberl",
+            "home": "München 08/15",
+            "away": "Master of Desaster",
+            "venue": "Flotte Biene",
             "derby": false
           }
         ],
@@ -1284,9 +1284,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Black Storm",
-            "away": "Game Over",
-            "venue": "Bistro 118",
+            "home": "Game Over",
+            "away": "Black Storm",
+            "venue": "Wirtshaus zum Lustigen Bauer",
             "derby": false
           },
           {
@@ -1296,9 +1296,9 @@
             "derby": false
           },
           {
-            "home": "München 08/15",
-            "away": "De Hutzeldarter",
-            "venue": "Flotte Biene",
+            "home": "De Hutzeldarter",
+            "away": "München 08/15",
+            "venue": "Bistro 118",
             "derby": false
           },
           {
@@ -1316,9 +1316,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Game Over",
-            "away": "De Hutzeldarter",
-            "venue": "Wirtshaus zum Lustigen Bauer",
+            "home": "De Hutzeldarter",
+            "away": "Game Over",
+            "venue": "Bistro 118",
             "derby": false
           },
           {
@@ -1348,9 +1348,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Lucky Darts One",
-            "away": "Game Over",
-            "venue": "Players",
+            "home": "Game Over",
+            "away": "Lucky Darts One",
+            "venue": "Wirtshaus zum Lustigen Bauer",
             "derby": false
           },
           {
@@ -1360,9 +1360,9 @@
             "derby": false
           },
           {
-            "home": "München 08/15",
-            "away": "Dart's Vaders",
-            "venue": "Flotte Biene",
+            "home": "Dart's Vaders",
+            "away": "München 08/15",
+            "venue": "Ambasador",
             "derby": false
           },
           {
@@ -1398,9 +1398,9 @@
             "derby": false
           },
           {
-            "home": "Dart's Vaders",
-            "away": "Black Storm",
-            "venue": "Ambasador",
+            "home": "Black Storm",
+            "away": "Dart's Vaders",
+            "venue": "Bistro 118",
             "derby": false
           }
         ],
@@ -1412,9 +1412,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Game Over",
-            "away": "München 08/15",
-            "venue": "Wirtshaus zum Lustigen Bauer",
+            "home": "München 08/15",
+            "away": "Game Over",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -1424,9 +1424,9 @@
             "derby": false
           },
           {
-            "home": "Black Storm",
-            "away": "Lucky Darts One",
-            "venue": "Bistro 118",
+            "home": "Lucky Darts One",
+            "away": "Black Storm",
+            "venue": "Players",
             "derby": false
           },
           {
@@ -1444,9 +1444,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Wild Indians",
-            "away": "Game Over",
-            "venue": "Trappentreu Stüberl",
+            "home": "Game Over",
+            "away": "Wild Indians",
+            "venue": "Wirtshaus zum Lustigen Bauer",
             "derby": false
           },
           {
@@ -1456,15 +1456,15 @@
             "derby": false
           },
           {
-            "home": "Dart's Vaders",
-            "away": "Master of Desaster",
-            "venue": "Ambasador",
+            "home": "Master of Desaster",
+            "away": "Dart's Vaders",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Lucky Darts One",
-            "away": "De Hutzeldarter",
-            "venue": "Players",
+            "home": "De Hutzeldarter",
+            "away": "Lucky Darts One",
+            "venue": "Bistro 118",
             "derby": false
           }
         ],
@@ -1484,15 +1484,15 @@
             "derby": false
           },
           {
-            "home": "Flying Fighters",
-            "away": "Leider Geil",
-            "venue": "Fiaker Stüberl",
+            "home": "Leider Geil",
+            "away": "Flying Fighters",
+            "venue": "Bistro 118",
             "derby": false
           },
           {
-            "home": "De Vogelwuid'n",
-            "away": "Team Desaster",
-            "venue": "Flotte Biene",
+            "home": "Team Desaster",
+            "away": "De Vogelwuid'n",
+            "venue": "DC Moosach",
             "derby": false
           }
         ],
@@ -1504,9 +1504,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Wakan Tanka",
-            "away": "Jolly Pirates Sound Warrior's",
-            "venue": "Schillers Bistro",
+            "home": "Jolly Pirates Sound Warrior's",
+            "away": "Wakan Tanka",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -1516,9 +1516,9 @@
             "derby": false
           },
           {
-            "home": "Team Desaster",
-            "away": "Flying Fighters",
-            "venue": "DC Moosach",
+            "home": "Flying Fighters",
+            "away": "Team Desaster",
+            "venue": "Fiaker Stüberl",
             "derby": false
           }
         ],
@@ -1530,15 +1530,15 @@
         "half": "hin",
         "games": [
           {
-            "home": "Jolly Pirates Sound Warrior's",
-            "away": "Leider Geil",
-            "venue": "Jolly Roger",
+            "home": "Leider Geil",
+            "away": "Jolly Pirates Sound Warrior's",
+            "venue": "Bistro 118",
             "derby": false
           },
           {
-            "home": "De Vogelwuid'n",
-            "away": "Wakan Tanka",
-            "venue": "Flotte Biene",
+            "home": "Wakan Tanka",
+            "away": "De Vogelwuid'n",
+            "venue": "Schillers Bistro",
             "derby": false
           },
           {
@@ -1556,9 +1556,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "De Vogelwuid'n",
-            "away": "Jolly Pirates Sound Warrior's",
-            "venue": "Flotte Biene",
+            "home": "Jolly Pirates Sound Warrior's",
+            "away": "De Vogelwuid'n",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -1582,21 +1582,21 @@
         "half": "hin",
         "games": [
           {
-            "home": "Jolly Pirates Sound Warrior's",
-            "away": "Team Desaster",
-            "venue": "Jolly Roger",
+            "home": "Team Desaster",
+            "away": "Jolly Pirates Sound Warrior's",
+            "venue": "DC Moosach",
             "derby": false
           },
           {
-            "home": "Flying Fighters",
-            "away": "De Vogelwuid'n",
-            "venue": "Fiaker Stüberl",
+            "home": "De Vogelwuid'n",
+            "away": "Flying Fighters",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
-            "home": "Lucky Darts Two",
-            "away": "Leider Geil",
-            "venue": "Players",
+            "home": "Leider Geil",
+            "away": "Lucky Darts Two",
+            "venue": "Bistro 118",
             "derby": false
           }
         ],
@@ -1614,9 +1614,9 @@
             "derby": false
           },
           {
-            "home": "Team Desaster",
-            "away": "Lucky Darts Two",
-            "venue": "DC Moosach",
+            "home": "Lucky Darts Two",
+            "away": "Team Desaster",
+            "venue": "Players",
             "derby": false
           },
           {
@@ -1634,9 +1634,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Lucky Darts Two",
-            "away": "Jolly Pirates Sound Warrior's",
-            "venue": "Players",
+            "home": "Jolly Pirates Sound Warrior's",
+            "away": "Lucky Darts Two",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -1646,9 +1646,9 @@
             "derby": false
           },
           {
-            "home": "De Vogelwuid'n",
-            "away": "Leider Geil",
-            "venue": "Flotte Biene",
+            "home": "Leider Geil",
+            "away": "De Vogelwuid'n",
+            "venue": "Bistro 118",
             "derby": false
           }
         ],
@@ -1666,15 +1666,15 @@
             "derby": false
           },
           {
-            "home": "Leider Geil",
-            "away": "Flying Fighters",
-            "venue": "Bistro 118",
+            "home": "Flying Fighters",
+            "away": "Leider Geil",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Team Desaster",
-            "away": "De Vogelwuid'n",
-            "venue": "DC Moosach",
+            "home": "De Vogelwuid'n",
+            "away": "Team Desaster",
+            "venue": "Flotte Biene",
             "derby": false
           }
         ],
@@ -1686,9 +1686,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Jolly Pirates Sound Warrior's",
-            "away": "Wakan Tanka",
-            "venue": "Jolly Roger",
+            "home": "Wakan Tanka",
+            "away": "Jolly Pirates Sound Warrior's",
+            "venue": "Schillers Bistro",
             "derby": false
           },
           {
@@ -1698,9 +1698,9 @@
             "derby": false
           },
           {
-            "home": "Flying Fighters",
-            "away": "Team Desaster",
-            "venue": "Fiaker Stüberl",
+            "home": "Team Desaster",
+            "away": "Flying Fighters",
+            "venue": "DC Moosach",
             "derby": false
           }
         ],
@@ -1712,15 +1712,15 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Leider Geil",
-            "away": "Jolly Pirates Sound Warrior's",
-            "venue": "Bistro 118",
+            "home": "Jolly Pirates Sound Warrior's",
+            "away": "Leider Geil",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
-            "home": "Wakan Tanka",
-            "away": "De Vogelwuid'n",
-            "venue": "Schillers Bistro",
+            "home": "De Vogelwuid'n",
+            "away": "Wakan Tanka",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -1738,9 +1738,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Jolly Pirates Sound Warrior's",
-            "away": "De Vogelwuid'n",
-            "venue": "Jolly Roger",
+            "home": "De Vogelwuid'n",
+            "away": "Jolly Pirates Sound Warrior's",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -1764,21 +1764,21 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Team Desaster",
-            "away": "Jolly Pirates Sound Warrior's",
-            "venue": "DC Moosach",
+            "home": "Jolly Pirates Sound Warrior's",
+            "away": "Team Desaster",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
-            "home": "De Vogelwuid'n",
-            "away": "Flying Fighters",
-            "venue": "Flotte Biene",
+            "home": "Flying Fighters",
+            "away": "De Vogelwuid'n",
+            "venue": "Fiaker Stüberl",
             "derby": false
           },
           {
-            "home": "Leider Geil",
-            "away": "Lucky Darts Two",
-            "venue": "Bistro 118",
+            "home": "Lucky Darts Two",
+            "away": "Leider Geil",
+            "venue": "Players",
             "derby": false
           }
         ],
@@ -1796,9 +1796,9 @@
             "derby": false
           },
           {
-            "home": "Lucky Darts Two",
-            "away": "Team Desaster",
-            "venue": "Players",
+            "home": "Team Desaster",
+            "away": "Lucky Darts Two",
+            "venue": "DC Moosach",
             "derby": false
           },
           {
@@ -1816,9 +1816,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Jolly Pirates Sound Warrior's",
-            "away": "Lucky Darts Two",
-            "venue": "Jolly Roger",
+            "home": "Lucky Darts Two",
+            "away": "Jolly Pirates Sound Warrior's",
+            "venue": "Players",
             "derby": false
           },
           {
@@ -1828,9 +1828,9 @@
             "derby": false
           },
           {
-            "home": "Leider Geil",
-            "away": "De Vogelwuid'n",
-            "venue": "Bistro 118",
+            "home": "De Vogelwuid'n",
+            "away": "Leider Geil",
+            "venue": "Flotte Biene",
             "derby": false
           }
         ],
@@ -1844,9 +1844,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "Würmtal Bazis",
-            "away": "Jolly Pirates VII",
-            "venue": "DJK Würmtal",
+            "home": "Jolly Pirates VII",
+            "away": "Würmtal Bazis",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -1856,9 +1856,9 @@
             "derby": false
           },
           {
-            "home": "Funny Darters Munich",
-            "away": "Black Devils",
-            "venue": "Sportsbar 'Live'",
+            "home": "Black Devils",
+            "away": "Funny Darters Munich",
+            "venue": "Flotte Biene",
             "derby": false
           }
         ],
@@ -1882,9 +1882,9 @@
             "derby": false
           },
           {
-            "home": "Black Devils",
-            "away": "Team Desaster Mädels",
-            "venue": "Flotte Biene",
+            "home": "Team Desaster Mädels",
+            "away": "Black Devils",
+            "venue": "DC Moosach",
             "derby": false
           }
         ],
@@ -1896,15 +1896,15 @@
         "half": "hin",
         "games": [
           {
-            "home": "DartPromillos",
-            "away": "5 Sterne Boazn Team",
-            "venue": "70er",
+            "home": "5 Sterne Boazn Team",
+            "away": "DartPromillos",
+            "venue": "Trappentreu Stüberl",
             "derby": false
           },
           {
-            "home": "Funny Darters Munich",
-            "away": "Jolly Pirates VII",
-            "venue": "Sportsbar 'Live'",
+            "home": "Jolly Pirates VII",
+            "away": "Funny Darters Munich",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -1922,21 +1922,21 @@
         "half": "hin",
         "games": [
           {
-            "home": "Funny Darters Munich",
-            "away": "DartPromillos",
-            "venue": "Sportsbar 'Live'",
+            "home": "DartPromillos",
+            "away": "Funny Darters Munich",
+            "venue": "70er",
             "derby": false
           },
           {
-            "home": "5 Sterne Boazn Team",
-            "away": "Black Devils",
-            "venue": "Trappentreu Stüberl",
+            "home": "Black Devils",
+            "away": "5 Sterne Boazn Team",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
-            "home": "Jolly Pirates VII",
-            "away": "Team Desaster Mädels",
-            "venue": "Jolly Roger",
+            "home": "Team Desaster Mädels",
+            "away": "Jolly Pirates VII",
+            "venue": "DC Moosach",
             "derby": false
           }
         ],
@@ -1954,15 +1954,15 @@
             "derby": false
           },
           {
-            "home": "Team Desaster Mädels",
-            "away": "Funny Darters Munich",
-            "venue": "DC Moosach",
+            "home": "Funny Darters Munich",
+            "away": "Team Desaster Mädels",
+            "venue": "Sportsbar 'Live'",
             "derby": false
           },
           {
-            "home": "Würmtal Bazis",
-            "away": "5 Sterne Boazn Team",
-            "venue": "DJK Würmtal",
+            "home": "5 Sterne Boazn Team",
+            "away": "Würmtal Bazis",
+            "venue": "Trappentreu Stüberl",
             "derby": false
           }
         ],
@@ -1974,9 +1974,9 @@
         "half": "hin",
         "games": [
           {
-            "home": "DartPromillos",
-            "away": "Team Desaster Mädels",
-            "venue": "70er",
+            "home": "Team Desaster Mädels",
+            "away": "DartPromillos",
+            "venue": "DC Moosach",
             "derby": false
           },
           {
@@ -2000,15 +2000,15 @@
         "half": "hin",
         "games": [
           {
-            "home": "Würmtal Bazis",
-            "away": "DartPromillos",
-            "venue": "DJK Würmtal",
+            "home": "DartPromillos",
+            "away": "Würmtal Bazis",
+            "venue": "70er",
             "derby": false
           },
           {
-            "home": "Jolly Pirates VII",
-            "away": "Black Devils",
-            "venue": "Jolly Roger",
+            "home": "Black Devils",
+            "away": "Jolly Pirates VII",
+            "venue": "Flotte Biene",
             "derby": false
           },
           {
@@ -2026,9 +2026,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Jolly Pirates VII",
-            "away": "Würmtal Bazis",
-            "venue": "Jolly Roger",
+            "home": "Würmtal Bazis",
+            "away": "Jolly Pirates VII",
+            "venue": "DJK Würmtal",
             "derby": false
           },
           {
@@ -2038,9 +2038,9 @@
             "derby": false
           },
           {
-            "home": "Black Devils",
-            "away": "Funny Darters Munich",
-            "venue": "Flotte Biene",
+            "home": "Funny Darters Munich",
+            "away": "Black Devils",
+            "venue": "Sportsbar 'Live'",
             "derby": false
           }
         ],
@@ -2064,9 +2064,9 @@
             "derby": false
           },
           {
-            "home": "Team Desaster Mädels",
-            "away": "Black Devils",
-            "venue": "DC Moosach",
+            "home": "Black Devils",
+            "away": "Team Desaster Mädels",
+            "venue": "Flotte Biene",
             "derby": false
           }
         ],
@@ -2078,15 +2078,15 @@
         "half": "rueck",
         "games": [
           {
-            "home": "5 Sterne Boazn Team",
-            "away": "DartPromillos",
-            "venue": "Trappentreu Stüberl",
+            "home": "DartPromillos",
+            "away": "5 Sterne Boazn Team",
+            "venue": "70er",
             "derby": false
           },
           {
-            "home": "Jolly Pirates VII",
-            "away": "Funny Darters Munich",
-            "venue": "Jolly Roger",
+            "home": "Funny Darters Munich",
+            "away": "Jolly Pirates VII",
+            "venue": "Sportsbar 'Live'",
             "derby": false
           },
           {
@@ -2104,21 +2104,21 @@
         "half": "rueck",
         "games": [
           {
-            "home": "DartPromillos",
-            "away": "Funny Darters Munich",
-            "venue": "70er",
+            "home": "Funny Darters Munich",
+            "away": "DartPromillos",
+            "venue": "Sportsbar 'Live'",
             "derby": false
           },
           {
-            "home": "Black Devils",
-            "away": "5 Sterne Boazn Team",
-            "venue": "Flotte Biene",
+            "home": "5 Sterne Boazn Team",
+            "away": "Black Devils",
+            "venue": "Trappentreu Stüberl",
             "derby": false
           },
           {
-            "home": "Team Desaster Mädels",
-            "away": "Jolly Pirates VII",
-            "venue": "DC Moosach",
+            "home": "Jolly Pirates VII",
+            "away": "Team Desaster Mädels",
+            "venue": "Jolly Roger",
             "derby": false
           }
         ],
@@ -2136,15 +2136,15 @@
             "derby": false
           },
           {
-            "home": "Funny Darters Munich",
-            "away": "Team Desaster Mädels",
-            "venue": "Sportsbar 'Live'",
+            "home": "Team Desaster Mädels",
+            "away": "Funny Darters Munich",
+            "venue": "DC Moosach",
             "derby": false
           },
           {
-            "home": "5 Sterne Boazn Team",
-            "away": "Würmtal Bazis",
-            "venue": "Trappentreu Stüberl",
+            "home": "Würmtal Bazis",
+            "away": "5 Sterne Boazn Team",
+            "venue": "DJK Würmtal",
             "derby": false
           }
         ],
@@ -2156,9 +2156,9 @@
         "half": "rueck",
         "games": [
           {
-            "home": "Team Desaster Mädels",
-            "away": "DartPromillos",
-            "venue": "DC Moosach",
+            "home": "DartPromillos",
+            "away": "Team Desaster Mädels",
+            "venue": "70er",
             "derby": false
           },
           {
@@ -2182,15 +2182,15 @@
         "half": "rueck",
         "games": [
           {
-            "home": "DartPromillos",
-            "away": "Würmtal Bazis",
-            "venue": "70er",
+            "home": "Würmtal Bazis",
+            "away": "DartPromillos",
+            "venue": "DJK Würmtal",
             "derby": false
           },
           {
-            "home": "Black Devils",
-            "away": "Jolly Pirates VII",
-            "venue": "Flotte Biene",
+            "home": "Jolly Pirates VII",
+            "away": "Black Devils",
+            "venue": "Jolly Roger",
             "derby": false
           },
           {
@@ -2338,5 +2338,5 @@
     }
   ],
   "maxMatchday": 18,
-  "venueClusterObjective": 50
+  "objectiveScore": 1101.9
 }
