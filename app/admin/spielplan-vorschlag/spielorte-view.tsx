@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { SpielplanData } from './spielplan-view';
+import { printVenue, printAllVenues } from './printing';
 
 // Spielort-Ansicht des Spielplan-Vorschlags: je Lokal alle Heimspiele
 // (ligaübergreifend), Wochenende für Wochenende. Zeigt, wann in einer
@@ -47,6 +48,13 @@ export function SpielorteView({ data }: { data: SpielplanData }) {
         style={{ padding: '10px 12px', minWidth: 260, marginBottom: 16, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' }}>
         {list.map(v => <option key={v} value={v}>{v} ({teamsAt[v].length} {teamsAt[v].length === 1 ? 'Team' : 'Teams'})</option>)}
       </select>
+
+      {/* Drucken / PDF */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16, marginLeft: 12 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>🖨</span>
+        <button type="button" onClick={() => printVenue(data, venue)} style={{ padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-manrope)', border: '1px solid var(--th-accent)', background: 'var(--th-accent)', color: '#fff' }}>{venue} drucken</button>
+        <button type="button" onClick={() => printAllVenues(data)} style={{ padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-manrope)', border: '1px solid var(--th-line-18)', background: 'transparent', color: 'var(--th-text-muted)' }}>alle Spielorte</button>
+      </div>
 
       {/* Lokal-Kopf */}
       <div style={{ margin: '0 0 16px', padding: '12px 14px', borderRadius: 10, fontSize: 12.5, fontFamily: 'var(--font-manrope)', lineHeight: 1.6, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', color: 'var(--th-text-body)' }}>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { printLeague, printMaster, printAllLeagues } from './printing';
 
 // Anzeige-Komponente für den generierten Spielplan-Vorschlag 2026/2027.
 // Die Daten kommen aus spielplan.json (vom Generator erzeugt) und werden hier
@@ -37,6 +38,13 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
   const md = data.schedule[league] ?? [];
   const dateFor = (m: Matchday): Weekend | undefined => data.weekends[m.weekendIndex];
 
+  const printBtn = (solid: boolean): React.CSSProperties => ({
+    padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-manrope)',
+    border: `1px solid ${solid ? 'var(--th-accent)' : 'var(--th-line-18)'}`,
+    background: solid ? 'var(--th-accent)' : 'transparent',
+    color: solid ? '#fff' : 'var(--th-text-muted)',
+  });
+
   const pill = (active: boolean): React.CSSProperties => ({
     padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 700,
     fontFamily: 'var(--font-manrope)',
@@ -60,8 +68,16 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
 
       {/* Liga */}
       <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Liga</div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
         {data.leagues.map(x => <button key={x.key} type="button" style={pill(x.key === league)} onClick={() => setLeague(x.key)}>{x.label} ({x.teams.length})</button>)}
+      </div>
+
+      {/* Drucken / PDF für die TC-Sitzung */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 18 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>🖨 Drucken / PDF</span>
+        <button type="button" style={printBtn(true)} onClick={() => printLeague(data, league)}>{lg?.label ?? 'Liga'}: Team-Blätter + Masterplan</button>
+        <button type="button" style={printBtn(false)} onClick={() => printMaster(data, league)}>nur Masterplan</button>
+        <button type="button" style={printBtn(false)} onClick={() => printAllLeagues(data)}>alle Ligen</button>
       </div>
 
       {/* Liga-Kurzinfo */}
