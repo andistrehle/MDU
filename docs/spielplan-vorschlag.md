@@ -85,9 +85,27 @@ Verbleiber gemischt), vom Betreiber bestätigt. C-Liga enthält **Jolly Pirates 
   Britta Schindler, Matthias Geupel, Roland Müller.
 - Über die Admin-Maske angemeldet & **freigegeben**; ein doppeltes „eingereicht“
   wurde vom Betreiber **gelöscht**.
-- **Offen / zu prüfen (Lesezugriff):** steht das Team genau einmal in
-  `season_team_assignments` der aktiven Saison? Kader vollständig (9, genau ein
-  Kapitän)? Passnummern vergeben oder noch `pending_review` / „unklar“?
+- **Geprüft 30.09.2026:** genau einmal in `season_team_assignments` (approved),
+  Kader 9, genau ein Kapitän, alle mit Passnummer (MDU 27 2201–2208, Miki Nyiri
+  behält MDU 27 3309 aus Jolly Pirates V). Kürzel steht noch auf `JPV` (wie
+  Jolly Pirates V) — offen.
+
+## DB-Bereinigung 30.09.2026 (vom Betreiber freigegeben)
+- **Ligen zugewiesen** (`assigned_competition_id` in `season_team_assignments`
+  UND `team_registrations`): JP VII + 5 Sterne Boazn → `c_liga`, De Vogelwuid'n →
+  `b_liga`, Gambas + Alptraum → `la_liga`. Seitdem hat jedes der 37 Teams eine Liga.
+- **Doppelte Spielorte zusammengelegt:** Jolly Roger, Bistro 118, Trappentreu
+  Stüberl und „Zur flotten Biene“ (= Flotte Biene = früher Spartans Dart Pub,
+  umbenannt). 19 Spielorte, Adressen einheitlich **„Straße Hsnr., PLZ Ort“**.
+  Das Archiv 25/26 kommt aus `lib/data` und zeigt weiter „Spartans Dart Pub“.
+- **Ursache der Duplikate:** Die Freigabe-RPC sucht den Spielort per exaktem
+  Name+Adresse-Vergleich. Der Abgleich davor (`findMatchingVenue` in
+  `lib/supabase/registrations.ts`) vergleicht jetzt Straße+Hausnummer, die PLZ
+  nur, wenn beide Seiten eine haben; ein umbenanntes Lokal wird über die Straße
+  gefunden.
+- **Spielplan gegengeprüft** (Lokale nach DB-ID gezählt statt nach Namen): alle
+  Regeln erfüllt, die Generator-Lokale entsprechen 1:1 den DB-Lokalen.
+- RG Bar bleibt als Spielort stehen (derzeit ohne Team).
 
 ## DB-Zugriff in der Cloud-Umgebung
 - ENV in der Cloud-Umgebung „Default“ gesetzt: `NEXT_PUBLIC_SUPABASE_URL`

@@ -120,7 +120,7 @@ export const VENUES_BASIS: Venue[] = [
     id: 'djk-wuermtal',
     name: 'DJK Würmtal',
     street: 'Georgenstraße 35',
-    zip: '82852',
+    zip: '82152',
     city: 'Planegg',
     weekdays: [3],
     time: '19:30',
