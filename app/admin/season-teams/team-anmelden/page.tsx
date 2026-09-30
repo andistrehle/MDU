@@ -175,7 +175,16 @@ export default function TeamAnmeldenPage() {
     return m;
   }
 
-  async function run(allowActiveSeason: boolean) {
+  // Gemeinsame Erfolgsmeldung + Formular zurücksetzen.
+  function finishOk(res: Awaited<ReturnType<typeof applyApprovedTeamRegistration>>) {
+    const f = res.finalize;
+    const extra = f ? ` · Passnummern: ${f.created ?? 0} neu, ${f.linked ?? 0} übernommen${f.ambiguous?.length ? `, ${f.ambiguous.length} unklar` : ''}` : '';
+    setDone(`„${draft.team_name}" ist angemeldet und freigegeben (${MAIN_LEAGUE_LABELS[draft.requested_league as MainLeague] ?? draft.requested_league}).${extra}`);
+    setMode('existing'); setChoice(''); setPlayers([]); setDraft(emptyDraft()); setPendingActiveSeason(null);
+  }
+
+  // Erstversuch: Anmeldung anlegen → einreichen → freigeben (ohne aktive Saison).
+  async function run() {
     setBusy(true); setMsg(null);
     if (!target) { setBusy(false); setMsg({ kind: 'err', text: 'Weder eine Anmelde-Saison noch eine aktive Saison gefunden.' }); return; }
     const payload: RegistrationDraft = { ...draft, season_id: target.id,
@@ -191,16 +200,31 @@ export default function TeamAnmeldenPage() {
     // 3) … und sofort freigeben (RPC + Passnummern).
     const res = await applyApprovedTeamRegistration(id, {
       reviewNote: `Von der Ligaleitung angemeldet (${user?.displayName ?? 'Admin'})`,
-      allowActiveSeason,
+      allowActiveSeason: false,
       onBehalf: true,
     });
     setBusy(false);
+    // Ziel ist die aktive Saison → NICHT neu anlegen, sondern die eben erstellte
+    // Anmeldung (id) merken und bei Bestätigung nur noch freigeben. Sonst entstünde
+    // eine zweite, „eingereicht" hängende Anmeldung (Duplikat).
     if (res.activeSeasonWarning) { setPendingActiveSeason(id); return; }
     if (res.error) { setMsg({ kind: 'err', text: res.error }); return; }
-    const f = res.finalize;
-    const extra = f ? ` · Passnummern: ${f.created ?? 0} neu, ${f.linked ?? 0} übernommen${f.ambiguous?.length ? `, ${f.ambiguous.length} unklar` : ''}` : '';
-    setDone(`„${draft.team_name}" ist angemeldet und freigegeben (${MAIN_LEAGUE_LABELS[draft.requested_league as MainLeague] ?? draft.requested_league}).${extra}`);
-    setMode('existing'); setChoice(''); setPlayers([]); setDraft(emptyDraft());
+    finishOk(res);
+  }
+
+  // Bestätigung „in die aktive Saison": die bereits eingereichte Anmeldung
+  // freigeben — KEINE neue anlegen.
+  async function confirmActiveSeason() {
+    if (!pendingActiveSeason) return;
+    setBusy(true); setMsg(null);
+    const res = await applyApprovedTeamRegistration(pendingActiveSeason, {
+      reviewNote: `Von der Ligaleitung angemeldet (${user?.displayName ?? 'Admin'})`,
+      allowActiveSeason: true,
+      onBehalf: true,
+    });
+    setBusy(false);
+    if (res.error) { setMsg({ kind: 'err', text: res.error }); return; }
+    finishOk(res);
   }
 
   return (
@@ -324,7 +348,7 @@ export default function TeamAnmeldenPage() {
                   <Notice kind="err">
                     Achtung: Ziel ist die <b>aktive</b> Saison (nicht die Anmelde-Saison). Wirklich dort anmelden?
                     <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                      <button type="button" disabled={busy} onClick={() => run(true)}
+                      <button type="button" disabled={busy} onClick={confirmActiveSeason}
                         style={{ padding: '10px 16px', borderRadius: 10, border: 0, background: 'var(--th-accent)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
                         Ja, trotzdem freigeben
                       </button>
@@ -339,7 +363,7 @@ export default function TeamAnmeldenPage() {
                     <button type="button" disabled={busy} onClick={() => {
                       const miss = validate();
                       if (miss.length) { setMsg({ kind: 'err', text: `Bitte noch ergänzen: ${miss.join(', ')}.` }); return; }
-                      run(false);
+                      run();
                     }}
                       style={{ padding: '13px 22px', borderRadius: 10, border: 0, background: 'var(--th-accent)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
                       {busy ? 'Wird angemeldet …' : 'Anmelden & sofort freigeben'}
