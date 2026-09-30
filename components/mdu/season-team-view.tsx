@@ -14,10 +14,16 @@ import { Footer } from './footer';
 import { Icon } from './icon';
 import type { SeasonTeam, SeasonRosterPlayer } from '@/lib/server/season-data';
 
-export function SeasonTeamView({ seasonName, team, roster }: {
+export function SeasonTeamView({ seasonName, team, roster, leagueName, umschalter, spielplan }: {
   seasonName: string;
   team: SeasonTeam;
   roster: SeasonRosterPlayer[];
+  /** Liga-Anzeige überschreiben (z. B. „B1 Liga" aus dem Spielplan statt „B Liga"). */
+  leagueName?: string;
+  /** Saison-Umschalter unter dem Kopf (optional). */
+  umschalter?: React.ReactNode;
+  /** Spielplan-Karte statt des Hinweises „Saison startet in Kürze" (optional). */
+  spielplan?: React.ReactNode;
 }) {
   const captain = roster.find(p => p.isCaptain);
   return (
@@ -55,12 +61,13 @@ export function SeasonTeamView({ seasonName, team, roster }: {
                 {team.name}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-body)', flexWrap: 'wrap' }}>
-                {team.leagueName && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="trophy" size={14} stroke={2} /> {team.leagueName}</span>}
+                {(leagueName ?? team.leagueName) && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="trophy" size={14} stroke={2} /> {leagueName ?? team.leagueName}</span>}
                 {team.venueName && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="pin" size={14} stroke={2} /> {team.venueName}</span>}
                 {captain && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="user" size={14} stroke={2} /> TC: {captain.firstName} {captain.lastName}</span>}
               </div>
             </div>
           </div>
+          {umschalter && <div style={{ marginTop: 22 }}>{umschalter}</div>}
         </div>
       </div>
 
@@ -85,13 +92,15 @@ export function SeasonTeamView({ seasonName, team, roster }: {
               )}
           </Card>
 
-          {/* Saison-Start-Hinweis */}
-          <Card title="Saison">
-            <Empty>
-              Die Saison startet in Kürze. Spielplan, Ergebnisse und Tabelle erscheinen hier,
-              sobald die ersten Spiele angesetzt bzw. gespielt sind.
-            </Empty>
-          </Card>
+          {/* Spielplan (falls vorhanden), sonst Saison-Start-Hinweis */}
+          {spielplan ?? (
+            <Card title="Saison">
+              <Empty>
+                Die Saison startet in Kürze. Spielplan, Ergebnisse und Tabelle erscheinen hier,
+                sobald die ersten Spiele angesetzt bzw. gespielt sind.
+              </Empty>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -100,7 +109,7 @@ export function SeasonTeamView({ seasonName, team, roster }: {
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+export function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '20px 22px' }}>
       <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 14 }}>{title}</div>

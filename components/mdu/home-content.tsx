@@ -4,20 +4,18 @@ import { SOCIAL_LINKS } from '@/lib/site-config';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
-import { MatchCard } from '@/components/mdu/match-card';
 import { TeamLink } from '@/components/mdu/team-link';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
 import { HeroFullbleed } from '@/components/mdu/hero-fullbleed';
 import { getHomepageNews } from '@/lib/server/news-data';
 import {
-  getUpcomingMatches,
   getRecentResults,
   findLeague,
-  getVenueForTeamInSeason,
   getExtendedTeam,
   formatMatchDate,
-  formatScheduledDate,
 } from '@/lib/data';
+import { TeamChip27 } from '@/components/mdu/spielplan-27';
+import { naechstesWochenende27, wochenendeText } from '@/lib/data/saison-2027';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
 
@@ -48,8 +46,9 @@ const ORG_JSONLD = {
  * Alles unterhalb des Heros ist identisch, damit die Vorschau die ECHTE Seite zeigt.
  */
 export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fullbleed' }) {
-  const upcoming = getUpcomingMatches(undefined, 5);
   const recent   = getRecentResults(undefined, 5);
+  // Nächstes Spielwochenende der Saison 2026/27 (vorläufiger Plan), alle Ligen.
+  const naechstes = naechstesWochenende27();
   const newsArticles = await getHomepageNews();
 
   return (
@@ -142,8 +141,8 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
           boxShadow: '0 24px 48px rgba(0,0,0,0.5)', gap: 0,
         }}>
           {[
-            { icon: 'calendar', title: 'Spielplan', sub: 'Kommende Spiele',  href: '/spielplan' },
-            { icon: 'bar',      title: 'Tabellen',  sub: 'Aktuelle Tabellen', href: '/tabellen'  },
+            { icon: 'calendar', title: 'Spielplan', sub: 'Saison 2026/27 · vorläufig', href: '/spielplan' },
+            { icon: 'bar',      title: 'Tabellen',  sub: 'Saison 2026/27',             href: '/tabellen'  },
           ].map((item, idx) => (
             <Link
               key={item.title}
@@ -189,34 +188,36 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
         </div>
 
         <div data-tour="matches">
-          {/* ── Nächste Spiele ─────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
+          {/* ── Nächste Spiele (Saison 2026/27, vorläufig) ───── */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Nächste Spiele</h2>
             <Link href="/spielplan" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
               Alle anzeigen
             </Link>
           </div>
-          <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {upcoming.length === 0 ? (
+          {naechstes && (
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', margin: '0 0 14px' }}>
+              Wochenende {wochenendeText(naechstes.fri, naechstes.sun)} · vorläufig, genaue Termine nach der TC-Sitzung am 11.10.
+            </p>
+          )}
+          <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!naechstes ? (
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', padding: '16px 0' }}>
                 Keine anstehenden Spiele.
               </div>
             ) : (
-              upcoming.map((m, i) => {
-                const league = findLeague(m.leagueId);
-                const venue  = getVenueForTeamInSeason(m.homeTeamId, 'season-2026');
-                return (
-                  <MatchCard
-                    key={i}
-                    league={league?.name ?? m.leagueId}
-                    home={m.homeTeamId}
-                    away={m.awayTeamId}
-                    date={formatScheduledDate(m.date)}
-                    time={m.time ?? '20:00'}
-                    venue={venue?.name ?? 'Noch nicht verfügbar'}
-                  />
-                );
-              })
+              naechstes.spiele.slice(0, 6).map(({ liga, spiel }) => (
+                <div key={spiel.home + spiel.away} className="mdu-match-card" style={{ padding: '12px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.16em', color: liga.color, textTransform: 'uppercase', marginBottom: 8 }}>
+                    {liga.name}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 8 }}>
+                    <TeamChip27 id={spiel.home} />
+                    <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12, color: 'var(--th-text-faint)' }}>VS</span>
+                    <TeamChip27 id={spiel.away} align="right" />
+                  </div>
+                </div>
+              ))
             )}
           </div>
 
@@ -224,8 +225,11 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
           {recent.length > 0 && (
             <div style={{ marginTop: 36 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
-                <h2 className="section-heading" style={{ margin: 0 }}>Letzte Spiele</h2>
-                <Link href="/ergebnisse" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                <div>
+                  <h2 className="section-heading" style={{ margin: 0 }}>Letzte Spiele</h2>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', marginTop: 6 }}>Saison 2025/26 · Archiv</div>
+                </div>
+                <Link href="/ergebnisse/2025-26" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
                   Alle anzeigen
                 </Link>
               </div>

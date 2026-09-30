@@ -7,17 +7,20 @@
 // legt keine Spiele an. Der Plan ist generiert (Doppelrunde je Liga, gleiche
 // Reihenfolge Hin/Rück, Derbys früh, Lokal-Heimspiele ligaübergreifend
 // entzerrt, rotierendes Freilos bei ungerader Ligagröße, Ferien frei).
-// Datenquelle: spielplan.json (vom Generator scripts/mdu-spielplan-2627.ts).
+// Datenquelle: spielplan.json (Generator scripts/mdu-spielplan-2627.ts), über
+// die Momentaufnahme lib/data/saison-2027 mit den Team-/Lokalnamen aus der DB —
+// dieselben Daten wie die öffentliche Seite und „Mein Spielplan" der TCs.
+// Nach einem neuen Generator-Lauf: scripts/mdu-saison-2027-snapshot.ts laufen lassen.
 // ============================================================
 
 import { useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { SpielplanView, type SpielplanData } from './spielplan-view';
 import { SpielorteView } from './spielorte-view';
-import data from './spielplan.json';
+import { spielplanDaten27 } from '@/lib/data/saison-2027';
 
 export default function SpielplanVorschlagPage() {
-  const d = data as unknown as SpielplanData;
+  const d: SpielplanData = spielplanDaten27();
   const [ansicht, setAnsicht] = useState<'liga' | 'spielort'>('liga');
   return (
     <AdminGuard

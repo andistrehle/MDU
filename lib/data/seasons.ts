@@ -36,9 +36,17 @@ export const SEASONS: Season[] = [
     year: 2026,
     status: 'current',
   },
-  // Die kommende Saison „Saison 2026/2027" (Start Okt 2026) wird in der
-  // Supabase-Tabelle `seasons` geführt (id season-2027, status registration_open);
-  // neue Mannschaftsanmeldungen laufen darüber.
+  // Saison 2026/2027: Teams/Kader in Supabase (`seasons` id season-2027, aktiv),
+  // vorläufiger Spielplan in lib/data/saison-2027.ts. Hier nur für den Namen
+  // (z. B. Saisonliste im Spielerprofil). 'season-2026' bleibt bewusst
+  // 'current': alle statischen Daten (Tabellen, Ergebnisse, Kader) gehören zu
+  // ihr und werden öffentlich als Archiv 2025/26 gezeigt.
+  {
+    id: 'season-2027',
+    name: 'Saison 2026/2027',
+    year: 2027,
+    status: 'planned',
+  },
   //
   // Previous seasons can be added here as 'archived' for historical data.
   // Example:

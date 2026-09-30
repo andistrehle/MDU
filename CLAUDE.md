@@ -36,8 +36,20 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `.github/workflows/import-dartunion-results.yml` **pausiert** (auskommentiert; manuell per
   workflow_dispatch möglich). Ein Import-Lauf würde die manuellen Werte überschreiben —
   erst reaktivieren, wenn dartunion die Ergebnisse nachgetragen hat (Saisonstart 26/27).
-- Beim Saisonstart 26/27 außerdem: Liga-Status-Texte in `components/mdu/league-detail-client.tsx`
-  sind hardcoded „abgeschlossen" → dann dynamisch aus offenen Spielen ableiten.
+- **Zwei Saisons öffentlich (seit 30.09.2026):** Standard ist **2026/27** aus
+  `lib/data/saison-2027.ts` (vorläufiger Spielplan + Ligen La/A/B1/B2/C + Teams/Lokale;
+  Daten in `saison-2027.generated.json`, erzeugt von `scripts/mdu-saison-2027-snapshot.ts`
+  aus dem Spielplan-Vorschlag + DB, NUR LESEND — nach Änderungen an Plan, Teamnamen, Kürzeln,
+  Logos oder Spielorten neu laufen lassen). **2025/26 ist ARCHIV**: die alten Seiten liegen
+  unverändert unter `…/2025-26` (`/spielplan`, `/ergebnisse`, `/tabellen`, `/ligen`, `/teams`,
+  `/spielstaetten`), Detailseiten schalten mit `?saison=2025-26` um (`/ligen/[code]` zeigt
+  Codes, die es 26/27 nicht gibt — a1, a2, Playoffs — automatisch als Archiv). Umschalter:
+  `components/mdu/saison-umschalter.tsx`. `SEASONS` in `lib/data/seasons.ts` bleibt mit
+  `season-2026` = 'current' — alle statischen Daten gehören zu ihr.
+- **Import NICHT einfach reaktivieren:** `imported-*.json` haben keinen Saisonschlüssel — ein
+  Lauf für 26/27 würde das Archiv 2025/26 überschreiben. Ergebnisse 26/27 brauchen einen eigenen,
+  saisongetrennten Weg. Die Status-Texte „abgeschlossen" in `league-detail-client.tsx` sind
+  richtig, weil diese Ansicht nur noch fürs Archiv läuft (26/27: `liga-27-client.tsx`).
 
 ## Supabase = Produktivdatenbank (Vorsicht bei Schreibaktionen)
 Schreibende Skripte (`scripts/*.mjs`, Service-Role) treffen echte Daten. Demo-Daten fürs

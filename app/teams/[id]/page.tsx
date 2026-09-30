@@ -19,12 +19,47 @@ import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
 import { getActiveSeason, getSeasonTeam, getSeasonRoster, getDbRosterForTeam, getAnySeasonTeamView } from '@/lib/server/season-data';
 import { SeasonTeamView } from '@/components/mdu/season-team-view';
 import { getRowOutcome } from '@/lib/data/competition-outcomes';
+import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
+import { TeamSpielplan27 } from '@/components/mdu/spielplan-27';
+import { Card } from '@/components/mdu/season-team-view';
+import { team27, findLiga27, istArchivParam, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
   const searchParams = await props.searchParams;
 
   const staticTeam = findTeam(id);
+  const t27 = team27(id);
+  const archiv = istArchivParam(searchParams?.saison);
+  const archivHref = `/teams/${id}?saison=${ARCHIV_SAISON.slug}`;
+
+  // Saison 2026/2027 (Standard): Team + Kader live aus der DB, dazu der
+  // vorläufige Spielplan. Die statische Teamseite unten ist das Archiv 2025/26
+  // (?saison=2025-26, und für Teams, die 2026/27 nicht mehr melden).
+  if (t27 && !archiv) {
+    const st = await getSeasonTeam(NEUE_SAISON.id, id);
+    if (st) {
+      const roster = await getSeasonRoster(NEUE_SAISON.id, id);
+      return (
+        <SeasonTeamView
+          seasonName={NEUE_SAISON.name}
+          team={st}
+          roster={roster}
+          leagueName={findLiga27(t27.league)?.name}
+          umschalter={staticTeam
+            ? <SaisonUmschalter archiv={false} neuHref={`/teams/${id}`} archivHref={archivHref} style={{ marginBottom: 0 }} />
+            : undefined}
+          spielplan={
+            <Card title={`Spielplan · ${NEUE_SAISON.name}`}>
+              <VorlaeufigHinweis style={{ marginBottom: 14, fontSize: 12.5 }} />
+              <TeamSpielplan27 teamId={id} />
+            </Card>
+          }
+        />
+      );
+    }
+  }
+
   // Kein statisches Team → evtl. ein Team der aktiven, selbstverwalteten Saison
   // (aus Supabase, ohne statische Stammdaten). Archivierte Saisons nutzen die
   // reiche statische Teamseite unten.
@@ -173,6 +208,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
             <Icon name="chevron" size={12} />
             <span style={{ color: 'var(--th-text-strong)' }}>{team.name}</span>
           </div>
+          <SaisonUmschalter archiv neuHref={t27 ? `/teams/${id}` : '/teams'} archivHref={archivHref} style={{ marginTop: -8 }} />
 
           {/* Team identity */}
           <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>

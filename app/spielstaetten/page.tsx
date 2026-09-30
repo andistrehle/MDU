@@ -1,201 +1,80 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { getPlayoffAwareVenueGroupings, getCurrentSeason, getVenueFullAddress, getVenueMapsUrl } from '@/lib/data';
+import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { alleVenues27, alleTeams27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
+export const metadata: Metadata = { title: 'Spielstätten' };
+
+// Saison 2026/2027 — je Lokal alle Teams, die dort Heimrecht haben (über alle
+// Ligen). Archiv 2025/26 (nach Liga gruppiert): /spielstaetten/2025-26.
 export default function SpielstaettenPage() {
-  const season  = getCurrentSeason();
-  const groups  = getPlayoffAwareVenueGroupings(season.id);
-
-  // Count venues that have real data (used to decide whether to show warning)
-  const venueCount = groups
-    .flatMap(g => g.venues)
-    .filter(v => v.venue !== null).length;
+  const teams = alleTeams27();
+  const venues = alleVenues27()
+    .map(v => ({ v, teams: teams.filter(t => t.venueId === v.id).sort((a, b) => a.name.localeCompare(b.name, 'de')) }))
+    .filter(x => x.teams.length)
+    .sort((a, b) => a.v.name.localeCompare(b.v.name, 'de'));
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielstaetten" />
 
-      <PageBanner eyebrow={season.name} title="Spielstätten" boardRight="max(28px, calc(50vw - 612px))" />
+      <PageBanner eyebrow={NEUE_SAISON.name} title="Spielstätten" boardRight="max(28px, calc(50vw - 612px))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
-        {/* Warning — only shown when no venue data is available at all */}
-        {venueCount === 0 && (
-          <div style={{
-            background: 'rgba(232,184,74,0.07)', border: '1px solid rgba(232,184,74,0.2)',
-            borderRadius: 10, padding: '14px 18px', marginBottom: 36,
-            display: 'flex', alignItems: 'flex-start', gap: 12,
-          }}>
-            <Icon name="pin" size={16} stroke={2} style={{ color: 'var(--th-gold)', flexShrink: 0, marginTop: 1 }} />
-            <div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-gold)' }}>
-                Spielstättendaten noch nicht verfügbar
-              </div>
-              <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 4, lineHeight: 1.5 }}>
-                Für {season.name} wurden noch keine Spielstätten veröffentlicht.
-                Vollständige Informationen auf{' '}
-                <span style={{ color: 'var(--th-text-body)' }}>
-                  dartunion.de
-                </span>.
-              </div>
-            </div>
-          </div>
-        )}
+        <SaisonUmschalter archiv={false} neuHref="/spielstaetten" archivHref="/spielstaetten/2025-26" />
+        <p style={{ margin: '0 0 22px', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)' }}>
+          {venues.length} Spielstätten, {teams.length} Teams. Je Lokal alle Teams, die dort ihre Heimspiele austragen.
+        </p>
 
-        {/* League sections */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-          {groups.map(({ league, venues }) => (
-            <section key={league.id}>
-              {/* League heading */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <div style={{ width: 4, height: 28, borderRadius: 2, background: league.color, flexShrink: 0 }} />
-                <h2 style={{
-                  fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26,
-                  letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
-                }}>
-                  {league.name}
-                </h2>
-                <span style={{
-                  fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)',
-                  fontWeight: 600, marginLeft: 4,
-                }}>
-                  {venues.filter(v => v.venue !== null).length}{' '}
-                  {venues.filter(v => v.venue !== null).length === 1 ? 'Spielstätte' : 'Spielstätten'}
-                </span>
-              </div>
+        <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
+          {venues.map(({ v, teams: ts }) => {
+            const maps = v.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${v.name}, ${v.address}`)}` : null;
+            return (
+              <div key={v.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '16px 18px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
+                  <Icon name="pin" size={14} stroke={2} style={{ color: 'var(--th-accent)', flexShrink: 0, marginTop: 3 }} />
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)' }}>{v.name}</div>
+                    {v.address && maps && (
+                      <a href={maps} target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 7,
+                        fontFamily: 'var(--font-manrope)', fontSize: 12, lineHeight: 1.5,
+                        color: 'var(--th-text-body)', textDecoration: 'none',
+                        background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
+                        borderRadius: 7, padding: '4px 10px',
+                      }}>
+                        <Icon name="pin" size={11} stroke={2} style={{ color: 'var(--th-text-faint)' }} />
+                        {v.address}
+                      </a>
+                    )}
+                  </div>
+                </div>
 
-              {venues.length === 0 ? (
-                <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)', fontStyle: 'italic' }}>
-                  Keine Teams für diese Liga in {season.name} eingetragen.
-                </p>
-              ) : (
-                <div className="mdu-league-grid" style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-                  gap: 12,
-                }}>
-                  {venues.map(({ venue, teams }) => {
-                    const venueName    = venue?.name    ?? null;
-                    const fullAddress  = venue ? getVenueFullAddress(venue) : null;
-                    const mapsUrl      = venue ? getVenueMapsUrl(venue) : null;
+                <div style={{ height: 1, background: 'var(--th-line-5)', marginBottom: 12 }} />
 
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {ts.map(t => {
+                    const liga = findLiga27(t.league);
                     return (
-                      <div
-                        key={venue?.id ?? '__no-venue__'}
-                        style={{
-                          background: 'var(--th-bg-card)',
-                          border: '1px solid var(--th-line-6)',
-                          borderRadius: 12,
-                          padding: '16px 18px',
-                        }}
-                      >
-                        {/* Venue info */}
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
-                          <Icon
-                            name="pin"
-                            size={14}
-                            stroke={2}
-                            style={{ color: league.color, flexShrink: 0, marginTop: 3 }}
-                          />
-                          <div>
-                            <div style={{
-                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14,
-                              color: venueName ? 'var(--th-text-strong)' : 'var(--th-text-faint)',
-                              fontStyle: venueName ? 'normal' : 'italic',
-                            }}>
-                              {venueName ?? 'Spielstätte noch nicht verfügbar'}
-                            </div>
-                            {(fullAddress || venue?.phone) && (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, marginTop: 7 }}>
-                                {fullAddress && (
-                                  mapsUrl ? (
-                                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen" style={{
-                                      display: 'inline-flex', alignItems: 'center', gap: 5,
-                                      fontFamily: 'var(--font-manrope)', fontSize: 12, lineHeight: 1.5,
-                                      color: 'var(--th-text-body)', textDecoration: 'none',
-                                      background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
-                                      borderRadius: 7, padding: '4px 10px',
-                                    }}>
-                                      <Icon name="pin" size={11} stroke={2} style={{ color: 'var(--th-text-faint)' }} />
-                                      {fullAddress}
-                                    </a>
-                                  ) : (
-                                    <span style={{
-                                      fontFamily: 'var(--font-manrope)', fontSize: 12, lineHeight: 1.5,
-                                      color: 'var(--th-text-muted)', background: 'var(--th-line-4)',
-                                      border: '1px solid var(--th-line-8)', borderRadius: 7, padding: '4px 10px',
-                                    }}>
-                                      {fullAddress}
-                                    </span>
-                                  )
-                                )}
-                                {venue?.phone && (
-                                  <a href={`tel:${venue.phone.replace(/\s+/g, '')}`} style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                                    fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-                                    color: 'var(--th-accent)', textDecoration: 'none',
-                                  }}>
-                                    <Icon name="phone" size={12} stroke={2} /> {venue.phone}
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                      <Link key={t.id} href={`/teams/${t.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <TeamBadge initials={t.short.slice(0, 3)} color={t.color} size={28} logoUrl={t.logoUrl ?? undefined} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
+                          {liga && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: liga.color, marginTop: 1 }}>{liga.name}</div>}
                         </div>
-
-                        {/* Divider */}
-                        <div style={{ height: 1, background: 'var(--th-line-5)', marginBottom: 12 }} />
-
-                        {/* Teams at this venue */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          {teams.map(({ team, assignment }) => {
-                            const isInactive = team.status === 'inactive';
-                            return (
-                              <Link
-                                key={team.id}
-                                href={`/teams/${team.id}`}
-                                style={{
-                                  textDecoration: 'none',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 10,
-                                  opacity: isInactive ? 0.5 : 1,
-                                }}
-                              >
-                                <TeamBadge initials={team.short.slice(0, 3)} color={team.color} size={28} logoUrl={team.logoUrl} />
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{
-                                    fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
-                                    color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                  }}>
-                                    {team.name}
-                                  </div>
-                                  {isInactive && (
-                                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-accent)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                                      Zurückgezogen
-                                    </div>
-                                  )}
-                                  {assignment.captain && !isInactive && (
-                                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginTop: 1 }}>
-                                      Kapitän: {assignment.captain}
-                                    </div>
-                                  )}
-                                </div>
-                                <Icon name="arrow-right" size={13} stroke={2} style={{ color: 'var(--th-text-faint)', flexShrink: 0 }} />
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </div>
+                        <Icon name="arrow-right" size={13} stroke={2} style={{ color: 'var(--th-text-faint)', flexShrink: 0 }} />
+                      </Link>
                     );
                   })}
                 </div>
-              )}
-            </section>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam, findLeague } from '@/lib/data';
 import { getCaptainTeamView, getTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR } from '@/lib/supabase/season-teams';
 import { StartgeldPay } from '@/components/mdu/startgeld-pay';
+import { team27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
 export default function MeinTeamPage() {
   const { user, loading } = useAuth();
@@ -36,17 +37,20 @@ export default function MeinTeamPage() {
   }, [canEdit, dbView?.seasonId, teamId]);
   const feeCount = (dbView?.roster ?? []).filter(m => m.name.trim()).length;
 
-  const team = staticTeam;
-  const teamName = staticTeam?.name ?? dbView?.teamName ?? teamId;
-  const teamShort = staticTeam?.short ?? dbView?.shortName ?? '?';
-  const teamColor = staticTeam?.color ?? '#888';
-  const seasonLabel = staticTeam ? season.name : (dbView?.seasonName ?? season.name);
-  const leagueName = staticTeam
-    ? (getCurrentCompetitionForTeam(staticTeam.id, season.id)?.league?.name ?? '–')
-    : (dbView?.leagueId ? (findLeague(dbView.leagueId)?.name ?? dbView.leagueId) : '–');
+  // Saison 2026/27 (Spielplan-Momentaufnahme) hat Vorrang vor den statischen 2025/26-Daten.
+  const t27 = teamId ? team27(teamId) : undefined;
+  const teamName = t27?.name ?? staticTeam?.name ?? dbView?.teamName ?? teamId;
+  const teamShort = t27?.short ?? staticTeam?.short ?? dbView?.shortName ?? '?';
+  const teamColor = t27?.color ?? staticTeam?.color ?? '#888';
+  const seasonLabel = t27 ? NEUE_SAISON.name : staticTeam ? season.name : (dbView?.seasonName ?? season.name);
+  const leagueName = t27
+    ? (findLiga27(t27.league)?.name ?? '–')
+    : staticTeam
+      ? (getCurrentCompetitionForTeam(staticTeam.id, season.id)?.league?.name ?? '–')
+      : (dbView?.leagueId ? (findLeague(dbView.leagueId)?.name ?? dbView.leagueId) : '–');
 
   return (
-    <MemberShell title={team ? `Mein Team – ${team.name}` : 'Mein Team'}>
+    <MemberShell title={teamName && teamName !== teamId ? `Mein Team – ${teamName}` : 'Mein Team'}>
       {loading ? (
         <Muted>Lade …</Muted>
       ) : !user ? (
@@ -129,9 +133,19 @@ export default function MeinTeamPage() {
                 desc="Beschreibung, Logo, Mannschaftsbild und Social Media." />
               <ActionTile href="/mein-team/kader" icon="list" title="Kader"
                 desc="Spieler deines Teams ansehen." />
+              {t27 && <ActionTile href="/mein-team/spielplan" icon="calendar" title="Spielplan"
+                desc="Spiele 2026/27 (vorläufig) und Druckvorlage für die TC-Sitzung." />}
             </div>
           ) : (
+            <>
+            {t27 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12, marginBottom: 12 }}>
+                <ActionTile href="/mein-team/spielplan" icon="calendar" title="Spielplan"
+                  desc="Spiele deines Teams in der Saison 2026/27 (vorläufig)." />
+              </div>
+            )}
             <Muted>Du bist diesem Team zugeordnet. Bearbeiten kann nur der Teamkapitän bzw. die Ligaleitung. Den vollständigen Kader und alle Statistiken findest du auf dem öffentlichen Teamprofil.</Muted>
+            </>
           )}
         </>
       )}

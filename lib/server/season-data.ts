@@ -152,6 +152,20 @@ export async function getSeasonRoster(seasonId: string, teamId: string): Promise
   }));
 }
 
+/** In welchem Kader steht ein Spieler in einer Saison? (Spielerprofil 2026/27.)
+ *  Nur freigegebene Teams (RLS sra_select). null = in keinem Kader. */
+export async function getRosterTeamForPlayer(seasonId: string, playerId: string): Promise<{ teamId: string; isCaptain: boolean; licenseNumber: string | null } | null> {
+  const c = anon();
+  if (!c) return null;
+  const { data } = await c.from('season_roster_assignments')
+    .select('team_id, is_captain, license_number')
+    .eq('season_id', seasonId).eq('player_id', playerId).limit(1);
+  const r = (data ?? [])[0] as { team_id: string; is_captain: boolean; license_number: string | null } | undefined;
+  if (!r) return null;
+  const lic = await currentLicenses(c, [playerId]);
+  return { teamId: r.team_id, isCaptain: r.is_captain, licenseNumber: lic.get(playerId) ?? r.license_number };
+}
+
 /** Eine einzelne Saison-Team-Zeile (für die Teamseite). */
 export async function getSeasonTeam(seasonId: string, teamId: string): Promise<SeasonTeam | null> {
   const teams = await getSeasonTeams(seasonId);

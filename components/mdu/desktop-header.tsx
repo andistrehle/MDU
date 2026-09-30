@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
 import { ThemeToggle } from './theme-toggle';
 import { NotificationBell } from './notification-bell';
-import { LEAGUES } from '@/lib/data';
+import { LIGEN_2027, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 import { useAuth } from '@/lib/auth/auth-context';
 
 const NAV_ITEMS = [
@@ -30,10 +30,7 @@ const NAV_TOUR: Record<string, string> = {
   '/teams':      'nav-teams',
 };
 
-// Sorted league lists for the dropdown — computed once at module level
-const SORTED = [...LEAGUES].sort((a, b) => a.sortOrder - b.sortOrder);
-const DROPDOWN_PLAYOFFS = SORTED.filter(l => l.type === 'playoff');
-const DROPDOWN_REGULAR  = SORTED.filter(l => l.type !== 'playoff');
+// Ligen-Dropdown: Saison 2026/27 (lib/data/saison-2027) + Link aufs Archiv 2025/26.
 
 interface DesktopHeaderProps {
   activeHref?: string;
@@ -151,18 +148,18 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                         minWidth: 250,
                         boxShadow: '0 20px 56px rgba(0,0,0,0.7)',
                       }}>
-                        {/* Group: Playoffs */}
+                        {/* Saison 2026/27 */}
                         <div style={{
                           fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
                           letterSpacing: '0.16em', color: 'var(--th-text-faint2)', textTransform: 'uppercase',
                           padding: '4px 16px 6px',
                         }}>
-                          Playoffs
+                          Ligen {NEUE_SAISON.kurz}
                         </div>
-                        {DROPDOWN_PLAYOFFS.map(league => (
+                        {LIGEN_2027.map(league => (
                           <Link
-                            key={league.id}
-                            href={`/ligen/${league.id}`}
+                            key={league.code}
+                            href={`/ligen/${league.code}`}
                             style={dropdownItemStyle}
                             className="mdu-nav-dropdown-item"
                             onClick={() => setLigaOpen(false)}
@@ -172,29 +169,11 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
                           </Link>
                         ))}
 
-                        {/* Divider */}
                         <div style={{ height: 1, background: 'var(--th-line-6)', margin: '6px 0' }} />
-
-                        {/* Group: Ligen */}
-                        <div style={{
-                          fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                          letterSpacing: '0.16em', color: 'var(--th-text-faint2)', textTransform: 'uppercase',
-                          padding: '4px 16px 6px',
-                        }}>
-                          Ligen
-                        </div>
-                        {DROPDOWN_REGULAR.map(league => (
-                          <Link
-                            key={league.id}
-                            href={`/ligen/${league.id}`}
-                            style={dropdownItemStyle}
-                            className="mdu-nav-dropdown-item"
-                            onClick={() => setLigaOpen(false)}
-                          >
-                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: league.color, flexShrink: 0 }} />
-                            {league.name}
-                          </Link>
-                        ))}
+                        <Link href="/ligen/2025-26" style={dropdownItemStyle} className="mdu-nav-dropdown-item" onClick={() => setLigaOpen(false)}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--th-text-faint2)', flexShrink: 0 }} />
+                          Archiv {ARCHIV_SAISON.kurz} (inkl. Playoffs)
+                        </Link>
                       </div>
                     </div>
                   )}

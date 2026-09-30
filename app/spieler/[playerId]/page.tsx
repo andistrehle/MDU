@@ -13,12 +13,15 @@ import {
 } from '@/lib/data';
 import { shade } from '@/lib/utils';
 import { loadPublicPlayerProfile } from '@/lib/supabase/profiles';
-import { getDbPlayer } from '@/lib/server/season-data';
+import { getDbPlayer, getRosterTeamForPlayer } from '@/lib/server/season-data';
+import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { team27, findLiga27, venue27, istArchivParam, datumText, NEUE_SAISON, ARCHIV_SAISON, SAISON_START } from '@/lib/data/saison-2027';
 
 export default async function PlayerProfilePage(
-  props: { params: Promise<{ playerId: string }> },
+  props: { params: Promise<{ playerId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> },
 ) {
   const { playerId } = await props.params;
+  const sp = await props.searchParams;
   const season = getCurrentSeason();
 
   // Bestehende Spieler laufen unverändert über den statischen Stamm. Spieler,
@@ -30,7 +33,17 @@ export default async function PlayerProfilePage(
   if (!player) notFound();
 
   const displayName = getPlayerDisplayName(player);
-  const stats = getPlayerSeasonStats(player.id, season.id);
+  const archivStats = getPlayerSeasonStats(player.id, season.id);
+
+  // Saison 2026/2027: Kader aus der DB. Standard ist die neue Saison; wer dort
+  // in keinem Kader steht, sieht zuerst das Archiv 2025/26 (?saison=2025-26).
+  const r27 = await getRosterTeamForPlayer(NEUE_SAISON.id, player.id);
+  const t27 = r27 ? team27(r27.teamId) : undefined;
+  const archiv = istArchivParam(sp?.saison) || (!t27 && sp?.saison !== '2026-27');
+  const neuHref = t27 ? `/spieler/${player.id}` : `/spieler/${player.id}?saison=2026-27`;
+  const archivHref = `/spieler/${player.id}?saison=${ARCHIV_SAISON.slug}`;
+  // In der neuen Saison gibt es noch keine Statistik — die Werte 2025/26 nur im Archiv.
+  const stats = archiv ? archivStats : null;
 
   // Vom Spieler selbst gepflegte Angaben — nur mit erteilter Einwilligung
   // öffentlich zeigen; sonst Fallback auf die (kuratierten) Stammdaten.
@@ -44,25 +57,38 @@ export default async function PlayerProfilePage(
     ? (dbProfile.assignments.find(a => a.seasonId === season.id)?.teamId
         ?? dbProfile.assignments[0]?.teamId ?? null)
     : null;
-  const team        = stats?.teamId ? findTeam(stats.teamId)
+  const archivTeam  = archivStats?.teamId ? findTeam(archivStats.teamId)
                     : dbCurrentTeamId ? findTeam(dbCurrentTeamId) : undefined;
+  const competition = archivTeam ? getCurrentCompetitionForTeam(archivTeam.id, season.id) : null;
+  // Angezeigtes Team: im Archiv das Team 2025/26, sonst das Team 2026/27.
+  const team: { id: string; name: string; color: string } | undefined = archiv
+    ? archivTeam
+    : (t27 ? { id: t27.id, name: t27.name, color: t27.color } : undefined);
   const teamColor   = team?.color ?? '#9AA4B2';
-  const competition = team ? getCurrentCompetitionForTeam(team.id, season.id) : null;
-  const leagueName  = competition?.league?.name ?? 'Noch nicht verfügbar';
+  const leagueName  = archiv
+    ? (competition?.league?.name ?? 'Noch nicht verfügbar')
+    : (findLiga27(t27?.league)?.name ?? 'Noch nicht verfügbar');
 
   // Team history (all seasons this player has an assignment). Statisch aus den
   // Stamm-Zuordnungen, für DB-Spieler aus den DB-Zuordnungen.
   const rawHistory: { seasonId: string; teamId: string; isCaptain?: boolean }[] =
     dbProfile ? dbProfile.assignments : getTeamAssignmentsForPlayer(player.id);
-  const history = rawHistory
+  const history = [
+    ...(r27 && t27 ? [{ seasonId: NEUE_SAISON.id, teamId: r27.teamId, isCaptain: r27.isCaptain }] : []),
+    ...rawHistory.filter(a => a.seasonId !== NEUE_SAISON.id),
+  ]
     .map(a => {
-      const histTeam   = findTeam(a.teamId);
+      const neu = a.seasonId === NEUE_SAISON.id;
+      const histTeam   = neu ? (team27(a.teamId) ?? findTeam(a.teamId)) : (findTeam(a.teamId) ?? team27(a.teamId));
       const seasonName = SEASONS.find(s => s.id === a.seasonId)?.name ?? a.seasonId;
-      const histLeague = findLeague(getTeamAssignment(a.teamId, a.seasonId)?.leagueId ?? '');
+      const histLeague = neu
+        ? findLiga27(team27(a.teamId)?.league)
+        : findLeague(getTeamAssignment(a.teamId, a.seasonId)?.leagueId ?? '');
       return {
         seasonId: a.seasonId,
         seasonName,
         teamId: a.teamId,
+        href: neu ? `/teams/${a.teamId}` : `/teams/${a.teamId}?saison=${ARCHIV_SAISON.slug}`,
         teamName: histTeam?.name ?? a.teamId,
         teamColor: histTeam?.color ?? '#9AA4B2',
         leagueName: histLeague?.name ?? '',
@@ -73,6 +99,8 @@ export default async function PlayerProfilePage(
     .sort((a, b) => b.seasonName.localeCompare(a.seasonName, 'de'));
 
   const hasOfficial = stats?.hasOfficialStats ?? false;
+  // Passnummer: in der neuen Saison die aktuelle aus dem Kader, im Archiv die damalige.
+  const shownLicense = archiv ? player.licenseNumber : (r27?.licenseNumber ?? player.licenseNumber);
 
   return (
     <div style={{ background: 'var(--th-bg-deep)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -104,6 +132,7 @@ export default async function PlayerProfilePage(
             <Icon name="chevron" size={12} />
             <span style={{ color: 'var(--th-text-strong)' }}>{displayName}</span>
           </div>
+          <SaisonUmschalter archiv={archiv} neuHref={neuHref} archivHref={archivHref} style={{ marginTop: -8 }} />
 
           {/* Identity */}
           <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 28 }}>
@@ -113,7 +142,7 @@ export default async function PlayerProfilePage(
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
                 {team && <Pill tone="red">{leagueName}</Pill>}
                 {stats?.rank === 1 && <Pill tone="gold">Ranglisten-Erster</Pill>}
-                {history.some(h => h.seasonId === season.id && h.isCaptain) && <Pill tone="blue">Teamkapitän</Pill>}
+                {(archiv ? history.some(h => h.seasonId === season.id && h.isCaptain) : !!r27?.isCaptain) && <Pill tone="blue">Teamkapitän</Pill>}
               </div>
               <h1 className="mdu-team-name" style={{
                 fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64,
@@ -138,9 +167,9 @@ export default async function PlayerProfilePage(
                     <Icon name="bar" size={14} stroke={2} /> Rang {stats.rank}{stats.points !== null ? ` · ${stats.points} Pkt.` : ''}
                   </span>
                 )}
-                {player.licenseNumber && (
+                {shownLicense && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-dim)' }}>
-                    {player.licenseNumber}
+                    {shownLicense}
                   </span>
                 )}
               </div>
@@ -184,6 +213,41 @@ export default async function PlayerProfilePage(
       <div className="mdu-section-pad" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 32px 64px' }}>
         <div className="mdu-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
+          {!archiv && (
+            <Card accent={teamColor} title={NEUE_SAISON.name}>
+              {t27 ? (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <StatRow label="Team" value={t27.name} />
+                  <StatRow label="Liga" value={leagueName} />
+                  <StatRow label="Spielort" value={venue27(t27.venueId)?.name ?? '–'} last />
+                  <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.6 }}>
+                    Noch keine Spiele — Saisonstart am Wochenende ab {datumText(SAISON_START)}.{' '}
+                    <Link href={`/teams/${t27.id}`} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Spielplan des Teams</Link>
+                  </div>
+                </div>
+              ) : (
+                <Empty>In der {NEUE_SAISON.name} (noch) in keinem gemeldeten Kader.</Empty>
+              )}
+            </Card>
+          )}
+
+          {!archiv && (
+            <Card accent={teamColor} title={ARCHIV_SAISON.name}>
+              {archivStats ? (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <StatRow label="Ranglistenplatz" value={archivStats.rank != null ? `#${archivStats.rank}` : '–'} />
+                  <StatRow label="Punkte" value={archivStats.points != null ? String(archivStats.points) : '–'} last />
+                </div>
+              ) : (
+                <Empty>Keine Statistik aus der {ARCHIV_SAISON.name}.</Empty>
+              )}
+              <Link href={archivHref} style={{ display: 'inline-block', marginTop: 12, color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+                Ganze Saison 2025/26 ansehen →
+              </Link>
+            </Card>
+          )}
+
+          {archiv && <>
           {/* Saisonstatistik */}
           <Card accent={teamColor} title={`Saisonstatistik · ${season.name}`}>
             {stats ? (
@@ -250,12 +314,14 @@ export default async function PlayerProfilePage(
             </div>
           </Card>
 
+          </>}
+
           {/* Mannschaftshistorie */}
           <Card accent={teamColor} title="Mannschaftshistorie">
             {history.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {history.map((h, i) => (
-                  <Link key={i} href={`/teams/${h.teamId}`} style={{
+                  <Link key={i} href={h.href} style={{
                     display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none',
                     padding: '10px 12px', borderRadius: 10,
                     background: 'var(--th-line-4)', border: '1px solid var(--th-line-6)',

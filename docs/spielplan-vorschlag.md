@@ -123,6 +123,23 @@ Verbleiber gemischt), vom Betreiber bestätigt. C-Liga enthält **Jolly Pirates 
   schreiben. Der Service-Role-Key gilt umgebungsweit (jede Session).
 - **Wichtig:** ENV greift nur in **neu gestarteten** Sessions.
 
+## Veröffentlichung 2026/27 + Archiv 2025/26 (30.09.2026, Vorschau)
+- Öffentlich: `/spielplan` (vorläufig, Hinweis TC-Sitzung 11.10.2026), `/ligen` + `/ligen/[code]`
+  (La, A, B1, B2, C; Reiter Übersicht/Tabelle/Spielplan/Ergebnisse/Teams), `/tabellen` (alle bei
+  0, alphabetisch), `/ergebnisse` („noch keine"), `/teams` (DB, gruppiert nach Plan-Ligen),
+  `/teams/[id]` (Kader aus DB + Spielplan des Teams), `/spielstaetten` (je Lokal alle Teams),
+  `/spieler/[id]` (Team 26/27 aus dem Kader, Statistik 25/26 als Archiv), Startseite (nächstes
+  Spielwochenende, Ligen reihum).
+- Archiv 2025/26 überall per Umschalter (`…/2025-26` bzw. `?saison=2025-26`), Ligen-Dropdown im
+  Kopf: Ligen 26/27 + „Archiv 2025/26 (inkl. Playoffs)".
+- Mein Bereich: Kachel „Mein Spielplan" (`/mein-team/spielplan`) für alle mit Team; Druck
+  (Team-Blatt mit spielfreien Spieltagen, Masterplan der Liga) nur für TCs/Ligaleitung.
+- Druckvorlagen liegen jetzt in `lib/spielplan/printing.ts` (Admin + TCs gemeinsam) und bekommen
+  ihre Daten aus `spielplanDaten27()` — Team-/Lokalnamen aus der DB, z. B. „Zur flotten Biene".
+- Datenquelle: `lib/data/saison-2027.generated.json` ← `scripts/mdu-saison-2027-snapshot.ts`
+  (liest Spielplan-JSON + DB mit anon-Key, schreibt NICHTS in die DB). Nach neuem Generator-Lauf
+  oder DB-Änderungen (Kürzel, Logo, Lokal) neu laufen lassen und committen.
+
 ## Arbeitsweise (aus CLAUDE.md)
 Direkt auf `main` committen & pushen, keine PRs. Vor jedem Push
 `npx tsc --noEmit` + `npm run build` grün. Vor Push `git pull --rebase origin main`.

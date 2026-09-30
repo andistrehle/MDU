@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { printLeague, printMaster, printAllLeagues } from './printing';
+import { printLeague, printMaster, printAllLeagues } from '@/lib/spielplan/printing';
 
 // Anzeige-Komponente für den generierten Spielplan-Vorschlag 2026/2027.
 // Die Daten kommen aus spielplan.json (vom Generator erzeugt) und werden hier
@@ -13,18 +13,8 @@ import { printLeague, printMaster, printAllLeagues } from './printing';
 // spielfreien Wochenenden gleichmäßig entzerrt, damit sie ebenfalls erst am
 // letzten Wochenende (16.–18.04.2027) enden — nicht schon im Januar/Februar.
 
-type Game = { home: string; away: string; venue: string; derby: boolean };
-type Matchday = { nr: number; half: 'hin' | 'rueck'; games: Game[]; bye: string | null; weekendIndex: number };
-type Weekend = { fri: string; sun: string };
-export type SpielplanData = {
-  generatedAt: string;
-  leagues: { key: string; label: string; teams: { name: string; venue: string }[] }[];
-  schedule: Record<string, Matchday[]>;
-  weekends: Weekend[];
-  skipped: { fri: string; label: string }[];
-  maxMatchday: number;
-  venueClusterObjective: number;
-};
+import type { SpielplanData, Matchday, Weekend } from '@/lib/spielplan/types';
+export type { SpielplanData };
 
 const fmt = (isoDate: string) => {
   const d = new Date(isoDate + 'T00:00:00Z');

@@ -1,138 +1,58 @@
-'use client';
-
-import { useMemo, useState } from 'react';
+import type { Metadata } from 'next';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
-import { MatchCard } from '@/components/mdu/match-card';
-import { getScheduledMatchesByLeague, formatScheduledDate } from '@/lib/data/matches';
-import { findLeague, getVenueForTeamInSeason } from '@/lib/data';
+import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
+import { LigaSpielplan27 } from '@/components/mdu/spielplan-27';
+import { LIGEN_2027, NEUE_SAISON, SAISON_START, SAISON_ENDE, datumText } from '@/lib/data/saison-2027';
 
-/** Canonical league display order for the Spielplan grouping */
-const LEAGUE_ORDER = [
-  'playoffs-a-aufstieg', 'playoffs-a-abstieg',
-  'playoffs-b-aufstieg', 'playoffs-b-abstieg',
-  'la', 'a1', 'a2', 'b1', 'b2', 'c',
-  'pokal-2026',
-];
+export const metadata: Metadata = { title: 'Spielplan' };
 
+// Saison 2026/2027 — vorläufiger Spielplan aller Ligen (statisch, aus
+// lib/data/saison-2027). Archiv 2025/26: /spielplan/2025-26.
 export default function SpielplanPage() {
-  const rawGroups = getScheduledMatchesByLeague();
-
-  // Sort groups by canonical league order; unknown leagues go last
-  const allGroups = [...rawGroups].sort((a, b) => {
-    const ia = LEAGUE_ORDER.indexOf(a.leagueId);
-    const ib = LEAGUE_ORDER.indexOf(b.leagueId);
-    if (ia === -1 && ib === -1) return a.leagueId.localeCompare(b.leagueId);
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
-
-  // Liga-Filter: null = „Alle Ligen" (Standard).
-  const [selected, setSelected] = useState<string | null>(null);
-  const groups = useMemo(
-    () => (selected ? allGroups.filter(g => g.leagueId === selected) : allGroups),
-    [allGroups, selected],
-  );
-
-  const totalCount = allGroups.reduce((s, g) => s + g.matches.length, 0);
-
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielplan" />
 
-      <PageBanner eyebrow="Liga-Kalender" title="Spielplan" boardRight="max(28px, min(calc(50vw - 188px), calc(100vw - 828px)))" />
+      <PageBanner eyebrow={NEUE_SAISON.name} title="Spielplan" boardRight="max(28px, min(calc(50vw - 188px), calc(100vw - 828px)))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
-        {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}
-        {totalCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
-            <label htmlFor="liga-filter" style={{
-              fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-              letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)',
-            }}>
-              Liga
-            </label>
-            <select
-              id="liga-filter"
-              value={selected ?? ''}
-              onChange={e => setSelected(e.target.value || null)}
-              style={{
-                padding: '10px 14px', background: 'var(--th-bg-card)',
-                border: '1.5px solid var(--th-line-10)', borderRadius: 8,
-                color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)',
-                fontSize: 14, fontWeight: 600, outline: 'none', cursor: 'pointer', minWidth: 220,
-              }}
-            >
-              <option value="">Alle Ligen</option>
-              {allGroups.map(g => {
-                const league = findLeague(g.leagueId);
-                return <option key={g.leagueId} value={g.leagueId}>{league?.name ?? g.leagueId.toUpperCase()}</option>;
-              })}
-            </select>
-          </div>
-        )}
+        <SaisonUmschalter archiv={false} neuHref="/spielplan" archivHref="/spielplan/2025-26" />
+        <VorlaeufigHinweis />
 
-        {totalCount === 0 ? (
-          <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)',
-            fontStyle: 'italic', padding: '24px 0',
-          }}>
-            Keine bevorstehenden Spiele — vollständiger Spielplan auf{' '}
-            <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-            {groups.map(({ leagueId, matches }) => {
-              const league = findLeague(leagueId);
-              const leagueName = league?.name ?? leagueId.toUpperCase();
-              const leagueColor = league?.color ?? 'var(--th-accent)';
+        <p style={{ margin: '0 0 18px', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)' }}>
+          Saisonstart am Wochenende ab {datumText(SAISON_START)}, letzter Spieltag am Wochenende bis {datumText(SAISON_ENDE)}.
+          Ferienwochenenden sind spielfrei.
+        </p>
 
-              return (
-                <section key={leagueId}>
-                  {/* League heading */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ width: 4, height: 24, borderRadius: 2, background: leagueColor, flexShrink: 0 }} />
-                    <h2 style={{
-                      fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
-                      letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
-                    }}>
-                      {leagueName}
-                    </h2>
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontWeight: 600 }}>
-                      {matches.length} {matches.length === 1 ? 'Spiel' : 'Spiele'}
-                    </span>
-                  </div>
+        {/* Sprungmarken zu den Ligen */}
+        <nav aria-label="Liga wählen" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
+          {LIGEN_2027.map(l => (
+            <a key={l.code} href={`#liga-${l.code}`} style={{
+              padding: '7px 14px', borderRadius: 6, textDecoration: 'none',
+              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+              background: 'var(--th-line-6)', color: 'var(--th-text-muted)', borderLeft: `3px solid ${l.color}`,
+            }}>{l.name}</a>
+          ))}
+        </nav>
 
-                  {/* Match cards — within each league sorted by matchday ascending
-                      (matches without a matchday last, date as tiebreaker) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 800 }}>
-                    {[...matches].sort((a, b) => {
-                      const ma = a.matchday ?? Infinity;
-                      const mb = b.matchday ?? Infinity;
-                      if (ma !== mb) return ma - mb;
-                      if (!a.date && !b.date) return 0;
-                      if (!a.date) return 1;
-                      if (!b.date) return -1;
-                      return a.date.localeCompare(b.date);
-                    }).map(m => (
-                      <MatchCard
-                        key={m.id}
-                        league={leagueName + (m.matchday ? ` · Spieltag ${m.matchday}` : '')}
-                        home={m.homeTeamId}
-                        away={m.awayTeamId}
-                        date={formatScheduledDate(m.date)}
-                        time={m.time ?? '—'}
-                        venue={getVenueForTeamInSeason(m.homeTeamId, 'season-2026')?.name ?? 'Noch nicht verfügbar'}
-                      />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+          {LIGEN_2027.map(liga => (
+            <section key={liga.code} id={`liga-${liga.code}`} style={{ scrollMarginTop: 90 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <div style={{ width: 4, height: 24, borderRadius: 2, background: liga.color, flexShrink: 0 }} />
+                <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase' }}>
+                  {liga.name}
+                </h2>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontWeight: 600 }}>
+                  {liga.teams.length} Teams
+                </span>
+              </div>
+              <LigaSpielplan27 liga={liga} />
+            </section>
+          ))}
+        </div>
       </div>
 
       <Footer />

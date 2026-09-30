@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { SpielplanData } from './spielplan-view';
-import { printVenue, printAllVenues } from './printing';
+import type { SpielplanData } from '@/lib/spielplan/types';
+import { printVenue, printAllVenues } from '@/lib/spielplan/printing';
 
 // Spielort-Ansicht des Spielplan-Vorschlags: je Lokal alle Heimspiele
 // (ligaübergreifend), Wochenende für Wochenende. Zeigt, wann in einer

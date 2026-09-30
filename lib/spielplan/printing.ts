@@ -4,9 +4,9 @@
 //   · Team-Blatt: alle Spiele eines Teams + Feld Datum/Uhrzeit zum Eintragen
 //   · Masterplan: alle Spiele einer Liga zum Zusammentragen
 //   · Spielort-Blatt: alle Heimspiele eines Lokals (Überblick)
-// Reine Anzeige aus spielplan.json — schreibt nichts.
+// Reine Anzeige (Admin-Vorschlag und „Mein Spielplan" der TCs) — schreibt nichts.
 
-import type { SpielplanData } from './spielplan-view';
+import type { SpielplanData } from './types';
 import { MDU_LOGO } from './mdu-logo-data';
 
 const esc = (s: unknown) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -31,19 +31,23 @@ function terminCell(): string {
 }
 
 export function teamSheet(data: SpielplanData, lg: SpielplanData['leagues'][number], team: string): string {
-  const games: { w: number; nr: number; ha: 'H' | 'A'; opp: string; venue: string; derby: boolean }[] = [];
-  for (const m of data.schedule[lg.key]) for (const g of m.games) {
-    if (g.home === team) games.push({ w: m.weekendIndex, nr: m.nr, ha: 'H', opp: g.away, venue: g.venue, derby: g.derby });
-    else if (g.away === team) games.push({ w: m.weekendIndex, nr: m.nr, ha: 'A', opp: g.home, venue: g.venue, derby: g.derby });
+  const games: { w: number; nr: number; ha: 'H' | 'A' | '-'; opp: string; venue: string; derby: boolean }[] = [];
+  for (const m of data.schedule[lg.key]) {
+    for (const g of m.games) {
+      if (g.home === team) games.push({ w: m.weekendIndex, nr: m.nr, ha: 'H', opp: g.away, venue: g.venue, derby: g.derby });
+      else if (g.away === team) games.push({ w: m.weekendIndex, nr: m.nr, ha: 'A', opp: g.home, venue: g.venue, derby: g.derby });
+    }
+    if (m.bye === team) games.push({ w: m.weekendIndex, nr: m.nr, ha: '-', opp: '', venue: '', derby: false });
   }
   games.sort((a, b) => a.w - b.w);
-  const rows = games.map(x =>
-    `<tr class="${x.derby ? 'derby' : ''}"><td class="st">${x.nr}</td><td class="wk">${wkText(data, x.w)}</td>` +
+  const rows = games.map(x => x.ha === '-'
+    ? `<tr class="free"><td class="st">${x.nr}</td><td class="wk">${wkText(data, x.w)}</td><td colspan="4">spielfrei</td></tr>`
+    : `<tr class="${x.derby ? 'derby' : ''}"><td class="st">${x.nr}</td><td class="wk">${wkText(data, x.w)}</td>` +
     `<td class="ha"><span class="${x.ha === 'H' ? 'bH' : 'bA'}">${x.ha === 'H' ? 'Heim' : 'Ausw.'}</span></td>` +
     `<td class="opp">${esc(x.opp)}${x.derby ? ' <span class="db">⚔</span>' : ''}</td><td class="loc">${esc(x.venue)}</td>${terminCell()}</tr>`).join('');
   return `<section class="sheet team">
     ${header(team, lg.label, LG_COLOR[LG_SHORT[lg.key]], 'Terminplanung TC-Sitzung · Start 23.–25.10.2026 · Ende 7.–9.05.2027')}
-    <p class="hint"><b>Vorschlag</b> = Rahmen-Wochenende (Fr–So). Den genauen Termin macht ihr mit dem Gegner aus und tragt Datum &amp; Uhrzeit ein. <span class="db">⚔</span> = Derby (gleiches Lokal).</p>
+    <p class="hint"><b>Vorläufig.</b> <b>Vorschlag</b> = Rahmen-Wochenende (Fr–So). Den genauen Termin macht ihr mit dem Gegner aus und tragt Datum &amp; Uhrzeit ein. <span class="db">⚔</span> = Derby (gleiches Lokal).</p>
     <table><thead><tr><th>ST</th><th>Vorschlag</th><th>H/A</th><th>Gegner</th><th>Spielort</th><th class="tw">Genauer Termin</th></tr></thead><tbody>${rows}</tbody></table>
   </section>`;
 }
@@ -182,4 +186,10 @@ export function printAllVenues(data: SpielplanData) {
   for (const lg of data.leagues) for (const t of lg.teams) venues.add(t.venue);
   const list = [...venues].sort((a, b) => a.localeCompare(b, 'de'));
   openPrint('Alle Spielorte', list.map(v => venueSheet(data, v)).join(''));
+}
+/** Für TCs: Team-Blatt des eigenen Teams, auf Wunsch mit dem Masterplan der Liga. */
+export function printTeam(data: SpielplanData, lgKey: string, team: string, mitMaster: boolean) {
+  const lg = data.leagues.find(l => l.key === lgKey);
+  if (!lg) return;
+  openPrint(`${team} – Spielplan${mitMaster ? ' + Masterplan' : ''}`, teamSheet(data, lg, team) + (mitMaster ? masterSheet(data, lg) : ''));
 }

@@ -1,237 +1,32 @@
-'use client';
-
-import { useMemo, useState } from 'react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
-import { TeamBadge } from '@/components/mdu/team-badge';
-import { TeamLink } from '@/components/mdu/team-link';
-import { getCompletedMatchesByLeague, groupMatchesByMatchday, formatMatchDate } from '@/lib/data/matches';
-import { getExtendedTeam, findLeague } from '@/lib/data';
+import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { NEUE_SAISON, SAISON_START, datumText } from '@/lib/data/saison-2027';
 
-/** Canonical league display order */
-const LEAGUE_ORDER = [
-  'playoffs-a-aufstieg', 'playoffs-a-abstieg',
-  'playoffs-b-aufstieg', 'playoffs-b-abstieg',
-  'la', 'a1', 'a2', 'b1', 'b2', 'c',
-  'pokal-2026',
-];
+export const metadata: Metadata = { title: 'Ergebnisse' };
 
+// Saison 2026/2027 — noch keine Ergebnisse. Archiv 2025/26: /ergebnisse/2025-26.
 export default function ErgebnissePage() {
-  const rawGroups = getCompletedMatchesByLeague();
-
-  const allGroups = [...rawGroups].sort((a, b) => {
-    const ia = LEAGUE_ORDER.indexOf(a.leagueId);
-    const ib = LEAGUE_ORDER.indexOf(b.leagueId);
-    if (ia === -1 && ib === -1) return a.leagueId.localeCompare(b.leagueId);
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
-
-  // Liga-Filter: null = „Alle Ligen" (Standard).
-  const [selected, setSelected] = useState<string | null>(null);
-  const groups = useMemo(
-    () => (selected ? allGroups.filter(g => g.leagueId === selected) : allGroups),
-    [allGroups, selected],
-  );
-
-  const totalCount = allGroups.reduce((s, g) => s + g.matches.length, 0);
-
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/ergebnisse" />
 
-      <PageBanner eyebrow="Letzte Spieltage" title="Ergebnisse" boardRight="max(28px, min(calc(50vw - 288px), calc(100vw - 928px)))" />
+      <PageBanner eyebrow={NEUE_SAISON.name} title="Ergebnisse" boardRight="max(28px, min(calc(50vw - 288px), calc(100vw - 928px)))" />
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
-        {/* Liga-Filter — Standard-Dropdown, „Alle Ligen" als Default */}
-        {totalCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
-            <label htmlFor="liga-filter" style={{
-              fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700,
-              letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)',
-            }}>
-              Liga
-            </label>
-            <select
-              id="liga-filter"
-              value={selected ?? ''}
-              onChange={e => setSelected(e.target.value || null)}
-              style={{
-                padding: '10px 14px', background: 'var(--th-bg-card)',
-                border: '1.5px solid var(--th-line-10)', borderRadius: 8,
-                color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)',
-                fontSize: 14, fontWeight: 600, outline: 'none', cursor: 'pointer', minWidth: 220,
-              }}
-            >
-              <option value="">Alle Ligen</option>
-              {allGroups.map(g => {
-                const league = findLeague(g.leagueId);
-                return <option key={g.leagueId} value={g.leagueId}>{league?.name ?? g.leagueId.toUpperCase()}</option>;
-              })}
-            </select>
+        <SaisonUmschalter archiv={false} neuHref="/ergebnisse" archivHref="/ergebnisse/2025-26" />
+
+        <div style={{ maxWidth: 640, padding: '22px 22px', borderRadius: 14, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', fontFamily: 'var(--font-manrope)', fontSize: 14, lineHeight: 1.6, color: 'var(--th-text-body)' }}>
+          <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 20, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', marginBottom: 6 }}>
+            Noch keine Ergebnisse
           </div>
-        )}
-
-        {totalCount === 0 ? (
-          <div style={{
-            fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-faint)',
-            fontStyle: 'italic', padding: '24px 0',
-          }}>
-            Noch keine Ergebnisse eingetragen — aktuelle Ergebnisse auf{' '}
-            <span style={{ color: 'var(--th-text-muted)' }}>dartunion.de</span>.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-            {groups.map(({ leagueId, matches }) => {
-              const league = findLeague(leagueId);
-              const leagueName  = league?.name  ?? leagueId.toUpperCase();
-              const leagueColor = league?.color ?? 'var(--th-accent)';
-
-              const matchdayGroups = groupMatchesByMatchday(matches);
-
-              return (
-                <section key={leagueId}>
-                  {/* League heading */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ width: 4, height: 24, borderRadius: 2, background: leagueColor, flexShrink: 0 }} />
-                    <h2 style={{
-                      fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
-                      letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase',
-                    }}>
-                      {leagueName}
-                    </h2>
-                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', fontWeight: 600 }}>
-                      {matches.length} {matches.length === 1 ? 'Ergebnis' : 'Ergebnisse'}
-                    </span>
-                  </div>
-
-                  {/* Desktop: grouped by matchday */}
-                  <div className="mdu-desktop-only mdu-table-scroll" style={{ maxWidth: 900 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      {matchdayGroups.map(({ matchday, matches: mdMatches }) => (
-                        <div key={matchday ?? 'null'}>
-                          {/* Matchday sub-heading */}
-                          {matchday !== null && (
-                            <div style={{
-                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-                              letterSpacing: '0.14em', color: 'var(--th-text-faint)', textTransform: 'uppercase',
-                              marginBottom: 8,
-                            }}>
-                              {matchday}. Spieltag
-                            </div>
-                          )}
-                          <div style={{
-                            background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-                            borderRadius: 14,
-                          }}>
-                            {/* Header */}
-                            <div style={{
-                              display: 'grid', gridTemplateColumns: '90px 1fr 100px 1fr',
-                              padding: '12px 20px', borderBottom: '1px solid var(--th-line-8)',
-                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-                              letterSpacing: '0.1em', color: 'var(--th-text-muted)', textTransform: 'uppercase', gap: 12,
-                            }}>
-                              <span>Datum</span>
-                              <span style={{ textAlign: 'right' }}>Heim</span>
-                              <span style={{ textAlign: 'center' }}>Ergebnis</span>
-                              <span>Auswärts</span>
-                            </div>
-
-                            {mdMatches.map((m, i) => {
-                              const home = getExtendedTeam(m.homeTeamId);
-                              const away = getExtendedTeam(m.awayTeamId);
-                              return (
-                                <div key={m.id} className="mdu-row-hover" style={{
-                                  display: 'grid', gridTemplateColumns: '90px 1fr 100px 1fr',
-                                  padding: '14px 20px',
-                                  borderBottom: i < mdMatches.length - 1 ? '1px solid var(--th-line-4)' : 'none',
-                                  alignItems: 'center', gap: 12,
-                                }}>
-                                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--th-text-muted)' }}>
-                                    {formatMatchDate(m.date)}
-                                  </span>
-                                  <TeamLink teamId={m.homeTeamId} teamName={home.name} style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', gap: 10 }}>
-                                    <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{home.name}</span>
-                                    <TeamBadge initials={home.short.slice(0, 3)} color={home.color} logoUrl={home.logoUrl} size={28} />
-                                  </TeamLink>
-                                  <div style={{
-                                    textAlign: 'center',
-                                    fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22,
-                                    color: 'var(--th-text-strong)', background: 'var(--th-line-4)', borderRadius: 6, padding: '4px 0',
-                                  }}>
-                                    {m.result ? `${m.result.home}:${m.result.away}` : '—'}
-                                  </div>
-                                  <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ display: 'flex', width: '100%', gap: 10 }}>
-                                    <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={28} />
-                                    <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{away.name}</span>
-                                  </TeamLink>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Mobile: grouped by matchday */}
-                  <div className="mdu-mobile-only">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {matchdayGroups.map(({ matchday, matches: mdMatches }) => (
-                        <div key={matchday ?? 'null'}>
-                          {/* Matchday sub-heading */}
-                          {matchday !== null && (
-                            <div style={{
-                              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10,
-                              letterSpacing: '0.14em', color: 'var(--th-text-faint)', textTransform: 'uppercase',
-                              marginBottom: 6,
-                            }}>
-                              {matchday}. Spieltag
-                            </div>
-                          )}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {mdMatches.map(m => {
-                              const home = getExtendedTeam(m.homeTeamId);
-                              const away = getExtendedTeam(m.awayTeamId);
-                              return (
-                                <div key={m.id} style={{
-                                  background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-                                  borderRadius: 10, padding: '8px 12px',
-                                }}>
-                                  {/* League · Date */}
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-                                    <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, letterSpacing: '0.12em', color: leagueColor, textTransform: 'uppercase' }}>{leagueName}</span>
-                                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--th-text-muted)' }}>{formatMatchDate(m.date)}</span>
-                                  </div>
-                                  {/* Home · Score · Away */}
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 48px 1fr', alignItems: 'center', gap: 6 }}>
-                                    <TeamLink teamId={m.homeTeamId} teamName={home.name} style={{ display: 'flex', width: '100%', gap: 6, minWidth: 0 }}>
-                                      <TeamBadge initials={home.short.slice(0, 3)} color={home.color} logoUrl={home.logoUrl} size={22} />
-                                      <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{home.name}</span>
-                                    </TeamLink>
-                                    <div style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 17, color: 'var(--th-text-strong)', background: 'var(--th-line-4)', borderRadius: 5, padding: '3px 0' }}>
-                                      {m.result ? `${m.result.home}:${m.result.away}` : '—'}
-                                    </div>
-                                    <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ display: 'flex', width: '100%', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
-                                      <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, textAlign: 'right' }}>{away.name}</span>
-                                      <TeamBadge initials={away.short.slice(0, 3)} color={away.color} logoUrl={away.logoUrl} size={22} />
-                                    </TeamLink>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
+          Die {NEUE_SAISON.name} beginnt am Wochenende ab {datumText(SAISON_START)}. Die Ergebnisse erscheinen hier, sobald gespielt wurde.
+          {' '}Bis dahin: <Link href="/spielplan" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>vorläufiger Spielplan</Link>
+          {' '}· <Link href="/ergebnisse/2025-26" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Ergebnisse 2025/26</Link>
+        </div>
       </div>
 
       <Footer />

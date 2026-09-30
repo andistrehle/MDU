@@ -1,0 +1,2353 @@
+{
+  "_hinweis": "ERZEUGT von scripts/mdu-saison-2027-snapshot.ts — nicht von Hand ändern, Skript neu laufen lassen.",
+  "seasonId": "season-2027",
+  "planGeneratedAt": "2026-09-29T19:26:12.777Z",
+  "snapshotAt": "2026-09-30T14:48:23.213Z",
+  "leagues": [
+    {
+      "key": "la",
+      "label": "La Liga",
+      "teams": [
+        "spartans",
+        "silberpfeile-ii",
+        "ohne-jackie",
+        "jolly-pirates-kts",
+        "gambas",
+        "alptraum"
+      ]
+    },
+    {
+      "key": "a",
+      "label": "A Liga",
+      "teams": [
+        "spartans-vi",
+        "team-illuminati--28d702",
+        "treff-nix-freimann",
+        "fiaker-deife",
+        "freibad-bazis",
+        "dc-animals-ii",
+        "oldies-co",
+        "belfort-evolution",
+        "jolly-pirates-v"
+      ]
+    },
+    {
+      "key": "b1",
+      "label": "B1 Liga",
+      "teams": [
+        "game-over",
+        "wild-indians",
+        "muenchen-0815",
+        "master-of-desaster",
+        "lucky-darts-one",
+        "de-hutzeldarter",
+        "team-dart-s-vaders-48de8a",
+        "team-black-storm-02eed0"
+      ]
+    },
+    {
+      "key": "b2",
+      "label": "B2 Liga",
+      "teams": [
+        "sound-warriors",
+        "lucky-darts-two",
+        "flying-fighters",
+        "team-desaster",
+        "de-vogelwuidn",
+        "team-leider-geil-dec512",
+        "team-wakan-tanka-fff298"
+      ]
+    },
+    {
+      "key": "c",
+      "label": "C Liga",
+      "teams": [
+        "team-dartpromillos--841baa",
+        "team-w-rmtal-bazis-d22210",
+        "team-team-desaster-m-dels-418268",
+        "black-devils",
+        "funny-darters",
+        "fuenf-sterne-boazn",
+        "team-jolly-pirates-vii-3156af"
+      ]
+    }
+  ],
+  "teams": {
+    "spartans": {
+      "name": "Spartans München",
+      "short": "SPA",
+      "color": "#D40000",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/spartans/reg-logo.webp?t=1784659202013",
+      "venueId": "venue-c99fab52d2",
+      "league": "la"
+    },
+    "silberpfeile-ii": {
+      "name": "Silberpfeile II",
+      "short": "SIL",
+      "color": "#C9CCD6",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/silberpfeile-ii/logo.webp?t=1785770592954",
+      "venueId": "venue-e559ad4d37",
+      "league": "la"
+    },
+    "ohne-jackie": {
+      "name": "Ohne Jackie",
+      "short": "OJA",
+      "color": "#E8B84A",
+      "logoUrl": "/team-logos/ohne-jackie.png",
+      "venueId": "venue-6be8d719f9",
+      "league": "la"
+    },
+    "jolly-pirates-kts": {
+      "name": "Jolly Pirates Kneipenterroristen",
+      "short": "JPK",
+      "color": "#0EA5E9",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/jolly-pirates-kts/logo.webp?t=1789069185518",
+      "venueId": "venue-08c4104796",
+      "league": "la"
+    },
+    "gambas": {
+      "name": "Gambas",
+      "short": "GMB",
+      "color": "#F59E0B",
+      "logoUrl": "",
+      "venueId": "venue-6be8d719f9",
+      "league": "la"
+    },
+    "alptraum": {
+      "name": "Alptraum",
+      "short": "ALT",
+      "color": "#D40000",
+      "logoUrl": "",
+      "venueId": "venue-e25395dad7",
+      "league": "la"
+    },
+    "spartans-vi": {
+      "name": "Spartans VI",
+      "short": "SP6",
+      "color": "#0EA5E9",
+      "logoUrl": "/team-logos/spartans-vi.png",
+      "venueId": "venue-c99fab52d2",
+      "league": "a"
+    },
+    "team-illuminati--28d702": {
+      "name": "Illuminati",
+      "short": "NATI",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-illuminati--28d702/logo.webp?t=1784874123507",
+      "venueId": "venue-2f7039adec",
+      "league": "a"
+    },
+    "treff-nix-freimann": {
+      "name": "Treff Nix Freimann",
+      "short": "TNF",
+      "color": "#6B7280",
+      "logoUrl": "/team-logos/treff-nix-freimann.png",
+      "venueId": "venue-74a2d6a242",
+      "league": "a"
+    },
+    "fiaker-deife": {
+      "name": "Fiaker Deife",
+      "short": "FDF",
+      "color": "#0EA5E9",
+      "logoUrl": "/team-logos/fiaker-deife.png",
+      "venueId": "venue-6be8d719f9",
+      "league": "a"
+    },
+    "freibad-bazis": {
+      "name": "Freibad Bazis",
+      "short": "FBB",
+      "color": "#D40000",
+      "logoUrl": "/team-logos/freibad-bazis.png",
+      "venueId": "venue-6be8d719f9",
+      "league": "a"
+    },
+    "dc-animals-ii": {
+      "name": "DC Animals",
+      "short": "DCA",
+      "color": "#3B82F6",
+      "logoUrl": "/team-logos/dc-animals-ii.png",
+      "venueId": "venue-f3324c47ca",
+      "league": "a"
+    },
+    "oldies-co": {
+      "name": "Oldies & Co",
+      "short": "OLD",
+      "color": "#F59E0B",
+      "logoUrl": "/team-logos/oldies-co.png",
+      "venueId": "venue-e25395dad7",
+      "league": "a"
+    },
+    "belfort-evolution": {
+      "name": "Belfort Evolution",
+      "short": "BEV",
+      "color": "#E8B84A",
+      "logoUrl": "/team-logos/belfort-evolution.png",
+      "venueId": "venue-165a50ef57",
+      "league": "a"
+    },
+    "jolly-pirates-v": {
+      "name": "Jolly Pirates V",
+      "short": "JPV",
+      "color": "#0EA5E9",
+      "logoUrl": "/team-logos/jolly-pirates-v.png",
+      "venueId": "venue-08c4104796",
+      "league": "a"
+    },
+    "game-over": {
+      "name": "Game Over",
+      "short": "",
+      "color": "#EF4444",
+      "logoUrl": "/team-logos/game-over.png",
+      "venueId": "venue-3451c55d81",
+      "league": "b1"
+    },
+    "wild-indians": {
+      "name": "Wild Indians",
+      "short": "WID",
+      "color": "#E8B84A",
+      "logoUrl": "/team-logos/wild-indians.png",
+      "venueId": "venue-48c4fcfcba",
+      "league": "b1"
+    },
+    "muenchen-0815": {
+      "name": "München 08/15",
+      "short": "",
+      "color": "#D40000",
+      "logoUrl": "/team-logos/muenchen-0815.png",
+      "venueId": "venue-c99fab52d2",
+      "league": "b1"
+    },
+    "master-of-desaster": {
+      "name": "Master of Desaster",
+      "short": "MOD",
+      "color": "#8B5CF6",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/master-of-desaster/logo.webp?t=1784840616504",
+      "venueId": "venue-6be8d719f9",
+      "league": "b1"
+    },
+    "lucky-darts-one": {
+      "name": "Lucky Darts One",
+      "short": "LD1",
+      "color": "#E8B84A",
+      "logoUrl": "/team-logos/lucky-darts-one.png",
+      "venueId": "venue-778423b20c",
+      "league": "b1"
+    },
+    "de-hutzeldarter": {
+      "name": "De Hutzeldarter",
+      "short": "DHD",
+      "color": "#22C55E",
+      "logoUrl": "/team-logos/de-hutzeldarter.png",
+      "venueId": "venue-91fd852852",
+      "league": "b1"
+    },
+    "team-dart-s-vaders-48de8a": {
+      "name": "Dart's Vaders",
+      "short": "DVS",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-dart-s-vaders-48de8a/logo.webp?t=1784649665159",
+      "venueId": "venue-2f7039adec",
+      "league": "b1"
+    },
+    "team-black-storm-02eed0": {
+      "name": "Black Storm",
+      "short": "BST",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/players/markus-kniehl/reg-logo.webp?t=1784807440045",
+      "venueId": "venue-91fd852852",
+      "league": "b1"
+    },
+    "sound-warriors": {
+      "name": "Jolly Pirates Sound Warrior's",
+      "short": "SOW",
+      "color": "#8B5CF6",
+      "logoUrl": "/team-logos/sound-warriors.png",
+      "venueId": "venue-08c4104796",
+      "league": "b2"
+    },
+    "lucky-darts-two": {
+      "name": "Lucky Darts Two",
+      "short": "LD2",
+      "color": "#22C55E",
+      "logoUrl": "/team-logos/lucky-darts-two.png",
+      "venueId": "venue-778423b20c",
+      "league": "b2"
+    },
+    "flying-fighters": {
+      "name": "Flying Fighters",
+      "short": "FLF",
+      "color": "#EF4444",
+      "logoUrl": "/team-logos/flying-fighters.png",
+      "venueId": "venue-6be8d719f9",
+      "league": "b2"
+    },
+    "team-desaster": {
+      "name": "Team Desaster",
+      "short": "TD",
+      "color": "#F59E0B",
+      "logoUrl": "/team-logos/team-desaster.png",
+      "venueId": "venue-2511166909",
+      "league": "b2"
+    },
+    "de-vogelwuidn": {
+      "name": "De Vogelwuid'n",
+      "short": "DVN",
+      "color": "#22C55E",
+      "logoUrl": "",
+      "venueId": "venue-c99fab52d2",
+      "league": "b2"
+    },
+    "team-leider-geil-dec512": {
+      "name": "Leider Geil",
+      "short": "MLG",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-leider-geil-dec512/logo.webp?t=1784722570952",
+      "venueId": "venue-91fd852852",
+      "league": "b2"
+    },
+    "team-wakan-tanka-fff298": {
+      "name": "Wakan Tanka",
+      "short": "WTA",
+      "color": "#6B7A8F",
+      "logoUrl": "",
+      "venueId": "venue-8be6255892",
+      "league": "b2"
+    },
+    "team-dartpromillos--841baa": {
+      "name": "DartPromillos",
+      "short": "‰",
+      "color": "#6B7A8F",
+      "logoUrl": "",
+      "venueId": "venue-f9748ae424",
+      "league": "c"
+    },
+    "team-w-rmtal-bazis-d22210": {
+      "name": "Würmtal Bazis",
+      "short": "WBA",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-w-rmtal-bazis-d22210/logo.webp?t=1785509885885",
+      "venueId": "venue-9aac730116",
+      "league": "c"
+    },
+    "team-team-desaster-m-dels-418268": {
+      "name": "Team Desaster Mädels",
+      "short": "TDM",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/players/tamara-weinberger/reg-logo.webp?t=1786467598647",
+      "venueId": "venue-2511166909",
+      "league": "c"
+    },
+    "black-devils": {
+      "name": "Black Devils",
+      "short": "BLK",
+      "color": "#8B5CF6",
+      "logoUrl": "/team-logos/black-devils.png",
+      "venueId": "venue-c99fab52d2",
+      "league": "c"
+    },
+    "funny-darters": {
+      "name": "Funny Darters Munich",
+      "short": "FDM",
+      "color": "#F59E0B",
+      "logoUrl": "/team-logos/funny-darters.png",
+      "venueId": "venue-19f245561f",
+      "league": "c"
+    },
+    "fuenf-sterne-boazn": {
+      "name": "5 Sterne Boazn Team",
+      "short": "FSB",
+      "color": "#0EA5E9",
+      "logoUrl": "",
+      "venueId": "venue-48c4fcfcba",
+      "league": "c"
+    },
+    "team-jolly-pirates-vii-3156af": {
+      "name": "Jolly Pirates VII",
+      "short": "JPV",
+      "color": "#6B7A8F",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-jolly-pirates-vii-3156af/logo.webp?t=1790777610940",
+      "venueId": "venue-08c4104796",
+      "league": "c"
+    }
+  },
+  "venues": {
+    "venue-c99fab52d2": {
+      "name": "Zur flotten Biene",
+      "address": "Korbinianstr. 61, 80807 München"
+    },
+    "venue-e559ad4d37": {
+      "name": "Wirtshaus bei Toni",
+      "address": "Arnulfstr. 130, 80634 München"
+    },
+    "venue-6be8d719f9": {
+      "name": "Fiaker Stüberl",
+      "address": "Zenettistr. 30, 80337 München"
+    },
+    "venue-08c4104796": {
+      "name": "Jolly Roger",
+      "address": "Poststr. 2, 85586 Poing"
+    },
+    "venue-e25395dad7": {
+      "name": "Di's Stüberl",
+      "address": "Wundstr. 15, 80939 München"
+    },
+    "venue-2f7039adec": {
+      "name": "Ambasador",
+      "address": "Bodenseestr. 19, 81241 München"
+    },
+    "venue-74a2d6a242": {
+      "name": "Gaststätte ESV Freimann",
+      "address": "Frankplatz 15, 80939 München"
+    },
+    "venue-f3324c47ca": {
+      "name": "Kegelkeller",
+      "address": "Ledergasse 6, 85567 Grafing b. München"
+    },
+    "venue-165a50ef57": {
+      "name": "Belfort Seven",
+      "address": "Belfortstr. 7, 81667 München"
+    },
+    "venue-3451c55d81": {
+      "name": "Wirtshaus zum Lustigen Bauer",
+      "address": "Kantstr. 29, 80809 München"
+    },
+    "venue-48c4fcfcba": {
+      "name": "Trappentreu Stüberl",
+      "address": "Trappentreustr. 31, 80339 München"
+    },
+    "venue-778423b20c": {
+      "name": "Players",
+      "address": "Schleissheimer Str. 335, 80809 München"
+    },
+    "venue-91fd852852": {
+      "name": "Bistro 118",
+      "address": "Drygalski-Allee 118, 81477 München"
+    },
+    "venue-2511166909": {
+      "name": "DC Moosach",
+      "address": "Weitlstr. 140, 80995 München"
+    },
+    "venue-8be6255892": {
+      "name": "Schillers Bistro",
+      "address": "Friedrichshafener Str. 17, 81243 München"
+    },
+    "venue-f9748ae424": {
+      "name": "70er",
+      "address": "Tegernseer Landstr. 34, 81541 München"
+    },
+    "venue-9aac730116": {
+      "name": "DJK Würmtal",
+      "address": "Georgenstr. 35, 82152 Planegg"
+    },
+    "venue-19f245561f": {
+      "name": "Sportsbar 'Live'",
+      "address": "Oberhofer Platz 4, 80807 München"
+    }
+  },
+  "weekends": [
+    {
+      "fri": "2026-10-23",
+      "sun": "2026-10-25"
+    },
+    {
+      "fri": "2026-11-13",
+      "sun": "2026-11-15"
+    },
+    {
+      "fri": "2026-11-20",
+      "sun": "2026-11-22"
+    },
+    {
+      "fri": "2026-11-27",
+      "sun": "2026-11-29"
+    },
+    {
+      "fri": "2026-12-04",
+      "sun": "2026-12-06"
+    },
+    {
+      "fri": "2026-12-11",
+      "sun": "2026-12-13"
+    },
+    {
+      "fri": "2026-12-18",
+      "sun": "2026-12-20"
+    },
+    {
+      "fri": "2027-01-15",
+      "sun": "2027-01-17"
+    },
+    {
+      "fri": "2027-01-22",
+      "sun": "2027-01-24"
+    },
+    {
+      "fri": "2027-01-29",
+      "sun": "2027-01-31"
+    },
+    {
+      "fri": "2027-02-19",
+      "sun": "2027-02-21"
+    },
+    {
+      "fri": "2027-02-26",
+      "sun": "2027-02-28"
+    },
+    {
+      "fri": "2027-03-05",
+      "sun": "2027-03-07"
+    },
+    {
+      "fri": "2027-03-12",
+      "sun": "2027-03-14"
+    },
+    {
+      "fri": "2027-04-09",
+      "sun": "2027-04-11"
+    },
+    {
+      "fri": "2027-04-16",
+      "sun": "2027-04-18"
+    },
+    {
+      "fri": "2027-04-23",
+      "sun": "2027-04-25"
+    },
+    {
+      "fri": "2027-05-07",
+      "sun": "2027-05-09"
+    }
+  ],
+  "skipped": [
+    {
+      "fri": "2026-10-30",
+      "label": "Herbstferien"
+    },
+    {
+      "fri": "2026-11-06",
+      "label": "Herbstferien"
+    },
+    {
+      "fri": "2026-12-25",
+      "label": "Weihnachtsferien"
+    },
+    {
+      "fri": "2027-01-01",
+      "label": "Weihnachtsferien"
+    },
+    {
+      "fri": "2027-01-08",
+      "label": "Weihnachtsferien"
+    },
+    {
+      "fri": "2027-02-05",
+      "label": "Frühjahrsferien"
+    },
+    {
+      "fri": "2027-02-12",
+      "label": "Frühjahrsferien"
+    },
+    {
+      "fri": "2027-03-19",
+      "label": "Osterferien"
+    },
+    {
+      "fri": "2027-03-26",
+      "label": "Osterferien"
+    },
+    {
+      "fri": "2027-04-02",
+      "label": "Osterferien"
+    },
+    {
+      "fri": "2027-04-30",
+      "label": "1. Mai"
+    },
+    {
+      "fri": "2027-05-14",
+      "label": "Pfingstferien"
+    }
+  ],
+  "schedule": {
+    "la": [
+      {
+        "nr": 1,
+        "half": "hin",
+        "weekendIndex": 0,
+        "bye": null,
+        "games": [
+          {
+            "home": "jolly-pirates-kts",
+            "away": "spartans",
+            "derby": false
+          },
+          {
+            "home": "gambas",
+            "away": "ohne-jackie",
+            "derby": true
+          },
+          {
+            "home": "silberpfeile-ii",
+            "away": "alptraum",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 2,
+        "half": "hin",
+        "weekendIndex": 2,
+        "bye": null,
+        "games": [
+          {
+            "home": "alptraum",
+            "away": "spartans",
+            "derby": false
+          },
+          {
+            "home": "silberpfeile-ii",
+            "away": "gambas",
+            "derby": false
+          },
+          {
+            "home": "ohne-jackie",
+            "away": "jolly-pirates-kts",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 3,
+        "half": "hin",
+        "weekendIndex": 4,
+        "bye": null,
+        "games": [
+          {
+            "home": "spartans",
+            "away": "gambas",
+            "derby": false
+          },
+          {
+            "home": "alptraum",
+            "away": "jolly-pirates-kts",
+            "derby": false
+          },
+          {
+            "home": "ohne-jackie",
+            "away": "silberpfeile-ii",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 4,
+        "half": "hin",
+        "weekendIndex": 6,
+        "bye": null,
+        "games": [
+          {
+            "home": "spartans",
+            "away": "ohne-jackie",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-kts",
+            "away": "silberpfeile-ii",
+            "derby": false
+          },
+          {
+            "home": "gambas",
+            "away": "alptraum",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 5,
+        "half": "hin",
+        "weekendIndex": 8,
+        "bye": null,
+        "games": [
+          {
+            "home": "silberpfeile-ii",
+            "away": "spartans",
+            "derby": false
+          },
+          {
+            "home": "alptraum",
+            "away": "ohne-jackie",
+            "derby": false
+          },
+          {
+            "home": "gambas",
+            "away": "jolly-pirates-kts",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 6,
+        "half": "rueck",
+        "weekendIndex": 9,
+        "bye": null,
+        "games": [
+          {
+            "home": "spartans",
+            "away": "jolly-pirates-kts",
+            "derby": false
+          },
+          {
+            "home": "ohne-jackie",
+            "away": "gambas",
+            "derby": true
+          },
+          {
+            "home": "alptraum",
+            "away": "silberpfeile-ii",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 7,
+        "half": "rueck",
+        "weekendIndex": 11,
+        "bye": null,
+        "games": [
+          {
+            "home": "spartans",
+            "away": "alptraum",
+            "derby": false
+          },
+          {
+            "home": "gambas",
+            "away": "silberpfeile-ii",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-kts",
+            "away": "ohne-jackie",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 8,
+        "half": "rueck",
+        "weekendIndex": 13,
+        "bye": null,
+        "games": [
+          {
+            "home": "gambas",
+            "away": "spartans",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-kts",
+            "away": "alptraum",
+            "derby": false
+          },
+          {
+            "home": "silberpfeile-ii",
+            "away": "ohne-jackie",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 9,
+        "half": "rueck",
+        "weekendIndex": 15,
+        "bye": null,
+        "games": [
+          {
+            "home": "ohne-jackie",
+            "away": "spartans",
+            "derby": false
+          },
+          {
+            "home": "silberpfeile-ii",
+            "away": "jolly-pirates-kts",
+            "derby": false
+          },
+          {
+            "home": "alptraum",
+            "away": "gambas",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 10,
+        "half": "rueck",
+        "weekendIndex": 17,
+        "bye": null,
+        "games": [
+          {
+            "home": "spartans",
+            "away": "silberpfeile-ii",
+            "derby": false
+          },
+          {
+            "home": "ohne-jackie",
+            "away": "alptraum",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-kts",
+            "away": "gambas",
+            "derby": false
+          }
+        ]
+      }
+    ],
+    "a": [
+      {
+        "nr": 1,
+        "half": "hin",
+        "weekendIndex": 0,
+        "bye": "belfort-evolution",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "jolly-pirates-v",
+            "derby": false
+          },
+          {
+            "home": "team-illuminati--28d702",
+            "away": "oldies-co",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "treff-nix-freimann",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "fiaker-deife",
+            "derby": true
+          }
+        ]
+      },
+      {
+        "nr": 2,
+        "half": "hin",
+        "weekendIndex": 1,
+        "bye": "spartans-vi",
+        "games": [
+          {
+            "home": "jolly-pirates-v",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "belfort-evolution",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "fiaker-deife",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "dc-animals-ii",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 3,
+        "half": "hin",
+        "weekendIndex": 2,
+        "bye": "dc-animals-ii",
+        "games": [
+          {
+            "home": "belfort-evolution",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-v",
+            "away": "oldies-co",
+            "derby": false
+          },
+          {
+            "home": "team-illuminati--28d702",
+            "away": "freibad-bazis",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "treff-nix-freimann",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 4,
+        "half": "hin",
+        "weekendIndex": 3,
+        "bye": "fiaker-deife",
+        "games": [
+          {
+            "home": "oldies-co",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "belfort-evolution",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "jolly-pirates-v",
+            "derby": false
+          },
+          {
+            "home": "team-illuminati--28d702",
+            "away": "treff-nix-freimann",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 5,
+        "half": "hin",
+        "weekendIndex": 4,
+        "bye": "team-illuminati--28d702",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "dc-animals-ii",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "freibad-bazis",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "belfort-evolution",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "jolly-pirates-v",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 6,
+        "half": "hin",
+        "weekendIndex": 5,
+        "bye": "jolly-pirates-v",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "freibad-bazis",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "fiaker-deife",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "oldies-co",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 7,
+        "half": "hin",
+        "weekendIndex": 6,
+        "bye": "oldies-co",
+        "games": [
+          {
+            "home": "fiaker-deife",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "treff-nix-freimann",
+            "derby": false
+          },
+          {
+            "home": "team-illuminati--28d702",
+            "away": "dc-animals-ii",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-v",
+            "away": "belfort-evolution",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 8,
+        "half": "hin",
+        "weekendIndex": 7,
+        "bye": "freibad-bazis",
+        "games": [
+          {
+            "home": "treff-nix-freimann",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "team-illuminati--28d702",
+            "away": "fiaker-deife",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "jolly-pirates-v",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "oldies-co",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 9,
+        "half": "hin",
+        "weekendIndex": 8,
+        "bye": "treff-nix-freimann",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-v",
+            "away": "fiaker-deife",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "belfort-evolution",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "dc-animals-ii",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 10,
+        "half": "rueck",
+        "weekendIndex": 9,
+        "bye": "belfort-evolution",
+        "games": [
+          {
+            "home": "jolly-pirates-v",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "dc-animals-ii",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "freibad-bazis",
+            "derby": true
+          }
+        ]
+      },
+      {
+        "nr": 11,
+        "half": "rueck",
+        "weekendIndex": 10,
+        "bye": "spartans-vi",
+        "games": [
+          {
+            "home": "team-illuminati--28d702",
+            "away": "jolly-pirates-v",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "treff-nix-freimann",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "oldies-co",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "freibad-bazis",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 12,
+        "half": "rueck",
+        "weekendIndex": 11,
+        "bye": "dc-animals-ii",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "belfort-evolution",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "jolly-pirates-v",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "fiaker-deife",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 13,
+        "half": "rueck",
+        "weekendIndex": 12,
+        "bye": "fiaker-deife",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "oldies-co",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "dc-animals-ii",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-v",
+            "away": "freibad-bazis",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 14,
+        "half": "rueck",
+        "weekendIndex": 13,
+        "bye": "team-illuminati--28d702",
+        "games": [
+          {
+            "home": "dc-animals-ii",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "freibad-bazis",
+            "away": "oldies-co",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "fiaker-deife",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-v",
+            "away": "treff-nix-freimann",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 15,
+        "half": "rueck",
+        "weekendIndex": 14,
+        "bye": "jolly-pirates-v",
+        "games": [
+          {
+            "home": "freibad-bazis",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "dc-animals-ii",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "treff-nix-freimann",
+            "derby": false
+          },
+          {
+            "home": "team-illuminati--28d702",
+            "away": "belfort-evolution",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 16,
+        "half": "rueck",
+        "weekendIndex": 15,
+        "bye": "oldies-co",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "fiaker-deife",
+            "derby": false
+          },
+          {
+            "home": "treff-nix-freimann",
+            "away": "freibad-bazis",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "jolly-pirates-v",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 17,
+        "half": "rueck",
+        "weekendIndex": 16,
+        "bye": "freibad-bazis",
+        "games": [
+          {
+            "home": "spartans-vi",
+            "away": "treff-nix-freimann",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "team-illuminati--28d702",
+            "derby": false
+          },
+          {
+            "home": "jolly-pirates-v",
+            "away": "dc-animals-ii",
+            "derby": false
+          },
+          {
+            "home": "oldies-co",
+            "away": "belfort-evolution",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 18,
+        "half": "rueck",
+        "weekendIndex": 17,
+        "bye": "treff-nix-freimann",
+        "games": [
+          {
+            "home": "team-illuminati--28d702",
+            "away": "spartans-vi",
+            "derby": false
+          },
+          {
+            "home": "fiaker-deife",
+            "away": "jolly-pirates-v",
+            "derby": false
+          },
+          {
+            "home": "belfort-evolution",
+            "away": "freibad-bazis",
+            "derby": false
+          },
+          {
+            "home": "dc-animals-ii",
+            "away": "oldies-co",
+            "derby": false
+          }
+        ]
+      }
+    ],
+    "b1": [
+      {
+        "nr": 1,
+        "half": "hin",
+        "weekendIndex": 0,
+        "bye": null,
+        "games": [
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "de-hutzeldarter",
+            "derby": true
+          },
+          {
+            "home": "wild-indians",
+            "away": "lucky-darts-one",
+            "derby": false
+          },
+          {
+            "home": "muenchen-0815",
+            "away": "master-of-desaster",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 2,
+        "half": "hin",
+        "weekendIndex": 1,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "team-black-storm-02eed0",
+            "derby": false
+          },
+          {
+            "home": "wild-indians",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          },
+          {
+            "home": "de-hutzeldarter",
+            "away": "muenchen-0815",
+            "derby": false
+          },
+          {
+            "home": "master-of-desaster",
+            "away": "lucky-darts-one",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 3,
+        "half": "hin",
+        "weekendIndex": 3,
+        "bye": null,
+        "games": [
+          {
+            "home": "de-hutzeldarter",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-one",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          },
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "master-of-desaster",
+            "derby": false
+          },
+          {
+            "home": "muenchen-0815",
+            "away": "wild-indians",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 4,
+        "half": "hin",
+        "weekendIndex": 4,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "lucky-darts-one",
+            "derby": false
+          },
+          {
+            "home": "master-of-desaster",
+            "away": "de-hutzeldarter",
+            "derby": false
+          },
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "muenchen-0815",
+            "derby": false
+          },
+          {
+            "home": "wild-indians",
+            "away": "team-black-storm-02eed0",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 5,
+        "half": "hin",
+        "weekendIndex": 5,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "master-of-desaster",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-one",
+            "away": "muenchen-0815",
+            "derby": false
+          },
+          {
+            "home": "de-hutzeldarter",
+            "away": "wild-indians",
+            "derby": false
+          },
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 6,
+        "half": "hin",
+        "weekendIndex": 7,
+        "bye": null,
+        "games": [
+          {
+            "home": "muenchen-0815",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "wild-indians",
+            "away": "master-of-desaster",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-one",
+            "away": "team-black-storm-02eed0",
+            "derby": false
+          },
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "de-hutzeldarter",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 7,
+        "half": "hin",
+        "weekendIndex": 8,
+        "bye": null,
+        "games": [
+          {
+            "home": "wild-indians",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "muenchen-0815",
+            "derby": false
+          },
+          {
+            "home": "master-of-desaster",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          },
+          {
+            "home": "de-hutzeldarter",
+            "away": "lucky-darts-one",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 8,
+        "half": "rueck",
+        "weekendIndex": 9,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          },
+          {
+            "home": "de-hutzeldarter",
+            "away": "team-black-storm-02eed0",
+            "derby": true
+          },
+          {
+            "home": "lucky-darts-one",
+            "away": "wild-indians",
+            "derby": false
+          },
+          {
+            "home": "master-of-desaster",
+            "away": "muenchen-0815",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 9,
+        "half": "rueck",
+        "weekendIndex": 10,
+        "bye": null,
+        "games": [
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "wild-indians",
+            "derby": false
+          },
+          {
+            "home": "muenchen-0815",
+            "away": "de-hutzeldarter",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-one",
+            "away": "master-of-desaster",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 10,
+        "half": "rueck",
+        "weekendIndex": 12,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "de-hutzeldarter",
+            "derby": false
+          },
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "lucky-darts-one",
+            "derby": false
+          },
+          {
+            "home": "master-of-desaster",
+            "away": "team-black-storm-02eed0",
+            "derby": false
+          },
+          {
+            "home": "wild-indians",
+            "away": "muenchen-0815",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 11,
+        "half": "rueck",
+        "weekendIndex": 13,
+        "bye": null,
+        "games": [
+          {
+            "home": "lucky-darts-one",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "de-hutzeldarter",
+            "away": "master-of-desaster",
+            "derby": false
+          },
+          {
+            "home": "muenchen-0815",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          },
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "wild-indians",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 12,
+        "half": "rueck",
+        "weekendIndex": 14,
+        "bye": null,
+        "games": [
+          {
+            "home": "master-of-desaster",
+            "away": "game-over",
+            "derby": false
+          },
+          {
+            "home": "muenchen-0815",
+            "away": "lucky-darts-one",
+            "derby": false
+          },
+          {
+            "home": "wild-indians",
+            "away": "de-hutzeldarter",
+            "derby": false
+          },
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "team-black-storm-02eed0",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 13,
+        "half": "rueck",
+        "weekendIndex": 16,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "muenchen-0815",
+            "derby": false
+          },
+          {
+            "home": "master-of-desaster",
+            "away": "wild-indians",
+            "derby": false
+          },
+          {
+            "home": "team-black-storm-02eed0",
+            "away": "lucky-darts-one",
+            "derby": false
+          },
+          {
+            "home": "de-hutzeldarter",
+            "away": "team-dart-s-vaders-48de8a",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 14,
+        "half": "rueck",
+        "weekendIndex": 17,
+        "bye": null,
+        "games": [
+          {
+            "home": "game-over",
+            "away": "wild-indians",
+            "derby": false
+          },
+          {
+            "home": "muenchen-0815",
+            "away": "team-black-storm-02eed0",
+            "derby": false
+          },
+          {
+            "home": "team-dart-s-vaders-48de8a",
+            "away": "master-of-desaster",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-one",
+            "away": "de-hutzeldarter",
+            "derby": false
+          }
+        ]
+      }
+    ],
+    "b2": [
+      {
+        "nr": 1,
+        "half": "hin",
+        "weekendIndex": 0,
+        "bye": "sound-warriors",
+        "games": [
+          {
+            "home": "lucky-darts-two",
+            "away": "team-wakan-tanka-fff298",
+            "derby": false
+          },
+          {
+            "home": "flying-fighters",
+            "away": "team-leider-geil-dec512",
+            "derby": false
+          },
+          {
+            "home": "team-desaster",
+            "away": "de-vogelwuidn",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 2,
+        "half": "hin",
+        "weekendIndex": 1,
+        "bye": "team-leider-geil-dec512",
+        "games": [
+          {
+            "home": "team-wakan-tanka-fff298",
+            "away": "sound-warriors",
+            "derby": false
+          },
+          {
+            "home": "de-vogelwuidn",
+            "away": "lucky-darts-two",
+            "derby": false
+          },
+          {
+            "home": "team-desaster",
+            "away": "flying-fighters",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 3,
+        "half": "hin",
+        "weekendIndex": 3,
+        "bye": "team-desaster",
+        "games": [
+          {
+            "home": "sound-warriors",
+            "away": "team-leider-geil-dec512",
+            "derby": false
+          },
+          {
+            "home": "de-vogelwuidn",
+            "away": "team-wakan-tanka-fff298",
+            "derby": false
+          },
+          {
+            "home": "flying-fighters",
+            "away": "lucky-darts-two",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 4,
+        "half": "hin",
+        "weekendIndex": 4,
+        "bye": "lucky-darts-two",
+        "games": [
+          {
+            "home": "sound-warriors",
+            "away": "de-vogelwuidn",
+            "derby": false
+          },
+          {
+            "home": "team-leider-geil-dec512",
+            "away": "team-desaster",
+            "derby": false
+          },
+          {
+            "home": "team-wakan-tanka-fff298",
+            "away": "flying-fighters",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 5,
+        "half": "hin",
+        "weekendIndex": 5,
+        "bye": "team-wakan-tanka-fff298",
+        "games": [
+          {
+            "home": "team-desaster",
+            "away": "sound-warriors",
+            "derby": false
+          },
+          {
+            "home": "flying-fighters",
+            "away": "de-vogelwuidn",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-two",
+            "away": "team-leider-geil-dec512",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 6,
+        "half": "hin",
+        "weekendIndex": 7,
+        "bye": "de-vogelwuidn",
+        "games": [
+          {
+            "home": "flying-fighters",
+            "away": "sound-warriors",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-two",
+            "away": "team-desaster",
+            "derby": false
+          },
+          {
+            "home": "team-leider-geil-dec512",
+            "away": "team-wakan-tanka-fff298",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 7,
+        "half": "hin",
+        "weekendIndex": 8,
+        "bye": "flying-fighters",
+        "games": [
+          {
+            "home": "sound-warriors",
+            "away": "lucky-darts-two",
+            "derby": false
+          },
+          {
+            "home": "team-desaster",
+            "away": "team-wakan-tanka-fff298",
+            "derby": false
+          },
+          {
+            "home": "de-vogelwuidn",
+            "away": "team-leider-geil-dec512",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 8,
+        "half": "rueck",
+        "weekendIndex": 9,
+        "bye": "sound-warriors",
+        "games": [
+          {
+            "home": "team-wakan-tanka-fff298",
+            "away": "lucky-darts-two",
+            "derby": false
+          },
+          {
+            "home": "team-leider-geil-dec512",
+            "away": "flying-fighters",
+            "derby": false
+          },
+          {
+            "home": "de-vogelwuidn",
+            "away": "team-desaster",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 9,
+        "half": "rueck",
+        "weekendIndex": 10,
+        "bye": "team-leider-geil-dec512",
+        "games": [
+          {
+            "home": "sound-warriors",
+            "away": "team-wakan-tanka-fff298",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-two",
+            "away": "de-vogelwuidn",
+            "derby": false
+          },
+          {
+            "home": "flying-fighters",
+            "away": "team-desaster",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 10,
+        "half": "rueck",
+        "weekendIndex": 12,
+        "bye": "team-desaster",
+        "games": [
+          {
+            "home": "team-leider-geil-dec512",
+            "away": "sound-warriors",
+            "derby": false
+          },
+          {
+            "home": "team-wakan-tanka-fff298",
+            "away": "de-vogelwuidn",
+            "derby": false
+          },
+          {
+            "home": "lucky-darts-two",
+            "away": "flying-fighters",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 11,
+        "half": "rueck",
+        "weekendIndex": 13,
+        "bye": "lucky-darts-two",
+        "games": [
+          {
+            "home": "de-vogelwuidn",
+            "away": "sound-warriors",
+            "derby": false
+          },
+          {
+            "home": "team-desaster",
+            "away": "team-leider-geil-dec512",
+            "derby": false
+          },
+          {
+            "home": "flying-fighters",
+            "away": "team-wakan-tanka-fff298",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 12,
+        "half": "rueck",
+        "weekendIndex": 14,
+        "bye": "team-wakan-tanka-fff298",
+        "games": [
+          {
+            "home": "sound-warriors",
+            "away": "team-desaster",
+            "derby": false
+          },
+          {
+            "home": "de-vogelwuidn",
+            "away": "flying-fighters",
+            "derby": false
+          },
+          {
+            "home": "team-leider-geil-dec512",
+            "away": "lucky-darts-two",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 13,
+        "half": "rueck",
+        "weekendIndex": 16,
+        "bye": "de-vogelwuidn",
+        "games": [
+          {
+            "home": "sound-warriors",
+            "away": "flying-fighters",
+            "derby": false
+          },
+          {
+            "home": "team-desaster",
+            "away": "lucky-darts-two",
+            "derby": false
+          },
+          {
+            "home": "team-wakan-tanka-fff298",
+            "away": "team-leider-geil-dec512",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 14,
+        "half": "rueck",
+        "weekendIndex": 17,
+        "bye": "flying-fighters",
+        "games": [
+          {
+            "home": "lucky-darts-two",
+            "away": "sound-warriors",
+            "derby": false
+          },
+          {
+            "home": "team-wakan-tanka-fff298",
+            "away": "team-desaster",
+            "derby": false
+          },
+          {
+            "home": "team-leider-geil-dec512",
+            "away": "de-vogelwuidn",
+            "derby": false
+          }
+        ]
+      }
+    ],
+    "c": [
+      {
+        "nr": 1,
+        "half": "hin",
+        "weekendIndex": 0,
+        "bye": "team-dartpromillos--841baa",
+        "games": [
+          {
+            "home": "team-w-rmtal-bazis-d22210",
+            "away": "team-jolly-pirates-vii-3156af",
+            "derby": false
+          },
+          {
+            "home": "team-team-desaster-m-dels-418268",
+            "away": "fuenf-sterne-boazn",
+            "derby": false
+          },
+          {
+            "home": "black-devils",
+            "away": "funny-darters",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 2,
+        "half": "hin",
+        "weekendIndex": 1,
+        "bye": "fuenf-sterne-boazn",
+        "games": [
+          {
+            "home": "team-dartpromillos--841baa",
+            "away": "team-jolly-pirates-vii-3156af",
+            "derby": false
+          },
+          {
+            "home": "funny-darters",
+            "away": "team-w-rmtal-bazis-d22210",
+            "derby": false
+          },
+          {
+            "home": "black-devils",
+            "away": "team-team-desaster-m-dels-418268",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 3,
+        "half": "hin",
+        "weekendIndex": 3,
+        "bye": "black-devils",
+        "games": [
+          {
+            "home": "team-dartpromillos--841baa",
+            "away": "fuenf-sterne-boazn",
+            "derby": false
+          },
+          {
+            "home": "team-jolly-pirates-vii-3156af",
+            "away": "funny-darters",
+            "derby": false
+          },
+          {
+            "home": "team-team-desaster-m-dels-418268",
+            "away": "team-w-rmtal-bazis-d22210",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 4,
+        "half": "hin",
+        "weekendIndex": 4,
+        "bye": "team-w-rmtal-bazis-d22210",
+        "games": [
+          {
+            "home": "funny-darters",
+            "away": "team-dartpromillos--841baa",
+            "derby": false
+          },
+          {
+            "home": "fuenf-sterne-boazn",
+            "away": "black-devils",
+            "derby": false
+          },
+          {
+            "home": "team-jolly-pirates-vii-3156af",
+            "away": "team-team-desaster-m-dels-418268",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 5,
+        "half": "hin",
+        "weekendIndex": 5,
+        "bye": "team-jolly-pirates-vii-3156af",
+        "games": [
+          {
+            "home": "black-devils",
+            "away": "team-dartpromillos--841baa",
+            "derby": false
+          },
+          {
+            "home": "team-team-desaster-m-dels-418268",
+            "away": "funny-darters",
+            "derby": false
+          },
+          {
+            "home": "team-w-rmtal-bazis-d22210",
+            "away": "fuenf-sterne-boazn",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 6,
+        "half": "hin",
+        "weekendIndex": 7,
+        "bye": "funny-darters",
+        "games": [
+          {
+            "home": "team-dartpromillos--841baa",
+            "away": "team-team-desaster-m-dels-418268",
+            "derby": false
+          },
+          {
+            "home": "team-w-rmtal-bazis-d22210",
+            "away": "black-devils",
+            "derby": false
+          },
+          {
+            "home": "fuenf-sterne-boazn",
+            "away": "team-jolly-pirates-vii-3156af",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 7,
+        "half": "hin",
+        "weekendIndex": 8,
+        "bye": "team-team-desaster-m-dels-418268",
+        "games": [
+          {
+            "home": "team-dartpromillos--841baa",
+            "away": "team-w-rmtal-bazis-d22210",
+            "derby": false
+          },
+          {
+            "home": "black-devils",
+            "away": "team-jolly-pirates-vii-3156af",
+            "derby": false
+          },
+          {
+            "home": "funny-darters",
+            "away": "fuenf-sterne-boazn",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 8,
+        "half": "rueck",
+        "weekendIndex": 9,
+        "bye": "team-dartpromillos--841baa",
+        "games": [
+          {
+            "home": "team-jolly-pirates-vii-3156af",
+            "away": "team-w-rmtal-bazis-d22210",
+            "derby": false
+          },
+          {
+            "home": "fuenf-sterne-boazn",
+            "away": "team-team-desaster-m-dels-418268",
+            "derby": false
+          },
+          {
+            "home": "funny-darters",
+            "away": "black-devils",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 9,
+        "half": "rueck",
+        "weekendIndex": 10,
+        "bye": "fuenf-sterne-boazn",
+        "games": [
+          {
+            "home": "team-jolly-pirates-vii-3156af",
+            "away": "team-dartpromillos--841baa",
+            "derby": false
+          },
+          {
+            "home": "team-w-rmtal-bazis-d22210",
+            "away": "funny-darters",
+            "derby": false
+          },
+          {
+            "home": "team-team-desaster-m-dels-418268",
+            "away": "black-devils",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 10,
+        "half": "rueck",
+        "weekendIndex": 12,
+        "bye": "black-devils",
+        "games": [
+          {
+            "home": "fuenf-sterne-boazn",
+            "away": "team-dartpromillos--841baa",
+            "derby": false
+          },
+          {
+            "home": "funny-darters",
+            "away": "team-jolly-pirates-vii-3156af",
+            "derby": false
+          },
+          {
+            "home": "team-w-rmtal-bazis-d22210",
+            "away": "team-team-desaster-m-dels-418268",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 11,
+        "half": "rueck",
+        "weekendIndex": 13,
+        "bye": "team-w-rmtal-bazis-d22210",
+        "games": [
+          {
+            "home": "team-dartpromillos--841baa",
+            "away": "funny-darters",
+            "derby": false
+          },
+          {
+            "home": "black-devils",
+            "away": "fuenf-sterne-boazn",
+            "derby": false
+          },
+          {
+            "home": "team-team-desaster-m-dels-418268",
+            "away": "team-jolly-pirates-vii-3156af",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 12,
+        "half": "rueck",
+        "weekendIndex": 14,
+        "bye": "team-jolly-pirates-vii-3156af",
+        "games": [
+          {
+            "home": "team-dartpromillos--841baa",
+            "away": "black-devils",
+            "derby": false
+          },
+          {
+            "home": "funny-darters",
+            "away": "team-team-desaster-m-dels-418268",
+            "derby": false
+          },
+          {
+            "home": "fuenf-sterne-boazn",
+            "away": "team-w-rmtal-bazis-d22210",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 13,
+        "half": "rueck",
+        "weekendIndex": 16,
+        "bye": "funny-darters",
+        "games": [
+          {
+            "home": "team-team-desaster-m-dels-418268",
+            "away": "team-dartpromillos--841baa",
+            "derby": false
+          },
+          {
+            "home": "black-devils",
+            "away": "team-w-rmtal-bazis-d22210",
+            "derby": false
+          },
+          {
+            "home": "team-jolly-pirates-vii-3156af",
+            "away": "fuenf-sterne-boazn",
+            "derby": false
+          }
+        ]
+      },
+      {
+        "nr": 14,
+        "half": "rueck",
+        "weekendIndex": 17,
+        "bye": "team-team-desaster-m-dels-418268",
+        "games": [
+          {
+            "home": "team-w-rmtal-bazis-d22210",
+            "away": "team-dartpromillos--841baa",
+            "derby": false
+          },
+          {
+            "home": "team-jolly-pirates-vii-3156af",
+            "away": "black-devils",
+            "derby": false
+          },
+          {
+            "home": "fuenf-sterne-boazn",
+            "away": "funny-darters",
+            "derby": false
+          }
+        ]
+      }
+    ]
+  }
+}

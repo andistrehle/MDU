@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { LEAGUES, TEAMS, PLAYERS } from '@/lib/data';
+import { LIGEN_2027, alleTeams27 } from '@/lib/data/saison-2027';
 import { MDC_STANDALONE, MDC_ORIGIN } from '@/lib/mdc/site';
 import { publishedNews } from '@/data/news';
 import { PLAYERS as MDC_PLAYERS } from '@/data/players';
@@ -49,6 +50,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '', '/ligen', '/tabellen', '/spielplan', '/ergebnisse',
     '/teams', '/spielstaetten', '/downloads', '/news',
     '/kontakt', '/impressum', '/datenschutz',
+    // Archiv Saison 2025/26
+    '/ligen/2025-26', '/tabellen/2025-26', '/spielplan/2025-26', '/ergebnisse/2025-26',
+    '/teams/2025-26', '/spielstaetten/2025-26',
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map(p => ({
@@ -57,8 +61,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // Dynamische öffentliche Seiten
-  const leagueEntries = LEAGUES.map(l => ({ url: `${SITE_URL}/ligen/${l.id}`, lastModified: now }));
-  const teamEntries   = TEAMS.map(t => ({ url: `${SITE_URL}/teams/${t.id}`, lastModified: now }));
+  // Ligen/Teams beider Saisons (Codes bzw. IDs, die in beiden vorkommen, nur einmal).
+  const leagueIds = [...new Set([...LIGEN_2027.map(l => l.code), ...LEAGUES.map(l => l.id)])];
+  const teamIds   = [...new Set([...alleTeams27().map(t => t.id), ...TEAMS.map(t => t.id)])];
+  const leagueEntries = leagueIds.map(id => ({ url: `${SITE_URL}/ligen/${id}`, lastModified: now }));
+  const teamEntries   = teamIds.map(id => ({ url: `${SITE_URL}/teams/${id}`, lastModified: now }));
   const playerEntries = PLAYERS.map(p => ({ url: `${SITE_URL}/spieler/${p.id}`, lastModified: now }));
 
   return [...staticEntries, ...leagueEntries, ...teamEntries, ...playerEntries];

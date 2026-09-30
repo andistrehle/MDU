@@ -9,6 +9,7 @@ import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers, canE
 import type { UserProfile } from '@/lib/auth/roles';
 import { useCaptainMode } from '@/lib/auth/use-captain-mode';
 import { getCurrentSeason, getCurrentCompetitionForTeam, findTeam } from '@/lib/data';
+import { team27 } from '@/lib/data/saison-2027';
 import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 import { useNotifications, type NotificationArea } from '@/lib/supabase/user-notifications';
 import { getRegistrationSeason } from '@/lib/supabase/seasons';
@@ -60,7 +61,10 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
 
   // Mit einem Team verknüpft (Spieler ODER Kapitän) — Team & Liga ansehen
   if (user.teamId) {
-    const myTeam = findTeam(user.teamId);
+    // Name/Kürzel: Saison 2026/27 zuerst (auch neue Teams ohne statische Stammdaten).
+    const t27 = team27(user.teamId);
+    const staticTeam = findTeam(user.teamId);
+    const myTeam = t27 ? { name: t27.name, short: t27.short, color: t27.color } : staticTeam;
     // Kapitäne/Admins → Verwaltungs-Untermenü; reine Spieler → direkt zum öffentlichen Profil.
     const teamEditable = canEditTeam(user, user.teamId);
     tiles.push({
@@ -73,7 +77,16 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       href: teamEditable ? '/mein-team' : `/teams/${user.teamId}`,
       ready: true, notifKey: 'team', tourKey: 'm-team',
     });
-    const leagueId = getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;
+    // Spielplan 2026/27 (vorläufig) — für alle mit Team; Drucken dort nur für TCs.
+    if (t27) {
+      tiles.push(
+        { icon: 'calendar', label: 'Mein Spielplan', description: teamEditable
+            ? 'Spiele deines Teams 2026/27 (vorläufig) — mit Druckvorlage für die TC-Sitzung.'
+            : 'Spiele deines Teams in der Saison 2026/27 (vorläufig).',
+          href: '/mein-team/spielplan', ready: true },
+      );
+    }
+    const leagueId = t27?.league ?? getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;
     if (leagueId) {
       tiles.push(
         { icon: 'trophy', label: 'Meine Liga', description: 'Direkt zu deiner Liga – Tabelle und Spiele.', href: `/ligen/${leagueId}`, ready: true, tourKey: 'm-league' },
