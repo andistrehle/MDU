@@ -10,6 +10,7 @@
 import { supabase } from './client';
 import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
 import { normalizePersonName } from '@/lib/auth/player-match';
+import { findMatchingVenue } from '@/lib/venue-match';
 
 /** display_name → Vor-/Nachname (letztes Wort = Nachname). Lokal, um einen
  *  Zyklus mit lib/supabase/registrations (importiert finalize von hier) zu meiden. */
@@ -162,17 +163,39 @@ export async function deleteRosterPlayer(seasonId: string, teamId: string, rowId
   return { error: null };
 }
 
+/** Kurzname (Kürzel) eines Teams ändern — liegt saisonübergreifend in `teams`.
+ *  Läuft über die spaltengenaue RPC aus Migration 0036 (wie das Team-Profil).
+ *  Ein Kürzel, das schon ein ANDERES Team trägt, wird abgelehnt: In Tabellen
+ *  und Spielplänen wären die beiden sonst nicht zu unterscheiden. */
+export async function setTeamShortName(teamId: string, shortName: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const sn = shortName.trim().toUpperCase();
+  if (!sn) return { error: 'Bitte ein Kürzel angeben.' };
+  if (sn.length > 5) return { error: 'Das Kürzel darf höchstens 5 Zeichen haben.' };
+  const { data: taken } = await supabase.from('teams').select('id, name').ilike('short_name', sn).neq('id', teamId).limit(1);
+  const other = (taken ?? [])[0] as { id: string; name: string } | undefined;
+  if (other) return { error: `„${sn}" hat schon ${other.name.trim()}.` };
+  const { error } = await supabase.rpc('set_team_short_name', { p_team_id: teamId, p_short_name: sn });
+  if (!error) return { error: null };
+  // Fallback wie in saveTeamProfile, falls Migration 0036 noch fehlt (Admins via teams_admin_write).
+  if (!/PGRST202|could not find the function|does not exist/i.test(error.message))
+    return { error: `Kürzel konnte nicht gespeichert werden: ${error.message}` };
+  const { error: dErr } = await supabase.from('teams').update({ short_name: sn, updated_at: new Date().toISOString() }).eq('id', teamId);
+  return { error: dErr ? `Kürzel konnte nicht gespeichert werden: ${dErr.message}` : null };
+}
+
 /** Spielstätte eines Saison-Teams ändern. Sucht eine passende Venue (Name +
- *  Adresse, tolerant) und verwendet sie wieder – sonst wird eine neue angelegt.
- *  Danach zeigt das Team auf diese Venue (kein Umbenennen der alten). */
+ *  Straße/Hausnummer, tolerant, siehe findMatchingVenue) und verwendet sie
+ *  wieder – sonst wird eine neue angelegt. Danach zeigt das Team auf diese
+ *  Venue (kein Umbenennen der alten). */
 export async function setSeasonTeamVenue(seasonId: string, teamId: string, name: string, address: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const nm = name.trim(), addr = address.trim();
   if (!nm) return { error: 'Bitte einen Namen für die Spielstätte angeben.' };
-  const norm = (s: string | null) => (s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
   const { data: venues } = await supabase.from('venues').select('id, name, address');
-  let venueId = ((venues ?? []) as { id: string; name: string; address: string | null }[])
-    .find(v => norm(v.name) === norm(nm) && norm(v.address) === norm(addr))?.id ?? null;
+  let venueId = findMatchingVenue(
+    (venues ?? []) as { id: string; name: string; address: string | null }[],
+    nm, addr, { byStreet: false })?.id ?? null;
   if (!venueId) {
     const rnd = (globalThis.crypto?.randomUUID?.() ?? `${Math.random()}${Math.random()}`).replace(/[^a-z0-9]/gi, '').slice(0, 10);
     venueId = `venue-${rnd}`;

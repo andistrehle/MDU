@@ -14,7 +14,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setSeasonTeamContact, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setTeamShortName, setSeasonTeamContact, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
@@ -150,6 +150,22 @@ export default function AdminSeasonTeamsPage() {
   // Neuen Spieler zum Kader hinzufügen (nachgemeldete Spieler).
   const [addName, setAddName] = useState<Record<string, string>>({});
   const [addingTo, setAddingTo] = useState<string | null>(null);
+
+  // Kurzname (Kürzel) eines Teams ändern.
+  const [shortEditTeam, setShortEditTeam] = useState<string | null>(null);
+  const [shortValue, setShortValue] = useState('');
+  const [savingShort, setSavingShort] = useState(false);
+  const [shortErr, setShortErr] = useState<string | null>(null);
+  async function onSaveShort(teamId: string) {
+    if (!shortValue.trim()) return;
+    setSavingShort(true);
+    setShortErr(null);
+    const { error } = await setTeamShortName(teamId, shortValue);
+    setSavingShort(false);
+    if (error) { setShortErr(error); return; }
+    setTeams(await listSeasonTeams(seasonId));
+    setShortEditTeam(null);
+  }
 
   // Spielstätte eines Teams ändern.
   const [venueEditTeam, setVenueEditTeam] = useState<string | null>(null);
@@ -297,7 +313,29 @@ export default function AdminSeasonTeamsPage() {
           <div style={{ padding: '4px 18px 16px', borderTop: '1px solid var(--th-line-4)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8, padding: '12px 0', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
               <span style={{ color: 'var(--th-text-muted)' }}>Kurzname</span>
-              <span style={{ color: t.teams?.short_name ? 'var(--th-text-strong)' : 'var(--th-text-faint2)', letterSpacing: t.teams?.short_name ? '0.08em' : undefined }}>{t.teams?.short_name ?? '–'}</span>
+              {shortEditTeam === t.team_id ? (
+                <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input value={shortValue} onChange={e => setShortValue(e.target.value.toUpperCase())} maxLength={5} placeholder="z. B. JP7"
+                    style={{ width: 110, padding: '6px 9px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, letterSpacing: '0.08em', outline: 'none' }} />
+                  <span style={{ display: 'flex', gap: 6 }}>
+                    <button type="button" onClick={() => onSaveShort(t.team_id)} disabled={savingShort || !shortValue.trim()}
+                      style={{ padding: '6px 12px', borderRadius: 7, cursor: savingShort ? 'wait' : 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
+                      {savingShort ? 'Speichere …' : 'Speichern'}
+                    </button>
+                    <button type="button" onClick={() => setShortEditTeam(null)}
+                      style={{ padding: '6px 10px', borderRadius: 7, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-muted)', border: '1px solid var(--th-line-10)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>Abbrechen</button>
+                  </span>
+                  {shortErr && <span role="alert" style={{ fontSize: 12, color: '#E24B4A' }}>{shortErr}</span>}
+                  <span style={{ fontSize: 11, color: 'var(--th-text-faint)' }}>Gilt für das Team in allen Saisons. Höchstens 5 Zeichen, kein Kürzel doppelt.</span>
+                </span>
+              ) : (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ color: t.teams?.short_name ? 'var(--th-text-strong)' : 'var(--th-text-faint2)', letterSpacing: t.teams?.short_name ? '0.08em' : undefined }}>{t.teams?.short_name ?? '–'}</span>
+                  <button type="button" title="Kurzname ändern"
+                    onClick={() => { setShortEditTeam(t.team_id); setShortValue(t.teams?.short_name ?? ''); setShortErr(null); }}
+                    style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', fontSize: 12 }}>✎</button>
+                </span>
+              )}
               <span style={{ color: 'var(--th-text-muted)' }}>Spielstätte</span>
               {venueEditTeam === t.team_id ? (
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
