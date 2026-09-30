@@ -67,7 +67,19 @@ export interface SpielortAenderung {
   note: string | null;
 }
 
-export const SPIELORT_AENDERUNGEN: SpielortAenderung[] = [];
+export const SPIELORT_AENDERUNGEN: SpielortAenderung[] = [
+  {
+    "venueId": "djk-wuermtal",
+    "neu": {
+      "boards": 3
+    },
+    "vorher": {
+      "boards": 2
+    },
+    "datum": "2026-09-30",
+    "note": null
+  }
+];
 
 /** Werte vergleichen — auch Listen (Spieltage, Telefonnummern). */
 export function gleicherWert(a: unknown, b: unknown): boolean {
