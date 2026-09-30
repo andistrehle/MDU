@@ -89,19 +89,21 @@ Verbleiber gemischt), vom Betreiber bestätigt. C-Liga enthält **Jolly Pirates 
   `season_team_assignments` der aktiven Saison? Kader vollständig (9, genau ein
   Kapitän)? Passnummern vergeben oder noch `pending_review` / „unklar“?
 
-## DB-Zugriff in der Cloud-Umgebung (Stand: eingerichtet, NUR LESEN)
+## DB-Zugriff in der Cloud-Umgebung
 - ENV in der Cloud-Umgebung „Default“ gesetzt: `NEXT_PUBLIC_SUPABASE_URL`
   (**ohne** `/rest/v1/` — sonst doppelter Pfad, Fehler PGRST125),
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`. **Kein Service-Role** (bewusst; RLS aktiv).
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Lesen, RLS aktiv) und
+  `SUPABASE_SERVICE_ROLE_KEY` (**Schreibzugriff, umgeht RLS, Produktiv-DB**).
 - Netzwerk: `*.supabase.co` freigegeben.
 - **Node-Eigenheit dieser Umgebung:** Supabase-Aufrufe brauchen
   `NODE_USE_ENV_PROXY=1` und `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`
   (als Umgebungsvariablen gesetzt), sonst geht Node 22 nicht über den Proxy.
 - Lesetest bestätigt: `seasons` = 2, `season_team_assignments` = 37 (HTTP 200).
-- **Wichtig:** ENV greift nur in **neu gestarteten** Sessions. Mit dem Anon-Key
-  sind evtl. nur öffentliche Tabellen lesbar (RLS) — Kader
-  (`season_roster_assignments`) ggf. nicht; dann Admin-Oberfläche oder gezielt
-  Service-Role.
+- **Sicherheitsregel:** Lesen ist frei. **Jede schreibende Aktion vorher genau
+  anzeigen** (Tabelle, Zeilen, SQL/Script) und **erst nach ausdrücklicher
+  Freigabe** des Betreibers ausführen. Nie ungefragt in die Produktiv-DB
+  schreiben. Der Service-Role-Key gilt umgebungsweit (jede Session).
+- **Wichtig:** ENV greift nur in **neu gestarteten** Sessions.
 
 ## Arbeitsweise (aus CLAUDE.md)
 Direkt auf `main` committen & pushen, keine PRs. Vor jedem Push
