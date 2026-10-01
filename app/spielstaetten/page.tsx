@@ -29,6 +29,7 @@ export default function SpielstaettenPage() {
         <SaisonUmschalter archiv={false} neuHref="/spielstaetten" archivHref="/spielstaetten/2025-26" />
         <InfoZeile>
           {venues.length} Spielstätten, {teams.length} Teams. Je Lokal alle Teams, die dort ihre Heimspiele austragen.
+          {' '}Für die Wirte: Unter „Heimspiel-Plan“ stehen alle Heimspiele eines Lokals nach Wochenenden, auch zum Ausdrucken.
         </InfoZeile>
 
         <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
@@ -72,6 +73,10 @@ export default function SpielstaettenPage() {
                     );
                   })}
                 </div>
+
+                <Link href={`/spielstaetten/${v.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 12, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                  Heimspiel-Plan nach Wochenenden <Icon name="arrow-right" size={13} stroke={2.5} />
+                </Link>
               </div>
             );
           })}

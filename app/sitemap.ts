@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { LEAGUES, TEAMS, PLAYERS } from '@/lib/data';
-import { LIGEN_2027, alleTeams27 } from '@/lib/data/saison-2027';
+import { LIGEN_2027, alleTeams27, alleVenues27 } from '@/lib/data/saison-2027';
 import { MDC_STANDALONE, MDC_ORIGIN } from '@/lib/mdc/site';
 import { publishedNews } from '@/data/news';
 import { PLAYERS as MDC_PLAYERS } from '@/data/players';
@@ -68,5 +68,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const teamEntries   = teamIds.map(id => ({ url: `${SITE_URL}/teams/${id}`, lastModified: now }));
   const playerEntries = PLAYERS.map(p => ({ url: `${SITE_URL}/spieler/${p.id}`, lastModified: now }));
 
-  return [...staticEntries, ...leagueEntries, ...teamEntries, ...playerEntries];
+  const venueEntries  = alleVenues27().map(v => ({ url: `${SITE_URL}/spielstaetten/${v.id}`, lastModified: now }));
+
+  return [...staticEntries, ...leagueEntries, ...teamEntries, ...venueEntries, ...playerEntries];
 }

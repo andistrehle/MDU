@@ -140,6 +140,11 @@ Verbleiber gemischt), vom Betreiber bestätigt. C-Liga enthält **Jolly Pirates 
   (liest Spielplan-JSON + DB mit anon-Key, schreibt NICHTS in die DB). Nach neuem Generator-Lauf
   oder DB-Änderungen (Kürzel, Logo, Lokal) neu laufen lassen und committen.
 
+## Heimspiel-Plan für die Wirte (01.10.2026)
+`/spielstaetten/[id]` (statisch je Lokal, `heimspieleImLokal27`): alle Spielwochenenden der
+Saison mit den Heimspielen aller Teams dieses Lokals, freie Wochenenden markiert, Druckknopf
+(`venueSheet` aus `lib/spielplan/printing.ts`). Verlinkt von jeder Karte auf `/spielstaetten`.
+
 ## Auf-/Abstieg 2026/27 (vom Betreiber festgelegt, 01.10.2026)
 Regeln als Daten in `AUF_AB_2027` (`lib/data/saison-2027.ts`), Anzeige
 `components/mdu/auf-abstieg-27.tsx` auf `/tabellen` (ganze Übersicht) und im Reiter

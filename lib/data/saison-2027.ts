@@ -200,3 +200,22 @@ export function groessenNaechsteSaison(): Record<Stufe, number> {
   }
   return n;
 }
+
+// ── Spielort-Plan (für die Wirte) ─────────────────────────────
+export interface VenueWochenende27 {
+  fri: string; sun: string;
+  spiele: { liga: Liga27; spieltag: number; spiel: Spiel27 }[];
+}
+/** Alle Spielwochenenden der Saison mit den Heimspielen in einem Lokal (über
+ *  alle Ligen). Wochenenden ohne Heimspiel sind mit leerer Liste dabei — der
+ *  Wirt sieht so auch, wann bei ihm nichts los ist. */
+export function heimspieleImLokal27(venueId: string): VenueWochenende27[] {
+  return RAW.weekends.map(w => ({
+    fri: w.fri, sun: w.sun,
+    spiele: LIGEN_2027.flatMap(liga => spieltage27(liga.code)
+      .filter(md => md.fri === w.fri)
+      .flatMap(md => md.games
+        .filter(g => team27(g.home)?.venueId === venueId)
+        .map(spiel => ({ liga, spieltag: md.nr, spiel })))),
+  }));
+}
