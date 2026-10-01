@@ -44,6 +44,7 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|328|LÖFFLER|TOM|0|0||',
   '0|133|HARLEKIN|ANDI|0|0||',
   '0|403|SCHMATZ|GEORG|0|0||',
+  '0|321|NEUBAUER|STEFAN|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
