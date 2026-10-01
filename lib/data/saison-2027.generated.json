@@ -2,7 +2,7 @@
   "_hinweis": "ERZEUGT von scripts/mdu-saison-2027-snapshot.ts — nicht von Hand ändern, Skript neu laufen lassen.",
   "seasonId": "season-2027",
   "planGeneratedAt": "2026-09-29T19:26:12.777Z",
-  "snapshotAt": "2026-09-30T14:48:23.213Z",
+  "snapshotAt": "2026-10-01T11:34:53.654Z",
   "leagues": [
     {
       "key": "la",
@@ -363,7 +363,7 @@
     },
     "team-jolly-pirates-vii-3156af": {
       "name": "Jolly Pirates VII",
-      "short": "JPV",
+      "short": "JP7",
       "color": "#6B7A8F",
       "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-jolly-pirates-vii-3156af/logo.webp?t=1790777610940",
       "venueId": "venue-08c4104796",
