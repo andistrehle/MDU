@@ -51,7 +51,8 @@ export function Liga27Client({ code, initialTab = 0 }: { code: Liga27Code; initi
                 ['Saison', NEUE_SAISON.name],
                 ['Teams', String(liga.teams.length)],
                 ['Spieltage', `${mds.length} (Hin- und Rückrunde)`],
-                ['Zeitraum', `${datumText(SAISON_START)} – ${datumText(SAISON_ENDE)}`],
+                // Der letzte Spieltag ist nicht das Saisonende — danach folgen die Relegationsspiele.
+                ['Termine', `${datumText(SAISON_START)} – ${datumText(SAISON_ENDE)}, danach Relegation`],
                 ['Status', 'Saison beginnt · Spielplan vorläufig'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', gap: 12, padding: '7px 0', borderTop: '1px solid var(--th-line-4)', ...body, fontSize: 13 }}>
