@@ -5,7 +5,7 @@ import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
-import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { SaisonUmschalter, InfoZeile } from '@/components/mdu/saison-umschalter';
 import { alleVenues27, alleTeams27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
 export const metadata: Metadata = { title: 'Spielstätten' };
@@ -27,9 +27,9 @@ export default function SpielstaettenPage() {
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         <SaisonUmschalter archiv={false} neuHref="/spielstaetten" archivHref="/spielstaetten/2025-26" />
-        <p style={{ margin: '0 0 22px', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)' }}>
+        <InfoZeile>
           {venues.length} Spielstätten, {teams.length} Teams. Je Lokal alle Teams, die dort ihre Heimspiele austragen.
-        </p>
+        </InfoZeile>
 
         <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
           {venues.map(({ v, teams: ts }) => {

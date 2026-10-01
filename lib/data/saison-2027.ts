@@ -160,3 +160,43 @@ export function spielplanDaten27(): SpielplanData {
     venueClusterObjective: 0,
   };
 }
+
+// ── Auf- und Abstieg 2026/27 (vom Betreiber festgelegt, 01.10.2026) ──────
+// Je Liga eine Zeile pro Tabellenplatz. Keine Relegation zwischen A und La:
+// aus der A steigen drei direkt auf, aus der La einer direkt ab.
+// Relegationsspiele am Saisonende: A-7. ↔ B2-2. (um die A Liga) und
+// B2-6. ↔ C-3. (um die B Liga) — Sieger oben, Verlierer unten; die
+// Ligagrößen ändern sich dadurch nicht.
+export type Stufe = 'La' | 'A' | 'B' | 'C';
+export type Zone = 'auf' | 'rel' | 'ab' | 'bleibt';
+export interface PlatzRegel { zone: Zone; text: string; ziel?: Stufe }
+
+const STUFE: Record<Liga27Code, Stufe> = { la: 'La', a: 'A', b1: 'B', b2: 'B', c: 'C' };
+const bleibt: PlatzRegel = { zone: 'bleibt', text: 'bleibt' };
+const auf = (ziel: Stufe): PlatzRegel => ({ zone: 'auf', text: `Aufstieg → ${ziel}`, ziel });
+const ab = (ziel: Stufe): PlatzRegel => ({ zone: 'ab', text: `Abstieg → ${ziel}`, ziel });
+const rel = (gegen: string): PlatzRegel => ({ zone: 'rel', text: `Relegation vs ${gegen}` });
+
+export const AUF_AB_2027: Record<Liga27Code, PlatzRegel[]> = {
+  la: [bleibt, bleibt, bleibt, bleibt, bleibt, ab('A')],
+  a:  [auf('La'), auf('La'), auf('La'), bleibt, bleibt, bleibt, rel('B2-2.'), ab('B'), ab('B')],
+  b1: [auf('A'), auf('A'), bleibt, bleibt, bleibt, bleibt, ab('C'), ab('C')],
+  b2: [auf('A'), rel('A-7.'), bleibt, bleibt, bleibt, rel('C-3.'), ab('C')],
+  c:  [auf('B'), auf('B'), rel('B2-6.'), bleibt, bleibt, bleibt, bleibt],
+};
+
+export const RELEGATIONEN_2027 = [
+  { oben: 'A-7.', unten: 'B2-2.', um: 'die A Liga' },
+  { oben: 'B2-6.', unten: 'C-3.', um: 'die B Liga' },
+] as const;
+
+/** Ligagrößen der Saison 2027/28 nach diesen Regeln (Relegation ist größenneutral). */
+export function groessenNaechsteSaison(): Record<Stufe, number> {
+  const n: Record<Stufe, number> = { La: 0, A: 0, B: 0, C: 0 };
+  for (const l of LIGEN_2027) {
+    const regeln = AUF_AB_2027[l.code];
+    if (regeln.length !== l.teams.length) throw new Error(`AUF_AB_2027.${l.code}: ${regeln.length} Plätze, Liga hat ${l.teams.length} Teams`);
+    for (const r of regeln) n[r.ziel ?? STUFE[l.code]]++;
+  }
+  return n;
+}

@@ -19,12 +19,12 @@ export default function SpielplanPage() {
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         <SaisonUmschalter archiv={false} neuHref="/spielplan" archivHref="/spielplan/2025-26" />
-        <VorlaeufigHinweis />
-
-        <p style={{ margin: '0 0 18px', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)' }}>
-          Saisonstart am Wochenende ab {datumText(SAISON_START)}, letzter Spieltag am Wochenende bis {datumText(SAISON_ENDE)}.
-          Ferienwochenenden sind spielfrei.
-        </p>
+        <VorlaeufigHinweis>
+          <div style={{ marginTop: 6, color: 'var(--th-text-muted)' }}>
+            Saisonstart am Wochenende ab {datumText(SAISON_START)}, letzter Spieltag am Wochenende bis {datumText(SAISON_ENDE)}.
+            Ferienwochenenden sind spielfrei.
+          </div>
+        </VorlaeufigHinweis>
 
         {/* Sprungmarken zu den Ligen */}
         <nav aria-label="Liga wählen" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
@@ -32,7 +32,8 @@ export default function SpielplanPage() {
             <a key={l.code} href={`#liga-${l.code}`} style={{
               padding: '7px 14px', borderRadius: 6, textDecoration: 'none',
               fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: 'var(--th-line-6)', color: 'var(--th-text-muted)', borderLeft: `3px solid ${l.color}`,
+              background: 'var(--th-bg-card)', color: 'var(--th-text-body)',
+              border: '1px solid var(--th-line-8)', borderLeft: `3px solid ${l.color}`,
             }}>{l.name}</a>
           ))}
         </nav>
@@ -40,7 +41,8 @@ export default function SpielplanPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
           {LIGEN_2027.map(liga => (
             <section key={liga.code} id={`liga-${liga.code}`} style={{ scrollMarginTop: 90 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              {/* Deckende Kopfleiste — auf dem Desktop liegt das Dartboard dahinter. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '10px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
                 <div style={{ width: 4, height: 24, borderRadius: 2, background: liga.color, flexShrink: 0 }} />
                 <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase' }}>
                   {liga.name}

@@ -69,7 +69,7 @@ export function LigaSpielplan27({ liga }: { liga: Liga27 }) {
   const hin = mds.filter(m => m.half === 'hin'), rueck = mds.filter(m => m.half === 'rueck');
   const block = (titel: string, list: Spieltag27[]) => (
     <div>
-      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--th-text-muted)', margin: '0 0 10px' }}>{titel}</div>
+      <div style={{ display: 'inline-block', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--th-text-body)', margin: '0 0 10px', padding: '4px 10px', borderRadius: 6, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>{titel}</div>
       <div className="mdu-spieltag-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 380px), 1fr))', gap: 12 }}>
         {list.map(md => <SpieltagKarte27 key={md.nr} md={md} color={liga.color} />)}
       </div>

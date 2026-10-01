@@ -18,7 +18,8 @@ export function SaisonUmschalter({ archiv, neuHref, archivHref, style }: {
     padding: '8px 14px', borderRadius: 999, textDecoration: 'none',
     fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, letterSpacing: '0.02em',
     border: `1px solid ${aktiv ? 'var(--th-accent)' : 'var(--th-line-18)'}`,
-    background: aktiv ? 'var(--th-accent)' : 'transparent',
+    // Fester Hintergrund: Auf dem Desktop liegt das Dartboard des Seitenkopfs dahinter.
+    background: aktiv ? 'var(--th-accent)' : 'var(--th-bg-card)',
     color: aktiv ? '#fff' : 'var(--th-text-muted)',
   });
   return (
@@ -35,16 +36,19 @@ export function SaisonUmschalter({ archiv, neuHref, archivHref, style }: {
 }
 
 /** Gelber Hinweis: Spielplan 2026/27 ist vorläufig. */
-export function VorlaeufigHinweis({ style }: { style?: React.CSSProperties }) {
+export function VorlaeufigHinweis({ style, children }: { style?: React.CSSProperties; children?: React.ReactNode }) {
   return (
     <div role="note" style={{
       padding: '12px 16px', borderRadius: 10, marginBottom: 24,
-      background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.4)',
+      // Deckend (Kartenfarbe + Goldton darüber) — sonst scheint das Dartboard durch.
+      background: 'linear-gradient(rgba(232,184,74,0.14), rgba(232,184,74,0.14)), var(--th-bg-card)',
+      border: '1px solid rgba(232,184,74,0.45)',
       fontFamily: 'var(--font-manrope)', fontSize: 13.5, lineHeight: 1.55, color: 'var(--th-text-body)',
       ...style,
     }}>
       <b style={{ color: 'var(--th-text-strong)' }}>Vorläufig.</b>{' '}
       {VORLAEUFIG_TEXT.replace(/^Vorläufiger Spielplan: /, '')}
+      {children}
     </div>
   );
 }
@@ -52,8 +56,20 @@ export function VorlaeufigHinweis({ style }: { style?: React.CSSProperties }) {
 /** Kleiner Hinweis oben auf Archivseiten. */
 export function ArchivHinweis({ style }: { style?: React.CSSProperties }) {
   return (
-    <p style={{ margin: '0 0 24px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', ...style }}>
+    <p style={{ ...INFO_ZEILE, ...style }}>
       Archiv: {ARCHIV_SAISON.name} ist abgeschlossen. Die Daten bleiben hier so stehen, wie die Saison geendet hat.
     </p>
   );
+}
+
+/** Einleitungszeile unter dem Umschalter: deckender Hintergrund, damit sie auf
+ *  dem Desktop über dem Dartboard des Seitenkopfs lesbar bleibt. */
+export const INFO_ZEILE: React.CSSProperties = {
+  margin: '0 0 24px', padding: '10px 14px', borderRadius: 10,
+  background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
+  fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.55, color: 'var(--th-text-muted)',
+};
+
+export function InfoZeile({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return <p style={{ ...INFO_ZEILE, ...style }}>{children}</p>;
 }

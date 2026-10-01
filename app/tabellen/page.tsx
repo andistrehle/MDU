@@ -5,7 +5,8 @@ import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { PageBanner } from '@/components/mdu/page-banner';
-import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { SaisonUmschalter, InfoZeile } from '@/components/mdu/saison-umschalter';
+import { AufAbstiegUebersicht } from '@/components/mdu/auf-abstieg-27';
 import { LIGEN_2027, NEUE_SAISON, team27, spieltage27, wochenendeText } from '@/lib/data/saison-2027';
 
 export const metadata: Metadata = { title: 'Tabellen' };
@@ -22,9 +23,10 @@ export default function TabellenPage() {
 
       <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
         <SaisonUmschalter archiv={false} neuHref="/tabellen" archivHref="/tabellen/2025-26" />
-        <p style={{ margin: '0 0 22px', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)' }}>
-          Die Tabellen füllen sich ab dem ersten Spieltag ({wochenendeText(erster.fri, erster.sun)}). Bis dahin stehen alle Teams bei null, sortiert nach Namen.
-        </p>
+        <InfoZeile>
+          Die Tabellen füllen sich ab dem ersten Spieltag ({wochenendeText(erster.fri, erster.sun)}). Bis dahin stehen alle Teams bei null, sortiert nach Namen.{' '}
+          <a href="#auf-abstieg" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Auf- und Abstieg</a>
+        </InfoZeile>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {LIGEN_2027.map(liga => {
@@ -64,6 +66,8 @@ export default function TabellenPage() {
             );
           })}
         </div>
+
+        <AufAbstiegUebersicht />
       </div>
 
       <Footer />

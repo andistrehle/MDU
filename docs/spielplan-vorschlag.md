@@ -140,6 +140,16 @@ Verbleiber gemischt), vom Betreiber bestätigt. C-Liga enthält **Jolly Pirates 
   (liest Spielplan-JSON + DB mit anon-Key, schreibt NICHTS in die DB). Nach neuem Generator-Lauf
   oder DB-Änderungen (Kürzel, Logo, Lokal) neu laufen lassen und committen.
 
+## Auf-/Abstieg 2026/27 (vom Betreiber festgelegt, 01.10.2026)
+Regeln als Daten in `AUF_AB_2027` (`lib/data/saison-2027.ts`), Anzeige
+`components/mdu/auf-abstieg-27.tsx` auf `/tabellen` (ganze Übersicht) und im Reiter
+„Tabelle" jeder Liga. Keine Relegation zwischen A und La: aus der A steigen 3 direkt
+auf, aus der La 1 direkt ab.
+- La (6): 6. ↓ A · A (9): 1.–3. ↑ La, 7. Relegation vs B2-2., 8.–9. ↓ B
+- B1 (8): 1.–2. ↑ A, 7.–8. ↓ C · B2 (7): 1. ↑ A, 2. Rel. vs A-7., 6. Rel. vs C-3., 7. ↓ C
+- C (7): 1.–2. ↑ B, 3. Rel. vs B2-6.
+- 2027/28 (gerechnet, `groessenNaechsteSaison()`): La 8 · A 8 · B 13 · C 8 = 37.
+
 ## Arbeitsweise (aus CLAUDE.md)
 Direkt auf `main` committen & pushen, keine PRs. Vor jedem Push
 `npx tsc --noEmit` + `npm run build` grün. Vor Push `git pull --rebase origin main`.

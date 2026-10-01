@@ -6,6 +6,7 @@ import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import { VorlaeufigHinweis } from './saison-umschalter';
 import { LigaSpielplan27, SpieltagKarte27 } from './spielplan-27';
+import { AufAbstiegKarte, AufAbstiegLegende, RelegationUndAusblick } from './auf-abstieg-27';
 import {
   findLiga27, team27, venue27, spieltage27, wochenendeText, datumText,
   NEUE_SAISON, SAISON_START, SAISON_ENDE, TABS_27, type Liga27Code,
@@ -91,6 +92,13 @@ export function Liga27Client({ code, initialTab = 0 }: { code: Liga27Code; initi
               ))}
             </div>
             <p style={{ ...body, fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8 }}>Reihenfolge alphabetisch, solange noch nicht gespielt wurde.</p>
+
+            <div style={{ ...label, marginTop: 28 }}>Auf- und Abstieg</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <AufAbstiegLegende />
+              <AufAbstiegKarte liga={liga} />
+              <RelegationUndAusblick nurLiga={code} />
+            </div>
           </div>
         )}
 
