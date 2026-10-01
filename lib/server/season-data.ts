@@ -139,6 +139,29 @@ export async function getSeasonRoster(seasonId: string, teamId: string): Promise
 
   type Row = { first_name: string; last_name: string; license_number: string | null; is_captain: boolean; player_id: string | null; status: string };
   const rows = (data ?? []) as Row[];
+
+  // Bestätigte Nachmeldungen stehen in player_assignments (source 'nomination'),
+  // NICHT in season_roster_assignments — genauso ergänzen wie die Admin-Ansicht
+  // (listSeasonRoster in lib/supabase/season-teams.ts), sonst fehlen sie öffentlich.
+  const vorhanden = new Set(rows.map(r => r.player_id).filter(Boolean) as string[]);
+  const { data: nom } = await c
+    .from('player_assignments')
+    .select('player_id, is_captain')
+    .eq('season_id', seasonId).eq('team_id', teamId)
+    .eq('source', 'nomination').eq('status', 'active');
+  const neu = ((nom ?? []) as { player_id: string | null; is_captain: boolean | null }[])
+    .filter(a => a.player_id && !vorhanden.has(a.player_id));
+  if (neu.length) {
+    const { data: pl } = await c.from('players').select('id, first_name, last_name, license_number')
+      .in('id', neu.map(a => a.player_id as string));
+    const pm = new Map(((pl ?? []) as { id: string; first_name: string | null; last_name: string | null; license_number: string | null }[]).map(x => [x.id, x]));
+    for (const a of neu) {
+      const x = pm.get(a.player_id as string);
+      if (!x) continue;
+      rows.push({ first_name: x.first_name ?? '', last_name: x.last_name ?? '', license_number: x.license_number, is_captain: !!a.is_captain, player_id: x.id, status: 'active' });
+    }
+  }
+
   // Aktuelle Passnummern der verknüpften Spieler separat holen (season_roster_
   // assignments.player_id hat keinen FK auf players → kein PostgREST-Embed möglich).
   const licById = await currentLicenses(c, rows.map(r => r.player_id));
@@ -160,7 +183,16 @@ export async function getRosterTeamForPlayer(seasonId: string, playerId: string)
   const { data } = await c.from('season_roster_assignments')
     .select('team_id, is_captain, license_number')
     .eq('season_id', seasonId).eq('player_id', playerId).limit(1);
-  const r = (data ?? [])[0] as { team_id: string; is_captain: boolean; license_number: string | null } | undefined;
+  let r = (data ?? [])[0] as { team_id: string; is_captain: boolean; license_number: string | null } | undefined;
+  if (!r) {
+    // Nachgemeldet? Dann steht er nur in player_assignments (source 'nomination').
+    const { data: nom } = await c.from('player_assignments')
+      .select('team_id, is_captain')
+      .eq('season_id', seasonId).eq('player_id', playerId)
+      .eq('source', 'nomination').eq('status', 'active').limit(1);
+    const n = (nom ?? [])[0] as { team_id: string; is_captain: boolean | null } | undefined;
+    if (n) r = { team_id: n.team_id, is_captain: !!n.is_captain, license_number: null };
+  }
   if (!r) return null;
   const lic = await currentLicenses(c, [playerId]);
   return { teamId: r.team_id, isCaptain: r.is_captain, licenseNumber: lic.get(playerId) ?? r.license_number };
