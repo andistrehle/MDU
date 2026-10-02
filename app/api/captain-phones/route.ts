@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { SEASON_TEAM_ASSIGNMENTS, getCurrentSeason, getPlayerByName } from '@/lib/data';
+import { NEUE_SAISON } from '@/lib/data/saison-2027';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,7 @@ export async function GET(request: Request) {
   //   1. statische Saisondaten (Kapitänsname → Spieler-Slug) — deckt vorab
   //      hinterlegte Nummern auch ohne registriertes Konto ab.
   //   2. registrierte Kapitäns-Konten (profiles) — überschreiben, falls vorhanden.
+  //   3. Kapitän der Saison 2026/27 — überschreibt beides (siehe unten).
   const teamToSlug = new Map<string, string>();
   const season = getCurrentSeason().id;
   for (const a of SEASON_TEAM_ASSIGNMENTS) {
@@ -59,6 +61,17 @@ export async function GET(request: Request) {
     .eq('role', 'team_captain').not('team_id', 'is', null).not('player_id', 'is', null);
   for (const cap of (caps ?? []) as { team_id: string; player_id: string }[]) {
     teamToSlug.set(cap.team_id, cap.player_id);
+  }
+  //   3. Kapitän der Saison 2026/27 (season_team_assignments.captain_player_id)
+  //      hat Vorrang: Ein Team kann mehrere Kapitäns-Konten haben (alter + neuer
+  //      TC) — dann entschied bisher der Zufall der Reihenfolge, und es stand die
+  //      Nummer des alten TC da (Sound Warrior's, Okt. 2026). Hat der Saison-TC
+  //      keine Nummer freigegeben, wird keine gezeigt statt der eines anderen.
+  const { data: sta } = await supabaseAdmin
+    .from('season_team_assignments').select('team_id, captain_player_id')
+    .eq('season_id', NEUE_SAISON.id).eq('status', 'approved').not('captain_player_id', 'is', null);
+  for (const a of (sta ?? []) as { team_id: string; captain_player_id: string }[]) {
+    teamToSlug.set(a.team_id, a.captain_player_id);
   }
 
   // Freigegebene Nummern der beteiligten Kapitän-Spieler laden.
