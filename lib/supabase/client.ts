@@ -16,6 +16,7 @@
 // ============================================================
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { sessionStorageAdapter } from '@/lib/auth/session-storage';
 
 const url     = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -31,6 +32,9 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        // Cookie + localStorage statt nur localStorage — sonst verliert
+        // iOS (Web-App vom Home-Bildschirm, WebViews) die Anmeldung.
+        storage: sessionStorageAdapter,
       },
     })
   : null;

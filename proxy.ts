@@ -15,6 +15,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { COMING_SOON, PREVIEW_KEY } from '@/lib/site-config';
 import { MDC_STANDALONE, MDC_ORIGIN } from '@/lib/mdc/site';
+import { SESSION_COOKIE_PREFIX, SESSION_COOKIE_MAX_AGE } from '@/lib/auth/session-storage';
 
 /**
  * Ist die MDC auf ihre eigene Domain umgezogen? Dann führt `mdudarts.de/mdc`
@@ -29,6 +30,36 @@ const MDC_MOVED = process.env.NEXT_PUBLIC_MDC_MOVED === '1';
 
 const PROTECTED_PREFIXES = ['/admin', '/mein-bereich', '/mein-profil', '/mein-team'];
 const PREVIEW_COOKIE = 'mdu-preview';
+/** Merker „heute schon neu gesetzt" für die Sitzungs-Cookies (siehe unten). */
+const AUTH_STAMP_COOKIE = 'mdu-auth-stamp';
+
+/**
+ * Sitzungs-Cookies vom Server neu setzen (einmal am Tag, nur bei Seitenaufrufen).
+ *
+ * Der Browser-Client legt die Supabase-Sitzung in `mdu-sb.*` ab
+ * (lib/auth/session-storage.ts). Per Skript gesetzte Cookies kappt iOS/WebKit
+ * auf 7 Tage — wer die Web-App eine Woche nicht öffnet, wäre abgemeldet. Kommen
+ * dieselben Werte per Set-Cookie vom Server, gilt die volle Laufzeit (90 Tage).
+ *
+ * Nur bei echten Seitenaufrufen (`sec-fetch-dest: document`): Dann läuft auf
+ * der neuen Seite noch kein Skript, das in derselben Sekunde das Token
+ * erneuern könnte. Selbst wenn — der Client nimmt beim Lesen immer die NEUERE
+ * Sitzung aus Cookie und localStorage, ein veralteter Stand setzt sich nie durch.
+ */
+function restampSession(request: NextRequest, res: NextResponse) {
+  if (request.method !== 'GET' || request.headers.get('sec-fetch-dest') !== 'document') return;
+  if (request.cookies.has(AUTH_STAMP_COOKIE)) return;
+  const parts = request.cookies.getAll().filter(c => c.name.startsWith(SESSION_COOKIE_PREFIX));
+  if (!parts.length) return;
+  const opts = {
+    path: '/', sameSite: 'lax' as const,
+    secure: request.nextUrl.protocol === 'https:',
+    maxAge: SESSION_COOKIE_MAX_AGE,
+  };
+  for (const c of parts) res.cookies.set(c.name, c.value, opts);
+  res.cookies.set('mdu-auth', '1', opts);
+  res.cookies.set(AUTH_STAMP_COOKIE, '1', { ...opts, maxAge: 60 * 60 * 24 });
+}
 
 // Zweitdomain(s), die dauerhaft auf die Hauptdomain umgeleitet werden. Greift,
 // sobald die Domain auf Vercel zeigt und im Projekt hinterlegt ist — dann fängt
@@ -350,14 +381,17 @@ export function proxy(request: NextRequest) {
   }
 
   const isProtected = PROTECTED_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'));
-  if (isProtected && !request.cookies.get('mdu-auth')) {
+  const hasSession = request.cookies.has('mdu-auth') || request.cookies.has(SESSION_COOKIE_PREFIX + '0');
+  if (isProtected && !hasSession) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = `?next=${encodeURIComponent(pathname + search)}`;
     return withSecurityHeaders(NextResponse.redirect(url));
   }
 
-  return withSecurityHeaders(NextResponse.next());
+  const res = NextResponse.next();
+  restampSession(request, res);
+  return withSecurityHeaders(res);
 }
 
 export const config = {

@@ -464,6 +464,13 @@ entsteht, ändert sie sich mit: `alteId` in der Korrektur merkt sich die
 frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
 
 ## Stolperfallen
+- **Anmeldung liegt in Cookie UND localStorage** (`lib/auth/session-storage.ts`, seit 06.10.2026).
+  Vorher nur localStorage: iOS/WebKit (Web-App vom Home-Bildschirm, WebViews) räumt per Skript
+  geschriebenen Speicher nach 7 Tagen ab — Nutzer flogen raus. Jetzt Cookies `mdu-sb.*`
+  (gestückelt, base64url), die `proxy.ts` einmal am Tag per Set-Cookie neu setzt (90 Tage
+  gleitend, Merker `mdu-auth-stamp`). Beim Lesen gewinnt die NEUERE Sitzung (`expires_at`) —
+  Supabase rotiert das Refresh-Token, ein alter Stand würde die Sitzung beenden. Nicht auf
+  HttpOnly umstellen: Der Browser fragt die DB direkt mit dem Token ab (RLS).
 - **`app/favicon.ico` gilt für ALLE Seiten des Projekts, auch für `/mdc`.** Next behandelt
   diese Datei besonders: Ihr `<link>` steht in jedem Kopf und lässt sich — anders als
   `app/icon.png` — durch `icons` in einem Unter-Layout NICHT ersetzen. Auf mdc-ranking.de
