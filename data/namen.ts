@@ -51,6 +51,13 @@ export interface Namenskorrektur {
 
 export const NAMEN: Namenskorrektur[] = [
   {
+    "passNr": 49,
+    "lastName": "ROTH",
+    "firstName": "MÄXX",
+    "alteId": "max-roth",
+    "note": null
+  },
+  {
     "passNr": 53,
     "lastName": "SCHUL",
     "firstName": "MICKY",
