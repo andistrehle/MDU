@@ -24,7 +24,7 @@ import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
 import { listDbPlayerOptions, listDbTeamOptions, listSeasonTeams, listSeasonRoster } from '@/lib/supabase/season-teams';
-import { getRegistrationSeason } from '@/lib/supabase/seasons';
+import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
 import { PhoneActions } from '@/components/mdu/phone-actions';
 
 interface ProfileRow {
@@ -216,7 +216,8 @@ export default function AdminUsersPage() {
       listDbPlayerOptions().catch(() => []),
       listDbTeamOptions().catch(() => []),
       (async () => {
-        const rs = await getRegistrationSeason().catch(() => null);
+        // Offene Anmelde-Saison, sonst die aktive (seit 01.10.2026: 2026/27).
+        const rs = (await getRegistrationSeason().catch(() => null)) ?? (await getActiveSeason().catch(() => null));
         if (!rs) return { teams: [] as Awaited<ReturnType<typeof listSeasonTeams>>, roster: [] as Awaited<ReturnType<typeof listSeasonRoster>> };
         const [teams, roster] = await Promise.all([
           listSeasonTeams(rs.id).catch(() => []),

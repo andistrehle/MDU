@@ -9,7 +9,7 @@
 import { supabase } from './client';
 import { generateNextPassNumber, nominationPlayerSlug, parseLicenseNumber, staticTeamBlock, nextFreeBlock } from '@/lib/data/pass-numbers';
 import { getCurrentSeason } from '@/lib/data';
-import { getRegistrationSeason } from './seasons';
+import { getRegistrationSeason, getActiveSeason } from './seasons';
 import { normalizePersonName } from '@/lib/auth/player-match';
 
 export type NominationStatus = 'pending' | 'approved' | 'rejected';
@@ -55,6 +55,19 @@ export interface PlayerNomination {
 }
 
 const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
+
+/** Saison, der eine Nachmeldung zugeordnet wird: die mit offener Anmeldung
+ *  (z. B. 2026/27, solange 25/26 noch aktiv war), sonst die AKTIVE Saison aus
+ *  der DB. Erst wenn beides fehlt, die statische Saison aus lib/data — die ist
+ *  seit dem Wechsel auf 2026/27 das Archiv 2025/26. Ohne den Schritt über die
+ *  aktive Saison landeten Nachmeldungen ab 01.10.2026 in 2025/26 (Präfix
+ *  „MDU 26", fehlten im Kader 2026/27). */
+async function zielSaisonId(): Promise<string> {
+  const reg = await getRegistrationSeason().catch(() => null);
+  if (reg?.id) return reg.id;
+  const aktiv = await getActiveSeason().catch(() => null);
+  return aktiv?.id ?? getCurrentSeason().id;
+}
 
 export async function createNomination(teamId: string, teamName: string, firstName: string, lastName: string, lastLeague: LastLeague): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
@@ -107,8 +120,7 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       // Saison der Nachmeldung = offene Anmelde-Saison (z. B. 2026/2027), NICHT
       // die noch aktive (25/26) — sonst falsches Präfix („MDU 26") und der Spieler
       // landet in der falschen Saison (fehlt im 26/27-Kader).
-      const regSeason = await getRegistrationSeason().catch(() => null);
-      const seasonId = regSeason?.id ?? getCurrentSeason().id;
+      const seasonId = await zielSaisonId();
       const seasonYears = [...String(seasonId).matchAll(/\d{4}/g)].map(m => parseInt(m[0], 10)).filter(y => y >= 2000);
       const seasonYear = seasonYears.length ? Math.max(...seasonYears) : undefined;
 
@@ -210,8 +222,7 @@ export async function reprocessNominationSeason(id: string): Promise<{ error: st
   if (!n) return { error: 'Nachmeldung nicht gefunden.' };
   if (n.status !== 'approved') return { error: 'Nur bestätigte Nachmeldungen können korrigiert werden.' };
 
-  const regSeason = await getRegistrationSeason().catch(() => null);
-  const seasonId = regSeason?.id ?? getCurrentSeason().id;
+  const seasonId = await zielSaisonId();
   const years = [...String(seasonId).matchAll(/\d{4}/g)].map(m => parseInt(m[0], 10)).filter(y => y >= 2000);
   const seasonYear = years.length ? Math.max(...years) : undefined;
   const yy = String((seasonYear ?? getCurrentSeason().year) % 100).padStart(2, '0');
