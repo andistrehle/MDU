@@ -69,6 +69,21 @@ export interface SpielortAenderung {
 
 export const SPIELORT_AENDERUNGEN: SpielortAenderung[] = [
   {
+    "venueId": "aubinger-boazn",
+    "neu": {
+      "phones": [
+        "0176 80349674"
+      ],
+      "boards": 2
+    },
+    "vorher": {
+      "phones": [],
+      "boards": null
+    },
+    "datum": "2026-10-07",
+    "note": null
+  },
+  {
     "venueId": "djk-wuermtal",
     "neu": {
       "boards": 3
