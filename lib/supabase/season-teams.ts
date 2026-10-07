@@ -565,6 +565,45 @@ export async function listCaptainTeamSeasons(teamId: string): Promise<{ seasonId
   return out;
 }
 
+/**
+ * Bestätigte Nachmeldungen einer Saison (optional nur eines Teams). Sie stehen
+ * in player_assignments (source 'nomination'), NICHT in season_roster_assignments
+ * — wer nur dort liest, übersieht sie (Kader, Startgeld). Spieler, die schon im
+ * Anmeldekader stehen (`known`), werden übersprungen.
+ */
+async function nominatedRosterRows(seasonId: string, known: (string | null)[], teamId?: string): Promise<{
+  id: string; team_id: string; player_id: string; first_name: string; last_name: string;
+  license_number: string | null; is_captain: boolean;
+}[]> {
+  if (!supabase) return [];
+  let q = supabase.from('player_assignments')
+    .select('id, team_id, player_id, is_captain')
+    .eq('season_id', seasonId).eq('source', 'nomination').eq('status', 'active');
+  if (teamId) q = q.eq('team_id', teamId);
+  const { data } = await q;
+  const existing = new Set(known.filter(Boolean) as string[]);
+  const seen = new Set<string>();
+  const nom = ((data ?? []) as { id: string; team_id: string; player_id: string | null; is_captain: boolean | null }[])
+    .filter(a => {
+      if (!a.player_id || existing.has(a.player_id)) return false;
+      const k = `${a.team_id}|${a.player_id}`;
+      if (seen.has(k)) return false;
+      seen.add(k); return true;
+    });
+  if (!nom.length) return [];
+  const ids = [...new Set(nom.map(a => a.player_id as string))];
+  const { data: pl } = await supabase.from('players').select('id, first_name, last_name, license_number').in('id', ids);
+  const pmap = new Map(((pl ?? []) as { id: string; first_name: string | null; last_name: string | null; license_number: string | null }[]).map(p => [p.id, p]));
+  return nom.map(a => {
+    const p = pmap.get(a.player_id as string);
+    return {
+      id: a.id, team_id: a.team_id, player_id: a.player_id as string,
+      first_name: p?.first_name ?? '', last_name: p?.last_name ?? '',
+      license_number: p?.license_number ?? null, is_captain: !!a.is_captain,
+    };
+  });
+}
+
 export async function getCaptainTeamView(teamId: string, seasonId?: string): Promise<{
   seasonId: string; seasonName: string | null; teamName: string; shortName: string | null; leagueId: string | null;
   roster: { name: string; license: string | null; isCaptain: boolean; playerId: string | null; status: string }[];
@@ -588,6 +627,10 @@ export async function getCaptainTeamView(teamId: string, seasonId?: string): Pro
     .select('first_name, last_name, license_number, is_captain, player_id, status')
     .eq('season_id', top.season_id).eq('team_id', teamId).order('is_captain', { ascending: false });
   const rrows = (roster ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string }[];
+  // Nachmeldungen gehören zum Kader — und damit ins Startgeld.
+  for (const a of await nominatedRosterRows(top.season_id, rrows.map(r => r.player_id), teamId)) {
+    rrows.push({ first_name: a.first_name, last_name: a.last_name, license_number: a.license_number, is_captain: a.is_captain, player_id: a.player_id, status: 'active' });
+  }
   const licById = await currentLicensesClient(rrows.map(r => r.player_id));
   return {
     seasonId: top.season_id,
@@ -680,28 +723,14 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
     .filter(r => `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim() || r.player_id);
 
   // Bestätigte Nachmeldungen stehen in player_assignments (source 'nomination'),
-  // NICHT in season_roster_assignments — sonst fehlen sie im Kader. Ergänzen wir
-  // hier, dedupliziert nach player_id (Freigabe-Spieler stehen schon oben).
-  const existing = new Set(rows.map(r => r.player_id).filter(Boolean) as string[]);
-  const { data: nomAssign } = await supabase
-    .from('player_assignments')
-    .select('id, team_id, player_id, is_captain')
-    .eq('season_id', seasonId).eq('source', 'nomination').eq('status', 'active');
-  const nomNew = ((nomAssign ?? []) as { id: string; team_id: string; player_id: string | null; is_captain: boolean | null }[])
-    .filter(a => a.player_id && !existing.has(a.player_id));
-  if (nomNew.length) {
-    const ids = [...new Set(nomNew.map(a => a.player_id as string))];
-    const { data: pl } = await supabase.from('players').select('id, first_name, last_name, license_number').in('id', ids);
-    const pmap = new Map(((pl ?? []) as { id: string; first_name: string | null; last_name: string | null; license_number: string | null }[]).map(p => [p.id, p]));
-    for (const a of nomNew) {
-      const p = pmap.get(a.player_id as string);
-      rows.push({
-        id: a.id, season_id: seasonId, team_id: a.team_id, player_id: a.player_id,
-        first_name: p?.first_name ?? '', last_name: p?.last_name ?? '',
-        license_number: p?.license_number ?? null, is_captain: !!a.is_captain,
-        status: 'active', registration_id: null,
-      });
-    }
+  // NICHT in season_roster_assignments — sonst fehlen sie im Kader.
+  for (const a of await nominatedRosterRows(seasonId, rows.map(r => r.player_id))) {
+    rows.push({
+      id: a.id, season_id: seasonId, team_id: a.team_id, player_id: a.player_id,
+      first_name: a.first_name, last_name: a.last_name,
+      license_number: a.license_number, is_captain: a.is_captain,
+      status: 'active', registration_id: null,
+    });
   }
 
   // Aktuelle Passnummer des verknüpften Spielers hat Vorrang vor der (ggf.
