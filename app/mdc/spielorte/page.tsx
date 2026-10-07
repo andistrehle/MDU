@@ -16,7 +16,9 @@ export const metadata: Metadata = mdcSeite({
 
 export default function SpielortePage() {
   const byDay = venuesByWeekday();
-  const boards = VENUES.reduce((sum, venue) => sum + venue.boards, 0);
+  // Lokale ohne bekannte Automatenzahl zählen nicht mit — eine Summe, in der
+  // geschätzte Zahlen steckten, wäre schlechter als eine, die etwas auslässt.
+  const boards = VENUES.reduce((sum, venue) => sum + (venue.boards ?? 0), 0);
 
   return (
     <>

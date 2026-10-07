@@ -85,8 +85,15 @@ export interface Venue {
   time: string;
   /** Kontaktnummern des Lokals — manche Lokale nennen zwei. */
   phones: string[];
-  /** Anzahl Dartautomaten. */
-  boards: number;
+  /**
+   * Anzahl Dartautomaten — `null`, solange sie nicht bekannt ist.
+   *
+   * Kommt vor: Ein neues Lokal wird angekündigt, auf dem Plakat steht die
+   * Zahl aber nicht (Aubinger Boazn, Oktober 2026). Geraten wird sie nicht;
+   * die Seite sagt dann „Anzahl noch nicht bekannt" und die Gesamtsumme
+   * zählt das Lokal nicht mit.
+   */
+  boards: number | null;
 }
 
 // ------------------------------------------------------------

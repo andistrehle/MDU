@@ -50,7 +50,8 @@ export function VenueCard({ venue }: VenueCardProps) {
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           <dt style={{ color: 'var(--mdc-red)' }}><Target size={15} /></dt>
           <dd style={{ color: 'var(--mdc-ink-soft)' }}>
-            {venue.boards} Dartautomaten · Start {formatTime(venue.time)}
+            {venue.boards === null ? 'Automaten: noch offen' : `${venue.boards} Dartautomaten`}
+            {' · '}Start {formatTime(venue.time)}
           </dd>
         </div>
       </dl>

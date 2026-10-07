@@ -316,7 +316,12 @@ es aufhellt, macht genau die Zahlen unlesbar, die nachgeschaut werden.
 **News:** Unter `/admin/news` schreibt die Turnierleitung Beiträge; sie
 landen als Commit in `data/news.ts` (JSON-Array in der Datei, deshalb nie
 von Hand die Form zerstören) und erscheinen unter `/news`, auf der
-Startseite und in der Sitemap. Entwürfe (`published: false`) stehen in der
+Startseite und in der Sitemap. **Reihenfolge: neueste zuerst, und zwar nur
+nach `date`** — `sort` ist stabil, bei gleichem Datum bleibt die Reihenfolge
+der Datei stehen, und `news-commit.ts` stellt den gerade geschriebenen Beitrag
+nach vorn. Bis 07.10.2026 wurde bei Gleichstand alphabetisch nach Kennung
+sortiert; von zwei Beiträgen desselben Tages stand damit der mit dem früheren
+Anfangsbuchstaben oben, was mit „neuer" nichts zu tun hatte. Entwürfe (`published: false`) stehen in der
 Datei, aber nirgends auf der Seite. Der Fließtext kennt genau eine
 Auszeichnung: `**fett**`. Dieselben ENV wie beim Upload; die
 GitHub-Anbindung teilen sich beide über `lib/mdc/github.ts`.
@@ -369,10 +374,22 @@ meldet „ERLEDIGT". Ohne diese Bremse erzwänge eine alte Berichtigung später
 still den alten Wert. **Den Unterschied rechnet der Server**
 (`app/mdc/admin/spielorte/actions.ts`), nicht der Browser: Geschickt wird der
 ganze Satz Angaben, verglichen wird gegen `VENUES_BASIS`; wer einen Wert
-wieder auf den ursprünglichen stellt, löscht damit den Eintrag. **Lokale
-hinzufügen oder herausnehmen geht dort NICHT** — daran hängen Ergebnisse,
-Archiv und Spielort-Seiten, das gehört in `data/venues.ts` (frühere Lokale:
-`FORMER_VENUES`).
+wieder auf den ursprünglichen stellt, löscht damit den Eintrag. **Neue Lokale legt die Seite seit 07.10.2026 selbst an** — sie landen in
+`data/spielorte-neu.ts` (JSON-Array, Form nicht zerstören), NICHT in der
+kommentierten Übersicht. `VENUES = [...VENUES_BASIS, ...NEUE_SPIELORTE]
+.map(wendeAn)`; `ALLE_BASIS` ist beides ohne Überlagerung. Ein so angelegtes
+Lokal wird **direkt in seiner Datei geändert**, nicht über
+`spielorte-aenderungen.ts`: Es gibt keine ältere Fassung, über die sich eine
+Berichtigung legen müsste (`istNeuerSpielort` entscheidet das in der Aktion).
+Die Kennung entsteht aus dem Namen und wird gegen `ALLE_BASIS` UND
+`FORMER_VENUES` geprüft — sie steht in jeder Ergebniszeile, zweimal dieselbe
+wäre ein zweites Lokal auf derselben Seite. **Entfernen** geht nur bei einem
+auf der Seite angelegten Lokal und nur, solange weder Turnier noch
+Kalendereintrag daran hängt; Lokale der Übersicht gehören dort heraus.
+**`boards` ist `number | null`:** Steht die Zahl nicht fest (Aubinger Boazn,
+Oktober 2026 — das Plakat nannte sie nicht), bleibt das Feld leer, die Seite
+sagt „noch nicht bekannt" und die Gesamtsumme zählt das Lokal nicht mit.
+Geraten wird nichts.
 **Jackpot:** `lib/mdc/jackpot.ts` rechnet den Topf der laufenden Saison aus den
 Teilnahmen (3 € je Teilnahme, Blatt „Einzelergebnisse" J5) plus Übertrag aus der
 Vorsaison (Männer 200 €, Frauen 220 €); 2 % des Männer-Topfs gehen an die Frauen,

@@ -21,7 +21,15 @@
 export interface NewsPost {
   /** Sprechende Kennung aus dem Titel — steht in der Adresse. */
   id: string;
-  /** Tag der Veröffentlichung, `JJJJ-MM-TT`. Bestimmt die Reihenfolge. */
+  /**
+   * Tag der Veröffentlichung, `JJJJ-MM-TT`. Bestimmt die Reihenfolge:
+   * NEUESTE ZUERST. Fallen zwei Beiträge auf denselben Tag, entscheidet die
+   * Reihenfolge in der Datei — und dort steht der zuletzt geschriebene oben
+   * (`lib/mdc/news-commit.ts` stellt ihn nach vorn). Früher wurde bei
+   * Gleichstand alphabetisch nach Kennung sortiert; das hieß, dass von zwei
+   * Beiträgen desselben Tages der mit dem früheren Anfangsbuchstaben oben
+   * stand — mit „neuer" hatte das nichts zu tun.
+   */
   date: string;
   title: string;
   /** Ein Satz für die Übersicht und die Startseite. */
@@ -39,6 +47,20 @@ export interface NewsPost {
 }
 
 export const NEWS: NewsPost[] = [
+  {
+    "id": "neues-ranking-in-der-aubinger-boazn",
+    "date": "2026-10-07",
+    "title": "Neues Ranking in der Aubinger Boazn",
+    "teaser": "Ab dem 15. Oktober kommt ein zwölftes Lokal dazu: die Aubinger Boazn in der Bodenseestraße — donnerstags ab 20 Uhr.",
+    "category": "Spielorte",
+    "paragraphs": [
+      "Ab **Donnerstag, 15. Oktober** gibt es ein MDC-Ranking in der **Aubinger Boazn**, Bodenseestraße 238 in München-Aubing. Damit sind es zwölf Lokale.",
+      "Gespielt wird **donnerstags ab 20 Uhr**, freigemünzt wird ab 19 Uhr. Angemeldet wird wie überall vor Ort im Lokal — eine Liste führt die MDC nicht.",
+      "Das Lokal bietet zusätzlich **sonntags ab 20 Uhr** an. Der Sonntag ist ohnehin einer der Tage, an denen in jedem MDC-Lokal ein Ranking laufen kann, sobald genug Leute da sind — im Wochenplan steht als fester Termin deshalb der Donnerstag.",
+      "Wer noch keine MDC-Passnummer hat, bekommt sie beim ersten Start. Punkte gibt es ab der ersten Teilnahme, und das Turnier steht noch am selben Abend oder tags darauf in der Rangliste."
+    ],
+    "published": true
+  },
   {
     "id": "die-neue-saison-laeuft-und-die-seite-ist-online",
     "date": "2026-09-08",
@@ -69,9 +91,11 @@ export const NEWS: NewsPost[] = [
 
 /** Veröffentlichte Beiträge, neueste zuerst. */
 export function publishedNews(): NewsPost[] {
+  // `sort` ist in JavaScript stabil: Bei gleichem Datum bleibt die Reihenfolge
+  // der Datei erhalten, und die ist neueste zuerst.
   return NEWS
     .filter(post => post.published)
-    .sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /** Die neuesten `anzahl` Beiträge — für die Startseite. */

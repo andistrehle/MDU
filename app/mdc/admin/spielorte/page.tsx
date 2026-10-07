@@ -13,7 +13,8 @@ import type { Metadata } from 'next';
 import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { SpielortEditor, type EditorSpielort } from '@/components/mdc/spielort-editor';
-import { VENUES_BASIS, WEEKDAY_NAMES } from '@/data/venues';
+import { ALLE_BASIS, WEEKDAY_NAMES, istNeuerSpielort } from '@/data/venues';
+import { ALL_TOURNAMENTS } from '@/data/tournament-results';
 import {
   FELD_NAMEN, SPIELORT_FELDER, aenderungFuer, gleicherWert,
   type SpielortFeld,
@@ -36,11 +37,12 @@ function alsText(feld: SpielortFeld, wert: unknown): string {
     return (wert as Weekday[]).map(d => WEEKDAY_NAMES[d]).join(' & ') || '—';
   }
   if (feld === 'phones') return (wert as string[]).join(', ') || '—';
+  if (wert === null) return 'noch nicht bekannt';
   return String(wert);
 }
 
 export default function AdminSpielortePage() {
-  const spielorte: EditorSpielort[] = VENUES_BASIS.map(basis => {
+  const spielorte: EditorSpielort[] = ALLE_BASIS.map(basis => {
     const aenderung = aenderungFuer(basis);
     const jetzt: Venue = aenderung ? { ...basis, ...aenderung.neu } : basis;
 
@@ -75,6 +77,10 @@ export default function AdminSpielortePage() {
       geaendert,
       note: aenderung?.note ?? null,
       datum: aenderung ? formatDate(aenderung.datum) : null,
+      neu: istNeuerSpielort(basis.id),
+      // Entscheidet, ob „Entfernen" angeboten wird — ein Lokal mit Turnieren
+      // zu löschen hieße, Ergebnissen ihren Ort zu nehmen.
+      turniere: ALL_TOURNAMENTS.filter(t => t.venueId === basis.id).length,
     };
   });
 
@@ -103,9 +109,11 @@ export default function AdminSpielortePage() {
               Angabe weiterzuschleppen.
             </p>
             <p style={{ marginTop: 10 }}>
-              Ein Lokal <strong>hinzufügen oder ganz herausnehmen</strong> geht hier nicht. Dazu
-              gehören Ergebnisse, Turnierarchiv und Spielort-Seiten — das gehört in die
-              Übersicht selbst.
+              Ein <strong>neues Lokal</strong> wird oben angelegt und landet in
+              <code> data/spielorte-neu.ts</code>. Zurücknehmen lässt es sich nur, solange dort
+              noch nichts gespielt wurde — ein Lokal mit Turnieren zu entfernen hieße,
+              Ergebnissen ihren Ort zu nehmen. Lokale aus der Übersicht des Betreibers lassen
+              sich hier gar nicht entfernen; die gehören dort heraus.
             </p>
           </div>
         </div>

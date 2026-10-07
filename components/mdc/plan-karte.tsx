@@ -73,7 +73,7 @@ export function PlanKarte({ eintrag, titelGroesse = '1.1rem' }: {
       </p>
       <p style={{ fontSize: '0.8rem', color: 'var(--mdc-ink-dim)', display: 'flex', alignItems: 'center', gap: 7 }}>
         <Target size={13} />
-        {venue.boards} Dartautomaten
+        {venue.boards === null ? 'Automaten: noch offen' : `${venue.boards} Dartautomaten`}
       </p>
 
       <Link

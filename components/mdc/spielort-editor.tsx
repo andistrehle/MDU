@@ -17,9 +17,12 @@
 
 import { useId, useState } from 'react';
 import {
-  AlertTriangle, Check, ExternalLink, Loader2, MapPin, Pencil, RotateCcw, X,
+  AlertTriangle, Check, ExternalLink, Loader2, MapPin, Pencil, Plus, RotateCcw, Trash2, X,
 } from 'lucide-react';
-import { speichereSpielortAenderung, nimmSpielortAenderungZurueck } from '@/app/mdc/admin/spielorte/actions';
+import {
+  speichereSpielortAenderung, nimmSpielortAenderungZurueck,
+  legeSpielortNeuAn, entferneSpielort,
+} from '@/app/mdc/admin/spielorte/actions';
 
 export interface SpielortStatus {
   canPublish: boolean;
@@ -37,7 +40,8 @@ export interface EditorSpielort {
   weekdays: number[];
   time: string;
   phones: string[];
-  boards: number;
+  /** `null`, solange die Zahl nicht bekannt ist. */
+  boards: number | null;
   /** Was in der Übersicht des Betreibers steht, Feld für Feld. */
   basis: {
     name: string;
@@ -47,8 +51,12 @@ export interface EditorSpielort {
     weekdays: number[];
     time: string;
     phones: string[];
-    boards: number;
+    boards: number | null;
   };
+  /** Auf der Seite angelegt? Dann gibt es keine Übersicht dahinter. */
+  neu: boolean;
+  /** Turniere, die an diesem Lokal hängen — entfernen geht nur bei null. */
+  turniere: number;
   /** Die Felder, die gerade von der Übersicht abweichen — für den Hinweis. */
   geaendert: { feld: string; vorher: string; jetzt: string }[];
   /** Begründung der laufenden Änderung, falls eine hinterlegt ist. */
@@ -56,6 +64,9 @@ export interface EditorSpielort {
   /** Wann zuletzt geändert. */
   datum: string | null;
 }
+
+/** Marke für „gerade wird ein neues Lokal angelegt" — kein Lokal heißt so. */
+const NEU = 'neues-lokal';
 
 const TAGE: { wert: number; kurz: string; lang: string }[] = [
   { wert: 1, kurz: 'Mo', lang: 'Montag' },
@@ -89,8 +100,16 @@ function ausSpielort(v: EditorSpielort): Entwurf {
     weekdays: [...v.weekdays],
     time: v.time,
     phones: v.phones.length ? [...v.phones] : [''],
-    boards: String(v.boards),
+    boards: v.boards === null ? '' : String(v.boards),
     note: '',
+  };
+}
+
+/** Ein leeres Formular fürs Anlegen — Montag vorbelegt, sonst nichts. */
+function leererEntwurf(): Entwurf {
+  return {
+    name: '', street: '', zip: '', city: 'München',
+    weekdays: [1], time: '20:00', phones: [''], boards: '', note: '',
   };
 }
 
@@ -98,6 +117,7 @@ export function SpielortEditor({ spielorte, status }: {
   spielorte: EditorSpielort[];
   status: SpielortStatus;
 }) {
+  // `offen` ist entweder eine Lokal-Kennung oder die Marke fürs neue Lokal.
   const [offen, setOffen] = useState<string | null>(null);
   const [entwurf, setEntwurf] = useState<Entwurf | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -134,11 +154,19 @@ export function SpielortEditor({ spielorte, status }: {
     setEntwurf(null);
   }
 
+  /** Die Automatenzahl aus dem Formular — leer heißt „nicht bekannt". */
+  function automaten(): number | null | 'ungueltig' {
+    const roh = entwurf?.boards.trim() ?? '';
+    if (roh === '') return null;
+    const zahl = Number(roh);
+    return Number.isInteger(zahl) ? zahl : 'ungueltig';
+  }
+
   async function speichern(v: EditorSpielort) {
     if (!entwurf) return;
-    const zahl = Number(entwurf.boards);
-    if (!Number.isInteger(zahl)) {
-      setFehler('Die Zahl der Automaten muss eine ganze Zahl sein.');
+    const zahl = automaten();
+    if (zahl === 'ungueltig') {
+      setFehler('Die Zahl der Automaten muss eine ganze Zahl sein — oder leer bleiben.');
       return;
     }
     setLaeuft(true);
@@ -166,6 +194,46 @@ export function SpielortEditor({ spielorte, status }: {
         ? `${antwort.beschreibung} steht wieder wie in der Übersicht.`
         : antwort.beschreibung,
     });
+    zumachen();
+  }
+
+  async function anlegen() {
+    if (!entwurf) return;
+    const zahl = automaten();
+    if (zahl === 'ungueltig') {
+      setFehler('Die Zahl der Automaten muss eine ganze Zahl sein — oder leer bleiben.');
+      return;
+    }
+    setLaeuft(true);
+    setFehler(null);
+    const antwort = await legeSpielortNeuAn({
+      name: entwurf.name,
+      street: entwurf.street,
+      zip: entwurf.zip,
+      city: entwurf.city,
+      weekdays: entwurf.weekdays,
+      time: entwurf.time,
+      phones: entwurf.phones,
+      boards: zahl,
+      note: entwurf.note,
+    });
+    setLaeuft(false);
+    if (!antwort.ok) { setFehler(antwort.fehler); return; }
+    setFertig({ url: antwort.url, text: `${antwort.beschreibung} ist angelegt.` });
+    zumachen();
+  }
+
+  async function entfernen(v: EditorSpielort) {
+    if (!window.confirm(
+      `${v.name} wirklich entfernen?\n\n`
+      + 'Das Lokal verschwindet von der Seite, aus dem Wochenplan und aus den Auswahllisten.',
+    )) return;
+    setLaeuft(true);
+    setFehler(null);
+    const antwort = await entferneSpielort(v.id);
+    setLaeuft(false);
+    if (!antwort.ok) { setFehler(antwort.fehler); return; }
+    setFertig({ url: antwort.url, text: `${antwort.beschreibung} ist entfernt.` });
     zumachen();
   }
 
@@ -214,6 +282,48 @@ export function SpielortEditor({ spielorte, status }: {
         </div>
       )}
 
+      {/* ── Neues Lokal ──
+          Oben, nicht unten: Wer hierherkommt, um eines anzulegen, soll nicht
+          erst an elf Karten vorbeiscrollen. */}
+      <div className="mdc-card" style={{ padding: '18px 18px' }}>
+        {offen === NEU && entwurf ? (
+          <>
+            <h3 className="mdc-display" style={{ fontSize: '1.05rem' }}>Neues Lokal anlegen</h3>
+            <p style={{ marginTop: 6, fontSize: '0.86rem', lineHeight: 1.65, color: 'var(--mdc-ink-dim)' }}>
+              Die Adresse der Spielort-Seite entsteht aus dem Namen. Sie lässt sich später nicht
+              mehr ändern, ohne dass alte Verweise ins Leere zeigen — den Namen deshalb einmal
+              richtig eintippen. Die Zahl der Automaten darf leer bleiben, wenn sie noch nicht
+              feststeht.
+            </p>
+            <Formular
+              entwurf={entwurf}
+              setEntwurf={setEntwurf}
+              geaendert={false}
+              laeuft={laeuft}
+              anlegen
+              onSpeichern={anlegen}
+              onAbbrechen={zumachen}
+              onZuruecksetzen={() => undefined}
+            />
+          </>
+        ) : (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--mdc-ink-soft)' }}>
+              Ein Lokal kommt neu dazu?
+            </p>
+            <button
+              type="button"
+              onClick={() => { setOffen(NEU); setEntwurf(leererEntwurf()); setFehler(null); setFertig(null); }}
+              className="mdc-btn mdc-btn-primary mdc-btn-sm"
+              disabled={laeuft}
+            >
+              <Plus size={15} />
+              Neues Lokal
+            </button>
+          </div>
+        )}
+      </div>
+
       {spielorte.map(v => (
         <div
           key={v.id}
@@ -232,20 +342,45 @@ export function SpielortEditor({ spielorte, status }: {
               </p>
               <p style={{ marginTop: 4, fontSize: '0.88rem', color: 'var(--mdc-ink-soft)' }}>
                 {v.weekdays.map(d => TAGE.find(t => t.wert === d)?.lang ?? d).join(' & ')}
-                {' '}ab {v.time} Uhr · {v.boards} {v.boards === 1 ? 'Automat' : 'Automaten'}
+                {' '}ab {v.time} Uhr ·{' '}
+                {v.boards === null
+                  ? 'Automaten noch offen'
+                  : `${v.boards} ${v.boards === 1 ? 'Automat' : 'Automaten'}`}
               </p>
+              {v.neu && (
+                <p style={{ marginTop: 4, fontSize: '0.8rem', color: 'var(--mdc-ink-dim)' }}>
+                  Auf der Seite angelegt
+                  {v.turniere > 0 ? ` · ${v.turniere} Turniere ausgewertet` : ' · noch keine Turniere'}
+                </p>
+              )}
             </div>
 
             {offen !== v.id && (
-              <button
-                type="button"
-                onClick={() => aufmachen(v)}
-                className="mdc-btn mdc-btn-ghost mdc-btn-sm"
-                disabled={laeuft}
-              >
-                <Pencil size={14} />
-                Ändern
-              </button>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => aufmachen(v)}
+                  className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                  disabled={laeuft}
+                >
+                  <Pencil size={14} />
+                  Ändern
+                </button>
+                {/* Entfernen nur bei einem Lokal, das auf der Seite angelegt
+                    wurde UND an dem noch kein Turnier hängt — sonst verlören
+                    Ergebnisse ihren Ort. Der Server prüft beides noch einmal. */}
+                {v.neu && v.turniere === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => entfernen(v)}
+                    className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                    disabled={laeuft}
+                  >
+                    <Trash2 size={14} />
+                    Entfernen
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -293,11 +428,13 @@ export function SpielortEditor({ spielorte, status }: {
   );
 }
 
-function Formular({ entwurf, setEntwurf, geaendert, laeuft, onSpeichern, onAbbrechen, onZuruecksetzen }: {
+function Formular({ entwurf, setEntwurf, geaendert, laeuft, anlegen, onSpeichern, onAbbrechen, onZuruecksetzen }: {
   entwurf: Entwurf;
   setEntwurf: (e: Entwurf) => void;
   geaendert: boolean;
   laeuft: boolean;
+  /** Formular fürs Anlegen statt fürs Ändern — andere Beschriftungen. */
+  anlegen?: boolean;
   onSpeichern: () => void;
   onAbbrechen: () => void;
   onZuruecksetzen: () => void;
@@ -314,10 +451,11 @@ function Formular({ entwurf, setEntwurf, geaendert, laeuft, onSpeichern, onAbbre
             onChange={e => setze({ name: e.target.value })} style={eingabe}
           />
         </Feld>
-        <Feld id={`${id}-boards`} label="Dartautomaten">
+        <Feld id={`${id}-boards`} label="Dartautomaten (darf leer bleiben)">
           <input
             id={`${id}-boards`} type="number" inputMode="numeric" min={1} max={30}
             value={entwurf.boards}
+            placeholder="noch nicht bekannt"
             onChange={e => setze({ boards: e.target.value })} style={eingabe}
           />
         </Feld>
@@ -439,12 +577,12 @@ function Formular({ entwurf, setEntwurf, geaendert, laeuft, onSpeichern, onAbbre
       <div style={{ marginTop: 18, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
         <button type="button" onClick={onSpeichern} disabled={laeuft} className="mdc-btn mdc-btn-primary mdc-btn-sm">
           {laeuft ? <Loader2 size={15} className="mdc-spin" /> : <Check size={15} />}
-          {laeuft ? 'Wird abgelegt …' : 'Speichern'}
+          {laeuft ? 'Wird abgelegt …' : anlegen ? 'Lokal anlegen' : 'Speichern'}
         </button>
         <button type="button" onClick={onAbbrechen} disabled={laeuft} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
           Abbrechen
         </button>
-        {geaendert && (
+        {geaendert && !anlegen && (
           <button type="button" onClick={onZuruecksetzen} disabled={laeuft} className="mdc-btn mdc-btn-ghost mdc-btn-sm">
             <RotateCcw size={14} />
             Wieder wie in der Übersicht

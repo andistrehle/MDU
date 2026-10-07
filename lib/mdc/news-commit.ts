@@ -36,14 +36,20 @@ function leseBeitraege(quelle: string): NewsPost[] {
   }
 }
 
-/** Die Datei mit einer neuen Liste, sonst unverändert. */
+/**
+ * Die Datei mit einer neuen Liste, sonst unverändert.
+ *
+ * Sortiert abgelegt: Die Datei liest sich wie die Seite, neueste oben. NUR
+ * nach Datum — `sort` ist stabil, also bleibt bei gleichem Datum die
+ * übergebene Reihenfolge stehen. Der gerade geschriebene Beitrag wird vorn
+ * eingereiht (siehe `veroeffentlicheBeitrag`) und steht damit innerhalb seines
+ * Tages oben, wo er hingehört.
+ */
 function schreibeBeitraege(quelle: string, beitraege: NewsPost[]): string {
   const von = quelle.indexOf(ANFANG);
   const start = von + ANFANG.length;
   const bis = quelle.indexOf('];', start);
-  // Sortiert abgelegt: Die Datei liest sich dann wie die Seite, neueste oben.
-  const sortiert = [...beitraege]
-    .sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+  const sortiert = [...beitraege].sort((a, b) => b.date.localeCompare(a.date));
   return quelle.slice(0, start) + JSON.stringify(sortiert, null, 2) + quelle.slice(bis + 1);
 }
 
@@ -98,7 +104,9 @@ export async function veroeffentlicheBeitrag(
 
   const commit = await committe(
     ctx,
-    [{ pfad: PFAD, inhalt: schreibeBeitraege(quelle, [...ohneAlten, eingabe.beitrag]) }],
+    // Der geschriebene Beitrag nach VORN: Bei gleichem Datum steht er damit
+    // oben — die Sortierung lässt die Reihenfolge innerhalb eines Tages stehen.
+    [{ pfad: PFAD, inhalt: schreibeBeitraege(quelle, [eingabe.beitrag, ...ohneAlten]) }],
     nachricht,
   );
   return { ...commit, neu };

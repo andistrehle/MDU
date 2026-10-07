@@ -21,6 +21,7 @@ import {
   SPIELORT_AENDERUNGEN, aenderungFuer, greiftAuf, wendeAn,
   type SpielortAenderung,
 } from './spielorte-aenderungen';
+import { NEUE_SPIELORTE } from './spielorte-neu';
 
 /**
  * Sollen die Telefonnummern öffentlich angezeigt werden?
@@ -173,21 +174,54 @@ export const VENUES_BASIS: Venue[] = [
     phones: ['089 3508571'],
     boards: 4,
   },
+  {
+    // Neu ab 15.10.2026 (Plakat des Lokals, vom Betreiber am 07.10.2026
+    // geschickt). Das Plakat nennt Donnerstag UND Sonntag; als FESTER Spieltag
+    // steht hier auf Anweisung des Betreibers nur der Donnerstag. Der Sonntag
+    // ist ohnehin einer der flexiblen Ranking-Tage (`FLEXIBLE_RANKING_DAYS`)
+    // und gilt damit für jedes Lokal.
+    //
+    // Zwei Angaben standen nicht auf dem Plakat und werden deshalb NICHT
+    // erfunden: die Zahl der Dartautomaten (`null` → die Seite sagt „noch
+    // nicht bekannt") und die Telefonnummer. Die Postleitzahl ist die von
+    // Bodenseestraße 238 in München-Aubing — bitte gegenprüfen.
+    id: 'aubinger-boazn',
+    name: 'Aubinger Boazn',
+    street: 'Bodenseestraße 238',
+    zip: '81243',
+    city: 'München',
+    weekdays: [4],
+    time: '20:00',
+    phones: [],
+    boards: null,
+  },
 ];
 
 /**
- * Die geltenden Spielorte: die Übersicht des Betreibers, darübergelegt was
- * unter `/admin/spielorte` geändert wurde.
+ * Alle Lokale in ihrer Grundfassung: die Übersicht des Betreibers plus die,
+ * die unter `/admin/spielorte` angelegt wurden (`data/spielorte-neu.ts`).
+ * Noch ohne die Berichtigungen — die kommen eine Zeile weiter.
+ */
+export const ALLE_BASIS: Venue[] = [...VENUES_BASIS, ...NEUE_SPIELORTE];
+
+/**
+ * Die geltenden Spielorte: alle Lokale, darübergelegt was unter
+ * `/admin/spielorte` geändert wurde.
  *
  * Alles auf der Seite rechnet mit DIESER Liste — Spielorte-Seite, Wochenplan,
  * Ergebnis-Upload, Kalender. Eine Änderung wirkt damit überall zugleich,
  * statt an einer Stelle zu stimmen und an der nächsten nicht.
  */
-export const VENUES: Venue[] = VENUES_BASIS.map(wendeAn);
+export const VENUES: Venue[] = ALLE_BASIS.map(wendeAn);
+
+/** Ist das ein Lokal, das auf der Seite angelegt wurde? */
+export function istNeuerSpielort(id: string): boolean {
+  return NEUE_SPIELORTE.some(v => v.id === id);
+}
 
 /** Lokale, an denen gerade eine Änderung von der Seite hängt. */
 export const GEAENDERTE_SPIELORTE: { basis: Venue; aenderung: SpielortAenderung }[] =
-  VENUES_BASIS
+  ALLE_BASIS
     .map(basis => ({ basis, aenderung: aenderungFuer(basis) }))
     .filter((e): e is { basis: Venue; aenderung: SpielortAenderung } => e.aenderung !== undefined);
 
@@ -198,7 +232,7 @@ export const GEAENDERTE_SPIELORTE: { basis: Venue; aenderung: SpielortAenderung 
  * `scripts/mdc-check-saison.ts` sagt es.
  */
 export const ERLEDIGTE_SPIELORT_AENDERUNGEN: SpielortAenderung[] =
-  SPIELORT_AENDERUNGEN.filter(a => !VENUES_BASIS.some(basis => greiftAuf(a, basis)));
+  SPIELORT_AENDERUNGEN.filter(a => !ALLE_BASIS.some(basis => greiftAuf(a, basis)));
 
 /**
  * Zusätzlich zu den festen Spieltagen kann an diesen Tagen in JEDEM

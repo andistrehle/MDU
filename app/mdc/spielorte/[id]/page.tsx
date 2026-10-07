@@ -26,7 +26,9 @@ export async function generateMetadata(
   return mdcSeite({
     pfad: `/spielorte/${venue.id}`,
     title: venue.name,
-    description: `MDC-Spielort ${venue.name} in ${venue.zip} ${venue.city}: ${venueWeekdayLabel(venue)} ab ${venue.time} Uhr, ${venue.boards} Dartautomaten.`,
+    description: `MDC-Spielort ${venue.name} in ${venue.zip} ${venue.city}: `
+      + `${venueWeekdayLabel(venue)} ab ${venue.time} Uhr`
+      + (venue.boards === null ? '.' : `, ${venue.boards} Dartautomaten.`),
   });
 }
 
@@ -121,7 +123,9 @@ export default async function SpielortDetailPage(
               <Target size={19} style={{ color: 'var(--mdc-red)' }} />
               <h2 className="mdc-display" style={{ fontSize: '1.05rem', marginTop: 10 }}>Spielbetrieb</h2>
               <p style={{ marginTop: 7, color: 'var(--mdc-ink-soft)', fontSize: '0.9rem', lineHeight: 1.7 }}>
-                {venue.boards} Dartautomaten<br />
+                {venue.boards === null
+                  ? 'Anzahl der Dartautomaten noch nicht bekannt'
+                  : `${venue.boards} Dartautomaten`}<br />
                 {venueWeekdayLabel(venue)}, Start {formatTime(venue.time)}<br />
                 {gespielt.length > 0
                   ? `${gespielt.length} ausgewertete Ranking-Turniere`

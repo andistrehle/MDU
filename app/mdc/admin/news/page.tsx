@@ -29,9 +29,9 @@ export const dynamic = 'force-dynamic';
 export default async function AdminNewsPage() {
   // Entwürfe gehören hier ausdrücklich dazu — die Verwaltung zeigt alles,
   // die Seite nur das Veröffentlichte.
-  const posts = [...NEWS].sort(
-    (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id),
-  );
+  // Dieselbe Reihenfolge wie auf der Seite: neueste zuerst, bei gleichem
+  // Datum der zuletzt geschriebene oben (stabile Sortierung über die Datei).
+  const posts = [...NEWS].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <>
