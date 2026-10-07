@@ -7,7 +7,9 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { findTeam, getCurrentSeason, getCurrentCompetitionForTeam, findLeague } from '@/lib/data';
-import { getCaptainTeamView, getTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR } from '@/lib/supabase/season-teams';
+import { getCaptainTeamView } from '@/lib/supabase/season-teams';
+import { supabase } from '@/lib/supabase/client';
+import type { TeamFee } from '@/lib/startgeld';
 import { StartgeldPay } from '@/components/mdu/startgeld-pay';
 import { team27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
@@ -28,14 +30,27 @@ export default function MeinTeamPage() {
     else setDbView(null);
   }, [teamId]);
 
-  // Startgeld-Status der (neuesten) DB-Saison — nur für Kapitäne/Ligaleitung,
-  // eingeloggt sichtbar (RLS lässt genau diese lesen), nie öffentlich.
-  const [paid, setPaid] = useState<boolean | null>(null);
+  // Startgeld der (neuesten) DB-Saison — nur für Kapitäne/Ligaleitung, nie
+  // öffentlich. Gerechnet auf dem Server (/api/startgeld): Der Satz einer
+  // Nachmeldung hängt am Meldedatum, und das dürfen Kapitäne nicht für jede
+  // Meldung selbst lesen.
+  const [fee, setFee] = useState<{ fee: TeamFee; breakdown: string; paid: boolean; open: number; seasonName: string | null } | null>(null);
   useEffect(() => {
-    if (canEdit && dbView?.seasonId && teamId) getTeamPaid(dbView.seasonId, teamId).then(setPaid);
-    else setPaid(null);
-  }, [canEdit, dbView?.seasonId, teamId]);
-  const feeCount = (dbView?.roster ?? []).filter(m => m.name.trim()).length;
+    let cancelled = false;
+    (async () => {
+      setFee(null);
+      if (!canEdit || !teamId || !supabase) return;
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return;
+      const res = await fetch(`/api/startgeld?team=${encodeURIComponent(teamId)}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+      if (!res?.ok || cancelled) return;
+      const d = await res.json();
+      if (!cancelled) setFee(d);
+    })();
+    return () => { cancelled = true; };
+  }, [canEdit, teamId]);
+  const rest = fee && fee.paid && fee.open > 0;
 
   // Saison 2026/27 (Spielplan-Momentaufnahme) hat Vorrang vor den statischen 2025/26-Daten.
   const t27 = teamId ? team27(teamId) : undefined;
@@ -88,7 +103,7 @@ export default function MeinTeamPage() {
           </div>
 
           {/* Startgeld — nur für Kapitän/Ligaleitung, nur im eingeloggten Bereich */}
-          {canEdit && dbView && feeCount > 0 && (
+          {canEdit && fee && fee.fee.total > 0 && (
             <div style={{
               background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
               borderRadius: 14, padding: '16px 20px', marginBottom: 18,
@@ -96,27 +111,37 @@ export default function MeinTeamPage() {
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)', marginBottom: 3 }}>
-                    Startgeld {dbView.seasonName ? `· ${dbView.seasonName}` : ''}
+                    Startgeld {fee.seasonName ? `· ${fee.seasonName}` : ''}
                   </div>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
-                    {feeCount} Spieler × {PLAYER_FEE_EUR} € + {TEAM_FEE_EUR} € = <strong style={{ color: 'var(--th-text-strong)' }}>{teamFeeEuro(feeCount)} €</strong>
+                    {fee.breakdown.replace(/ = \d+ €$/, '')} = <strong style={{ color: 'var(--th-text-strong)' }}>{fee.fee.total} €</strong>
                   </div>
+                  {fee.fee.earlyNominations > 0 && (
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 3 }}>
+                      Davon {fee.fee.earlyNominations} {fee.fee.earlyNominations === 1 ? 'Nachmeldung' : 'Nachmeldungen'} vor Saisonstart (20 €).
+                    </div>
+                  )}
                 </div>
                 <span style={{
                   fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.02em',
                   padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap',
-                  background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
-                  color: paid ? 'var(--th-win)' : '#c0392b',
-                  border: `1px solid ${paid ? 'rgba(34,197,94,0.45)' : 'rgba(212,0,0,0.35)'}`,
+                  background: fee.open === 0 ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
+                  color: fee.open === 0 ? 'var(--th-win)' : '#c0392b',
+                  border: `1px solid ${fee.open === 0 ? 'rgba(34,197,94,0.45)' : 'rgba(212,0,0,0.35)'}`,
                 }}>
-                  {paid == null ? '…' : paid ? '✓ Bezahlt' : 'Zahlung noch offen'}
+                  {fee.open === 0 ? '✓ Bezahlt' : rest ? `Restbetrag ${fee.open} € offen` : 'Zahlung noch offen'}
                 </span>
               </div>
-              {paid === false && (
+              {fee.open > 0 && (
                 <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--th-line-4)' }}>
+                  {rest && (
+                    <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', margin: '0 0 12px', lineHeight: 1.5 }}>
+                      Seit eurer Zahlung sind Nachmeldungen dazugekommen. Offen ist nur die Differenz von <strong>{fee.open} €</strong>.
+                    </p>
+                  )}
                   <StartgeldPay
-                    amount={teamFeeEuro(feeCount)}
-                    reference={`${teamName} – Startgeld ${dbView.seasonName ?? ''}`.trim()}
+                    amount={fee.open}
+                    reference={`${teamName} – ${rest ? 'Restbetrag Startgeld' : 'Startgeld'} ${fee.seasonName ?? ''}`.trim()}
                   />
                   <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', margin: '10px 0 0', lineHeight: 1.5 }}>
                     Die Freigabe als „bezahlt" erfolgt durch die Ligaleitung, sobald das Geld eingegangen ist.

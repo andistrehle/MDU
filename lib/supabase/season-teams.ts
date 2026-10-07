@@ -8,6 +8,7 @@
 // ============================================================
 
 import { supabase } from './client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { findMatchingVenue } from '@/lib/venue-match';
@@ -66,6 +67,10 @@ export interface SeasonRosterRow {
   is_captain: boolean;
   status: string;
   registration_id: string | null;
+  /** Nur bei Nachmeldungen: Zeitpunkt der Meldung (für den Startgeld-Satz). */
+  nominated_at?: string | null;
+  /** True bei bestätigten Nachmeldungen (player_assignments, source 'nomination'). */
+  is_nomination?: boolean;
 }
 
 /** Alle freigegebenen Teams einer Saison (mit Team-/Spielstättennamen). */
@@ -571,12 +576,14 @@ export async function listCaptainTeamSeasons(teamId: string): Promise<{ seasonId
  * — wer nur dort liest, übersieht sie (Kader, Startgeld). Spieler, die schon im
  * Anmeldekader stehen (`known`), werden übersprungen.
  */
-async function nominatedRosterRows(seasonId: string, known: (string | null)[], teamId?: string): Promise<{
+export async function nominatedRosterRows(client: SupabaseClient | null, seasonId: string, known: (string | null)[], teamId?: string): Promise<{
   id: string; team_id: string; player_id: string; first_name: string; last_name: string;
   license_number: string | null; is_captain: boolean;
+  /** Meldezeitpunkt der Nachmeldung — null, wenn nicht lesbar (RLS: Kapitäne sehen nur eigene). */
+  nominated_at: string | null;
 }[]> {
-  if (!supabase) return [];
-  let q = supabase.from('player_assignments')
+  if (!client) return [];
+  let q = client.from('player_assignments')
     .select('id, team_id, player_id, is_captain')
     .eq('season_id', seasonId).eq('source', 'nomination').eq('status', 'active');
   if (teamId) q = q.eq('team_id', teamId);
@@ -592,14 +599,21 @@ async function nominatedRosterRows(seasonId: string, known: (string | null)[], t
     });
   if (!nom.length) return [];
   const ids = [...new Set(nom.map(a => a.player_id as string))];
-  const { data: pl } = await supabase.from('players').select('id, first_name, last_name, license_number').in('id', ids);
+  const { data: pl } = await client.from('players').select('id, first_name, last_name, license_number').in('id', ids);
   const pmap = new Map(((pl ?? []) as { id: string; first_name: string | null; last_name: string | null; license_number: string | null }[]).map(p => [p.id, p]));
+  // Meldedatum: Die Zuordnung heißt „pa-nom-<Nachmeldungs-ID>".
+  const nomIds = nom.map(a => a.id.startsWith('pa-nom-') ? a.id.slice('pa-nom-'.length) : null).filter(Boolean) as string[];
+  const { data: nd } = nomIds.length
+    ? await client.from('player_nominations').select('id, created_at').in('id', nomIds)
+    : { data: [] };
+  const dmap = new Map(((nd ?? []) as { id: string; created_at: string }[]).map(n => [n.id, n.created_at]));
   return nom.map(a => {
     const p = pmap.get(a.player_id as string);
     return {
       id: a.id, team_id: a.team_id, player_id: a.player_id as string,
       first_name: p?.first_name ?? '', last_name: p?.last_name ?? '',
       license_number: p?.license_number ?? null, is_captain: !!a.is_captain,
+      nominated_at: dmap.get(a.id.slice('pa-nom-'.length)) ?? null,
     };
   });
 }
@@ -628,7 +642,7 @@ export async function getCaptainTeamView(teamId: string, seasonId?: string): Pro
     .eq('season_id', top.season_id).eq('team_id', teamId).order('is_captain', { ascending: false });
   const rrows = (roster ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null; status: string }[];
   // Nachmeldungen gehören zum Kader — und damit ins Startgeld.
-  for (const a of await nominatedRosterRows(top.season_id, rrows.map(r => r.player_id), teamId)) {
+  for (const a of await nominatedRosterRows(supabase, top.season_id, rrows.map(r => r.player_id), teamId)) {
     rrows.push({ first_name: a.first_name, last_name: a.last_name, license_number: a.license_number, is_captain: a.is_captain, player_id: a.player_id, status: 'active' });
   }
   const licById = await currentLicensesClient(rrows.map(r => r.player_id));
@@ -648,47 +662,55 @@ export async function getCaptainTeamView(teamId: string, seasonId?: string): Pro
 
 // ── Startgeld / Zahlungsstatus (Bezahlt / offen) ──────────────
 
-/** Startgeld pro Spieler in Euro. */
-export const PLAYER_FEE_EUR = 20;
-/** Zusätzlicher Mannschaftsbeitrag je Team in Euro (einmal pro Mannschaft, zusätzlich zum Spieler-Startgeld). */
-export const TEAM_FEE_EUR = 20;
+// Beträge und Rechnung: lib/startgeld.ts (eine Quelle für Kapitän, Admin, Server).
+export { PLAYER_FEE_EUR, TEAM_FEE_EUR, LATE_NOMINATION_FEE_EUR } from '@/lib/startgeld';
+
+export interface TeamPayment {
+  paid: boolean;
+  /** Betrag, der beim „bezahlt"-Setzen fällig war — null bei alten Markierungen. */
+  paidAmount: number | null;
+}
 
 /**
- * Startgeld eines Teams: Kadergröße × Spieler-Startgeld + einmaliger
- * Mannschaftsbeitrag (z. B. 11 × 20 € + 20 € = 240 €). Ein leerer Kader (0
- * Mitglieder) kostet nichts — dann ist es keine echte Mannschaft.
+ * Zahlungsstände einer Saison (optional nur eines Teams). Liest `paid_amount`
+ * mit; fehlt die Spalte noch (Migration 0041 nicht eingespielt), geht es ohne.
  */
-export function teamFeeEuro(memberCount: number): number {
-  if (memberCount <= 0) return 0;
-  return memberCount * PLAYER_FEE_EUR + TEAM_FEE_EUR;
+export async function listTeamPayments(seasonId: string, teamId?: string): Promise<Map<string, TeamPayment>> {
+  const out = new Map<string, TeamPayment>();
+  if (!supabase || !seasonId) return out;
+  const run = (cols: string) => {
+    let q = supabase!.from('season_team_payments').select(cols).eq('season_id', seasonId);
+    if (teamId) q = q.eq('team_id', teamId);
+    return q;
+  };
+  let { data, error } = await run('team_id, paid, paid_amount');
+  if (error) ({ data, error } = await run('team_id, paid'));
+  for (const r of (data ?? []) as unknown as { team_id: string; paid: boolean; paid_amount?: number | null }[]) {
+    out.set(r.team_id, { paid: !!r.paid, paidAmount: r.paid_amount ?? null });
+  }
+  return out;
 }
 
-/** Ist das Startgeld dieses Teams für die Saison als bezahlt markiert? */
-export async function getTeamPaid(seasonId: string, teamId: string): Promise<boolean> {
-  if (!supabase || !seasonId || !teamId) return false;
-  const { data } = await supabase.from('season_team_payments')
-    .select('paid').eq('season_id', seasonId).eq('team_id', teamId).maybeSingle();
-  return !!(data as { paid: boolean } | null)?.paid;
-}
-
-/** Zahlungsstatus setzen (nur Admin per RLS). */
-export async function setTeamPaid(seasonId: string, teamId: string, paid: boolean): Promise<{ error: string | null }> {
+/**
+ * Bezahlt-Status setzen (nur Ligaleitung/Admin, RLS). Beim Setzen auf „bezahlt"
+ * wird der gerade fällige Betrag mitgespeichert — kommt später eine Nachmeldung
+ * dazu, ist die Differenz offen.
+ */
+export async function setTeamPaid(seasonId: string, teamId: string, paid: boolean, amount?: number): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const { data: auth } = await supabase.auth.getUser();
-  const { error } = await supabase.from('season_team_payments').upsert({
+  const row = {
     season_id: seasonId, team_id: teamId, paid,
     paid_at: paid ? new Date().toISOString() : null,
     updated_by: auth.user?.id ?? null, updated_at: new Date().toISOString(),
-  }, { onConflict: 'season_id,team_id' });
+  };
+  let { error } = await supabase.from('season_team_payments')
+    .upsert({ ...row, paid_amount: paid ? (amount ?? null) : null }, { onConflict: 'season_id,team_id' });
+  // Spalte paid_amount noch nicht angelegt → wie bisher ohne Betrag speichern.
+  if (error && /paid_amount/.test(error.message)) {
+    ({ error } = await supabase.from('season_team_payments').upsert(row, { onConflict: 'season_id,team_id' }));
+  }
   return { error: error?.message ?? null };
-}
-
-/** Team-Ids, deren Startgeld für die Saison bezahlt ist (für die Admin-Übersicht). */
-export async function listPaidTeams(seasonId: string): Promise<Set<string>> {
-  if (!supabase || !seasonId) return new Set();
-  const { data } = await supabase.from('season_team_payments')
-    .select('team_id').eq('season_id', seasonId).eq('paid', true);
-  return new Set(((data ?? []) as { team_id: string }[]).map(r => r.team_id));
 }
 
 /** Einzelner DB-Teamname (Fallback, wenn nicht im statischen Stamm). */
@@ -724,12 +746,13 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
 
   // Bestätigte Nachmeldungen stehen in player_assignments (source 'nomination'),
   // NICHT in season_roster_assignments — sonst fehlen sie im Kader.
-  for (const a of await nominatedRosterRows(seasonId, rows.map(r => r.player_id))) {
+  for (const a of await nominatedRosterRows(supabase, seasonId, rows.map(r => r.player_id))) {
     rows.push({
       id: a.id, season_id: seasonId, team_id: a.team_id, player_id: a.player_id,
       first_name: a.first_name, last_name: a.last_name,
       license_number: a.license_number, is_captain: a.is_captain,
       status: 'active', registration_id: null,
+      nominated_at: a.nominated_at, is_nomination: true,
     });
   }
 

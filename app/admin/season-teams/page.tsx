@@ -14,7 +14,8 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
-import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setTeamShortName, setSeasonTeamContact, listPaidTeams, setTeamPaid, teamFeeEuro, PLAYER_FEE_EUR, TEAM_FEE_EUR, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { listSeasonTeams, listSeasonRoster, setActiveSeason, finalizeNewRosterPlayers, setRosterPlayerName, addRosterPlayer, deleteRosterPlayer, setSeasonTeamVenue, setTeamShortName, setSeasonTeamContact, listTeamPayments, setTeamPaid, PLAYER_FEE_EUR, TEAM_FEE_EUR, LATE_NOMINATION_FEE_EUR, type TeamPayment, type SeasonTeamRow, type SeasonRosterRow } from '@/lib/supabase/season-teams';
+import { computeTeamFee, feeBreakdown, openAmount } from '@/lib/startgeld';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
@@ -69,8 +70,8 @@ export default function AdminSeasonTeamsPage() {
   const [teams, setTeams] = useState<SeasonTeamRow[] | null>(null);
   const [roster, setRoster] = useState<SeasonRosterRow[]>([]);
   const [open, setOpen] = useState<string | null>(null);
-  // Startgeld: Team-Ids mit „bezahlt" + laufende Umschaltung.
-  const [paidTeams, setPaidTeams] = useState<Set<string>>(new Set());
+  // Startgeld: Zahlungsstand je Team (bezahlt + damals fälliger Betrag) + laufende Umschaltung.
+  const [payments, setPayments] = useState<Map<string, TeamPayment>>(new Map());
   const [savingPay, setSavingPay] = useState<string | null>(null);
 
   // Saisons laden + Standard = Anmelde-Saison (sonst erste).
@@ -90,24 +91,34 @@ export default function AdminSeasonTeamsPage() {
     let cancelled = false;
     (async () => {
       setTeams(null);
-      const [t, r, paid] = await Promise.all([listSeasonTeams(seasonId), listSeasonRoster(seasonId), listPaidTeams(seasonId)]);
+      const [t, r, paid] = await Promise.all([listSeasonTeams(seasonId), listSeasonRoster(seasonId), listTeamPayments(seasonId)]);
       if (cancelled) return;
       setTeams(t);
       setRoster(r);
-      setPaidTeams(paid);
+      setPayments(paid);
     })();
     return () => { cancelled = true; };
   }, [canView, seasonId]);
 
   const rosterFor = (teamId: string) => roster.filter(p => p.team_id === teamId);
+  /** Startgeld eines Teams: fällig, bezahlt, offen (Nachmeldungen ab Saisonstart 25 €). */
+  const feeFor = (teamId: string) => {
+    const fee = computeTeamFee(seasonId, rosterFor(teamId).map(p => ({ isNomination: p.is_nomination, nominatedAt: p.nominated_at })));
+    const pay = payments.get(teamId);
+    const paid = !!pay?.paid;
+    return { fee, paid, open: openAmount(fee.total, paid, pay?.paidAmount ?? null) };
+  };
 
   // Startgeld eines Teams umschalten (bezahlt / offen) — nur Admin per RLS.
+  // „Bezahlt" speichert den gerade fälligen Betrag mit; so wird eine spätere
+  // Nachmeldung als Restbetrag sichtbar. Dieselbe Aktion bucht auch einen Rest.
   async function onTogglePaid(teamId: string, paid: boolean) {
     setSavingPay(teamId);
-    const { error } = await setTeamPaid(seasonId, teamId, paid);
+    const amount = paid ? feeFor(teamId).fee.total : undefined;
+    const { error } = await setTeamPaid(seasonId, teamId, paid, amount);
     setSavingPay(null);
     if (error) return;
-    setPaidTeams(prev => { const n = new Set(prev); if (paid) n.add(teamId); else n.delete(teamId); return n; });
+    setPayments(prev => { const n = new Map(prev); n.set(teamId, { paid, paidAmount: paid ? (amount ?? null) : null }); return n; });
   }
   const season = seasons.find(s => s.id === seasonId) ?? null;
   const activeSeason = seasons.find(s => s.status === 'active') ?? null;
@@ -272,9 +283,8 @@ export default function AdminSeasonTeamsPage() {
     const r = rosterFor(t.team_id);
     const isOpen = open === t.id;
     const captain = r.find(p => p.is_captain);
-    const paid = paidTeams.has(t.team_id);
-    const memberCount = r.length;
-    const fee = teamFeeEuro(memberCount);
+    const { fee, paid, open: openFee } = feeFor(t.team_id);
+    const rest = paid && openFee > 0;
     return (
       <div key={t.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, overflow: 'hidden' }}>
         <button
@@ -292,13 +302,13 @@ export default function AdminSeasonTeamsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span style={colLabel}>Saisonbeitrag</span>
-            <span title={`${memberCount} × ${PLAYER_FEE_EUR} € + ${TEAM_FEE_EUR} € = ${fee} €`} style={{
+            <span title={feeBreakdown(fee)} style={{
               display: 'inline-flex', alignItems: 'center',
               fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.04em', textTransform: 'uppercase',
               padding: '2px 9px', borderRadius: 20,
-              background: paid ? 'rgba(34,197,94,0.12)' : 'rgba(212,0,0,0.10)',
-              color: paid ? 'var(--th-win)' : '#c0392b',
-            }}>{paid ? 'bezahlt' : 'offen'}</span>
+              background: openFee === 0 ? 'rgba(34,197,94,0.12)' : rest ? 'rgba(232,184,74,0.18)' : 'rgba(212,0,0,0.10)',
+              color: openFee === 0 ? 'var(--th-win)' : rest ? '#9a6b00' : '#c0392b',
+            }}>{openFee === 0 ? 'bezahlt' : rest ? `Rest ${openFee} €` : 'offen'}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span style={colLabel}>Status</span>
@@ -400,7 +410,16 @@ export default function AdminSeasonTeamsPage() {
               )}
               <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-                <span>{memberCount} × {PLAYER_FEE_EUR} € + {TEAM_FEE_EUR} € = <strong>{fee} €</strong></span>
+                <span>{feeBreakdown(fee).replace(/ = \d+ €$/, '')} = <strong>{fee.total} €</strong>
+                  {fee.earlyNominations > 0 && <span style={{ color: 'var(--th-text-faint)', fontSize: 12 }}> (davon {fee.earlyNominations} Nachm. vor Saisonstart)</span>}
+                  {rest && <span style={{ color: '#9a6b00', fontWeight: 700 }}> · bezahlt waren {fee.total - openFee} €, offen {openFee} €</span>}
+                </span>
+                {rest && (
+                  <button type="button" onClick={() => onTogglePaid(t.team_id, true)} disabled={savingPay === t.team_id}
+                    style={{ padding: '5px 12px', borderRadius: 20, cursor: savingPay === t.team_id ? 'wait' : 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, border: '1px solid rgba(232,184,74,0.6)', background: 'transparent', color: '#9a6b00' }}>
+                    {savingPay === t.team_id ? '…' : `Rest ${openFee} € als bezahlt markieren`}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => onTogglePaid(t.team_id, !paid)}
@@ -603,9 +622,10 @@ export default function AdminSeasonTeamsPage() {
     const list = teams ?? [];
     let paidCount = 0, totalFee = 0, openFee = 0;
     for (const t of list) {
-      const fee = teamFeeEuro(rosterFor(t.team_id).length);
-      totalFee += fee;
-      if (paidTeams.has(t.team_id)) paidCount += 1; else openFee += fee;
+      const f = feeFor(t.team_id);
+      totalFee += f.fee.total;
+      openFee += f.open;
+      if (f.open === 0) paidCount += 1;
     }
     return { total: list.length, paidCount, totalFee, openFee };
   })();
@@ -689,7 +709,7 @@ export default function AdminSeasonTeamsPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, padding: '12px 16px 0' }}>
             <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Startgeld · Saisonbeiträge</span>
-            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler + {TEAM_FEE_EUR} € / Team</span>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler + {TEAM_FEE_EUR} € / Team · Nachmeldung ab Saisonstart {LATE_NOMINATION_FEE_EUR} €</span>
           </div>
           <div style={{ display: 'flex', padding: '10px 6px 14px' }}>
             {([

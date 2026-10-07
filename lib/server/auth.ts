@@ -61,6 +61,12 @@ export function canUploadForTeam(user: ServerUser, teamId: string): boolean {
   return hasRole(toProfile(user), 'team_captain') && user.teamId === teamId;
 }
 
+/** Darf das Startgeld/den Zahlungsstand des Teams sehen? (Kapitän des Teams oder Ligaleitung) */
+export function canSeeTeamFee(user: ServerUser, teamId: string): boolean {
+  if (hasMinRole(toProfile(user), 'league_admin')) return true;
+  return hasRole(toProfile(user), 'team_captain') && user.teamId === teamId;
+}
+
 /** Ligaleitung/Super-Admin? */
 export function isAdminUser(user: ServerUser): boolean {
   return hasMinRole(toProfile(user), 'league_admin');
