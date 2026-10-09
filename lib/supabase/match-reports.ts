@@ -327,7 +327,10 @@ export async function updateReport(
     points_home: totals.pointsHome, points_guest: totals.pointsGuest,
   }).eq('id', id);
   if (error) return { error: error.message };
-  return { error: await replaceChildren(id, players, games, totals) };
+  const childErr = await replaceChildren(id, players, games, totals);
+  // Ein schon eingereichter Bericht zählt bereits — geänderte Zahlen neu anzeigen.
+  if (!childErr) void ergebnisSeitenNeuBauen();
+  return { error: childErr };
 }
 
 async function replaceChildren(reportId: string, players: ReportPlayer[], games: ReportGame[], totals: ReportTotals): Promise<string | null> {
@@ -356,9 +359,25 @@ async function replaceChildren(reportId: string, players: ReportPlayer[], games:
   return gerr?.message ?? null;
 }
 
+/**
+ * Ergebnis-Seiten (Tabellen, Ergebnisse, Spielplan, Liga- und Teamseiten) zum
+ * Neubau markieren — nach jeder Änderung, die das Ergebnis betrifft. Schlägt
+ * es fehl, holen die Seiten den Stand spätestens beim nächsten Neubau nach.
+ */
+export async function ergebnisSeitenNeuBauen(): Promise<void> {
+  if (!supabase || typeof window === 'undefined') return;
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return;
+    await fetch('/api/match-reports/published', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  } catch { /* nicht kritisch */ }
+}
+
 export async function submitReport(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const { error } = await supabase.from('match_reports').update({ status: 'submitted' }).eq('id', id);
+  if (!error) void ergebnisSeitenNeuBauen();
   return { error: error?.message ?? null };
 }
 
@@ -366,6 +385,7 @@ export async function submitReport(id: string): Promise<{ error: string | null }
 export async function deleteReport(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const { error } = await supabase.from('match_reports').delete().eq('id', id);
+  if (!error) void ergebnisSeitenNeuBauen();
   return { error: error?.message ?? null };
 }
 
@@ -411,6 +431,7 @@ export async function confirmReport(id: string): Promise<{ error: string | null 
     status: 'confirmed', guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
     proposed_changes: null, proposal_base: null, proposed_by: null, proposed_at: null,
   }).eq('id', id);
+  if (!error) void ergebnisSeitenNeuBauen();
   return { error: error?.message ?? null };
 }
 

@@ -12,6 +12,7 @@
 // ============================================================
 import data from './saison-2027.generated.json';
 import type { SpielplanData } from '@/lib/spielplan/types';
+import { TERMINE_2027, type Termin27 } from './termine-2027';
 
 export const NEUE_SAISON = { id: 'season-2027', name: 'Saison 2026/2027', kurz: '2026/27' } as const;
 export const ARCHIV_SAISON = { id: 'season-2026', name: 'Saison 2025/2026', kurz: '2025/26', slug: '2025-26' } as const;
@@ -97,6 +98,46 @@ export function spieleFuerTeam27(teamId: string): TeamSpiel27[] {
       ? { spieltag: md.nr, half: md.half, fri: md.fri, sun: md.sun, heim: g.home === teamId, gegner: g.home === teamId ? g.away : g.home, derby: g.derby }
       : { spieltag: md.nr, half: md.half, fri: md.fri, sun: md.sun, heim: false, gegner: '', derby: false };
   });
+}
+
+// ── Begegnungen (feste Kennung je Spiel) ─────────────────────
+// In der Doppelrunde gibt es jede Paarung mit festem Heimrecht genau einmal —
+// Heim|Gast ist damit die Kennung eines Spiels. Daran hängen Termin
+// (termine-2027.ts) und Spielbericht (match_reports: season_id + Heim + Gast,
+// eindeutig, Migration 0042).
+export const begegnungKey = (home: string, away: string) => `${home}|${away}`;
+
+export interface Begegnung27 {
+  key: string;
+  liga: Liga27Code;
+  spieltag: number;
+  half: 'hin' | 'rueck';
+  /** Plan-Wochenende */
+  fri: string;
+  sun: string;
+  home: string;
+  away: string;
+  derby: boolean;
+  /** Fester Termin aus dem Masterplan, falls schon eingetragen. */
+  termin: Termin27 | null;
+}
+
+export function alleBegegnungen27(): Begegnung27[] {
+  return LIGEN_2027.flatMap(l => spieltage27(l.code).flatMap(md => md.games.map(g => ({
+    key: begegnungKey(g.home, g.away), liga: l.code, spieltag: md.nr, half: md.half,
+    fri: md.fri, sun: md.sun, home: g.home, away: g.away, derby: g.derby,
+    termin: TERMINE_2027[begegnungKey(g.home, g.away)] ?? null,
+  }))));
+}
+
+export function begegnung27(home: string, away: string): Begegnung27 | undefined {
+  return alleBegegnungen27().find(b => b.home === home && b.away === away);
+}
+
+/** „Fr 23.10.2026 · 20:00" bzw. das Plan-Wochenende, solange kein Termin feststeht. */
+export function terminText(b: Pick<Begegnung27, 'fri' | 'sun' | 'termin'>): string {
+  if (!b.termin) return `Wochenende ${wochenendeText(b.fri, b.sun)}`;
+  return `${datumText(b.termin.datum)}${b.termin.uhrzeit ? ` · ${b.termin.uhrzeit} Uhr` : ''}`;
 }
 
 /** Heutiges Datum in München als ISO (YYYY-MM-DD). */

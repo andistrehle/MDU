@@ -21,6 +21,7 @@ import { SeasonTeamView } from '@/components/mdu/season-team-view';
 import { getRowOutcome } from '@/lib/data/competition-outcomes';
 import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27 } from '@/components/mdu/spielplan-27';
+import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
 import { Card } from '@/components/mdu/season-team-view';
 import { team27, findLiga27, istArchivParam, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 
@@ -39,7 +40,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   if (t27 && !archiv) {
     const st = await getSeasonTeam(NEUE_SAISON.id, id);
     if (st) {
-      const roster = await getSeasonRoster(NEUE_SAISON.id, id);
+      const [roster, { byKey: ergebnisse }] = await Promise.all([getSeasonRoster(NEUE_SAISON.id, id), ladeErgebnisse27()]);
       return (
         <SeasonTeamView
           seasonName={NEUE_SAISON.name}
@@ -52,7 +53,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           spielplan={
             <Card title={`Spielplan · ${NEUE_SAISON.name}`}>
               <VorlaeufigHinweis style={{ marginBottom: 14, fontSize: 12.5 }} />
-              <TeamSpielplan27 teamId={id} />
+              <TeamSpielplan27 teamId={id} ergebnisse={ergebnisse} />
             </Card>
           }
         />

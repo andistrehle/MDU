@@ -5,12 +5,14 @@ import { Footer } from '@/components/mdu/footer';
 import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { LIGEN_2027, NEUE_SAISON, SAISON_START, SAISON_ENDE, datumText } from '@/lib/data/saison-2027';
+import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
 
 export const metadata: Metadata = { title: 'Spielplan' };
 
 // Saison 2026/2027 — vorläufiger Spielplan aller Ligen (statisch, aus
 // lib/data/saison-2027). Archiv 2025/26: /spielplan/2025-26.
-export default function SpielplanPage() {
+export default async function SpielplanPage() {
+  const { byKey: ergebnisse } = await ladeErgebnisse27();
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielplan" />
@@ -51,7 +53,7 @@ export default function SpielplanPage() {
                   {liga.teams.length} Teams
                 </span>
               </div>
-              <LigaSpielplan27 liga={liga} />
+              <LigaSpielplan27 liga={liga} ergebnisse={ergebnisse} />
             </section>
           ))}
         </div>

@@ -7,7 +7,7 @@ import {
 // Vor dem ersten Spieltag zeigt die Karte nur die Plätze, nicht die Teams —
 // die alphabetische Vorschau-Tabelle sagt nichts über die Platzierung.
 
-const ZONE: Record<Zone, { bg: string; fg: string; zeichen: string }> = {
+export const ZONE: Record<Zone, { bg: string; fg: string; zeichen: string }> = {
   auf:    { bg: 'rgba(34,197,94,0.10)',  fg: '#1E8E3E', zeichen: '▲' },
   rel:    { bg: 'rgba(232,184,74,0.16)', fg: '#9A6B00', zeichen: '⚔' },
   ab:     { bg: 'rgba(212,0,0,0.08)',    fg: '#C0392B', zeichen: '▼' },
