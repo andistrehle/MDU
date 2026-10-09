@@ -144,7 +144,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
     }
     if (inputPages.length === 0) throw new Error('Keine verarbeitbare Bilddatei gefunden (HEIC bitte als JPG/PNG hochladen).');
 
-    const providerCtx = preMatch ? buildOcrContext(preMatch).providerCtx : EMPTY_CTX;
+    const providerCtx = preMatch ? (await buildOcrContext(preMatch)).providerCtx : EMPTY_CTX;
     const result = await provider.extract(inputPages, providerCtx);
     const structured = result.structuredData;
 

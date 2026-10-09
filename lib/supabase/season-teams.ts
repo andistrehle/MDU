@@ -761,3 +761,39 @@ export async function listSeasonRoster(seasonId: string): Promise<SeasonRosterRo
   const licById = await currentLicensesClient(rows.map(r => r.player_id));
   return rows.map(r => ({ ...r, license_number: (r.player_id && licById.get(r.player_id)) || r.license_number }));
 }
+
+// ── Kader 2026/27 für den Spielbericht ─────────────────────────
+
+export interface KaderOption {
+  /** Spieler-ID (players.id); Kaderzeilen ohne Profil: „name:Vorname Nachname" */
+  id: string;
+  name: string;
+  isCaptain: boolean;
+  passNo: string | null;
+}
+
+/**
+ * Kader eines Teams in einer Saison zur Auswahl im Spielbericht: Anmeldekader
+ * plus bestätigte Nachmeldungen, Kapitän zuerst, dann nach Namen. Öffentlich
+ * lesbar (wie auf der Teamseite) — also auch der Kader des Gegners.
+ */
+export async function ladeKader(seasonId: string, teamId: string): Promise<KaderOption[]> {
+  if (!supabase || !seasonId || !teamId) return [];
+  const { data } = await supabase.from('season_roster_assignments')
+    .select('first_name, last_name, license_number, is_captain, player_id')
+    .eq('season_id', seasonId).eq('team_id', teamId);
+  const rows = ((data ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null }[])
+    .filter(r => `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim());
+  const noms = await nominatedRosterRows(supabase, seasonId, rows.map(r => r.player_id), teamId);
+  const lic = await currentLicensesClient([...rows.map(r => r.player_id), ...noms.map(n => n.player_id)]);
+  const out: KaderOption[] = [
+    ...rows.map(r => {
+      const name = `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim();
+      return { id: r.player_id ?? `name:${name}`, name, isCaptain: r.is_captain, passNo: (r.player_id && lic.get(r.player_id)) || r.license_number };
+    }),
+    ...noms.map(n => ({ id: n.player_id, name: `${n.first_name} ${n.last_name}`.trim(), isCaptain: n.is_captain, passNo: lic.get(n.player_id) || n.license_number })),
+  ];
+  const seen = new Set<string>();
+  return out.filter(o => !seen.has(o.id) && seen.add(o.id))
+    .sort((a, b) => Number(b.isCaptain) - Number(a.isCaptain) || a.name.localeCompare(b.name, 'de'));
+}

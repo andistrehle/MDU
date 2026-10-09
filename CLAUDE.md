@@ -46,6 +46,17 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Codes, die es 26/27 nicht gibt — a1, a2, Playoffs — automatisch als Archiv). Umschalter:
   `components/mdu/saison-umschalter.tsx`. `SEASONS` in `lib/data/seasons.ts` bleibt mit
   `season-2026` = 'current' — alle statischen Daten gehören zu ihr.
+- **Ergebnisse 2026/27 kommen NUR aus den digitalen Spielberichten** (dartunion.de ist tot,
+  vom Betreiber am 09.10.2026 so festgelegt). Rechnung: `lib/tabelle-2027.ts` (Sieg 3 /
+  Unentschieden 1; Punkte → Spieldifferenz → Legdifferenz → direkter Vergleich; zählt ab dem
+  Einreichen, bis zur Bestätigung mit * markiert; Nichtantritt 0:3/0:18 und −3, fehlender
+  Bericht 0:3 ohne Abzug). Server-Lader `lib/server/ergebnisse-2027.ts` (service_role, öffentlich
+  nur das Gerechnete). Jede Begegnung hat die Kennung Heim|Gast (`begegnungKey`), je Begegnung
+  ein Bericht (Unique-Index, Migration 0042); Termine aus den Masterplänen in
+  `lib/data/termine-2027.ts`. Online-Formular und Foto-Upload wählen die Begegnung aus dem Plan
+  (`spiele27AlsMatch`, Kennung `s27:Heim|Gast`); eintragen darf Heim ODER Gast, bestätigen das
+  andere Team (`confirm_team_id`). Nach jeder Änderung markiert `/api/match-reports/published`
+  die Seiten zum Neubau (kein kurzes `revalidate`).
 - **Import NICHT einfach reaktivieren:** `imported-*.json` haben keinen Saisonschlüssel — ein
   Lauf für 26/27 würde das Archiv 2025/26 überschreiben. Ergebnisse 26/27 brauchen einen eigenen,
   saisongetrennten Weg. Die Status-Texte „abgeschlossen" in `league-detail-client.tsx` sind

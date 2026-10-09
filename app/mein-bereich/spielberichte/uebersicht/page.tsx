@@ -10,8 +10,9 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canUploadMatchReport } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
+import { team27 } from '@/lib/data/saison-2027';
 import {
-  listMyReports, confirmReport,
+  listMyReports, confirmReport, bestaetigendesTeam,
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
@@ -33,10 +34,10 @@ export default function SpielberichteUebersichtPage() {
   const myTeamId = user?.teamId;
   // Alle Berichte, an denen mein Team beteiligt ist (Heim ODER Gast).
   const allReports = (rows ?? [])
-    .filter(r => r.home_captain_user_id === myId || (myTeamId && r.guest_team_id === myTeamId))
+    .filter(r => r.home_captain_user_id === myId || (myTeamId && (r.guest_team_id === myTeamId || r.home_team_id === myTeamId)))
     .sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.match_date ?? '').localeCompare(a.match_date ?? ''));
   const toReview = (rows ?? [])
-    .filter(r => r.guest_team_id === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted')
+    .filter(r => bestaetigendesTeam(r) === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted')
     .sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.match_date ?? '').localeCompare(a.match_date ?? ''));
   const isOwner = (r: MatchReport) => r.home_captain_user_id === myId;
 
@@ -160,7 +161,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 }
 
 function shortName(teamId: string | null, name: string): string {
-  return (teamId ? findTeam(teamId)?.short : null) ?? name.slice(0, 3).toUpperCase();
+  return (teamId ? (team27(teamId)?.short ?? findTeam(teamId)?.short) : null) ?? name.slice(0, 3).toUpperCase();
 }
 
 const h: React.CSSProperties = { padding: '5px 8px', fontWeight: 700, whiteSpace: 'nowrap' };

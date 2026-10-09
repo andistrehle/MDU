@@ -11,10 +11,10 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canUploadMatchReport } from '@/lib/auth/roles';
 import {
-  TEAMS, findTeam, getCurrentSeason, getVenueForTeamInSeason,
-  getRankedRosterForTeam, getPlayerDisplayName, getCaptainForTeamInSeason,
-} from '@/lib/data';
-import { getRegistrationSeason, getActiveSeason } from '@/lib/supabase/seasons';
+  NEUE_SAISON, LIGEN_2027, alleBegegnungen27, begegnungKey, team27, venue27, findLiga27, wochenendeText,
+  type Begegnung27,
+} from '@/lib/data/saison-2027';
+import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
@@ -26,18 +26,19 @@ import {
   type HighlightEntry, type HighlightType,
 } from '@/lib/supabase/match-reports';
 
-const LEAGUES = ['La-Liga', 'A-Liga', 'B-Liga', 'C-Liga', 'D-Liga'];
 const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8]; // 4 Starter + bis zu 4 Wechsel
-const SEASON = getCurrentSeason();
-const TEAM_OPTIONS = [...TEAMS].map(t => ({ id: t.id, name: t.name })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
-interface RosterOption { id: string; name: string; isCaptain: boolean; passNo: string | null }
-function rosterOptions(teamId: string | null | undefined): RosterOption[] {
-  if (!teamId) return [];
-  return getRankedRosterForTeam(teamId, SEASON.id).map(e => ({
-    id: e.player.id, name: getPlayerDisplayName(e.player), isCaptain: e.isCaptain,
-    passNo: e.player.licenseNumber ?? null,
-  }));
+// Saison 2026/27: Ein Spielbericht gehört immer zu einer Begegnung des
+// Spielplans (Heim + Gast). Liga, Spieltag, Teams und Spielort kommen daraus;
+// Datum und Spielort bleiben änderbar (Verlegung). Kader aus der DB 2026/27
+// inkl. Nachmeldungen. Tabelle + Ergebnisse rechnen daraus (lib/server/ergebnisse-2027.ts).
+type RosterOption = KaderOption;
+const BEGEGNUNGEN = alleBegegnungen27();
+
+/** Vorgabe fürs Spieldatum: fester Termin, sonst heute (falls im Plan-Wochenende), sonst der Freitag. */
+function vorgabeDatum(b: Begegnung27, heute: string): string {
+  if (b.termin) return b.termin.datum;
+  return heute >= b.fri && heute <= b.sun ? heute : b.fri;
 }
 
 function emptyPlayers(side: 'home' | 'guest'): ReportPlayer[] {
@@ -118,21 +119,53 @@ function SpielberichteInner() {
     return m;
   }, [baseGames]);
 
-  const homeRoster = useMemo(() => rosterOptions(header.home_team_id), [header.home_team_id]);
-  const guestRoster = useMemo(() => rosterOptions(header.guest_team_id), [header.guest_team_id]);
-  const isCaptainFixed = user?.role === 'team_captain' && !!user?.teamId;
+  // Kader beider Teams (Saison des Berichts, Standard 2026/27).
+  const [homeRoster, setHomeRoster] = useState<RosterOption[]>([]);
+  const [guestRoster, setGuestRoster] = useState<RosterOption[]>([]);
+  const kaderSaison = header.season_id || NEUE_SAISON.id;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [h, g] = await Promise.all([
+        header.home_team_id ? ladeKader(kaderSaison, header.home_team_id) : Promise.resolve([]),
+        header.guest_team_id ? ladeKader(kaderSaison, header.guest_team_id) : Promise.resolve([]),
+      ]);
+      if (cancelled) return;
+      setHomeRoster(h); setGuestRoster(g);
+      // TC aus dem Kader vorbelegen, solange nichts eingetragen ist.
+      setHeader(x => ({
+        ...x,
+        tc_home: x.tc_home?.trim() ? x.tc_home : (h.find(o => o.isCaptain)?.name ?? ''),
+        tc_guest: x.tc_guest?.trim() ? x.tc_guest : (g.find(o => o.isCaptain)?.name ?? ''),
+      }));
+    })();
+    return () => { cancelled = true; };
+  }, [kaderSaison, header.home_team_id, header.guest_team_id]);
 
-  function onHomeTeam(id: string) {
-    const t = findTeam(id);
-    const v = (getVenueForTeamInSeason(id, SEASON.id) as { name?: string } | null)?.name ?? '';
-    const captain = id ? (getCaptainForTeamInSeason(id, SEASON.id) ?? '') : '';
-    setHeader(h => ({ ...h, home_team_id: id || null, home_team_name: t?.name ?? '', venue: v, tc_home: captain }));
+  // Wählbare Begegnungen: Kapitän nur die des eigenen Teams (Heim ODER Gast —
+  // laut Spielbedingungen trägt einer ein, der andere bestätigt), Ligaleitung alle.
+  const begegnungen = useMemo(() => {
+    const own = user?.role === 'team_captain' ? user.teamId : null;
+    return BEGEGNUNGEN.filter(b => !own || b.home === own || b.away === own);
+  }, [user?.role, user?.teamId]);
+  const gewaehlt = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
+
+  function onBegegnung(key: string) {
+    const b = BEGEGNUNGEN.find(x => x.key === key);
+    if (!b) return;
+    const now = new Date();
+    const heute = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    setHeader(h => ({
+      ...h,
+      league_label: findLiga27(b.liga)?.name ?? b.liga,
+      matchday: b.spieltag,
+      match_date: vorgabeDatum(b, heute),
+      venue: venue27(team27(b.home)?.venueId)?.name ?? '',
+      home_team_id: b.home, home_team_name: team27(b.home)?.name ?? b.home,
+      guest_team_id: b.away, guest_team_name: team27(b.away)?.name ?? b.away,
+      tc_home: '', tc_guest: '',
+    }));
     setHomePlayers(emptyPlayers('home'));
-  }
-  function onGuestTeam(id: string) {
-    const t = findTeam(id);
-    const captain = id ? (getCaptainForTeamInSeason(id, SEASON.id) ?? '') : '';
-    setHeader(h => ({ ...h, guest_team_id: id || null, guest_team_name: t?.name ?? '', tc_guest: captain }));
     setGuestPlayers(emptyPlayers('guest'));
   }
 
@@ -148,13 +181,7 @@ function SpielberichteInner() {
       if (idParam) {
         await loadExisting(idParam);
       } else {
-        const s = (await getRegistrationSeason()) ?? (await getActiveSeason());
         if (cancelled) return;
-        const teamName = user?.teamId ? (findTeam(user.teamId)?.name ?? '') : '';
-        const venue = user?.teamId ? ((getVenueForTeamInSeason(user.teamId, SEASON.id) as { name?: string } | null)?.name ?? '') : '';
-        const homeCaptain = user?.teamId ? (getCaptainForTeamInSeason(user.teamId, SEASON.id) ?? '') : '';
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         setRegId(null);
         setOwnerId(null);
         setLoadedStatus(null);
@@ -162,11 +189,11 @@ function SpielberichteInner() {
         setHistory([]);
         setProposedGames(null); setProposing(false); setProposalNote('');
         setBaseGames(null); setSubmitBase(null);
-        setSeasonId(s?.id ?? '');
+        setSeasonId(NEUE_SAISON.id);
         setHeader({
-          season_id: s?.id ?? null, league_label: '', matchday: null, match_date: today, venue,
-          home_team_id: user?.teamId ?? null, guest_team_id: null, home_team_name: teamName, guest_team_name: '',
-          tc_home: homeCaptain, tc_guest: '', protest: false, protest_note: '', highlights: [],
+          season_id: NEUE_SAISON.id, league_label: '', matchday: null, match_date: null, venue: '',
+          home_team_id: null, guest_team_id: null, home_team_name: '', guest_team_name: '',
+          tc_home: '', tc_guest: '', protest: false, protest_note: '', highlights: [],
         });
         setHomePlayers(emptyPlayers('home'));
         setGuestPlayers(emptyPlayers('guest'));
@@ -302,8 +329,10 @@ function SpielberichteInner() {
   }
 
   function validate(): string | null {
-    if (!header.league_label) return 'Bitte Liga wählen.';
-    if (!header.home_team_name.trim() || !header.guest_team_name.trim()) return 'Bitte Heim- und Gastmannschaft angeben.';
+    if (!header.home_team_id || !header.guest_team_id) return 'Bitte die Begegnung wählen.';
+    if ((header.season_id ?? NEUE_SAISON.id) === NEUE_SAISON.id && !BEGEGNUNGEN.some(b => b.home === header.home_team_id && b.away === header.guest_team_id)) {
+      return 'Diese Begegnung steht nicht im Spielplan 2026/27. Bitte die Begegnung aus der Liste wählen.';
+    }
     if (!header.match_date) return 'Bitte Datum angeben.';
     for (let i = 1; i <= 4; i++) {
       if (!homePlayers.find(p => p.slot === i)?.name.trim()) return `Bitte Heimspieler H${i} angeben.`;
@@ -329,6 +358,10 @@ function SpielberichteInner() {
   async function persist(): Promise<string | null> {
     const players = [...homePlayers, ...guestPlayers];
     const payload: ReportHeaderDraft = { ...header, season_id: seasonId || header.season_id };
+    if (!regId) {
+      // Bestätigen muss das ANDERE Team: Trägt der Gast ein, bestätigt das Heimteam.
+      payload.confirm_team_id = user?.teamId && user.teamId === header.guest_team_id ? header.home_team_id : header.guest_team_id;
+    }
     if (regId) {
       const { error } = await updateReport(regId, payload, players, games);
       if (error) { setMsg({ kind: 'err', text: error }); return null; }
@@ -415,7 +448,7 @@ function SpielberichteInner() {
 
             {readOnly && !proposing && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                Nur-Lese-Ansicht (du bist die Gastmannschaft). Du kannst den Bericht bestätigen oder unten einen Änderungsvorschlag eintragen.
+                Nur-Lese-Ansicht — den Bericht hat der Gegner eingetragen. Du kannst ihn bestätigen oder unten einen Änderungsvorschlag eintragen.
               </div>
             )}
             {proposing && (
@@ -432,36 +465,33 @@ function SpielberichteInner() {
             <fieldset disabled={readOnly && !proposing} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Kopf */}
             <Section title="Spielbericht – Kopfdaten">
-              <Row2>
-                <Field label="Liga *">
-                  <select value={header.league_label ?? ''} onChange={e => setH('league_label', e.target.value)} style={input}>
-                    <option value="">— wählen —</option>
-                    {LEAGUES.map(l => <option key={l} value={l}>{l}</option>)}
+              <Field label="Begegnung *">
+                {regId ? (
+                  <input value={`${header.league_label ?? ''}${header.matchday ? ` · ${header.matchday}. Spieltag` : ''} · ${header.home_team_name} – ${header.guest_team_name}`} disabled style={{ ...input, opacity: 0.75 }} />
+                ) : (
+                  <select value={gewaehlt} onChange={e => onBegegnung(e.target.value)} style={input}>
+                    <option value="">— Begegnung aus dem Spielplan wählen —</option>
+                    {LIGEN_2027.map(l => {
+                      const list = begegnungen.filter(b => b.liga === l.code);
+                      return list.length ? (
+                        <optgroup key={l.code} label={l.name}>
+                          {list.map(b => (
+                            <option key={b.key} value={b.key}>
+                              {b.spieltag}. ST ({wochenendeText(b.fri, b.sun, false)}) · {team27(b.home)?.name ?? b.home} – {team27(b.away)?.name ?? b.away}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ) : null;
+                    })}
                   </select>
-                </Field>
-                <Field label="Spieltag-Nr."><input type="number" value={header.matchday ?? ''} onChange={e => setH('matchday', e.target.value ? Number(e.target.value) : null)} style={input} /></Field>
-              </Row2>
+                )}
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>
+                  Liga, Spieltag, Heim und Gast kommen aus dem Spielplan {NEUE_SAISON.kurz}. Eintragen darf Heim oder Gast — bestätigen muss jeweils der Gegner.
+                </span>
+              </Field>
               <Row2>
                 <Field label="Datum *"><input type="date" value={header.match_date ?? ''} onChange={e => setH('match_date', e.target.value || null)} style={input} /></Field>
                 <Field label="Spielort"><input value={header.venue ?? ''} onChange={e => setH('venue', e.target.value)} style={input} /></Field>
-              </Row2>
-              <Row2>
-                <Field label="Heimmannschaft *">
-                  {isCaptainFixed ? (
-                    <input value={header.home_team_name} disabled style={{ ...input, opacity: 0.7 }} />
-                  ) : (
-                    <select value={header.home_team_id ?? ''} onChange={e => onHomeTeam(e.target.value)} style={input}>
-                      <option value="">— wählen —</option>
-                      {TEAM_OPTIONS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
-                  )}
-                </Field>
-                <Field label="Gastmannschaft *">
-                  <select value={header.guest_team_id ?? ''} onChange={e => onGuestTeam(e.target.value)} style={input}>
-                    <option value="">— wählen —</option>
-                    {TEAM_OPTIONS.filter(t => t.id !== header.home_team_id).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                </Field>
               </Row2>
               <Row2>
                 <Field label="TC Heim">
@@ -714,7 +744,7 @@ function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
 }) {
   function pick(slot: number, id: string) {
     const opt = options.find(o => o.id === id);
-    setPlayers(arr => arr.map(x => x.slot === slot ? { ...x, player_id: id || null, name: opt ? opt.name : '' } : x));
+    setPlayers(arr => arr.map(x => x.slot === slot ? { ...x, player_id: id || null, name: opt ? opt.name : '', pass_no: opt?.passNo ?? x.pass_no } : x));
   }
   return (
     <div>

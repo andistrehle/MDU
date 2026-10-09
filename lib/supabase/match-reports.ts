@@ -131,6 +131,10 @@ export interface MatchReport {
   highlights_guest: string | null;
   highlights: HighlightEntry[] | null;
   status: ReportStatus;
+  /** Bestätigendes Team (Migration 0042); fehlt = Gastteam wie früher. */
+  confirm_team_id?: string | null;
+  /** Wertung durch die Ligaleitung (Migration 0042). */
+  forfeit?: 'home_no_show' | 'guest_no_show' | 'no_report' | null;
   review_note: string | null;
   reviewed_at: string | null;
   guest_change_note: string | null;
@@ -236,9 +240,26 @@ const NOT_CONFIGURED = 'Supabase ist nicht konfiguriert.';
 export type ReportHeaderDraft = Pick<MatchReport,
   'season_id' | 'league_label' | 'matchday' | 'match_date' | 'venue' |
   'home_team_id' | 'guest_team_id' | 'home_team_name' | 'guest_team_name' |
-  'tc_home' | 'tc_guest' | 'protest' | 'protest_note' | 'highlights'>;
+  'tc_home' | 'tc_guest' | 'protest' | 'protest_note' | 'highlights'> & {
+  /** Team, das bestätigt — immer das andere als das eintragende (Migration 0042). */
+  confirm_team_id?: string | null;
+};
+
+/** Verständliche Meldung für DB-Fehler beim Speichern. */
+function speicherFehler(msg: string): string {
+  if (/match_reports_fixture_uq|duplicate key/i.test(msg)) {
+    return 'Für diese Begegnung gibt es schon einen Spielbericht. Du findest ihn unter „Meine Spielberichte" — oder der Gegner hat ihn bereits eingetragen.';
+  }
+  return msg;
+}
+
+/** Spalten, die erst Migration 0042 anlegt: Fehlen sie noch, ohne sie speichern. */
+const ohne0042 = <T extends Record<string, unknown>>(row: T) => { const { confirm_team_id: _c, ...rest } = row; void _c; return rest; };
 
 // ── Lesen ──────────────────────────────────────────────────────
+
+/** Welches Team bestätigt diesen Bericht? (das andere als das eintragende) */
+export const bestaetigendesTeam = (r: Pick<MatchReport, 'confirm_team_id' | 'guest_team_id'>) => r.confirm_team_id ?? r.guest_team_id;
 
 export async function listMyReports(): Promise<MatchReport[]> {
   if (!supabase) return [];
@@ -303,13 +324,15 @@ export async function createReport(
 ): Promise<{ id: string | null; error: string | null }> {
   if (!supabase) return { id: null, error: NOT_CONFIGURED };
   const totals = computeTotals(games);
-  const { data, error } = await supabase.from('match_reports').insert({
+  const row = {
     ...header, status: 'draft',
     spiele_home: totals.spieleHome, spiele_guest: totals.spieleGuest,
     legs_home: totals.legsHome, legs_guest: totals.legsGuest,
     points_home: totals.pointsHome, points_guest: totals.pointsGuest,
-  }).select('id').maybeSingle();
-  if (error || !data) return { id: null, error: error?.message ?? 'Anlegen fehlgeschlagen.' };
+  };
+  let { data, error } = await supabase.from('match_reports').insert(row).select('id').maybeSingle();
+  if (error && /confirm_team_id/.test(error.message)) ({ data, error } = await supabase.from('match_reports').insert(ohne0042(row)).select('id').maybeSingle());
+  if (error || !data) return { id: null, error: speicherFehler(error?.message ?? 'Anlegen fehlgeschlagen.') };
   const id = (data as { id: string }).id;
   const perr = await replaceChildren(id, players, games, totals);
   return { id, error: perr };
@@ -320,13 +343,15 @@ export async function updateReport(
 ): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const totals = computeTotals(games);
-  const { error } = await supabase.from('match_reports').update({
+  const row = {
     ...header,
     spiele_home: totals.spieleHome, spiele_guest: totals.spieleGuest,
     legs_home: totals.legsHome, legs_guest: totals.legsGuest,
     points_home: totals.pointsHome, points_guest: totals.pointsGuest,
-  }).eq('id', id);
-  if (error) return { error: error.message };
+  };
+  let { error } = await supabase.from('match_reports').update(row).eq('id', id);
+  if (error && /confirm_team_id/.test(error.message)) ({ error } = await supabase.from('match_reports').update(ohne0042(row)).eq('id', id));
+  if (error) return { error: speicherFehler(error.message) };
   const childErr = await replaceChildren(id, players, games, totals);
   // Ein schon eingereichter Bericht zählt bereits — geänderte Zahlen neu anzeigen.
   if (!childErr) void ergebnisSeitenNeuBauen();
@@ -342,7 +367,7 @@ async function replaceChildren(reportId: string, players: ReportPlayer[], games:
     .filter(p => p.name.trim())
     .map(p => ({
       report_id: reportId, side: p.side, slot: p.slot, pass_no: p.pass_no || null,
-      name: p.name.trim(), player_id: p.player_id || null,
+      name: p.name.trim(), player_id: p.player_id && !p.player_id.startsWith('name:') ? p.player_id : null,
       points: (p.side === 'home' ? totals.homePlayerPoints[p.slot] : totals.guestPlayerPoints[p.slot]) ?? 0,
     }));
   if (playerRows.length) {
@@ -444,4 +469,47 @@ export async function requestReportChange(id: string, note: string): Promise<{ e
     guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
   }).eq('id', id);
   return { error: error?.message ?? null };
+}
+
+// ── Wertung durch die Ligaleitung (Nichtantritt / kein Spielbericht) ──
+
+export type Wertung = 'home_no_show' | 'guest_no_show' | 'no_report';
+export const WERTUNG_LABELS: Record<Wertung, string> = {
+  home_no_show: 'Heimteam nicht angetreten',
+  guest_no_show: 'Gastteam nicht angetreten',
+  no_report: 'Kein Spielbericht (Heimteam verliert)',
+};
+
+/**
+ * Admin: Begegnung werten statt spielen (Spielbedingungen Ziffer 11).
+ * Nichtantritt: 0:3 Punkte / 0:18 Spiele, dem nicht angetretenen Team −3
+ * (Abzug rechnet lib/tabelle-2027.ts aus `forfeit`). Kein Bericht bis
+ * Dienstag 24 Uhr: Heimteam verliert 0:3 / 0:18. Als bestätigt angelegt —
+ * es gibt nichts zu bestätigen. Beide Kapitäne werden benachrichtigt.
+ */
+export async function setzeWertung(b: {
+  seasonId: string; leagueLabel: string; matchday: number; date: string;
+  homeId: string; homeName: string; guestId: string; guestName: string;
+}, wertung: Wertung): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { data: auth } = await supabase.auth.getUser();
+  const homeVerliert = wertung !== 'guest_no_show';
+  const { data, error } = await supabase.from('match_reports').insert({
+    season_id: b.seasonId, league_label: b.leagueLabel, matchday: b.matchday, match_date: b.date,
+    home_team_id: b.homeId, guest_team_id: b.guestId, home_team_name: b.homeName, guest_team_name: b.guestName,
+    home_captain_user_id: auth.user?.id, status: 'confirmed', forfeit: wertung,
+    spiele_home: homeVerliert ? 0 : 18, spiele_guest: homeVerliert ? 18 : 0,
+    legs_home: homeVerliert ? 0 : 36, legs_guest: homeVerliert ? 36 : 0,
+    points_home: homeVerliert ? 0 : 3, points_guest: homeVerliert ? 3 : 0,
+    protest: false, review_note: `Wertung: ${WERTUNG_LABELS[wertung]}`,
+  }).select('id').maybeSingle();
+  if (error) {
+    if (/forfeit/.test(error.message)) return { error: 'Die Datenbank kennt die Wertung noch nicht — bitte zuerst Migration 0042 einspielen.' };
+    if (/match_reports_fixture_uq|duplicate key/i.test(error.message)) return { error: 'Für diese Begegnung gibt es schon einen Spielbericht. Bitte ihn zuerst löschen, dann werten.' };
+    return { error: error.message };
+  }
+  const id = (data as { id: string } | null)?.id;
+  if (id) await notifyReportChange(id, 'changed');
+  void ergebnisSeitenNeuBauen();
+  return { error: null };
 }

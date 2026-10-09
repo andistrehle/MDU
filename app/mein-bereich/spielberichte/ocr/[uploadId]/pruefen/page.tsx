@@ -25,7 +25,13 @@ import { validateExtraction, type ValidationIssue } from '@/lib/ocr/validate-mat
 import { resolveMatchFromExtraction, matchLabel } from '@/lib/ocr/resolve-match';
 import { matchPlayer, type RosterCandidate, type NameMatch } from '@/lib/ocr/match-players';
 import { normalizeHighlightValue } from '@/lib/ocr/highlights';
-import { MATCHES, getMatchesForTeam, getPlayersForTeamInSeason, getPlayerDisplayName, type GameMatch } from '@/lib/data';
+import { getPlayersForTeamInSeason, getPlayerDisplayName, type GameMatch } from '@/lib/data';
+import { spiele27AlsMatch, NEUE_SAISON } from '@/lib/data/saison-2027';
+import { ladeKader } from '@/lib/supabase/season-teams';
+
+// Seit 2026/27: Begegnungen der laufenden Saison (die alte Spielliste ist Archiv).
+const MATCHES = spiele27AlsMatch();
+const getMatchesForTeam = (teamId: string) => MATCHES.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId);
 import type { MatchReportExtraction } from '@/lib/ocr/schemas';
 
 type Level = 'ok' | 'review' | 'missing' | 'neutral';
@@ -77,15 +83,16 @@ function buildRows(d: MatchReportExtraction): FieldRow[] {
 }
 
 interface LineupRow { position: string; detected: string | null; passNo: string | null; match: NameMatch | null }
+/** Kader älterer Saisons (statisch); 2026/27 kommt aus der DB (kader-State unten). */
 function rosterFor(teamId: string, seasonId: string): RosterCandidate[] {
   return getPlayersForTeamInSeason(teamId, seasonId).map(({ player }) => ({
     id: player.id, name: getPlayerDisplayName(player), passNo: player.licenseNumber ?? null,
   }));
 }
-function lineupRows(side: 'home' | 'guest', d: MatchReportExtraction, match: GameMatch | null): LineupRow[] {
+function lineupRows(side: 'home' | 'guest', d: MatchReportExtraction, match: GameMatch | null, kader27?: { home: RosterCandidate[]; guest: RosterCandidate[] }): LineupRow[] {
   const detLine = side === 'home' ? d.homeLineup : d.guestLineup;
   const teamId = match ? (side === 'home' ? match.homeTeamId : match.awayTeamId) : null;
-  const roster = teamId && match ? rosterFor(teamId, match.seasonId) : [];
+  const roster = !teamId || !match ? [] : match.seasonId === NEUE_SAISON.id ? (kader27?.[side] ?? []) : rosterFor(teamId, match.seasonId);
   return [...detLine]
     .filter(p => p.detectedName || p.passNo)
     .sort((a, b) => slotOf(a.position) - slotOf(b.position))
@@ -150,6 +157,16 @@ export default function OcrReviewPage() {
   const structured = result?.structured_result ?? null;
   const hasDraft = !!upload?.match_report_id;
   const knownMatch = upload?.match_id ? (MATCHES.find(m => m.id === upload.match_id) ?? null) : null;
+  // Kader 2026/27 (DB, inkl. Nachmeldungen) für den Abgleich der erkannten Namen.
+  const [kader27, setKader27] = useState<{ home: RosterCandidate[]; guest: RosterCandidate[] }>({ home: [], guest: [] });
+  useEffect(() => {
+    if (!knownMatch || knownMatch.seasonId !== NEUE_SAISON.id) return;
+    let cancelled = false;
+    const toCand = (o: { id: string; name: string; passNo: string | null }[]) => o.filter(x => !x.id.startsWith('name:')).map(x => ({ id: x.id, name: x.name, passNo: x.passNo }));
+    Promise.all([ladeKader(NEUE_SAISON.id, knownMatch.homeTeamId), ladeKader(NEUE_SAISON.id, knownMatch.awayTeamId)])
+      .then(([h, g]) => { if (!cancelled) setKader27({ home: toCand(h), guest: toCand(g) }); });
+    return () => { cancelled = true; };
+  }, [knownMatch?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resolution = useMemo(() => structured ? resolveMatchFromExtraction(structured) : { match: null, candidates: [] }, [structured]);
   const candidateOptions = useMemo<GameMatch[]>(() => {
@@ -263,8 +280,8 @@ export default function OcrReviewPage() {
                     {(['home', 'guest'] as const).map(side => (
                       <div key={side}>
                         <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, color: 'var(--th-accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{side === 'home' ? 'Heim' : 'Gast'}</div>
-                        {lineupRows(side, structured, knownMatch).length === 0 && <Muted>Keine Spieler erkannt.</Muted>}
-                        {lineupRows(side, structured, knownMatch).map((p, i) => {
+                        {lineupRows(side, structured, knownMatch, kader27).length === 0 && <Muted>Keine Spieler erkannt.</Muted>}
+                        {lineupRows(side, structured, knownMatch, kader27).map((p, i) => {
                           const mm = p.match ? METHOD_META[p.match.method] : null;
                           const matchedName = p.match && p.match.status !== 'unresolved' ? p.match.matchedName : null;
                           return (

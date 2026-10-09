@@ -13,6 +13,7 @@
 import data from './saison-2027.generated.json';
 import type { SpielplanData } from '@/lib/spielplan/types';
 import { TERMINE_2027, type Termin27 } from './termine-2027';
+import type { Match } from './matches';
 
 export const NEUE_SAISON = { id: 'season-2027', name: 'Saison 2026/2027', kurz: '2026/27' } as const;
 export const ARCHIV_SAISON = { id: 'season-2026', name: 'Saison 2025/2026', kurz: '2025/26', slug: '2025-26' } as const;
@@ -132,6 +133,25 @@ export function alleBegegnungen27(): Begegnung27[] {
 
 export function begegnung27(home: string, away: string): Begegnung27 | undefined {
   return alleBegegnungen27().find(b => b.home === home && b.away === away);
+}
+
+/** Präfix der Spiel-Kennung 2026/27 im Format der alten Spielliste (Foto-Upload). */
+export const MATCH_ID_PREFIX_27 = 's27:';
+
+/**
+ * Begegnungen 2026/27 im Format der alten Spielliste (`Match`, lib/data/matches.ts)
+ * — für den Foto-Upload, der Begegnungen über diese Form auswählt und speichert
+ * (match_report_uploads.match_id). Kennung: „s27:Heim|Gast".
+ */
+export function spiele27AlsMatch(): Match[] {
+  return alleBegegnungen27().map(b => ({
+    id: MATCH_ID_PREFIX_27 + b.key, seasonId: NEUE_SAISON.id, leagueId: b.liga, matchday: b.spieltag,
+    round: b.half === 'hin' ? 'hinrunde' : 'rueckrunde',
+    homeTeamId: b.home, awayTeamId: b.away,
+    homeTeamName: team27(b.home)?.name ?? b.home, awayTeamName: team27(b.away)?.name ?? b.away,
+    date: b.termin?.datum ?? b.fri, time: b.termin?.uhrzeit ?? null,
+    status: 'scheduled', result: null,
+  }));
 }
 
 /** „Fr 23.10.2026 · 20:00" bzw. das Plan-Wochenende, solange kein Termin feststeht. */

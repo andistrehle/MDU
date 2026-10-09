@@ -15,7 +15,12 @@ import { useRouter } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hasMinRole } from '@/lib/auth/roles';
-import { MATCHES, getMatchesForTeam, findLeague, type GameMatch } from '@/lib/data';
+import type { GameMatch } from '@/lib/data';
+import { spiele27AlsMatch, findLiga27 } from '@/lib/data/saison-2027';
+
+// Seit 2026/27: Begegnungen der laufenden Saison (die alte Spielliste ist Archiv).
+const MATCHES = spiele27AlsMatch();
+const getMatchesForTeam = (teamId: string) => MATCHES.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId);
 import { getOcrAvailability, uploadReportFile, startOcr } from '@/lib/supabase/match-report-uploads';
 
 function matchLabel(m: GameMatch): string {
@@ -74,7 +79,7 @@ export default function OcrUploadPage() {
     if (!adminAll) return [] as { id: string; name: string }[];
     const seen = new Map<string, string>();
     for (const m of matches) {
-      if (!seen.has(m.leagueId)) seen.set(m.leagueId, findLeague(m.leagueId)?.name ?? m.leagueId);
+      if (!seen.has(m.leagueId)) seen.set(m.leagueId, findLiga27(m.leagueId)?.name ?? m.leagueId);
     }
     return [...seen.entries()]
       .map(([id, name]) => ({ id, name }))

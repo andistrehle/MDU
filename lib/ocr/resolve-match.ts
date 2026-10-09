@@ -8,7 +8,11 @@
 // Reine Logik (kein server-only): auch in der Prüfansicht (Client) nutzbar.
 // ============================================================
 
-import { MATCHES, resolveTeamFromName, type GameMatch } from '@/lib/data';
+import { resolveTeamFromName, type GameMatch } from '@/lib/data';
+import { spiele27AlsMatch } from '@/lib/data/saison-2027';
+
+// Seit 2026/27 nur noch Begegnungen der laufenden Saison (die alte Spielliste ist Archiv).
+const MATCHES = spiele27AlsMatch();
 import { dice } from './match-players';
 import type { MatchReportExtraction } from './schemas';
 

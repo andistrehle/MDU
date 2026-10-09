@@ -22,6 +22,11 @@
 --      es jede Paarung mit festem Heimrecht genau einmal. Verhindert zwei
 --      Berichte zum selben Spiel.
 --   4. Lesen: Mitglieder BEIDER Teams (bisher nur Eintragender + Gastteam).
+--   5. Schreiben enger: Weil Tabelle und Ergebnisse jetzt AUS DEN BERICHTEN
+--      entstehen, darf niemand außer der Ligaleitung einen Bericht als
+--      „bestätigt" oder als Wertung anlegen, nur Kapitäne der beiden Teams
+--      legen an, und wer bestätigt, darf die Zahlen nicht ändern (nur Status
+--      und Änderungsvorschlag). Bisher prüfte die DB nur „Eintragender = ich".
 -- ============================================================
 
 alter table public.match_reports
@@ -35,6 +40,74 @@ alter table public.match_reports add constraint match_reports_forfeit_check
 create unique index if not exists match_reports_fixture_uq
   on public.match_reports (season_id, home_team_id, guest_team_id)
   where home_team_id is not null and guest_team_id is not null;
+
+-- ── Anlegen: Ligaleitung, oder Kapitän eines der beiden Teams als Entwurf ──
+drop policy if exists "mr_insert" on public.match_reports;
+create policy "mr_insert" on public.match_reports for insert
+  with check (
+    home_captain_user_id = auth.uid()
+    and (
+      public.is_admin()
+      or (status = 'draft' and forfeit is null
+          and exists (select 1 from public.profiles me where me.id = auth.uid() and me.role = 'team_captain'
+                      and me.team_id in (match_reports.home_team_id, match_reports.guest_team_id)))
+    )
+  );
+
+-- ── Eintragender: bearbeiten/einreichen, aber nicht selbst bestätigen oder werten ──
+drop policy if exists "mr_update_own" on public.match_reports;
+create policy "mr_update_own" on public.match_reports for update
+  using (home_captain_user_id = auth.uid() and status in ('draft','submitted','changes_requested'))
+  with check (home_captain_user_id = auth.uid() and status in ('draft','submitted') and forfeit is null);
+
+-- ── Wer nicht eingetragen hat (Bestätigender), ändert keine Zahlen ──
+-- RLS kennt keine Spaltenrechte, deshalb als Trigger: Für alle außer dem
+-- Eintragenden und der Ligaleitung bleiben Ergebnis, Teams, Saison und
+-- Wertung unverändert. Bestätigen und Vorschlag (proposed_changes …) gehen.
+create or replace function public.guard_match_report_update()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if public.is_admin() or auth.uid() is null or auth.uid() = old.home_captain_user_id then
+    return new;
+  end if;
+  if new.spiele_home is distinct from old.spiele_home or new.spiele_guest is distinct from old.spiele_guest
+     or new.legs_home is distinct from old.legs_home or new.legs_guest is distinct from old.legs_guest
+     or new.points_home is distinct from old.points_home or new.points_guest is distinct from old.points_guest
+     or new.home_team_id is distinct from old.home_team_id or new.guest_team_id is distinct from old.guest_team_id
+     or new.season_id is distinct from old.season_id or new.forfeit is distinct from old.forfeit
+     or new.home_captain_user_id is distinct from old.home_captain_user_id
+     or new.confirm_team_id is distinct from old.confirm_team_id then
+    raise exception 'Das Ergebnis ändert nur, wer den Spielbericht eingetragen hat — bitte einen Änderungsvorschlag schicken.';
+  end if;
+  if new.status not in ('confirmed', 'changes_requested') then
+    raise exception 'Unzulässiger Status.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_match_report_update on public.match_reports;
+create trigger guard_match_report_update
+  before update on public.match_reports
+  for each row execute function public.guard_match_report_update();
+
+-- Spiele/Aufstellung des Berichts: nur Eintragender (nicht bestätigt) oder Ligaleitung.
+drop policy if exists "mrp_write" on public.match_report_players;
+create policy "mrp_write" on public.match_report_players for all
+  using (exists (select 1 from public.match_reports r where r.id = report_id
+                 and ((r.home_captain_user_id = auth.uid() and r.status in ('draft','submitted','changes_requested') and r.forfeit is null) or public.is_admin())))
+  with check (exists (select 1 from public.match_reports r where r.id = report_id
+                 and ((r.home_captain_user_id = auth.uid() and r.status in ('draft','submitted','changes_requested') and r.forfeit is null) or public.is_admin())));
+
+drop policy if exists "mrg_write" on public.match_report_games;
+create policy "mrg_write" on public.match_report_games for all
+  using (exists (select 1 from public.match_reports r where r.id = report_id
+                 and ((r.home_captain_user_id = auth.uid() and r.status in ('draft','submitted','changes_requested') and r.forfeit is null) or public.is_admin())))
+  with check (exists (select 1 from public.match_reports r where r.id = report_id
+                 and ((r.home_captain_user_id = auth.uid() and r.status in ('draft','submitted','changes_requested') and r.forfeit is null) or public.is_admin())));
 
 -- ── Lesen: Eintragender, Admin, Mitglieder beider Teams ─────
 drop policy if exists "mr_select" on public.match_reports;

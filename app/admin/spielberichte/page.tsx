@@ -10,9 +10,10 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveMatchReports } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
+import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, team27, findLiga27, wochenendeText } from '@/lib/data/saison-2027';
 import {
-  listAllReports, deleteReport, notifyReportChange,
-  REPORT_STATUS_LABELS, type MatchReport,
+  listAllReports, deleteReport, notifyReportChange, setzeWertung,
+  REPORT_STATUS_LABELS, WERTUNG_LABELS, type MatchReport, type Wertung,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
 
@@ -36,6 +37,30 @@ export default function AdminSpielberichtePage() {
       .map(([league, list]) => [league, list.sort((x, y) => (y.matchday ?? -1) - (x.matchday ?? -1) || (y.match_date ?? '').localeCompare(x.match_date ?? ''))] as const);
   }, [rows]);
 
+  // ── Wertung (Nichtantritt / kein Bericht) ──
+  const begegnungen = useMemo(() => alleBegegnungen27(), []);
+  const [wKey, setWKey] = useState('');
+  const [wArt, setWArt] = useState<Wertung>('guest_no_show');
+  const [wMsg, setWMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  async function onWertung() {
+    const b = begegnungen.find(x => x.key === wKey);
+    if (!b) { setWMsg({ kind: 'err', text: 'Bitte die Begegnung wählen.' }); return; }
+    const heim = team27(b.home)?.name ?? b.home, gast = team27(b.away)?.name ?? b.away;
+    const folge = wArt === 'no_report' ? `${heim} verliert 0:3 / 0:18.`
+      : `${wArt === 'home_no_show' ? heim : gast} verliert 0:3 / 0:18 und bekommt 3 Punkte abgezogen.`;
+    if (!confirm(`${heim} – ${gast}\n${WERTUNG_LABELS[wArt]}\n\n${folge}\nBeide Kapitäne werden benachrichtigt.`)) return;
+    setBusy('wertung'); setWMsg(null);
+    const { error } = await setzeWertung({
+      seasonId: NEUE_SAISON.id, leagueLabel: findLiga27(b.liga)?.name ?? b.liga, matchday: b.spieltag,
+      date: b.termin?.datum ?? b.fri, homeId: b.home, homeName: heim, guestId: b.away, guestName: gast,
+    }, wArt);
+    setBusy(null);
+    if (error) { setWMsg({ kind: 'err', text: error }); return; }
+    setWMsg({ kind: 'ok', text: `Gewertet: ${heim} – ${gast} (${WERTUNG_LABELS[wArt]}).` });
+    setWKey('');
+    setRows(await listAllReports());
+  }
+
   async function onDelete(r: MatchReport) {
     if (!confirm(`Spielbericht ${r.home_team_name} – ${r.guest_team_name} wirklich löschen? Die Kapitäne werden benachrichtigt.`)) return;
     setBusy(r.id);
@@ -49,6 +74,32 @@ export default function AdminSpielberichtePage() {
 
   return (
     <AdminGuard title="Spielberichte" subtitle="Alle eingereichten Spielberichte – ändern oder löschen (keine Freigabe nötig).">
+      <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', marginBottom: 22, maxWidth: 960 }}>
+        <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 4 }}>Begegnung werten ({NEUE_SAISON.kurz})</div>
+        <p style={{ ...muted, fontSize: 12.5, margin: '0 0 12px' }}>
+          Nichtantritt: 0:3 Punkte, 0:18 Spiele und 3 Punkte Abzug für das nicht angetretene Team. Kein Spielbericht bis Dienstag 24 Uhr: Heimteam verliert 0:3 / 0:18 (ohne Abzug).
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <select value={wKey} onChange={e => setWKey(e.target.value)} style={{ ...sel, flex: '1 1 320px' }}>
+            <option value="">— Begegnung wählen —</option>
+            {LIGEN_2027.map(l => (
+              <optgroup key={l.code} label={l.name}>
+                {begegnungen.filter(b => b.liga === l.code).map(b => (
+                  <option key={b.key} value={b.key}>{b.spieltag}. ST ({wochenendeText(b.fri, b.sun, false)}) · {team27(b.home)?.name ?? b.home} – {team27(b.away)?.name ?? b.away}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <select value={wArt} onChange={e => setWArt(e.target.value as Wertung)} style={{ ...sel, flex: '0 1 260px' }}>
+            {(Object.keys(WERTUNG_LABELS) as Wertung[]).map(k => <option key={k} value={k}>{WERTUNG_LABELS[k]}</option>)}
+          </select>
+          <button type="button" onClick={onWertung} disabled={busy === 'wertung'} style={{ padding: '9px 16px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-loss)', color: '#fff', border: 'none', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5 }}>
+            {busy === 'wertung' ? '…' : 'Werten'}
+          </button>
+        </div>
+        {wMsg && <div role={wMsg.kind === 'err' ? 'alert' : 'status'} style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: wMsg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{wMsg.text}</div>}
+      </div>
+
       {rows === null ? <p style={muted}>Lade …</p>
         : (rows.length === 0) ? (
           <div style={{ background: 'var(--th-bg-card)', border: '1px dashed var(--th-line-10)', borderRadius: 14, padding: '32px 24px', maxWidth: 620, ...muted }}>
@@ -76,8 +127,8 @@ export default function AdminSpielberichtePage() {
                           <td style={d}>{r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : '–'}</td>
                           <td style={{ ...d, fontWeight: 700, color: 'var(--th-text-strong)' }}>{r.home_team_name}</td>
                           <td style={d}>{r.guest_team_name}</td>
-                          <td style={{ ...d, fontWeight: 700 }}>{r.spiele_home}:{r.spiele_guest}</td>
-                          <td style={{ ...d, fontWeight: 700, color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</td>
+                          <td style={{ ...d, fontWeight: 700 }} title={r.forfeit ? WERTUNG_LABELS[r.forfeit] : undefined}>{r.spiele_home}:{r.spiele_guest}{r.forfeit ? ' (W)' : ''}</td>
+                          <td style={{ ...d, fontWeight: 700, color: r.forfeit ? 'var(--th-loss)' : r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{r.forfeit ? WERTUNG_LABELS[r.forfeit] : REPORT_STATUS_LABELS[r.status]}</td>
                           <td style={{ ...d, display: 'flex', gap: 12 }}>
                             <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}>Bearbeiten</Link>
                             <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>
@@ -99,7 +150,7 @@ export default function AdminSpielberichtePage() {
                         <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {shortName(r.home_team_id, r.home_team_name)} <span style={{ color: 'var(--th-accent)' }}>{r.spiele_home}:{r.spiele_guest}</span> {shortName(r.guest_team_id, r.guest_team_name)}
                         </span>
-                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{REPORT_STATUS_LABELS[r.status]}</span>
+                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', color: r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)' }}>{r.forfeit ? 'Wertung' : REPORT_STATUS_LABELS[r.status]}</span>
                       </div>
                       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-muted)', marginTop: 3 }}>
                         {r.match_date ? new Date(r.match_date).toLocaleDateString('de-DE') : ''}
@@ -125,9 +176,10 @@ export default function AdminSpielberichtePage() {
 }
 
 function shortName(teamId: string | null, name: string): string {
-  return (teamId ? findTeam(teamId)?.short : null) ?? name.slice(0, 3).toUpperCase();
+  return (teamId ? (team27(teamId)?.short ?? findTeam(teamId)?.short) : null) ?? name.slice(0, 3).toUpperCase();
 }
 
+const sel: React.CSSProperties = { padding: '9px 11px', borderRadius: 8, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, outline: 'none', minWidth: 0 };
 const muted: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)' };
 const h: React.CSSProperties = { padding: '8px 12px', fontWeight: 700, whiteSpace: 'nowrap' };
 const d: React.CSSProperties = { padding: '10px 12px', whiteSpace: 'nowrap', color: 'var(--th-text-body)' };

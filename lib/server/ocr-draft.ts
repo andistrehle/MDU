@@ -23,26 +23,52 @@ import { parseMatchReport, type ParseContext } from '@/lib/ocr/parse-match-repor
 import type { RosterCandidate } from '@/lib/ocr/match-players';
 import type { ValidationIssue } from '@/lib/ocr/validate-match-report';
 import type { MatchReportExtraction } from '@/lib/ocr/schemas';
+import { NEUE_SAISON, spiele27AlsMatch, findLiga27, team27, venue27 } from '@/lib/data/saison-2027';
+import { nominatedRosterRows } from '@/lib/supabase/season-teams';
 
+/** Begegnung zur Kennung: 2026/27 („s27:Heim|Gast"), sonst die alte Spielliste. */
 export function findMatch(id: string): GameMatch | null {
-  return MATCHES.find(m => m.id === id) ?? null;
+  return spiele27AlsMatch().find(m => m.id === id) ?? MATCHES.find(m => m.id === id) ?? null;
 }
 
-function roster(teamId: string, seasonId: string): RosterCandidate[] {
-  return getPlayersForTeamInSeason(teamId, seasonId).map(({ player }) => ({
-    id: player.id,
-    name: getPlayerDisplayName(player),
-    passNo: player.licenseNumber ?? null,
-  }));
+interface KaderServer { candidates: RosterCandidate[]; captain: string | null }
+
+/** Kader: 2026/27 aus der DB (Anmeldung + Nachmeldungen), ältere Saisons statisch. */
+async function roster(teamId: string, seasonId: string): Promise<KaderServer> {
+  if (seasonId !== NEUE_SAISON.id || !supabaseAdmin) {
+    return {
+      candidates: getPlayersForTeamInSeason(teamId, seasonId).map(({ player }) => ({
+        id: player.id, name: getPlayerDisplayName(player), passNo: player.licenseNumber ?? null,
+      })),
+      captain: getCaptainForTeamInSeason(teamId, seasonId),
+    };
+  }
+  const { data } = await supabaseAdmin.from('season_roster_assignments')
+    .select('first_name, last_name, license_number, is_captain, player_id')
+    .eq('season_id', seasonId).eq('team_id', teamId);
+  const rows = ((data ?? []) as { first_name: string | null; last_name: string | null; license_number: string | null; is_captain: boolean; player_id: string | null }[])
+    .filter(r => r.player_id && `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim());
+  const noms = await nominatedRosterRows(supabaseAdmin, seasonId, rows.map(r => r.player_id), teamId);
+  const name = (f: string | null, l: string | null) => `${f ?? ''} ${l ?? ''}`.trim();
+  return {
+    candidates: [
+      ...rows.map(r => ({ id: r.player_id!, name: name(r.first_name, r.last_name), passNo: r.license_number })),
+      ...noms.map(n => ({ id: n.player_id, name: name(n.first_name, n.last_name), passNo: n.license_number })),
+    ],
+    captain: (() => { const c = rows.find(r => r.is_captain); return c ? name(c.first_name, c.last_name) : null; })(),
+  };
 }
 
 /** Provider- + Parse-Kontext für eine vorab gewählte Begegnung. */
-export function buildOcrContext(match: GameMatch): { providerCtx: OcrMatchContext; parseCtx: ParseContext } {
+export async function buildOcrContext(match: GameMatch): Promise<{ providerCtx: OcrMatchContext; parseCtx: ParseContext }> {
   const seasonId = match.seasonId;
-  const homeRoster = roster(match.homeTeamId, seasonId);
-  const guestRoster = roster(match.awayTeamId, seasonId);
-  const leagueLabel = findLeague(match.leagueId)?.name ?? match.leagueId;
-  const venue = (getVenueForTeamInSeason(match.homeTeamId, seasonId) as { name?: string } | null)?.name ?? null;
+  const neu = seasonId === NEUE_SAISON.id;
+  const [home, guest] = await Promise.all([roster(match.homeTeamId, seasonId), roster(match.awayTeamId, seasonId)]);
+  const homeRoster = home.candidates, guestRoster = guest.candidates;
+  const leagueLabel = neu ? (findLiga27(match.leagueId)?.name ?? match.leagueId) : (findLeague(match.leagueId)?.name ?? match.leagueId);
+  const venue = neu
+    ? (venue27(team27(match.homeTeamId)?.venueId)?.name ?? null)
+    : ((getVenueForTeamInSeason(match.homeTeamId, seasonId) as { name?: string } | null)?.name ?? null);
 
   const providerCtx: OcrMatchContext = {
     season: seasonId,
@@ -66,8 +92,8 @@ export function buildOcrContext(match: GameMatch): { providerCtx: OcrMatchContex
     matchday: match.matchday ?? null,
     matchDate: match.date,
     venue,
-    homeCaptain: getCaptainForTeamInSeason(match.homeTeamId, seasonId),
-    guestCaptain: getCaptainForTeamInSeason(match.awayTeamId, seasonId),
+    homeCaptain: home.captain,
+    guestCaptain: guest.captain,
     homeRoster,
     guestRoster,
   };
@@ -91,7 +117,12 @@ export async function createOcrDraft(input: CreateDraftInput): Promise<{ id: str
   const { header, homePlayers, guestPlayers, games, uploaderId, uploadId, ocrResultId } = input;
   const totals = computeTotals(games);
 
-  const { data, error } = await supabaseAdmin.from('match_reports').insert({
+  // Eintragender = wer hochlädt (Heim ODER Gast). Bestätigen muss das andere Team.
+  const { data: prof } = await supabaseAdmin.from('profiles').select('team_id').eq('id', uploaderId).maybeSingle();
+  const uploaderTeam = (prof as { team_id: string | null } | null)?.team_id ?? null;
+  const confirmTeam = uploaderTeam && uploaderTeam === header.guest_team_id ? header.home_team_id : header.guest_team_id;
+
+  const row = {
     season_id: header.season_id,
     league_label: header.league_label,
     matchday: header.matchday,
@@ -116,9 +147,15 @@ export async function createOcrDraft(input: CreateDraftInput): Promise<{ id: str
     spiele_home: totals.spieleHome, spiele_guest: totals.spieleGuest,
     legs_home: totals.legsHome, legs_guest: totals.legsGuest,
     points_home: totals.pointsHome, points_guest: totals.pointsGuest,
-  }).select('id').maybeSingle();
+  };
+  let { data, error } = await supabaseAdmin.from('match_reports').insert({ ...row, confirm_team_id: confirmTeam }).select('id').maybeSingle();
+  // Spalte confirm_team_id gibt es erst mit Migration 0042.
+  if (error && /confirm_team_id/.test(error.message)) ({ data, error } = await supabaseAdmin.from('match_reports').insert(row).select('id').maybeSingle());
 
-  if (error || !data) return { id: null, error: error?.message ?? 'Entwurf konnte nicht angelegt werden.' };
+  if (error || !data) {
+    const msg = error?.message ?? 'Entwurf konnte nicht angelegt werden.';
+    return { id: null, error: /match_reports_fixture_uq|duplicate key/i.test(msg) ? 'Für diese Begegnung gibt es schon einen Spielbericht.' : msg };
+  }
   const reportId = (data as { id: string }).id;
 
   const playerRows = [...homePlayers, ...guestPlayers]
@@ -156,7 +193,7 @@ export async function finalizeDraftFromStructured(params: {
   structured: MatchReportExtraction;
 }): Promise<{ reportId: string | null; issues: ValidationIssue[]; status: 'completed' | 'needs_review'; error: string | null }> {
   if (!supabaseAdmin) return { reportId: null, issues: [], status: 'needs_review', error: 'Server-Service ist nicht konfiguriert.' };
-  const { parseCtx } = buildOcrContext(params.match);
+  const { parseCtx } = await buildOcrContext(params.match);
   const parsed = parseMatchReport(params.structured, parseCtx);
 
   if (parsed.fields.length) {
