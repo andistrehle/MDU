@@ -58,7 +58,9 @@ create policy "mr_insert" on public.match_reports for insert
 drop policy if exists "mr_update_own" on public.match_reports;
 create policy "mr_update_own" on public.match_reports for update
   using (home_captain_user_id = auth.uid() and status in ('draft','submitted','changes_requested'))
-  with check (home_captain_user_id = auth.uid() and status in ('draft','submitted') and forfeit is null);
+  -- 'changes_requested' muss bleiben dürfen: Der Eintragende speichert seine
+  -- Korrektur, während der Bericht noch auf „Änderung angefordert" steht.
+  with check (home_captain_user_id = auth.uid() and status in ('draft','submitted','changes_requested') and forfeit is null);
 
 -- ── Wer nicht eingetragen hat (Bestätigender), ändert keine Zahlen ──
 -- RLS kennt keine Spaltenrechte, deshalb als Trigger: Für alle außer dem
