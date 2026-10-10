@@ -33,5 +33,6 @@ export async function POST(request: Request) {
   revalidatePath('/spielplan');
   revalidatePath('/ligen/[code]', 'page');
   revalidatePath('/teams/[id]', 'page');
+  revalidatePath('/spieler/[playerId]', 'page');
   return NextResponse.json({ ok: true });
 }

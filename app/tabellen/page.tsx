@@ -46,7 +46,11 @@ export default async function TabellenPage() {
 
                 <Tabelle27 liga={liga} zeilen={tabellen[liga.code]} />
 
-                <div style={{ padding: '9px 18px', borderTop: '1px solid var(--th-line-4)', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ padding: '9px 18px', borderTop: '1px solid var(--th-line-4)', display: 'flex', justifyContent: 'flex-end', gap: 18, flexWrap: 'wrap' }}>
+                  <Link href={`/ligen/${liga.code}?tab=einzelrangliste`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                    Einzelrangliste
+                    <Icon name="arrow-right" size={13} stroke={2.5} />
+                  </Link>
                   <Link href={`/ligen/${liga.code}?tab=spielplan`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)', textDecoration: 'none' }}>
                     Spielplan der {liga.name}
                     <Icon name="arrow-right" size={13} stroke={2.5} />

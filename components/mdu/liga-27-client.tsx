@@ -7,6 +7,8 @@ import { TeamLink } from './team-link';
 import { VorlaeufigHinweis } from './saison-umschalter';
 import { LigaSpielplan27, SpieltagKarte27, type ErgebnisMap27 } from './spielplan-27';
 import { Tabelle27 } from './tabelle-27';
+import { Einzelrangliste27 } from './einzelrangliste-27';
+import type { EinzelZeile } from '@/lib/einzelrangliste-2027';
 import type { TabellenZeile } from '@/lib/tabelle-2027';
 import { AufAbstiegKarte, AufAbstiegLegende, RelegationUndAusblick } from './auf-abstieg-27';
 import {
@@ -23,8 +25,8 @@ const card: React.CSSProperties = { background: 'var(--th-bg-card)', border: '1p
 const label: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 12 };
 const body: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 13.5, lineHeight: 1.6, color: 'var(--th-text-body)' };
 
-export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse }: {
-  code: Liga27Code; initialTab?: number; tabelle: TabellenZeile[]; ergebnisse: ErgebnisMap27;
+export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel }: {
+  code: Liga27Code; initialTab?: number; tabelle: TabellenZeile[]; ergebnisse: ErgebnisMap27; einzel: EinzelZeile[];
 }) {
   const [tab, setTab] = useState(initialTab);
   const liga = findLiga27(code)!;
@@ -119,6 +121,12 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse }: {
         ))}
 
         {tab === 4 && (
+          <div style={{ ...card, padding: 0, overflow: 'hidden', maxWidth: 900 }}>
+            <Einzelrangliste27 zeilen={einzel} />
+          </div>
+        )}
+
+        {tab === 5 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 12 }}>
             {teams.map(t => {
               const v = venue27(t.venueId);

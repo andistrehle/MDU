@@ -56,7 +56,15 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `lib/data/termine-2027.ts`. Online-Formular und Foto-Upload wählen die Begegnung aus dem Plan
   (`spiele27AlsMatch`, Kennung `s27:Heim|Gast`); eintragen darf Heim ODER Gast, bestätigen das
   andere Team (`confirm_team_id`). Nach jeder Änderung markiert `/api/match-reports/published`
-  die Seiten zum Neubau (kein kurzes `revalidate`).
+  die Seiten zum Neubau (kein kurzes `revalidate`). **Einzelrangliste 2026/27:**
+  `lib/einzelrangliste-2027.ts` (nur Einzel, 2:0=3/2:1=2/1:2=1/0:2=0; Punkte → Legdifferenz →
+  Siege, sonst geteilter Platz; Liga = Team des letzten Einsatzes), Lader `ladeEinzel27`,
+  Reiter „Einzelrangliste" auf der Ligaseite + Saison-Karte im Spielerprofil.
+  **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
+  passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
+  sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie
+  unter Admin → Spielberichte. Fotos werden vor dem Upload im Browser verkleinert
+  (`lib/ocr/verkleinern.ts`, Vercel nimmt nur ~4,5 MB je Anfrage).
 - **Import NICHT einfach reaktivieren:** `imported-*.json` haben keinen Saisonschlüssel — ein
   Lauf für 26/27 würde das Archiv 2025/26 überschreiben. Ergebnisse 26/27 brauchen einen eigenen,
   saisongetrennten Weg. Die Status-Texte „abgeschlossen" in `league-detail-client.tsx` sind

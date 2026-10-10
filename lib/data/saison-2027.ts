@@ -29,7 +29,7 @@ export const VORLAEUFIG_TEXT =
 
 /** Reiter der Liga-Seite 2026/27 (hier statt in der Client-Komponente, damit
  *  die Server-Seite ?tab= auflösen kann — aus 'use client'-Dateien kommen nur Komponenten). */
-export const TABS_27 = ['Übersicht', 'Tabelle', 'Spielplan', 'Ergebnisse', 'Teams'] as const;
+export const TABS_27 = ['Übersicht', 'Tabelle', 'Spielplan', 'Ergebnisse', 'Einzelrangliste', 'Teams'] as const;
 
 export type Liga27Code = 'la' | 'a' | 'b1' | 'b2' | 'c';
 export interface Liga27 {

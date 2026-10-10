@@ -15,6 +15,7 @@ import { shade } from '@/lib/utils';
 import { loadPublicPlayerProfile } from '@/lib/supabase/profiles';
 import { getDbPlayer, getRosterTeamForPlayer } from '@/lib/server/season-data';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { ladeEinzel27 } from '@/lib/server/ergebnisse-2027';
 import { team27, findLiga27, venue27, istArchivParam, datumText, NEUE_SAISON, ARCHIV_SAISON, SAISON_START } from '@/lib/data/saison-2027';
 
 export default async function PlayerProfilePage(
@@ -37,7 +38,9 @@ export default async function PlayerProfilePage(
 
   // Saison 2026/2027: Kader aus der DB. Standard ist die neue Saison; wer dort
   // in keinem Kader steht, sieht zuerst das Archiv 2025/26 (?saison=2025-26).
-  const r27 = await getRosterTeamForPlayer(NEUE_SAISON.id, player.id);
+  const [r27, einzel27] = await Promise.all([getRosterTeamForPlayer(NEUE_SAISON.id, player.id), ladeEinzel27()]);
+  // Bilanz 2026/27 aus den Spielberichten (lib/server/ergebnisse-2027.ts).
+  const e27 = einzel27.byPlayer[player.id] ?? null;
   const t27 = r27 ? team27(r27.teamId) : undefined;
   const archiv = istArchivParam(sp?.saison) || (!t27 && sp?.saison !== '2026-27');
   const neuHref = t27 ? `/spieler/${player.id}` : `/spieler/${player.id}?saison=2026-27`;
@@ -219,11 +222,27 @@ export default async function PlayerProfilePage(
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <StatRow label="Team" value={t27.name} />
                   <StatRow label="Liga" value={leagueName} />
-                  <StatRow label="Spielort" value={venue27(t27.venueId)?.name ?? '–'} last />
-                  <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.6 }}>
-                    Noch keine Spiele — Saisonstart am Wochenende ab {datumText(SAISON_START)}.{' '}
-                    <Link href={`/teams/${t27.id}`} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Spielplan des Teams</Link>
-                  </div>
+                  <StatRow label="Spielort" value={venue27(t27.venueId)?.name ?? '–'} last={!e27} />
+                  {e27 ? (
+                    <>
+                      <StatRow label="Einzelrangliste" value={`Platz ${e27.pos} · ${findLiga27(e27.liga)?.name ?? ''}`} />
+                      <StatRow label="Punkte" value={String(e27.points)} />
+                      <StatRow label="Einzel (S–N)" value={`${e27.singles} (${e27.wins}–${e27.losses})`} />
+                      <StatRow label="Legs" value={`${e27.legsWon}:${e27.legsLost}`} />
+                      {(e27.b180 > 0 || e27.b171 > 0) && <StatRow label="180er / 171er" value={`${e27.b180} / ${e27.b171}`} />}
+                      {e27.highFinish != null && <StatRow label="Höchstes Finish" value={String(e27.highFinish)} />}
+                      <StatRow label="Kürzestes Leg" value={e27.shortLeg != null ? `${e27.shortLeg} Darts` : '–'} last />
+                      <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.6 }}>
+                        {e27.offen > 0 && <><span style={{ color: '#9A6B00', fontWeight: 800 }}>*</span> Enthält Ergebnisse, die der Gegner noch nicht bestätigt hat.{' '}</>}
+                        <Link href={`/ligen/${e27.liga}?tab=einzelrangliste`} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Ganze Einzelrangliste</Link>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.6 }}>
+                      Noch keine Einzel gespielt — Saisonstart am Wochenende ab {datumText(SAISON_START)}.{' '}
+                      <Link href={`/teams/${t27.id}`} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Spielplan des Teams</Link>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Empty>In der {NEUE_SAISON.name} (noch) in keinem gemeldeten Kader.</Empty>

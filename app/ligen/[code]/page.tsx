@@ -9,7 +9,7 @@ import { notFound } from 'next/navigation';
 import { Liga27Client } from '@/components/mdu/liga-27-client';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { findLiga27, istArchivParam, ARCHIV_SAISON, NEUE_SAISON, TABS_27 } from '@/lib/data/saison-2027';
-import { ladeErgebnisse27, tabelle27 } from '@/lib/server/ergebnisse-2027';
+import { ladeErgebnisse27, ladeEinzel27, tabelle27 } from '@/lib/server/ergebnisse-2027';
 import {
   findLeague, getStandings,
   getCurrentSeason, getTeamAssignment, findVenue, getVenueFullAddress,
@@ -35,7 +35,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
   const archiv = !liga27 || istArchivParam(sp?.saison);
   if (!archiv && liga27) {
     const t = typeof sp?.tab === 'string' ? TABS_27.findIndex(x => x.toLowerCase() === sp.tab!.toString().toLowerCase()) : -1;
-    const [tabelle, { byKey }] = await Promise.all([tabelle27(liga27.code), ladeErgebnisse27()]);
+    const [tabelle, { byKey }, einzel] = await Promise.all([tabelle27(liga27.code), ladeErgebnisse27(), ladeEinzel27()]);
     const ligaTeams = new Set(liga27.teams);
     const ergebnisse = Object.fromEntries(Object.entries(byKey).filter(([, e]) => ligaTeams.has(e.home)));
     return (
@@ -44,7 +44,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         <LeagueBanner name={liga27.name} color={liga27.color} ligenHref="/ligen" eyebrow={NEUE_SAISON.name}>
           <SaisonUmschalter archiv={false} neuHref={`/ligen/${code}`} archivHref={league ? `/ligen/${code}?saison=${ARCHIV_SAISON.slug}` : '/ligen/2025-26'} style={{ marginTop: 18, marginBottom: 0 }} />
         </LeagueBanner>
-        <Liga27Client code={liga27.code} initialTab={t >= 0 ? t : 0} tabelle={tabelle} ergebnisse={ergebnisse} />
+        <Liga27Client code={liga27.code} initialTab={t >= 0 ? t : 0} tabelle={tabelle} ergebnisse={ergebnisse} einzel={einzel.jeLiga[liga27.code]} />
         <Footer />
       </div>
     );

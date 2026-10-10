@@ -21,6 +21,7 @@ import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, team27, type Liga27Code } from '@/lib/data/saison-2027';
 import { berechneTabelle, ergebnisAusBericht, zaehlt, type Ergebnis27, type Rohbericht, type TabellenZeile } from '@/lib/tabelle-2027';
+import { berechneEinzel, rangliste, type EinzelBericht, type EinzelZeile } from '@/lib/einzelrangliste-2027';
 
 export interface Ergebnisse27 {
   /** Ergebnis je Begegnung (Heim|Gast) */
@@ -67,3 +68,52 @@ export async function alleTabellen27(): Promise<Record<Liga27Code, TabellenZeile
   for (const l of LIGEN_2027) out[l.code] = await tabelle27(l.code);
   return out;
 }
+
+// ── Einzelrangliste 2026/27 ────────────────────────────────────
+// Dieselben Berichte wie die Tabelle (zählend, zu einer Begegnung des Plans),
+// aber mit Aufstellung, Einzelpartien und Highlights. Öffentlich gezeigt wird
+// nur die Auswertung je Spieler (Name, Team, Bilanz) — wie bisher auf den
+// Ranglisten, nie der Bericht selbst.
+
+export interface Einzel27 {
+  /** Rangliste je Liga (Liga des Teams beim letzten Einsatz) */
+  jeLiga: Record<Liga27Code, EinzelZeile[]>;
+  /** Zeile je Spieler-ID (für das Spielerprofil) */
+  byPlayer: Record<string, EinzelZeile & { liga: Liga27Code }>;
+}
+
+export const ladeEinzel27 = cache(async (): Promise<Einzel27> => {
+  const leer = { jeLiga: Object.fromEntries(LIGEN_2027.map(l => [l.code, []])) as unknown as Record<Liga27Code, EinzelZeile[]>, byPlayer: {} };
+  if (!supabaseAdmin) return leer;
+  const { byKey } = await ladeErgebnisse27();
+  const zaehlend = Object.values(byKey).filter(e => !e.wertung);
+  if (!zaehlend.length) return leer;
+  const ids = zaehlend.map(e => e.reportId);
+
+  const [rep, pl, gm] = await Promise.all([
+    supabaseAdmin.from('match_reports').select('id, highlights').in('id', ids),
+    supabaseAdmin.from('match_report_players').select('report_id, side, slot, name, player_id').in('report_id', ids),
+    supabaseAdmin.from('match_report_games').select('report_id, game_type, home_slot, guest_slot, legs_home, legs_guest').in('report_id', ids),
+  ]);
+  const hl = new Map(((rep.data ?? []) as { id: string; highlights: EinzelBericht['highlights'] | null }[]).map(r => [r.id, r.highlights ?? []]));
+  const byRep = <T extends { report_id: string }>(rows: T[]) => {
+    const m = new Map<string, T[]>();
+    for (const r of rows) (m.get(r.report_id) ?? m.set(r.report_id, []).get(r.report_id)!).push(r);
+    return m;
+  };
+  const players = byRep((pl.data ?? []) as (EinzelBericht['players'][number] & { report_id: string })[]);
+  const games = byRep((gm.data ?? []) as (EinzelBericht['games'][number] & { report_id: string })[]);
+
+  const berichte: EinzelBericht[] = zaehlend.map(e => ({
+    id: e.reportId, homeTeam: e.home, guestTeam: e.away, bestaetigt: e.bestaetigt, datum: e.datum,
+    players: players.get(e.reportId) ?? [], games: games.get(e.reportId) ?? [], highlights: hl.get(e.reportId) ?? [],
+  }));
+  const alle = [...berechneEinzel(berichte).values()];
+  const out: Einzel27 = { jeLiga: leer.jeLiga, byPlayer: {} };
+  for (const l of LIGEN_2027) {
+    const liste = rangliste(alle.filter(z => team27(z.teamId)?.league === l.code));
+    out.jeLiga[l.code] = liste;
+    for (const z of liste) if (z.playerId) out.byPlayer[z.playerId] = { ...z, liga: l.code };
+  }
+  return out;
+});
