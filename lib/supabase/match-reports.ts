@@ -506,3 +506,21 @@ export async function setzeWertung(b: {
   void ergebnisSeitenNeuBauen();
   return { error: null };
 }
+
+/**
+ * Ligaleitung: Bericht direkt als bestätigt speichern (z. B. eingetragen nach
+ * Papierbogen per WhatsApp, oder nach einer Entscheidung im Streitfall).
+ * Beide Kapitäne werden benachrichtigt.
+ */
+export async function adminBestaetigen(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: NOT_CONFIGURED };
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from('match_reports').update({
+    status: 'confirmed', guest_responded_at: new Date().toISOString(), guest_response_user_id: auth.user?.id ?? null,
+    proposed_changes: null, proposal_base: null, proposed_by: null, proposed_at: null,
+  }).eq('id', id);
+  if (error) return { error: error.message };
+  await notifyReportChange(id, 'changed');
+  void ergebnisSeitenNeuBauen();
+  return { error: null };
+}

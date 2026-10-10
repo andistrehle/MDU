@@ -20,7 +20,7 @@ import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
-  submitGuestProposal, computePlayerRanking,
+  submitGuestProposal, computePlayerRanking, adminBestaetigen,
   HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
   type HighlightEntry, type HighlightType,
@@ -98,6 +98,8 @@ function SpielberichteInner() {
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const proposeParam = searchParams.get('propose');
+  // Ligaleitung: Begegnung vorbelegen (aus Admin → Spielberichte, „Bericht hinzufügen").
+  const begegnungParam = searchParams.get('begegnung');
   // Aus der Admin-Konsole hierher gesprungen? Dann Rückweg anbieten (REV-036).
   const fromAdmin = searchParams.get('from') === 'admin';
   const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
@@ -107,6 +109,8 @@ function SpielberichteInner() {
   const readOnly = !isAdminRole && ((!!ownerId && ownerId !== user?.id) || loadedStatus === 'confirmed');
 
   const totals = useMemo(() => computeTotals(games), [games]);
+  // Ligaleitung: direkt als bestätigt speichern (sonst muss der Gegner bestätigen).
+  const [adminDirekt, setAdminDirekt] = useState(false);
   // La Liga: Best of 5 (3:0 … 0:3), sonst Best of 3 — Einzel UND Doppel (Spielbedingungen Ziffer 2).
   const bestOf = bestOfFuerLiga(header.league_label);
   const legOptionen = legResults(bestOf);
@@ -205,11 +209,12 @@ function SpielberichteInner() {
         setHomePlayers(emptyPlayers('home'));
         setGuestPlayers(emptyPlayers('guest'));
         setGames(emptyGames());
+        if (begegnungParam && BEGEGNUNGEN.some(b => b.key === begegnungParam)) onBegegnung(begegnungParam);
       }
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allowed, idParam]);
+  }, [allowed, idParam, begegnungParam]);
 
   async function loadExisting(id: string) {
     const r = await getReport(id);
@@ -396,11 +401,14 @@ function SpielberichteInner() {
     setBusy(true); setMsg(null);
     const id = await persist();
     if (!id) { setBusy(false); return; }
-    const { error } = await submitReport(id);
-    if (!error && adminEditsForeign) await notifyReportChange(id, 'changed');
+    // Ligaleitung ändert einen schon bestätigten Bericht: bleibt bestätigt.
+    const bleibtBestaetigt = isAdminRole && loadedStatus === 'confirmed';
+    const { error } = bleibtBestaetigt ? { error: null } : adminDirekt ? await adminBestaetigen(id) : await submitReport(id);
+    if (!error && bleibtBestaetigt) await notifyReportChange(id, 'changed');
+    if (!error && adminEditsForeign && !adminDirekt && !bleibtBestaetigt) await notifyReportChange(id, 'changed');
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
-    router.push(adminEditsForeign ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht');
+    router.push(adminEditsForeign || fromAdmin || adminDirekt ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht');
   }
 
   /** Gast: Vorschlag (geänderte Ergebnisse) absenden. */
@@ -759,9 +767,15 @@ function SpielberichteInner() {
                     <button type="button" onClick={applyProposal} style={{ ...ghost, color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Vorschlag übernehmen</button>
                   </div>
                 )}
+                {isAdminRole && loadedStatus !== 'confirmed' && (
+                  <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={adminDirekt} onChange={e => setAdminDirekt(e.target.checked)} style={{ marginTop: 3 }} />
+                    <span><strong>Als Ligaleitung direkt bestätigen</strong> — der Gegner muss nicht mehr bestätigen, beide Kapitäne werden benachrichtigt. Ohne Haken geht der Bericht wie üblich zur Bestätigung an den Gegner.</span>
+                  </label>
+                )}
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
-                  <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Spielbericht absenden'}</button>
+                  <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : isAdminRole && loadedStatus === 'confirmed' ? 'Änderungen speichern (bleibt bestätigt)' : adminDirekt ? 'Speichern und bestätigen' : 'Spielbericht absenden'}</button>
                   <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
                 </div>
               </>

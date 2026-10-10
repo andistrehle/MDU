@@ -10,7 +10,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveMatchReports } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
-import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, team27, findLiga27, wochenendeText } from '@/lib/data/saison-2027';
+import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, begegnungKey, team27, findLiga27, wochenendeText, type Liga27Code } from '@/lib/data/saison-2027';
 import {
   listAllReports, deleteReport, notifyReportChange, setzeWertung,
   REPORT_STATUS_LABELS, WERTUNG_LABELS, type MatchReport, type Wertung,
@@ -37,6 +37,25 @@ export default function AdminSpielberichtePage() {
       .sort((a, b) => a[0].localeCompare(b[0], 'de'))
       .map(([league, list]) => [league, list.sort((x, y) => (y.matchday ?? -1) - (x.matchday ?? -1) || (y.match_date ?? '').localeCompare(x.match_date ?? ''))] as const);
   }, [rows]);
+
+  // ── Alle Partien 2026/27: je Liga jede Begegnung mit Stand und Aktionen ──
+  const [pLiga, setPLiga] = useState<Liga27Code>('la');
+  const [pFilter, setPFilter] = useState<'alle' | 'ohne' | 'offen' | 'bestaetigt'>('alle');
+  const berichtJeBegegnung = useMemo(() => {
+    const m = new Map<string, MatchReport>();
+    for (const r of rows ?? []) if (r.season_id === NEUE_SAISON.id && r.home_team_id && r.guest_team_id) m.set(begegnungKey(r.home_team_id, r.guest_team_id), r);
+    return m;
+  }, [rows]);
+  const partien = useMemo(() => {
+    return alleBegegnungen27().filter(b => b.liga === pLiga).filter(b => {
+      const r = berichtJeBegegnung.get(b.key);
+      if (pFilter === 'ohne') return !r;
+      if (pFilter === 'offen') return !!r && r.status !== 'confirmed';
+      if (pFilter === 'bestaetigt') return r?.status === 'confirmed';
+      return true;
+    });
+  }, [pLiga, pFilter, berichtJeBegegnung]);
+  const heute = new Date().toISOString().slice(0, 10);
 
   // ── Wertung (Nichtantritt / kein Bericht) ──
   const begegnungen = useMemo(() => alleBegegnungen27(), []);
@@ -82,7 +101,54 @@ export default function AdminSpielberichtePage() {
   }
 
   return (
-    <AdminGuard title="Spielberichte" subtitle="Alle eingereichten Spielberichte – ändern oder löschen (keine Freigabe nötig).">
+    <AdminGuard title="Spielberichte" subtitle="Jede Partie prüfen, bearbeiten, löschen oder einen Bericht nachtragen.">
+      {/* Alle Partien 2026/27 */}
+      <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', marginBottom: 22, maxWidth: 960 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginRight: 'auto' }}>Alle Partien {NEUE_SAISON.kurz}</div>
+          <select value={pLiga} onChange={e => setPLiga(e.target.value as Liga27Code)} style={sel}>
+            {LIGEN_2027.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+          </select>
+          <select value={pFilter} onChange={e => setPFilter(e.target.value as typeof pFilter)} style={sel}>
+            <option value="alle">alle Partien</option>
+            <option value="ohne">ohne Spielbericht</option>
+            <option value="offen">Entwurf / nicht bestätigt</option>
+            <option value="bestaetigt">bestätigt</option>
+          </select>
+          <Link href="/mein-bereich/spielberichte?from=admin" style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5 }}>＋ Neuer Spielbericht</Link>
+        </div>
+        {rows === null ? <p style={muted}>Lade …</p> : partien.length === 0 ? <p style={{ ...muted, fontSize: 13 }}>Keine Partien für diesen Filter.</p> : (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {partien.map((b, i) => {
+              const r = berichtJeBegegnung.get(b.key);
+              const vorbei = (b.termin?.datum ?? b.sun) < heute;
+              const stand = !r ? (vorbei ? 'kein Bericht' : '—')
+                : r.forfeit ? WERTUNG_LABELS[r.forfeit]
+                : `${r.spiele_home}:${r.spiele_guest} · ${REPORT_STATUS_LABELS[r.status]}`;
+              const farbe = !r ? (vorbei ? 'var(--th-loss)' : 'var(--th-text-faint)')
+                : r.forfeit ? 'var(--th-loss)' : r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)';
+              return (
+                <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 0', borderTop: i ? '1px solid var(--th-line-4)' : 'none', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
+                  <span style={{ width: 92, flexShrink: 0, color: 'var(--th-text-faint)' }}>{b.spieltag}. ST · {wochenendeText(b.fri, b.sun, false)}</span>
+                  <span style={{ flex: '1 1 260px', minWidth: 0, fontWeight: 700, color: 'var(--th-text-strong)' }}>{team27(b.home)?.name ?? b.home} – {team27(b.away)?.name ?? b.away}</span>
+                  <span style={{ flex: '0 0 auto', fontWeight: 700, color: farbe }}>{stand}</span>
+                  <span style={{ display: 'flex', gap: 12, flex: '0 0 auto' }}>
+                    {r ? (
+                      <>
+                        <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>Prüfen / Bearbeiten</Link>
+                        <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>{busy === r.id ? '…' : 'Löschen'}</button>
+                      </>
+                    ) : (
+                      <Link href={`/mein-bereich/spielberichte?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>＋ Bericht hinzufügen</Link>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', marginBottom: 22, maxWidth: 960 }}>
         <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 4 }}>Begegnung werten ({NEUE_SAISON.kurz})</div>
         <p style={{ ...muted, fontSize: 12.5, margin: '0 0 12px' }}>
