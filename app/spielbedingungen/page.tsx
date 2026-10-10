@@ -156,7 +156,8 @@ export default function SpielbedingungenPage() {
       <LegalSection title="10. Wertung & Tabelle">
         <ol style={ol}>
           <li>Einzelpartien zählen für die Einzelrangliste: <strong>2:0 = 3 Punkte · 2:1 = 2 · 1:2 = 1 ·
-            0:2 = 0</strong>.</li>
+            0:2 = 0</strong>; in der La&nbsp;Liga (Best of Five): <strong>3:0 = 5 Punkte · 3:1 = 4 ·
+            3:2 = 3 · 2:3 = 2 · 1:3 = 1 · 0:3 = 0</strong>.</li>
           <li>Doppel zählen nur für das Mannschaftsergebnis und die Legs, nicht für die
             Einzelranglistenpunkte.</li>
           <li>Tabellenpunkte je Begegnung: <strong>Sieg = 3 · Unentschieden = je 1 · Niederlage = 0</strong>.</li>
