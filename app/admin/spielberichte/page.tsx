@@ -15,7 +15,8 @@ import {
   listAllReports, deleteReport, notifyReportChange, setzeWertung,
   REPORT_STATUS_LABELS, WERTUNG_LABELS, type MatchReport, type Wertung,
 } from '@/lib/supabase/match-reports';
-import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
+import { cleanupReportUploads, loescheSaisonFotos } from '@/lib/supabase/match-report-uploads';
+import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
 
 export default function AdminSpielberichtePage() {
   const { user } = useAuth();
@@ -61,6 +62,14 @@ export default function AdminSpielberichtePage() {
     setRows(await listAllReports());
   }
 
+  async function onPurge() {
+    if (!confirm(`Alle noch gespeicherten Spielbericht-Fotos der ${NEUE_SAISON.name} löschen?\n\nDie Spielberichte selbst (Ergebnisse, Aufstellungen) bleiben. Das lässt sich nicht rückgängig machen.`)) return;
+    setBusy('purge'); setWMsg(null);
+    const r = await loescheSaisonFotos(NEUE_SAISON.id);
+    setBusy(null);
+    setWMsg(r.error ? { kind: 'err', text: r.error } : { kind: 'ok', text: `${r.deleted} Foto${r.deleted === 1 ? '' : 's'} gelöscht.` });
+  }
+
   async function onDelete(r: MatchReport) {
     if (!confirm(`Spielbericht ${r.home_team_name} – ${r.guest_team_name} wirklich löschen? Die Kapitäne werden benachrichtigt.`)) return;
     setBusy(r.id);
@@ -97,6 +106,14 @@ export default function AdminSpielberichtePage() {
             {busy === 'wertung' ? '…' : 'Werten'}
           </button>
         </div>
+        {FOTOS_AUFBEWAHREN && (
+          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--th-line-4)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ ...muted, fontSize: 12.5, flex: '1 1 300px' }}>Die Original-Fotos der Spielberichte werden bis zum Saisonende aufbewahrt. Danach hier alle auf einmal löschen.</span>
+            <button type="button" onClick={onPurge} disabled={busy === 'purge'} style={{ padding: '8px 14px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-loss)', border: '1px solid var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>
+              {busy === 'purge' ? '…' : `Fotos der Saison ${NEUE_SAISON.kurz} löschen`}
+            </button>
+          </div>
+        )}
         {wMsg && <div role={wMsg.kind === 'err' ? 'alert' : 'status'} style={{ marginTop: 10, fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: wMsg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{wMsg.text}</div>}
       </div>
 

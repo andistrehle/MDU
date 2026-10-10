@@ -15,7 +15,7 @@ import {
   type Begegnung27,
 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
-import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
+import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import {
   GAME_SCHEDULE, LEG_RESULTS, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
@@ -91,6 +91,10 @@ function SpielberichteInner() {
   const [proposedGames, setProposedGames] = useState<ReportGame[] | null>(null); // Vorschlag des Gegners (für Heim sichtbar)
   const [baseGames, setBaseGames] = useState<ReportGame[] | null>(null);         // Ausgangswerte zum Vorschlag (Vergleich)
   const [submitBase, setSubmitBase] = useState<ReportGame[] | null>(null);       // Momentaufnahme beim Start des Vorschlags
+  // Original-Fotos des Papierbogens (nur bei Foto-Upload): Kapitäne beider Teams + Ligaleitung.
+  const [hatFotos, setHatFotos] = useState(false);
+  const [fotos, setFotos] = useState<{ id: string; url: string }[] | null>(null);
+  const [fotoMsg, setFotoMsg] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');
   const proposeParam = searchParams.get('propose');
@@ -225,6 +229,7 @@ function SpielberichteInner() {
       : null);
     setSubmitBase(null);
     setSeasonId(r.season_id ?? '');
+    setHatFotos(!!(r as { ocr_upload_id?: string | null }).ocr_upload_id); setFotos(null); setFotoMsg(null);
     getReportHistory(id).then(setHistory);
     setHeader({
       season_id: r.season_id, league_label: r.league_label ?? '', matchday: r.matchday, match_date: r.match_date,
@@ -459,6 +464,31 @@ function SpielberichteInner() {
             {readOnly && !proposing && proposedGames && loadedStatus === 'submitted' && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                 <strong style={{ color: 'var(--th-gold)' }}>Antwort der Heimmannschaft:</strong> Der Bericht wurde nach deinem Vorschlag erneut eingereicht. <span style={{ color: 'var(--th-win)', fontWeight: 700 }}>Grün ✓</span> = dein Vorschlag wurde übernommen, <span style={{ color: '#A77A00', fontWeight: 700 }}>Gold ➜</span> = weicht noch ab (Badge = dein Vorschlag). Du kannst final <strong>bestätigen</strong> oder erneut eine <strong>Änderung anfordern</strong>.
+              </div>
+            )}
+
+            {regId && hatFotos && (
+              <div style={{ padding: '12px 15px', borderRadius: 10, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <strong style={{ color: 'var(--th-text-strong)' }}>Original-Bogen (Foto)</strong>
+                  {!fotos && (
+                    <button type="button" onClick={async () => { setFotoMsg('Lade …'); const r = await ladeBerichtFotos(regId); setFotos(r.fotos); setFotoMsg(r.error ?? (r.fotos.length ? null : 'Keine Fotos mehr vorhanden.')); }}
+                      style={{ padding: '6px 12px', borderRadius: 7, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12 }}>
+                      Fotos anzeigen
+                    </button>
+                  )}
+                </div>
+                {fotoMsg && <div style={{ marginTop: 8, color: 'var(--th-text-muted)' }}>{fotoMsg}</div>}
+                {fotos && fotos.length > 0 && (
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }}>
+                    {fotos.map((f, i) => (
+                      <a key={f.id} href={f.url} target="_blank" rel="noopener noreferrer" title={`Seite ${i + 1} in voller Größe`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={f.url} alt={`Spielbericht Seite ${i + 1}`} style={{ height: 140, width: 'auto', borderRadius: 6, border: '1px solid var(--th-line-8)' }} />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

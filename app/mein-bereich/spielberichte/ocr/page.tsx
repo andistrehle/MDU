@@ -22,6 +22,7 @@ import { spiele27AlsMatch, findLiga27 } from '@/lib/data/saison-2027';
 const MATCHES = spiele27AlsMatch();
 const getMatchesForTeam = (teamId: string) => MATCHES.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId);
 import { getOcrAvailability, uploadReportFile, startOcr } from '@/lib/supabase/match-report-uploads';
+import { verkleinereFoto } from '@/lib/ocr/verkleinern';
 
 function matchLabel(m: GameMatch): string {
   const day = m.matchday ? `${m.matchday}. Sptg · ` : '';
@@ -101,22 +102,27 @@ export default function OcrUploadPage() {
     if (matchId && !visibleMatches.some(m => m.id === matchId)) queueMicrotask(() => setMatchId(''));
   }, [visibleMatches, matchId]);
 
-  // Datei vor dem Hochladen prüfen: HEIC (iPhone) kann OCR nicht lesen (REV-052),
-  // und zu große Dateien werden serverseitig ohnehin abgelehnt (REV-053) — daher
-  // sofort mit klarer Meldung abfangen, statt erst nach vergeblichem Upload.
-  function pickFile(file: File | null, setFile: (f: File | null) => void) {
+  // Datei vor dem Hochladen verkleinern (lib/ocr/verkleinern.ts): Handyfotos
+  // sind 3–8 MB, Vercel nimmt pro Anfrage nur ~4,5 MB an. HEIC (iPhone) wird
+  // dabei zu JPG, soweit der Browser es öffnen kann.
+  const UPLOAD_GRENZE_MB = 4;
+  async function pickFile(file: File | null, setFile: (f: File | null) => void) {
     if (!file) { setFile(null); return; }
-    const isHeic = /heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
-    if (isHeic) {
-      setMsg({ kind: 'err', text: 'HEIC-Fotos (iPhone) können nicht ausgelesen werden. Bitte als JPG aufnehmen (iPhone: Einstellungen → Kamera → Formate → „Maximale Kompatibilität") oder als PDF hochladen.' });
+    setMsg({ kind: 'info', text: 'Bereite das Foto vor …' });
+    const v = await verkleinereFoto(file);
+    if (!v.ok) {
+      setMsg({ kind: 'err', text: v.grund === 'heic_nicht_lesbar'
+        ? 'Dieses HEIC-Foto (iPhone) kann dein Browser nicht öffnen. Bitte als JPG aufnehmen (iPhone: Einstellungen → Kamera → Formate → „Maximale Kompatibilität") oder als PDF hochladen.'
+        : 'Die Datei lässt sich nicht als Bild öffnen. Bitte ein Foto (JPG/PNG) oder ein PDF wählen.' });
       return;
     }
-    if (file.size > maxMb * 1024 * 1024) {
-      setMsg({ kind: 'err', text: `Die Datei ist zu groß (${Math.round(file.size / 1024 / 1024)} MB). Erlaubt sind max. ${maxMb} MB.` });
+    const grenze = Math.min(maxMb, UPLOAD_GRENZE_MB);
+    if (v.file.size > grenze * 1024 * 1024) {
+      setMsg({ kind: 'err', text: `Die Datei ist zu groß (${(v.file.size / 1024 / 1024).toFixed(1)} MB, erlaubt sind ${grenze} MB). Bei einem PDF: bitte stattdessen ein Foto des Bogens hochladen.` });
       return;
     }
     setMsg(null);
-    setFile(file);
+    setFile(v.file);
   }
 
   async function onStart() {
@@ -191,11 +197,11 @@ export default function OcrUploadPage() {
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <label style={btn}>
                   📷 Foto aufnehmen
-                  <input type="file" accept="image/*" capture="environment" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage1)} />
+                  <input type="file" accept="image/*" capture="environment" hidden onChange={e => void pickFile(e.target.files?.[0] ?? null, setPage1)} />
                 </label>
                 <label style={btn}>
                   📄 Datei wählen
-                  <input type="file" accept="image/*,application/pdf" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage1)} />
+                  <input type="file" accept="image/*,application/pdf" hidden onChange={e => void pickFile(e.target.files?.[0] ?? null, setPage1)} />
                 </label>
               </div>
               {page1 && <FilePill file={page1} onRemove={() => setPage1(null)} />}
@@ -216,11 +222,11 @@ export default function OcrUploadPage() {
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <label style={btn}>
                       📷 Foto aufnehmen
-                      <input type="file" accept="image/*" capture="environment" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage2)} />
+                      <input type="file" accept="image/*" capture="environment" hidden onChange={e => void pickFile(e.target.files?.[0] ?? null, setPage2)} />
                     </label>
                     <label style={btn}>
                       📄 Datei wählen
-                      <input type="file" accept="image/*,application/pdf" hidden onChange={e => pickFile(e.target.files?.[0] ?? null, setPage2)} />
+                      <input type="file" accept="image/*,application/pdf" hidden onChange={e => void pickFile(e.target.files?.[0] ?? null, setPage2)} />
                     </label>
                     <button type="button" onClick={() => { setWantPage2(false); setPage2(null); }} style={{ ...btn, color: 'var(--th-text-muted)', borderColor: 'var(--th-line-10)' }}>Doch keine 2. Seite</button>
                   </div>

@@ -230,3 +230,25 @@ export async function getUploadSignedUrl(uploadId: string): Promise<string | nul
   const json = await res.json().catch(() => ({}));
   return json.url ?? null;
 }
+
+/** Original-Fotos eines Spielberichts (signierte Links, 15 Min) — Kapitäne beider Teams + Ligaleitung. */
+export async function ladeBerichtFotos(reportId: string): Promise<{ fotos: { id: string; url: string }[]; error?: string }> {
+  try {
+    const res = await fetch(`/api/match-reports/${reportId}/fotos`, { headers: await authHeader() });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { fotos: [], error: json.error ?? 'Fotos nicht verfügbar.' };
+    return { fotos: json.fotos ?? [] };
+  } catch { return { fotos: [], error: 'Fotos nicht verfügbar.' }; }
+}
+
+/** Ligaleitung: alle Spielbericht-Fotos einer Saison löschen (Saisonende). */
+export async function loescheSaisonFotos(seasonId: string): Promise<{ deleted?: number; error?: string }> {
+  try {
+    const res = await fetch('/api/match-reports/uploads/purge', {
+      method: 'POST', headers: { ...(await authHeader()), 'Content-Type': 'application/json' }, body: JSON.stringify({ seasonId }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: json.error ?? 'Löschen fehlgeschlagen.' };
+    return { deleted: json.deleted ?? 0 };
+  } catch { return { error: 'Löschen fehlgeschlagen.' }; }
+}

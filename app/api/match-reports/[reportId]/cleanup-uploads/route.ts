@@ -12,11 +12,12 @@
 import { NextResponse } from 'next/server';
 import { authenticateRequest, isAdminUser, canUploadForTeam } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { uploadsZuBericht, loescheUploads } from '@/lib/server/report-uploads';
+import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const BUCKET = 'match-report-uploads';
 
 export async function POST(request: Request, ctx: { params: Promise<{ reportId: string }> }) {
   const { reportId } = await ctx.params;
@@ -45,46 +46,14 @@ export async function POST(request: Request, ctx: { params: Promise<{ reportId: 
     return NextResponse.json({ status: 'skipped', reason: 'not_confirmed' }, { status: 200 });
   }
 
-  // Alle zugehörigen Seiten einsammeln: Hauptseite(n) über match_report_id,
-  // Zusatzseiten (z. B. Highlights-Seite) über page_group_id.
-  const { data: primaries } = await supabaseAdmin
-    .from('match_report_uploads')
-    .select('id, storage_path, upload_status, page_group_id')
-    .eq('match_report_id', reportId);
-
-  const rows = new Map<string, { id: string; storage_path: string; upload_status: string }>();
-  for (const u of primaries ?? []) rows.set(u.id, u);
-
-  const groupIds = [
-    ...new Set([
-      ...(primaries ?? []).map(u => u.id),
-      ...(primaries ?? []).map(u => u.page_group_id).filter((x): x is string => !!x),
-    ]),
-  ];
-  if (groupIds.length) {
-    const { data: siblings } = await supabaseAdmin
-      .from('match_report_uploads')
-      .select('id, storage_path, upload_status, page_group_id')
-      .in('page_group_id', groupIds);
-    for (const u of siblings ?? []) rows.set(u.id, u);
+  // Werden die Fotos bis Saisonende aufbewahrt (lib/ocr/aufbewahrung.ts), löscht
+  // die Bestätigung nichts mehr — nur die Ligaleitung (Bericht löschen,
+  // Aufräumen am Saisonende).
+  if (FOTOS_AUFBEWAHREN && !isAdminUser(auth.user)) {
+    return NextResponse.json({ status: 'kept', reason: 'retained_until_season_end' }, { status: 200 });
   }
 
-  // Noch nicht gelöschte Originale mit Pfad bestimmen.
-  const toDelete = [...rows.values()].filter(u => u.upload_status !== 'deleted' && u.storage_path);
-  if (toDelete.length === 0) {
-    return NextResponse.json({ status: 'cleaned', deleted: 0 }, { status: 200 });
-  }
-
-  // Dateien aus dem privaten Bucket entfernen …
-  const paths = toDelete.map(u => u.storage_path);
-  const { error: rmErr } = await supabaseAdmin.storage.from(BUCKET).remove(paths);
-  if (rmErr) return NextResponse.json({ error: `Löschen fehlgeschlagen: ${rmErr.message}` }, { status: 500 });
-
-  // … und die Upload-Zeilen als gelöscht markieren (Zeile bleibt fürs Audit).
-  await supabaseAdmin
-    .from('match_report_uploads')
-    .update({ upload_status: 'deleted' })
-    .in('id', toDelete.map(u => u.id));
-
-  return NextResponse.json({ status: 'cleaned', deleted: toDelete.length }, { status: 200 });
+  const { deleted, error } = await loescheUploads(await uploadsZuBericht(reportId));
+  if (error) return NextResponse.json({ error }, { status: 500 });
+  return NextResponse.json({ status: 'cleaned', deleted }, { status: 200 });
 }

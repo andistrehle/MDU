@@ -16,6 +16,7 @@ import {
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
+import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
 import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 
 export default function SpielberichteUebersichtPage() {
@@ -43,7 +44,9 @@ export default function SpielberichteUebersichtPage() {
 
   async function onConfirm(id: string) {
     // Unwiderrufliche Aktion: Bericht wird gesperrt + Original-Fotos gelöscht.
-    if (!window.confirm('Ergebnis endgültig bestätigen?\n\nDanach ist der Bericht gesperrt und die hochgeladenen Original-Fotos werden gelöscht. Das lässt sich nicht rückgängig machen.')) return;
+    if (!window.confirm(FOTOS_AUFBEWAHREN
+      ? 'Ergebnis endgültig bestätigen?\n\nDanach ist der Bericht gesperrt. Das lässt sich nicht rückgängig machen.'
+      : 'Ergebnis endgültig bestätigen?\n\nDanach ist der Bericht gesperrt und die hochgeladenen Original-Fotos werden gelöscht. Das lässt sich nicht rückgängig machen.')) return;
     setBusy(true);
     const res = await confirmReport(id);
     // Nach Bestätigung die hochgeladenen Original-Fotos löschen (Datenschutz);

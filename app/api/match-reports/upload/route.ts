@@ -14,7 +14,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { findMatch } from '@/lib/server/ocr-draft';
 import { getOcrConfig, isOcrAvailable, isRoleAllowed } from '@/lib/ocr/config';
 import { isAcceptedMime, extForMime, sniffAcceptedMime } from '@/lib/ocr/preprocess';
-import { getCurrentSeason, type GameMatch } from '@/lib/data';
+import type { GameMatch } from '@/lib/data';
+import { NEUE_SAISON } from '@/lib/data/saison-2027';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -68,8 +69,11 @@ export async function POST(request: Request) {
 
   const uploadId = crypto.randomUUID();
   const ext = extForMime(file.type);
-  const seasonId = match?.seasonId ?? getCurrentSeason().id;
-  const pathBase = match ? `${match.seasonId}/${matchId}` : `unassigned/${auth.user.id}`;
+  // Ohne gewählte Begegnung: laufende Saison (nicht die statische Archiv-Saison).
+  const seasonId = match?.seasonId ?? NEUE_SAISON.id;
+  // Kennungen 2026/27 enthalten „:" und „|" — im Dateipfad nur unbedenkliche Zeichen.
+  const sicher = (x: string) => x.replace(/[^A-Za-z0-9._-]+/g, '_');
+  const pathBase = match ? `${sicher(match.seasonId)}/${sicher(matchId)}` : `unassigned/${auth.user.id}`;
   const path = `match-reports/${pathBase}/${uploadId}/page-${pageNumber}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
