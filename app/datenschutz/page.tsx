@@ -10,7 +10,7 @@ export default function DatenschutzPage() {
   return (
     <LegalPage
       title="Datenschutzerklärung"
-      updated="August 2026"
+      updated="Oktober 2026"
       notice={null}
     >
       <LegalSection title="1. Verantwortlicher">
@@ -83,8 +83,10 @@ export default function DatenschutzPage() {
         Berechtigte Nutzer (Teamkapitäne, Ligaleitung) können Fotos/PDF eines Papier-Spiel­berichts
         hochladen. Diese Dateien werden in einem privaten, nicht öffentlich zugänglichen
         Speicher (Supabase Storage) abgelegt; der Zugriff erfolgt ausschließlich serverseitig
-        über zeitlich begrenzte, signierte Links. Die hochgeladenen Original-Dateien werden
-        gelöscht, sobald der zugehörige Spielbericht bestätigt ist. Rechtsgrundlage:
+        über zeitlich begrenzte, signierte Links. Einsehen können die Dateien nur die
+        Teamkapitäne der beiden beteiligten Mannschaften und die Ligaleitung. Die hochgeladenen
+        Original-Dateien werden als Nachweis bei Rückfragen oder Protesten bis zum Ende der
+        jeweiligen Saison aufbewahrt und danach gelöscht. Rechtsgrundlage:
         Durchführung des Spielbetriebs / berechtigtes Interesse (Art. 6 Abs. 1 lit. b/f DSGVO).
       </LegalSection>
 
@@ -96,7 +98,7 @@ export default function DatenschutzPage() {
         Erkennung und nutzt API-Daten nicht zum Training von Modellen. Für die Übermittlung in
         die USA bestehen geeignete Garantien (EU-Standardvertragsklauseln bzw. Data Privacy
         Framework). Das Ergebnis wird anschließend vom verantwortlichen Nutzer geprüft und
-        bestätigt; die Original-Datei wird gemäß Ziffer 7 gelöscht. Rechtsgrundlage:
+        bestätigt; die Original-Datei wird gemäß Ziffer 7 aufbewahrt und gelöscht. Rechtsgrundlage:
         Durchführung des Spielbetriebs / berechtigtes Interesse (Art. 6 Abs. 1 lit. b/f DSGVO).
       </LegalSection>
 
@@ -161,8 +163,8 @@ export default function DatenschutzPage() {
         Personenbezogene Daten werden nur so lange gespeichert, wie es für die genannten Zwecke
         erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen. Benutzerkonten und
         Profildaten werden bis zur Löschung des Kontos gespeichert. Hochgeladene
-        Spielbericht-Original­dateien werden nach Bestätigung des Spielberichts gelöscht
-        (siehe Ziffer 7).
+        Spielbericht-Original­dateien werden bis zum Ende der jeweiligen Saison aufbewahrt und
+        danach gelöscht (siehe Ziffer 7).
       </LegalSection>
 
       <LegalSection title="14. Telefonnummern (Spieler/Kapitäne & Spielstätten)">

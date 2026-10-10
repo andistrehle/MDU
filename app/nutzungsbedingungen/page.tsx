@@ -10,7 +10,7 @@ export default function NutzungsbedingungenPage() {
   return (
     <LegalPage
       title="Nutzungsbedingungen"
-      updated="Juni 2026"
+      updated="Oktober 2026"
       notice={null}
     >
       <LegalSection title="1. Geltungsbereich">
@@ -39,8 +39,9 @@ export default function NutzungsbedingungenPage() {
         Profil- und Spielerfotos dürfen ausschließlich vom abgebildeten Spieler selbst
         hochgeladen werden. Mannschaftsbilder dürfen nur mit Zustimmung aller abgebildeten
         Personen hochgeladen werden; die hochladende Person stellt das sicher. Hochgeladene
-        Spielbericht-Fotos dienen ausschließlich der Erfassung des Spielbetriebs und werden
-        nach Bestätigung des Spielberichts gelöscht.
+        Spielbericht-Fotos dienen ausschließlich der Erfassung des Spielbetriebs und als
+        Nachweis bei Rückfragen oder Protesten; sie werden bis zum Ende der jeweiligen Saison
+        aufbewahrt und danach gelöscht.
       </LegalSection>
 
       <LegalSection title="5. Verbotene Nutzung / Missbrauch">

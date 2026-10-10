@@ -13,4 +13,6 @@
 // widerspricht die Seite ihren eigenen Hinweisen.
 // ============================================================
 
-export const FOTOS_AUFBEWAHREN = false;
+// Eingeschaltet am 10.10.2026 zusammen mit Datenschutz Ziffer 7/8/13 und
+// Nutzungsbedingungen Ziffer 4 (vom Betreiber freigegeben).
+export const FOTOS_AUFBEWAHREN = true;

@@ -1,11 +1,12 @@
 // ============================================================
-// Route Handler: Upload-Originale nach Bestätigung löschen
+// Route Handler: Upload-Originale löschen (Ligaleitung; früher nach Bestätigung)
 // ============================================================
 //
 // POST /api/match-reports/[reportId]/cleanup-uploads
 // Löscht die hochgeladenen Original-Fotos/PDF eines Spielberichts, sobald dieser
 // bestätigt ist (status='confirmed') — Umsetzung der Datenschutz-Zusage
-// „Original-Datei wird nach Bestätigung gelöscht". Storage-Löschung nur
+// Seit 10.10.2026 bleiben die Fotos bis Saisonende (lib/ocr/aufbewahrung.ts);
+// Kapitäne lösen hier nichts mehr aus, nur die Ligaleitung. Storage-Löschung nur
 // serverseitig (privater Bucket, service_role). Idempotent.
 // ============================================================
 
