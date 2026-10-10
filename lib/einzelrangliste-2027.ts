@@ -3,13 +3,16 @@
 // ============================================================
 //
 // Regeln (Spielbedingungen Ziffer 10): Nur Einzel zählen, 2:0 = 3 · 2:1 = 2 ·
-// 1:2 = 1 · 0:2 = 0 Punkte. Doppel zählen nicht für die Einzelrangliste.
+// 1:2 = 1 · 0:2 = 0 Punkte; La Liga (Best of 5) 3:0 = 5 · 3:1 = 4 · 3:2 = 3 ·
+// 2:3 = 2 · 1:3 = 1 · 0:3 = 0 (lib/legs.ts). Doppel zählen nicht für die Einzelrangliste.
 // Reihenfolge wie in der Auswertung des Spielberichts: Punkte → Legdifferenz,
 // danach mehr Siege; ist auch das gleich, teilen sich die Spieler den Platz.
 // Gezählt werden dieselben Berichte wie in der Tabelle (ab dem Einreichen;
 // Wertungen ohne gespielte Partien liefern keine Einzel).
 // Highlights (180er, 171er, High Finish, Short Leg) aus dem Bericht.
 // ============================================================
+
+import { pointsForLegs } from '@/lib/legs';
 
 export interface EinzelBericht {
   id: string;
@@ -44,7 +47,6 @@ export interface EinzelZeile {
   pos: number;
 }
 
-export const pointsForLegs = (f: number, a: number) => (f === 2 && a === 0 ? 3 : f === 2 && a === 1 ? 2 : f === 1 && a === 2 ? 1 : 0);
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 

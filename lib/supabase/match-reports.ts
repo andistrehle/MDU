@@ -9,6 +9,7 @@
 // ============================================================
 
 import { supabase } from './client';
+import { pointsForLegs, bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 
 export type ReportStatus = 'draft' | 'submitted' | 'confirmed' | 'changes_requested';
 
@@ -73,17 +74,8 @@ export interface HighlightEntry {
   value: number | null;
 }
 
-/** Erlaubte Leg-Ergebnisse (Best of 3). */
-export const LEG_RESULTS = ['2:0', '2:1', '1:2', '0:2'] as const;
-export type LegResult = typeof LEG_RESULTS[number];
-
-/** Einzelspieler-Punkte aus Heim-Sicht: 2:0=3, 2:1=2, 1:2=1, 0:2=0. */
-export function pointsForLegs(legsFor: number, legsAgainst: number): number {
-  if (legsFor === 2 && legsAgainst === 0) return 3;
-  if (legsFor === 2 && legsAgainst === 1) return 2;
-  if (legsFor === 1 && legsAgainst === 2) return 1;
-  return 0;
-}
+// Leg-Ergebnisse und Einzelpunkte (Best of 3 / La Liga Best of 5): lib/legs.ts
+export { LEG_RESULTS_BO3, LEG_RESULTS_BO5, legResults, bestOfFuerLiga, pointsForLegs, type LegResult, type BestOf } from '@/lib/legs';
 
 export interface ReportPlayer {
   side: 'home' | 'guest';
@@ -494,12 +486,13 @@ export async function setzeWertung(b: {
   if (!supabase) return { error: NOT_CONFIGURED };
   const { data: auth } = await supabase.auth.getUser();
   const homeVerliert = wertung !== 'guest_no_show';
+  const legs = 18 * legsJeSpiel(bestOfFuerLiga(b.leagueLabel)); // La Liga: 18 × 3:0
   const { data, error } = await supabase.from('match_reports').insert({
     season_id: b.seasonId, league_label: b.leagueLabel, matchday: b.matchday, match_date: b.date,
     home_team_id: b.homeId, guest_team_id: b.guestId, home_team_name: b.homeName, guest_team_name: b.guestName,
     home_captain_user_id: auth.user?.id, status: 'confirmed', forfeit: wertung,
     spiele_home: homeVerliert ? 0 : 18, spiele_guest: homeVerliert ? 18 : 0,
-    legs_home: homeVerliert ? 0 : 36, legs_guest: homeVerliert ? 36 : 0,
+    legs_home: homeVerliert ? 0 : legs, legs_guest: homeVerliert ? legs : 0,
     points_home: homeVerliert ? 0 : 3, points_guest: homeVerliert ? 3 : 0,
     protest: false, review_note: `Wertung: ${WERTUNG_LABELS[wertung]}`,
   }).select('id').maybeSingle();

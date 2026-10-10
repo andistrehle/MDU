@@ -22,6 +22,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, team27, type Liga27Code } from '@/lib/data/saison-2027';
 import { berechneTabelle, ergebnisAusBericht, zaehlt, type Ergebnis27, type Rohbericht, type TabellenZeile } from '@/lib/tabelle-2027';
 import { berechneEinzel, rangliste, type EinzelBericht, type EinzelZeile } from '@/lib/einzelrangliste-2027';
+import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 
 export interface Ergebnisse27 {
   /** Ergebnis je Begegnung (Heim|Gast) */
@@ -45,7 +46,7 @@ export const ladeErgebnisse27 = cache(async (): Promise<Ergebnisse27> => {
   for (const r of res.data as unknown as (Rohbericht & { forfeit?: string | null })[]) {
     const row: Rohbericht = { ...r, forfeit: r.forfeit ?? null };
     if (!row.home_team_id || !row.guest_team_id || !zaehlt(row)) continue;
-    const e = ergebnisAusBericht(row);
+    const e = ergebnisAusBericht(row, legsJeSpiel(bestOfFuerLiga(team27(row.home_team_id)?.league)));
     if (!keys.has(e.key)) { out.ohneBegegnung.push(row.id); continue; }
     out.byKey[e.key] = e;
   }

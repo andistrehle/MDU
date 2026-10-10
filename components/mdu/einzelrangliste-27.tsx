@@ -9,7 +9,7 @@ import type { EinzelZeile } from '@/lib/einzelrangliste-2027';
 
 const mono: React.CSSProperties = { fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, textAlign: 'right', color: 'var(--th-text-muted)' };
 
-export function Einzelrangliste27({ zeilen }: { zeilen: EinzelZeile[] }) {
+export function Einzelrangliste27({ zeilen, bestOf = 3 }: { zeilen: EinzelZeile[]; bestOf?: 3 | 5 }) {
   if (!zeilen.length) {
     return <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)', margin: 0, padding: '14px 16px' }}>Noch keine Einzel gespielt. Die Rangliste füllt sich mit dem ersten eingereichten Spielbericht.</p>;
   }
@@ -50,7 +50,7 @@ export function Einzelrangliste27({ zeilen }: { zeilen: EinzelZeile[] }) {
         );
       })}
       <div style={{ padding: '8px 14px', borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', lineHeight: 1.5 }}>
-        Nur Einzel: 2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0 Punkte. Reihenfolge: Punkte, dann Legdifferenz, dann Siege.
+        Nur Einzel: {bestOf === 5 ? '3:0 = 5 · 3:1 = 4 · 3:2 = 3 · 2:3 = 2 · 1:3 = 1 · 0:3 = 0' : '2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0'} Punkte. Reihenfolge: Punkte, dann Legdifferenz, dann Siege.
         {offen && <div><span style={{ color: '#9A6B00', fontWeight: 800 }}>*</span> enthält Ergebnisse, die der Gegner noch nicht bestätigt hat.</div>}
       </div>
     </div>

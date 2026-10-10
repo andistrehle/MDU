@@ -12,7 +12,7 @@
 //   • Ein Ergebnis zählt ab dem Einreichen; bis der Gegner bestätigt, ist es
 //     als „noch nicht bestätigt" markiert.
 //   • Nichtantritt (Wertung der Ligaleitung): 0:3 Punkte, 0:18 Spiele
-//     (Legs 0:36 — 18 Spiele à 2:0); dem nicht angetretenen Team zusätzlich
+//     (Legs 0:36 — 18 Spiele à 2:0; La Liga Best of 5: 0:54); dem nicht angetretenen Team zusätzlich
 //     −3 Punkte. Fehlender Spielbericht: Heimteam verliert 0:3 / 0:18, ohne Abzug.
 // ============================================================
 
@@ -58,7 +58,8 @@ export const zaehlt = (r: Pick<Rohbericht, 'status' | 'forfeit'>) =>
 
 const punkte = (a: number, b: number) => (a > b ? 3 : a === b ? 1 : 0);
 
-export function ergebnisAusBericht(r: Rohbericht): Ergebnis27 {
+/** `legsProSpiel`: 2 (Best of 3) bzw. 3 (La Liga, Best of 5) — nur für Wertungen. */
+export function ergebnisAusBericht(r: Rohbericht, legsProSpiel = 2): Ergebnis27 {
   const base = { key: `${r.home_team_id}|${r.guest_team_id}`, home: r.home_team_id, away: r.guest_team_id, datum: r.match_date, reportId: r.id };
   const w = (r.forfeit ?? null) as Wertung | null;
   if (w) {
@@ -66,7 +67,7 @@ export function ergebnisAusBericht(r: Rohbericht): Ergebnis27 {
     return {
       ...base, wertung: w, bestaetigt: true,
       spieleHome: homeVerliert ? 0 : 18, spieleAway: homeVerliert ? 18 : 0,
-      legsHome: homeVerliert ? 0 : 36, legsAway: homeVerliert ? 36 : 0,
+      legsHome: homeVerliert ? 0 : 18 * legsProSpiel, legsAway: homeVerliert ? 18 * legsProSpiel : 0,
       ptsHome: homeVerliert ? 0 : 3, ptsAway: homeVerliert ? 3 : 0,
       abzugHome: w === 'home_no_show' ? -3 : 0, abzugAway: w === 'guest_no_show' ? -3 : 0,
     };

@@ -17,7 +17,7 @@ import {
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import {
-  GAME_SCHEDULE, LEG_RESULTS, computeTotals,
+  GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking,
@@ -107,6 +107,9 @@ function SpielberichteInner() {
   const readOnly = !isAdminRole && ((!!ownerId && ownerId !== user?.id) || loadedStatus === 'confirmed');
 
   const totals = useMemo(() => computeTotals(games), [games]);
+  // La Liga: Best of 5 (3:0 … 0:3), sonst Best of 3 — Einzel UND Doppel (Spielbedingungen Ziffer 2).
+  const bestOf = bestOfFuerLiga(header.league_label);
+  const legOptionen = legResults(bestOf);
   const ranking = useMemo(
     () => computePlayerRanking(games, [...homePlayers, ...guestPlayers], header.home_team_name || 'Heim', header.guest_team_name || 'Gast'),
     [games, homePlayers, guestPlayers, header.home_team_name, header.guest_team_name],
@@ -357,6 +360,8 @@ function SpielberichteInner() {
       }
     }
     if (games.some(g => g.legs_home == null)) return 'Bitte alle 18 Spielergebnisse eintragen.';
+    const falsch = games.find(g => !(legOptionen as readonly string[]).includes(legToResult(g)));
+    if (falsch) return `Spiel ${falsch.game_no}: ${legToResult(falsch)} passt nicht zu Best of ${bestOf}${bestOf === 5 ? ' (La Liga)' : ''}. Bitte das Ergebnis neu wählen.`;
     return null;
   }
 
@@ -548,7 +553,7 @@ function SpielberichteInner() {
             </Section>
 
             {/* Spiele */}
-            <Section title="Spiele (Best of 3 Legs)">
+            <Section title={`Spiele (Best of ${bestOf} Legs${bestOf === 5 ? ' · La Liga' : ''})`}>
               {GAME_SCHEDULE.map((s, i) => {
                 const g = games[i];
                 const showRound = i === 0 || GAME_SCHEDULE[i - 1].round !== s.round;
@@ -586,7 +591,9 @@ function SpielberichteInner() {
                       )}
                       <select value={legToResult(g)} onChange={e => setGameLegs(s.no, e.target.value)} style={{ ...input, width: 80, padding: '7px 8px', ...(accepted ? { borderColor: 'var(--th-win)' } : pending ? { borderColor: 'var(--th-gold)' } : {}) }}>
                         <option value="">—</option>
-                        {LEG_RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
+                        {/* Ein vorhandener Wert aus dem anderen Modus bleibt sichtbar, bis er neu gewählt wird. */}
+                        {legToResult(g) && !(legOptionen as readonly string[]).includes(legToResult(g)) && <option value={legToResult(g)}>{legToResult(g)} ⚠</option>}
+                        {legOptionen.map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
                       {accepted && (
                         <span title={`Vorschlag übernommen (${baseStr ?? '–'} → ${curStr})`} style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: 'var(--th-win)', background: 'rgba(34,197,94,0.16)', border: '1px solid var(--th-win)', borderRadius: 6, padding: '3px 6px', whiteSpace: 'nowrap' }}>
@@ -612,7 +619,7 @@ function SpielberichteInner() {
                 <ResultBox label="Punkte" h={totals.pointsHome} g={totals.pointsGuest} />
               </div>
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 8 }}>
-                Einzelspieler-Punkte fließen in die Einzelrangliste (nur Einzelspiele). Doppel zählen für Spiele/Legs.
+                Einzelspieler-Punkte fließen in die Einzelrangliste (nur Einzelspiele): {bestOf === 5 ? '3:0 = 5 · 3:1 = 4 · 3:2 = 3 · 2:3 = 2 · 1:3 = 1 · 0:3 = 0' : '2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0'}. Doppel zählen für Spiele/Legs.
               </p>
             </Section>
 

@@ -122,7 +122,7 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
 
         {tab === 4 && (
           <div style={{ ...card, padding: 0, overflow: 'hidden', maxWidth: 900 }}>
-            <Einzelrangliste27 zeilen={einzel} />
+            <Einzelrangliste27 zeilen={einzel} bestOf={code === 'la' ? 5 : 3} />
           </div>
         )}
 
