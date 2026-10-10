@@ -139,7 +139,10 @@ export default function AdminSpielberichtePage() {
                         <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>{busy === r.id ? '…' : 'Löschen'}</button>
                       </>
                     ) : (
-                      <Link href={`/mein-bereich/spielberichte?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>＋ Bericht hinzufügen</Link>
+                      <>
+                        <Link href={`/mein-bereich/spielberichte?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>＋ Bericht hinzufügen</Link>
+                        <Link href={`/mein-bereich/spielberichte/ocr?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>📷 Foto/PDF</Link>
+                      </>
                     )}
                   </span>
                 </div>

@@ -9,14 +9,14 @@
 // Berechtigung wird in den Routen geprüft.
 // ============================================================
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hasMinRole } from '@/lib/auth/roles';
 import type { GameMatch } from '@/lib/data';
-import { spiele27AlsMatch, findLiga27 } from '@/lib/data/saison-2027';
+import { spiele27AlsMatch, findLiga27, MATCH_ID_PREFIX_27 } from '@/lib/data/saison-2027';
 
 // Seit 2026/27: Begegnungen der laufenden Saison (die alte Spielliste ist Archiv).
 const MATCHES = spiele27AlsMatch();
@@ -31,21 +31,37 @@ function matchLabel(m: GameMatch): string {
 }
 
 export default function OcrUploadPage() {
+  return (
+    <Suspense fallback={<MemberShell title="Spielbericht hochladen"><Muted>Lade …</Muted></MemberShell>}>
+      <OcrUploadInner />
+    </Suspense>
+  );
+}
+
+function OcrUploadInner() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const isAdmin = hasMinRole(user, 'league_admin');
   const allowed = isAdmin || user?.role === 'team_captain';
+  // Vorbelegte Begegnung (Heim|Gast) — z. B. Ligaleitung lädt aus Admin →
+  // Spielberichte oder aus dem Formular den Bogen eines anderen Teams hoch.
+  const searchParams = useSearchParams();
+  const begegnungParam = searchParams.get('begegnung');
+  const fromAdmin = searchParams.get('from') === 'admin';
+  const vorbelegt = begegnungParam ? MATCHES.find(m => m.id === MATCH_ID_PREFIX_27 + begegnungParam) ?? null : null;
 
   const [available, setAvailable] = useState<boolean | null>(null);
   const [maxMb, setMaxMb] = useState(12);
-  const [matchId, setMatchId] = useState('');
+  const [matchId, setMatchId] = useState(vorbelegt?.id ?? '');
   // Ansicht der Begegnungsliste (nur für Admins umschaltbar):
   //   'mine' = nur die eigene Mannschaft (Standard, wie bei Kapitänen –
   //            der wöchentliche Normalfall)
   //   'all'  = alle Begegnungen der Liga (Ligaleitung trägt für andere ein)
-  const [scope, setScope] = useState<'mine' | 'all'>('mine');
+  // Vorbelegte Begegnung eines fremden Teams: gleich in der Ligaansicht starten,
+  // sonst fiele sie aus der Liste „Meine Mannschaft" und die Auswahl wäre weg.
+  const [scope, setScope] = useState<'mine' | 'all'>(vorbelegt ? 'all' : 'mine');
   // Filter innerhalb der „Alle Begegnungen"-Ansicht (Admin).
-  const [leagueFilter, setLeagueFilter] = useState('');
+  const [leagueFilter, setLeagueFilter] = useState(vorbelegt?.leagueId ?? '');
   const [search, setSearch] = useState('');
   const [page1, setPage1] = useState<File | null>(null);
   const [page2, setPage2] = useState<File | null>(null);
@@ -143,7 +159,7 @@ export default function OcrUploadPage() {
     const ocr = await startOcr(r1.uploadId, extraIds);
     setBusy(false);
     if (ocr.error && !ocr.status) { setMsg({ kind: 'err', text: ocr.error }); return; }
-    router.push(`/mein-bereich/spielberichte/ocr/${r1.uploadId}/pruefen`);
+    router.push(`/mein-bereich/spielberichte/ocr/${r1.uploadId}/pruefen${fromAdmin ? '?from=admin' : ''}`);
   }
 
   return (
@@ -237,7 +253,7 @@ export default function OcrUploadPage() {
 
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button type="button" onClick={onStart} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'OCR-Erkennung starten'}</button>
-              <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...btn, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zurück</Link>
+              <Link href={fromAdmin ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht'} style={{ ...btn, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zurück</Link>
             </div>
             <Muted>Nach der Erkennung kannst du alle Werte prüfen und korrigieren, bevor der Bericht über den normalen Weg eingereicht wird.</Muted>
           </div>

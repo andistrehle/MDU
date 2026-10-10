@@ -14,7 +14,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
@@ -118,6 +118,7 @@ const METHOD_META: Record<NameMatch['method'], { label: string; color: string }>
 export default function OcrReviewPage() {
   const { user, loading } = useAuth();
   const params = useParams();
+  const fromAdmin = useSearchParams().get('from') === 'admin';
   const uploadId = String(params?.uploadId ?? '');
 
   interface PagePreview { id: string; pageNumber: number; mimeType: string; url: string | null }
@@ -371,7 +372,7 @@ export default function OcrReviewPage() {
                 ) : (
                   <>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <Link href={`/mein-bereich/spielberichte?id=${upload.match_report_id}`} style={primary}>Im Editor prüfen & einreichen →</Link>
+                      <Link href={`/mein-bereich/spielberichte?id=${upload.match_report_id}${fromAdmin ? '&from=admin' : ''}`} style={primary}>Im Editor prüfen & einreichen →</Link>
                       <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
                     </div>
                     <Muted>Im Editor sind alle Felder vorausgefüllt — bitte gegen das Foto prüfen, Unsicheres korrigieren und anschließend wie gewohnt absenden. Tabelle und Einzelrangliste werden erst nach der Bestätigung durch den Gegner aktualisiert.</Muted>

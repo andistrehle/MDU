@@ -109,6 +109,16 @@ function SpielberichteInner() {
   const readOnly = !isAdminRole && ((!!ownerId && ownerId !== user?.id) || loadedStatus === 'confirmed');
 
   const totals = useMemo(() => computeTotals(games), [games]);
+  // Foto-Upload bleibt bei der hier gewählten Begegnung (Ligaleitung lädt auch
+  // den Bogen eines anderen Teams hoch, z. B. wenn ihn ein Kapitän schickt).
+  const ocrHref = (() => {
+    const q = new URLSearchParams();
+    const key = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : begegnungParam;
+    if (key) q.set('begegnung', key);
+    if (fromAdmin) q.set('from', 'admin');
+    const qs = q.toString();
+    return `/mein-bereich/spielberichte/ocr${qs ? `?${qs}` : ''}`;
+  })();
   // Ligaleitung: direkt als bestätigt speichern (sonst muss der Gegner bestätigen).
   const [adminDirekt, setAdminDirekt] = useState(false);
   // La Liga: Best of 5 (3:0 … 0:3), sonst Best of 3 — Einzel UND Doppel (Spielbedingungen Ziffer 2).
@@ -451,7 +461,7 @@ function SpielberichteInner() {
                 <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                   Lieber per Foto? Lade den ausgefüllten Papier-Bogen hoch — die Daten werden automatisch erkannt.
                 </span>
-                <Link href="/mein-bereich/spielberichte/ocr" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                <Link href={ocrHref} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
                   📷 Foto/PDF hochladen
                 </Link>
               </div>
