@@ -20,9 +20,11 @@ export interface Termin27 {
   vorlaeufig?: boolean;
 }
 
-// Eingetragen am 11.10.2026 aus den Masterplänen La, B1, B2, C (A folgt).
+// Eingetragen am 11.10.2026 aus den Masterplänen aller fünf Ligen.
 // Vom Betreiber bestätigt: „26" bei Terminen ab Januar = 2027; Flying
 // Fighters – Leider Geil am 30.10. (verlegt, nicht 23.10. wie im Masterplan);
+// A Liga: Heimrecht Oldies/Freibad Bazis getauscht (HRT); Jolly Pirates V –
+// Belfort ohne Termin („?“), Jolly Pirates V – Oldies vorläufig 30.10.
 // C Liga: Heimrecht bei Black Devils/Funny Darters, DartPromillos/5 Sterne
 // und 5 Sterne/Jolly Pirates VII gegenüber dem Plan getauscht (HRT) — der
 // Termin steht deshalb unter der Begegnung mit dem tatsächlichen Heimteam;
@@ -60,6 +62,78 @@ export const TERMINE_2027: Record<string, Termin27> = {
   "spartans|silberpfeile-ii": { datum: '2027-05-07', uhrzeit: '20:00', vorlaeufig: true }, // Spartans München – Silberpfeile II
   "ohne-jackie|alptraum": { datum: '2027-05-07', uhrzeit: '20:00' }, // Ohne Jackie – Alptraum (Jahr 26→27)
   "jolly-pirates-kts|gambas": { datum: '2027-05-07', uhrzeit: '20:00', vorlaeufig: true }, // Jolly Pirates Kneipenterroristen – Gambas
+  // ── A Liga ──
+  "dc-animals-ii|treff-nix-freimann": { datum: '2026-10-23', uhrzeit: '20:30' }, // DC Animals – Treff Nix Freimann
+  "freibad-bazis|fiaker-deife": { datum: '2026-10-23', uhrzeit: '20:00' }, // Freibad Bazis – Fiaker Deife
+  "spartans-vi|jolly-pirates-v": { datum: '2026-10-24', uhrzeit: '20:30' }, // Spartans VI – Jolly Pirates V
+  "team-illuminati--28d702|oldies-co": { datum: '2026-10-24', uhrzeit: '20:00' }, // Illuminati – Oldies & Co
+  "jolly-pirates-v|oldies-co": { datum: '2026-10-30', vorlaeufig: true }, // Jolly Pirates V – Oldies & Co
+  "oldies-co|fiaker-deife": { datum: '2026-11-13', uhrzeit: '20:00' }, // Oldies & Co – Fiaker Deife
+  "freibad-bazis|dc-animals-ii": { datum: '2026-11-13', uhrzeit: '20:30' }, // Freibad Bazis – DC Animals
+  "jolly-pirates-v|team-illuminati--28d702": { datum: '2026-11-14', uhrzeit: '20:00' }, // Jolly Pirates V – Illuminati
+  "treff-nix-freimann|belfort-evolution": { datum: '2026-11-14', uhrzeit: '20:00' }, // Treff Nix Freimann – Belfort Evolution
+  "belfort-evolution|spartans-vi": { datum: '2026-11-21', uhrzeit: '20:00' }, // Belfort Evolution – Spartans VI
+  "team-illuminati--28d702|freibad-bazis": { datum: '2026-11-21', uhrzeit: '20:00' }, // Illuminati – Freibad Bazis
+  "fiaker-deife|treff-nix-freimann": { datum: '2026-11-21', uhrzeit: '20:00' }, // Fiaker Deife – Treff Nix Freimann
+  "oldies-co|spartans-vi": { datum: '2026-11-27', uhrzeit: '20:00' }, // Oldies & Co – Spartans VI
+  "dc-animals-ii|belfort-evolution": { datum: '2026-11-27', uhrzeit: '20:30' }, // DC Animals – Belfort Evolution
+  "freibad-bazis|jolly-pirates-v": { datum: '2026-11-27', uhrzeit: '20:00' }, // Freibad Bazis – Jolly Pirates V
+  "team-illuminati--28d702|treff-nix-freimann": { datum: '2026-11-28', uhrzeit: '20:00' }, // Illuminati – Treff Nix Freimann
+  "spartans-vi|dc-animals-ii": { datum: '2026-12-04', uhrzeit: '20:30' }, // Spartans VI – DC Animals
+  "treff-nix-freimann|jolly-pirates-v": { datum: '2026-12-04', uhrzeit: '20:00' }, // Treff Nix Freimann – Jolly Pirates V
+  "freibad-bazis|oldies-co": { datum: '2026-12-05', uhrzeit: '20:00' }, // Freibad Bazis – Oldies & Co (HRT)
+  "fiaker-deife|belfort-evolution": { datum: '2026-12-05', uhrzeit: '20:00' }, // Fiaker Deife – Belfort Evolution
+  "spartans-vi|freibad-bazis": { datum: '2026-12-11', uhrzeit: '20:00' }, // Spartans VI – Freibad Bazis
+  "treff-nix-freimann|oldies-co": { datum: '2026-12-11', uhrzeit: '20:00' }, // Treff Nix Freimann – Oldies & Co
+  "dc-animals-ii|fiaker-deife": { datum: '2026-12-12', uhrzeit: '20:30' }, // DC Animals – Fiaker Deife
+  "belfort-evolution|team-illuminati--28d702": { datum: '2026-12-12', uhrzeit: '20:00' }, // Belfort Evolution – Illuminati
+  "freibad-bazis|treff-nix-freimann": { datum: '2026-12-18', uhrzeit: '20:00' }, // Freibad Bazis – Treff Nix Freimann
+  "fiaker-deife|spartans-vi": { datum: '2026-12-19', uhrzeit: '20:00' }, // Fiaker Deife – Spartans VI
+  "team-illuminati--28d702|dc-animals-ii": { datum: '2026-12-19', uhrzeit: '20:30' }, // Illuminati – DC Animals
+  "dc-animals-ii|jolly-pirates-v": { datum: '2027-01-09', uhrzeit: '20:30' }, // DC Animals – Jolly Pirates V
+  "treff-nix-freimann|spartans-vi": { datum: '2027-01-16', uhrzeit: '20:00' }, // Treff Nix Freimann – Spartans VI
+  "team-illuminati--28d702|fiaker-deife": { datum: '2027-01-16', uhrzeit: '20:00' }, // Illuminati – Fiaker Deife
+  "belfort-evolution|oldies-co": { datum: '2027-01-16', uhrzeit: '20:00' }, // Belfort Evolution – Oldies & Co
+  "spartans-vi|team-illuminati--28d702": { datum: '2027-01-22', uhrzeit: '20:00' }, // Spartans VI – Illuminati
+  "freibad-bazis|belfort-evolution": { datum: '2027-01-22', uhrzeit: '20:00' }, // Freibad Bazis – Belfort Evolution
+  "oldies-co|dc-animals-ii": { datum: '2027-01-22', uhrzeit: '20:30' }, // Oldies & Co – DC Animals
+  "jolly-pirates-v|fiaker-deife": { datum: '2027-01-23', uhrzeit: '20:00' }, // Jolly Pirates V – Fiaker Deife
+  "jolly-pirates-v|spartans-vi": { datum: '2027-01-29', uhrzeit: '20:00' }, // Jolly Pirates V – Spartans VI
+  "treff-nix-freimann|dc-animals-ii": { datum: '2027-01-30', uhrzeit: '20:30' }, // Treff Nix Freimann – DC Animals
+  "fiaker-deife|freibad-bazis": { datum: '2027-01-30', uhrzeit: '20:00' }, // Fiaker Deife – Freibad Bazis
+  "oldies-co|team-illuminati--28d702": { datum: '2027-02-12', uhrzeit: '20:00' }, // Oldies & Co – Illuminati
+  "team-illuminati--28d702|jolly-pirates-v": { datum: '2027-02-20', uhrzeit: '20:00' }, // Illuminati – Jolly Pirates V
+  "belfort-evolution|treff-nix-freimann": { datum: '2027-02-20', uhrzeit: '20:00' }, // Belfort Evolution – Treff Nix Freimann
+  "fiaker-deife|oldies-co": { datum: '2027-02-20', uhrzeit: '20:00' }, // Fiaker Deife – Oldies & Co
+  "dc-animals-ii|freibad-bazis": { datum: '2027-02-20', uhrzeit: '20:30' }, // DC Animals – Freibad Bazis
+  "oldies-co|jolly-pirates-v": { datum: '2027-02-26', uhrzeit: '20:00' }, // Oldies & Co – Jolly Pirates V
+  "spartans-vi|belfort-evolution": { datum: '2027-02-27', uhrzeit: '20:00' }, // Spartans VI – Belfort Evolution
+  "freibad-bazis|team-illuminati--28d702": { datum: '2027-02-27', uhrzeit: '20:00' }, // Freibad Bazis – Illuminati
+  "treff-nix-freimann|fiaker-deife": { datum: '2027-02-27', uhrzeit: '20:00' }, // Treff Nix Freimann – Fiaker Deife
+  "spartans-vi|oldies-co": { datum: '2027-03-05', uhrzeit: '20:00' }, // Spartans VI – Oldies & Co
+  "belfort-evolution|dc-animals-ii": { datum: '2027-03-06', uhrzeit: '20:30' }, // Belfort Evolution – DC Animals
+  "jolly-pirates-v|freibad-bazis": { datum: '2027-03-06', uhrzeit: '20:00' }, // Jolly Pirates V – Freibad Bazis
+  "treff-nix-freimann|team-illuminati--28d702": { datum: '2027-03-06', uhrzeit: '20:00' }, // Treff Nix Freimann – Illuminati
+  "oldies-co|freibad-bazis": { datum: '2027-03-12', uhrzeit: '20:00' }, // Oldies & Co – Freibad Bazis (HRT)
+  "jolly-pirates-v|treff-nix-freimann": { datum: '2027-03-12', uhrzeit: '20:00' }, // Jolly Pirates V – Treff Nix Freimann
+  "dc-animals-ii|spartans-vi": { datum: '2027-03-13', uhrzeit: '20:30' }, // DC Animals – Spartans VI
+  "belfort-evolution|fiaker-deife": { datum: '2027-03-13', uhrzeit: '20:00' }, // Belfort Evolution – Fiaker Deife
+  "jolly-pirates-v|dc-animals-ii": { datum: '2027-04-03', uhrzeit: '20:30' }, // Jolly Pirates V – DC Animals
+  "freibad-bazis|spartans-vi": { datum: '2027-04-09', uhrzeit: '20:00' }, // Freibad Bazis – Spartans VI
+  "oldies-co|treff-nix-freimann": { datum: '2027-04-09', uhrzeit: '20:00' }, // Oldies & Co – Treff Nix Freimann
+  "fiaker-deife|dc-animals-ii": { datum: '2027-04-10', uhrzeit: '20:30' }, // Fiaker Deife – DC Animals
+  "team-illuminati--28d702|belfort-evolution": { datum: '2027-04-10', uhrzeit: '20:00' }, // Illuminati – Belfort Evolution
+  "spartans-vi|fiaker-deife": { datum: '2027-04-16', uhrzeit: '20:00' }, // Spartans VI – Fiaker Deife
+  "treff-nix-freimann|freibad-bazis": { datum: '2027-04-17', uhrzeit: '20:00' }, // Treff Nix Freimann – Freibad Bazis
+  "dc-animals-ii|team-illuminati--28d702": { datum: '2027-04-17', uhrzeit: '20:30' }, // DC Animals – Illuminati
+  "belfort-evolution|jolly-pirates-v": { datum: '2027-04-17', uhrzeit: '20:00' }, // Belfort Evolution – Jolly Pirates V
+  "oldies-co|belfort-evolution": { datum: '2027-04-23', uhrzeit: '20:00' }, // Oldies & Co – Belfort Evolution
+  "spartans-vi|treff-nix-freimann": { datum: '2027-04-24', uhrzeit: '20:00' }, // Spartans VI – Treff Nix Freimann
+  "fiaker-deife|team-illuminati--28d702": { datum: '2027-04-24', uhrzeit: '20:00' }, // Fiaker Deife – Illuminati
+  "team-illuminati--28d702|spartans-vi": { datum: '2027-05-08', uhrzeit: '20:00' }, // Illuminati – Spartans VI
+  "fiaker-deife|jolly-pirates-v": { datum: '2027-05-08', uhrzeit: '20:00' }, // Fiaker Deife – Jolly Pirates V
+  "belfort-evolution|freibad-bazis": { datum: '2027-05-08', uhrzeit: '20:00' }, // Belfort Evolution – Freibad Bazis
+  "dc-animals-ii|oldies-co": { datum: '2027-05-08', uhrzeit: '20:30' }, // DC Animals – Oldies & Co
   // ── B1 Liga ──
   "muenchen-0815|master-of-desaster": { datum: '2026-10-23', uhrzeit: '20:30' }, // München 08/15 – Master of Desaster
   "team-dart-s-vaders-48de8a|game-over": { datum: '2026-10-24', uhrzeit: '20:00' }, // Dart's Vaders – Game Over
