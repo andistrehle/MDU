@@ -98,7 +98,7 @@ export const VENUES: Venue[] = [
   {
     id: 'dis-stueberl',
     name: "Di's Stüberl",
-    address: 'Wundstr. 15',
+    address: 'Wundtstr. 15',
     city: '80939 München',
     phone: '0160 970 36 996',
   },
@@ -142,7 +142,7 @@ export const VENUES: Venue[] = [
   {
     id: 'kegelkeller',
     name: 'Kegelkeller',
-    address: 'Ledergasse 6',
+    address: 'Lederergasse 6',
     city: '85567 Grafing',
     phone: '08092 862 21 90',
   },
