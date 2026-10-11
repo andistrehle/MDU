@@ -2,6 +2,7 @@ import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import {
   team27, venue27, spieltage27, spieleFuerTeam27, wochenendeText, begegnungKey,
+  termin27, terminKurz, terminVerlegt,
   type Liga27, type Spieltag27,
 } from '@/lib/data/saison-2027';
 import type { Ergebnis27 } from '@/lib/tabelle-2027';
@@ -34,7 +35,21 @@ function ErgebnisZeile({ e, gast = false }: { e: Ergebnis27; gast?: boolean }) {
   );
 }
 
-// Anzeige des vorläufigen Spielplans 2026/27 (Server-tauglich, keine Hooks).
+// Anzeige des Spielplans 2026/27 (Server-tauglich, keine Hooks).
+
+/** Fester Termin aus dem Masterplan als Text-Präfix („Fr 23.10. · 20:00 · "). */
+function TerminText({ home, away, fri, sun }: { home: string; away: string; fri: string; sun: string }) {
+  const t = termin27(home, away);
+  if (!t) return null;
+  return (
+    <>
+      <span style={{ fontWeight: 700, color: 'var(--th-text-body)' }}>{terminKurz(t)}</span>
+      {t.vorlaeufig && <span style={{ color: '#9A6B00' }}> (wird geprüft)</span>}
+      {terminVerlegt(t, fri, sun) && <span style={{ color: '#9A6B00' }}> · verlegt</span>}
+      {' · '}
+    </>
+  );
+}
 
 const mono: React.CSSProperties = { fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5 };
 const faint: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' };
@@ -78,7 +93,7 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
                 <TeamChip27 id={g.away} align="right" />
               </div>
               <div style={{ ...faint, marginTop: 4 }}>
-                {e ? <ErgebnisZeile e={e} /> : <>{v?.name ?? 'Spielort folgt'}{g.derby ? ' · Derby' : ''}</>}
+                {e ? <ErgebnisZeile e={e} /> : <><TerminText home={g.home} away={g.away} fri={md.fri} sun={md.sun} />{v?.name ?? 'Spielort folgt'}{g.derby ? ' · Derby' : ''}</>}
               </div>
             </div>
           );
@@ -124,12 +139,13 @@ export function TeamSpielplan27({ teamId, ergebnisse }: { teamId: string; ergebn
         const ort = venue27(team27(s.heim ? teamId : s.gegner)?.venueId);
         const e = s.gegner ? ergebnisse?.[s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)] : undefined;
         // Aus Sicht dieses Teams: eigene Spiele zuerst.
+        const t = s.gegner ? (s.heim ? termin27(teamId, s.gegner) : termin27(s.gegner, teamId)) : null;
         const eigen = e ? (s.heim ? e.spieleHome : e.spieleAway) : 0, fremd = e ? (s.heim ? e.spieleAway : e.spieleHome) : 0;
         return (
           <div key={s.spieltag} style={{ display: 'grid', gridTemplateColumns: '64px minmax(0,1fr)', gap: 12, alignItems: 'center', padding: '10px 14px', borderTop: i ? '1px solid var(--th-line-4)' : 'none' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)' }}>{s.spieltag}. ST</div>
-              <div style={{ ...mono, fontSize: 10.5, color: 'var(--th-text-faint)' }}>{wochenendeText(s.fri, s.sun, false)}</div>
+              <div style={{ ...mono, fontSize: 10.5, color: t ? 'var(--th-text-body)' : 'var(--th-text-faint)', fontWeight: t ? 700 : 400 }}>{t ? terminKurz({ datum: t.datum }) : wochenendeText(s.fri, s.sun, false)}</div>
             </div>
             {s.gegner ? (
               <div style={{ minWidth: 0 }}>
@@ -143,7 +159,7 @@ export function TeamSpielplan27({ teamId, ergebnisse }: { teamId: string; ergebn
                   )}
                 </div>
                 <div style={{ ...faint, marginTop: 3, marginLeft: 30 }}>
-                  {e ? <ErgebnisZeile e={e} gast={!s.heim} /> : <>{ort?.name ?? 'Spielort folgt'}{s.derby ? ' · Derby' : ''}</>}
+                  {e ? <ErgebnisZeile e={e} gast={!s.heim} /> : <>{t?.uhrzeit && <span style={{ fontWeight: 700, color: 'var(--th-text-body)' }}>{t.uhrzeit} Uhr · </span>}{t?.vorlaeufig && <span style={{ color: '#9A6B00' }}>Termin wird geprüft · </span>}{terminVerlegt(t, s.fri, s.sun) && <span style={{ color: '#9A6B00' }}>verlegt · </span>}{ort?.name ?? 'Spielort folgt'}{s.derby ? ' · Derby' : ''}</>}
                 </div>
               </div>
             ) : (

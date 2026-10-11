@@ -25,7 +25,7 @@ export const istArchivParam = (v: string | string[] | undefined) => (Array.isArr
 /** TC-Sitzung, in der die genauen Termine festgelegt werden. */
 export const TC_SITZUNG = '2026-10-11';
 export const VORLAEUFIG_TEXT =
-  'Vorläufiger Spielplan: Die Spielwochenenden stehen fest, die genauen Termine (Tag und Uhrzeit) werden in der TC-Sitzung am 11.10.2026 festgelegt.';
+  'Spielplan 2026/27: Die festen Termine (Tag und Uhrzeit) aus der TC-Sitzung vom 11.10.2026 sind eingetragen (A Liga folgt) — wo noch keiner steht, gilt das Spielwochenende. „verlegt“ = außerhalb des Spielwochenendes.';
 
 /** Reiter der Liga-Seite 2026/27 (hier statt in der Client-Komponente, damit
  *  die Server-Seite ?tab= auflösen kann — aus 'use client'-Dateien kommen nur Komponenten). */
@@ -163,19 +163,38 @@ export function terminText(b: Pick<Begegnung27, 'fri' | 'sun' | 'termin'>): stri
 /** Heutiges Datum in München als ISO (YYYY-MM-DD). */
 const heuteMuenchen = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 
-/** Nächstes Spielwochenende (ab heute, Sonntag eingeschlossen) mit allen Spielen
- *  aller Ligen — für die Startseite. null nach Saisonende. */
-export function naechstesWochenende27(heute = heuteMuenchen()): { fri: string; sun: string; spiele: { liga: Liga27; spiel: Spiel27 }[] } | null {
-  const w = RAW.weekends.find(x => x.sun >= heute);
-  if (!w) return null;
+/** Fester Termin einer Begegnung (Masterplan), falls eingetragen. */
+export const termin27 = (home: string, away: string): Termin27 | null => TERMINE_2027[begegnungKey(home, away)] ?? null;
+
+/** „Fr 23.10. · 20:00" (ohne Jahr, für Listen). */
+export function terminKurz(t: Termin27): string {
+  const x = d(t.datum);
+  return `${WOCHENTAG[x.getUTCDay()]} ${x.getUTCDate()}.${x.getUTCMonth() + 1}.${t.uhrzeit ? ` · ${t.uhrzeit}` : ''}`;
+}
+
+/** Liegt der feste Termin außerhalb des Plan-Wochenendes (verlegt)? */
+export const terminVerlegt = (t: Termin27 | null, fri: string, sun: string) => !!t && (t.datum < fri || t.datum > sun);
+
+/** Nächstes Spielwochenende (ab heute) mit allen Spielen aller Ligen — für die
+ *  Startseite. Maßgeblich ist der feste Termin, sonst das Plan-Wochenende; ein
+ *  verlegtes Spiel steht also an seinem echten Wochenende. null nach Saisonende. */
+export function naechstesWochenende27(heute = heuteMuenchen()): { fri: string; sun: string; spiele: { liga: Liga27; spiel: Spiel27; termin: Termin27 | null }[] } | null {
+  const alle = alleBegegnungen27().map(b => ({ b, datum: b.termin?.datum ?? b.fri })).filter(x => x.datum >= heute);
+  if (!alle.length) return null;
+  const erstes = alle.reduce((m, x) => (x.datum < m ? x.datum : m), alle[0].datum);
+  // Freitag–Sonntag um das früheste Datum
+  const x = d(erstes), back = (x.getUTCDay() + 2) % 7;
+  const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+  const fri = iso(x.getTime() - back * 864e5), sun = iso(x.getTime() + (2 - back) * 864e5);
+  const imFenster = alle.filter(y => y.datum >= fri && y.datum <= sun)
+    .sort((a, b) => a.datum.localeCompare(b.datum) || (a.b.termin?.uhrzeit ?? '').localeCompare(b.b.termin?.uhrzeit ?? ''));
   // Reihum über die Ligen (La, A, B1, B2, C, La, …), damit schon die ersten
   // Karten der Startseite (am Handy nur drei) mehrere Ligen zeigen.
-  const jeLiga = LIGEN_2027.map(liga => spieltage27(liga.code)
-    .filter(md => md.fri === w.fri)
-    .flatMap(md => md.games.map(spiel => ({ liga, spiel }))));
-  const spiele: { liga: Liga27; spiel: Spiel27 }[] = [];
+  const jeLiga = LIGEN_2027.map(liga => imFenster.filter(y => y.b.liga === liga.code)
+    .map(y => ({ liga, spiel: { home: y.b.home, away: y.b.away, derby: y.b.derby }, termin: y.b.termin })));
+  const spiele: { liga: Liga27; spiel: Spiel27; termin: Termin27 | null }[] = [];
   for (let i = 0; jeLiga.some(l => i < l.length); i++) for (const l of jeLiga) if (l[i]) spiele.push(l[i]);
-  return { fri: w.fri, sun: w.sun, spiele };
+  return { fri, sun, spiele };
 }
 
 /** Erstes/letztes Spielwochenende der Saison (alle Ligen gleich). */

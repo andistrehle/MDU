@@ -15,7 +15,7 @@ import {
   formatMatchDate,
 } from '@/lib/data';
 import { TeamChip27 } from '@/components/mdu/spielplan-27';
-import { naechstesWochenende27, wochenendeText } from '@/lib/data/saison-2027';
+import { naechstesWochenende27, wochenendeText, terminKurz } from '@/lib/data/saison-2027';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
 
@@ -197,7 +197,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
           </div>
           {naechstes && (
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', margin: '0 0 14px' }}>
-              Wochenende {wochenendeText(naechstes.fri, naechstes.sun)} · vorläufig, genaue Termine nach der TC-Sitzung am 11.10.
+              Wochenende {wochenendeText(naechstes.fri, naechstes.sun)}
             </p>
           )}
           <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -206,10 +206,10 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
                 Keine anstehenden Spiele.
               </div>
             ) : (
-              naechstes.spiele.slice(0, 6).map(({ liga, spiel }) => (
+              naechstes.spiele.slice(0, 6).map(({ liga, spiel, termin }) => (
                 <div key={spiel.home + spiel.away} className="mdu-match-card" style={{ padding: '12px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, letterSpacing: '0.16em', color: liga.color, textTransform: 'uppercase', marginBottom: 8 }}>
-                    {liga.name}
+                    {liga.name}{termin && <span style={{ color: 'var(--th-text-muted)', letterSpacing: '0.04em', textTransform: 'none' }}> · {terminKurz(termin)}{termin.vorlaeufig ? ' (wird geprüft)' : ''}</span>}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 8 }}>
                     <TeamChip27 id={spiel.home} />

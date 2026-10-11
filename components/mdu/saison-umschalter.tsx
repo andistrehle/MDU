@@ -46,8 +46,8 @@ export function VorlaeufigHinweis({ style, children }: { style?: React.CSSProper
       fontFamily: 'var(--font-manrope)', fontSize: 13.5, lineHeight: 1.55, color: 'var(--th-text-body)',
       ...style,
     }}>
-      <b style={{ color: 'var(--th-text-strong)' }}>Vorläufig.</b>{' '}
-      {VORLAEUFIG_TEXT.replace(/^Vorläufiger Spielplan: /, '')}
+      <b style={{ color: 'var(--th-text-strong)' }}>Termine.</b>{' '}
+      {VORLAEUFIG_TEXT.replace(/^Spielplan 2026\/27: /, '')}
       {children}
     </div>
   );
