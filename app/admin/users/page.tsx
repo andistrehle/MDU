@@ -20,6 +20,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canViewUsers, canEditUsers, canEditUserAccount, canDeleteUserAccount, canAssignRole, ROLE_LABELS, type UserRole, type UserProfile } from '@/lib/auth/roles';
 import { PLAYERS, getPlayerDisplayName, TEAMS, getCaptainForTeamInSeason, getCurrentSeason } from '@/lib/data';
+import { team27, alleTeams27 } from '@/lib/data/saison-2027';
 import { normalizePersonName } from '@/lib/auth/player-match';
 import { triggerAccountActivatedEmail } from '@/lib/supabase/notifications';
 import { listApprovedNominatedPlayers } from '@/lib/supabase/nominations';
@@ -79,9 +80,13 @@ function suggestPlayerByName(displayName: string): { id: string; label: string }
   return { id: m.id, label: lic ? `${m.name} · ${lic}` : m.name };
 }
 
-const TEAM_OPTIONS = [...TEAMS]
-  .map(t => ({ id: t.id, name: t.name }))
-  .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+// Name der laufenden Saison 2026/27 vor dem alten Namen aus der Basisliste
+// (z. B. „Sound Warrior's" heißt jetzt „Jolly Pirates Sound Warrior's"); dazu
+// alle Teams, die es erst seit 2026/27 gibt.
+const TEAM_OPTIONS = [
+  ...TEAMS.map(t => ({ id: t.id, name: team27(t.id)?.name ?? t.name })),
+  ...alleTeams27().filter(t => !TEAMS.some(x => x.id === t.id)).map(t => ({ id: t.id, name: t.name })),
+].sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
 // Zusätzliche Teams aus der DB (bei Anmeldung neu angelegt), zur Laufzeit geladen.
 let DB_TEAM_OPTIONS: { id: string; name: string }[] = [];
