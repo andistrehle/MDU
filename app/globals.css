@@ -870,3 +870,22 @@ body {
 @media (max-width: 768px) {
   .mdu-ocr-grid { grid-template-columns: 1fr !important; }
 }
+
+/* ── Spielplan 2026/27: Begegnung (components/mdu/spielplan-27.tsx) ──
+   Handy: Logo über Name, mittig. Desktop: kompakt, Logo neben Name,
+   Heim rechtsbündig zur Mitte hin. */
+.mdu-sp-spiel { padding: 12px 0 14px; }
+.mdu-sp-kopf { margin-bottom: 8px; }
+.mdu-sp-paar { align-items: start; }
+.mdu-sp-seite { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.mdu-sp-mitte { padding-top: 9px; }
+.mdu-sp-ort { margin-top: 8px; }
+@media (min-width: 900px) {
+  .mdu-sp-spiel { padding: 9px 0 10px; }
+  .mdu-sp-kopf { margin-bottom: 6px; }
+  .mdu-sp-paar { align-items: center; }
+  .mdu-sp-seite { flex-direction: row; gap: 8px; text-align: left; }
+  .mdu-sp-seite.mdu-sp-heim { flex-direction: row-reverse; text-align: right; }
+  .mdu-sp-mitte { padding-top: 0; }
+  .mdu-sp-ort { margin-top: 5px; }
+}

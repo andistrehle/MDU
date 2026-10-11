@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 // ============================================================
 // MDU Saison 2026/2027 — Momentaufnahme für die öffentliche Seite
 // ============================================================
@@ -56,7 +57,9 @@ async function main() {
         name: s.teams.name.trim(),
         short: (s.teams.short_name ?? stat?.short ?? s.teams.name.slice(0, 3)).trim().toUpperCase(),
         color: stat?.color ?? '#6B7A8F',
-        logoUrl: profLogo.get(s.team_id) ?? s.teams.logo_url ?? stat?.logoUrl ?? null,
+        logoUrl: profLogo.get(s.team_id) ?? s.teams.logo_url ?? stat?.logoUrl
+          // Logo liegt als Datei bei, steht aber nirgends verknüpft (Gambas, Alptraum, …)
+          ?? (existsSync(`public/team-logos/${s.team_id}.png`) ? `/team-logos/${s.team_id}.png` : null),
         venueId: s.venues?.id ?? null,
         league: lg.key,
       };

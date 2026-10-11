@@ -75,7 +75,7 @@ function Etikett({ children, ton = 'gold' }: { children: React.ReactNode; ton?: 
 /** Kopfzeile eines Spiels: Termin (oder Wochenende) links, Etiketten rechts. */
 function TerminKopf({ t, fri, sun, derby }: { t: Termin27 | null; fri: string; sun: string; derby: boolean }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+    <div className="mdu-sp-kopf" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
       <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, letterSpacing: '0.02em', color: t ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
         {t ? <>{tagKurz(t.datum)}{t.uhrzeit && <span style={{ color: 'var(--th-text-muted)', fontWeight: 700 }}>{'  ·  '}{t.uhrzeit} Uhr</span>}</> : <>Wochenende {wochenendeText(fri, sun, false)}</>}
       </span>
@@ -90,12 +90,13 @@ function TerminKopf({ t, fri, sun, derby }: { t: Termin27 | null; fri: string; s
 
 /** Eine Seite der Begegnung: Logo oben, Name darunter (mittig) — so hat
  *  jeder Name die halbe Kartenbreite und wird am Handy nicht zusammengedrückt. */
-function Seite({ id }: { id: string }) {
+function Seite({ id, heim = false }: { id: string; heim?: boolean }) {
   const t = team27(id);
   const name = t?.name ?? id;
+  // Am Handy Logo über Name (mittig), am Desktop nebeneinander — globals.css .mdu-sp-seite
   return (
-    <TeamLink teamId={id} teamName={name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0, textAlign: 'center' }}>
-      <TeamBadge initials={(t?.short ?? name).slice(0, 3)} color={t?.color} logoUrl={t?.logoUrl ?? undefined} size={40} />
+    <TeamLink teamId={id} teamName={name} className={`mdu-sp-seite${heim ? ' mdu-sp-heim' : ''}`} style={{ minWidth: 0 }}>
+      <TeamBadge initials={(t?.short ?? name).slice(0, 3)} color={t?.color} logoUrl={t?.logoUrl ?? undefined} size={34} />
       <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, lineHeight: 1.25, color: 'var(--th-text-strong)', overflowWrap: 'break-word', hyphens: 'auto' }}>{name}</span>
     </TeamLink>
   );
@@ -103,9 +104,9 @@ function Seite({ id }: { id: string }) {
 
 /** Mitte: Spielstand bzw. „vs". */
 function Mitte({ e }: { e?: Ergebnis27 }) {
-  if (!e) return <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', color: 'var(--th-text-faint)', paddingTop: 12 }}>VS</span>;
+  if (!e) return <span className="mdu-sp-mitte" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', color: 'var(--th-text-faint)' }}>VS</span>;
   return (
-    <span title={e.bestaetigt ? undefined : 'Vom Gegner noch nicht bestätigt'} style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, letterSpacing: '0.02em', color: 'var(--th-text-strong)', whiteSpace: 'nowrap', paddingTop: 6 }}>
+    <span title={e.bestaetigt ? undefined : 'Vom Gegner noch nicht bestätigt'} style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, letterSpacing: '0.02em', color: 'var(--th-text-strong)', whiteSpace: 'nowrap' }} className="mdu-sp-mitte">
       {e.spieleHome}:{e.spieleAway}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}
     </span>
   );
@@ -121,14 +122,14 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
           const e = ergebnisse?.[begegnungKey(g.home, g.away)];
           const t = termin27(g.home, g.away);
           return (
-            <div key={g.home + g.away} style={{ borderTop: '1px solid var(--th-line-4)', padding: '12px 0 14px' }}>
+            <div key={g.home + g.away} className="mdu-sp-spiel" style={{ borderTop: '1px solid var(--th-line-4)' }}>
               <TerminKopf t={t} fri={md.fri} sun={md.sun} derby={g.derby} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'start', gap: 10 }}>
-                <Seite id={g.home} />
+              <div className="mdu-sp-paar" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gap: 10 }}>
+                <Seite id={g.home} heim />
                 <Mitte e={e} />
                 <Seite id={g.away} />
               </div>
-              <div style={{ ...faint, marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <div className="mdu-sp-ort" style={{ ...faint, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                 {e ? <ErgebnisZeile e={e} /> : <><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</>}
               </div>
             </div>

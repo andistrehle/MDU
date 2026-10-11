@@ -109,7 +109,7 @@
       "name": "Gambas",
       "short": "GMB",
       "color": "#F59E0B",
-      "logoUrl": "",
+      "logoUrl": "/team-logos/gambas.png",
       "venueId": "venue-6be8d719f9",
       "league": "la"
     },
@@ -117,7 +117,7 @@
       "name": "Alptraum",
       "short": "ALT",
       "color": "#D40000",
-      "logoUrl": "",
+      "logoUrl": "/team-logos/alptraum.png",
       "venueId": "venue-e25395dad7",
       "league": "la"
     },
@@ -293,7 +293,7 @@
       "name": "De Vogelwuid'n",
       "short": "DVN",
       "color": "#22C55E",
-      "logoUrl": "",
+      "logoUrl": "/team-logos/de-vogelwuidn.png",
       "venueId": "venue-c99fab52d2",
       "league": "b2"
     },
@@ -357,7 +357,7 @@
       "name": "5 Sterne Boazn Team",
       "short": "FSB",
       "color": "#0EA5E9",
-      "logoUrl": "",
+      "logoUrl": "/team-logos/fuenf-sterne-boazn.png",
       "venueId": "venue-48c4fcfcba",
       "league": "c"
     },
