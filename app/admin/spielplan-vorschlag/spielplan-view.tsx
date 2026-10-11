@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { printLeague, printMaster, printAllLeagues } from '@/lib/spielplan/printing';
+import { printLeague, printMaster, printAllLeagues, printTeam } from '@/lib/spielplan/printing';
 
 // Anzeige-Komponente für den generierten Spielplan-Vorschlag 2026/2027.
 // Die Daten kommen aus spielplan.json (vom Generator erzeugt) und werden hier
@@ -23,6 +23,9 @@ const fmt = (isoDate: string) => {
 
 export function SpielplanView({ data }: { data: SpielplanData }) {
   const [league, setLeague] = useState(data.leagues[0]?.key ?? 'la');
+  // Einzelnes Team-Blatt (Ligaleitung druckt für jede Mannschaft, wie „Mein Spielplan" der TCs).
+  const [team, setTeam] = useState('');
+  const [mitMaster, setMitMaster] = useState(false);
 
   const lg = data.leagues.find(x => x.key === league);
   const md = data.schedule[league] ?? [];
@@ -59,7 +62,7 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
       {/* Liga */}
       <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Liga</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        {data.leagues.map(x => <button key={x.key} type="button" style={pill(x.key === league)} onClick={() => setLeague(x.key)}>{x.label} ({x.teams.length})</button>)}
+        {data.leagues.map(x => <button key={x.key} type="button" style={pill(x.key === league)} onClick={() => { setLeague(x.key); setTeam(''); }}>{x.label} ({x.teams.length})</button>)}
       </div>
 
       {/* Drucken / PDF für die TC-Sitzung */}
@@ -68,6 +71,20 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
         <button type="button" style={printBtn(true)} onClick={() => printLeague(data, league)}>{lg?.label ?? 'Liga'}: Team-Blätter + Masterplan</button>
         <button type="button" style={printBtn(false)} onClick={() => printMaster(data, league)}>nur Masterplan</button>
         <button type="button" style={printBtn(false)} onClick={() => printAllLeagues(data)}>alle Ligen</button>
+      </div>
+
+      {/* Einzelne Mannschaft */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', margin: '-8px 0 18px' }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Eine Mannschaft</span>
+        <select value={team} onChange={e => setTeam(e.target.value)} aria-label="Mannschaft wählen"
+          style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12.5, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)', minWidth: 200 }}>
+          <option value="">— Mannschaft wählen —</option>
+          {[...(lg?.teams ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'de')).map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+        </select>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontFamily: 'var(--font-manrope)', color: 'var(--th-text-muted)' }}>
+          <input type="checkbox" checked={mitMaster} onChange={e => setMitMaster(e.target.checked)} /> mit Masterplan
+        </label>
+        <button type="button" disabled={!team} style={{ ...printBtn(true), opacity: team ? 1 : 0.5, cursor: team ? 'pointer' : 'not-allowed' }} onClick={() => team && printTeam(data, league, team, mitMaster)}>Team-Blatt drucken</button>
       </div>
 
       {/* Liga-Kurzinfo */}

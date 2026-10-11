@@ -27,6 +27,7 @@ const CARDS: AdminCard[] = [
   { icon: 'user',     label: 'Spieler',            desc: 'Spieler & Verknüpfungen.',        href: '/admin/players' },
   { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/registrations', badgeKey: 'registrations' },
   { icon: 'user',     label: 'Nachmeldungen',      desc: 'Spieler-Nachmeldungen prüfen.',   href: '/admin/nachmeldungen', badgeKey: 'nominations' },
+  { icon: 'calendar', label: 'Spielplan / TC-Pläne', desc: 'Pläne je Mannschaft, Liga und Spielort drucken.', href: '/admin/spielplan-vorschlag' },
   { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte', badgeKey: 'matchReports' },
   { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
   { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },
