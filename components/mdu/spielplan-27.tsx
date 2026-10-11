@@ -88,15 +88,26 @@ function TerminKopf({ t, fri, sun, derby }: { t: Termin27 | null; fri: string; s
   );
 }
 
-/** Ein Team pro Zeile, Spielstand rechts — braucht keine Spalten und quetscht am Handy nichts. */
-function TeamZeile({ id, tore, sieger }: { id: string; tore?: number; sieger?: boolean }) {
+/** Eine Seite der Begegnung: Logo oben, Name darunter (mittig) — so hat
+ *  jeder Name die halbe Kartenbreite und wird am Handy nicht zusammengedrückt. */
+function Seite({ id }: { id: string }) {
+  const t = team27(id);
+  const name = t?.name ?? id;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 32 }}>
-      <div style={{ flex: 1, minWidth: 0 }}><TeamChip27 id={id} size={28} /></div>
-      {tore != null && (
-        <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, minWidth: 26, textAlign: 'right', color: sieger ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>{tore}</span>
-      )}
-    </div>
+    <TeamLink teamId={id} teamName={name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0, textAlign: 'center' }}>
+      <TeamBadge initials={(t?.short ?? name).slice(0, 3)} color={t?.color} logoUrl={t?.logoUrl ?? undefined} size={40} />
+      <span className="mdu-link-name" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, lineHeight: 1.25, color: 'var(--th-text-strong)', overflowWrap: 'break-word', hyphens: 'auto' }}>{name}</span>
+    </TeamLink>
+  );
+}
+
+/** Mitte: Spielstand bzw. „vs". */
+function Mitte({ e }: { e?: Ergebnis27 }) {
+  if (!e) return <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', color: 'var(--th-text-faint)', paddingTop: 12 }}>VS</span>;
+  return (
+    <span title={e.bestaetigt ? undefined : 'Vom Gegner noch nicht bestätigt'} style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, letterSpacing: '0.02em', color: 'var(--th-text-strong)', whiteSpace: 'nowrap', paddingTop: 6 }}>
+      {e.spieleHome}:{e.spieleAway}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}
+    </span>
   );
 }
 
@@ -112,11 +123,12 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
           return (
             <div key={g.home + g.away} style={{ borderTop: '1px solid var(--th-line-4)', padding: '12px 0 14px' }}>
               <TerminKopf t={t} fri={md.fri} sun={md.sun} derby={g.derby} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <TeamZeile id={g.home} tore={e?.spieleHome} sieger={!!e && e.spieleHome >= e.spieleAway} />
-                <TeamZeile id={g.away} tore={e?.spieleAway} sieger={!!e && e.spieleAway >= e.spieleHome} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'start', gap: 10 }}>
+                <Seite id={g.home} />
+                <Mitte e={e} />
+                <Seite id={g.away} />
               </div>
-              <div style={{ ...faint, marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ ...faint, marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                 {e ? <ErgebnisZeile e={e} /> : <><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</>}
               </div>
             </div>
