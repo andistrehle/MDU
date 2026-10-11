@@ -127,6 +127,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       { icon: 'trophy', label: 'Saison-Teams',            description: 'Freigegebene Mannschaften je Saison.', href: '/admin/season-teams', ready: true },
       { icon: 'user',   label: 'Kontakte',               description: 'Telefonnummern der Team-Kapitäne.', href: '/admin/kontakte', ready: true },
       { icon: 'users',  label: 'Spieler',                description: 'Alle Spieler alphabetisch – Namen korrigieren, löschen, Dubletten finden.', href: '/admin/spieler', ready: true },
+      { icon: 'calendar', label: 'Spielplan / TC-Pläne',  description: 'Plan jeder Mannschaft, Liga oder jedes Spielorts drucken.', href: '/admin/spielplan-vorschlag', ready: true },
       { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true },
       { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
