@@ -53,7 +53,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Bericht 0:3 ohne Abzug). Server-Lader `lib/server/ergebnisse-2027.ts` (service_role, öffentlich
   nur das Gerechnete). Jede Begegnung hat die Kennung Heim|Gast (`begegnungKey`), je Begegnung
   ein Bericht (Unique-Index, Migration 0042); Termine aus den Masterplänen in
-  `lib/data/termine-2027.ts`. Online-Formular und Foto-Upload wählen die Begegnung aus dem Plan
+  `lib/data/termine-2027.ts` (241/242 eingetragen; Heimrechttausch über `HEIMRECHT_GETAUSCHT` —
+  tauscht Heim/Gast im Plan, Spieltag bleibt; alles liest den Plan über `SCHEDULE`, nie `RAW.schedule`). Online-Formular und Foto-Upload wählen die Begegnung aus dem Plan
   (`spiele27AlsMatch`, Kennung `s27:Heim|Gast`); eintragen darf Heim ODER Gast, bestätigen das
   andere Team (`confirm_team_id`). Nach jeder Änderung markiert `/api/match-reports/published`
   die Seiten zum Neubau (kein kurzes `revalidate`). **Einzelrangliste 2026/27:**

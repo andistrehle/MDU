@@ -20,16 +20,23 @@ export interface Termin27 {
   vorlaeufig?: boolean;
 }
 
+// Heimrechttausch (HRT, Masterpläne 11.10.2026): Bei diesen Paarungen ist das
+// Heimrecht in BEIDEN Spielen gegenüber dem generierten Plan getauscht — der
+// Spieltag bleibt, nur Heim und Gast wechseln (saison-2027.ts wendet das auf
+// den Plan an, bevor irgendetwas daraus gelesen wird). Die Termine unten
+// stehen unter der tatsächlichen Begegnung (Heim|Gast nach dem Tausch).
+export const HEIMRECHT_GETAUSCHT: [string, string][] = [
+  ['oldies-co', 'freibad-bazis'],                          // A Liga
+  ['black-devils', 'funny-darters'],                       // C Liga
+  ['team-dartpromillos--841baa', 'fuenf-sterne-boazn'],    // C Liga
+  ['fuenf-sterne-boazn', 'team-jolly-pirates-vii-3156af'], // C Liga
+];
+
 // Eingetragen am 11.10.2026 aus den Masterplänen aller fünf Ligen.
 // Vom Betreiber bestätigt: „26" bei Terminen ab Januar = 2027; Flying
 // Fighters – Leider Geil am 30.10. (verlegt, nicht 23.10. wie im Masterplan);
-// A Liga: Heimrecht Oldies/Freibad Bazis getauscht (HRT); Jolly Pirates V –
+// A Liga: Jolly Pirates V –
 // Belfort ohne Termin („?“), Jolly Pirates V – Oldies vorläufig 30.10.
-// C Liga: Heimrecht bei Black Devils/Funny Darters, DartPromillos/5 Sterne
-// und 5 Sterne/Jolly Pirates VII gegenüber dem Plan getauscht (HRT) — der
-// Termin steht deshalb unter der Begegnung mit dem tatsächlichen Heimteam;
-// deren Spieltag im Plan passt dort nicht zum Datum (bei Black Devils/Funny
-// Darters: Spieltag 1 ↔ 8).
 export const TERMINE_2027: Record<string, Termin27> = {
   // ── La Liga ──
   "jolly-pirates-kts|spartans": { datum: '2026-10-23', uhrzeit: '20:00' }, // Jolly Pirates Kneipenterroristen – Spartans München

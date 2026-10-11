@@ -12,7 +12,7 @@
 // ============================================================
 import data from './saison-2027.generated.json';
 import type { SpielplanData } from '@/lib/spielplan/types';
-import { TERMINE_2027, type Termin27 } from './termine-2027';
+import { TERMINE_2027, HEIMRECHT_GETAUSCHT, type Termin27 } from './termine-2027';
 import type { Match } from './matches';
 
 export const NEUE_SAISON = { id: 'season-2027', name: 'Saison 2026/2027', kurz: '2026/27' } as const;
@@ -65,6 +65,13 @@ type Raw = {
 };
 const RAW = data as unknown as Raw;
 
+// Plan mit Heimrechttausch (termine-2027.ts): Heim und Gast getauscht, Spieltag
+// bleibt. ALLES liest den Plan über SCHEDULE, nie über RAW.schedule.
+const TAUSCH = new Set(HEIMRECHT_GETAUSCHT.flatMap(([a, b]) => [`${a}|${b}`, `${b}|${a}`]));
+const SCHEDULE: Raw['schedule'] = Object.fromEntries(Object.entries(RAW.schedule).map(([lg, mds]) => [lg, mds.map(m => ({
+  ...m, games: m.games.map(g => (TAUSCH.has(`${g.home}|${g.away}`) ? { ...g, home: g.away, away: g.home } : g)),
+}))]));
+
 export const LIGEN_2027: Liga27[] = RAW.leagues.map(l => ({ code: l.key as Liga27Code, teams: l.teams, ...META[l.key as Liga27Code] }));
 
 export const findLiga27 = (code: string | null | undefined): Liga27 | undefined =>
@@ -83,7 +90,7 @@ export function venue27(id: string | null | undefined): Venue27 | undefined {
 export const alleVenues27 = (): Venue27[] => Object.keys(RAW.venues).map(id => venue27(id)!);
 
 export function spieltage27(code: Liga27Code): Spieltag27[] {
-  return (RAW.schedule[code] ?? [])
+  return (SCHEDULE[code] ?? [])
     .map(m => ({ nr: m.nr, half: m.half as 'hin' | 'rueck', fri: RAW.weekends[m.weekendIndex].fri, sun: RAW.weekends[m.weekendIndex].sun, games: m.games, bye: m.bye }))
     .sort((a, b) => a.nr - b.nr);
 }
@@ -224,7 +231,7 @@ export function spielplanDaten27(): SpielplanData {
   const nm = (id: string | null) => (id ? (RAW.teams[id]?.name ?? id) : null);
   const ort = (id: string) => venue27(RAW.teams[id]?.venueId)?.name ?? '';
   const schedule: SpielplanData['schedule'] = {};
-  for (const [key, mds] of Object.entries(RAW.schedule)) {
+  for (const [key, mds] of Object.entries(SCHEDULE)) {
     schedule[key] = mds.map(m => ({
       nr: m.nr, half: m.half as 'hin' | 'rueck', weekendIndex: m.weekendIndex, bye: nm(m.bye),
       games: m.games.map(g => ({ home: nm(g.home)!, away: nm(g.away)!, venue: ort(g.home), derby: g.derby })),
@@ -236,7 +243,7 @@ export function spielplanDaten27(): SpielplanData {
     schedule,
     weekends: RAW.weekends,
     skipped: RAW.skipped,
-    maxMatchday: Math.max(...Object.values(RAW.schedule).map(x => x.length)),
+    maxMatchday: Math.max(...Object.values(SCHEDULE).map(x => x.length)),
     venueClusterObjective: 0,
   };
 }
