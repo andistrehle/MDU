@@ -72,7 +72,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
   const meetTime = mitglied ? details?.meet_time ?? null : stand?.meetTime ?? null;
   const lineup = details?.lineup ?? [];
 
-  async function setze(p: { id: string; name: string }, status: ZusageStatus | null, note?: string | null) {
+  async function setze(p: { id: string; name: string }, status: ZusageStatus | null, note?: string | null, ohneGrund = false) {
     if (!user) return;
     setMsg(null);
     const vorher = zusagen;
@@ -80,7 +80,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
       const rest = z.filter(r => r.player_id !== p.id);
       return status ? [...rest, { match_key: b.key, team_id: teamId, player_id: p.id, player_name: p.name, status, note: note ?? null, updated_by: user.id, updated_at: new Date().toISOString() }] : rest;
     });
-    const { error } = await setzeZusage({ matchKey: b.key, teamId, playerId: p.id, playerName: p.name, status, note, label, userId: user.id });
+    const { error } = await setzeZusage({ matchKey: b.key, teamId, playerId: p.id, playerName: p.name, status, note, label, userId: user.id, ohneGrund });
     if (error) { setZusagen(vorher); setMsg({ kind: 'err', text: error }); }
   }
 
@@ -185,7 +185,8 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
                     </div>
                     {gruppe.map(p => (
                       <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
-                        onSetze={(st, n) => setze(p, st, n)} />
+                        ohneGrund={istKapitaen && p.id !== user?.playerId}
+                        onSetze={(st, n) => setze(p, st, n, istKapitaen && p.id !== user?.playerId)} />
                     ))}
                   </div>
                 );

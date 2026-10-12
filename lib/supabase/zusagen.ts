@@ -46,6 +46,8 @@ export async function ladeZusagen(teamId: string): Promise<{ rows: Zusage[]; ber
 export async function setzeZusage(p: {
   matchKey: string; teamId: string; playerId: string; playerName: string;
   status: ZusageStatus | null; note?: string | null; label: string; userId: string;
+  /** TC/Ligaleitung setzt für einen anderen Spieler: Begründung freiwillig (Migration 0046). */
+  ohneGrund?: boolean;
 }): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const key = { season_id: NEUE_SAISON.id, match_key: p.matchKey, team_id: p.teamId, player_id: p.playerId };
@@ -54,7 +56,7 @@ export async function setzeZusage(p: {
     return { error: error ? 'Konnte nicht zurücksetzen: ' + error.message : null };
   }
   const note = (p.note ?? '').trim().slice(0, NOTIZ_MAX) || null;
-  if (braucheGrund(p.status) && (note ?? '').length < GRUND_MIN) {
+  if (braucheGrund(p.status) && !p.ohneGrund && (note ?? '').length < GRUND_MIN) {
     return { error: `Bitte gib eine Begründung an (mindestens ${GRUND_MIN} Zeichen).` };
   }
   const { error } = await supabase.from('match_availability').upsert({

@@ -129,23 +129,30 @@ export function StandLeiste({ zahl, offen, meins }: { zahl: Record<ZusageStatus,
 }
 
 /** Eingabe der Begründung (Pflicht bei Absage/unsicher, min. GRUND_MIN Zeichen). */
-export function GrundEingabe({ status, start, onSenden, onAbbrechen }: {
+export function GrundEingabe({ status, start, onSenden, onAbbrechen, freiwillig = false }: {
   status: ZusageStatus; start: string; onSenden: (grund: string) => void; onAbbrechen: () => void;
+  /** TC setzt für jemand anderen: Begründung optional, eigener Knopf „ohne Begründung“. */
+  freiwillig?: boolean;
 }) {
   const [grund, setGrund] = useState(start);
   const ok = grund.trim().length >= GRUND_MIN;
   return (
     <div style={{ marginTop: 10, padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${STATUS[status].farbe}`, background: 'var(--th-bg-card)' }}>
       <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, color: 'var(--th-text-body)', marginBottom: 6 }}>
-        Begründung {status === 'no' ? 'für die Absage' : '(warum unsicher?)'} <span style={{ fontWeight: 600, color: 'var(--th-text-faint)' }}>– Pflicht, mind. {GRUND_MIN} Zeichen</span>
+        Begründung {status === 'no' ? 'für die Absage' : '(warum unsicher?)'} <span style={{ fontWeight: 600, color: 'var(--th-text-faint)' }}>{freiwillig ? '– freiwillig' : `– Pflicht, mind. ${GRUND_MIN} Zeichen`}</span>
         <textarea autoFocus value={grund} onChange={e => setGrund(e.target.value.slice(0, NOTIZ_MAX))} maxLength={NOTIZ_MAX} rows={2}
           placeholder={status === 'no' ? 'z. B. bin im Urlaub' : 'z. B. Spätschicht, weiß ich erst Mittwoch'}
           style={{ display: 'block', width: '100%', marginTop: 6, padding: '9px 11px', borderRadius: 10, fontSize: 14, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)', resize: 'vertical', boxSizing: 'border-box' }} />
       </label>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <button type="button" disabled={!ok} onClick={() => onSenden(grund.trim())} style={{ ...knopf(true, STATUS[status].farbe), opacity: ok ? 1 : 0.45, cursor: ok ? 'pointer' : 'not-allowed' }}>{STATUS[status].senden}</button>
+        {freiwillig && (
+          <button type="button" onClick={() => onSenden('')} style={knopf(false, STATUS[status].farbe)}>
+            {status === 'no' ? 'Ohne Begründung absagen' : 'Ohne Begründung unsicher'}
+          </button>
+        )}
         <button type="button" onClick={onAbbrechen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>Abbrechen</button>
-        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: ok ? 'var(--th-text-faint)' : 'var(--th-loss)' }}>{grund.trim().length}/{NOTIZ_MAX}</span>
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: ok || freiwillig ? 'var(--th-text-faint)' : 'var(--th-loss)' }}>{freiwillig && !grund.trim() ? '' : `${grund.trim().length}/${NOTIZ_MAX}`}</span>
       </div>
     </div>
   );
@@ -204,8 +211,10 @@ export function MeineAntwort({ z, onSetze }: { z?: Zusage; onSetze: (s: ZusageSt
 }
 
 /** Eine Zeile in der Teilnehmerliste; der Kapitän setzt den Status, bei ✗/? mit Begründung. */
-export function KaderZeile({ name, z, darfSetzen, onSetze }: {
+export function KaderZeile({ name, z, darfSetzen, ohneGrund = false, onSetze }: {
   name: string; z?: Zusage; darfSetzen: boolean; onSetze: (s: ZusageStatus | null, note: string | null) => void | Promise<void>;
+  /** TC setzt für einen anderen Spieler → Begründung freiwillig. */
+  ohneGrund?: boolean;
 }) {
   const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
   return (
@@ -231,7 +240,7 @@ export function KaderZeile({ name, z, darfSetzen, onSetze }: {
         )}
       </div>
       {grundFuer && (
-        <GrundEingabe status={grundFuer} start={z?.status === grundFuer ? z.note ?? '' : ''}
+        <GrundEingabe status={grundFuer} start={z?.status === grundFuer ? z.note ?? '' : ''} freiwillig={ohneGrund}
           onAbbrechen={() => setGrundFuer(null)}
           onSenden={g => { setGrundFuer(null); void onSetze(grundFuer, g); }} />
       )}
