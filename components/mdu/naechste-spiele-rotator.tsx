@@ -10,8 +10,9 @@
 // Die Automatik läuft immer weiter — auch mit der Maus darüber (am Desktop
 // liegt der Zeiger dort oft einfach herum, dann wechselte nie etwas). Sie
 // endet erst, wenn jemand selbst eine Liga antippt, und pausiert, solange per
-// Tastatur ein Reiter im Fokus ist. Bei „weniger Bewegung" (z. B. Windows
-// „Animationen anzeigen: aus") wird ohne Überblenden und Laufbalken gewechselt.
+// Tastatur ein Reiter im Fokus ist. Gewechselt wird alle 5 Sekunden mit einer
+// sanften Überblendung (nur Deckkraft, keine Bewegung — deshalb auch bei
+// „weniger Bewegung"); dort entfällt nur der Laufbalken im Reiter.
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
@@ -23,7 +24,8 @@ export interface LigaGruppe {
   inhalt: React.ReactNode;
 }
 
-const TAKT_MS = 7000;
+const TAKT_MS = 5000;
+const BLENDE_MS = 700;
 const RUHIG = '(prefers-reduced-motion: reduce)';
 function abonniereRuhig(cb: () => void) {
   const mq = window.matchMedia(RUHIG);
@@ -85,7 +87,9 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
               style={{
                 gridArea: '1 / 1', display: 'flex', flexDirection: 'column', gap: 10,
                 opacity: an ? 1 : 0, visibility: an ? 'visible' : 'hidden',
-                transition: ruhig ? 'none' : 'opacity 400ms ease',
+                // Kreuzblende: beide Gruppen liegen übereinander, die alte blendet aus,
+                // die neue ein; visibility schaltet erst nach dem Ausblenden um.
+                transition: `opacity ${BLENDE_MS}ms ease, visibility 0s linear ${an ? 0 : BLENDE_MS}ms`,
               }}
             >
               {g.inhalt}
