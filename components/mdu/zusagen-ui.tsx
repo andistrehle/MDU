@@ -42,15 +42,16 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
   const t = b.termin;
   const H = team27(b.home), G = team27(b.away);
   const logo = gross ? 52 : 40;
-  // Heimspiel: kräftig in der Akzentfarbe der Seite (hell: Grün, dunkel: Rot).
-  // Auswärts: heller Grund mit Hauch Akzent — auf einen Blick zu unterscheiden.
-  const fg = heim ? '#fff' : 'var(--th-text-strong)';
-  const fgLeise = heim ? 'rgba(255,255,255,0.78)' : 'var(--th-text-muted)';
-  const chipGrund = heim ? 'rgba(255,255,255,0.18)' : 'var(--th-bg-card)';
+  // Farben wie die Kopfleiste der Seite (Hellblau-Verlauf): Heimspiel im
+  // MDU-Blau, Auswärts in Grau-Blau — weiße Schrift, auf einen Blick getrennt.
+  const fg = '#fff';
+  const fgLeise = 'rgba(255,255,255,0.8)';
+  const chipGrund = 'rgba(255,255,255,0.2)';
+  const etikett = heim ? '#3F6AA8' : '#55647C';
   const seite = (tm: typeof H, id: string) => (
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
       <TeamBadge initials={tm?.short ?? id.slice(0, 3).toUpperCase()} color={tm?.color} logoUrl={tm?.logoUrl ?? undefined} size={logo}
-        ring={id === teamId ? (heim ? '#fff' : 'var(--th-accent)') : (heim ? 'rgba(255,255,255,0.45)' : 'var(--th-line-18)')} />
+        ring={id === teamId ? '#fff' : 'rgba(255,255,255,0.45)'} />
       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: gross ? 14 : 12.5, lineHeight: 1.2, color: id === teamId ? fg : fgLeise, overflowWrap: 'anywhere' }}>{tm?.name ?? id}</span>
     </div>
   );
@@ -58,17 +59,16 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
     <div style={{
       position: 'relative', overflow: 'hidden', color: fg, padding: gross ? '16px 16px 18px' : '12px 14px 14px',
       background: heim
-        ? 'radial-gradient(90% 120% at 100% 0%, rgba(255,255,255,0.22) 0%, transparent 60%), linear-gradient(135deg, var(--th-accent) 0%, var(--th-accent-deep) 100%)'
-        : 'radial-gradient(90% 120% at 100% 0%, var(--th-accent-a12) 0%, transparent 60%), linear-gradient(135deg, var(--th-bg-card3) 0%, var(--th-bg-card) 100%)',
+        ? 'radial-gradient(90% 120% at 100% 0%, rgba(255,255,255,0.20) 0%, transparent 60%), linear-gradient(135deg, #6B95CE 0%, #4E7DBD 100%)'
+        : 'radial-gradient(90% 120% at 100% 0%, rgba(255,255,255,0.16) 0%, transparent 60%), linear-gradient(135deg, #8A97AD 0%, #66758D 100%)',
       borderLeft: `4px solid ${ligaFarbe}`,
-      borderBottom: heim ? 'none' : '1px solid var(--th-line-6)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: gross ? 14 : 10 }}>
         <span style={chip(chipGrund, fg)}>{t ? `${wochentag(t.datum)} ${tagMonat(t.datum)}` : `WE ${wochenendeText(b.fri, b.sun, false)}`}</span>
-        <span style={{ ...chip(heim ? '#fff' : 'transparent', 'var(--th-accent)'), display: 'inline-flex', alignItems: 'center', gap: 5, border: heim ? 'none' : '1.5px solid var(--th-accent)' }}>
+        <span style={{ ...chip('#fff', etikett), display: 'inline-flex', alignItems: 'center', gap: 5 }}>
           <Icon name={heim ? 'home' : 'arrow-right'} size={12} stroke={2.4} />{heim ? 'Heimspiel' : 'Auswärts'}
         </span>
-        {b.derby && <span style={chip(heim ? 'rgba(255,255,255,0.18)' : 'rgba(232,184,74,0.18)', heim ? '#fff' : 'var(--th-gold)')}>Derby</span>}
+        {b.derby && <span style={chip('rgba(232,184,74,0.95)', '#3A2A00')}>Derby</span>}
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, color: fgLeise }}>
           <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{liga} · {b.spieltag}. ST</span>
           {rechts}
