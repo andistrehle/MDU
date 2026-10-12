@@ -55,6 +55,8 @@ export default function MeinSpielplanPage() {
 
           <VorlaeufigHinweis />
 
+          <KalenderAbo teamId={t.id} teamName={t.name} />
+
           {/* Druck — nur TC/Ligaleitung */}
           {darfDrucken && (
             <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '18px 20px', marginBottom: 24 }}>
@@ -79,6 +81,33 @@ export default function MeinSpielplanPage() {
         </>
       )}
     </MemberShell>
+  );
+}
+
+/** Spielplan des Teams in den eigenen Kalender (Abo oder Datei), lib/kalender-ics.ts. */
+function KalenderAbo({ teamId, teamName }: { teamId: string; teamName: string }) {
+  // Feste Adresse statt window.location: gleich auf Server und Browser, und ein
+  // Abo soll immer auf die Live-Seite zeigen.
+  const host = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const pfad = `${host}/kalender/${teamId}.ics`;
+  const webcal = `webcal://${pfad}`;
+  const google = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`;
+  return (
+    <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '18px 20px', marginBottom: 24 }}>
+      <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 4 }}>📅 Spieltage in meinen Kalender</div>
+      <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '0 0 14px' }}>
+        Alle Spiele von {teamName} mit Datum, Uhrzeit und Spielort. Als <b>Abo</b> aktualisiert sich dein Kalender von selbst, wenn sich ein Termin ändert.
+      </p>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <a href={webcal} style={{ ...btn(true), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>iPhone / Mac / Outlook abonnieren</a>
+        <a href={google} target="_blank" rel="noreferrer" style={{ ...btn(false), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Google Kalender (Android)</a>
+        <a href={`/kalender/${teamId}.ics`} download style={{ ...btn(false), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Datei laden (.ics)</a>
+      </div>
+      <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.5, margin: '12px 0 0' }}>
+        Android: Im Google Kalender auf „Hinzufügen“ tippen — danach erscheinen die Spiele auch in der Kalender-App am Handy (ggf. den neuen Kalender in den Einstellungen unter „Synchronisieren“ einschalten).
+        Die Datei fügt die Spiele einmalig ein, spätere Änderungen kommen dann nicht automatisch nach.
+      </p>
+    </div>
   );
 }
 

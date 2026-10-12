@@ -81,8 +81,8 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
     if (t27) {
       tiles.push(
         { icon: 'calendar', label: 'Mein Spielplan', description: teamEditable
-            ? 'Spiele deines Teams 2026/27 (vorläufig) — mit Druckvorlage für die TC-Sitzung.'
-            : 'Spiele deines Teams in der Saison 2026/27 (vorläufig).',
+            ? 'Spiele deines Teams 2026/27 — in deinen Handy-Kalender übernehmen oder für die TC-Sitzung drucken.'
+            : 'Spiele deines Teams 2026/27 — auch zum Übernehmen in deinen Handy-Kalender.',
           href: '/mein-team/spielplan', ready: true },
       );
     }
