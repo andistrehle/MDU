@@ -84,7 +84,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             (keine Wahl) = „Old School" (light); nur ausdrückliches „dark" bleibt dunkel. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{var t=null;try{t=localStorage.getItem('mdu-theme')}catch(e){}if(t!=='dark'&&t!=='light'){var m=document.cookie.match(/(?:^|;\\s*)mdu-theme=([^;]*)/);t=m?m[1]:null}if(t!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
+            // Wächter: React 19 setzt die Attribute von <html> zurück, sobald es die
+            // Seite nach einem Hydrationsfehler neu aufbaut — dann fiel die Seite
+            // trotz gespeicherter Wahl auf Dunkel zurück. Der MutationObserver
+            // stellt die gespeicherte Wahl sofort wieder her (Umschalten über
+            // ThemeToggle aktualisiert localStorage VOR dem Attribut).
+            __html: "(function(){var d=document.documentElement;function w(){var t=null;try{t=localStorage.getItem('mdu-theme')}catch(e){}if(t!=='dark'&&t!=='light'){var m=document.cookie.match(/(?:^|;\\s*)mdu-theme=([^;]*)/);t=m?m[1]:null}return t==='dark'?'dark':'light'}function a(){if(w()==='light'){if(d.dataset.theme!=='light')d.dataset.theme='light'}else if(d.dataset.theme==='light'){delete d.dataset.theme}}try{a();new MutationObserver(a).observe(d,{attributes:true,attributeFilter:['data-theme']})}catch(e){d.dataset.theme='light'}})()",
           }}
         />
         <AppProviders>

@@ -81,18 +81,19 @@ export function ThemeToggle({ compact = false, mini = false }: { compact?: boole
   function toggle() {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
-    if (next === 'light') {
-      document.documentElement.dataset.theme = 'light';
-    } else {
-      delete document.documentElement.dataset.theme;
-    }
+    // ERST speichern, dann das Attribut setzen: Der Wächter aus app/layout.tsx
+    // stellt bei jeder Änderung von data-theme die gespeicherte Wahl her.
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
       /* storage unavailable (private mode) — toggle still works for session */
     }
-    // Cookie ist die maßgebliche Quelle für die serverseitige Theme-Auslieferung.
     writeThemeCookie(next);
+    if (next === 'light') {
+      document.documentElement.dataset.theme = 'light';
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
     window.dispatchEvent(new CustomEvent<Theme>('mdu-theme-change', { detail: next }));
   }
 
