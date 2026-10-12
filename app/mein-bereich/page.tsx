@@ -84,6 +84,10 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
             ? 'Spiele deines Teams 2026/27 — in deinen Handy-Kalender übernehmen oder für die TC-Sitzung drucken.'
             : 'Spiele deines Teams 2026/27 — auch zum Übernehmen in deinen Handy-Kalender.',
           href: '/mein-team/spielplan', ready: true },
+        { icon: 'check', label: 'Zu- und Absagen', description: teamEditable
+            ? 'Wer kommt zu welchem Spiel? Stand im Team, Status setzen, Erinnerung einstellen.'
+            : 'Sag für die nächsten Spiele zu oder ab und sieh, wer noch kommt.',
+          href: '/mein-team/zusagen', ready: true },
       );
     }
     const leagueId = t27?.league ?? getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;

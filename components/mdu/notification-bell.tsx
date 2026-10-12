@@ -11,15 +11,29 @@
 // ============================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Icon } from './icon';
 import { NotificationBadge } from './notification-badge';
 import { useNotifications, relativeTime, type AppNotification } from '@/lib/supabase/user-notifications';
+import { ladeOffeneZusagen, type OffeneZusage } from '@/lib/supabase/zusagen-offen';
+import { useAuth } from '@/lib/auth/auth-context';
 
 export function NotificationBell() {
   const router = useRouter();
   const { items, unread, loading, error, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  // Offene Zu-/Absagen (keine gespeicherte Benachrichtigung, sondern bei jedem
+  // Seitenwechsel neu gerechnet) — verschwinden von selbst, sobald man antwortet.
+  const { user } = useAuth();
+  const pathname = usePathname();
+  const [offen, setOffen] = useState<OffeneZusage[]>([]);
+  useEffect(() => {
+    if (!user?.teamId) { queueMicrotask(() => setOffen([])); return; }
+    let weg = false;
+    void ladeOffeneZusagen().then(o => { if (!weg) setOffen(o); });
+    return () => { weg = true; };
+  }, [user?.teamId, pathname]);
+  const anzahl = unread + offen.length;
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -65,7 +79,7 @@ export function NotificationBell() {
         }}
       >
         <Icon name="bell" size={22} stroke={2.2} />
-        <NotificationBadge count={unread} absolute ringColor="var(--th-bg-header)" title={`${unread} ungelesene Benachrichtigungen`} />
+        <NotificationBadge count={anzahl} absolute ringColor="var(--th-bg-header)" title={`${anzahl} ungelesene Benachrichtigungen`} />
       </button>
 
       {open && (
@@ -114,6 +128,28 @@ export function NotificationBell() {
 
           {/* Liste */}
           <div style={{ maxHeight: 'min(420px, 60vh)', overflowY: 'auto' }}>
+            {offen.map(o => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => { setOpen(false); router.push('/mein-team/zusagen'); }}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 10, width: '100%', textAlign: 'left',
+                  padding: '12px 16px', cursor: 'pointer', border: 'none', borderBottom: '1px solid var(--th-line-4)',
+                  background: o.dringend ? 'rgba(232,184,74,0.16)' : 'var(--th-accent-a07)',
+                }}
+              >
+                <span aria-hidden style={{ fontSize: 14, lineHeight: '18px', flexShrink: 0 }}>{o.dringend ? '⏰' : '🗓️'}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-text-strong)', lineHeight: 1.4 }}>
+                    {o.dringend ? 'Bald: ' : ''}Sag zu oder ab – {o.text}
+                  </span>
+                  <span style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginTop: 2 }}>
+                    Zu- und Absagen
+                  </span>
+                </span>
+              </button>
+            ))}
             {loading && items.length === 0 ? (
               // Ladezustand statt „leer" beim ersten Öffnen (REV-078)
               <div style={{ padding: '8px 0' }} aria-hidden="true">
@@ -137,7 +173,7 @@ export function NotificationBell() {
                   @media (prefers-reduced-motion: reduce) { .mdu-skel::after { animation: none; } }
                 `}</style>
               </div>
-            ) : items.length === 0 ? (
+            ) : items.length === 0 && offen.length === 0 ? (
               <div style={{ padding: '28px 16px', textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>
                 Keine neuen Benachrichtigungen.
               </div>

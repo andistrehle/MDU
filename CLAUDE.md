@@ -61,6 +61,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `lib/einzelrangliste-2027.ts` (nur Einzel, 2:0=3/2:1=2/1:2=1/0:2=0; Punkte → Legdifferenz →
   Siege, sonst geteilter Platz; Liga = Team des letzten Einsatzes), Lader `ladeEinzel27`,
   Reiter „Einzelrangliste" auf der Ligaseite + Saison-Karte im Spielerprofil.
+  **Zu-/Absagen je Spieltag** (`/mein-team/zusagen`, Migration 0043, `lib/supabase/zusagen.ts`):
+  keine Zeile = offen, keine harte Frist; Glocken-Erinnerung über `/api/zusagen/offen` (Fenster
+  stellt der Kapitän ein); `zusagen-offen.ts` bleibt ohne Spielplan-Import (Glocke ist auf jeder
+  Seite). Nominierung = nächster Schritt (docs/BACKLOG.md).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

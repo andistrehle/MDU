@@ -395,6 +395,19 @@ per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch
 - [ ] Optional: Cloudflare-Proxy für `www`/Apex wieder „orange" — nur zusammen mit SSL/TLS-Modus „Full"
 - [x] `mdu-three.vercel.app` bleibt während des Umzugs erreichbar (Testen ohne Domain)
 
+## Zu- und Absagen je Spieltag (12.10.2026)
+
+Umgesetzt: `/mein-team/zusagen` (Spieler sagen zu/ab mit Notiz, Team sieht Namen + Status,
+Kapitän setzt Status für alle im Kader und stellt die Glocken-Erinnerung ein, Vorgabe 7 Tage,
+0 = aus), Kapitäne bekommen jede Zu-/Absage in die Glocke (DB-Trigger), offene Spiele im
+Erinnerungsfenster erscheinen in der Glocke (`/api/zusagen/offen`, ohne Zeitplan-Job).
+Keine Zeile = „offen“, keine harte Frist. Migration `0043_zusagen.sql`.
+
+### ⏳ Nächster Schritt — Nominierung (vom Betreiber so festgelegt, „merke dir das“)
+- Kapitän nominiert je Spieltag Spieler aus den Zusagen.
+- Offen zu klären: Sichtbarkeit fürs Team, Übernahme der Nominierung als vorbelegte
+  Aufstellung in den digitalen Spielbericht (änderbar).
+
 ## Bekannte To-dos
 
 - [ ] Datei-Uploads (Team-Logo / Mannschaftsbild) via Supabase Storage (aktuell URL-Felder)

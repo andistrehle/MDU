@@ -55,6 +55,10 @@ export default function MeinSpielplanPage() {
 
           <VorlaeufigHinweis />
 
+          <Link href="/mein-team/zusagen" style={{ display: 'block', background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 14, padding: '14px 18px', marginBottom: 16, textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)' }}>
+            <b style={{ color: 'var(--th-text-strong)' }}>✓ Zu- und Absagen:</b> Sag für die nächsten Spiele zu oder ab und sieh, wer im Team dabei ist →
+          </Link>
+
           <KalenderAbo teamId={t.id} teamName={t.name} />
 
           {/* Druck — nur TC/Ligaleitung */}
