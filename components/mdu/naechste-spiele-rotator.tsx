@@ -25,7 +25,7 @@ export interface LigaGruppe {
 }
 
 const TAKT_MS = 5000;
-const BLENDE_MS = 700;
+const BLENDE_MS = 1400;
 const RUHIG = '(prefers-reduced-motion: reduce)';
 function abonniereRuhig(cb: () => void) {
   const mq = window.matchMedia(RUHIG);
@@ -103,8 +103,8 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
                 opacity: an ? 1 : 0, visibility: an || raus ? 'visible' : 'hidden',
                 pointerEvents: an ? 'auto' : 'none',
                 animation: wechsel === 0 ? undefined
-                  : an ? `mdu-rot-ein-${ab} ${BLENDE_MS}ms ease both`
-                  : raus ? `mdu-rot-aus-${ab} ${BLENDE_MS}ms ease both` : undefined,
+                  : an ? `mdu-rot-ein-${ab} ${BLENDE_MS}ms ease-in-out both`
+                  : raus ? `mdu-rot-aus-${ab} ${BLENDE_MS}ms ease-in-out both` : undefined,
               }}
             >
               {g.inhalt}
