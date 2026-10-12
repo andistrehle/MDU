@@ -202,7 +202,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
                       {s ? STATUS[s].text : 'noch offen'} ({gruppe.length})
                     </div>
                     {gruppe.map(p => (
-                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (K)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
+                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
                         onSetze={(st, n) => setze(p, st, n)} />
                     ))}
                   </div>
