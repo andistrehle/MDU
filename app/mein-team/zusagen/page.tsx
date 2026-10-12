@@ -23,8 +23,16 @@ import { alleBegegnungen27, team27, venue27, terminKurz, wochenendeText, NEUE_SA
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
   ladeZusagen, setzeZusage, ladeErinnerung, setzeErinnerung,
-  NOTIZ_MAX, ERINNERUNG_VORGABE, type Zusage, type ZusageStatus,
+  NOTIZ_MAX, ERINNERUNG_VORGABE, GRUND_MIN, braucheGrund, type Zusage, type ZusageStatus,
 } from '@/lib/supabase/zusagen';
+
+// Darstellung je Status (keine Zeile = offen).
+const STATUS: Record<ZusageStatus, { text: string; zeichen: string; farbe: string; knopf: string; senden: string }> = {
+  yes:   { text: 'zugesagt', zeichen: '✓', farbe: 'var(--th-win)', knopf: 'Zusagen',  senden: 'Zusage senden' },
+  maybe: { text: 'unsicher', zeichen: '?', farbe: '#B7791F',      knopf: 'Unsicher', senden: 'Als unsicher melden' },
+  no:    { text: 'abgesagt', zeichen: '✗', farbe: '#C0392B',      knopf: 'Absagen',  senden: 'Absage senden' },
+};
+const REIHE: ZusageStatus[] = ['yes', 'maybe', 'no'];
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const datumVon = (b: Begegnung27) => b.termin?.datum ?? b.fri;
@@ -136,8 +144,7 @@ export default function ZusagenPage() {
               const ort = venue27(team27(b.home)?.venueId)?.name;
               const zuB = zusagen.filter(z => z.match_key === b.key);
               const statusVon = (id: string) => zuB.find(z => z.player_id === id);
-              const ja = personen.filter(p => statusVon(p.id)?.status === 'yes');
-              const nein = personen.filter(p => statusVon(p.id)?.status === 'no');
+              const zahl = (st: ZusageStatus) => personen.filter(p => statusVon(p.id)?.status === st).length;
               const offen = personen.filter(p => !statusVon(p.id));
               const ich = user.playerId ? personen.find(p => p.id === user.playerId) : undefined;
               const meins = ich ? statusVon(ich.id) : undefined;
@@ -148,9 +155,8 @@ export default function ZusagenPage() {
                       {terminText(b)}{b.termin?.vorlaeufig && <span style={{ color: '#9A6B00', fontWeight: 700 }}> (wird geprüft)</span>}
                     </div>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700 }}>
-                      <span style={{ color: 'var(--th-win)' }}>✓ {ja.length}</span>{'  ·  '}
-                      <span style={{ color: '#C0392B' }}>✗ {nein.length}</span>{'  ·  '}
-                      <span style={{ color: 'var(--th-text-faint)' }}>? {offen.length}</span>
+                      {REIHE.map(st => <span key={st} style={{ color: STATUS[st].farbe }}>{STATUS[st].zeichen} {zahl(st)}{'  ·  '}</span>)}
+                      <span style={{ color: 'var(--th-text-faint)' }}>offen {offen.length}</span>
                     </div>
                   </div>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, fontWeight: 800, color: 'var(--th-text-strong)', marginTop: 4 }}>
@@ -164,28 +170,10 @@ export default function ZusagenPage() {
                   <details open={istKapitaen} style={{ marginTop: 10 }}>
                     <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-accent)' }}>Team ({personen.length})</summary>
                     <div style={{ display: 'flex', flexDirection: 'column', marginTop: 6 }}>
-                      {kader === null ? <Muted>Lade Kader …</Muted> : personen.map(p => {
-                        const z = statusVon(p.id);
-                        return (
-                          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-4)', flexWrap: 'wrap' }}>
-                            <span style={{ ...punkt, background: z?.status === 'yes' ? 'var(--th-win)' : z?.status === 'no' ? '#C0392B' : 'var(--th-line-18)' }} aria-hidden />
-                            <span style={{ flex: '1 1 160px', minWidth: 0, fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-strong)' }}>
-                              {p.name}{p.isCaptain ? ' (TC)' : ''}
-                              <span style={{ fontWeight: 600, color: z?.status === 'yes' ? 'var(--th-win)' : z?.status === 'no' ? '#C0392B' : 'var(--th-text-faint)', fontSize: 12.5 }}>
-                                {' · '}{z?.status === 'yes' ? 'zugesagt' : z?.status === 'no' ? 'abgesagt' : 'offen'}
-                              </span>
-                              {z?.note && <span style={{ display: 'block', fontWeight: 500, fontSize: 12.5, color: 'var(--th-text-muted)' }}>„{z.note}“</span>}
-                            </span>
-                            {istKapitaen && (
-                              <span style={{ display: 'flex', gap: 6 }}>
-                                <button type="button" onClick={() => void setze(b, p, 'yes', z?.note)} style={klein(z?.status === 'yes', 'var(--th-win)')} title="Zusage setzen">✓</button>
-                                <button type="button" onClick={() => void setze(b, p, 'no', z?.note)} style={klein(z?.status === 'no', '#C0392B')} title="Absage setzen">✗</button>
-                                <button type="button" onClick={() => void setze(b, p, null)} disabled={!z} style={{ ...klein(false, 'var(--th-text-muted)'), opacity: z ? 1 : 0.4 }} title="Zurück auf offen">↺</button>
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {kader === null ? <Muted>Lade Kader …</Muted> : personen.map(p => (
+                        <KaderZeile key={p.id} name={`${p.name}${p.isCaptain ? ' (TC)' : ''}`} z={statusVon(p.id)} darfSetzen={istKapitaen}
+                          onSetze={(st, n) => setze(b, p, st, n)} />
+                      ))}
                     </div>
                   </details>
                 </div>
@@ -204,27 +192,98 @@ export default function ZusagenPage() {
   );
 }
 
-/** Eigene Zu-/Absage mit Notiz. */
+/** Eingabe der Begründung (Pflicht bei Absage/unsicher, min. GRUND_MIN Zeichen). */
+function GrundEingabe({ status, start, onSenden, onAbbrechen }: {
+  status: ZusageStatus; start: string; onSenden: (grund: string) => void; onAbbrechen: () => void;
+}) {
+  const [grund, setGrund] = useState(start);
+  const ok = grund.trim().length >= GRUND_MIN;
+  return (
+    <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${STATUS[status].farbe}`, background: 'var(--th-bg-card)' }}>
+      <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, color: 'var(--th-text-body)', marginBottom: 6 }}>
+        Begründung {status === 'no' ? 'für die Absage' : '(warum unsicher?)'} <span style={{ fontWeight: 600, color: 'var(--th-text-faint)' }}>– Pflicht, mind. {GRUND_MIN} Zeichen</span>
+        <textarea autoFocus value={grund} onChange={e => setGrund(e.target.value.slice(0, NOTIZ_MAX))} maxLength={NOTIZ_MAX} rows={2}
+          placeholder={status === 'no' ? 'z. B. bin im Urlaub' : 'z. B. Spätschicht, weiß ich erst Mittwoch'}
+          style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px', borderRadius: 8, fontSize: 13.5, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)', resize: 'vertical', boxSizing: 'border-box' }} />
+      </label>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" disabled={!ok} onClick={() => onSenden(grund.trim())} style={{ ...knopf(true, STATUS[status].farbe), opacity: ok ? 1 : 0.45, cursor: ok ? 'pointer' : 'not-allowed' }}>{STATUS[status].senden}</button>
+        <button type="button" onClick={onAbbrechen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>Abbrechen</button>
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: ok ? 'var(--th-text-faint)' : '#C0392B' }}>{grund.trim().length}/{NOTIZ_MAX}</span>
+      </div>
+    </div>
+  );
+}
+
+/** Eigene Zu-/Absage: Zusage sofort (Notiz freiwillig), Absage/unsicher nur mit Begründung. */
 function MeineAntwort({ z, onSetze }: { z?: Zusage; onSetze: (s: ZusageStatus | null, note: string | null) => void | Promise<void> }) {
-  const [notiz, setNotiz] = useState(z?.note ?? '');
-  const [offenNotiz, setOffenNotiz] = useState(!!z?.note);
+  const [notiz, setNotiz] = useState(z?.status === 'yes' ? z.note ?? '' : '');
+  const [offenNotiz, setOffenNotiz] = useState(z?.status === 'yes' && !!z.note);
+  const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
+  const st = z ? STATUS[z.status] : null;
   return (
     <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)' }}>
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, color: 'var(--th-text-body)', marginBottom: 8 }}>
-        Du: {z?.status === 'yes' ? <span style={{ color: 'var(--th-win)' }}>zugesagt</span> : z?.status === 'no' ? <span style={{ color: '#C0392B' }}>abgesagt</span> : <span style={{ color: 'var(--th-text-faint)' }}>noch offen</span>}
+        Du: {st ? <span style={{ color: st.farbe }}>{st.text}</span> : <span style={{ color: 'var(--th-text-faint)' }}>noch offen</span>}
+        {z?.note && z.status !== 'yes' && <span style={{ fontWeight: 500, color: 'var(--th-text-muted)' }}> – „{z.note}“</span>}
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" onClick={() => void onSetze('yes', notiz)} style={knopf(z?.status === 'yes', 'var(--th-win)')}>✓ Zusagen</button>
-        <button type="button" onClick={() => void onSetze('no', notiz)} style={knopf(z?.status === 'no', '#C0392B')}>✗ Absagen</button>
-        {!offenNotiz && <button type="button" onClick={() => setOffenNotiz(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>+ Notiz</button>}
+        {REIHE.map(s => (
+          <button key={s} type="button" style={knopf(z?.status === s || grundFuer === s, STATUS[s].farbe)}
+            onClick={() => (braucheGrund(s) ? setGrundFuer(s) : (setGrundFuer(null), void onSetze('yes', notiz)))}>
+            {STATUS[s].zeichen} {STATUS[s].knopf}
+          </button>
+        ))}
+        {!offenNotiz && !grundFuer && <button type="button" onClick={() => setOffenNotiz(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>+ Notiz zur Zusage</button>}
       </div>
-      {offenNotiz && (
+      {grundFuer && (
+        <GrundEingabe status={grundFuer} start={z?.status === grundFuer ? z.note ?? '' : ''}
+          onAbbrechen={() => setGrundFuer(null)}
+          onSenden={g => { setGrundFuer(null); void onSetze(grundFuer, g); }} />
+      )}
+      {offenNotiz && !grundFuer && (
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <input value={notiz} onChange={e => setNotiz(e.target.value.slice(0, NOTIZ_MAX))} maxLength={NOTIZ_MAX}
-            placeholder="z. B. komme 30 Min. später" aria-label="Notiz zur Zu-/Absage"
+            placeholder="z. B. komme 30 Min. später" aria-label="Notiz zur Zusage"
             style={{ flex: '1 1 220px', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)' }} />
-          {z && <button type="button" onClick={() => void onSetze(z.status, notiz)} style={knopf(false)}>Notiz speichern</button>}
+          {z?.status === 'yes' && <button type="button" onClick={() => void onSetze('yes', notiz)} style={knopf(false)}>Notiz speichern</button>}
         </div>
+      )}
+    </div>
+  );
+}
+
+/** Eine Zeile im Kader; der Kapitän setzt den Status, bei ✗/? mit Begründung. */
+function KaderZeile({ name, z, darfSetzen, onSetze }: {
+  name: string; z?: Zusage; darfSetzen: boolean; onSetze: (s: ZusageStatus | null, note: string | null) => void | Promise<void>;
+}) {
+  const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
+  const st = z ? STATUS[z.status] : null;
+  return (
+    <div style={{ padding: '7px 0', borderTop: '1px solid var(--th-line-4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ ...punkt, background: st ? st.farbe : 'var(--th-line-18)' }} aria-hidden />
+        <span style={{ flex: '1 1 160px', minWidth: 0, fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-strong)' }}>
+          {name}
+          <span style={{ fontWeight: 600, color: st ? st.farbe : 'var(--th-text-faint)', fontSize: 12.5 }}>{' · '}{st ? st.text : 'offen'}</span>
+          {z?.note && <span style={{ display: 'block', fontWeight: 500, fontSize: 12.5, color: 'var(--th-text-muted)' }}>„{z.note}“</span>}
+        </span>
+        {darfSetzen && (
+          <span style={{ display: 'flex', gap: 6 }}>
+            {REIHE.map(s => (
+              <button key={s} type="button" title={`${STATUS[s].knopf} setzen`} style={klein(z?.status === s || grundFuer === s, STATUS[s].farbe)}
+                onClick={() => (braucheGrund(s) ? setGrundFuer(s) : (setGrundFuer(null), void onSetze('yes', z?.status === 'yes' ? z.note : null)))}>
+                {STATUS[s].zeichen}
+              </button>
+            ))}
+            <button type="button" onClick={() => { setGrundFuer(null); void onSetze(null, null); }} disabled={!z} style={{ ...klein(false, 'var(--th-text-muted)'), opacity: z ? 1 : 0.4 }} title="Zurück auf offen">↺</button>
+          </span>
+        )}
+      </div>
+      {grundFuer && (
+        <GrundEingabe status={grundFuer} start={z?.status === grundFuer ? z.note ?? '' : ''}
+          onAbbrechen={() => setGrundFuer(null)}
+          onSenden={g => { setGrundFuer(null); void onSetze(grundFuer, g); }} />
       )}
     </div>
   );

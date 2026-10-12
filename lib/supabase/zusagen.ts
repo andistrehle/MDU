@@ -9,7 +9,11 @@
 import { supabase } from './client';
 import { NEUE_SAISON } from '@/lib/data/saison-2027';
 
-export type ZusageStatus = 'yes' | 'no';
+export type ZusageStatus = 'yes' | 'no' | 'maybe';
+
+/** Mindestlänge der Begründung bei Absage und „unsicher“ (DB-Check, Migration 0044). */
+export const GRUND_MIN = 5;
+export const braucheGrund = (s: ZusageStatus | null) => s === 'no' || s === 'maybe';
 
 export interface Zusage {
   match_key: string;
@@ -50,6 +54,9 @@ export async function setzeZusage(p: {
     return { error: error ? 'Konnte nicht zurücksetzen: ' + error.message : null };
   }
   const note = (p.note ?? '').trim().slice(0, NOTIZ_MAX) || null;
+  if (braucheGrund(p.status) && (note ?? '').length < GRUND_MIN) {
+    return { error: `Bitte gib eine Begründung an (mindestens ${GRUND_MIN} Zeichen).` };
+  }
   const { error } = await supabase.from('match_availability').upsert({
     ...key, player_name: p.playerName, status: p.status, note, label: p.label,
     updated_by: p.userId, updated_at: new Date().toISOString(),
