@@ -7,8 +7,11 @@
 //
 // Alle Gruppen liegen übereinander in derselben Rasterzelle: Die Höhe richtet
 // sich nach der längsten, beim Wechsel springt die Seite darunter nicht.
-// Automatik pausiert bei Maus darüber, Fokus und Berührung; bei „weniger
-// Bewegung" (prefers-reduced-motion) läuft sie gar nicht.
+// Die Automatik läuft immer weiter — auch mit der Maus darüber (am Desktop
+// liegt der Zeiger dort oft einfach herum, dann wechselte nie etwas). Sie
+// endet erst, wenn jemand selbst eine Liga antippt, und pausiert, solange per
+// Tastatur ein Reiter im Fokus ist. Bei „weniger Bewegung" (z. B. Windows
+// „Animationen anzeigen: aus") wird ohne Überblenden und Laufbalken gewechselt.
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
@@ -30,22 +33,23 @@ function abonniereRuhig(cb: () => void) {
 
 export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
   const [aktiv, setAktiv] = useState(0);
-  const [pause, setPause] = useState(false);
+  const [gewaehlt, setGewaehlt] = useState(false);
+  const [fokus, setFokus] = useState(false);
+  const pause = gewaehlt || fokus;
   const ruhig = useSyncExternalStore(abonniereRuhig, () => window.matchMedia(RUHIG).matches, () => false);
 
   useEffect(() => {
-    if (pause || ruhig || gruppen.length < 2) return;
+    if (pause || gruppen.length < 2) return;
     const t = setTimeout(() => setAktiv(i => (i + 1) % gruppen.length), TAKT_MS);
     return () => clearTimeout(t);
-  }, [aktiv, pause, ruhig, gruppen.length]);
+  }, [aktiv, pause, gruppen.length]);
 
   if (!gruppen.length) return null;
 
   return (
     <div
-      onMouseEnter={() => setPause(true)} onMouseLeave={() => setPause(false)}
-      onFocusCapture={() => setPause(true)} onBlurCapture={() => setPause(false)}
-      onTouchStart={() => setPause(true)}
+      onFocusCapture={e => setFokus((e.target as HTMLElement).matches(':focus-visible'))}
+      onBlurCapture={() => setFokus(false)}
     >
       {/* Liga-Auswahl: zeigt, wo man ist, und lässt direkt springen */}
       <div role="tablist" aria-label="Liga wählen" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -54,7 +58,7 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
           return (
             <button
               key={g.code} role="tab" aria-selected={an} type="button"
-              onClick={() => { setAktiv(i); setPause(true); }}
+              onClick={() => { setAktiv(i); setGewaehlt(true); }}
               style={{
                 position: 'relative', overflow: 'hidden', padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'var(--font-manrope)', fontSize: 11.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
