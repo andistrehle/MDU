@@ -186,8 +186,8 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
           )}
 
           {/* ── Aufstellung ── */}
-          <Aufstellung personen={personen} zusagen={zusagen} lineup={lineup} darf={istKapitaen}
-            onSpeichern={l => void speichereDetails({ lineup: l }, l.length ? `Aufstellung gespeichert (${l.length} Spieler).` : 'Aufstellung geleert.')} />
+          <Aufstellung heim={heim} personen={personen} zusagen={zusagen} lineup={lineup} darf={istKapitaen}
+            onSpeichern={l => void speichereDetails({ lineup: l }, l.some(Boolean) ? `Aufstellung gespeichert (${l.filter(Boolean).length} Spieler).` : 'Aufstellung geleert.')} />
 
           {/* ── Teilnehmerliste ── */}
           <section style={karte}>
@@ -232,48 +232,62 @@ function TreffzeitFeld({ eigene, vorgabe, onSpeichern }: { eigene: string | null
   );
 }
 
-function Aufstellung({ personen, zusagen, lineup, darf, onSpeichern }: {
-  personen: KaderOption[]; zusagen: Zusage[]; lineup: string[]; darf: boolean; onSpeichern: (l: string[]) => void;
+// Aufstellung wie auf dem Spielbericht: H1–H8 (Heim) bzw. G1–G8 (Gast),
+// 1–4 Stamm, 5–8 Ersatz. Gespeichert als Liste mit 8 Plätzen (Index = Position,
+// '' = frei). Nichts davon ist Pflicht — der Kapitän füllt, was schon feststeht.
+const PLAETZE = 8;
+
+function Aufstellung({ heim, personen, zusagen, lineup, darf, onSpeichern }: {
+  heim: boolean; personen: KaderOption[]; zusagen: Zusage[]; lineup: string[]; darf: boolean; onSpeichern: (l: string[]) => void;
 }) {
+  const auf8 = (l: string[]) => Array.from({ length: PLAETZE }, (_, i) => l[i] ?? '');
   const [bearbeiten, setBearbeiten] = useState(false);
-  const [wahl, setWahl] = useState<string[]>(lineup);
+  const [wahl, setWahl] = useState<string[]>(auf8(lineup));
+  const pos = (i: number) => `${heim ? 'H' : 'G'}${i + 1}`;
   const name = (id: string) => personen.find(p => p.id === id)?.name ?? zusagen.find(z => z.player_id === id)?.player_name ?? 'Unbekannt';
   const status = (id: string) => zusagen.find(z => z.player_id === id)?.status;
   // Auswahl: alle Zusagen, dazu wer schon aufgestellt ist (falls er inzwischen abgesagt hat).
-  const kandidaten = [...new Set([...zusagen.filter(z => z.status === 'yes').map(z => z.player_id), ...lineup])];
+  const kandidaten = [...new Set([...zusagen.filter(z => z.status === 'yes').map(z => z.player_id), ...lineup.filter(Boolean)])];
+  const besetzt = auf8(lineup).filter(Boolean).length;
+  const hinweis = (id: string) => { const st = status(id); return st === 'yes' ? '' : ` (${st ? STATUS[st].text : 'offen'})`; };
+
+  const zeile = (i: number, inhalt: React.ReactNode) => (
+    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderTop: i === 4 ? '1px dashed var(--th-line-18)' : '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)' }}>
+      <span style={{ flexShrink: 0, width: 34, textAlign: 'center', padding: '3px 0', borderRadius: 6, fontWeight: 800, fontSize: 13, background: i < 4 ? 'var(--th-accent)' : 'var(--th-line-8)', color: i < 4 ? '#fff' : 'var(--th-text-body)' }}>{pos(i)}</span>
+      {inhalt}
+    </div>
+  );
 
   return (
     <section style={karte}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <h2 style={h2}>Aufstellung</h2>
-        {darf && !bearbeiten && <button type="button" onClick={() => { setWahl(lineup); setBearbeiten(true); }} style={{ ...knopf(false), padding: '6px 12px', fontSize: 12.5 }}>{lineup.length ? 'Ändern' : 'Aufstellen'}</button>}
+        {darf && !bearbeiten && <button type="button" onClick={() => { setWahl(auf8(lineup)); setBearbeiten(true); }} style={{ ...knopf(false), padding: '6px 12px', fontSize: 12.5 }}>{besetzt ? 'Ändern' : 'Aufstellen'}</button>}
       </div>
+      <span style={leise}>{pos(0)}–{pos(3)} Stamm · {pos(4)}–{pos(7)} Ersatz – wie auf dem Spielbericht. Muss nicht vorab komplett sein.</span>
       {bearbeiten ? (
         <>
           {!kandidaten.length && <span style={leise}>Noch keine Zusagen – aufstellen kannst du nur, wer zugesagt hat.</span>}
-          {kandidaten.map(id => {
-            const an = wahl.includes(id);
-            const st = status(id);
-            return (
-              <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-strong)', cursor: 'pointer' }}>
-                <input type="checkbox" checked={an} onChange={() => setWahl(w => (an ? w.filter(x => x !== id) : [...w, id]))} style={{ width: 18, height: 18 }} />
-                {name(id)}
-                {st !== 'yes' && <span style={{ fontSize: 12, fontWeight: 600, color: st ? STATUS[st].farbe : 'var(--th-text-faint)' }}>· {st ? STATUS[st].text : 'offen'}</span>}
-              </label>
-            );
-          })}
+          {wahl.map((id, i) => zeile(i, (
+            <select value={id} onChange={e => { const v = e.target.value; setWahl(w => w.map((x, j) => (j === i ? v : x))); }} aria-label={`Position ${pos(i)}`}
+              style={{ flex: 1, minWidth: 0, padding: '7px 8px', borderRadius: 8, fontSize: 14, fontFamily: 'var(--font-manrope)', fontWeight: 700, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: id ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
+              <option value="">– frei –</option>
+              {kandidaten.map(k => (
+                <option key={k} value={k} disabled={k !== id && wahl.includes(k)}>{name(k)}{hinweis(k)}{k !== id && wahl.includes(k) ? ` · auf ${pos(wahl.indexOf(k))}` : ''}</option>
+              ))}
+            </select>
+          )))}
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { onSpeichern(wahl); setBearbeiten(false); }} style={knopf(true)}>Speichern ({wahl.length})</button>
+            <button type="button" onClick={() => { const l = [...wahl]; while (l.length && !l[l.length - 1]) l.pop(); onSpeichern(l); setBearbeiten(false); }} style={knopf(true)}>Speichern ({wahl.filter(Boolean).length})</button>
             <button type="button" onClick={() => setBearbeiten(false)} style={knopf(false, 'var(--th-text-muted)')}>Abbrechen</button>
           </div>
         </>
-      ) : lineup.length ? (
-        <ol style={{ margin: '4px 0 0', paddingLeft: 22, fontFamily: 'var(--font-manrope)', fontSize: 14, fontWeight: 700, color: 'var(--th-text-strong)', lineHeight: 1.8 }}>
-          {lineup.map(id => {
-            const st = status(id);
-            return <li key={id}>{name(id)}{st !== 'yes' && <span style={{ fontSize: 12, fontWeight: 600, color: st ? STATUS[st].farbe : 'var(--th-text-faint)' }}> · {st ? STATUS[st].text : 'offen'}</span>}</li>;
-          })}
-        </ol>
+      ) : besetzt ? (
+        <div style={{ marginTop: 4 }}>
+          {auf8(lineup).map((id, i) => zeile(i, id
+            ? <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--th-text-strong)' }}>{name(id)}{status(id) !== 'yes' && <span style={{ fontSize: 12, fontWeight: 600, color: status(id) ? STATUS[status(id)!].farbe : 'var(--th-text-faint)' }}>{hinweis(id)}</span>}</span>
+            : <span style={{ fontSize: 13, color: 'var(--th-text-faint)' }}>frei</span>))}
+        </div>
       ) : (
         <span style={leise}>{darf ? 'Noch keine Aufstellung. Wähle aus den Zusagen aus.' : 'Der Kapitän hat noch nicht aufgestellt.'}</span>
       )}

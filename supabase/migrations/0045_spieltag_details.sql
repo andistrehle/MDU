@@ -19,7 +19,7 @@ create table if not exists public.match_team_details (
   match_key  text not null,               -- Heim|Gast
   team_id    text not null,
   meet_time  text check (meet_time is null or meet_time ~ '^[0-2][0-9]:[0-5][0-9]$'),  -- Treffen (überschreibt die Vorgabe)
-  lineup     text[] not null default '{}', -- Spieler-IDs (wie match_availability.player_id)
+  lineup     text[] not null default '{}', -- Platz i = Position H/G(i+1), Spieler-ID oder '' (frei)
   updated_by uuid references auth.users (id) on delete set null,
   updated_at timestamptz not null default now(),
   primary key (season_id, match_key, team_id)

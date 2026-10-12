@@ -69,7 +69,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (statisch, nur freigeschaltete Teams; Fremde sehen nur Zahlen über `/api/spieltag/stand`,
   Namen/Abstimmen nur Teammitglieder per RLS). Slug NIE zurückrechnen (Team-IDs enthalten „--“),
   immer `passtSlug`. Ende = Beginn + 3,5 h; Treffen = Team-Vorgabe in Min. oder je Spiel;
-  Aufstellung wählt der Kapitän aus den Zusagen (Migration 0045, `match_team_details`).
+  Aufstellung wählt der Kapitän aus den Zusagen auf H1–H8/G1–G8 wie im Spielbericht (1–4 Stamm,
+  5–8 Ersatz; `lineup[i]` = Position i+1, '' = frei; Migration 0045, `match_team_details`).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie
