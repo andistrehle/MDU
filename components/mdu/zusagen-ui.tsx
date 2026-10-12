@@ -42,12 +42,12 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
   const t = b.termin;
   const H = team27(b.home), G = team27(b.away);
   const logo = gross ? 52 : 40;
-  // Farben wie die Kopfleiste der Seite (Hellblau-Verlauf): Heimspiel im
-  // MDU-Blau, Auswärts in Grau-Blau — weiße Schrift, auf einen Blick getrennt.
+  // Dunkle Tafel (Variante E, vom Betreiber gewählt): Heimspiel mit grünem,
+  // Auswärts mit blauem Leuchten — Grün/Blau wie Akzent und Kopfleiste der Seite.
+  const leucht = heim ? '62,156,51' : '78,125,189';
   const fg = '#fff';
-  const fgLeise = 'rgba(255,255,255,0.8)';
-  const chipGrund = 'rgba(255,255,255,0.2)';
-  const etikett = heim ? '#3F6AA8' : '#55647C';
+  const fgLeise = 'rgba(255,255,255,0.75)';
+  const chipGrund = 'rgba(255,255,255,0.14)';
   const seite = (tm: typeof H, id: string) => (
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
       <TeamBadge initials={tm?.short ?? id.slice(0, 3).toUpperCase()} color={tm?.color} logoUrl={tm?.logoUrl ?? undefined} size={logo}
@@ -58,18 +58,16 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
   return (
     <div style={{
       position: 'relative', overflow: 'hidden', color: fg, padding: gross ? '16px 16px 18px' : '12px 14px 14px',
-      background: heim
-        ? 'radial-gradient(90% 120% at 100% 0%, rgba(255,255,255,0.20) 0%, transparent 60%), linear-gradient(135deg, #6B95CE 0%, #4E7DBD 100%)'
-        : 'radial-gradient(90% 120% at 100% 0%, rgba(255,255,255,0.16) 0%, transparent 60%), linear-gradient(135deg, #8A97AD 0%, #66758D 100%)',
-      borderLeft: `4px solid ${ligaFarbe}`,
+      background: `radial-gradient(120% 90% at 100% 0%, rgba(${leucht},0.55) 0%, transparent 60%), linear-gradient(160deg, #1B2230 0%, #10141C 100%)`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: gross ? 14 : 10 }}>
         <span style={chip(chipGrund, fg)}>{t ? `${wochentag(t.datum)} ${tagMonat(t.datum)}` : `WE ${wochenendeText(b.fri, b.sun, false)}`}</span>
-        <span style={{ ...chip('#fff', etikett), display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+        <span style={{ ...chip(`rgb(${leucht})`, '#fff'), display: 'inline-flex', alignItems: 'center', gap: 5 }}>
           <Icon name={heim ? 'home' : 'arrow-right'} size={12} stroke={2.4} />{heim ? 'Heimspiel' : 'Auswärts'}
         </span>
         {b.derby && <span style={chip('rgba(232,184,74,0.95)', '#3A2A00')}>Derby</span>}
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, color: fgLeise }}>
+          <span aria-hidden style={{ width: 7, height: 7, borderRadius: 999, background: ligaFarbe }} />
           <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{liga} · {b.spieltag}. ST</span>
           {rechts}
         </span>
