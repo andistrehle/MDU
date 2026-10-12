@@ -7,7 +7,8 @@
 // freigegeben — wird überarbeitet, evtl. später als Premium-Funktion.
 // Für alle anderen gibt es weder Kachel noch Hinweis, die Seite sagt
 // „noch nicht freigeschaltet“ und die Glocke bleibt still.
-// Freischalten = Team-ID hier ergänzen.
+// Freischalten = Team-ID hier ergänzen UND in der DB-Tabelle
+// availability_enabled_teams (Migration 0043) — die DB sperrt das Schreiben.
 // ============================================================
 
 import { hasMinRole, type UserProfile } from '@/lib/auth/roles';

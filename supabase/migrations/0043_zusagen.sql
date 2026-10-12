@@ -12,6 +12,8 @@
 --     in der Glocke erscheint (Vorgabe 7, 0 = aus).
 --   • Kapitäne bekommen jede Zu- und Absage eines Spielers in die Glocke.
 --   • Nominierung kommt im nächsten Schritt (nicht hier).
+--   • Vorerst nur für Freibad Bazis + Ligaleitung freigeschaltet
+--     (availability_enabled_teams), wird noch überarbeitet / evtl. Premium.
 --
 -- Die Begegnungen selbst stehen im Code (lib/data/saison-2027.ts), nicht in
 -- der DB — Kennung ist die Begegnung „Heim|Gast“ wie bei den Spielberichten.
@@ -45,6 +47,24 @@ create table if not exists public.team_availability_settings (
 alter table public.match_availability enable row level security;
 alter table public.team_availability_settings enable row level security;
 
+-- ── Freischaltung (12.10.2026): vorerst NUR Freibad Bazis + Ligaleitung ──
+-- Schreiben dürfen nur Teams in dieser Liste (die Ligaleitung immer). Weitere
+-- Teams freischalten = Zeile einfügen; gleichzeitig ZUSAGEN_TEAMS in
+-- lib/features.ts ergänzen (Oberfläche + Glocke).
+create table if not exists public.availability_enabled_teams (
+  team_id    text primary key,
+  created_at timestamptz not null default now()
+);
+alter table public.availability_enabled_teams enable row level security;
+drop policy if exists "availability_enabled_select" on public.availability_enabled_teams;
+create policy "availability_enabled_select" on public.availability_enabled_teams for select using (true);
+-- Kein Schreib-Policy: Freischalten nur per SQL (service_role).
+insert into public.availability_enabled_teams (team_id) values ('freibad-bazis') on conflict do nothing;
+
+create or replace function public.zusagen_aktiv(p_team text)
+returns boolean language sql security definer set search_path = public stable
+as $$ select exists (select 1 from public.availability_enabled_teams where team_id = p_team) or public.is_admin() $$;
+
 -- Wer gehört zum Team? Spieler und Kapitän über profiles.team_id.
 create or replace function public.in_team(p_team text)
 returns boolean language sql security definer set search_path = public stable
@@ -63,7 +83,7 @@ create policy "availability_select" on public.match_availability for select
 drop policy if exists "availability_insert" on public.match_availability;
 create policy "availability_insert" on public.match_availability for insert
   with check (
-    updated_by = auth.uid() and (
+    updated_by = auth.uid() and public.zusagen_aktiv(team_id) and (
       (public.in_team(team_id) and player_id = public.current_player_id())
       or public.is_captain_of(team_id) or public.is_admin()
     )
@@ -72,11 +92,13 @@ create policy "availability_insert" on public.match_availability for insert
 drop policy if exists "availability_update" on public.match_availability;
 create policy "availability_update" on public.match_availability for update
   using (
-    (public.in_team(team_id) and player_id = public.current_player_id())
-    or public.is_captain_of(team_id) or public.is_admin()
+    public.zusagen_aktiv(team_id) and (
+      (public.in_team(team_id) and player_id = public.current_player_id())
+      or public.is_captain_of(team_id) or public.is_admin()
+    )
   )
   with check (
-    updated_by = auth.uid() and (
+    updated_by = auth.uid() and public.zusagen_aktiv(team_id) and (
       (public.in_team(team_id) and player_id = public.current_player_id())
       or public.is_captain_of(team_id) or public.is_admin()
     )
@@ -86,8 +108,10 @@ create policy "availability_update" on public.match_availability for update
 drop policy if exists "availability_delete" on public.match_availability;
 create policy "availability_delete" on public.match_availability for delete
   using (
-    (public.in_team(team_id) and player_id = public.current_player_id())
-    or public.is_captain_of(team_id) or public.is_admin()
+    public.zusagen_aktiv(team_id) and (
+      (public.in_team(team_id) and player_id = public.current_player_id())
+      or public.is_captain_of(team_id) or public.is_admin()
+    )
   );
 
 -- ── Einstellungen: Team liest, Kapitän/Ligaleitung schreibt ───
@@ -97,8 +121,8 @@ create policy "availability_settings_select" on public.team_availability_setting
 
 drop policy if exists "availability_settings_write" on public.team_availability_settings;
 create policy "availability_settings_write" on public.team_availability_settings for all
-  using (public.is_captain_of(team_id) or public.is_admin())
-  with check (public.is_captain_of(team_id) or public.is_admin());
+  using (public.zusagen_aktiv(team_id) and (public.is_captain_of(team_id) or public.is_admin()))
+  with check (public.zusagen_aktiv(team_id) and (public.is_captain_of(team_id) or public.is_admin()));
 
 -- ── Glocke: Kapitäne erfahren jede Zu-/Absage eines Spielers ──
 -- Nicht, wenn ein Kapitän selbst (oder die Ligaleitung) den Status setzt —
