@@ -34,7 +34,15 @@ function abonniereRuhig(cb: () => void) {
 }
 
 export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
-  const [aktiv, setAktiv] = useState(0);
+  const [aktiv, setAktivRoh] = useState(0);
+  // Vorige Liga (blendet aus) und Zähler der Wechsel: Der Name der Animation
+  // wechselt mit jedem Wechsel (…-a / …-b), damit sie sicher neu startet.
+  const [vorher, setVorher] = useState<number | null>(null);
+  const [wechsel, setWechsel] = useState(0);
+  const setAktiv = (neu: number) => {
+    if (neu === aktiv) return;
+    setVorher(aktiv); setWechsel(w => w + 1); setAktivRoh(neu);
+  };
   const [gewaehlt, setGewaehlt] = useState(false);
   const [fokus, setFokus] = useState(false);
   const pause = gewaehlt || fokus;
@@ -42,7 +50,9 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
 
   useEffect(() => {
     if (pause || gruppen.length < 2) return;
-    const t = setTimeout(() => setAktiv(i => (i + 1) % gruppen.length), TAKT_MS);
+    const t = setTimeout(() => {
+      setVorher(aktiv); setWechsel(w => w + 1); setAktivRoh((aktiv + 1) % gruppen.length);
+    }, TAKT_MS);
     return () => clearTimeout(t);
   }, [aktiv, pause, gruppen.length]);
 
@@ -80,16 +90,21 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
 
       <div style={{ display: 'grid' }}>
         {gruppen.map((g, i) => {
-          const an = i === aktiv;
+          const an = i === aktiv, raus = i === vorher && !an;
+          const ab = wechsel % 2 ? 'a' : 'b';
+          // Überblenden per Keyframe-Animation statt CSS-Transition: iOS Safari
+          // ließ die Transition (Deckkraft + verzögerte Sichtbarkeit) aus und
+          // schaltete hart um. Animationen spielt es zuverlässig ab.
           return (
             <div
               key={g.code} role="tabpanel" aria-hidden={!an}
               style={{
                 gridArea: '1 / 1', display: 'flex', flexDirection: 'column', gap: 10,
-                opacity: an ? 1 : 0, visibility: an ? 'visible' : 'hidden',
-                // Kreuzblende: beide Gruppen liegen übereinander, die alte blendet aus,
-                // die neue ein; visibility schaltet erst nach dem Ausblenden um.
-                transition: `opacity ${BLENDE_MS}ms ease, visibility 0s linear ${an ? 0 : BLENDE_MS}ms`,
+                opacity: an ? 1 : 0, visibility: an || raus ? 'visible' : 'hidden',
+                pointerEvents: an ? 'auto' : 'none',
+                animation: wechsel === 0 ? undefined
+                  : an ? `mdu-rot-ein-${ab} ${BLENDE_MS}ms ease both`
+                  : raus ? `mdu-rot-aus-${ab} ${BLENDE_MS}ms ease both` : undefined,
               }}
             >
               {g.inhalt}
@@ -97,7 +112,9 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
           );
         })}
       </div>
-      <style>{'@keyframes mdu-rotator-lauf { from { width: 0 } to { width: 100% } }'}</style>
+      <style>{'@keyframes mdu-rotator-lauf { from { width: 0 } to { width: 100% } }'
+        + '@keyframes mdu-rot-ein-a { from { opacity: 0 } to { opacity: 1 } } @keyframes mdu-rot-ein-b { from { opacity: 0 } to { opacity: 1 } }'
+        + '@keyframes mdu-rot-aus-a { from { opacity: 1; visibility: visible } to { opacity: 0; visibility: hidden } } @keyframes mdu-rot-aus-b { from { opacity: 1; visibility: visible } to { opacity: 0; visibility: hidden } }'}</style>
     </div>
   );
 }
