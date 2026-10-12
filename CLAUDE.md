@@ -64,7 +64,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   **Zu-/Absagen je Spieltag** (`/mein-team/zusagen`, Migration 0043, `lib/supabase/zusagen.ts`):
   keine Zeile = offen, keine harte Frist; Glocken-Erinnerung über `/api/zusagen/offen` (Fenster
   stellt der Kapitän ein); `zusagen-offen.ts` bleibt ohne Spielplan-Import (Glocke ist auf jeder
-  Seite). Nominierung = nächster Schritt (docs/BACKLOG.md).
+  Seite). Nominierung = nächster Schritt (docs/BACKLOG.md). Je Spiel eine Kachel
+  (`spiel-kachel.tsx`, nächste 4 + „Alle anzeigen“) → teilbare Seite `/spieltag/<team>/<heim>--<gast>`
+  (statisch, nur freigeschaltete Teams; Fremde sehen nur Zahlen über `/api/spieltag/stand`,
+  Namen/Abstimmen nur Teammitglieder per RLS). Slug NIE zurückrechnen (Team-IDs enthalten „--“),
+  immer `passtSlug`. Ende = Beginn + 3,5 h; Treffen = Team-Vorgabe in Min. oder je Spiel;
+  Aufstellung wählt der Kapitän aus den Zusagen (Migration 0045, `match_team_details`).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

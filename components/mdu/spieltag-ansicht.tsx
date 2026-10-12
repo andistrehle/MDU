@@ -1,0 +1,285 @@
+'use client';
+
+// ============================================================
+// Spieltag-Seite (/spieltag/[team]/[spiel]) — Inhalt im Browser
+// ============================================================
+// Oben die Übersicht (Datum, Gegner, Treffen/Beginn/Ende, Ort, Stand),
+// darunter die Aufstellung und die Teilnehmerliste. Wer den Link ohne
+// Anmeldung öffnet, sieht nur die Zahlen (/api/spieltag/stand) — Namen,
+// Begründungen und Abstimmen gibt es nur für Teammitglieder (RLS).
+// ============================================================
+
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
+import { canEditTeam, hasMinRole } from '@/lib/auth/roles';
+import { NEUE_SAISON, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
+import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
+import {
+  ladeZusagen, setzeZusage, ladeEinstellungen, ladeDetails, setzeDetails, TREFFEN_VORGABE,
+  type Zusage, type ZusageStatus, type SpielDetails,
+} from '@/lib/supabase/zusagen';
+import { spielSlug, endeZeit, treffZeit, wochentagLang, tagMonat } from '@/lib/spieltag';
+import { STATUS, REIHE, MeineAntwort, KaderZeile, karte, knopf } from './zusagen-ui';
+
+type Stand = { yes: number; maybe: number; no: number; meetTime: string | null; meetMinutes: number | null };
+
+export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
+  b: Begegnung27; teamId: string; teamName: string; gegner: string; liga: string;
+  ort: { name: string; address: string | null } | null;
+}) {
+  const { user, loading } = useAuth();
+  const pfad = usePathname();
+  const mitglied = !!user && (user.teamId === teamId || hasMinRole(user, 'league_admin'));
+  const istKapitaen = mitglied && canEditTeam(user, teamId);
+  const heim = b.home === teamId;
+  const t = b.termin;
+  const label = `${t ? terminKurz(t) : wochenendeText(b.fri, b.sun, false)} · ${heim ? teamName : gegner} – ${heim ? gegner : teamName}`;
+
+  const [stand, setStand] = useState<Stand | null>(null);
+  const [kader, setKader] = useState<KaderOption[] | null>(null);
+  const [zusagen, setZusagen] = useState<Zusage[]>([]);
+  const [treffenMin, setTreffenMin] = useState(TREFFEN_VORGABE);
+  const [details, setDetails] = useState<SpielDetails | null>(null);
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  const laden = useCallback(async () => {
+    if (loading) return;
+    if (mitglied) {
+      const [k, z, e, d] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId)]);
+      setKader(k); setZusagen(z.rows.filter(r => r.match_key === b.key)); setTreffenMin(e.meet_minutes); setDetails(d[b.key] ?? null);
+      if (z.error) setMsg({ kind: 'err', text: z.error });
+    } else {
+      const r = await fetch(`/api/spieltag/stand?team=${encodeURIComponent(teamId)}&spiel=${encodeURIComponent(spielSlug(b.key))}`).catch(() => null);
+      const j = r?.ok ? await r.json() as Stand : null;
+      setStand(j);
+      if (j?.meetMinutes != null) setTreffenMin(j.meetMinutes);
+    }
+  }, [loading, mitglied, teamId, b.key]);
+
+  useEffect(() => { queueMicrotask(() => { void laden(); }); }, [laden]);
+
+  // Kader + ggf. der eigene Eintrag, falls der Spieler (noch) nicht im Kader steht.
+  const personen: KaderOption[] = [...(kader ?? [])];
+  if (mitglied && user?.playerId && user.teamId === teamId && !personen.some(p => p.id === user.playerId)) {
+    personen.push({ id: user.playerId, name: user.displayName, isCaptain: false, passNo: null });
+  }
+  const zuVon = (id: string) => zusagen.find(z => z.player_id === id);
+  const zahl = (s: ZusageStatus) => (mitglied ? zusagen.filter(z => z.status === s).length : stand?.[s] ?? 0);
+  const offen = mitglied ? Math.max(0, personen.length - zusagen.length) : null;
+  const meetTime = mitglied ? details?.meet_time ?? null : stand?.meetTime ?? null;
+  const lineup = details?.lineup ?? [];
+
+  async function setze(p: { id: string; name: string }, status: ZusageStatus | null, note?: string | null) {
+    if (!user) return;
+    setMsg(null);
+    const vorher = zusagen;
+    setZusagen(z => {
+      const rest = z.filter(r => r.player_id !== p.id);
+      return status ? [...rest, { match_key: b.key, team_id: teamId, player_id: p.id, player_name: p.name, status, note: note ?? null, updated_by: user.id, updated_at: new Date().toISOString() }] : rest;
+    });
+    const { error } = await setzeZusage({ matchKey: b.key, teamId, playerId: p.id, playerName: p.name, status, note, label, userId: user.id });
+    if (error) { setZusagen(vorher); setMsg({ kind: 'err', text: error }); }
+  }
+
+  async function speichereDetails(werte: { meetTime?: string | null; lineup?: string[] }, ok: string) {
+    if (!user) return;
+    const vorher = details;
+    setDetails(d => ({ match_key: b.key, meet_time: werte.meetTime !== undefined ? werte.meetTime : d?.meet_time ?? null, lineup: werte.lineup ?? d?.lineup ?? [] }));
+    const { error } = await setzeDetails({ matchKey: b.key, teamId, userId: user.id, ...werte });
+    if (error) { setDetails(vorher); setMsg({ kind: 'err', text: /match_team_details/.test(error) ? 'Aufstellung/Treffzeit sind noch nicht eingerichtet (Migration 0045).' : error }); }
+    else setMsg({ kind: 'ok', text: ok });
+  }
+
+  async function teilen() {
+    const url = window.location.href;
+    const text = `${teamName}: ${label} – bitte zu- oder absagen`;
+    try {
+      if (navigator.share) { await navigator.share({ title: label, text, url }); return; }
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setMsg({ kind: 'ok', text: 'Link kopiert – jetzt einfach in die Gruppe einfügen.' });
+    } catch (e) {
+      if ((e as Error)?.name !== 'AbortError') setMsg({ kind: 'err', text: 'Teilen hat nicht geklappt – kopier bitte die Adresse oben im Browser.' });
+    }
+  }
+
+  const zeiten: [string, string | null][] = [
+    ['Treffen', treffZeit(t?.uhrzeit, treffenMin, meetTime)],
+    ['Beginn', t?.uhrzeit ?? null],
+    ['Ende', endeZeit(t?.uhrzeit)],
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {mitglied && (
+        <Link href="/mein-team/zusagen" style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-muted)', textDecoration: 'none' }}>‹ Alle Spiele</Link>
+      )}
+
+      {/* ── Übersicht ── */}
+      <div style={{ borderRadius: 14, overflow: 'hidden', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
+        <div style={{ padding: '16px 18px', background: heim ? 'var(--th-accent)' : '#2B5F55', color: '#fff', fontFamily: 'var(--font-manrope)' }}>
+          <div style={{ fontSize: 13.5, opacity: 0.92 }}>{t ? `${wochentagLang(t.datum)}, ${tagMonat(t.datum)}` : `Wochenende ${wochenendeText(b.fri, b.sun, false)}`} · {heim ? 'Heimspiel' : 'Auswärtsspiel'}</div>
+          <h1 style={{ margin: '4px 0 0', fontWeight: 800, fontSize: 22, lineHeight: 1.2 }}>{heim ? teamName : gegner} – {heim ? gegner : teamName}</h1>
+          <div style={{ fontSize: 13, opacity: 0.88, marginTop: 4 }}>
+            {[liga, `${b.spieltag}. Spieltag`, b.derby ? 'Derby' : null].filter(Boolean).join(' | ')}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', padding: '14px 8px 10px' }}>
+          {zeiten.map(([lab, wert], i) => (
+            <div key={lab} style={{ textAlign: 'center', borderLeft: i ? '1px solid var(--th-line-8)' : 'none', fontFamily: 'var(--font-manrope)' }}>
+              <div style={{ fontWeight: 800, fontSize: 20, color: wert ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>{wert ?? '–'}</div>
+              <div style={{ fontSize: 12, color: 'var(--th-text-muted)' }}>{lab}</div>
+            </div>
+          ))}
+        </div>
+        {(t?.vorlaeufig || !t?.uhrzeit) && (
+          <div style={{ padding: '0 18px 10px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: '#B7791F', textAlign: 'center' }}>
+            {t?.vorlaeufig ? 'Termin wird noch geprüft.' : !t ? 'Termin steht noch nicht fest.' : 'Uhrzeit folgt.'}
+          </div>
+        )}
+        {ort && (
+          <div style={{ margin: '0 18px', padding: '10px 0 12px', borderTop: '1px solid var(--th-line-6)', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)' }}>
+            📍 <strong>{ort.name}</strong>
+            {ort.address && <>{' · '}<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ort.name}, ${ort.address}`)}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>{ort.address}</a></>}
+          </div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid var(--th-line-6)', padding: 6, gap: 4 }}>
+          {REIHE.map(s => (
+            <div key={s} title={STATUS[s].text} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 4px', fontFamily: 'var(--font-manrope)' }}>
+              <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--th-text-strong)' }}><span aria-hidden>{STATUS[s].zeichen}</span> {zahl(s)}</span>
+              <span style={{ fontSize: 11.5, color: STATUS[s].farbe, fontWeight: 700 }}>{STATUS[s].text}</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 4px', fontFamily: 'var(--font-manrope)' }}>
+            <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--th-text-muted)' }}><span aria-hidden>👥</span> {offen ?? '–'}</span>
+            <span style={{ fontSize: 11.5, color: 'var(--th-text-muted)', fontWeight: 700 }}>offen</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" onClick={() => void teilen()} style={{ ...knopf(false), alignSelf: 'stretch', padding: '11px 16px' }}>🔗 Spiel teilen (z. B. in die WhatsApp-Gruppe)</button>
+
+      {msg && (
+        <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>
+      )}
+
+      {loading ? null : !mitglied ? (
+        <div style={karte}>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Du spielst bei {teamName}?</div>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.55 }}>
+            {user ? 'Dein Konto ist nicht mit diesem Team verknüpft – Namen und Abstimmung sieht nur das Team.' : <>Melde dich an, um zu- oder abzusagen und die Teilnehmerliste zu sehen.{' '}<Link href={`/login?next=${encodeURIComponent(pfad)}`} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Zum Login</Link></>}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* ── Eigene Antwort ── */}
+          {user?.playerId && user.teamId === teamId && (
+            <MeineAntwort key={zuVon(user.playerId)?.updated_at ?? 'neu'} z={zuVon(user.playerId)}
+              onSetze={(s, n) => setze({ id: user.playerId!, name: user.displayName }, s, n)} />
+          )}
+
+          {/* ── Treffzeit (Kapitän) ── */}
+          {istKapitaen && t?.uhrzeit && (
+            <TreffzeitFeld eigene={details?.meet_time ?? null} vorgabe={treffZeit(t.uhrzeit, treffenMin, null)}
+              onSpeichern={v => void speichereDetails({ meetTime: v }, v ? `Treffen für dieses Spiel: ${v} Uhr.` : 'Treffen wieder nach Vorgabe.')} />
+          )}
+
+          {/* ── Aufstellung ── */}
+          <Aufstellung personen={personen} zusagen={zusagen} lineup={lineup} darf={istKapitaen}
+            onSpeichern={l => void speichereDetails({ lineup: l }, l.length ? `Aufstellung gespeichert (${l.length} Spieler).` : 'Aufstellung geleert.')} />
+
+          {/* ── Teilnehmerliste ── */}
+          <section style={karte}>
+            <h2 style={h2}>Teilnehmerliste</h2>
+            {kader === null ? <span style={leise}>Lade …</span> : (
+              [...REIHE, null].map(s => {
+                const gruppe = personen.filter(p => (zuVon(p.id)?.status ?? null) === s);
+                if (!gruppe.length) return null;
+                return (
+                  <div key={s ?? 'offen'} style={{ marginTop: 8 }}>
+                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: s ? STATUS[s].farbe : 'var(--th-text-faint)' }}>
+                      {s ? STATUS[s].text : 'noch offen'} ({gruppe.length})
+                    </div>
+                    {gruppe.map(p => (
+                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (K)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
+                        onSetze={(st, n) => setze(p, st, n)} />
+                    ))}
+                  </div>
+                );
+              })
+            )}
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+function TreffzeitFeld({ eigene, vorgabe, onSpeichern }: { eigene: string | null; vorgabe: string | null; onSpeichern: (v: string | null) => void }) {
+  const [wert, setWert] = useState(eigene ?? vorgabe ?? '');
+  return (
+    <section style={karte}>
+      <h2 style={h2}>Treffen</h2>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
+        <input type="time" value={wert} onChange={e => setWert(e.target.value)} aria-label="Treffzeit"
+          style={{ padding: '8px 10px', borderRadius: 8, fontSize: 14, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)' }} />
+        <button type="button" disabled={!wert || wert === (eigene ?? vorgabe)} onClick={() => onSpeichern(wert)} style={{ ...knopf(true), opacity: !wert || wert === (eigene ?? vorgabe) ? 0.45 : 1 }}>Speichern</button>
+        {eigene && <button type="button" onClick={() => { setWert(vorgabe ?? ''); onSpeichern(null); }} style={knopf(false)}>Auf Vorgabe ({vorgabe ?? 'keins'})</button>}
+      </div>
+      <span style={leise}>Nur für dieses Spiel. Die Vorgabe fürs Team stellst du in der Übersicht ein.</span>
+    </section>
+  );
+}
+
+function Aufstellung({ personen, zusagen, lineup, darf, onSpeichern }: {
+  personen: KaderOption[]; zusagen: Zusage[]; lineup: string[]; darf: boolean; onSpeichern: (l: string[]) => void;
+}) {
+  const [bearbeiten, setBearbeiten] = useState(false);
+  const [wahl, setWahl] = useState<string[]>(lineup);
+  const name = (id: string) => personen.find(p => p.id === id)?.name ?? zusagen.find(z => z.player_id === id)?.player_name ?? 'Unbekannt';
+  const status = (id: string) => zusagen.find(z => z.player_id === id)?.status;
+  // Auswahl: alle Zusagen, dazu wer schon aufgestellt ist (falls er inzwischen abgesagt hat).
+  const kandidaten = [...new Set([...zusagen.filter(z => z.status === 'yes').map(z => z.player_id), ...lineup])];
+
+  return (
+    <section style={karte}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <h2 style={h2}>Aufstellung</h2>
+        {darf && !bearbeiten && <button type="button" onClick={() => { setWahl(lineup); setBearbeiten(true); }} style={{ ...knopf(false), padding: '6px 12px', fontSize: 12.5 }}>{lineup.length ? 'Ändern' : 'Aufstellen'}</button>}
+      </div>
+      {bearbeiten ? (
+        <>
+          {!kandidaten.length && <span style={leise}>Noch keine Zusagen – aufstellen kannst du nur, wer zugesagt hat.</span>}
+          {kandidaten.map(id => {
+            const an = wahl.includes(id);
+            const st = status(id);
+            return (
+              <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-strong)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={an} onChange={() => setWahl(w => (an ? w.filter(x => x !== id) : [...w, id]))} style={{ width: 18, height: 18 }} />
+                {name(id)}
+                {st !== 'yes' && <span style={{ fontSize: 12, fontWeight: 600, color: st ? STATUS[st].farbe : 'var(--th-text-faint)' }}>· {st ? STATUS[st].text : 'offen'}</span>}
+              </label>
+            );
+          })}
+          <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => { onSpeichern(wahl); setBearbeiten(false); }} style={knopf(true)}>Speichern ({wahl.length})</button>
+            <button type="button" onClick={() => setBearbeiten(false)} style={knopf(false, 'var(--th-text-muted)')}>Abbrechen</button>
+          </div>
+        </>
+      ) : lineup.length ? (
+        <ol style={{ margin: '4px 0 0', paddingLeft: 22, fontFamily: 'var(--font-manrope)', fontSize: 14, fontWeight: 700, color: 'var(--th-text-strong)', lineHeight: 1.8 }}>
+          {lineup.map(id => {
+            const st = status(id);
+            return <li key={id}>{name(id)}{st !== 'yes' && <span style={{ fontSize: 12, fontWeight: 600, color: st ? STATUS[st].farbe : 'var(--th-text-faint)' }}> · {st ? STATUS[st].text : 'offen'}</span>}</li>;
+          })}
+        </ol>
+      ) : (
+        <span style={leise}>{darf ? 'Noch keine Aufstellung. Wähle aus den Zusagen aus.' : 'Der Kapitän hat noch nicht aufgestellt.'}</span>
+      )}
+    </section>
+  );
+}
+
+const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 };
+const leise: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.5 };

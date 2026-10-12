@@ -64,16 +64,43 @@ export async function setzeZusage(p: {
   return { error: error ? 'Konnte nicht speichern: ' + error.message : null };
 }
 
-/** Ab wie vielen Tagen vor dem Spiel die Erinnerung kommt (0 = aus). */
-export async function ladeErinnerung(teamId: string): Promise<number> {
-  if (!supabase) return ERINNERUNG_VORGABE;
-  const { data } = await supabase.from('team_availability_settings').select('reminder_days').eq('team_id', teamId).maybeSingle();
-  return (data as { reminder_days?: number } | null)?.reminder_days ?? ERINNERUNG_VORGABE;
+export interface TeamEinstellungen { reminder_days: number; meet_minutes: number }
+export const TREFFEN_VORGABE = 30;
+
+/** Erinnerung (Tage vor dem Spiel, 0 = aus) und Treffen-Vorgabe (Minuten vor Beginn, 0 = keins). */
+export async function ladeEinstellungen(teamId: string): Promise<TeamEinstellungen> {
+  const vorgabe = { reminder_days: ERINNERUNG_VORGABE, meet_minutes: TREFFEN_VORGABE };
+  if (!supabase) return vorgabe;
+  const voll = await supabase.from('team_availability_settings').select('reminder_days, meet_minutes').eq('team_id', teamId).maybeSingle();
+  // meet_minutes erst ab Migration 0045
+  const { data } = voll.error ? await supabase.from('team_availability_settings').select('reminder_days').eq('team_id', teamId).maybeSingle() : voll;
+  const r = data as Partial<TeamEinstellungen> | null;
+  return { reminder_days: r?.reminder_days ?? vorgabe.reminder_days, meet_minutes: r?.meet_minutes ?? vorgabe.meet_minutes };
 }
 
-export async function setzeErinnerung(teamId: string, tage: number, userId: string): Promise<{ error: string | null }> {
+export async function setzeEinstellung(teamId: string, werte: Partial<TeamEinstellungen>, userId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const { error } = await supabase.from('team_availability_settings')
-    .upsert({ team_id: teamId, reminder_days: tage, updated_by: userId, updated_at: new Date().toISOString() });
+    .upsert({ team_id: teamId, ...werte, updated_by: userId, updated_at: new Date().toISOString() });
+  return { error: error ? 'Konnte nicht speichern: ' + error.message : null };
+}
+
+// ── Treffzeit + Aufstellung je Spiel (Migration 0045) ─────────
+export interface SpielDetails { match_key: string; meet_time: string | null; lineup: string[] }
+
+export async function ladeDetails(teamId: string): Promise<Record<string, SpielDetails>> {
+  if (!supabase) return {};
+  const { data, error } = await supabase.from('match_team_details')
+    .select('match_key, meet_time, lineup').eq('season_id', NEUE_SAISON.id).eq('team_id', teamId);
+  if (error) return {};
+  return Object.fromEntries(((data ?? []) as SpielDetails[]).map(r => [r.match_key, r]));
+}
+
+export async function setzeDetails(p: { matchKey: string; teamId: string; userId: string; meetTime?: string | null; lineup?: string[] }): Promise<{ error: string | null }> {
+  if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const werte: Record<string, unknown> = { season_id: NEUE_SAISON.id, match_key: p.matchKey, team_id: p.teamId, updated_by: p.userId, updated_at: new Date().toISOString() };
+  if (p.meetTime !== undefined) werte.meet_time = p.meetTime;
+  if (p.lineup !== undefined) werte.lineup = p.lineup;
+  const { error } = await supabase.from('match_team_details').upsert(werte);
   return { error: error ? 'Konnte nicht speichern: ' + error.message : null };
 }

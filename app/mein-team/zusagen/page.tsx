@@ -1,16 +1,14 @@
 'use client';
 
 // ============================================================
-// Mein Bereich → Zu- und Absagen (Saison 2026/27)
+// Mein Bereich → Zu- und Absagen (Saison 2026/27) — Übersicht
 // ============================================================
 //
-// Für alle Mitglieder mit Team: die nächsten Spiele des Teams, eigene Zu- oder
-// Absage mit kurzer Notiz und der Stand im Team (Namen + Status). Der Kapitän
-// (und die Ligaleitung) setzt zusätzlich den Status für jeden im Kader — auch
-// für Spieler ohne Konto — und stellt ein, ab wann die Erinnerung in der Glocke
-// erscheint. Keine Zeile = „offen“; keine harte Frist (Vorgabe des Betreibers).
-// Daten + Rechte: Migration 0043, lib/supabase/zusagen.ts.
-// Nominierung kommt im nächsten Schritt (docs/BACKLOG.md).
+// Je Spiel eine Kachel (Vorbild SpielerPlus): Datum, Heim/Auswärts, Gegner,
+// Treffen/Beginn/Ende, Liga-Zeile und unten der Stand mit dem eigenen Status
+// hervorgehoben. Antippen öffnet die Spieltag-Seite (/spieltag/[team]/[spiel],
+// teilbar). Der Kapitän stellt hier Erinnerung und Treffen-Vorgabe ein.
+// Vorerst nur freigeschaltete Teams (lib/features.ts). Daten: Migration 0043–0045.
 // ============================================================
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -19,27 +17,19 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { zusagenFreigeschaltet } from '@/lib/features';
-import { alleBegegnungen27, team27, venue27, terminKurz, wochenendeText, NEUE_SAISON, type Begegnung27 } from '@/lib/data/saison-2027';
+import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
-  ladeZusagen, setzeZusage, ladeErinnerung, setzeErinnerung,
-  NOTIZ_MAX, ERINNERUNG_VORGABE, GRUND_MIN, braucheGrund, type Zusage, type ZusageStatus,
+  ladeZusagen, ladeEinstellungen, setzeEinstellung, ladeDetails,
+  ERINNERUNG_VORGABE, TREFFEN_VORGABE, type Zusage, type SpielDetails, type TeamEinstellungen,
 } from '@/lib/supabase/zusagen';
-
-// Darstellung je Status (keine Zeile = offen).
-const STATUS: Record<ZusageStatus, { text: string; zeichen: string; farbe: string; knopf: string; senden: string }> = {
-  yes:   { text: 'zugesagt', zeichen: '✓', farbe: 'var(--th-win)', knopf: 'Zusagen',  senden: 'Zusage senden' },
-  maybe: { text: 'unsicher', zeichen: '?', farbe: '#B7791F',      knopf: 'Unsicher', senden: 'Als unsicher melden' },
-  no:    { text: 'abgesagt', zeichen: '✗', farbe: '#C0392B',      knopf: 'Absagen',  senden: 'Absage senden' },
-};
-const REIHE: ZusageStatus[] = ['yes', 'maybe', 'no'];
+import { SpielKachel } from '@/components/mdu/spiel-kachel';
+import { karte } from '@/components/mdu/zusagen-ui';
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const datumVon = (b: Begegnung27) => b.termin?.datum ?? b.fri;
-const terminText = (b: Begegnung27) => (b.termin ? `${terminKurz(b.termin)}${b.termin.uhrzeit ? ' Uhr' : ''}` : `Wochenende ${wochenendeText(b.fri, b.sun, false)}`);
-const labelVon = (b: Begegnung27) => `${b.termin ? terminKurz(b.termin) : wochenendeText(b.fri, b.sun, false)} · ${team27(b.home)?.name ?? b.home} – ${team27(b.away)?.name ?? b.away}`;
-
 const ERINNERUNG_OPTIONEN = [0, 1, 2, 3, 5, 7, 10, 14];
+const TREFFEN_OPTIONEN = [0, 15, 30, 45, 60, 90];
 
 export default function ZusagenPage() {
   const { user, loading } = useAuth();
@@ -49,15 +39,16 @@ export default function ZusagenPage() {
 
   const [kader, setKader] = useState<KaderOption[] | null>(null);
   const [zusagen, setZusagen] = useState<Zusage[]>([]);
+  const [details, setDetails] = useState<Record<string, SpielDetails>>({});
   const [bereit, setBereit] = useState(true);
-  const [erinnerung, setErinnerungState] = useState(ERINNERUNG_VORGABE);
+  const [einst, setEinst] = useState<TeamEinstellungen>({ reminder_days: ERINNERUNG_VORGABE, meet_minutes: TREFFEN_VORGABE });
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [alle, setAlle] = useState(false);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
-    const [k, z, e] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeErinnerung(teamId)]);
-    setKader(k); setZusagen(z.rows); setBereit(z.bereit); setErinnerungState(e);
+    const [k, z, e, d] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId)]);
+    setKader(k); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d);
     if (z.error) setMsg({ kind: 'err', text: z.error });
   }, [teamId]);
 
@@ -71,35 +62,16 @@ export default function ZusagenPage() {
       .sort((a, b) => datumVon(a).localeCompare(datumVon(b)) || (a.termin?.uhrzeit ?? '').localeCompare(b.termin?.uhrzeit ?? ''));
   }, [teamId]);
 
-  // Kader + ggf. der eigene Eintrag, falls der Spieler (noch) nicht im Kader steht.
-  const personen: KaderOption[] = [...(kader ?? [])];
-  if (user?.playerId && !personen.some(p => p.id === user.playerId)) {
-    personen.push({ id: user.playerId, name: user.displayName, isCaptain: false, passNo: null });
-  }
-
-  async function setze(b: Begegnung27, p: { id: string; name: string }, status: ZusageStatus | null, note?: string | null) {
+  async function aendere(werte: Partial<TeamEinstellungen>, ok: string) {
     if (!user || !teamId) return;
-    setMsg(null);
-    const vorher = zusagen;
-    // Sofort anzeigen, bei Fehler zurücknehmen.
-    setZusagen(z => {
-      const rest = z.filter(r => !(r.match_key === b.key && r.player_id === p.id));
-      return status ? [...rest, { match_key: b.key, team_id: teamId, player_id: p.id, player_name: p.name, status, note: note ?? null, updated_by: user.id, updated_at: new Date().toISOString() }] : rest;
-    });
-    const { error } = await setzeZusage({ matchKey: b.key, teamId, playerId: p.id, playerName: p.name, status, note, label: labelVon(b), userId: user.id });
-    if (error) { setZusagen(vorher); setMsg({ kind: 'err', text: error }); }
-  }
-
-  async function onErinnerung(tage: number) {
-    if (!user || !teamId) return;
-    const alt = erinnerung;
-    setErinnerungState(tage);
-    const { error } = await setzeErinnerung(teamId, tage, user.id);
-    if (error) { setErinnerungState(alt); setMsg({ kind: 'err', text: error }); }
-    else setMsg({ kind: 'ok', text: tage ? `Erinnerung kommt jetzt ${tage} ${tage === 1 ? 'Tag' : 'Tage'} vor dem Spiel.` : 'Erinnerung in der Glocke ist für dein Team ausgeschaltet.' });
+    const alt = einst;
+    setEinst(e => ({ ...e, ...werte }));
+    const { error } = await setzeEinstellung(teamId, werte, user.id);
+    if (error) { setEinst(alt); setMsg({ kind: 'err', text: error }); } else setMsg({ kind: 'ok', text: ok });
   }
 
   const sichtbar = alle ? spiele : spiele.slice(0, 4);
+  const anzahlKader = (kader?.length ?? 0) + (user?.playerId && kader && !kader.some(k => k.id === user.playerId) ? 1 : 0);
 
   return (
     <MemberShell title="Zu- und Absagen">
@@ -114,75 +86,45 @@ export default function ZusagenPage() {
         ) : !bereit ? (
           <Notice title="Gleich startklar">Die Zu- und Absagen werden gerade eingerichtet. Schau bitte etwas später noch mal vorbei.</Notice>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 760 }}>
-            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: 0 }}>
-              Sag für jedes Spiel von <b style={{ color: 'var(--th-text-strong)' }}>{t.name}</b> zu oder ab, damit {istKapitaen ? 'du' : 'dein Kapitän'} planen kann{istKapitaen ? 'st' : ''}. Ändern geht jederzeit bis Spielbeginn.
-            </p>
-
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
             {msg && (
               <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>
             )}
 
             {istKapitaen && (
-              <div style={karte}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13.5, color: 'var(--th-text-strong)' }}>🔔 Erinnerung in der Glocke</span>
-                  <select value={erinnerung} onChange={e => void onErinnerung(Number(e.target.value))} aria-label="Erinnerung für offene Zu-/Absagen"
-                    style={{ padding: '7px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)' }}>
-                    {ERINNERUNG_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'aus' : `${n} ${n === 1 ? 'Tag' : 'Tage'} vor dem Spiel`}</option>)}
-                  </select>
+              <details style={karte}>
+                <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13.5, color: 'var(--th-text-strong)' }}>⚙️ Einstellungen fürs Team</summary>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+                  <label style={einstZeile}>
+                    <span>🔔 Erinnerung in der Glocke</span>
+                    <select value={einst.reminder_days} onChange={e => { const n = Number(e.target.value); void aendere({ reminder_days: n }, n ? `Erinnerung kommt jetzt ${n} ${n === 1 ? 'Tag' : 'Tage'} vor dem Spiel.` : 'Erinnerung ist ausgeschaltet.'); }} style={auswahl}>
+                      {ERINNERUNG_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'aus' : `${n} ${n === 1 ? 'Tag' : 'Tage'} vorher`}</option>)}
+                    </select>
+                  </label>
+                  <label style={einstZeile}>
+                    <span>🕢 Treffen (Vorgabe)</span>
+                    <select value={einst.meet_minutes} onChange={e => { const n = Number(e.target.value); void aendere({ meet_minutes: n }, n ? `Treffen jetzt ${n} Min. vor Beginn (je Spiel änderbar).` : 'Kein Treffpunkt mehr angezeigt.'); }} style={auswahl}>
+                      {TREFFEN_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'kein Treffen' : `${n} Min. vor Beginn`}</option>)}
+                    </select>
+                  </label>
+                  <Muted>Offene Spieler sehen ab dann einen Hinweis in der Glocke; du bekommst jede Zu- und Absage. Die Treffzeit kannst du je Spiel auf der Spielseite ändern.</Muted>
                 </div>
-                <Muted>Wer für ein Spiel noch offen ist, sieht ab dann einen Hinweis in seiner Glocke. Du bekommst jede Zu- und Absage deiner Spieler in die Glocke.</Muted>
-              </div>
+              </details>
             )}
 
-            {!spiele.length && <Notice title="Keine anstehenden Spiele">Für dein Team steht diese Saison kein Spiel mehr an.</Notice>}
-
-            {sichtbar.map(b => {
-              const heim = b.home === teamId;
-              const gegner = team27(heim ? b.away : b.home)?.name ?? '';
-              const ort = venue27(team27(b.home)?.venueId)?.name;
-              const zuB = zusagen.filter(z => z.match_key === b.key);
-              const statusVon = (id: string) => zuB.find(z => z.player_id === id);
-              const zahl = (st: ZusageStatus) => personen.filter(p => statusVon(p.id)?.status === st).length;
-              const offen = personen.filter(p => !statusVon(p.id));
-              const ich = user.playerId ? personen.find(p => p.id === user.playerId) : undefined;
-              const meins = ich ? statusVon(ich.id) : undefined;
-              return (
-                <div key={b.key} style={karte}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>
-                      {terminText(b)}{b.termin?.vorlaeufig && <span style={{ color: '#9A6B00', fontWeight: 700 }}> (wird geprüft)</span>}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700 }}>
-                      {REIHE.map(st => <span key={st} style={{ color: STATUS[st].farbe }}>{STATUS[st].zeichen} {zahl(st)}{'  ·  '}</span>)}
-                      <span style={{ color: 'var(--th-text-faint)' }}>offen {offen.length}</span>
-                    </div>
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 15, fontWeight: 800, color: 'var(--th-text-strong)', marginTop: 4 }}>
-                    <span style={{ ...badge, background: heim ? 'var(--th-accent)' : 'var(--th-line-8)', color: heim ? '#fff' : 'var(--th-text-muted)' }}>{heim ? 'H' : 'A'}</span>{' '}
-                    {heim ? 'gegen' : 'bei'} {gegner}
-                  </div>
-                  <Muted>{b.spieltag}. Spieltag{ort ? ` · ${ort}` : ''}{b.derby ? ' · Derby' : ''}</Muted>
-
-                  {ich && <MeineAntwort key={meins?.updated_at ?? 'offen'} z={meins} onSetze={(s, n) => setze(b, ich, s, n)} />}
-
-                  <details open={istKapitaen} style={{ marginTop: 10 }}>
-                    <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-accent)' }}>Team ({personen.length})</summary>
-                    <div style={{ display: 'flex', flexDirection: 'column', marginTop: 6 }}>
-                      {kader === null ? <Muted>Lade Kader …</Muted> : personen.map(p => (
-                        <KaderZeile key={p.id} name={`${p.name}${p.isCaptain ? ' (TC)' : ''}`} z={statusVon(p.id)} darfSetzen={istKapitaen}
-                          onSetze={(st, n) => setze(b, p, st, n)} />
-                      ))}
-                    </div>
-                  </details>
-                </div>
-              );
-            })}
+            <h2 style={h2}>{spiele.length ? 'Nächster Termin' : 'Keine anstehenden Spiele'}</h2>
+            {sichtbar.map((b, i) => (
+              <div key={b.key}>
+                {i === 1 && <h2 style={{ ...h2, margin: '8px 0 12px' }}>Weitere Termine</h2>}
+                <SpielKachel b={b} teamId={teamId} liga={findLiga27(t.league)?.name ?? ''}
+                  zusagen={zusagen.filter(z => z.match_key === b.key)} kaderAnzahl={anzahlKader}
+                  ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[b.key]?.meet_time ?? null} />
+              </div>
+            ))}
 
             {spiele.length > 4 && (
-              <button type="button" onClick={() => setAlle(a => !a)} style={{ alignSelf: 'flex-start', ...knopf(false) }}>
-                {alle ? 'Nur die nächsten Spiele' : `Alle ${spiele.length} Spiele anzeigen`}
+              <button type="button" onClick={() => setAlle(a => !a)} style={{ alignSelf: 'center', padding: '9px 18px', borderRadius: 8, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, border: '1.5px solid var(--th-accent)', background: 'transparent', color: 'var(--th-accent)' }}>
+                {alle ? 'Weniger anzeigen' : `Alle ${spiele.length} Spiele anzeigen`}
               </button>
             )}
             <Muted>Spielplan deines Teams: <Link href="/mein-team/spielplan" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Mein Spielplan</Link></Muted>
@@ -192,116 +134,6 @@ export default function ZusagenPage() {
   );
 }
 
-/** Eingabe der Begründung (Pflicht bei Absage/unsicher, min. GRUND_MIN Zeichen). */
-function GrundEingabe({ status, start, onSenden, onAbbrechen }: {
-  status: ZusageStatus; start: string; onSenden: (grund: string) => void; onAbbrechen: () => void;
-}) {
-  const [grund, setGrund] = useState(start);
-  const ok = grund.trim().length >= GRUND_MIN;
-  return (
-    <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${STATUS[status].farbe}`, background: 'var(--th-bg-card)' }}>
-      <label style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, color: 'var(--th-text-body)', marginBottom: 6 }}>
-        Begründung {status === 'no' ? 'für die Absage' : '(warum unsicher?)'} <span style={{ fontWeight: 600, color: 'var(--th-text-faint)' }}>– Pflicht, mind. {GRUND_MIN} Zeichen</span>
-        <textarea autoFocus value={grund} onChange={e => setGrund(e.target.value.slice(0, NOTIZ_MAX))} maxLength={NOTIZ_MAX} rows={2}
-          placeholder={status === 'no' ? 'z. B. bin im Urlaub' : 'z. B. Spätschicht, weiß ich erst Mittwoch'}
-          style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px', borderRadius: 8, fontSize: 13.5, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)', resize: 'vertical', boxSizing: 'border-box' }} />
-      </label>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <button type="button" disabled={!ok} onClick={() => onSenden(grund.trim())} style={{ ...knopf(true, STATUS[status].farbe), opacity: ok ? 1 : 0.45, cursor: ok ? 'pointer' : 'not-allowed' }}>{STATUS[status].senden}</button>
-        <button type="button" onClick={onAbbrechen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>Abbrechen</button>
-        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: ok ? 'var(--th-text-faint)' : '#C0392B' }}>{grund.trim().length}/{NOTIZ_MAX}</span>
-      </div>
-    </div>
-  );
-}
-
-/** Eigene Zu-/Absage: Zusage sofort (Notiz freiwillig), Absage/unsicher nur mit Begründung. */
-function MeineAntwort({ z, onSetze }: { z?: Zusage; onSetze: (s: ZusageStatus | null, note: string | null) => void | Promise<void> }) {
-  const [notiz, setNotiz] = useState(z?.status === 'yes' ? z.note ?? '' : '');
-  const [offenNotiz, setOffenNotiz] = useState(z?.status === 'yes' && !!z.note);
-  const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
-  const st = z ? STATUS[z.status] : null;
-  return (
-    <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)' }}>
-      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, color: 'var(--th-text-body)', marginBottom: 8 }}>
-        Du: {st ? <span style={{ color: st.farbe }}>{st.text}</span> : <span style={{ color: 'var(--th-text-faint)' }}>noch offen</span>}
-        {z?.note && z.status !== 'yes' && <span style={{ fontWeight: 500, color: 'var(--th-text-muted)' }}> – „{z.note}“</span>}
-      </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        {REIHE.map(s => (
-          <button key={s} type="button" style={knopf(z?.status === s || grundFuer === s, STATUS[s].farbe)}
-            onClick={() => (braucheGrund(s) ? setGrundFuer(s) : (setGrundFuer(null), void onSetze('yes', notiz)))}>
-            {STATUS[s].zeichen} {STATUS[s].knopf}
-          </button>
-        ))}
-        {!offenNotiz && !grundFuer && <button type="button" onClick={() => setOffenNotiz(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>+ Notiz zur Zusage</button>}
-      </div>
-      {grundFuer && (
-        <GrundEingabe status={grundFuer} start={z?.status === grundFuer ? z.note ?? '' : ''}
-          onAbbrechen={() => setGrundFuer(null)}
-          onSenden={g => { setGrundFuer(null); void onSetze(grundFuer, g); }} />
-      )}
-      {offenNotiz && !grundFuer && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-          <input value={notiz} onChange={e => setNotiz(e.target.value.slice(0, NOTIZ_MAX))} maxLength={NOTIZ_MAX}
-            placeholder="z. B. komme 30 Min. später" aria-label="Notiz zur Zusage"
-            style={{ flex: '1 1 220px', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)' }} />
-          {z?.status === 'yes' && <button type="button" onClick={() => void onSetze('yes', notiz)} style={knopf(false)}>Notiz speichern</button>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** Eine Zeile im Kader; der Kapitän setzt den Status, bei ✗/? mit Begründung. */
-function KaderZeile({ name, z, darfSetzen, onSetze }: {
-  name: string; z?: Zusage; darfSetzen: boolean; onSetze: (s: ZusageStatus | null, note: string | null) => void | Promise<void>;
-}) {
-  const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
-  const st = z ? STATUS[z.status] : null;
-  return (
-    <div style={{ padding: '7px 0', borderTop: '1px solid var(--th-line-4)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ ...punkt, background: st ? st.farbe : 'var(--th-line-18)' }} aria-hidden />
-        <span style={{ flex: '1 1 160px', minWidth: 0, fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-strong)' }}>
-          {name}
-          <span style={{ fontWeight: 600, color: st ? st.farbe : 'var(--th-text-faint)', fontSize: 12.5 }}>{' · '}{st ? st.text : 'offen'}</span>
-          {z?.note && <span style={{ display: 'block', fontWeight: 500, fontSize: 12.5, color: 'var(--th-text-muted)' }}>„{z.note}“</span>}
-        </span>
-        {darfSetzen && (
-          <span style={{ display: 'flex', gap: 6 }}>
-            {REIHE.map(s => (
-              <button key={s} type="button" title={`${STATUS[s].knopf} setzen`} style={klein(z?.status === s || grundFuer === s, STATUS[s].farbe)}
-                onClick={() => (braucheGrund(s) ? setGrundFuer(s) : (setGrundFuer(null), void onSetze('yes', z?.status === 'yes' ? z.note : null)))}>
-                {STATUS[s].zeichen}
-              </button>
-            ))}
-            <button type="button" onClick={() => { setGrundFuer(null); void onSetze(null, null); }} disabled={!z} style={{ ...klein(false, 'var(--th-text-muted)'), opacity: z ? 1 : 0.4 }} title="Zurück auf offen">↺</button>
-          </span>
-        )}
-      </div>
-      {grundFuer && (
-        <GrundEingabe status={grundFuer} start={z?.status === grundFuer ? z.note ?? '' : ''}
-          onAbbrechen={() => setGrundFuer(null)}
-          onSenden={g => { setGrundFuer(null); void onSetze(grundFuer, g); }} />
-      )}
-    </div>
-  );
-}
-
-const karte: React.CSSProperties = { background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 4 };
-const badge: React.CSSProperties = { display: 'inline-block', width: 22, textAlign: 'center', padding: '2px 0', borderRadius: 5, fontSize: 11, fontWeight: 800, verticalAlign: '2px' };
-const punkt: React.CSSProperties = { width: 10, height: 10, borderRadius: 999, flexShrink: 0 };
-
-function knopf(aktiv: boolean, farbe = 'var(--th-accent)'): React.CSSProperties {
-  return {
-    padding: '9px 16px', borderRadius: 8, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
-    border: `1.5px solid ${farbe}`, background: aktiv ? farbe : 'transparent', color: aktiv ? '#fff' : farbe,
-  };
-}
-function klein(aktiv: boolean, farbe: string): React.CSSProperties {
-  return {
-    width: 34, height: 30, borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 800,
-    border: `1.5px solid ${farbe}`, background: aktiv ? farbe : 'transparent', color: aktiv ? '#fff' : farbe,
-  };
-}
+const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 };
+const einstZeile: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-body)' };
+const auswahl: React.CSSProperties = { padding: '7px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)' };
