@@ -54,4 +54,5 @@ export const PLAYERS_UPLOADED_WOMEN_RAW: string[] = [
   '0|155|LINDINGER|DIANA|0|0||',
   '0|316|PÖPPERL|KARIN|0|0||',
   '0|330|JOST|ILONA|0|0||',
+  '0|406|GRIMM|NICOLE|0|0||',
 ];
