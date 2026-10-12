@@ -42,33 +42,43 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
   const t = b.termin;
   const H = team27(b.home), G = team27(b.away);
   const logo = gross ? 52 : 40;
+  // Heimspiel: kräftig in der Akzentfarbe der Seite (hell: Grün, dunkel: Rot).
+  // Auswärts: heller Grund mit Hauch Akzent — auf einen Blick zu unterscheiden.
+  const fg = heim ? '#fff' : 'var(--th-text-strong)';
+  const fgLeise = heim ? 'rgba(255,255,255,0.78)' : 'var(--th-text-muted)';
+  const chipGrund = heim ? 'rgba(255,255,255,0.18)' : 'var(--th-bg-card)';
   const seite = (tm: typeof H, id: string) => (
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
       <TeamBadge initials={tm?.short ?? id.slice(0, 3).toUpperCase()} color={tm?.color} logoUrl={tm?.logoUrl ?? undefined} size={logo}
-        ring={id === teamId ? 'var(--th-accent)' : 'rgba(255,255,255,0.35)'} />
-      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: gross ? 14 : 12.5, lineHeight: 1.2, color: '#fff', opacity: id === teamId ? 1 : 0.82, overflowWrap: 'anywhere' }}>{tm?.name ?? id}</span>
+        ring={id === teamId ? (heim ? '#fff' : 'var(--th-accent)') : (heim ? 'rgba(255,255,255,0.45)' : 'var(--th-line-18)')} />
+      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: gross ? 14 : 12.5, lineHeight: 1.2, color: id === teamId ? fg : fgLeise, overflowWrap: 'anywhere' }}>{tm?.name ?? id}</span>
     </div>
   );
   return (
     <div style={{
-      position: 'relative', overflow: 'hidden', color: '#fff', padding: gross ? '16px 16px 18px' : '12px 14px 14px',
-      background: `radial-gradient(120% 90% at 100% 0%, ${ligaFarbe}40 0%, transparent 55%), linear-gradient(160deg, #161B26 0%, #0B0E14 100%)`,
+      position: 'relative', overflow: 'hidden', color: fg, padding: gross ? '16px 16px 18px' : '12px 14px 14px',
+      background: heim
+        ? 'radial-gradient(90% 120% at 100% 0%, rgba(255,255,255,0.22) 0%, transparent 60%), linear-gradient(135deg, var(--th-accent) 0%, var(--th-accent-deep) 100%)'
+        : 'radial-gradient(90% 120% at 100% 0%, var(--th-accent-a12) 0%, transparent 60%), linear-gradient(135deg, var(--th-bg-card3) 0%, var(--th-bg-card) 100%)',
       borderLeft: `4px solid ${ligaFarbe}`,
+      borderBottom: heim ? 'none' : '1px solid var(--th-line-6)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: gross ? 14 : 10 }}>
-        <span style={chip('rgba(255,255,255,0.12)', '#fff')}>{t ? `${wochentag(t.datum)} ${tagMonat(t.datum)}` : `WE ${wochenendeText(b.fri, b.sun, false)}`}</span>
-        <span style={chip(heim ? 'var(--th-accent)' : 'rgba(255,255,255,0.12)', '#fff')}>{heim ? 'Heimspiel' : 'Auswärts'}</span>
-        {b.derby && <span style={chip('rgba(232,184,74,0.22)', '#F3CF73')}>Derby</span>}
-        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.7 }}>{liga} · {b.spieltag}. ST</span>
+        <span style={chip(chipGrund, fg)}>{t ? `${wochentag(t.datum)} ${tagMonat(t.datum)}` : `WE ${wochenendeText(b.fri, b.sun, false)}`}</span>
+        <span style={{ ...chip(heim ? '#fff' : 'transparent', 'var(--th-accent)'), display: 'inline-flex', alignItems: 'center', gap: 5, border: heim ? 'none' : '1.5px solid var(--th-accent)' }}>
+          <Icon name={heim ? 'home' : 'arrow-right'} size={12} stroke={2.4} />{heim ? 'Heimspiel' : 'Auswärts'}
+        </span>
+        {b.derby && <span style={chip(heim ? 'rgba(255,255,255,0.18)' : 'rgba(232,184,74,0.18)', heim ? '#fff' : 'var(--th-gold)')}>Derby</span>}
+        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, color: fgLeise }}>
+          <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{liga} · {b.spieltag}. ST</span>
           {rechts}
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {seite(H, b.home)}
         <div style={{ flexShrink: 0, textAlign: 'center', minWidth: gross ? 78 : 64 }}>
-          <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: gross ? 34 : 26, lineHeight: 1, letterSpacing: '0.02em' }}>{t?.uhrzeit ?? '–:–'}</div>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.6, marginTop: 4 }}>{t?.uhrzeit ? 'Anwurf' : 'Uhrzeit folgt'}</div>
+          <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: gross ? 34 : 26, lineHeight: 1, letterSpacing: '0.02em', color: fg }}>{t?.uhrzeit ?? '–:–'}</div>
+          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: fgLeise, marginTop: 4 }}>{t?.uhrzeit ? 'Anwurf' : 'Uhrzeit folgt'}</div>
         </div>
         {seite(G, b.away)}
       </div>
