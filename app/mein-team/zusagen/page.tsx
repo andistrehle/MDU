@@ -24,7 +24,8 @@ import {
   ERINNERUNG_VORGABE, TREFFEN_VORGABE, type Zusage, type SpielDetails, type TeamEinstellungen,
 } from '@/lib/supabase/zusagen';
 import { SpielKachel } from '@/components/mdu/spiel-kachel';
-import { karte } from '@/components/mdu/zusagen-ui';
+import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
+import { Icon } from '@/components/mdu/icon';
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const datumVon = (b: Begegnung27) => b.termin?.datum ?? b.fri;
@@ -92,23 +93,31 @@ export default function ZusagenPage() {
             )}
 
             {istKapitaen && (
-              <details style={karte}>
-                <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13.5, color: 'var(--th-text-strong)' }}>⚙️ Einstellungen fürs Team</summary>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
-                  <label style={einstZeile}>
-                    <span>🔔 Erinnerung in der Glocke</span>
-                    <select value={einst.reminder_days} onChange={e => { const n = Number(e.target.value); void aendere({ reminder_days: n }, n ? `Erinnerung kommt jetzt ${n} ${n === 1 ? 'Tag' : 'Tage'} vor dem Spiel.` : 'Erinnerung ist ausgeschaltet.'); }} style={auswahl}>
+              <details className="mdu-einst" style={{ ...karte, padding: 0, overflow: 'hidden' }}>
+                <summary style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer', listStyle: 'none' }}>
+                  <span style={iconKreis}><Icon name="settings" size={17} /></span>
+                  <span style={{ flex: 1 }}>
+                    <span style={{ ...h2Karte, display: 'block' }}>Einstellungen fürs Team</span>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
+                      Erinnerung {einst.reminder_days ? `${einst.reminder_days} ${einst.reminder_days === 1 ? 'Tag' : 'Tage'} vorher` : 'aus'} · Treffen {einst.meet_minutes ? `${einst.meet_minutes} Min. vorher` : 'keins'}
+                    </span>
+                  </span>
+                  <Icon name="chevron-down" size={16} className="mdu-einst-pfeil" style={{ color: 'var(--th-text-muted)', transition: 'transform 160ms ease' }} />
+                </summary>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0 16px 16px' }}>
+                  <EinstZeile icon="bell" titel="Erinnerung in der Glocke" text="Offene Spieler bekommen ab dann einen Hinweis.">
+                    <select value={einst.reminder_days} aria-label="Erinnerung" onChange={e => { const n = Number(e.target.value); void aendere({ reminder_days: n }, n ? `Erinnerung kommt jetzt ${n} ${n === 1 ? 'Tag' : 'Tage'} vor dem Spiel.` : 'Erinnerung ist ausgeschaltet.'); }} style={auswahl}>
                       {ERINNERUNG_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'aus' : `${n} ${n === 1 ? 'Tag' : 'Tage'} vorher`}</option>)}
                     </select>
-                  </label>
-                  <label style={einstZeile}>
-                    <span>🕢 Treffen (Vorgabe)</span>
-                    <select value={einst.meet_minutes} onChange={e => { const n = Number(e.target.value); void aendere({ meet_minutes: n }, n ? `Treffen jetzt ${n} Min. vor Beginn (je Spiel änderbar).` : 'Kein Treffpunkt mehr angezeigt.'); }} style={auswahl}>
-                      {TREFFEN_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'kein Treffen' : `${n} Min. vor Beginn`}</option>)}
+                  </EinstZeile>
+                  <EinstZeile icon="meet" titel="Treffen (Vorgabe)" text="Je Spiel auf der Spielseite änderbar.">
+                    <select value={einst.meet_minutes} aria-label="Treffen" onChange={e => { const n = Number(e.target.value); void aendere({ meet_minutes: n }, n ? `Treffen jetzt ${n} Min. vor Beginn (je Spiel änderbar).` : 'Kein Treffpunkt mehr angezeigt.'); }} style={auswahl}>
+                      {TREFFEN_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'kein Treffen' : `${n} Min. vorher`}</option>)}
                     </select>
-                  </label>
-                  <Muted>Offene Spieler sehen ab dann einen Hinweis in der Glocke; du bekommst jede Zu- und Absage. Die Treffzeit kannst du je Spiel auf der Spielseite ändern.</Muted>
+                  </EinstZeile>
+                  <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.5, marginTop: 2 }}>Du bekommst jede Zu- und Absage in die Glocke.</span>
                 </div>
+                <style>{'.mdu-einst summary::-webkit-details-marker{display:none}.mdu-einst[open] .mdu-einst-pfeil{transform:rotate(180deg)}'}</style>
               </details>
             )}
 
@@ -135,5 +144,18 @@ export default function ZusagenPage() {
 }
 
 const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 };
-const einstZeile: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontFamily: 'var(--font-manrope)', fontSize: 13.5, fontWeight: 700, color: 'var(--th-text-body)' };
-const auswahl: React.CSSProperties = { padding: '7px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)' };
+const auswahl: React.CSSProperties = { padding: '8px 12px', borderRadius: 999, fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-card)', border: '1.5px solid var(--th-accent)', color: 'var(--th-accent)', cursor: 'pointer' };
+const iconKreis: React.CSSProperties = { width: 34, height: 34, borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--th-accent-a12)', color: 'var(--th-accent)' };
+
+function EinstZeile({ icon, titel, text, children }: { icon: string; titel: string; text: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 12px', borderRadius: 12, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)' }}>
+      <span style={iconKreis}><Icon name={icon} size={16} /></span>
+      <span style={{ flex: '1 1 150px', minWidth: 0, fontFamily: 'var(--font-manrope)' }}>
+        <span style={{ display: 'block', fontWeight: 800, fontSize: 13.5, color: 'var(--th-text-strong)' }}>{titel}</span>
+        <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>{text}</span>
+      </span>
+      {children}
+    </div>
+  );
+}
