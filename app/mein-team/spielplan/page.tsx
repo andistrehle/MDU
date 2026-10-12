@@ -17,6 +17,7 @@ import { VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27, LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
+import { zusagenFreigeschaltet } from '@/lib/features';
 import { team27, findLiga27, venue27, spielplanDaten27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { printTeam, printMaster } from '@/lib/spielplan/printing';
 
@@ -55,9 +56,9 @@ export default function MeinSpielplanPage() {
 
           <VorlaeufigHinweis />
 
-          <Link href="/mein-team/zusagen" style={{ display: 'block', background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 14, padding: '14px 18px', marginBottom: 16, textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)' }}>
+          {zusagenFreigeschaltet(user) && <Link href="/mein-team/zusagen" style={{ display: 'block', background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 14, padding: '14px 18px', marginBottom: 16, textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)' }}>
             <b style={{ color: 'var(--th-text-strong)' }}>✓ Zu- und Absagen:</b> Sag für die nächsten Spiele zu oder ab und sieh, wer im Team dabei ist →
-          </Link>
+          </Link>}
 
           <KalenderAbo teamId={t.id} teamName={t.name} />
 

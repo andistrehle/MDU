@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
+import { zusagenFreigeschaltet } from '@/lib/features';
 import { alleBegegnungen27, team27, venue27, terminKurz, wochenendeText, NEUE_SAISON, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
@@ -96,7 +97,9 @@ export default function ZusagenPage() {
     <MemberShell title="Zu- und Absagen">
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
-        : !teamId || !t ? (
+        : !zusagenFreigeschaltet(user) ? (
+          <Notice title="Noch nicht freigeschaltet">Diese Funktion wird gerade erprobt und ist für dein Team noch nicht verfügbar.</Notice>
+        ) : !teamId || !t ? (
           <Notice title="Kein Team verknüpft">
             Deinem Konto ist noch kein Team der {NEUE_SAISON.name} zugeordnet. Bei Fragen melde dich bei der Ligaleitung.
           </Notice>

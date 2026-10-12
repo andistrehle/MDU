@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { zusagenFreigeschaltet } from '@/lib/features';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
@@ -84,6 +85,9 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
             ? 'Spiele deines Teams 2026/27 — in deinen Handy-Kalender übernehmen oder für die TC-Sitzung drucken.'
             : 'Spiele deines Teams 2026/27 — auch zum Übernehmen in deinen Handy-Kalender.',
           href: '/mein-team/spielplan', ready: true },
+      );
+      // Zu-/Absagen: vorerst nur für freigeschaltete Teams (lib/features.ts)
+      if (zusagenFreigeschaltet(user)) tiles.push(
         { icon: 'check', label: 'Zu- und Absagen', description: teamEditable
             ? 'Wer kommt zu welchem Spiel? Stand im Team, Status setzen, Erinnerung einstellen.'
             : 'Sag für die nächsten Spiele zu oder ab und sieh, wer noch kommt.',

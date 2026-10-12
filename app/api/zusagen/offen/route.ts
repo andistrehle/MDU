@@ -11,6 +11,7 @@
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/server/auth';
+import { zusagenFuerTeam } from '@/lib/features';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { alleBegegnungen27, team27, terminKurz, wochenendeText, NEUE_SAISON } from '@/lib/data/saison-2027';
 
@@ -23,7 +24,8 @@ export async function GET(request: Request) {
   const auth = await authenticateRequest(request);
   if (!auth.ok) return NextResponse.json({ offen: [] }, { status: auth.status });
   const teamId = auth.user.teamId;
-  if (!supabaseAdmin || !teamId) return NextResponse.json({ offen: [] });
+  // Vorerst nur freigeschaltete Teams (lib/features.ts).
+  if (!supabaseAdmin || !teamId || !zusagenFuerTeam(teamId)) return NextResponse.json({ offen: [] });
 
   const [{ data: profil }, { data: einst, error: einstErr }] = await Promise.all([
     supabaseAdmin.from('profiles').select('player_id').eq('id', auth.user.id).maybeSingle(),
