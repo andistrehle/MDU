@@ -14,14 +14,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam, hasMinRole } from '@/lib/auth/roles';
-import { NEUE_SAISON, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
+import { NEUE_SAISON, findLiga27, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
   ladeZusagen, setzeZusage, ladeEinstellungen, ladeDetails, setzeDetails, TREFFEN_VORGABE,
   type Zusage, type ZusageStatus, type SpielDetails,
 } from '@/lib/supabase/zusagen';
-import { spielSlug, endeZeit, treffZeit, wochentagLang, tagMonat } from '@/lib/spieltag';
-import { STATUS, REIHE, MeineAntwort, KaderZeile, karte, knopf } from './zusagen-ui';
+import { spielSlug, treffZeit } from '@/lib/spieltag';
+import { Icon } from './icon';
+import { STATUS, REIHE, MeineAntwort, KaderZeile, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 
 type Stand = { yes: number; maybe: number; no: number; meetTime: string | null; meetMinutes: number | null };
 
@@ -104,61 +105,40 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
     }
   }
 
-  const zeiten: [string, string | null][] = [
-    ['Treffen', treffZeit(t?.uhrzeit, treffenMin, meetTime)],
-    ['Beginn', t?.uhrzeit ?? null],
-    ['Ende', endeZeit(t?.uhrzeit)],
-  ];
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {mitglied && (
-        <Link href="/mein-team/zusagen" style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-muted)', textDecoration: 'none' }}>‹ Alle Spiele</Link>
+        <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Spiele</Link>
       )}
 
       {/* ── Übersicht ── */}
-      <div style={{ borderRadius: 14, overflow: 'hidden', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
-        <div style={{ padding: '16px 18px', background: heim ? 'var(--th-accent)' : '#2B5F55', color: '#fff', fontFamily: 'var(--font-manrope)' }}>
-          <div style={{ fontSize: 13.5, opacity: 0.92 }}>{t ? `${wochentagLang(t.datum)}, ${tagMonat(t.datum)}` : `Wochenende ${wochenendeText(b.fri, b.sun, false)}`} · {heim ? 'Heimspiel' : 'Auswärtsspiel'}</div>
-          <h1 style={{ margin: '4px 0 0', fontWeight: 800, fontSize: 22, lineHeight: 1.2 }}>{heim ? teamName : gegner} – {heim ? gegner : teamName}</h1>
-          <div style={{ fontSize: 13, opacity: 0.88, marginTop: 4 }}>
-            {[liga, `${b.spieltag}. Spieltag`, b.derby ? 'Derby' : null].filter(Boolean).join(' | ')}
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', padding: '14px 8px 10px' }}>
-          {zeiten.map(([lab, wert], i) => (
-            <div key={lab} style={{ textAlign: 'center', borderLeft: i ? '1px solid var(--th-line-8)' : 'none', fontFamily: 'var(--font-manrope)' }}>
-              <div style={{ fontWeight: 800, fontSize: 20, color: wert ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>{wert ?? '–'}</div>
-              <div style={{ fontSize: 12, color: 'var(--th-text-muted)' }}>{lab}</div>
-            </div>
-          ))}
-        </div>
+      <div style={{ borderRadius: 18, overflow: 'hidden', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', boxShadow: '0 4px 20px var(--th-shadow)' }}>
+        <SpielKopf b={b} teamId={teamId} liga={liga} ligaFarbe={findLiga27(b.liga)?.color ?? '#D40000'} gross />
+        <Zeitleiste beginn={t?.uhrzeit} treffenMin={treffenMin} meetTime={meetTime} />
         {(t?.vorlaeufig || !t?.uhrzeit) && (
-          <div style={{ padding: '0 18px 10px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: '#B7791F', textAlign: 'center' }}>
+          <div style={{ padding: '8px 16px 0', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-gold)' }}>
             {t?.vorlaeufig ? 'Termin wird noch geprüft.' : !t ? 'Termin steht noch nicht fest.' : 'Uhrzeit folgt.'}
           </div>
         )}
         {ort && (
-          <div style={{ margin: '0 18px', padding: '10px 0 12px', borderTop: '1px solid var(--th-line-6)', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)' }}>
-            📍 <strong>{ort.name}</strong>
-            {ort.address && <>{' · '}<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ort.name}, ${ort.address}`)}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>{ort.address}</a></>}
-          </div>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ort.name}, ${ort.address ?? 'München'}`)}`} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 12px 0', padding: '10px 12px', borderRadius: 10, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', textDecoration: 'none' }}>
+            <Icon name="pin" size={18} style={{ color: 'var(--th-accent)', flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)' }}>
+              <span style={{ display: 'block', fontWeight: 800, fontSize: 13.5, color: 'var(--th-text-strong)' }}>{ort.name}</span>
+              {ort.address && <span style={{ display: 'block', fontSize: 12.5, color: 'var(--th-text-muted)' }}>{ort.address}</span>}
+            </span>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-accent)' }}>Route</span>
+          </a>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid var(--th-line-6)', padding: 6, gap: 4 }}>
-          {REIHE.map(s => (
-            <div key={s} title={STATUS[s].text} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 4px', fontFamily: 'var(--font-manrope)' }}>
-              <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--th-text-strong)' }}><span aria-hidden>{STATUS[s].zeichen}</span> {zahl(s)}</span>
-              <span style={{ fontSize: 11.5, color: STATUS[s].farbe, fontWeight: 700 }}>{STATUS[s].text}</span>
-            </div>
-          ))}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 4px', fontFamily: 'var(--font-manrope)' }}>
-            <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--th-text-muted)' }}><span aria-hidden>👥</span> {offen ?? '–'}</span>
-            <span style={{ fontSize: 11.5, color: 'var(--th-text-muted)', fontWeight: 700 }}>offen</span>
-          </div>
-        </div>
+        <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={offen}
+          meins={mitglied && user?.playerId ? zuVon(user.playerId)?.status ?? null : undefined} />
       </div>
 
-      <button type="button" onClick={() => void teilen()} style={{ ...knopf(false), alignSelf: 'stretch', padding: '11px 16px' }}>🔗 Spiel teilen (z. B. in die WhatsApp-Gruppe)</button>
+      <button type="button" onClick={() => void teilen()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '13px 16px', borderRadius: 12, cursor: 'pointer', border: 'none', background: 'var(--th-accent)', color: '#fff', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, boxShadow: '0 4px 14px var(--th-accent-a30)' }}>
+        <Icon name="share" size={18} stroke={2.2} /> Spiel teilen
+        <span style={{ fontWeight: 600, opacity: 0.85, fontSize: 12.5 }}>· z. B. WhatsApp-Gruppe</span>
+      </button>
 
       {msg && (
         <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>
@@ -198,8 +178,10 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
                 if (!gruppe.length) return null;
                 return (
                   <div key={s ?? 'offen'} style={{ marginTop: 8 }}>
-                    <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: s ? STATUS[s].farbe : 'var(--th-text-faint)' }}>
-                      {s ? STATUS[s].text : 'noch offen'} ({gruppe.length})
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 4px', fontFamily: 'var(--font-manrope)', fontSize: 11.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: s ? STATUS[s].farbe : 'var(--th-text-faint)' }}>
+                      {s ? STATUS[s].text : 'noch offen'}
+                      <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-8)', color: 'var(--th-text-body)' }}>{gruppe.length}</span>
+                      <span style={{ flex: 1, height: 1, background: 'var(--th-line-6)' }} />
                     </div>
                     {gruppe.map(p => (
                       <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
@@ -295,5 +277,4 @@ function Aufstellung({ heim, personen, zusagen, lineup, darf, onSpeichern }: {
   );
 }
 
-const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 };
 const leise: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.5 };

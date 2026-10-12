@@ -59,6 +59,11 @@ export function Icon({ name, size = 18, stroke = 1.75, className, style }: IconP
     case 'dart':        return <svg {...common}><circle cx="11" cy="13" r="7"/><circle cx="11" cy="13" r="3"/><path d="M16 8l5-5"/><path d="M18 3h3v3"/></svg>;
     case 'phone':       return <svg {...common}><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>;
     case 'globe':       return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;
+    case 'help':        return <svg {...common}><path d="M9.2 9a3 3 0 0 1 5.6 1.2c0 2-2.8 2.6-2.8 4.3"/><path d="M12 18.5h.01"/></svg>;
+    case 'clock':       return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
+    case 'share':       return <svg {...common}><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>;
+    case 'meet':        return <svg {...common}><circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M4 20v-3a4 4 0 0 1 8 0v3M12 20v-3a4 4 0 0 1 8 0v3"/></svg>;
+    case 'flag-end':    return <svg {...common}><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg>;
     default:            return <svg {...common}><circle cx="12" cy="12" r="9"/></svg>;
   }
 }
