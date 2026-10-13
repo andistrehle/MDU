@@ -228,7 +228,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
   );
 }
 
-function NotizUndAufgaben({ note, aufgaben, personen, darf, ich, onNotiz, onNeu, onHaken, onWeg }: {
+export function NotizUndAufgaben({ note, aufgaben, personen, darf, ich, onNotiz, onNeu, onHaken, onWeg }: {
   note: string | null; aufgaben: Aufgabe[]; personen: KaderOption[]; darf: boolean; ich: string | null;
   onNotiz: (n: string | null) => void; onNeu: (t: string, p: { id: string; name: string } | null) => Promise<boolean>;
   onHaken: (a: Aufgabe) => void; onWeg: (a: Aufgabe) => void;
@@ -313,7 +313,7 @@ function NotizUndAufgaben({ note, aufgaben, personen, darf, ich, onNotiz, onNeu,
   );
 }
 
-function TreffzeitFeld({ eigene, vorgabe, onSpeichern }: { eigene: string | null; vorgabe: string | null; onSpeichern: (v: string | null) => void }) {
+export function TreffzeitFeld({ eigene, vorgabe, onSpeichern }: { eigene: string | null; vorgabe: string | null; onSpeichern: (v: string | null) => void }) {
   const [wert, setWert] = useState(eigene ?? vorgabe ?? '');
   return (
     <section style={karte}>
@@ -334,7 +334,7 @@ function TreffzeitFeld({ eigene, vorgabe, onSpeichern }: { eigene: string | null
 // '' = frei). Nichts davon ist Pflicht — der Kapitän füllt, was schon feststeht.
 const PLAETZE = 8;
 
-function Aufstellung({ heim, personen, zusagen, lineup, darf, onSpeichern }: {
+export function Aufstellung({ heim, personen, zusagen, lineup, darf, onSpeichern }: {
   heim: boolean; personen: KaderOption[]; zusagen: Zusage[]; lineup: string[]; darf: boolean; onSpeichern: (l: string[]) => void;
 }) {
   const auf8 = (l: string[]) => Array.from({ length: PLAETZE }, (_, i) => l[i] ?? '');
