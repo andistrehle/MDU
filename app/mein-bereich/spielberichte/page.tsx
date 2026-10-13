@@ -192,11 +192,12 @@ function SpielberichteInner() {
     return () => { cancelled = true; };
   }, [kaderSaison, header.home_team_id, header.guest_team_id]);
 
-  // Wählbare Begegnungen: Kapitän nur die des eigenen Teams (Heim ODER Gast —
-  // laut Spielbedingungen trägt einer ein, der andere bestätigt), Ligaleitung alle.
+  // Wählbare Begegnungen: Kapitän nur die HEIMSPIELE des eigenen Teams — es
+  // trägt immer die Heimmannschaft ein, der Gast bestätigt (vom Betreiber
+  // festgelegt, 13.10.2026). Ligaleitung im Admin-Modus: alle.
   const begegnungen = useMemo(() => {
     const own = isAdminRole ? null : user?.teamId ?? null;
-    return BEGEGNUNGEN.filter(b => !own || b.home === own || b.away === own);
+    return BEGEGNUNGEN.filter(b => !own || b.home === own);
   }, [isAdminRole, user?.teamId]);
   const gewaehlt = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
 
@@ -610,7 +611,7 @@ function SpielberichteInner() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16, padding: '10px 14px', borderRadius: 12, fontFamily: 'var(--font-manrope)', fontSize: 13,
           background: isAdminRole ? 'rgba(232,184,74,0.14)' : 'var(--th-accent-a07)', border: `1px solid ${isAdminRole ? 'rgba(232,184,74,0.45)' : 'var(--th-accent-a25)'}`, color: 'var(--th-text-body)' }}>
           <strong style={{ color: 'var(--th-text-strong)' }}>{isAdminRole ? 'Admin-Modus' : 'Kapitänsmodus'}</strong>
-          <span>{isAdminRole ? 'Alle Begegnungen, Berichte für andere Teams anlegen und bearbeiten.' : 'Nur die Spiele deines Teams.'}</span>
+          <span>{isAdminRole ? 'Alle Begegnungen, Berichte für andere Teams anlegen und bearbeiten.' : 'Nur die Heimspiele deines Teams — eingetragen wird vom Heimteam, der Gast bestätigt.'}</span>
           {!isAdminRole && <Link href="/admin/spielberichte" style={{ marginLeft: 'auto', color: 'var(--th-accent)', fontWeight: 800, textDecoration: 'none' }}>Für andere Teams → Admin</Link>}
         </div>
       )}
@@ -725,7 +726,7 @@ function SpielberichteInner() {
                   </select>
                 )}
                 <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)' }}>
-                  Liga, Spieltag, Heim und Gast kommen aus dem Spielplan {NEUE_SAISON.kurz}. Eintragen darf Heim oder Gast — bestätigen muss jeweils der Gegner.
+                  Liga, Spieltag, Heim und Gast kommen aus dem Spielplan {NEUE_SAISON.kurz}. Eingetragen wird von der Heimmannschaft, der Gast bestätigt{isAdminRole ? '' : ' — deshalb stehen hier nur eure Heimspiele. Auswärtsspiele bestätigst du, sobald das Heimteam den Bericht abgeschickt hat (Glocke bzw. Spielberichte-Übersicht)'}.
                 </span>
               </Field>
               <Row2>

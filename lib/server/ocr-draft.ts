@@ -117,9 +117,15 @@ export async function createOcrDraft(input: CreateDraftInput): Promise<{ id: str
   const { header, homePlayers, guestPlayers, games, uploaderId, uploadId, ocrResultId } = input;
   const totals = computeTotals(games);
 
-  // Eintragender = wer hochlädt (Heim ODER Gast). Bestätigen muss das andere Team.
-  const { data: prof } = await supabaseAdmin.from('profiles').select('team_id').eq('id', uploaderId).maybeSingle();
+  // Eingetragen wird von der Heimmannschaft, der Gast bestätigt. Die Ligaleitung
+  // darf für jedes Team eintragen; dann bestätigt ebenfalls der Gast.
+  const { data: prof } = await supabaseAdmin.from('profiles').select('team_id, role').eq('id', uploaderId).maybeSingle();
   const uploaderTeam = (prof as { team_id: string | null } | null)?.team_id ?? null;
+  const uploaderRole = (prof as { role?: string | null } | null)?.role ?? null;
+  const ligaleitung = uploaderRole === 'league_admin' || uploaderRole === 'super_admin';
+  if (!ligaleitung && uploaderTeam !== header.home_team_id) {
+    return { id: null, error: 'Den Spielbericht trägt die Heimmannschaft ein — als Gast bestätigst du ihn, sobald das Heimteam ihn abgeschickt hat.' };
+  }
   const confirmTeam = uploaderTeam && uploaderTeam === header.guest_team_id ? header.home_team_id : header.guest_team_id;
 
   const row = {

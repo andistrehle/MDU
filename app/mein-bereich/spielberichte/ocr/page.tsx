@@ -20,7 +20,9 @@ import { spiele27AlsMatch, findLiga27, MATCH_ID_PREFIX_27 } from '@/lib/data/sai
 
 // Seit 2026/27: Begegnungen der laufenden Saison (die alte Spielliste ist Archiv).
 const MATCHES = spiele27AlsMatch();
-const getMatchesForTeam = (teamId: string) => MATCHES.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId);
+// Eingetragen wird immer von der Heimmannschaft (der Gast bestätigt) — Kapitäne
+// sehen deshalb nur die Heimspiele ihres Teams.
+const getMatchesForTeam = (teamId: string) => MATCHES.filter(m => m.homeTeamId === teamId);
 import { getOcrAvailability, uploadReportFile, startOcr } from '@/lib/supabase/match-report-uploads';
 import { verkleinereFoto } from '@/lib/ocr/verkleinern';
 
