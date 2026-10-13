@@ -45,6 +45,18 @@ export interface EinzelZeile {
   /** Davon aus noch nicht bestätigten Berichten */
   offen: number;
   pos: number;
+  /** Alle Einzel in zeitlicher Reihenfolge (älteste zuerst) — Formkurve + letzte Ergebnisse */
+  verlauf: EinzelSpiel[];
+}
+
+export interface EinzelSpiel {
+  datum: string | null;
+  gegner: string;
+  gegnerTeam: string;
+  legs: number;
+  legsGegner: number;
+  /** aus noch nicht bestätigtem Bericht */
+  offen: boolean;
 }
 
 
@@ -65,7 +77,7 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
     const ensure = (k: NonNullable<ReturnType<typeof keyOf>>) => {
       let z = out.get(k.key);
       if (!z) {
-        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, shortLeg: null, offen: 0, pos: 0 };
+        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, shortLeg: null, offen: 0, pos: 0, verlauf: [] };
         out.set(k.key, z);
       }
       z.teamId = k.team; z.name = k.p.name.trim();
@@ -82,6 +94,8 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
         if (f > a) z.wins += 1; else z.losses += 1;
         z.points += pointsForLegs(f, a);
         if (!r.bestaetigt) z.offen += 1;
+        const gegen = keyOf(side === 'home' ? 'guest' : 'home', side === 'home' ? g.guest_slot : g.home_slot);
+        z.verlauf.push({ datum: r.datum ?? null, gegner: gegen?.p.name.trim() ?? 'Unbekannt', gegnerTeam: side === 'home' ? r.guestTeam : r.homeTeam, legs: f, legsGegner: a, offen: !r.bestaetigt });
         imBericht.add(z.key);
       }
     }

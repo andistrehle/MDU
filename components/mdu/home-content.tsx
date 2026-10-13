@@ -16,7 +16,8 @@ import {
 } from '@/lib/data';
 import { TeamChip27 } from '@/components/mdu/spielplan-27';
 import { NaechsteSpieleRotator } from '@/components/mdu/naechste-spiele-rotator';
-import { naechstesWochenende27, wochenendeText, terminKurz, LIGEN_2027 } from '@/lib/data/saison-2027';
+import { naechstesWochenende27, wochenendeText, terminKurz, LIGEN_2027, team27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
+import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
 
@@ -47,7 +48,16 @@ const ORG_JSONLD = {
  * Alles unterhalb des Heros ist identisch, damit die Vorschau die ECHTE Seite zeigt.
  */
 export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fullbleed' }) {
-  const recent   = getRecentResults(undefined, 5);
+  // Letzte Spiele: sobald es Ergebnisse 2026/27 aus den Spielberichten gibt,
+  // stehen diese da (neueste zuerst); vorher wie bisher das Archiv 2025/26.
+  const { byKey: erg27 } = await ladeErgebnisse27();
+  const recent27 = Object.values(erg27)
+    .sort((a, b) => (b.datum ?? '').localeCompare(a.datum ?? ''))
+    .slice(0, 5)
+    .map(e => ({ homeTeamId: e.home, awayTeamId: e.away, leagueName: findLiga27(team27(e.home)?.league)?.name ?? '', date: e.datum, result: { home: e.spieleHome, away: e.spieleAway }, offen: !e.bestaetigt, neu: true as const }));
+  const recent = recent27.length
+    ? recent27
+    : getRecentResults(undefined, 5).map(m => ({ homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId, leagueName: findLeague(m.leagueId)?.name ?? m.leagueId, date: m.date, result: m.result, offen: false, neu: false as const }));
   // Nächstes Spielwochenende der Saison 2026/27 (vorläufiger Plan), alle Ligen.
   const naechstes = naechstesWochenende27();
   const newsArticles = await getHomepageNews();
@@ -236,17 +246,16 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
                 <div>
                   <h2 className="section-heading" style={{ margin: 0 }}>Letzte Spiele</h2>
-                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', marginTop: 6 }}>Saison 2025/26 · Archiv</div>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', marginTop: 6 }}>{recent27.length ? `Saison ${NEUE_SAISON.kurz}` : 'Saison 2025/26 · Archiv'}</div>
                 </div>
-                <Link href="/ergebnisse/2025-26" style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
+                <Link href={recent27.length ? '/ergebnisse' : '/ergebnisse/2025-26'} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none' }}>
                   Alle anzeigen
                 </Link>
               </div>
               <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {recent.map((m, i) => {
-                  const home   = getExtendedTeam(m.homeTeamId);
-                  const away   = getExtendedTeam(m.awayTeamId);
-                  const league = findLeague(m.leagueId);
+                  const home   = m.neu ? { name: team27(m.homeTeamId)?.name ?? m.homeTeamId } : getExtendedTeam(m.homeTeamId);
+                  const away   = m.neu ? { name: team27(m.awayTeamId)?.name ?? m.awayTeamId } : getExtendedTeam(m.awayTeamId);
                   return (
                     <div
                       key={i}
@@ -261,7 +270,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
                         letterSpacing: '0.16em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
                         marginBottom: 10,
                       }}>
-                        {league?.name ?? m.leagueId}
+                        {m.leagueName}
                         {m.date && (
                           <span style={{ color: 'var(--th-text-faint)' }}> · {formatMatchDate(m.date)}</span>
                         )}
@@ -282,7 +291,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
                           padding: '2px 10px', background: 'var(--th-line-6)',
                           borderRadius: 6, letterSpacing: '0.05em',
                         }}>
-                          {m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}
+                          {m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}
                         </span>
                         <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
                           <span className="mdu-link-name" style={{

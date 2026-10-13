@@ -185,14 +185,22 @@ export default async function PlayerProfilePage(
             background: 'var(--th-line-6)', border: '1px solid var(--th-line-6)',
             borderRadius: 14, overflow: 'hidden',
           }}>
-            {[
+            {(archiv ? [
               { n: stats?.rank != null ? `${stats.rank}.` : '—', l: 'Rang', c: stats?.rank === 1 ? 'var(--th-gold)' : undefined },
               { n: hasOfficial ? String(stats!.singlesPlayed) : '—', l: 'Einzelspiele' },
               { n: hasOfficial ? String(stats!.singlesWon) : '—', l: 'Gewonnen' },
               { n: hasOfficial ? String(stats!.singlesLost) : '—', l: 'Verloren' },
               { n: stats ? formatWinRate(stats.winRate) : '—', l: 'Siegquote' },
               { n: stats?.points != null ? String(stats.points) : '—', l: 'Punkte' },
-            ].map((s, i) => (
+            ] : [
+              // Saison 2026/27: aus den digitalen Spielberichten (Einzelrangliste der Liga).
+              { n: e27 ? `${e27.pos}.` : '—', l: 'Rang', c: e27?.pos === 1 ? 'var(--th-gold)' : undefined },
+              { n: e27 ? String(e27.singles) : '—', l: 'Einzelspiele' },
+              { n: e27 ? String(e27.wins) : '—', l: 'Gewonnen' },
+              { n: e27 ? String(e27.losses) : '—', l: 'Verloren' },
+              { n: e27 ? formatWinRate(e27.singles ? e27.wins / e27.singles : null) : '—', l: 'Siegquote' },
+              { n: e27 ? String(e27.points) : '—', l: 'Punkte' },
+            ])            .map((s, i) => (
               <div key={i} style={{ background: 'var(--th-bg-card3)', padding: '18px 16px' }}>
                 <div style={{
                   fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28,
@@ -263,6 +271,35 @@ export default async function PlayerProfilePage(
               <Link href={archivHref} style={{ display: 'inline-block', marginTop: 12, color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
                 Ganze Saison 2025/26 ansehen →
               </Link>
+            </Card>
+          )}
+
+          {!archiv && t27 && (
+            <Card accent={teamColor} title={`Formkurve · ${NEUE_SAISON.name}`}>
+              {e27 && e27.verlauf.length > 0 ? (
+                <>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {e27.verlauf.slice(-5).map((v, i) => <FormBadge key={i} outcome={v.legs > v.legsGegner ? 'W' : 'L'} />)}
+                  </div>
+                  <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>
+                    Die letzten {Math.min(5, e27.verlauf.length)} Einzel, ältestes links, neuestes rechts (S = gewonnen, N = verloren).
+                  </div>
+                  <div style={{ marginTop: 18 }}>
+                    <SubLabel>Letzte Ergebnisse</SubLabel>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {[...e27.verlauf].reverse().slice(0, 5).map((v, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
+                          <FormBadge outcome={v.legs > v.legsGegner ? 'W' : 'L'} />
+                          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{v.legs}:{v.legsGegner}{v.offen && <span title="noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</span>
+                          <span style={{ color: 'var(--th-text-muted)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {v.gegner} <span style={{ color: 'var(--th-text-faint)' }}>({team27(v.gegnerTeam)?.name ?? v.gegnerTeam})</span></span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <Empty>Noch keine Einzel in der {NEUE_SAISON.name}.</Empty>
+              )}
             </Card>
           )}
 
@@ -436,7 +473,7 @@ function SpecialTile({ label, value }: { label: string; value: number | null | u
 function FormBadge({ outcome }: { outcome: 'W' | 'L' }) {
   // W = gewonnenes Einzelspiel, L = verlorenes — kein Unentschieden bei Spielern
   const color = outcome === 'W' ? '#22C55E' : '#EF4444';
-  const label = outcome === 'W' ? 'W' : 'L';
+  const label = outcome === 'W' ? 'S' : 'N';
   return (
     <span style={{
       width: 28, height: 28, borderRadius: 7,
