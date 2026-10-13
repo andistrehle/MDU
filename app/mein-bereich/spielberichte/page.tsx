@@ -4,7 +4,7 @@
 // Mein Bereich — Spielbericht erfassen (MDU 4er-Bogen, online)
 // ============================================================
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
@@ -15,7 +15,8 @@ import {
   type Begegnung27,
 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
-import { sendeLive } from '@/lib/spielbericht-live';
+import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
+import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
@@ -138,6 +139,12 @@ function SpielberichteInner() {
   );
   // Live-Ansicht (Monitor im Lokal): jeder Stand geht sofort an das zweite
   // Fenster (lib/spielbericht-live.ts) — nur im Browser, nichts an den Server.
+  const liveStand: LiveStand = {
+    homeTeamId: header.home_team_id, guestTeamId: header.guest_team_id,
+    homeName: header.home_team_name, guestName: header.guest_team_name,
+    liga: header.league_label ?? '', datum: header.match_date, ort: header.venue ?? '',
+    homePlayers, guestPlayers, games, highlights: header.highlights ?? [], bestOf, zeit: 0,
+  };
   useEffect(() => {
     if (!header.home_team_id && !header.guest_team_id) return;
     sendeLive({
@@ -147,6 +154,8 @@ function SpielberichteInner() {
       homePlayers, guestPlayers, games, highlights: header.highlights ?? [], bestOf, zeit: Date.now(),
     });
   }, [header, homePlayers, guestPlayers, games, bestOf]);
+  // Live-Modus (Tablet): die Anzeige im Vollbild, Eingabe direkt durch Antippen.
+  const [liveModus, setLiveModus] = useState(false);
 
   // Vorschlag des Gegners je Spiel-Nr. (zum farblichen Markieren der Abweichungen).
   const proposedByNo = useMemo(() => {
@@ -210,6 +219,60 @@ function SpielberichteInner() {
     setGuestPlayers(emptyPlayers('guest'));
   }
 
+  // ── Sicherung gegen Datenverlust (Neuladen, Tab zu, Akku leer) ──────
+  // Jeder Stand liegt zusätzlich im localStorage dieses Geräts; nach dem
+  // Neuladen wird er automatisch wiederhergestellt (Hinweis mit „Verwerfen“).
+  // Solange etwas nicht in der Datenbank gespeichert ist, fragt der Browser
+  // beim Schließen/Neuladen nach. Gelöscht wird die Sicherung nach jedem
+  // erfolgreichen Speichern/Absenden.
+  const [geladenFuer, setGeladenFuer] = useState<string | null>(null);
+  const geladen = geladenFuer === (idParam ?? 'neu');
+  const [wiederhergestellt, setWiederhergestellt] = useState<number | null>(null);
+  // Stand direkt nach dem Laden (je Bericht) — Vergleich für „ungespeichert“.
+  const basisRef = useRef<{ key: string; json: string } | null>(null);
+  const sicherungsKey = user ? `mdu-sb-entwurf:${user.id}:${idParam ?? 'neu'}` : null;
+  const standJson = JSON.stringify({ header, homePlayers, guestPlayers, games });
+  const [ungespeichert, setUngespeichert] = useState(false);
+  useEffect(() => {
+    if (!geladen || !sicherungsKey) return;
+    if (basisRef.current?.key !== sicherungsKey) {
+      basisRef.current = { key: sicherungsKey, json: standJson };
+      try {
+        const roh = localStorage.getItem(sicherungsKey);
+        const d = roh ? JSON.parse(roh) as { header: ReportHeaderDraft; homePlayers: ReportPlayer[]; guestPlayers: ReportPlayer[]; games: ReportGame[]; regId: string | null; zeit: number } : null;
+        const frisch = d && Date.now() - d.zeit < 3 * 24 * 3600 * 1000;
+        if (d && frisch && JSON.stringify({ header: d.header, homePlayers: d.homePlayers, guestPlayers: d.guestPlayers, games: d.games }) !== standJson) {
+          queueMicrotask(() => {
+            setHeader(d.header); setHomePlayers(d.homePlayers); setGuestPlayers(d.guestPlayers); setGames(d.games);
+            if (d.regId) setRegId(r => r ?? d.regId);
+            setWiederhergestellt(d.zeit);
+          });
+        }
+      } catch { /* kein Speicher */ }
+      return;
+    }
+    const anders = basisRef.current.json !== standJson;
+    queueMicrotask(() => setUngespeichert(anders));
+    if (!anders) return;
+    try { localStorage.setItem(sicherungsKey, JSON.stringify({ header, homePlayers, guestPlayers, games, regId, zeit: Date.now() })); } catch { /* voll/privat */ }
+  }, [geladen, sicherungsKey, standJson, header, homePlayers, guestPlayers, games, regId]);
+  useEffect(() => {
+    if (!ungespeichert || readOnly) return;
+    const warnen = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warnen);
+    return () => window.removeEventListener('beforeunload', warnen);
+  }, [ungespeichert, readOnly]);
+  function sicherungErledigt() {
+    if (sicherungsKey) basisRef.current = { key: sicherungsKey, json: standJson };
+    setUngespeichert(false);
+    setWiederhergestellt(null);
+    try { if (sicherungsKey) localStorage.removeItem(sicherungsKey); } catch { /* egal */ }
+  }
+  function sicherungVerwerfen() {
+    try { if (sicherungsKey) localStorage.removeItem(sicherungsKey); } catch { /* egal */ }
+    window.location.reload();
+  }
+
   // OCR-Verfügbarkeit (für den optionalen „Foto/PDF hochladen"-Einstieg).
   useEffect(() => { if (allowed) getOcrAvailability().then(a => setOcrAvail(a.enabled)); }, [allowed]);
 
@@ -241,6 +304,7 @@ function SpielberichteInner() {
         setGames(emptyGames());
         if (begegnungParam && BEGEGNUNGEN.some(b => b.key === begegnungParam)) onBegegnung(begegnungParam);
       }
+      if (!cancelled) setGeladenFuer(idParam ?? 'neu');
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -423,7 +487,7 @@ function SpielberichteInner() {
     const id = await persist();
     if (id && adminEditsForeign) await notifyReportChange(id, 'changed');
     setBusy(false);
-    if (id) setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' });
+    if (id) { sicherungErledigt(); setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' }); }
   }
   async function onSubmit() {
     const v = validate();
@@ -438,6 +502,7 @@ function SpielberichteInner() {
     if (!error && adminEditsForeign && !adminDirekt && !bleibtBestaetigt) await notifyReportChange(id, 'changed');
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
+    sicherungErledigt();
     router.push(adminEditsForeign || fromAdmin || adminDirekt ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht');
   }
 
@@ -460,8 +525,40 @@ function SpielberichteInner() {
     setMsg({ kind: 'ok', text: 'Vorschlag übernommen — bitte prüfen und anschließend „Spielbericht absenden".' });
   }
 
+  const liveBearbeiten = {
+    legOptionen: legOptionen as readonly string[],
+    slotOptionen: (no: number, feld: 'home_slot' | 'guest_slot' | 'home_slot2' | 'guest_slot2') => {
+      const g = games.find(x => x.game_no === no);
+      const seite = feld.startsWith('home') ? 'home' as const : 'guest' as const;
+      if (!g) return [];
+      if (g.game_type === 'single') {
+        const pos = GAME_SCHEDULE.find(x => x.no === no);
+        const p = seite === 'home' ? pos?.homeSlot : pos?.guestSlot;
+        return p != null ? singlesAllowed(seite, p) : activeSlots(seite);
+      }
+      const partner = feld === 'home_slot' ? g.home_slot2 : feld === 'home_slot2' ? g.home_slot : feld === 'guest_slot' ? g.guest_slot2 : g.guest_slot;
+      return doublesAllowed(seite, no, partner);
+    },
+    onLegs: setGameLegs,
+    onSlot: setGameSlot,
+    onHighlight: (h: HighlightEntry) => setHeader(x => ({ ...x, highlights: [...(x.highlights ?? []), h] })),
+    onHighlightWeg: removeHighlight,
+  };
+
   return (
     <MemberShell title="Spielbericht erfassen">
+      {liveModus && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2147483000, overflow: 'auto', color: '#fff', fontFamily: 'var(--font-manrope)', background: LIVE_HINTERGRUND }}>
+          <div style={{ paddingBottom: 72 }}><LiveAnzeige s={liveStand} bearbeiten={readOnly ? undefined : liveBearbeiten} /></div>
+          <div style={{ position: 'fixed', right: 12, bottom: 12, zIndex: 3, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {!readOnly && (
+              <button type="button" disabled={busy} onClick={() => void onSaveDraft()} style={liveLeiste}>{busy ? 'Speichert …' : ungespeichert ? '💾 Zwischenspeichern' : '✓ Gespeichert'}</button>
+            )}
+            <button type="button" onClick={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void document.documentElement.requestFullscreen?.().catch(() => {}); }} style={liveLeiste}>⛶ Vollbild</button>
+            <button type="button" onClick={() => { setLiveModus(false); if (document.fullscreenElement) void document.exitFullscreen(); }} style={{ ...liveLeiste, background: 'rgba(255,255,255,0.18)' }}>✕ Zurück zum Formular</button>
+          </div>
+        </div>
+      )}
       {fromAdmin && (
         <Link href="/admin/spielberichte" style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16,
@@ -494,15 +591,27 @@ function SpielberichteInner() {
                 </Link>
               </div>
             )}
+            {wiederhergestellt && (
+              <div role="status" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: 'rgba(232,184,74,0.14)', border: '1px solid rgba(232,184,74,0.5)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                <span><strong style={{ color: 'var(--th-text-strong)' }}>Stand wiederhergestellt</strong> — deine Eingaben von {new Date(wiederhergestellt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr waren noch nicht gespeichert und sind wieder da.</span>
+                <button type="button" onClick={sicherungVerwerfen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-muted)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, textDecoration: 'underline' }}>Verwerfen</button>
+              </div>
+            )}
             {!readOnly && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)' }}>
-                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                  <strong style={{ color: 'var(--th-text-strong)' }}>Live-Ansicht für den Monitor:</strong> öffnet ein zweites Fenster, das jede Eingabe sofort zeigt. Aufs Zweitbild ziehen und dort auf Vollbild.
+                <span style={{ flex: '1 1 260px', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--th-text-strong)' }}>Live-Anzeige:</strong> Am Tablet „Live-Modus“ – alles groß, Ergebnis, Spieler und Highlights direkt antippen. Am Laptop mit Monitor „Zweites Fenster“ aufs Zweitbild ziehen.
                 </span>
-                <button type="button" onClick={() => window.open('/mein-bereich/spielberichte/live', 'mdu-live', 'popup,width=1280,height=760')}
-                  style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: 'none', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap' }}>
-                  📺 Live-Ansicht öffnen
-                </button>
+                <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" disabled={!header.home_team_id} onClick={() => { setLiveModus(true); void document.documentElement.requestFullscreen?.().catch(() => {}); }}
+                    style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, cursor: header.home_team_id ? 'pointer' : 'not-allowed', opacity: header.home_team_id ? 1 : 0.5, background: 'var(--th-accent)', color: '#fff', border: 'none', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap' }}>
+                    📺 Live-Modus (hier eingeben)
+                  </button>
+                  <button type="button" onClick={() => window.open('/mein-bereich/spielberichte/live', 'mdu-live', 'popup,width=1280,height=760')}
+                    style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap' }}>
+                    Zweites Fenster
+                  </button>
+                </span>
               </div>
             )}
             {msg && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}
@@ -911,3 +1020,5 @@ const input: React.CSSProperties = {
 };
 const ghost: React.CSSProperties = { padding: '12px 22px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
 const primary: React.CSSProperties = { padding: '12px 28px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
+
+const liveLeiste: React.CSSProperties = { padding: '12px 16px', minHeight: 46, borderRadius: 10, border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(20,24,34,0.85)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-manrope)', backdropFilter: 'blur(6px)' };
