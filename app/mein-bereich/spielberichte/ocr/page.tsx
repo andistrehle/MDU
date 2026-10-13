@@ -41,13 +41,16 @@ export default function OcrUploadPage() {
 function OcrUploadInner() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const isAdmin = hasMinRole(user, 'league_admin');
-  const allowed = isAdmin || user?.role === 'team_captain';
+  // Kapitänsmodus (Mein Bereich) vs. Admin-Modus (aus Admin → Spielberichte,
+  // ?from=admin) — wie im Online-Formular. Ligaleitung ohne eigenes Team: Admin.
+  const adminKonto = hasMinRole(user, 'league_admin');
+  const allowed = adminKonto || user?.role === 'team_captain';
   // Vorbelegte Begegnung (Heim|Gast) — z. B. Ligaleitung lädt aus Admin →
   // Spielberichte oder aus dem Formular den Bogen eines anderen Teams hoch.
   const searchParams = useSearchParams();
   const begegnungParam = searchParams.get('begegnung');
   const fromAdmin = searchParams.get('from') === 'admin';
+  const isAdmin = adminKonto && (fromAdmin || !user?.teamId);
   const vorbelegt = begegnungParam ? MATCHES.find(m => m.id === MATCH_ID_PREFIX_27 + begegnungParam) ?? null : null;
 
   const [available, setAvailable] = useState<boolean | null>(null);
@@ -69,7 +72,6 @@ function OcrUploadInner() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'err' | 'info'; text: string } | null>(null);
 
-  const hasOwnTeam = !!user?.teamId;
   // Admin schaut die volle Liga-Liste an? Nur dann greifen Umschalter-Filter.
   const adminAll = isAdmin && scope === 'all';
 
@@ -78,10 +80,10 @@ function OcrUploadInner() {
     getOcrAvailability().then(a => { setAvailable(a.enabled); setMaxMb(a.maxFileMb); });
   }, [user]);
 
-  // Admin ohne eigene Mannschaft kann nur die „Alle Begegnungen"-Ansicht nutzen.
+  // Admin-Modus zeigt immer alle Begegnungen, der Kapitänsmodus nur die eigenen.
   useEffect(() => {
-    if (isAdmin && !hasOwnTeam) queueMicrotask(() => setScope('all'));
-  }, [isAdmin, hasOwnTeam]);
+    queueMicrotask(() => setScope(isAdmin ? 'all' : 'mine'));
+  }, [isAdmin]);
 
   const matches = useMemo(() => {
     // Kapitäne sowie Admins im „Meine Mannschaft"-Modus: nur eigene Begegnungen.
@@ -180,12 +182,6 @@ function OcrUploadInner() {
             )}
 
             <Card title="1 · Begegnung (optional)">
-              {isAdmin && hasOwnTeam && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={() => setScope('mine')} style={segBtn(scope === 'mine')}>Meine Mannschaft</button>
-                  <button type="button" onClick={() => setScope('all')} style={segBtn(scope === 'all')}>Alle Begegnungen</button>
-                </div>
-              )}
               {adminAll && (
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <select value={leagueFilter} onChange={e => setLeagueFilter(e.target.value)} style={{ ...input, flex: '1 1 180px', width: 'auto' }} aria-label="Nach Liga filtern">
@@ -285,12 +281,3 @@ const btn: React.CSSProperties = { padding: '10px 18px', borderRadius: 8, cursor
 const primary: React.CSSProperties = { padding: '12px 24px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
 
 /** Segment-Button für den Ansicht-Umschalter (Meine Mannschaft / Alle Begegnungen). */
-function segBtn(active: boolean): React.CSSProperties {
-  return {
-    flex: 1, padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
-    background: active ? 'var(--th-accent-a12)' : 'transparent',
-    border: `1.5px solid ${active ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
-    color: active ? 'var(--th-accent)' : 'var(--th-text-muted)',
-    fontFamily: 'var(--font-manrope)', fontWeight: active ? 800 : 600, fontSize: 12.5,
-  };
-}

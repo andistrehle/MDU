@@ -102,7 +102,14 @@ function SpielberichteInner() {
   const begegnungParam = searchParams.get('begegnung');
   // Aus der Admin-Konsole hierher gesprungen? Dann Rückweg anbieten (REV-036).
   const fromAdmin = searchParams.get('from') === 'admin';
-  const isAdminRole = user?.role === 'league_admin' || user?.role === 'super_admin';
+  // Zwei Modi (vom Betreiber festgelegt, 13.10.2026): Unter „Mein Bereich“ ist
+  // auch ein Ligaleitungs-Konto mit eigenem Team im KAPITÄNSMODUS — nur die
+  // eigenen Begegnungen, Ablauf wie bei jedem TC (Gegner bestätigt). Der
+  // ADMIN-MODUS (alle Begegnungen, fremde Berichte bearbeiten, direkt
+  // bestätigen) gilt nur aus Admin → Spielberichte (?from=admin) — oder für
+  // Ligaleitungs-Konten ohne eigenes Team.
+  const adminKonto = user?.role === 'league_admin' || user?.role === 'super_admin';
+  const isAdminRole = adminKonto && (fromAdmin || !user?.teamId);
   // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
   const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
   // Nur-Lese-Ansicht: Gegner-Kapitän ODER bereits bestätigter Bericht (außer Admin).
@@ -166,9 +173,9 @@ function SpielberichteInner() {
   // Wählbare Begegnungen: Kapitän nur die des eigenen Teams (Heim ODER Gast —
   // laut Spielbedingungen trägt einer ein, der andere bestätigt), Ligaleitung alle.
   const begegnungen = useMemo(() => {
-    const own = user?.role === 'team_captain' ? user.teamId : null;
+    const own = isAdminRole ? null : user?.teamId ?? null;
     return BEGEGNUNGEN.filter(b => !own || b.home === own || b.away === own);
-  }, [user?.role, user?.teamId]);
+  }, [isAdminRole, user?.teamId]);
   const gewaehlt = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
 
   function onBegegnung(key: string) {
@@ -450,6 +457,14 @@ function SpielberichteInner() {
         }}>
           ← Zurück zur Admin-Konsole
         </Link>
+      )}
+      {!loading && adminKonto && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16, padding: '10px 14px', borderRadius: 12, fontFamily: 'var(--font-manrope)', fontSize: 13,
+          background: isAdminRole ? 'rgba(232,184,74,0.14)' : 'var(--th-accent-a07)', border: `1px solid ${isAdminRole ? 'rgba(232,184,74,0.45)' : 'var(--th-accent-a25)'}`, color: 'var(--th-text-body)' }}>
+          <strong style={{ color: 'var(--th-text-strong)' }}>{isAdminRole ? 'Admin-Modus' : 'Kapitänsmodus'}</strong>
+          <span>{isAdminRole ? 'Alle Begegnungen, Berichte für andere Teams anlegen und bearbeiten.' : 'Nur die Spiele deines Teams.'}</span>
+          {!isAdminRole && <Link href="/admin/spielberichte" style={{ marginLeft: 'auto', color: 'var(--th-accent)', fontWeight: 800, textDecoration: 'none' }}>Für andere Teams → Admin</Link>}
+        </div>
       )}
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Spielberichte sind nur mit Konto verfügbar.{' '}<LoginLink /></Notice>

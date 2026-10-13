@@ -24,7 +24,11 @@ export default function SpielberichteUebersichtPage() {
   const allowed = canUploadMatchReport(user, user?.teamId ?? '')
     || user?.role === 'team_captain' || user?.role === 'league_admin' || user?.role === 'super_admin';
 
-  const [rows, setRows] = useState<MatchReport[] | null>(null);
+  const [alleRows, setRows] = useState<MatchReport[] | null>(null);
+  // Kapitänsmodus: auch Ligaleitungs-Konten mit eigenem Team sehen hier nur die
+  // Berichte ihres Teams — alle anderen stehen unter Admin → Spielberichte.
+  const eigenesTeam = user?.teamId ?? null;
+  const rows = alleRows && eigenesTeam ? alleRows.filter(x => x.home_team_id === eigenesTeam || x.guest_team_id === eigenesTeam) : alleRows;
   const [busy, setBusy] = useState(false);
   const [ocrAvail, setOcrAvail] = useState(false);
 
