@@ -95,6 +95,7 @@ function Anzeige({ s }: { s: LiveStand }) {
               {spalte.map(g => <SpielZeile key={g.game_no} g={g} s={s} aktuell={g.game_no === aktuell} />)}
             </div>
           ))}
+          <Auswechslungen s={s} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4vh', minWidth: 0 }}>
@@ -156,16 +157,6 @@ function SpielZeile({ g, s, aktuell }: { g: ReportGame; s: LiveStand; aktuell: b
     (doppel ? [a, b] : [a]).filter(x => x != null).map(x => `${pre}${x} ${nameVon(spieler, x)}`).join('\n') || '—';
   // Doppel: beide Namen untereinander statt abgeschnitten nebeneinander.
   const zeile: React.CSSProperties = doppel ? { whiteSpace: 'pre-line', lineHeight: 1.25 } : { whiteSpace: 'nowrap' };
-  const plan = GAME_SCHEDULE.find(x => x.no === g.game_no);
-  const wechsel = (spieler: ReportPlayer[], ist: number | null, soll: number | null | undefined, pre: string, rechts = false) => {
-    if (doppel || ist == null || soll == null || ist === soll) return null;
-    const erstes = wechselVon(s.games, pre === 'H' ? 'home' : 'guest').get(ist)?.abSpiel === g.game_no;
-    return (
-      <span style={{ display: 'block', fontSize: '0.72em', fontWeight: 700, color: GOLD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: rechts ? 'right' : 'left' }}>
-        {erstes && <span style={{ marginRight: 6, padding: '0 6px', borderRadius: 4, background: GOLD, color: '#1A1D24', fontSize: '0.85em', letterSpacing: '0.08em' }}>WECHSEL</span>}⇄ für {pre}{soll} {nameVon(spieler, soll)}
-      </span>
-    );
-  };
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: '2.4em minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: '0.6vw',
@@ -174,12 +165,37 @@ function SpielZeile({ g, s, aktuell }: { g: ReportGame; s: LiveStand; aktuell: b
       border: `1px solid ${aktuell ? GOLD : 'rgba(255,255,255,0.08)'}`,
     }}>
       <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, opacity: 0.7, textAlign: 'center' }}>{g.game_no}{doppel && <span style={{ display: 'block', fontSize: '0.6em', letterSpacing: '0.1em', color: GOLD }}>DOPPEL</span>}</span>
-      <span style={{ fontWeight: heimSieg ? 800 : 600, opacity: gastSieg ? 0.55 : 1, overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.homePlayers, g.home_slot, g.home_slot2, 'H')}{wechsel(s.homePlayers, g.home_slot, plan?.homeSlot, 'H')}</span>
+      <span style={{ fontWeight: heimSieg ? 800 : 600, opacity: gastSieg ? 0.55 : 1, overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.homePlayers, g.home_slot, g.home_slot2, 'H')}</span>
       <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800, padding: '0.2vh 0.6vw', borderRadius: 6, minWidth: '3.2em', textAlign: 'center',
         background: fertig ? (heimSieg ? 'rgba(62,156,51,0.45)' : gastSieg ? 'rgba(78,125,189,0.5)' : 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.08)' }}>
         {fertig ? `${g.legs_home}:${g.legs_guest}` : aktuell ? '●' : '–'}
       </span>
-      <span style={{ fontWeight: gastSieg ? 800 : 600, opacity: heimSieg ? 0.55 : 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.guestPlayers, g.guest_slot, g.guest_slot2, 'G')}{wechsel(s.guestPlayers, g.guest_slot, plan?.guestSlot, 'G', true)}</span>
+      <span style={{ fontWeight: gastSieg ? 800 : 600, opacity: heimSieg ? 0.55 : 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.guestPlayers, g.guest_slot, g.guest_slot2, 'G')}</span>
+    </div>
+  );
+}
+
+/** Zeile unter den Doppeln: wer raus (↓), wer rein (↑), ab welchem Spiel. */
+function Auswechslungen({ s }: { s: LiveStand }) {
+  const liste = (['home', 'guest'] as const).flatMap(seite => {
+    const spieler = seite === 'home' ? s.homePlayers : s.guestPlayers;
+    const pre = seite === 'home' ? 'H' : 'G';
+    return [...wechselVon(s.games, seite)].map(([rein, w]) => ({ key: `${pre}${rein}`, pre, raus: w.fuer, rein, ab: w.abSpiel, spieler }));
+  }).sort((a, b) => a.ab - b.ab);
+  if (!liste.length) return null;
+  const name = (sp: ReportPlayer[], slot: number) => (sp.find(p => p.slot === slot)?.name.trim() || '').split(/\s+/)[0] || `#${slot}`;
+  return (
+    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6vh 1.6vw', padding: '0.9vh 1vw', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.35)', fontSize: fz(11, 0.95, 20) }}>
+      <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: GOLD }}>Auswechslungen:</span>
+      {liste.map(w => (
+        <span key={w.key} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5vw', fontWeight: 700, whiteSpace: 'nowrap' }}>
+          <span>{w.pre}{w.raus} {name(w.spieler, w.raus)}</span>
+          <span aria-label="raus" style={{ color: '#FF6B6B', fontWeight: 900 }}>↓</span>
+          <span aria-label="rein" style={{ color: '#7BE07B', fontWeight: 900 }}>↑</span>
+          <span>{w.pre}{w.rein} {name(w.spieler, w.rein)}</span>
+          <span style={{ opacity: 0.6, fontWeight: 600 }}>(ab Spiel {w.ab})</span>
+        </span>
+      ))}
     </div>
   );
 }
@@ -204,8 +220,8 @@ function Aufstellung({ spieler, punkte, prefix, farbe, wechsel }: { spieler: Rep
           <span style={{ flexShrink: 0, minWidth: '2.2em', textAlign: 'center', padding: '0.1vh 0.3vw', borderRadius: 5, fontWeight: 800, background: p.slot <= 4 ? farbe : 'rgba(255,255,255,0.12)' }}>{prefix}{p.slot}</span>
           <span style={{ flex: 1, minWidth: 0, fontWeight: 700 }}>
             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name.trim() || 'frei'}</span>
-            {wechsel.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: GOLD }}>⇄ für {prefix}{wechsel.get(p.slot)!.fuer} ab Spiel {wechsel.get(p.slot)!.abSpiel}</span>}
-            {raus.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: 'rgba(255,255,255,0.6)' }}>↓ raus ab Spiel {raus.get(p.slot)!.ab} ({prefix}{raus.get(p.slot)!.sub})</span>}
+            {wechsel.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: '#7BE07B' }}>↑ für {prefix}{wechsel.get(p.slot)!.fuer} ab Spiel {wechsel.get(p.slot)!.abSpiel}</span>}
+            {raus.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: '#FF8A8A' }}>↓ raus ab Spiel {raus.get(p.slot)!.ab} ({prefix}{raus.get(p.slot)!.sub})</span>}
           </span>
           {punkte[p.slot] != null && <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800, color: GOLD }}>{punkte[p.slot]}</span>}
         </div>
