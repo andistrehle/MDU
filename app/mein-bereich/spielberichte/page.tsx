@@ -25,7 +25,7 @@ import {
   submitGuestProposal, computePlayerRanking, adminBestaetigen,
   HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
-  type HighlightEntry, type HighlightType,
+  type HighlightEntry, type HighlightType, highlightHinzufuegen,
 } from '@/lib/supabase/match-reports';
 
 const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8]; // 4 Starter + bis zu 4 Wechsel
@@ -369,7 +369,7 @@ function SpielberichteInner() {
       setMsg({ kind: 'err', text: `Bitte ${cfg.label} zwischen ${cfg.min} und ${cfg.max} angeben.` }); return;
     }
     const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value };
-    setHeader(h => ({ ...h, highlights: [...(h.highlights ?? []), entry] }));
+    setHeader(h => ({ ...h, highlights: highlightHinzufuegen(h.highlights ?? [], entry) }));
     setHlValue(''); setMsg(null);
   }
   function removeHighlight(i: number) {
@@ -556,7 +556,7 @@ function SpielberichteInner() {
     },
     onLegs: setGameLegs,
     onSlot: setGameSlot,
-    onHighlight: (h: HighlightEntry) => setHeader(x => ({ ...x, highlights: [...(x.highlights ?? []), h] })),
+    onHighlight: (h: HighlightEntry) => setHeader(x => ({ ...x, highlights: highlightHinzufuegen(x.highlights ?? [], h) })),
     onHighlightWeg: removeHighlight,
   };
 

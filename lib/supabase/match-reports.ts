@@ -74,6 +74,18 @@ export interface HighlightEntry {
   value: number | null;
 }
 
+/**
+ * Highlight anhängen: 180er/171er desselben Spielers werden ADDIERT (ein
+ * Eintrag „180er ×3“ statt drei Einträgen). High Finish und Short Leg bleiben
+ * Einzeleinträge — jeder hat seinen eigenen Wert.
+ */
+export function highlightHinzufuegen(liste: HighlightEntry[], neu: HighlightEntry): HighlightEntry[] {
+  if (!HIGHLIGHT_VALUE_CONFIG[neu.type].isCount) return [...liste, neu];
+  const i = liste.findIndex(h => h.type === neu.type && h.side === neu.side && h.slot === neu.slot);
+  if (i < 0) return [...liste, neu];
+  return liste.map((h, j) => (j === i ? { ...h, value: Math.min(HIGHLIGHT_VALUE_CONFIG[h.type].max, (h.value ?? 0) + (neu.value ?? 0)) } : h));
+}
+
 // Leg-Ergebnisse und Einzelpunkte (Best of 3 / La Liga Best of 5): lib/legs.ts
 export { LEG_RESULTS_BO3, LEG_RESULTS_BO5, legResults, bestOfFuerLiga, pointsForLegs, type LegResult, type BestOf } from '@/lib/legs';
 
