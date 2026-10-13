@@ -213,10 +213,33 @@ function SpielberichteInner() {
       venue: venue27(team27(b.home)?.venueId)?.name ?? '',
       home_team_id: b.home, home_team_name: team27(b.home)?.name ?? b.home,
       guest_team_id: b.away, guest_team_name: team27(b.away)?.name ?? b.away,
-      tc_home: '', tc_guest: '',
+      tc_home: '', tc_guest: '', highlights: [], protest: false, protest_note: '',
     }));
     setHomePlayers(emptyPlayers('home'));
     setGuestPlayers(emptyPlayers('guest'));
+    // Neue Begegnung = neuer Bericht: keine Ergebnisse der vorigen Partie
+    // übernehmen, und ein vorher zwischengespeicherter Entwurf (andere
+    // Begegnung) wird nicht überschrieben — gespeichert wird als neuer Bericht.
+    setGames(emptyGames());
+    if (!idParam) setRegId(null);
+  }
+
+  /** „Formular leeren“: alles zurück auf Anfang (ein gespeicherter Bericht in der DB bleibt unberührt). */
+  function formularLeeren() {
+    if (!confirm('Formular wirklich leeren? Alle Eingaben dieser Seite werden entfernt. Bereits in der Datenbank gespeicherte Berichte bleiben erhalten.')) return;
+    setHeader({
+      season_id: NEUE_SAISON.id, league_label: '', matchday: null, match_date: null, venue: '',
+      home_team_id: null, guest_team_id: null, home_team_name: '', guest_team_name: '',
+      tc_home: '', tc_guest: '', protest: false, protest_note: '', highlights: [],
+    });
+    setHomePlayers(emptyPlayers('home'));
+    setGuestPlayers(emptyPlayers('guest'));
+    setGames(emptyGames());
+    setMsg(null);
+    try { if (sicherungsKey) localStorage.removeItem(sicherungsKey); } catch { /* egal */ }
+    setWiederhergestellt(null);
+    if (idParam) router.push('/mein-bereich/spielberichte' + (fromAdmin ? '?from=admin' : ''));
+    else setRegId(null);
   }
 
   // ── Sicherung gegen Datenverlust (Neuladen, Tab zu, Akku leer) ──────
@@ -950,6 +973,7 @@ function SpielberichteInner() {
                   <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
                   <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : isAdminRole && loadedStatus === 'confirmed' ? 'Änderungen speichern (bleibt bestätigt)' : adminDirekt ? 'Speichern und bestätigen' : 'Spielbericht absenden'}</button>
                   <Link href="/mein-bereich/spielberichte/uebersicht" style={{ ...ghost, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Zur Übersicht</Link>
+                  <button type="button" onClick={formularLeeren} disabled={busy} style={{ ...ghost, color: 'var(--th-loss)', borderColor: 'var(--th-loss)' }}>Formular leeren</button>
                 </div>
               </>
             )}
