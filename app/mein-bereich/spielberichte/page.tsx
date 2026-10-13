@@ -15,6 +15,7 @@ import {
   type Begegnung27,
 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
+import { sendeLive } from '@/lib/spielbericht-live';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
@@ -135,6 +136,18 @@ function SpielberichteInner() {
     () => computePlayerRanking(games, [...homePlayers, ...guestPlayers], header.home_team_name || 'Heim', header.guest_team_name || 'Gast'),
     [games, homePlayers, guestPlayers, header.home_team_name, header.guest_team_name],
   );
+  // Live-Ansicht (Monitor im Lokal): jeder Stand geht sofort an das zweite
+  // Fenster (lib/spielbericht-live.ts) — nur im Browser, nichts an den Server.
+  useEffect(() => {
+    if (!header.home_team_id && !header.guest_team_id) return;
+    sendeLive({
+      homeTeamId: header.home_team_id, guestTeamId: header.guest_team_id,
+      homeName: header.home_team_name, guestName: header.guest_team_name,
+      liga: header.league_label ?? '', datum: header.match_date, ort: header.venue ?? '',
+      homePlayers, guestPlayers, games, highlights: header.highlights ?? [], bestOf, zeit: Date.now(),
+    });
+  }, [header, homePlayers, guestPlayers, games, bestOf]);
+
   // Vorschlag des Gegners je Spiel-Nr. (zum farblichen Markieren der Abweichungen).
   const proposedByNo = useMemo(() => {
     const m = new Map<number, ReportGame>();
@@ -479,6 +492,17 @@ function SpielberichteInner() {
                 <Link href={ocrHref} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
                   📷 Foto/PDF hochladen
                 </Link>
+              </div>
+            )}
+            {!readOnly && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)' }}>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                  <strong style={{ color: 'var(--th-text-strong)' }}>Live-Ansicht für den Monitor:</strong> öffnet ein zweites Fenster, das jede Eingabe sofort zeigt. Aufs Zweitbild ziehen und dort auf Vollbild.
+                </span>
+                <button type="button" onClick={() => window.open('/mein-bereich/spielberichte/live', 'mdu-live', 'popup,width=1280,height=760')}
+                  style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: 'none', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap' }}>
+                  📺 Live-Ansicht öffnen
+                </button>
               </div>
             )}
             {msg && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}

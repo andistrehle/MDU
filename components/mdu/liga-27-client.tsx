@@ -10,7 +10,6 @@ import { Tabelle27 } from './tabelle-27';
 import { Einzelrangliste27 } from './einzelrangliste-27';
 import type { EinzelZeile } from '@/lib/einzelrangliste-2027';
 import type { TabellenZeile } from '@/lib/tabelle-2027';
-import { RelegationUndAusblick } from './auf-abstieg-27';
 import {
   findLiga27, team27, venue27, spieltage27, wochenendeText, datumText, begegnungKey,
   NEUE_SAISON, SAISON_START, SAISON_ENDE, TABS_27, type Liga27Code,
@@ -92,9 +91,7 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
               <Tabelle27 liga={liga} zeilen={tabelle} />
             </div>
 
-            <div style={{ marginTop: 16 }}>
-              <RelegationUndAusblick nurLiga={code} />
-            </div>
+
           </div>
         )}
 
