@@ -66,7 +66,7 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
             <b style={{ color: 'var(--th-text-strong)' }}>{anzahl} Heimspiele</b> an {mitSpiel} von {planWochen.length} Spielwochenenden
             {maxGleichzeitig > 1 && <> · höchstens {maxGleichzeitig} am selben Wochenende</>}
           </InfoZeile>
-          <SpielortDruck venueName={v.name} />
+          <SpielortDruck venueId={id} />
         </div>
 
         {/* Heimteams */}
@@ -82,40 +82,50 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
           })}
         </div>
 
-        {/* Wochen */}
+        {/* Wochen: je Wochenende ein schmaler Kopf, darunter je Spiel EINE Zeile
+            (Termin · Liga/Spieltag · Heim vs Gast · Hinweis). Am Handy rutschen
+            die Teams unter Termin und Liga. */}
+        <style>{`
+          .vp-zeile{display:grid;grid-template-columns:132px 74px minmax(0,1fr) 22px minmax(0,1fr) 96px;align-items:center;gap:10px;padding:9px 16px;border-top:1px solid var(--th-line-4)}
+          .vp-eti{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+          @media (max-width:700px){
+            .vp-zeile{grid-template-columns:auto 1fr;grid-template-areas:"t l" "h h" "v v" "g g" "e e";row-gap:6px;padding:10px 14px}
+            .vp-t{grid-area:t}.vp-l{grid-area:l}.vp-h{grid-area:h}.vp-v{grid-area:v;display:none}.vp-g{grid-area:g}.vp-e{grid-area:e;justify-content:flex-start}
+            .vp-h>*,.vp-g>*{justify-content:flex-start!important;flex-direction:row!important}
+            .vp-h .mdu-link-name{text-align:left!important}
+          }
+        `}</style>
         <div style={{ borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', overflow: 'hidden' }}>
           {wochen.map((w, i) => (
-            // Flex mit Umbruch: Ist es zu schmal (Handy), rutscht das Datum über die Spiele.
-            <div key={w.fri} style={{ display: 'flex', flexWrap: 'wrap', columnGap: 12, rowGap: 6, padding: '10px 16px', borderTop: i ? '1px solid var(--th-line-4)' : 'none', background: w.spiele.length ? 'transparent' : 'var(--th-line-3)' }}>
-              <div style={{ flex: '0 0 120px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, fontWeight: 700, color: w.spiele.length ? 'var(--th-text-strong)' : 'var(--th-text-faint)', paddingTop: 3 }}>
-                {wochenendeText(w.fri, w.sun)}
-                {w.zusatz && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, color: 'var(--th-text-faint)', marginTop: 2 }}>außerhalb des Plans</div>}
+            <div key={w.fri}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 16px', borderTop: i ? '1px solid var(--th-line-6)' : 'none', background: 'var(--th-line-3)' }}>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: w.spiele.length ? 'var(--th-text-muted)' : 'var(--th-text-faint)' }}>
+                  Wochenende {wochenendeText(w.fri, w.sun)}
+                </span>
+                {w.zusatz && <Etikett ton="grau">außerhalb des Plans</Etikett>}
+                {!w.spiele.length && <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>kein Heimspiel</span>}
               </div>
-              {w.spiele.length === 0 ? (
-                <div style={{ flex: '1 1 160px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-faint)', paddingTop: 2 }}>kein Heimspiel</div>
-              ) : (
-                <div style={{ flex: '1 1 300px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {w.spiele.map(({ liga, spieltag, spiel, termin, verlegt }) => (
-                    <div key={spiel.home + spiel.away}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 8px', marginBottom: 4 }}>
-                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, fontWeight: 700, color: termin ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
-                          {termin ? `${terminKurz(termin)}${termin.uhrzeit ? ' Uhr' : ''}` : 'Termin offen'}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: liga.color }}>
-                          {liga.name} · {spieltag}. Spieltag{spiel.derby ? ' · Derby' : ''}
-                        </span>
-                        {verlegt && <Etikett>verlegt</Etikett>}
-                        {termin?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 8 }}>
-                        <TeamChip27 id={spiel.home} size={22} />
-                        <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 12, color: 'var(--th-text-faint)' }}>VS</span>
-                        <TeamChip27 id={spiel.away} align="right" size={22} />
-                      </div>
-                    </div>
-                  ))}
+              {w.spiele.map(({ liga, spieltag, spiel, termin, verlegt }) => (
+                <div key={spiel.home + spiel.away} className="vp-zeile">
+                  <div className="vp-t" style={{ whiteSpace: 'nowrap', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12.5, fontWeight: 700, lineHeight: 1.3, color: termin ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
+                    {termin ? <>{terminKurz({ datum: termin.datum })}<span style={{ color: 'var(--th-text-muted)' }}>{termin.uhrzeit ? ` ${termin.uhrzeit}` : ''}</span></> : 'Termin offen'}
+                  </div>
+                  <div className="vp-l" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                    <span title={`${liga.name} · ${spieltag}. Spieltag`} style={{ padding: '2px 7px', borderRadius: 5, background: liga.color, color: '#fff', fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 12, letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>
+                      {liga.name.replace(/\s*Liga$/, '')}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, color: 'var(--th-text-muted)', whiteSpace: 'nowrap' }}>{spieltag}. ST</span>
+                  </div>
+                  <div className="vp-h"><TeamChip27 id={spiel.home} align="right" size={22} /></div>
+                  <span className="vp-v" style={{ textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 11, color: 'var(--th-text-faint)' }}>VS</span>
+                  <div className="vp-g"><TeamChip27 id={spiel.away} size={22} /></div>
+                  <div className="vp-e vp-eti">
+                    {spiel.derby && <Etikett ton="grau">Derby</Etikett>}
+                    {verlegt && <Etikett>verlegt</Etikett>}
+                    {termin?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           ))}
         </div>
