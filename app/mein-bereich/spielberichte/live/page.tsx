@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { abonniereLive, letzterLiveStand, type LiveStand } from '@/lib/spielbericht-live';
-import { computeTotals, HIGHLIGHT_TYPE_LABELS, type ReportGame, type ReportPlayer } from '@/lib/supabase/match-reports';
+import { computeTotals, GAME_SCHEDULE, HIGHLIGHT_TYPE_LABELS, type ReportGame, type ReportPlayer } from '@/lib/supabase/match-reports';
 import { team27 } from '@/lib/data/saison-2027';
 import { TeamBadge } from '@/components/mdu/team-badge';
 
@@ -100,8 +100,8 @@ function Anzeige({ s }: { s: LiveStand }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4vh', minWidth: 0 }}>
           <Kasten titel="Aufstellung">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1vw' }}>
-              <Aufstellung spieler={s.homePlayers} punkte={t.homePlayerPoints} prefix="H" farbe={GRUEN} />
-              <Aufstellung spieler={s.guestPlayers} punkte={t.guestPlayerPoints} prefix="G" farbe={BLAU} />
+              <Aufstellung spieler={s.homePlayers} punkte={t.homePlayerPoints} prefix="H" farbe={GRUEN} wechsel={wechselVon(s.games, 'home')} />
+              <Aufstellung spieler={s.guestPlayers} punkte={t.guestPlayerPoints} prefix="G" farbe={BLAU} wechsel={wechselVon(s.games, 'guest')} />
             </div>
           </Kasten>
           <Kasten titel="Highlights">
@@ -127,6 +127,24 @@ function Team({ name, id, logo, short, farbe, label, rechts }: { name: string; i
   );
 }
 
+// Auswechslung: Im Einzel steht laut Spielplan (GAME_SCHEDULE) eine feste
+// Position 1–4; spielt dort jemand anderes (Wechselspieler 5–8, der sich fest
+// an diese Position bindet), ist das ein Wechsel. Je Wechselspieler: für wen
+// und ab welchem Spiel.
+type Wechsel = Map<number, { fuer: number; abSpiel: number }>;
+function wechselVon(games: ReportGame[], seite: 'home' | 'guest'): Wechsel {
+  const m: Wechsel = new Map();
+  for (const g of [...games].sort((a, b) => a.game_no - b.game_no)) {
+    if (g.game_type !== 'single') continue;
+    const plan = GAME_SCHEDULE.find(x => x.no === g.game_no);
+    const soll = seite === 'home' ? plan?.homeSlot : plan?.guestSlot;
+    const ist = seite === 'home' ? g.home_slot : g.guest_slot;
+    if (soll == null || ist == null || ist === soll || m.has(ist)) continue;
+    m.set(ist, { fuer: soll, abSpiel: g.game_no });
+  }
+  return m;
+}
+
 const nameVon = (spieler: ReportPlayer[], slot: number | null) => (slot == null ? '' : spieler.find(p => p.slot === slot)?.name.trim() || `#${slot}`);
 
 function SpielZeile({ g, s, aktuell }: { g: ReportGame; s: LiveStand; aktuell: boolean }) {
@@ -138,6 +156,16 @@ function SpielZeile({ g, s, aktuell }: { g: ReportGame; s: LiveStand; aktuell: b
     (doppel ? [a, b] : [a]).filter(x => x != null).map(x => `${pre}${x} ${nameVon(spieler, x)}`).join('\n') || '—';
   // Doppel: beide Namen untereinander statt abgeschnitten nebeneinander.
   const zeile: React.CSSProperties = doppel ? { whiteSpace: 'pre-line', lineHeight: 1.25 } : { whiteSpace: 'nowrap' };
+  const plan = GAME_SCHEDULE.find(x => x.no === g.game_no);
+  const wechsel = (spieler: ReportPlayer[], ist: number | null, soll: number | null | undefined, pre: string, rechts = false) => {
+    if (doppel || ist == null || soll == null || ist === soll) return null;
+    const erstes = wechselVon(s.games, pre === 'H' ? 'home' : 'guest').get(ist)?.abSpiel === g.game_no;
+    return (
+      <span style={{ display: 'block', fontSize: '0.72em', fontWeight: 700, color: GOLD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: rechts ? 'right' : 'left' }}>
+        {erstes && <span style={{ marginRight: 6, padding: '0 6px', borderRadius: 4, background: GOLD, color: '#1A1D24', fontSize: '0.85em', letterSpacing: '0.08em' }}>WECHSEL</span>}⇄ für {pre}{soll} {nameVon(spieler, soll)}
+      </span>
+    );
+  };
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: '2.4em minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: '0.6vw',
@@ -146,12 +174,12 @@ function SpielZeile({ g, s, aktuell }: { g: ReportGame; s: LiveStand; aktuell: b
       border: `1px solid ${aktuell ? GOLD : 'rgba(255,255,255,0.08)'}`,
     }}>
       <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, opacity: 0.7, textAlign: 'center' }}>{g.game_no}{doppel && <span style={{ display: 'block', fontSize: '0.6em', letterSpacing: '0.1em', color: GOLD }}>DOPPEL</span>}</span>
-      <span style={{ fontWeight: heimSieg ? 800 : 600, opacity: gastSieg ? 0.55 : 1, overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.homePlayers, g.home_slot, g.home_slot2, 'H')}</span>
+      <span style={{ fontWeight: heimSieg ? 800 : 600, opacity: gastSieg ? 0.55 : 1, overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.homePlayers, g.home_slot, g.home_slot2, 'H')}{wechsel(s.homePlayers, g.home_slot, plan?.homeSlot, 'H')}</span>
       <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800, padding: '0.2vh 0.6vw', borderRadius: 6, minWidth: '3.2em', textAlign: 'center',
         background: fertig ? (heimSieg ? 'rgba(62,156,51,0.45)' : gastSieg ? 'rgba(78,125,189,0.5)' : 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.08)' }}>
         {fertig ? `${g.legs_home}:${g.legs_guest}` : aktuell ? '●' : '–'}
       </span>
-      <span style={{ fontWeight: gastSieg ? 800 : 600, opacity: heimSieg ? 0.55 : 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.guestPlayers, g.guest_slot, g.guest_slot2, 'G')}</span>
+      <span style={{ fontWeight: gastSieg ? 800 : 600, opacity: heimSieg ? 0.55 : 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', ...zeile }}>{seite(s.guestPlayers, g.guest_slot, g.guest_slot2, 'G')}{wechsel(s.guestPlayers, g.guest_slot, plan?.guestSlot, 'G', true)}</span>
     </div>
   );
 }
@@ -165,14 +193,20 @@ function Kasten({ titel, children }: { titel: string; children: React.ReactNode 
   );
 }
 
-function Aufstellung({ spieler, punkte, prefix, farbe }: { spieler: ReportPlayer[]; punkte: Record<number, number>; prefix: string; farbe: string }) {
+function Aufstellung({ spieler, punkte, prefix, farbe, wechsel }: { spieler: ReportPlayer[]; punkte: Record<number, number>; prefix: string; farbe: string; wechsel: Wechsel }) {
   const belegt = [...spieler].sort((a, b) => a.slot - b.slot);
+  // Wer wurde ausgewechselt? Position → Wechselspieler
+  const raus = new Map([...wechsel].map(([sub, w]) => [w.fuer, { sub, ab: w.abSpiel }]));
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4vh', minWidth: 0 }}>
       {belegt.map(p => (
         <div key={p.slot} style={{ display: 'flex', alignItems: 'center', gap: '0.5vw', fontSize: fz(10, 0.85, 17), opacity: p.name.trim() ? 1 : 0.35, borderTop: p.slot === 5 ? '1px dashed rgba(255,255,255,0.2)' : 'none', paddingTop: p.slot === 5 ? '0.4vh' : 0 }}>
           <span style={{ flexShrink: 0, minWidth: '2.2em', textAlign: 'center', padding: '0.1vh 0.3vw', borderRadius: 5, fontWeight: 800, background: p.slot <= 4 ? farbe : 'rgba(255,255,255,0.12)' }}>{prefix}{p.slot}</span>
-          <span style={{ flex: 1, minWidth: 0, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name.trim() || 'frei'}</span>
+          <span style={{ flex: 1, minWidth: 0, fontWeight: 700 }}>
+            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name.trim() || 'frei'}</span>
+            {wechsel.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: GOLD }}>⇄ für {prefix}{wechsel.get(p.slot)!.fuer} ab Spiel {wechsel.get(p.slot)!.abSpiel}</span>}
+            {raus.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: 'rgba(255,255,255,0.6)' }}>↓ raus ab Spiel {raus.get(p.slot)!.ab} ({prefix}{raus.get(p.slot)!.sub})</span>}
+          </span>
           {punkte[p.slot] != null && <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800, color: GOLD }}>{punkte[p.slot]}</span>}
         </div>
       ))}
