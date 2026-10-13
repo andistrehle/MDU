@@ -76,17 +76,17 @@ export default function ZusagenPage() {
   const anzahlKader = (kader?.length ?? 0) + (user?.playerId && kader && !kader.some(k => k.id === user.playerId) ? 1 : 0);
 
   return (
-    <MemberShell title="Zu- und Absagen">
+    <MemberShell title="Team Manager">
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
         : !zusagenFreigeschaltet(user) ? (
-          <Notice title="Noch nicht freigeschaltet">Diese Funktion wird gerade erprobt und ist für dein Team noch nicht verfügbar.</Notice>
+          <Notice title="Noch nicht freigeschaltet">Der Team Manager wird gerade erprobt und ist für dein Team noch nicht verfügbar. Er soll später als Premium-Funktion angeboten werden.</Notice>
         ) : !teamId || !t ? (
           <Notice title="Kein Team verknüpft">
             Deinem Konto ist noch kein Team der {NEUE_SAISON.name} zugeordnet. Bei Fragen melde dich bei der Ligaleitung.
           </Notice>
         ) : !bereit ? (
-          <Notice title="Gleich startklar">Die Zu- und Absagen werden gerade eingerichtet. Schau bitte etwas später noch mal vorbei.</Notice>
+          <Notice title="Gleich startklar">Der Team Manager wird gerade eingerichtet. Schau bitte etwas später noch mal vorbei.</Notice>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
             {msg && (

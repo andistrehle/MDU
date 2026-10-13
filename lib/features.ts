@@ -2,6 +2,9 @@
 // Freischaltungen für Funktionen in Erprobung
 // ============================================================
 //
+// „Team Manager“ (Deckname, vom Betreiber am 13.10.2026 festgelegt): Zu- und
+// Absagen, Spieltag-Seite, Aufstellung, Treffzeit, Notizen/Aufgaben — soll als
+// PREMIUM-Funktion angeboten werden, weitere Funktionen kommen dazu.
 // Zu- und Absagen je Spieltag (/mein-team/zusagen): vom Betreiber am
 // 12.10.2026 zunächst NUR für sein eigenes Team und die Ligaleitung
 // freigegeben — wird überarbeitet, evtl. später als Premium-Funktion.

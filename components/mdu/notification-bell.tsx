@@ -145,7 +145,7 @@ export function NotificationBell() {
                     {o.dringend ? 'Bald: ' : ''}Sag zu oder ab – {o.text}
                   </span>
                   <span style={{ display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 11, color: 'var(--th-text-faint)', marginTop: 2 }}>
-                    Zu- und Absagen
+                    Team Manager · Zu- und Absagen
                   </span>
                 </span>
               </button>

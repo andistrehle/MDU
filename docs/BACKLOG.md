@@ -395,7 +395,14 @@ per `NEXT_PUBLIC_SITE_URL` überschreibbar. **Stand 30.06.2026: Domain technisch
 - [ ] Optional: Cloudflare-Proxy für `www`/Apex wieder „orange" — nur zusammen mit SSL/TLS-Modus „Full"
 - [x] `mdu-three.vercel.app` bleibt während des Umzugs erreichbar (Testen ohne Domain)
 
-## Zu- und Absagen je Spieltag (12.10.2026)
+## „Team Manager“ — Zu- und Absagen je Spieltag (12./13.10.2026)
+
+**Deckname „Team Manager“, geplant als PREMIUM-Funktion** (Betreiber, 13.10.2026);
+weitere Funktionen kommen dazu. Freischaltung je Team über `lib/features.ts` +
+`availability_enabled_teams` (DB). Offen: Preis/Abrechnung, Freischalt-Ablauf,
+Datenschutz-Absatz (vor Ausrollen an andere Teams), Löschen am Saisonende.
+Stand: Kacheln je Spiel, teilbare Spieltag-Seite, Aufstellung H1–H8/G1–G8,
+Treffzeit, Notizen + Aufgaben mit Glocke (Migrationen 0043–0047).
 
 Umgesetzt: `/mein-team/zusagen` (Spieler sagen zu/ab mit Notiz, Team sieht Namen + Status,
 Kapitän setzt Status für alle im Kader und stellt die Glocken-Erinnerung ein, Vorgabe 7 Tage,

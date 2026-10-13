@@ -86,10 +86,11 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
             : 'Spiele deines Teams 2026/27 — auch zum Übernehmen in deinen Handy-Kalender.',
           href: '/mein-team/spielplan', ready: true },
       );
-      // Zu-/Absagen: vorerst nur für freigeschaltete Teams (lib/features.ts)
+      // „Team Manager“ (Zu-/Absagen, Spieltag-Seite, Aufstellung, Aufgaben) —
+      // geplante Premium-Funktion, vorerst nur freigeschaltete Teams (lib/features.ts)
       if (zusagenFreigeschaltet(user)) tiles.push(
-        { icon: 'check', label: 'Zu- und Absagen', description: teamEditable
-            ? 'Wer kommt zu welchem Spiel? Stand im Team, Status setzen, Erinnerung einstellen.'
+        { icon: 'check', label: 'Team Manager', description: teamEditable
+            ? 'Zu- und Absagen, Aufstellung, Treffzeit und Aufgaben für jedes Spiel deines Teams.'
             : 'Sag für die nächsten Spiele zu oder ab und sieh, wer noch kommt.',
           href: '/mein-team/zusagen', ready: true },
       );
