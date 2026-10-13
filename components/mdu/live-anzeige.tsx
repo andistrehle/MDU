@@ -137,22 +137,25 @@ function Team({ name, id, logo, short, farbe, label, rechts }: { name: string; i
   );
 }
 
-// Auswechslung: Im Einzel steht laut Spielplan (GAME_SCHEDULE) eine feste
-// Position 1–4; spielt dort jemand anderes (Wechselspieler 5–8, der sich fest
-// an diese Position bindet), ist das ein Wechsel. Je Wechselspieler: für wen
-// und ab welchem Spiel.
-type Wechsel = Map<number, { fuer: number; abSpiel: number }>;
-function wechselVon(games: ReportGame[], seite: 'home' | 'guest'): Wechsel {
-  const m: Wechsel = new Map();
+// Auswechslungen: Im Einzel hat jedes Spiel laut Spielplan (GAME_SCHEDULE)
+// eine feste Position 1–4. Je Position wird verfolgt, wer dort spielt; jeder
+// Wechsel der Person ist ein Ereignis. Kommt der Stammspieler (Slot = Position)
+// zurück, ist es ein Rückwechsel (Spielbedingungen: nur auf derselben Position).
+interface Wechsel { pos: number; raus: number; rein: number; abSpiel: number; rueck: boolean }
+function wechselVon(games: ReportGame[], seite: 'home' | 'guest'): Wechsel[] {
+  const aktuell = new Map<number, number>();
+  const out: Wechsel[] = [];
   for (const g of [...games].sort((a, b) => a.game_no - b.game_no)) {
     if (g.game_type !== 'single') continue;
     const plan = GAME_SCHEDULE.find(x => x.no === g.game_no);
-    const soll = seite === 'home' ? plan?.homeSlot : plan?.guestSlot;
+    const pos = seite === 'home' ? plan?.homeSlot : plan?.guestSlot;
     const ist = seite === 'home' ? g.home_slot : g.guest_slot;
-    if (soll == null || ist == null || ist === soll || m.has(ist)) continue;
-    m.set(ist, { fuer: soll, abSpiel: g.game_no });
+    if (pos == null || ist == null) continue;
+    const vorher = aktuell.get(pos) ?? pos;
+    if (ist !== vorher) out.push({ pos, raus: vorher, rein: ist, abSpiel: g.game_no, rueck: ist === pos });
+    aktuell.set(pos, ist);
   }
-  return m;
+  return out;
 }
 
 const nameVon = (spieler: ReportPlayer[], slot: number | null) => (slot == null ? '' : spieler.find(p => p.slot === slot)?.name.trim() || `#${slot}`);
@@ -190,7 +193,7 @@ function Auswechslungen({ s }: { s: LiveStand }) {
   const seiten = (['home', 'guest'] as const).map(seite => {
     const spieler = seite === 'home' ? s.homePlayers : s.guestPlayers;
     const pre = seite === 'home' ? 'H' : 'G';
-    const liste = [...wechselVon(s.games, seite)].map(([rein, w]) => ({ key: `${pre}${rein}`, raus: w.fuer, rein, ab: w.abSpiel })).sort((a, b) => a.ab - b.ab);
+    const liste = wechselVon(s.games, seite).map(w => ({ key: `${w.pos}-${w.abSpiel}`, raus: w.raus, rein: w.rein, ab: w.abSpiel, rueck: w.rueck }));
     return { seite, spieler, pre, liste, titel: seite === 'home' ? s.homeName : s.guestName, farbe: seite === 'home' ? '#8BD67F' : '#9DBEEB' };
   });
   if (!seiten.some(x => x.liste.length)) return null;
@@ -208,7 +211,7 @@ function Auswechslungen({ s }: { s: LiveStand }) {
                 <span aria-label="raus" style={{ color: '#FF6B6B', fontWeight: 900 }}>↓</span>
                 <span aria-label="rein" style={{ color: '#7BE07B', fontWeight: 900 }}>↑</span>
                 <span>{x.pre}{w.rein} {name(x.spieler, w.rein)}</span>
-                <span style={{ opacity: 0.6, fontWeight: 600 }}>(ab Spiel {w.ab})</span>
+                <span style={{ opacity: 0.6, fontWeight: 600 }}>(ab Spiel {w.ab}{w.rueck ? ', Rückwechsel' : ''})</span>
               </span>
             ))}
           </div>
@@ -235,10 +238,13 @@ function Kasten({ titel, rechts, children }: { titel: string; rechts?: React.Rea
   );
 }
 
-function Aufstellung({ spieler, punkte, prefix, farbe, wechsel }: { spieler: ReportPlayer[]; punkte: Record<number, number>; prefix: string; farbe: string; wechsel: Wechsel }) {
+function Aufstellung({ spieler, punkte, prefix, farbe, wechsel }: { spieler: ReportPlayer[]; punkte: Record<number, number>; prefix: string; farbe: string; wechsel: Wechsel[] }) {
   const belegt = [...spieler].sort((a, b) => a.slot - b.slot);
-  // Wer wurde ausgewechselt? Position → Wechselspieler
-  const raus = new Map([...wechsel].map(([sub, w]) => [w.fuer, { sub, ab: w.abSpiel }]));
+  // Je Spieler alle Wechsel-Ereignisse (rein/raus/zurück), in Spielreihenfolge.
+  const zeilen = (slot: number) => wechsel.flatMap(w => [
+    ...(w.raus === slot ? [{ farbe: '#FF8A8A', text: `↓ raus ab Spiel ${w.abSpiel} (${prefix}${w.rein})` }] : []),
+    ...(w.rein === slot ? [{ farbe: '#7BE07B', text: w.rueck ? `↑ zurück ab Spiel ${w.abSpiel}` : `↑ für ${prefix}${w.raus} ab Spiel ${w.abSpiel}` }] : []),
+  ]);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4vh', minWidth: 0 }}>
       {belegt.map(p => (
@@ -246,8 +252,7 @@ function Aufstellung({ spieler, punkte, prefix, farbe, wechsel }: { spieler: Rep
           <span style={{ flexShrink: 0, minWidth: '2.2em', textAlign: 'center', padding: '0.1vh 0.3vw', borderRadius: 5, fontWeight: 800, background: p.slot <= 4 ? farbe : 'rgba(255,255,255,0.12)' }}>{prefix}{p.slot}</span>
           <span style={{ flex: 1, minWidth: 0, fontWeight: 700 }}>
             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name.trim() || 'frei'}</span>
-            {wechsel.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: '#7BE07B' }}>↑ für {prefix}{wechsel.get(p.slot)!.fuer} ab Spiel {wechsel.get(p.slot)!.abSpiel}</span>}
-            {raus.has(p.slot) && <span style={{ display: 'block', fontSize: '0.8em', color: '#FF8A8A' }}>↓ raus ab Spiel {raus.get(p.slot)!.ab} ({prefix}{raus.get(p.slot)!.sub})</span>}
+            {zeilen(p.slot).map((z, i) => <span key={i} style={{ display: 'block', fontSize: '0.8em', color: z.farbe }}>{z.text}</span>)}
           </span>
           {punkte[p.slot] != null && <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800, color: GOLD }}>{punkte[p.slot]}</span>}
         </div>

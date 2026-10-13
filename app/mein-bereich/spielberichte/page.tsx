@@ -384,7 +384,22 @@ function SpielberichteInner() {
     }));
   }
   function setGameSlot(no: number, field: 'home_slot' | 'guest_slot' | 'home_slot2' | 'guest_slot2', v: number | null) {
-    setGames(arr => arr.map(g => g.game_no === no ? { ...g, [field]: v } : g));
+    setGames(arr => {
+      const g0 = arr.find(g => g.game_no === no);
+      // Einzel: Wer an einer Position eingewechselt wird, steht automatisch auch
+      // in den FOLGENDEN Einzeln dieser Position (solange dort noch kein Ergebnis
+      // steht). Wird der Stammspieler später wieder eingesetzt (Rückwechsel),
+      // gilt das genauso ab diesem Spiel. Spielbedingungen: Ersatz bleibt an
+      // seine Position gebunden, Rückwechsel nur auf derselben Position.
+      const folge = g0?.game_type === 'single' && (field === 'home_slot' || field === 'guest_slot') && v != null;
+      const pos = folge ? (field === 'home_slot' ? GAME_SCHEDULE.find(x => x.no === no)?.homeSlot : GAME_SCHEDULE.find(x => x.no === no)?.guestSlot) : null;
+      return arr.map(g => {
+        if (g.game_no === no) return { ...g, [field]: v };
+        if (!folge || pos == null || g.game_type !== 'single' || g.game_no < no || g.legs_home != null) return g;
+        const p = field === 'home_slot' ? GAME_SCHEDULE.find(x => x.no === g.game_no)?.homeSlot : GAME_SCHEDULE.find(x => x.no === g.game_no)?.guestSlot;
+        return p === pos ? { ...g, [field]: v } : g;
+      });
+    });
   }
 
   // aktive (in der Aufstellung gewählte) Slots je Seite
