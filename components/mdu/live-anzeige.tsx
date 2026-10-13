@@ -68,6 +68,7 @@ export function LiveAnzeige({ s, bearbeiten }: { s: LiveStand; bearbeiten?: Live
           .mdu-live .ml-teamname { font-size: 15px !important; }
           .mdu-live .ml-stand { font-size: 52px !important; }
           .mdu-live .ml-info { font-size: 10px !important; letter-spacing: 0.08em !important; }
+          .mdu-live .ml-wechsel { grid-template-columns: 1fr !important; }
         }
       `}</style>
       {/* ── Spielstand ── */}
@@ -186,25 +187,33 @@ function SpielZeile({ g, s, aktuell, onLegs, onSpieler }: { g: ReportGame; s: Li
 
 /** Zeile unter den Doppeln: wer raus (↓), wer rein (↑), ab welchem Spiel. */
 function Auswechslungen({ s }: { s: LiveStand }) {
-  const liste = (['home', 'guest'] as const).flatMap(seite => {
+  const seiten = (['home', 'guest'] as const).map(seite => {
     const spieler = seite === 'home' ? s.homePlayers : s.guestPlayers;
     const pre = seite === 'home' ? 'H' : 'G';
-    return [...wechselVon(s.games, seite)].map(([rein, w]) => ({ key: `${pre}${rein}`, pre, raus: w.fuer, rein, ab: w.abSpiel, spieler }));
-  }).sort((a, b) => a.ab - b.ab);
-  if (!liste.length) return null;
+    const liste = [...wechselVon(s.games, seite)].map(([rein, w]) => ({ key: `${pre}${rein}`, raus: w.fuer, rein, ab: w.abSpiel })).sort((a, b) => a.ab - b.ab);
+    return { seite, spieler, pre, liste, titel: seite === 'home' ? s.homeName : s.guestName, farbe: seite === 'home' ? '#8BD67F' : '#9DBEEB' };
+  });
+  if (!seiten.some(x => x.liste.length)) return null;
   const name = (sp: ReportPlayer[], slot: number) => (sp.find(p => p.slot === slot)?.name.trim() || '').split(/\s+/)[0] || `#${slot}`;
   return (
-    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.6vh 1.6vw', padding: '0.9vh 1vw', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.35)', fontSize: fz(11, 0.95, 20) }}>
-      <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: GOLD }}>Auswechslungen:</span>
-      {liste.map(w => (
-        <span key={w.key} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5vw', fontWeight: 700, whiteSpace: 'nowrap' }}>
-          <span>{w.pre}{w.raus} {name(w.spieler, w.raus)}</span>
-          <span aria-label="raus" style={{ color: '#FF6B6B', fontWeight: 900 }}>↓</span>
-          <span aria-label="rein" style={{ color: '#7BE07B', fontWeight: 900 }}>↑</span>
-          <span>{w.pre}{w.rein} {name(w.spieler, w.rein)}</span>
-          <span style={{ opacity: 0.6, fontWeight: 600 }}>(ab Spiel {w.ab})</span>
-        </span>
-      ))}
+    <div style={{ gridColumn: '1 / -1', padding: '0.9vh 1vw', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.35)', fontSize: fz(12, 0.95, 20) }}>
+      <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: GOLD, marginBottom: '0.5vh' }}>Auswechslungen</div>
+      <div className="ml-wechsel" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6vh 2vw' }}>
+        {seiten.map(x => (
+          <div key={x.seite} style={{ display: 'flex', flexDirection: 'column', gap: '0.4vh', minWidth: 0 }}>
+            <span style={{ fontSize: '0.8em', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: x.farbe }}>{x.titel}</span>
+            {x.liste.length === 0 ? <span style={{ opacity: 0.5 }}>keine</span> : x.liste.map(w => (
+              <span key={w.key} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0 0.5vw', fontWeight: 700 }}>
+                <span>{x.pre}{w.raus} {name(x.spieler, w.raus)}</span>
+                <span aria-label="raus" style={{ color: '#FF6B6B', fontWeight: 900 }}>↓</span>
+                <span aria-label="rein" style={{ color: '#7BE07B', fontWeight: 900 }}>↑</span>
+                <span>{x.pre}{w.rein} {name(x.spieler, w.rein)}</span>
+                <span style={{ opacity: 0.6, fontWeight: 600 }}>(ab Spiel {w.ab})</span>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
