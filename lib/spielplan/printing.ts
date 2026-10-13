@@ -94,33 +94,34 @@ export function venueSheet(data: SpielplanData, venue: string): string {
 }
 
 // Spielort-Plan mit den festen Terminen (öffentliche Spielstätten-Seite):
-// Wochenende · Tag/Uhrzeit · Liga · Heim · Auswärts · Hinweis. Wochenenden
-// ohne Heimspiel stehen grau mit drin — der Wirt sieht, wann nichts los ist.
-export interface VenueTerminZeile { tag: string; liga: string; ligaFarbe: string; spieltag: number; home: string; away: string; derby: boolean; hinweis: string[] }
-export interface VenueTerminWoche { text: string; zusatz: boolean; spiele: VenueTerminZeile[] }
-export function venueTermineSheet(venue: string, teams: string, wochen: VenueTerminWoche[], stand: string): string {
-  const total = wochen.reduce((n, w) => n + w.spiele.length, 0);
+// je Kalender-Wochenende eine Kopfzeile, darunter je Spiel Tag · Uhrzeit ·
+// Liga · Heim · Auswärts · Hinweis. Strecken ohne Heimspiel stehen als eine
+// graue Zeile drin — der Wirt sieht, wann sein Lokal belegt ist.
+export interface VenueTerminZeile { tag: string; zeit: string; liga: string; ligaFarbe: string; spieltag: number; home: string; away: string; derby: boolean; hinweis: string[] }
+export type VenueTerminBlock = { art: 'woche'; titel: string; spiele: VenueTerminZeile[] } | { art: 'frei'; text: string };
+export function venueTermineSheet(venue: string, teams: string, bloecke: VenueTerminBlock[], stand: string): string {
+  const total = bloecke.reduce((n, b) => n + (b.art === 'woche' ? b.spiele.length : 0), 0);
   let rows = '';
-  for (const w of wochen) {
-    const wk = `${esc(w.text)}${w.zusatz ? '<div class="zs">außerhalb des Plans</div>' : ''}`;
-    if (!w.spiele.length) { rows += `<tr class="sep free"><td class="wk">${wk}</td><td colspan="5">kein Heimspiel</td></tr>`; continue; }
-    w.spiele.forEach((g, k) => {
-      rows += `<tr class="${k === 0 ? 'sep ' : ''}${g.derby ? 'derby' : ''}">` +
-        (k === 0 ? `<td class="wk" rowspan="${w.spiele.length}">${wk}</td>` : '') +
-        `<td class="tg">${esc(g.tag)}</td>` +
-        `<td class="ha"><span class="tag" style="background:${g.ligaFarbe}">${esc(g.liga)}</span><span class="sp">${g.spieltag}.</span></td>` +
-        `<td class="opp">${esc(g.home)}${g.derby ? ' <span class="db">⚔</span>' : ''}</td><td class="opp">${esc(g.away)}</td>` +
+  for (const b of bloecke) {
+    if (b.art === 'frei') { rows += `<tr class="free"><td colspan="6">${esc(b.text)}</td></tr>`; continue; }
+    rows += `<tr class="wkh"><td colspan="6">${esc(b.titel)}<span>${b.spiele.length} Heimspiel${b.spiele.length > 1 ? 'e' : ''}</span></td></tr>`;
+    b.spiele.forEach((g, k) => {
+      const neuerTag = k === 0 || b.spiele[k - 1].tag !== g.tag;
+      rows += `<tr class="${g.derby ? 'derby' : ''}">` +
+        `<td class="tg">${neuerTag ? esc(g.tag) : ''}</td><td class="zt">${esc(g.zeit)}</td>` +
+        `<td class="ha"><span class="tag" style="background:${g.ligaFarbe}">${esc(g.liga)}</span><span class="sp">${g.spieltag}. ST</span></td>` +
+        `<td class="opp">${esc(g.home)}${g.derby ? ' <span class="db">⚔</span>' : ''}</td><td class="opp aw">${esc(g.away)}</td>` +
         `<td class="hw">${g.hinweis.map(h => `<span class="eti">${esc(h)}</span>`).join(' ')}</td></tr>`;
     });
   }
   return `<section class="sheet vt">
     ${header(venue, 'Spielort', '#2E7526', `${total} Heimspiele · Heimteams: ${esc(teams)}`)}
     <p class="hint">Tag und Uhrzeit aus den Masterplänen der Teams (${esc(stand)}). <b>verlegt</b> = außerhalb des eigentlichen Spielwochenendes · <b>wird geprüft</b> = Termin noch nicht endgültig · <span class="db">⚔</span> = Derby. Aktueller Stand immer auf mdudarts.de → Spielstätten.</p>
-    <table><thead><tr><th>Wochenende</th><th>Termin</th><th>Liga · ST</th><th>Heim</th><th>Auswärts</th><th>Hinweis</th></tr></thead><tbody>${rows}</tbody></table>
+    <table><thead><tr><th>Tag</th><th>Uhrzeit</th><th>Liga</th><th>Heim</th><th>Auswärts</th><th>Hinweis</th></tr></thead><tbody>${rows}</tbody></table>
   </section>`;
 }
-export function printVenueTermine(venue: string, teams: string, wochen: VenueTerminWoche[], stand: string) {
-  openPrint(`${venue} – Spielort-Plan`, venueTermineSheet(venue, teams, wochen, stand));
+export function printVenueTermine(venue: string, teams: string, bloecke: VenueTerminBlock[], stand: string) {
+  openPrint(`${venue} – Spielort-Plan`, venueTermineSheet(venue, teams, bloecke, stand));
 }
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Saira+Condensed:wght@600;700;800&display=swap';
@@ -168,10 +169,13 @@ th.tw{ width:218px; } td.term{ width:218px; white-space:nowrap; }
 .lab{ font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:#818793; }
 .wln{ display:inline-block; border-bottom:1.4px solid #7c848f; height:22px; }
 .wln.d{ width:76px; } .wln.t{ width:22px; } .cln{ color:#5C6470; font-weight:800; padding:0 1px; }
-.zs{ font-size:8.5px; font-weight:700; color:#818793; margin-top:2px; }
-td.tg{ white-space:nowrap; font-weight:800; font-variant-numeric:tabular-nums; width:96px; }
+td.tg{ white-space:nowrap; font-weight:800; font-variant-numeric:tabular-nums; width:72px; }
+td.zt{ white-space:nowrap; font-weight:700; font-variant-numeric:tabular-nums; width:54px; color:#3D4452; }
+tr.wkh td{ background:#1A1D24 !important; color:#fff; font-family:'Saira Condensed','Arial Narrow',sans-serif; font-weight:800; font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; padding:5px 8px; border-color:#1A1D24; }
+tr.wkh td span{ float:right; color:#E8B84A; }
+.sheet.vt tbody tr:nth-child(even){ background:transparent; } .sheet.vt td.aw{ color:#3D4452; }
 .sp{ font-size:10px; font-weight:700; color:#5C6470; margin-left:4px; white-space:nowrap; }
-.sheet.vt td{ padding:5px 7px; } .sheet.vt td.ha{ width:62px; text-align:left; white-space:nowrap; }
+.sheet.vt td{ padding:5px 7px; } .sheet.vt td.ha{ width:96px; text-align:left; white-space:nowrap; }
 td.hw{ width:84px; } .eti{ display:inline-block; font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:#7a5300; background:#fbf0d3; border:1px solid #e8cf8a; border-radius:999px; padding:1px 6px; margin:1px 0; white-space:nowrap; }
 tbody tr{ page-break-inside:avoid; break-inside:avoid; }
 @media screen { .wrap{ background:#F2F4F7; } .sheet{ border:1px solid rgba(15,23,42,0.10); box-shadow:0 2px 12px rgba(15,23,42,0.07); } }

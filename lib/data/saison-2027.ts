@@ -297,34 +297,71 @@ export interface VenueSpiel27 {
   verlegt: boolean;
 }
 export interface VenueWochenende27 {
+  /** Kalender-Wochenende Freitag–Sonntag */
   fri: string; sun: string;
-  /** Kein Plan-Wochenende (z. B. Ferien) — hier steht nur ein verlegtes Spiel. */
-  zusatz: boolean;
   spiele: VenueSpiel27[];
 }
-/** Alle Spielwochenenden der Saison mit den Heimspielen in einem Lokal (über
- *  alle Ligen), nach dem ECHTEN Termin: Heimrechttausch ist eingerechnet
- *  (alleBegegnungen27), ein verlegtes Spiel steht an seinem echten Wochenende —
- *  liegt das außerhalb des Plans, kommt es als eigenes Wochenende dazu.
- *  Wochenenden ohne Heimspiel sind mit leerer Liste dabei — der Wirt sieht so
- *  auch, wann bei ihm nichts los ist. */
+/** Block im Spielort-Plan: ein Wochenende mit Heimspielen, oder eine Strecke
+ *  aufeinanderfolgender Wochenenden ohne Heimspiel (zusammengefasst). */
+export type VenueBlock27 =
+  | { art: 'woche'; w: VenueWochenende27 }
+  | { art: 'frei'; fri: string; sun: string; anzahl: number };
+
+const isoTag = (t: number) => new Date(t).toISOString().slice(0, 10);
+const freitagVon = (datum: string) => { const x = d(datum); return isoTag(x.getTime() - ((x.getUTCDay() + 2) % 7) * 864e5); };
+
+/** Alle KALENDER-Wochenenden der Saison (Fr–So, lückenlos vom ersten bis zum
+ *  letzten Heimspiel bzw. Saisonrahmen) mit den Heimspielen in einem Lokal, nach
+ *  dem ECHTEN Termin: Heimrechttausch ist eingerechnet (alleBegegnungen27), ein
+ *  verlegtes Spiel steht an seinem echten Wochenende. Für den Wirt zählt, wann
+ *  sein Lokal belegt ist — nicht, welches Plan-Wochenende es einmal war. */
 export function heimspieleImLokal27(venueId: string): VenueWochenende27[] {
-  const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
-  const freitag = (datum: string) => { const x = d(datum); return iso(x.getTime() - ((x.getUTCDay() + 2) % 7) * 864e5); };
-  const wochen = new Map<string, VenueWochenende27>(RAW.weekends.map(w => [w.fri, { fri: w.fri, sun: w.sun, zusatz: false, spiele: [] }]));
+  const spiele: (VenueSpiel27 & { fri: string })[] = [];
   for (const b of alleBegegnungen27()) {
     if (team27(b.home)?.venueId !== venueId) continue;
     const liga = findLiga27(b.liga);
     if (!liga) continue;
-    const fri = b.termin ? freitag(b.termin.datum) : b.fri;
-    let w = wochen.get(fri);
-    if (!w) { w = { fri, sun: iso(d(fri).getTime() + 2 * 864e5), zusatz: true, spiele: [] }; wochen.set(fri, w); }
-    w.spiele.push({ liga, spieltag: b.spieltag, spiel: { home: b.home, away: b.away, derby: b.derby }, termin: b.termin, verlegt: terminVerlegt(b.termin, b.fri, b.sun) });
+    spiele.push({ fri: b.termin ? freitagVon(b.termin.datum) : b.fri, liga, spieltag: b.spieltag,
+      spiel: { home: b.home, away: b.away, derby: b.derby }, termin: b.termin, verlegt: terminVerlegt(b.termin, b.fri, b.sun) });
   }
+  const start = [SAISON_START, ...spiele.map(s => s.fri)].sort()[0];
+  const ende = [freitagVon(SAISON_ENDE), ...spiele.map(s => s.fri)].sort().at(-1)!;
   const ligaRang = (c: string) => LIGEN_2027.findIndex(l => l.code === c);
-  return [...wochen.values()].sort((x, y) => x.fri.localeCompare(y.fri)).map(w => ({
-    ...w,
-    spiele: w.spiele.sort((x, y) => (x.termin?.datum ?? w.fri).localeCompare(y.termin?.datum ?? w.fri)
-      || (x.termin?.uhrzeit ?? '99').localeCompare(y.termin?.uhrzeit ?? '99') || ligaRang(x.liga.code) - ligaRang(y.liga.code)),
-  }));
+  const wochen: VenueWochenende27[] = [];
+  for (let t = d(start).getTime(); isoTag(t) <= ende; t += 7 * 864e5) {
+    const fri = isoTag(t);
+    wochen.push({
+      fri, sun: isoTag(t + 2 * 864e5),
+      spiele: spiele.filter(s => s.fri === fri).map(s => ({ liga: s.liga, spieltag: s.spieltag, spiel: s.spiel, termin: s.termin, verlegt: s.verlegt }))
+        .sort((x, y) => (x.termin?.datum ?? fri).localeCompare(y.termin?.datum ?? fri)
+          || (x.termin?.uhrzeit ?? '99').localeCompare(y.termin?.uhrzeit ?? '99') || ligaRang(x.liga.code) - ligaRang(y.liga.code)),
+    });
+  }
+  return wochen;
+}
+
+/** Wochenenden ohne Heimspiel am Stück zu einem Block zusammenfassen. */
+export function venueBloecke27(wochen: VenueWochenende27[]): VenueBlock27[] {
+  const out: VenueBlock27[] = [];
+  for (const w of wochen) {
+    const letzter = out.at(-1);
+    if (w.spiele.length) out.push({ art: 'woche', w });
+    else if (letzter?.art === 'frei') { letzter.sun = w.sun; letzter.anzahl++; }
+    else out.push({ art: 'frei', fri: w.fri, sun: w.sun, anzahl: 1 });
+  }
+  return out;
+}
+
+/** Kalenderwoche nach ISO 8601. */
+export function kalenderwoche(iso: string): number {
+  const x = d(iso);
+  x.setUTCDate(x.getUTCDate() + 4 - (x.getUTCDay() || 7));
+  const jan1 = Date.UTC(x.getUTCFullYear(), 0, 1);
+  return Math.ceil(((x.getTime() - jan1) / 864e5 + 1) / 7);
+}
+
+/** „Fr 23.10." (ohne Uhrzeit). */
+export function datumKurz27(iso: string): string {
+  const x = d(iso);
+  return `${WOCHENTAG[x.getUTCDay()]} ${x.getUTCDate()}.${x.getUTCMonth() + 1}.`;
 }
