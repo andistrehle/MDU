@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<title>MDU – Was ist neu</title>
+<link href="fonts.css" rel="stylesheet">
+<style>
+  /* Farben wie mdudarts.de (Hell-Modus): Seitengrund #F2F4F7, Kopfleiste Blau-Verlauf, Akzent Grün */
+  :root { --gold:#3E9C33; --gruen:#3E9C33; --blau1:#6B95CE; --blau2:#4E7DBD; --text:#1A1D24; --muted:#5C6470; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; width:1920px; height:1080px; overflow:hidden; background:#F2F4F7; font-family: Manrope, sans-serif; color:var(--text); }
+  #stage { position:absolute; inset:0; background: radial-gradient(60% 70% at 85% 80%, rgba(78,125,189,.10), transparent 70%), #F2F4F7; }
+  .szene::before { content:''; position:absolute; left:0; right:0; top:0; height:110px; background: linear-gradient(135deg, var(--blau1) 0%, var(--blau2) 100%); box-shadow: 0 2px 14px rgba(46,78,128,.28); }
+  .kopf { position:absolute; left:34px; top:20px; display:flex; align-items:center; gap:18px; z-index:5; color:#fff; }
+  .kopf img { width:96px; height:64px; object-fit:contain; }
+  .kopf .nr { font-size:18px; font-weight:700; opacity:.9; letter-spacing:.06em; }
+  .kopf .titel { font-family:'Saira Condensed'; font-weight:900; font-size:40px; letter-spacing:.03em; line-height:1; text-transform:uppercase; }
+  .unter { position:absolute; left:60px; right:60px; bottom:30px; min-height:96px; display:flex; align-items:center; justify-content:center; text-align:center;
+           padding:18px 40px; border-radius:16px; background:rgba(26,29,36,.88); color:#fff; font-size:36px; font-weight:700; line-height:1.3; z-index:5; box-shadow:0 10px 30px rgba(15,23,42,.2); }
+  .fortschritt { position:absolute; left:0; bottom:0; height:6px; background:var(--gruen); z-index:6; transition: width .4s linear; }
+  .szene { position:absolute; inset:0; opacity:0; transition: opacity .7s ease; }
+  .szene.an { opacity:1; }
+  .handy { position:absolute; width:380px; border-radius:46px; padding:12px; background:#1A1D24; box-shadow: 0 30px 70px rgba(15,23,42,.35), inset 0 0 0 2px #3a3f4a; }
+  .handy img { width:100%; display:block; border-radius:36px; }
+  .desktop { position:absolute; border-radius:14px; overflow:hidden; background:#fff; box-shadow: 0 30px 70px rgba(15,23,42,.3); border:1px solid rgba(15,23,42,.1); }
+  .desktop .leiste { height:36px; background:#E9ECF1; display:flex; align-items:center; gap:8px; padding:0 14px; }
+  .desktop .leiste i { width:12px; height:12px; border-radius:50%; background:#f35f5a; display:inline-block; }
+  .desktop .leiste i:nth-child(2){ background:#f5bd4f; } .desktop .leiste i:nth-child(3){ background:#5fc454; }
+  .desktop .leiste span { margin-left:14px; flex:1; height:22px; border-radius:11px; background:#fff; color:#55607a; font-size:13px; display:flex; align-items:center; padding-left:12px; font-weight:600; }
+  .desktop img { display:block; width:100%; }
+  .hinweise { position:absolute; display:flex; flex-direction:column; gap:16px; }
+  .hw { display:flex; align-items:center; gap:16px; padding:16px 22px; border-radius:14px; background:#fff; border:1px solid rgba(15,23,42,.08); border-left:5px solid var(--gruen);
+        font-size:28px; font-weight:800; color:var(--text); box-shadow:0 8px 24px rgba(15,23,42,.08); opacity:0; transform: translateX(30px); transition: all .6s cubic-bezier(.2,.8,.2,1); }
+  .hw.an { opacity:1; transform:none; }
+  .hw b { flex-shrink:0; width:44px; height:44px; border-radius:50%; background:var(--gruen); color:#fff; display:grid; place-items:center; font-size:24px; }
+  .hw small { display:block; font-size:21px; font-weight:600; color:var(--muted); margin-top:2px; }
+  .notiz { position:absolute; padding:12px 18px; border-radius:12px; background:var(--gruen); color:#fff; font-size:24px; font-weight:800; transform: rotate(-2deg); box-shadow:0 10px 30px rgba(62,156,51,.35);
+           opacity:0; transition: all .5s ease; }
+  .notiz.an { opacity:1; }
+  .pin { position:absolute; width:46px; height:46px; margin:-23px 0 0 -23px; border-radius:50%; background:var(--gruen); color:#fff; font-weight:900; font-size:24px; display:grid; place-items:center;
+         box-shadow: 0 0 0 6px rgba(62,156,51,.3), 0 8px 20px rgba(0,0,0,.25); opacity:0; transform: scale(.4); transition: all .45s cubic-bezier(.2,1.4,.4,1); z-index:3; }
+  .pin.an { opacity:1; transform:none; }
+  .beispiel { position:absolute; right:40px; top:40px; padding:6px 14px; border-radius:999px; background:rgba(255,255,255,.22); color:#fff; font-size:18px; font-weight:700; z-index:5; }
+  .gross { position:absolute; left:0; right:0; text-align:center; }
+  .karte { position:absolute; border-radius:22px; background:#fff; color:var(--text); box-shadow:0 30px 70px rgba(15,23,42,.2); border:1px solid rgba(15,23,42,.06); }
+.tablet { position:absolute; border-radius:34px; padding:16px; background:#1A1D24; box-shadow: 0 30px 70px rgba(15,23,42,.35), inset 0 0 0 2px #3a3f4a; }
+  .tablet img { width:100%; display:block; border-radius:20px; }
+  .papier { position:absolute; background:#fff; padding:10px; border-radius:6px; box-shadow:0 30px 70px rgba(15,23,42,.35); transform: rotate(3deg) translateY(40px); opacity:0; transition: all .7s cubic-bezier(.2,.8,.2,1); z-index:4; }
+  .papier.an { opacity:1; transform: rotate(3deg); }
+  .papier img { width:100%; display:block; }
+</style></head>
+<body><div id="stage"></div>
+<script>
+const LOGO = '../../public/mdu-logo.webp';
+const S = 'shots/';
+const handy = (src, x, y, w = 380) => `<div class="handy" style="left:${x}px;top:${y}px;width:${w}px"><img src="${S}${src}"></div>`;
+const desktop = (src, x, y, w, url = 'mdudarts.de') => `<div class="desktop" style="left:${x}px;top:${y}px;width:${w}px"><div class="leiste"><i></i><i></i><i></i><span>${url}</span></div><img src="${S}${src}"></div>`;
+const hinweise = (x, y, w, items) => `<div class="hinweise" style="left:${x}px;top:${y}px;width:${w}px">${items.map((t, i) => `<div class="hw" data-k="${i}"><b>${i + 1}</b><div>${t[0]}${t[1] ? `<small>${t[1]}</small>` : ''}</div></div>`).join('')}</div>`;
+const pin = (k, x, y, nr) => `<div class="pin" data-k="${k}" style="left:${x}px;top:${y}px">${nr}</div>`;
+const tablet = (src, x, y, w = 540) => `<div class="tablet" style="left:${x}px;top:${y}px;width:${w}px"><img src="${S}${src}"></div>`;
+const beispiel = `<div class="beispiel">Beispieldaten</div>`;
+
+// Jede Szene: Kapitel, Titel, HTML, Schritte (Untertitel + wie viele Hinweise sichtbar)
+const SZENEN = [
+  { nr: 1, titel: 'Saison 2026/27', html: `
+      <div class="gross" style="top:250px"><img src="${LOGO}" style="width:360px"></div>
+      <div class="gross" style="top:520px;font-family:'Saira Condensed';font-weight:900;font-size:130px;line-height:1;letter-spacing:.02em;color:var(--text)">WAS IST NEU?</div>
+      <div class="gross" style="top:660px;font-size:40px;font-weight:700;color:var(--gold)">Das Erklärvideo zur neuen Saison</div>
+      <div class="gross" style="top:720px;font-size:28px;color:var(--muted)">für alle, die Updates sonst nur vom Hörensagen kennen</div>`,
+    schritte: [
+      { s: 4.5, u: 'Servus! In ein paar Minuten weißt du, was sich auf mdudarts.de alles getan hat.' },
+      { s: 3.5, u: 'Kein Handbuch, versprochen.' } ] },
+
+  { nr: 2, titel: 'Startseite', html: desktop('desktop-start.png', 90, 140, 1060) + handy('handy-start.png', 1230, 120, 330) + `<div class="notiz" data-k="1" style="left:1180px;top:820px">alle 5 Sekunden die nächste Liga</div>`,
+    schritte: [
+      { s: 5, u: 'Auf der Startseite siehst du die nächsten Spiele – Liga für Liga.', k: 0 },
+      { s: 5, u: 'Die Ligen wechseln von selbst. Tippst du eine an, bleibt sie stehen.', k: 2 },
+      { s: 4.5, u: 'Darunter die letzten Ergebnisse – ab Saisonstart direkt aus den Spielberichten.', k: 2 } ] },
+
+  { nr: 3, titel: 'Spielplan mit Terminen', html: handy('handy-spielplan.png', 160, 110, 400) + pin(0, 330, 290, 1) + pin(1, 500, 590, 2) + pin(2, 360, 470, 3)
+      + hinweise(760, 230, 980, [['Tag und Uhrzeit', 'so wie in der TC-Sitzung vereinbart'], ['„Verlegt“', 'Spiel außerhalb seines Spielwochenendes'], ['Spielort', 'mit Adresse und Route']]),
+    schritte: [
+      { s: 5, u: 'Im Spielplan steht jetzt jedes Spiel mit Tag und Uhrzeit.', k: 1 },
+      { s: 4.5, u: '„Verlegt“ heißt: Das Spiel findet außerhalb seines Wochenendes statt.', k: 2 },
+      { s: 4.5, u: 'Und wo gespielt wird, steht natürlich auch dabei.', k: 3 },
+      { s: 4, u: 'Stimmt etwas nicht? Kurz der Ligaleitung Bescheid geben.', k: 3 } ] },
+
+  { nr: 4, titel: 'Spiele in den Handy-Kalender', html: handy('handy-kalender.png', 150, 110, 400)
+      + `<div class="karte" data-k="x" style="left:1240px;top:150px;width:520px;padding:26px 28px">
+          <div style="font-weight:800;font-size:22px;color:#3E9C33;letter-spacing:.08em">KALENDER</div>
+          ${[['Fr 23.10.', '20:00', 'Freibad Bazis – Fiaker Deife', 'Fiaker Stüberl'], ['Fr 13.11.', '20:30', 'Freibad Bazis – DC Animals', 'Fiaker Stüberl'], ['Sa 21.11.', '20:00', 'Illuminati – Freibad Bazis', 'Ambasador']]
+            .map(e => `<div style="display:flex;gap:16px;padding:16px 0;border-top:1px solid #e3e7ee"><div style="width:96px;font-weight:800;font-size:20px">${e[0]}<div style="font-size:17px;color:#5c6470">${e[1]}</div></div><div style="border-left:4px solid #3E9C33;padding-left:14px"><div style="font-weight:800;font-size:21px">${e[2]}</div><div style="font-size:17px;color:#5c6470">📍 ${e[3]}</div></div></div>`).join('')}
+        </div>`
+      + hinweise(640, 250, 540, [['iPhone, Mac, Outlook', '„abonnieren“ antippen'], ['Android', 'über den Google Kalender'], ['Als Abo', 'Änderungen kommen von selbst nach']]),
+    schritte: [
+      { s: 5, u: 'Unter Mein Bereich → Mein Spielplan holst du dir alle Spiele deines Teams in den Kalender.', k: 0 },
+      { s: 4, u: 'iPhone: einfach abonnieren.', k: 1 },
+      { s: 4, u: 'Android: über den Google Kalender.', k: 2 },
+      { s: 5.5, u: 'Als Abo zieht dein Kalender jede Terminänderung von selbst nach. Ausreden werden knapp.', k: 3 } ] },
+
+  { nr: 0, titel: 'Spielort-Plan für Wirte', html: desktop('desktop-spielort.png', 80, 140, 1080, 'mdudarts.de/spielstaetten/jolly-roger')
+      + `<div class="notiz" data-k="0" style="left:150px;top:300px">KW · Tag · Uhrzeit · Liga</div>
+         <div class="notiz" data-k="1" style="left:430px;top:560px;transform:rotate(2deg)">freie Wochenenden auf einen Blick</div>
+         <div class="papier" data-k="2" style="left:1250px;top:150px;width:560px"><img src="${S}druck-spielort.png"></div>`,
+    schritte: [
+      { s: 5, u: 'Neu für die Wirte: Unter „Spielstätten“ hat jedes Lokal seinen eigenen Plan.', k: 0 },
+      { s: 5, u: 'Alle Heimspiele nach Wochenenden – mit Tag, Uhrzeit und Liga.', k: 1 },
+      { s: 4.5, u: 'Freie Wochenenden sieht man sofort, verlegte Spiele sind markiert.', k: 2 },
+      { s: 5, u: 'Und mit einem Klick als PDF – zum Aushängen hinterm Tresen.', k: 3 } ] },
+
+  { nr: 5, titel: 'Spielbericht – digital', html: beispiel + handy('handy-antwort.png', -2000, 0) // Platzhalter (kein Login-Bild)
+      + `<div class="karte" style="left:170px;top:170px;width:700px;padding:34px 38px">
+          <div style="font-family:'Saira Condensed';font-weight:900;font-size:44px">SPIELBERICHT ERFASSEN</div>
+          ${['Begegnung aus dem Spielplan wählen', 'Kader ist schon drin', 'Ergebnisse eintragen – Punkte rechnet die Seite', 'Absenden – der Gast bestätigt'].map((t, i) =>
+            `<div class="hw" data-k="${i}" style="background:#f2f4f7;border-color:#e3e7ee;color:#1a1d24;margin-top:16px;font-size:26px"><b>${i + 1}</b><div>${t}</div></div>`).join('')}
+        </div>`
+      + `<div class="notiz" data-k="4" style="left:960px;top:300px;font-size:30px;padding:20px 26px">Die Heimmannschaft trägt ein,<br>der Gast bestätigt</div>
+         <div class="notiz" data-k="5" style="left:1010px;top:520px;font-size:30px;padding:20px 26px;transform:rotate(2deg)">Zählt sofort in der Tabelle –<br>bis zur Bestätigung mit *</div>`,
+    schritte: [
+      { s: 5, u: 'Die Heimmannschaft erfasst den Spielbericht jetzt digital. Begegnung wählen …', k: 1 },
+      { s: 3.5, u: '… der Kader ist schon eingetragen …', k: 2 },
+      { s: 4.5, u: '… Ergebnisse rein, die Punkte rechnet die Seite selbst …', k: 3 },
+      { s: 4, u: '… absenden. Der Gast bestätigt.', k: 5 },
+      { s: 5, u: 'Das Ergebnis steht sofort in der Tabelle – bis zur Bestätigung mit Sternchen.', k: 6 } ] },
+
+  { nr: 6, titel: 'Nichts geht verloren', html: `
+      <div class="karte" style="left:260px;top:220px;width:1400px;padding:34px 40px;background:#fff6e0;border:3px solid #E8B84A">
+        <div style="font-size:34px;font-weight:800">Stand wiederhergestellt</div>
+        <div style="font-size:26px;color:#5c4a12;margin-top:8px">Deine Eingaben von 21:47 Uhr waren noch nicht gespeichert und sind wieder da.</div>
+      </div>`
+      + hinweise(260, 470, 1400, [['Neuladen, Tab zu, Akku leer?', 'Der Stand wird auf dem Gerät gesichert und kommt automatisch zurück'], ['Browser fragt nach', 'solange noch nichts gespeichert ist'], ['„Formular leeren“', 'für den nächsten Bericht – mit Rückfrage']]),
+    schritte: [
+      { s: 5.5, u: 'Ausversehen neu geladen? Akku leer? Kein Drama: Dein Stand ist gesichert und kommt zurück.', k: 1 },
+      { s: 4, u: 'Und vorm Wegklicken fragt der Browser lieber noch mal nach.', k: 2 },
+      { s: 4, u: 'Für den nächsten Bericht: „Formular leeren“.', k: 3 } ] },
+
+  { nr: 0, titel: 'Live im Lokal – so geht’s', html: `
+      <div class="karte" style="left:120px;top:170px;width:820px;padding:30px 36px">
+        <div style="font-weight:800;font-size:22px;color:#3E9C33;letter-spacing:.1em">SCHRITT 1</div>
+        <div style="font-size:34px;font-weight:800;margin-top:6px">Mein Bereich → Spielbericht erfassen</div>
+        <div style="font-size:24px;color:#5c6470;margin-top:6px">Begegnung aus dem Spielplan wählen – wie immer.</div>
+      </div>
+      <div class="karte hw" data-k="0" style="left:120px;top:420px;width:820px;padding:30px 36px;display:block;border-left:5px solid #3E9C33">
+        <div style="font-weight:800;font-size:22px;color:#3E9C33;letter-spacing:.1em">SCHRITT 2 · NUR EIN TABLET</div>
+        <div style="font-size:30px;font-weight:800;margin-top:6px">Eingeben und anzeigen in einem</div>
+        <span style="display:inline-block;padding:10px 18px;border-radius:10px;background:#3E9C33;color:#fff;font-weight:800;font-size:24px;margin-top:10px">📺 Live-Modus (hier eingeben)</span>
+      </div>
+      <div class="karte hw" data-k="1" style="left:1000px;top:420px;width:800px;padding:30px 36px;display:block;border-left:5px solid #4E7DBD">
+        <div style="font-weight:800;font-size:22px;color:#4E7DBD;letter-spacing:.1em">SCHRITT 2 · LAPTOP + FERNSEHER</div>
+        <div style="font-size:30px;font-weight:800;margin-top:6px">Aufs große Bild ziehen, Vollbild</div>
+        <span style="display:inline-block;padding:10px 18px;border-radius:10px;background:#4E7DBD;color:#fff;font-weight:800;font-size:24px;margin-top:10px">Zweites Fenster</span>
+      </div>
+      <div class="notiz" data-k="2" style="left:1060px;top:230px;font-size:30px;padding:20px 26px">Jede Eingabe erscheint sofort –<br>kein Neuladen, kein Extra-Login</div>`,
+    schritte: [
+      { s: 5, u: 'Du willst den Spielstand live im Lokal zeigen? So geht’s:', k: 0 },
+      { s: 5, u: 'Unter Mein Bereich „Spielbericht erfassen“ öffnen und die Begegnung wählen.', k: 0 },
+      { s: 5.5, u: 'Nur ein Tablet? „Live-Modus“ antippen – du gibst ein, und alle schauen mit.', k: 1 },
+      { s: 6, u: 'Laptop am Fernseher? „Zweites Fenster“ öffnen, aufs große Bild ziehen, Vollbild.', k: 2 },
+      { s: 4.5, u: 'Ab dann erscheint jede Eingabe sofort auf dem Bildschirm.', k: 3 } ] },
+
+  { nr: 7, titel: 'Live-Modus am Tablet', html: beispiel + tablet('live-tablet.png', 90, 125) + tablet('live-tablet-ergebnis.png', 690, 125)
+      + hinweise(1290, 260, 570, [['Ergebnis antippen', '2:0, 2:1, 1:2, 0:2 – fertig'], ['Spieler antippen', 'zum Auswechseln'], ['+ Highlight', '180er, High Finish, Short Leg']]),
+    schritte: [
+      { s: 5, u: 'Am Tablet gibt es den Live-Modus: alles groß, alles zum Antippen.', k: 0 },
+      { s: 4.5, u: 'Ergebnis antippen, Zahl wählen, fertig.', k: 1 },
+      { s: 4, u: 'Spieler antippen, um auszuwechseln.', k: 2 },
+      { s: 4, u: 'Und 180er trägst du direkt mit ein.', k: 3 } ] },
+
+  { nr: 8, titel: 'Live auf dem Monitor', html: beispiel + desktop('live-monitor.png', 110, 110, 1280, 'Live-Ansicht')
+      + `<div class="notiz" data-k="0" style="left:1430px;top:200px">2 laufende Spiele –<br>zwei Automaten</div>
+         <div class="notiz" data-k="1" style="left:1430px;top:380px;transform:rotate(2deg)">Auswechslungen<br>↓ raus ↑ rein</div>
+         <div class="notiz" data-k="2" style="left:1430px;top:560px">Punkte je Spieler<br>+ Highlights</div>`,
+    schritte: [
+      { s: 5, u: 'Mit Laptop und Monitor schaut das ganze Lokal live mit – jede Eingabe sofort.', k: 0 },
+      { s: 4.5, u: 'Gespielt wird an zwei Automaten, also laufen zwei Spiele gleichzeitig.', k: 1 },
+      { s: 5.5, u: 'Wer eingewechselt wird, steht automatisch auch in den nächsten Spielen. Rückwechsel erkennt die Seite.', k: 2 },
+      { s: 5, u: 'Zwei 180er für denselben Spieler? Werden zusammengezählt. Angeben nur mit echten.', k: 3 } ] },
+
+  { nr: 0, titel: 'Die bewährten Wege bleiben', html: `
+      <div class="karte hw" data-k="0" style="left:150px;top:200px;width:780px;padding:36px 40px;display:block;border-left:5px solid #3E9C33">
+        <div style="font-size:64px">📷</div>
+        <div style="font-family:'Saira Condensed';font-weight:900;font-size:46px;margin-top:6px">FOTO HOCHLADEN</div>
+        <div style="font-size:26px;color:#5c6470;margin-top:8px;line-height:1.4">Spielbericht fotografieren, „Foto/PDF hochladen“ – die Erkennung liest den Bogen. Du prüfst alles und schickst erst dann ab.</div>
+      </div>
+      <div class="karte hw" data-k="1" style="left:990px;top:200px;width:780px;padding:36px 40px;display:block;border-left:5px solid #4E7DBD">
+        <div style="font-size:64px">✍️</div>
+        <div style="font-family:'Saira Condensed';font-weight:900;font-size:46px;margin-top:6px">VOM ZETTEL ABTIPPEN</div>
+        <div style="font-size:26px;color:#5c6470;margin-top:8px;line-height:1.4">Wie gewohnt auf Papier spielen und nach dem Spiel in Ruhe unter „Spielbericht erfassen“ eintragen.</div>
+      </div>
+      <div class="notiz" data-k="2" style="left:640px;top:680px;font-size:30px;padding:18px 26px">Egal welcher Weg: Heim trägt ein, Gast bestätigt.</div>`,
+    schritte: [
+      { s: 4.5, u: 'Kein Tablet, kein Fernseher? Kein Problem – die anderen zwei Wege gibt’s weiterhin.', k: 0 },
+      { s: 5.5, u: 'Foto vom Spielbericht hochladen: Die Erkennung liest ihn, du prüfst und schickst ab.', k: 1 },
+      { s: 5, u: 'Oder ganz klassisch: auf Papier spielen und danach vom Zettel abtippen.', k: 2 },
+      { s: 5, u: 'Egal welcher Weg: Die Heimmannschaft trägt ein, der Gast bestätigt.', k: 3 } ] },
+
+  { nr: 9, titel: 'Tabelle mit Auf- und Abstieg', html: beispiel + desktop('desktop-tabelle.png', 110, 110, 1150, 'mdudarts.de/ligen/a')
+      + hinweise(1320, 300, 500, [['Farbe links', 'Aufstieg · Relegation · Abstieg'], ['Legende darunter', 'mit kurzer Erklärung']]),
+    schritte: [
+      { s: 5, u: 'Die Tabelle sieht wieder aus wie letzte Saison.', k: 0 },
+      { s: 4.5, u: 'Links die Farbe: Aufstieg, Relegation, Abstieg …', k: 1 },
+      { s: 4, u: '… und darunter steht kurz, was das heißt.', k: 2 } ] },
+
+  { nr: 10, titel: 'Einzelrangliste & Formkurve', html: beispiel + desktop('desktop-einzel.png', 110, 110, 1050, 'mdudarts.de/ligen/a · Einzelrangliste')
+      + `<div class="karte" style="left:1260px;top:300px;width:520px;padding:26px 30px">
+          <div style="font-weight:800;font-size:20px;color:#3E9C33;letter-spacing:.1em">FORMKURVE</div>
+          <div style="display:flex;gap:10px;margin-top:14px">${['S','S','N','S','S'].map(x => `<span style="width:58px;height:58px;border-radius:12px;display:grid;place-items:center;font-family:'Saira Condensed';font-weight:900;font-size:32px;${x === 'S' ? 'color:#1E9E5A;background:#1E9E5A1A;border:2px solid #1E9E5A55' : 'color:#CC2E2E;background:#CC2E2E1A;border:2px solid #CC2E2E55'}">${x}</span>`).join('')}</div>
+          <div style="font-size:19px;color:#5c6470;margin-top:12px">die letzten fünf Einzel im Spielerprofil</div>
+        </div>`,
+    schritte: [
+      { s: 5, u: 'Neu: die Einzelrangliste jeder Liga – direkt aus den Spielberichten.', k: 0 },
+      { s: 5, u: 'Und im Spielerprofil deine Formkurve: die letzten fünf Einzel auf einen Blick.', k: 0 } ] },
+
+  { nr: 11, titel: 'Das war’s', html: `
+      <div class="gross" style="top:200px"><img src="${LOGO}" style="width:260px"></div>
+      <div style="position:absolute;left:470px;top:470px;display:grid;grid-template-columns:auto auto;gap:22px 60px;font-size:46px;font-weight:800">
+        <span>Fragen?</span><span style="color:var(--gold)">An deinen TC.</span>
+        <span>Beschwerden?</span><span style="color:var(--gold)">Auch an deinen TC.</span>
+        <span>Alles andere?</span><span style="color:var(--gold)">mdudarts.de</span>
+      </div>`,
+    schritte: [
+      { s: 4, u: 'Fragen? An deinen TC.' },
+      { s: 4.5, u: 'Beschwerden? Auch an deinen TC – der leitet sie gern weiter.' },
+      { s: 4, u: 'Gut Darts – wir sehen uns auf mdudarts.de!' } ] },
+];
+
+// ── Ablauf ────────────────────────────────────────────────
+const stage = document.getElementById('stage');
+const gesamt = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + 0.8, 0);
+stage.innerHTML = SZENEN.map((sz, i) => `<div class="szene" id="sz${i}">
+  <div class="kopf"><img src="${LOGO}"><div><div class="nr">${i + 1} / ${SZENEN.length}</div><div class="titel">${sz.titel}</div></div></div>
+  ${sz.html}</div>`).join('') + `<div class="unter" id="unter"></div><div class="fortschritt" id="fort" style="width:0"></div>`;
+const warte = ms => new Promise(r => setTimeout(r, ms));
+window.DAUER = gesamt;
+// Zeiten von außen (vertonen.js): window.ZEITEN[i][j] = Dauer des Satzes j in
+// Szene i in Sekunden (gesprochene Länge + Pause). MARKEN protokolliert den
+// Start jedes Satzes relativ zu START_EPOCH (ms) — daraus legt vertonen.js
+// die Sprachaufnahmen exakt unter das Bild.
+window.SPIEL = async () => {
+  if (window.ZEITEN) SZENEN.forEach((sz, i) => sz.schritte.forEach((x, j) => { if (window.ZEITEN[i]?.[j]) x.s = window.ZEITEN[i][j]; }));
+  const summe = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + 0.8, 0);
+  window.DAUER = summe; window.MARKEN = []; window.START_EPOCH = Date.now();
+  let vergangen = 0;
+  for (let i = 0; i < SZENEN.length; i++) {
+    const el = document.getElementById('sz' + i);
+    document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
+    el.classList.add('an');
+    await warte(800); vergangen += 0.8;
+    for (let j = 0; j < SZENEN[i].schritte.length; j++) {
+      const sch = SZENEN[i].schritte[j];
+      window.MARKEN.push({ i, j, ms: Date.now() - window.START_EPOCH });
+      document.getElementById('unter').textContent = sch.u;
+      const k = sch.k ?? 0;
+      el.querySelectorAll('[data-k]').forEach(x => { const n = Number(x.dataset.k); if (!Number.isNaN(n)) x.classList.toggle('an', n < k); });
+      document.getElementById('fort').style.width = (vergangen / summe * 100) + '%';
+      await warte(sch.s * 1000); vergangen += sch.s;
+    }
+  }
+  document.getElementById('fort').style.width = '100%';
+  window.FERTIG = true;
+};
+</script></body></html>
