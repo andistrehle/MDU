@@ -6,12 +6,15 @@ import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
 import { VorlaeufigHinweis, InfoZeile } from '@/components/mdu/saison-umschalter';
-import { TeamChip27 } from '@/components/mdu/spielplan-27';
+import { TeamChip27, Etikett } from '@/components/mdu/spielplan-27';
 import { SpielortDruck } from '@/components/mdu/spielort-druck';
-import { alleVenues27, alleTeams27, venue27, findLiga27, heimspieleImLokal27, wochenendeText, NEUE_SAISON } from '@/lib/data/saison-2027';
+import { alleVenues27, alleTeams27, venue27, findLiga27, heimspieleImLokal27, wochenendeText, terminKurz, NEUE_SAISON } from '@/lib/data/saison-2027';
 
 // Spielort-Plan 2026/27 für die Wirte: alle Spielwochenenden der Saison mit den
 // Heimspielen in diesem Lokal (alle Ligen), freie Wochenenden sichtbar markiert.
+// Maßgeblich ist der echte Termin (Masterpläne, termine-2027.ts) samt
+// Heimrechttausch: Jedes Spiel steht mit Tag und Uhrzeit an seinem echten
+// Wochenende, verlegte Spiele sind markiert.
 // Statisch je Lokal (generateStaticParams), Daten aus lib/data/saison-2027.
 
 export function generateStaticParams() {
@@ -32,7 +35,9 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
   const teams = alleTeams27().filter(t => t.venueId === id).sort((a, b) => a.name.localeCompare(b.name, 'de'));
   const wochen = heimspieleImLokal27(id);
   const anzahl = wochen.reduce((n, w) => n + w.spiele.length, 0);
-  const mitSpiel = wochen.filter(w => w.spiele.length).length;
+  const planWochen = wochen.filter(w => !w.zusatz);
+  const mitSpiel = planWochen.filter(w => w.spiele.length).length;
+  const ohneTermin = wochen.reduce((n, w) => n + w.spiele.filter(s => !s.termin).length, 0);
   const maxGleichzeitig = Math.max(0, ...wochen.map(w => w.spiele.length));
 
   return (
@@ -58,7 +63,7 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
           <InfoZeile style={{ margin: 0, flex: '1 1 320px' }}>
             {v.address && <>{v.address} · </>}
-            <b style={{ color: 'var(--th-text-strong)' }}>{anzahl} Heimspiele</b> an {mitSpiel} von {wochen.length} Spielwochenenden
+            <b style={{ color: 'var(--th-text-strong)' }}>{anzahl} Heimspiele</b> an {mitSpiel} von {planWochen.length} Spielwochenenden
             {maxGleichzeitig > 1 && <> · höchstens {maxGleichzeitig} am selben Wochenende</>}
           </InfoZeile>
           <SpielortDruck venueName={v.name} />
@@ -84,15 +89,23 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
             <div key={w.fri} style={{ display: 'flex', flexWrap: 'wrap', columnGap: 12, rowGap: 6, padding: '10px 16px', borderTop: i ? '1px solid var(--th-line-4)' : 'none', background: w.spiele.length ? 'transparent' : 'var(--th-line-3)' }}>
               <div style={{ flex: '0 0 120px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, fontWeight: 700, color: w.spiele.length ? 'var(--th-text-strong)' : 'var(--th-text-faint)', paddingTop: 3 }}>
                 {wochenendeText(w.fri, w.sun)}
+                {w.zusatz && <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, color: 'var(--th-text-faint)', marginTop: 2 }}>außerhalb des Plans</div>}
               </div>
               {w.spiele.length === 0 ? (
                 <div style={{ flex: '1 1 160px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-faint)', paddingTop: 2 }}>kein Heimspiel</div>
               ) : (
                 <div style={{ flex: '1 1 300px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {w.spiele.map(({ liga, spieltag, spiel }) => (
+                  {w.spiele.map(({ liga, spieltag, spiel, termin, verlegt }) => (
                     <div key={spiel.home + spiel.away}>
-                      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: liga.color, marginBottom: 3 }}>
-                        {liga.name} · {spieltag}. Spieltag{spiel.derby ? ' · Derby' : ''}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 8px', marginBottom: 4 }}>
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, fontWeight: 700, color: termin ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
+                          {termin ? `${terminKurz(termin)}${termin.uhrzeit ? ' Uhr' : ''}` : 'Termin offen'}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: liga.color }}>
+                          {liga.name} · {spieltag}. Spieltag{spiel.derby ? ' · Derby' : ''}
+                        </span>
+                        {verlegt && <Etikett>verlegt</Etikett>}
+                        {termin?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 8 }}>
                         <TeamChip27 id={spiel.home} size={22} />
@@ -107,7 +120,9 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
           ))}
         </div>
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', marginTop: 10 }}>
-          Ferienwochenenden sind nicht aufgeführt, dort wird nicht gespielt.
+          Tag und Uhrzeit aus den Masterplänen der Teams (Stand TC-Sitzung 11.10.2026).
+          {ohneTermin > 0 && <> Bei „Termin offen“ steht nur das Spielwochenende fest.</>}
+          {' '}„verlegt“ = außerhalb des eigentlichen Spielwochenendes. Ferienwochenenden ohne Spiel sind nicht aufgeführt.
         </p>
       </div>
 

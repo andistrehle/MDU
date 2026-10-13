@@ -62,7 +62,7 @@ const dIso = (iso: string) => new Date(iso + 'T12:00:00Z');
 const tagKurz = (iso: string) => { const x = dIso(iso); return `${WT[x.getUTCDay()]} ${x.getUTCDate()}.${x.getUTCMonth() + 1}.`; };
 
 /** Kleines Etikett (verlegt, wird geprüft, Derby). */
-function Etikett({ children, ton = 'gold' }: { children: React.ReactNode; ton?: 'gold' | 'grau' }) {
+export function Etikett({ children, ton = 'gold' }: { children: React.ReactNode; ton?: 'gold' | 'grau' }) {
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: 999, fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800,

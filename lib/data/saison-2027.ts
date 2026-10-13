@@ -289,20 +289,42 @@ export function groessenNaechsteSaison(): Record<Stufe, number> {
 }
 
 // ── Spielort-Plan (für die Wirte) ─────────────────────────────
+export interface VenueSpiel27 {
+  liga: Liga27; spieltag: number; spiel: Spiel27;
+  /** Fester Termin (Masterplan), null = nur das Plan-Wochenende steht fest. */
+  termin: Termin27 | null;
+  /** Termin liegt außerhalb seines Plan-Wochenendes. */
+  verlegt: boolean;
+}
 export interface VenueWochenende27 {
   fri: string; sun: string;
-  spiele: { liga: Liga27; spieltag: number; spiel: Spiel27 }[];
+  /** Kein Plan-Wochenende (z. B. Ferien) — hier steht nur ein verlegtes Spiel. */
+  zusatz: boolean;
+  spiele: VenueSpiel27[];
 }
 /** Alle Spielwochenenden der Saison mit den Heimspielen in einem Lokal (über
- *  alle Ligen). Wochenenden ohne Heimspiel sind mit leerer Liste dabei — der
- *  Wirt sieht so auch, wann bei ihm nichts los ist. */
+ *  alle Ligen), nach dem ECHTEN Termin: Heimrechttausch ist eingerechnet
+ *  (alleBegegnungen27), ein verlegtes Spiel steht an seinem echten Wochenende —
+ *  liegt das außerhalb des Plans, kommt es als eigenes Wochenende dazu.
+ *  Wochenenden ohne Heimspiel sind mit leerer Liste dabei — der Wirt sieht so
+ *  auch, wann bei ihm nichts los ist. */
 export function heimspieleImLokal27(venueId: string): VenueWochenende27[] {
-  return RAW.weekends.map(w => ({
-    fri: w.fri, sun: w.sun,
-    spiele: LIGEN_2027.flatMap(liga => spieltage27(liga.code)
-      .filter(md => md.fri === w.fri)
-      .flatMap(md => md.games
-        .filter(g => team27(g.home)?.venueId === venueId)
-        .map(spiel => ({ liga, spieltag: md.nr, spiel })))),
+  const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+  const freitag = (datum: string) => { const x = d(datum); return iso(x.getTime() - ((x.getUTCDay() + 2) % 7) * 864e5); };
+  const wochen = new Map<string, VenueWochenende27>(RAW.weekends.map(w => [w.fri, { fri: w.fri, sun: w.sun, zusatz: false, spiele: [] }]));
+  for (const b of alleBegegnungen27()) {
+    if (team27(b.home)?.venueId !== venueId) continue;
+    const liga = findLiga27(b.liga);
+    if (!liga) continue;
+    const fri = b.termin ? freitag(b.termin.datum) : b.fri;
+    let w = wochen.get(fri);
+    if (!w) { w = { fri, sun: iso(d(fri).getTime() + 2 * 864e5), zusatz: true, spiele: [] }; wochen.set(fri, w); }
+    w.spiele.push({ liga, spieltag: b.spieltag, spiel: { home: b.home, away: b.away, derby: b.derby }, termin: b.termin, verlegt: terminVerlegt(b.termin, b.fri, b.sun) });
+  }
+  const ligaRang = (c: string) => LIGEN_2027.findIndex(l => l.code === c);
+  return [...wochen.values()].sort((x, y) => x.fri.localeCompare(y.fri)).map(w => ({
+    ...w,
+    spiele: w.spiele.sort((x, y) => (x.termin?.datum ?? w.fri).localeCompare(y.termin?.datum ?? w.fri)
+      || (x.termin?.uhrzeit ?? '99').localeCompare(y.termin?.uhrzeit ?? '99') || ligaRang(x.liga.code) - ligaRang(y.liga.code)),
   }));
 }
