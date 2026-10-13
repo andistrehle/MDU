@@ -47,7 +47,11 @@ export function LiveAnzeige({ s, bearbeiten }: { s: LiveStand; bearbeiten?: Live
   const t = computeTotals(s.games);
   const H = s.homeTeamId ? team27(s.homeTeamId) : undefined;
   const G = s.guestTeamId ? team27(s.guestTeamId) : undefined;
-  const aktuell = s.games.find(g => g.legs_home == null || g.legs_guest == null)?.game_no ?? null;
+  // Laufende Spiele: zwei Automaten → die ersten zwei offenen Einzel gleichzeitig.
+  // Ein Doppel startet erst, wenn alle Spiele davor durch sind (dann allein).
+  const offen = [...s.games].sort((a, b) => a.game_no - b.game_no).filter(g => g.legs_home == null || g.legs_guest == null);
+  const laufend: number[] = !offen.length ? [] : offen[0].game_type === 'double' ? [offen[0].game_no]
+    : [offen[0], offen[1]].filter(g => g && g.game_type === 'single').map(g => g!.game_no);
   const gespielt = s.games.filter(g => g.legs_home != null && g.legs_guest != null).length;
   const sorted = [...s.games].sort((a, b) => a.game_no - b.game_no);
   const halb = Math.ceil(sorted.length / 2);
@@ -85,7 +89,7 @@ export function LiveAnzeige({ s, bearbeiten }: { s: LiveStand; bearbeiten?: Live
           </div>
           <div style={{ fontSize: fz(12, 1.1, 20), fontWeight: 700, opacity: 0.8 }}>
             Legs {t.legsHome}:{t.legsGuest} · {gespielt}/{s.games.length} Spiele
-            {aktuell != null && <span style={{ color: GOLD }}> · läuft: Spiel {aktuell}</span>}
+            {laufend.length > 0 && <span style={{ color: GOLD }}> · läuft: Spiel {laufend.join(' + ')}</span>}
           </div>
         </div>
         <Team name={s.guestName} id={s.guestTeamId} logo={G?.logoUrl} short={G?.short} farbe={BLAU} label="Gast" rechts />
@@ -96,7 +100,7 @@ export function LiveAnzeige({ s, bearbeiten }: { s: LiveStand; bearbeiten?: Live
         <div className="ml-spiele" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1vw', alignContent: 'start' }}>
           {[sorted.slice(0, halb), sorted.slice(halb)].map((spalte, k) => (
             <div key={k} className="ml-spalte" style={{ display: 'flex', flexDirection: 'column', gap: '0.7vh' }}>
-              {spalte.map(g => <SpielZeile key={g.game_no} g={g} s={s} aktuell={g.game_no === aktuell}
+              {spalte.map(g => <SpielZeile key={g.game_no} g={g} s={s} aktuell={laufend.includes(g.game_no)}
                 onLegs={bearbeiten ? () => setBlatt({ art: 'legs', g }) : undefined}
                 onSpieler={bearbeiten ? seite => setBlatt({ art: 'spieler', g, seite }) : undefined} />)}
             </div>
