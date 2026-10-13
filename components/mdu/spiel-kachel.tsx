@@ -6,15 +6,18 @@
 
 import Link from 'next/link';
 import { findLiga27, type Begegnung27 } from '@/lib/data/saison-2027';
-import type { Zusage, ZusageStatus } from '@/lib/supabase/zusagen';
+import type { Zusage, ZusageStatus, Aufgabe } from '@/lib/supabase/zusagen';
 import { spieltagPfad } from '@/lib/spieltag';
 import { Icon } from './icon';
 import { SpielKopf, Zeitleiste, StandLeiste } from './zusagen-ui';
 
-export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime }: {
+export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [] }: {
   b: Begegnung27; teamId: string; liga?: string; zusagen: Zusage[]; kaderAnzahl: number;
   ichId: string | null; treffenMin: number; meetTime: string | null;
+  notiz?: string | null; aufgaben?: Aufgabe[];
 }) {
+  const offeneAufgaben = aufgaben.filter(a => !a.done);
+  const fuerMich = ichId ? offeneAufgaben.filter(a => a.assignee_id === ichId).length : 0;
   const l = findLiga27(b.liga);
   const meins = ichId ? zusagen.find(z => z.player_id === ichId)?.status ?? null : undefined;
   const zahl = (s: ZusageStatus) => zusagen.filter(z => z.status === s).length;
@@ -25,6 +28,18 @@ export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin
         rechts={<Icon name="chevron" size={14} style={{ opacity: 0.7 }} />} />
       <Zeitleiste beginn={b.termin?.uhrzeit} treffenMin={treffenMin} meetTime={meetTime} />
       {b.termin?.vorlaeufig && <div style={{ padding: '6px 14px 0', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-gold)' }}>Termin wird noch geprüft</div>}
+      {(notiz || aufgaben.length > 0) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '8px 12px 0', padding: '8px 10px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-body)' }}>
+          {notiz && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, flex: '1 1 160px' }}><Icon name="edit" size={14} style={{ color: 'var(--th-accent)', flexShrink: 0 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notiz}</span></span>}
+          {aufgaben.length > 0 && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: notiz ? 'auto' : 0 }}>
+              <Icon name="check" size={14} stroke={2.4} style={{ color: offeneAufgaben.length ? 'var(--th-gold)' : 'var(--th-win)' }} />
+              {offeneAufgaben.length ? `${offeneAufgaben.length} ${offeneAufgaben.length === 1 ? 'Aufgabe' : 'Aufgaben'} offen` : 'Aufgaben erledigt'}
+              {fuerMich > 0 && <span style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--th-accent)', color: '#fff', fontSize: 11 }}>{fuerMich} für dich</span>}
+            </span>
+          )}
+        </div>
+      )}
       <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins} />
       <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
     </Link>

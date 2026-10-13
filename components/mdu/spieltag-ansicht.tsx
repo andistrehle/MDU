@@ -18,7 +18,8 @@ import { NEUE_SAISON, findLiga27, terminKurz, wochenendeText, type Begegnung27 }
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
   ladeZusagen, setzeZusage, ladeEinstellungen, ladeDetails, setzeDetails, TREFFEN_VORGABE,
-  type Zusage, type ZusageStatus, type SpielDetails,
+  ladeAufgaben, neueAufgabe, setzeErledigt, loescheAufgabe, AUFGABE_MAX, SPIEL_NOTIZ_MAX,
+  type Zusage, type ZusageStatus, type SpielDetails, type Aufgabe,
 } from '@/lib/supabase/zusagen';
 import { spielSlug, treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
@@ -43,13 +44,14 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
   const [zusagen, setZusagen] = useState<Zusage[]>([]);
   const [treffenMin, setTreffenMin] = useState(TREFFEN_VORGABE);
   const [details, setDetails] = useState<SpielDetails | null>(null);
+  const [aufgaben, setAufgaben] = useState<Aufgabe[]>([]);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   const laden = useCallback(async () => {
     if (loading) return;
     if (mitglied) {
-      const [k, z, e, d] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId)]);
-      setKader(k); setZusagen(z.rows.filter(r => r.match_key === b.key)); setTreffenMin(e.meet_minutes); setDetails(d[b.key] ?? null);
+      const [k, z, e, d, a] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId), ladeAufgaben(teamId, b.key)]);
+      setKader(k); setAufgaben(a); setZusagen(z.rows.filter(r => r.match_key === b.key)); setTreffenMin(e.meet_minutes); setDetails(d[b.key] ?? null);
       if (z.error) setMsg({ kind: 'err', text: z.error });
     } else {
       const r = await fetch(`/api/spieltag/stand?team=${encodeURIComponent(teamId)}&spiel=${encodeURIComponent(spielSlug(b.key))}`).catch(() => null);
@@ -84,13 +86,34 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
     if (error) { setZusagen(vorher); setMsg({ kind: 'err', text: error }); }
   }
 
-  async function speichereDetails(werte: { meetTime?: string | null; lineup?: string[] }, ok: string) {
+  async function speichereDetails(werte: { meetTime?: string | null; lineup?: string[]; note?: string | null }, ok: string) {
     if (!user) return;
     const vorher = details;
-    setDetails(d => ({ match_key: b.key, meet_time: werte.meetTime !== undefined ? werte.meetTime : d?.meet_time ?? null, lineup: werte.lineup ?? d?.lineup ?? [] }));
+    setDetails(d => ({ match_key: b.key, meet_time: werte.meetTime !== undefined ? werte.meetTime : d?.meet_time ?? null, lineup: werte.lineup ?? d?.lineup ?? [], note: werte.note !== undefined ? werte.note : d?.note ?? null }));
     const { error } = await setzeDetails({ matchKey: b.key, teamId, userId: user.id, ...werte });
-    if (error) { setDetails(vorher); setMsg({ kind: 'err', text: /match_team_details/.test(error) ? 'Aufstellung/Treffzeit sind noch nicht eingerichtet (Migration 0045).' : error }); }
+    if (error) { setDetails(vorher); setMsg({ kind: 'err', text: /note/.test(error) ? 'Notizen sind noch nicht eingerichtet (Migration 0047).' : /match_team_details/.test(error) ? 'Aufstellung/Treffzeit sind noch nicht eingerichtet (Migration 0045).' : error }); }
     else setMsg({ kind: 'ok', text: ok });
+  }
+
+  async function aufgabeNeu(title: string, assignee: { id: string; name: string } | null) {
+    if (!user) return false;
+    const { data, error } = await neueAufgabe({ matchKey: b.key, teamId, title, assignee, label, userId: user.id });
+    if (error || !data) { setMsg({ kind: 'err', text: error ?? 'Konnte nicht speichern.' }); return false; }
+    setAufgaben(a => [...a, data]);
+    setMsg({ kind: 'ok', text: assignee ? `Aufgabe angelegt – ${assignee.name} bekommt einen Hinweis.` : 'Aufgabe angelegt.' });
+    return true;
+  }
+  async function aufgabeHaken(a: Aufgabe) {
+    if (!user) return;
+    setAufgaben(l => l.map(x => (x.id === a.id ? { ...x, done: !a.done } : x)));
+    const { error } = await setzeErledigt(a.id, !a.done, user.id);
+    if (error) { setAufgaben(l => l.map(x => (x.id === a.id ? a : x))); setMsg({ kind: 'err', text: error }); }
+  }
+  async function aufgabeWeg(a: Aufgabe) {
+    const vorher = aufgaben;
+    setAufgaben(l => l.filter(x => x.id !== a.id));
+    const { error } = await loescheAufgabe(a.id);
+    if (error) { setAufgaben(vorher); setMsg({ kind: 'err', text: error }); }
   }
 
   async function teilen() {
@@ -165,6 +188,12 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
               onSpeichern={v => void speichereDetails({ meetTime: v }, v ? `Treffen für dieses Spiel: ${v} Uhr.` : 'Treffen wieder nach Vorgabe.')} />
           )}
 
+          {/* ── Notiz + Aufgaben ── */}
+          <NotizUndAufgaben key={details?.note ?? ''} note={details?.note ?? null} aufgaben={aufgaben} personen={personen} darf={istKapitaen}
+            ich={user?.playerId ?? null}
+            onNotiz={n => void speichereDetails({ note: n }, n ? 'Notiz gespeichert.' : 'Notiz gelöscht.')}
+            onNeu={aufgabeNeu} onHaken={a => void aufgabeHaken(a)} onWeg={a => void aufgabeWeg(a)} />
+
           {/* ── Aufstellung ── */}
           <Aufstellung heim={heim} personen={personen} zusagen={zusagen} lineup={lineup} darf={istKapitaen}
             onSpeichern={l => void speichereDetails({ lineup: l }, l.some(Boolean) ? `Aufstellung gespeichert (${l.filter(Boolean).length} Spieler).` : 'Aufstellung geleert.')} />
@@ -196,6 +225,91 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
         </>
       )}
     </div>
+  );
+}
+
+function NotizUndAufgaben({ note, aufgaben, personen, darf, ich, onNotiz, onNeu, onHaken, onWeg }: {
+  note: string | null; aufgaben: Aufgabe[]; personen: KaderOption[]; darf: boolean; ich: string | null;
+  onNotiz: (n: string | null) => void; onNeu: (t: string, p: { id: string; name: string } | null) => Promise<boolean>;
+  onHaken: (a: Aufgabe) => void; onWeg: (a: Aufgabe) => void;
+}) {
+  const [notizEdit, setNotizEdit] = useState(false);
+  const [notiz, setNotiz] = useState(note ?? '');
+  const [titel, setTitel] = useState('');
+  const [wer, setWer] = useState('');
+  const [laeuft, setLaeuft] = useState(false);
+  const offen = aufgaben.filter(a => !a.done).length;
+  if (!darf && !note && !aufgaben.length) return null;
+
+  return (
+    <section style={karte}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <h2 style={h2}>Notizen & Aufgaben</h2>
+        {aufgaben.length > 0 && <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: offen ? 'var(--th-gold)' : 'var(--th-win)' }}>{offen ? `${offen} offen` : 'alles erledigt'}</span>}
+      </div>
+
+      {/* Notiz */}
+      {notizEdit ? (
+        <div style={{ marginTop: 6 }}>
+          <textarea autoFocus value={notiz} onChange={e => setNotiz(e.target.value.slice(0, SPIEL_NOTIZ_MAX))} rows={3} maxLength={SPIEL_NOTIZ_MAX}
+            placeholder="z. B. Treffpunkt am Hintereingang, Darts für Neue mitbringen …" aria-label="Notiz zum Spiel" style={eingabe} />
+          <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button type="button" onClick={() => { onNotiz(notiz.trim() || null); setNotizEdit(false); }} style={knopf(true)}>Speichern</button>
+            <button type="button" onClick={() => { setNotiz(note ?? ''); setNotizEdit(false); }} style={knopf(false, 'var(--th-text-muted)')}>Abbrechen</button>
+            <span style={{ marginLeft: 'auto', ...leise }}>{notiz.length}/{SPIEL_NOTIZ_MAX}</span>
+          </div>
+        </div>
+      ) : note ? (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 6, padding: '10px 12px', borderRadius: 12, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)' }}>
+          <Icon name="edit" size={16} style={{ color: 'var(--th-accent)', flexShrink: 0, marginTop: 2 }} />
+          <span style={{ flex: 1, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-strong)', lineHeight: 1.5 }}>{note}</span>
+          {darf && <button type="button" onClick={() => setNotizEdit(true)} style={linkKnopf}>Ändern</button>}
+        </div>
+      ) : darf ? (
+        <button type="button" onClick={() => setNotizEdit(true)} style={{ ...linkKnopf, alignSelf: 'flex-start', marginTop: 4 }}>+ Notiz fürs Team</button>
+      ) : null}
+
+      {/* Aufgaben */}
+      {aufgaben.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          {aufgaben.map(a => {
+            const darfHaken = darf || (!!ich && a.assignee_id === ich);
+            const meine = !!ich && a.assignee_id === ich;
+            return (
+              <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderTop: '1px solid var(--th-line-4)' }}>
+                <button type="button" disabled={!darfHaken} onClick={() => onHaken(a)} aria-label={a.done ? 'Als offen markieren' : 'Als erledigt abhaken'}
+                  style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: darfHaken ? 'pointer' : 'default',
+                    border: `1.5px solid ${a.done ? 'var(--th-win)' : 'var(--th-line-18)'}`, background: a.done ? 'var(--th-win)' : 'transparent', color: '#fff' }}>
+                  {a.done && <Icon name="check" size={15} stroke={2.8} />}
+                </button>
+                <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)' }}>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: a.done ? 'var(--th-text-faint)' : 'var(--th-text-strong)', textDecoration: a.done ? 'line-through' : 'none' }}>{a.title}</span>
+                  {a.assignee_name && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 2, fontSize: 12, fontWeight: 700, color: meine ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>
+                      <Icon name="user" size={12} /> {meine ? 'Du' : a.assignee_name}
+                    </span>
+                  )}
+                </span>
+                {darf && <button type="button" onClick={() => onWeg(a)} aria-label="Aufgabe löschen" title="Löschen" style={{ ...linkKnopf, color: 'var(--th-text-faint)' }}><Icon name="close" size={15} /></button>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Neue Aufgabe (nur TC) */}
+      {darf && (
+        <form onSubmit={async e => { e.preventDefault(); if (!titel.trim() || laeuft) return; setLaeuft(true); const p = personen.find(x => x.id === wer); if (await onNeu(titel, p ? { id: p.id, name: p.name } : null)) { setTitel(''); setWer(''); } setLaeuft(false); }}
+          style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10, padding: 8, borderRadius: 12, background: 'var(--th-bg-card3)', border: '1px dashed var(--th-line-18)' }}>
+          <input value={titel} onChange={e => setTitel(e.target.value.slice(0, AUFGABE_MAX))} placeholder="Neue Aufgabe, z. B. Spielbericht mitbringen" aria-label="Neue Aufgabe" style={{ ...eingabe, flex: '1 1 200px' }} />
+          <select value={wer} onChange={e => setWer(e.target.value)} aria-label="Zuständig" style={{ ...eingabe, flex: '1 1 130px', width: 'auto' }}>
+            <option value="">für alle</option>
+            {personen.filter(p => !p.id.startsWith('name:')).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <button type="submit" disabled={!titel.trim() || laeuft} style={{ ...knopf(true), opacity: titel.trim() && !laeuft ? 1 : 0.45, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Icon name="plus" size={15} stroke={2.4} /> Hinzufügen</button>
+        </form>
+      )}
+    </section>
   );
 }
 
@@ -279,3 +393,5 @@ function Aufstellung({ heim, personen, zusagen, lineup, darf, onSpeichern }: {
 }
 
 const leise: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.5 };
+const eingabe: React.CSSProperties = { display: 'block', width: '100%', boxSizing: 'border-box', padding: '9px 11px', borderRadius: 10, fontSize: 14, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-18)', color: 'var(--th-text-strong)', resize: 'vertical' };
+const linkKnopf: React.CSSProperties = { background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, display: 'inline-flex', alignItems: 'center' };

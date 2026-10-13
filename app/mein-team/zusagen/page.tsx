@@ -20,7 +20,7 @@ import { zusagenFreigeschaltet } from '@/lib/features';
 import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
-  ladeZusagen, ladeEinstellungen, setzeEinstellung, ladeDetails,
+  ladeZusagen, ladeEinstellungen, setzeEinstellung, ladeDetails, ladeAufgaben, type Aufgabe,
   ERINNERUNG_VORGABE, TREFFEN_VORGABE, type Zusage, type SpielDetails, type TeamEinstellungen,
 } from '@/lib/supabase/zusagen';
 import { SpielKachel } from '@/components/mdu/spiel-kachel';
@@ -41,6 +41,7 @@ export default function ZusagenPage() {
   const [kader, setKader] = useState<KaderOption[] | null>(null);
   const [zusagen, setZusagen] = useState<Zusage[]>([]);
   const [details, setDetails] = useState<Record<string, SpielDetails>>({});
+  const [aufgaben, setAufgaben] = useState<Aufgabe[]>([]);
   const [bereit, setBereit] = useState(true);
   const [einst, setEinst] = useState<TeamEinstellungen>({ reminder_days: ERINNERUNG_VORGABE, meet_minutes: TREFFEN_VORGABE });
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
@@ -48,8 +49,8 @@ export default function ZusagenPage() {
 
   const laden = useCallback(async () => {
     if (!teamId) return;
-    const [k, z, e, d] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId)]);
-    setKader(k); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d);
+    const [k, z, e, d, a] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId), ladeAufgaben(teamId)]);
+    setKader(k); setAufgaben(a); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d);
     if (z.error) setMsg({ kind: 'err', text: z.error });
   }, [teamId]);
 
@@ -127,7 +128,8 @@ export default function ZusagenPage() {
                 {i === 1 && <h2 style={{ ...h2, margin: '8px 0 12px' }}>Weitere Termine</h2>}
                 <SpielKachel b={b} teamId={teamId} liga={findLiga27(t.league)?.name ?? ''}
                   zusagen={zusagen.filter(z => z.match_key === b.key)} kaderAnzahl={anzahlKader}
-                  ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[b.key]?.meet_time ?? null} />
+                  ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[b.key]?.meet_time ?? null}
+                  notiz={details[b.key]?.note ?? null} aufgaben={aufgaben.filter(x => x.match_key === b.key)} />
               </div>
             ))}
 
