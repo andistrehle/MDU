@@ -30,6 +30,8 @@ ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-
   Modell + Text). Wer einen Satz ändert, zahlt nur diesen neu. Ganzes Video ≈ 3.100 Zeichen.
 - Die Szene läuft so lange, wie gesprochen wird (+0,7 s Luft), der Ton liegt exakt am
   Untertitel (geprüft am 13.10.2026 per `silencedetect`: Einsatz 0,80 s = Untertitel).
+- **Stimme des Videos:** Klon der Betreiberstimme „Andi (MDU-Video)“ im ElevenLabs-Konto,
+  `ELEVENLABS_VOICE_ID=rBHJ2c5Ox6KVBd8eW2q1` (angelegt 14.10.2026 aus einer 1:33-Aufnahme).
 - **Aussprache:** `AUSSPRACHE` in `vertonen.js` ersetzt Wörter NUR im gesprochenen Text
   („mdudarts.de“ → „Em De U Darts Punkt De“), der Untertitel bleibt.
 - **Stimmen:** `--stimmen` zeigt nur die englischen Standardstimmen des Kontos. Deutsche
