@@ -80,6 +80,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `match_key = 'ext:<id>'`; Löschen räumt sie per Trigger mit ab, Glocken-Links über
   `termin_link()`. Kalender-Abo nimmt sie mit („Extern“ im Titel), nach jeder Änderung markiert
   `/api/termine/geaendert` NUR `/kalender/<team>.ics`. Premium = dieselbe Freischaltung.
+  Farbe je Termin wählt der TC (`TERMIN_FARBEN`, Migration 0049 — bewusst kein Grün/Blau, das
+  ist Heim/Auswärts der MDU-Spiele); Kachel und Terminseite sind darin getönt (`terminGrund`).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

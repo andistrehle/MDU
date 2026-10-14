@@ -26,7 +26,8 @@ import { treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
 import { STATUS, REIHE, MeineAntwort, KaderZeile, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 import { NotizUndAufgaben, TreffzeitFeld } from './spieltag-ansicht';
-import { TerminKopf, TerminFormular, terminLabel, EXTERN_FARBE } from './termin-ui';
+import { TerminKopf, TerminFormular, terminLabel, terminGrund } from './termin-ui';
+import { terminFarbe } from '@/lib/supabase/termine';
 
 export function TerminAnsicht({ id }: { id: string }) {
   const { user, loading } = useAuth();
@@ -155,6 +156,7 @@ export function TerminAnsicht({ id }: { id: string }) {
   );
 
   const ortText = [t.venue, t.address].filter(Boolean).join(', ');
+  const farbe = terminFarbe(t);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Termine</Link>
@@ -162,18 +164,18 @@ export function TerminAnsicht({ id }: { id: string }) {
       {bearbeiten ? (
         <TerminFormular start={t} titel="Termin ändern" onSpeichern={aendern} onAbbrechen={() => setBearbeiten(false)} onLoeschen={() => void loeschen()} />
       ) : (
-        <div style={{ borderRadius: 18, overflow: 'hidden', background: 'var(--th-bg-card)', border: `1px solid ${EXTERN_FARBE}55`, boxShadow: '0 4px 20px var(--th-shadow)' }}>
+        <div style={{ borderRadius: 18, overflow: 'hidden', background: terminGrund(farbe), border: `1.5px solid ${farbe}`, boxShadow: '0 4px 20px var(--th-shadow)' }}>
           <TerminKopf t={t} teamId={teamId} gross />
           <Zeitleiste beginn={t.start_time ?? undefined} treffenMin={t.kind === 'spiel' ? treffenMin : 0} meetTime={details?.meet_time ?? null} ende={t.end_time ?? (t.kind === 'spiel' ? undefined : null)} />
           {ortText && (
             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ortText)}`} target="_blank" rel="noopener noreferrer"
               style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 12px 0', padding: '10px 12px', borderRadius: 10, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', textDecoration: 'none' }}>
-              <Icon name="pin" size={18} style={{ color: EXTERN_FARBE, flexShrink: 0 }} />
+              <Icon name="pin" size={18} style={{ color: farbe, flexShrink: 0 }} />
               <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)' }}>
                 <span style={{ display: 'block', fontWeight: 800, fontSize: 13.5, color: 'var(--th-text-strong)' }}>{t.venue ?? t.address}</span>
                 {t.venue && t.address && <span style={{ display: 'block', fontSize: 12.5, color: 'var(--th-text-muted)' }}>{t.address}</span>}
               </span>
-              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: EXTERN_FARBE }}>Route</span>
+              <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: farbe }}>Route</span>
             </a>
           )}
           <div style={{ padding: '8px 16px 0', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-faint)' }}>Termin außerhalb der MDU – vom Teamcaptain eingetragen.</div>
@@ -188,7 +190,7 @@ export function TerminAnsicht({ id }: { id: string }) {
             <Icon name="share" size={18} stroke={2.2} /> Termin teilen
           </button>
           {istKapitaen && (
-            <button type="button" onClick={() => { setBearbeiten(true); setMsg(null); }} style={{ ...knopf(false, EXTERN_FARBE), display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <button type="button" onClick={() => { setBearbeiten(true); setMsg(null); }} style={{ ...knopf(false, farbe), display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Icon name="edit" size={15} /> Ändern
             </button>
           )}

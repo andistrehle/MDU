@@ -16,11 +16,13 @@ import { Zeitleiste, StandLeiste, chip, karte, knopf, h2 } from './zusagen-ui';
 import { NotizAufgabenHinweis } from './spiel-kachel';
 import { team27 } from '@/lib/data/saison-2027';
 import { wochentag, tagMonat } from '@/lib/spieltag';
-import { terminPfad, terminTitel, pruefeTermin, type TeamTermin, type TerminEingabe, type TerminArt } from '@/lib/supabase/termine';
+import { terminPfad, terminTitel, pruefeTermin, terminFarbe, TERMIN_FARBEN, type TeamTermin, type TerminEingabe, type TerminArt } from '@/lib/supabase/termine';
 import type { Zusage, ZusageStatus, Aufgabe } from '@/lib/supabase/zusagen';
 
-export const EXTERN_FARBE = '#7C5CD6';
-const EXTERN_RGB = '124,92,214';
+export const EXTERN_FARBE = TERMIN_FARBEN[0].hex;
+const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(',');
+/** Getönter Kartengrund in der Farbe des Termins (hebt ihn von den MDU-Spielen ab). */
+export const terminGrund = (farbe: string) => `color-mix(in srgb, ${farbe} 12%, var(--th-bg-card))`;
 
 /** Dunkle Tafel eines eigenen Termins (Kachel + Terminseite). */
 export function TerminKopf({ t, teamId, gross = false, rechts }: { t: TeamTermin; teamId: string; gross?: boolean; rechts?: React.ReactNode }) {
@@ -28,6 +30,7 @@ export function TerminKopf({ t, teamId, gross = false, rechts }: { t: TeamTermin
   const tm = team27(teamId);
   const logo = gross ? 52 : 40;
   const spiel = t.kind === 'spiel';
+  const farbe = terminFarbe(t);
   const gegnerBadge = (
     <div style={{ width: logo, height: logo, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.12)', border: '1.5px solid rgba(255,255,255,0.45)', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: gross ? 18 : 15 }}>
       {(t.opponent ?? '?').replace(/[^A-Za-zÄÖÜäöü0-9 ]/g, '').split(/\s+/).filter(Boolean).slice(0, 3).map(w => w[0]).join('').toUpperCase() || '?'}
@@ -48,11 +51,11 @@ export function TerminKopf({ t, teamId, gross = false, rechts }: { t: TeamTermin
   return (
     <div style={{
       position: 'relative', overflow: 'hidden', color: fg, padding: gross ? '16px 16px 18px' : '12px 14px 14px',
-      background: `radial-gradient(120% 90% at 100% 0%, rgba(${EXTERN_RGB},0.6) 0%, transparent 60%), linear-gradient(160deg, #1E1B2E 0%, #12101C 100%)`,
+      background: `radial-gradient(120% 90% at 100% 0%, rgba(${rgb(farbe)},0.7) 0%, transparent 62%), linear-gradient(160deg, rgba(${rgb(farbe)},0.28) 0%, #12101C 75%)`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: gross ? 14 : 10 }}>
         <span style={chip(chipGrund, fg)}>{wochentag(t.event_date)} {tagMonat(t.event_date)}</span>
-        <span style={{ ...chip(EXTERN_FARBE, '#fff'), display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="calendar" size={12} stroke={2.4} />Extern</span>
+        <span style={{ ...chip(farbe, '#fff'), display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="calendar" size={12} stroke={2.4} />Extern</span>
         {spiel && (
           <span style={{ ...chip('rgba(255,255,255,0.22)', '#fff'), display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             <Icon name={t.is_home === false ? 'arrow-right' : 'home'} size={12} stroke={2.4} />{t.is_home === false ? 'Auswärts' : 'Heimspiel'}
@@ -89,8 +92,9 @@ export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMi
 }) {
   const meins = ichId ? zusagen.find(z => z.player_id === ichId)?.status ?? null : undefined;
   const zahl = (s: ZusageStatus) => zusagen.filter(z => z.status === s).length;
+  const farbe = terminFarbe(t);
   return (
-    <Link href={terminPfad(t.id)} className="mdu-spiel-kachel" style={{ display: 'block', textDecoration: 'none', borderRadius: 16, overflow: 'hidden', background: 'var(--th-bg-card)', border: `1px solid ${EXTERN_FARBE}55`, boxShadow: '0 2px 12px var(--th-shadow)' }}>
+    <Link href={terminPfad(t.id)} className="mdu-spiel-kachel" style={{ display: 'block', textDecoration: 'none', borderRadius: 16, overflow: 'hidden', background: terminGrund(farbe), border: `1.5px solid ${farbe}`, boxShadow: '0 2px 12px var(--th-shadow)' }}>
       <TerminKopf t={t} teamId={teamId} rechts={<Icon name="chevron" size={14} style={{ opacity: 0.7 }} />} />
       <Zeitleiste beginn={t.start_time ?? undefined} treffenMin={t.kind === 'spiel' ? treffenMin : 0} meetTime={meetTime} ende={t.end_time ?? (t.kind === 'spiel' ? undefined : null)} />
       <NotizAufgabenHinweis notiz={notiz} aufgaben={aufgaben} ichId={ichId} />
@@ -100,7 +104,7 @@ export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMi
   );
 }
 
-const LEER: TerminEingabe = { kind: 'spiel', title: null, league: null, opponent: null, is_home: true, event_date: '', start_time: null, end_time: null, venue: null, address: null };
+const LEER: TerminEingabe = { kind: 'spiel', title: null, league: null, opponent: null, is_home: true, event_date: '', start_time: null, end_time: null, venue: null, address: null, color: null };
 
 /** Formular „Termin eintragen“ / „Termin ändern“ (nur TC). */
 export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoeschen }: {
@@ -111,6 +115,7 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
   const [laeuft, setLaeuft] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const set = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => setE(x => ({ ...x, [k]: v }));
+  const farbe = terminFarbe(e);
   const art = (k: TerminArt) => setE(x => ({ ...x, kind: k, is_home: k === 'spiel' ? x.is_home ?? true : null }));
 
   async function senden() {
@@ -123,14 +128,14 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
   }
 
   return (
-    <section style={{ ...karte, gap: 10, border: `1.5px solid ${EXTERN_FARBE}` }}>
+    <section style={{ ...karte, gap: 10, border: `1.5px solid ${farbe}`, background: terminGrund(farbe) }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ ...chip(EXTERN_FARBE, '#fff') }}>Extern</span>
+        <span style={{ ...chip(farbe, '#fff') }}>Extern</span>
         <h2 style={h2}>{titel}</h2>
       </div>
       <div role="radiogroup" aria-label="Art des Termins" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: 4, borderRadius: 12, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)' }}>
         {([['spiel', 'Spiel (andere Liga/Pokal)'], ['sonstiges', 'Sonstiges (z. B. Training)']] as [TerminArt, string][]).map(([k, l]) => (
-          <button key={k} type="button" role="radio" aria-checked={e.kind === k} onClick={() => art(k)} style={{ padding: '10px 8px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, background: e.kind === k ? EXTERN_FARBE : 'transparent', color: e.kind === k ? '#fff' : 'var(--th-text-body)' }}>{l}</button>
+          <button key={k} type="button" role="radio" aria-checked={e.kind === k} onClick={() => art(k)} style={{ padding: '10px 8px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, background: e.kind === k ? farbe : 'transparent', color: e.kind === k ? '#fff' : 'var(--th-text-body)' }}>{l}</button>
         ))}
       </div>
 
@@ -140,7 +145,7 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
           <Feld label="Liga / Wettbewerb"><input value={e.league ?? ''} onChange={x => set('league', x.target.value)} maxLength={60} placeholder="z. B. DSAB Bezirksliga, Pokal" style={eingabe} /></Feld>
           <div style={{ display: 'flex', gap: 6 }}>
             {[true, false].map(h => (
-              <button key={String(h)} type="button" onClick={() => set('is_home', h)} style={{ ...knopf(e.is_home === h, EXTERN_FARBE), flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <button key={String(h)} type="button" onClick={() => set('is_home', h)} style={{ ...knopf(e.is_home === h, farbe), flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Icon name={h ? 'home' : 'arrow-right'} size={14} stroke={2.4} />{h ? 'Heimspiel' : 'Auswärts'}
               </button>
             ))}
@@ -155,12 +160,27 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
         <Feld label="Beginn"><input type="time" value={e.start_time ?? ''} onChange={x => set('start_time', x.target.value || null)} style={eingabe} /></Feld>
         <Feld label="Ende"><input type="time" value={e.end_time ?? ''} onChange={x => set('end_time', x.target.value || null)} style={eingabe} /></Feld>
       </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, color: 'var(--th-text-muted)' }}>Farbe</span>
+        <div role="radiogroup" aria-label="Farbe des Termins" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {TERMIN_FARBEN.map(f => {
+            const an = farbe === f.hex;
+            return (
+              <button key={f.hex} type="button" role="radio" aria-checked={an} aria-label={f.name} title={f.name} onClick={() => set('color', f.hex)}
+                style={{ width: 34, height: 34, borderRadius: 999, cursor: 'pointer', background: f.hex, border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                  boxShadow: an ? `0 0 0 3px var(--th-bg-card), 0 0 0 5px ${f.hex}` : 'none' }}>
+                {an && <Icon name="check" size={16} stroke={3} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <Feld label="Ort"><input value={e.venue ?? ''} onChange={x => set('venue', x.target.value)} maxLength={80} placeholder="z. B. Gaststätte zum Pfeil" style={eingabe} /></Feld>
       <Feld label="Adresse"><input value={e.address ?? ''} onChange={x => set('address', x.target.value)} maxLength={120} placeholder="Straße, Ort (für die Route)" style={eingabe} /></Feld>
 
       {fehler && <div role="alert" style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-loss)' }}>{fehler}</div>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" disabled={laeuft} onClick={() => void senden()} style={{ ...knopf(true, EXTERN_FARBE), opacity: laeuft ? 0.6 : 1 }}>{laeuft ? 'Speichere …' : start ? 'Änderungen speichern' : 'Termin eintragen'}</button>
+        <button type="button" disabled={laeuft} onClick={() => void senden()} style={{ ...knopf(true, farbe), opacity: laeuft ? 0.6 : 1 }}>{laeuft ? 'Speichere …' : start ? 'Änderungen speichern' : 'Termin eintragen'}</button>
         <button type="button" onClick={onAbbrechen} style={knopf(false, 'var(--th-text-muted)')}>Abbrechen</button>
         {onLoeschen && <button type="button" onClick={onLoeschen} style={{ ...knopf(false, 'var(--th-loss)'), marginLeft: 'auto' }}>Termin löschen</button>}
       </div>
