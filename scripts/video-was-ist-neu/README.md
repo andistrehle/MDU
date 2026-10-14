@@ -1,6 +1,6 @@
 # Video „MDU – Was ist neu“ (Saison 2026/27)
 
-Erklärvideo, 14 Szenen, ca. 4–4,5 Minuten, 1920×1080. Alles hier, damit es in jeder
+Erklärvideo, 13 Szenen, ca. 3,5 Minuten, 1920×1080. Alles hier, damit es in jeder
 neuen Session ohne Vorarbeit weitergeht. Wird NICHT deployt (`.vercelignore`) und
 nicht typgeprüft (`scripts/` ist in tsconfig ausgenommen).
 
@@ -30,7 +30,7 @@ ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-
   Modell + Klang + Text). Wer einen Satz ändert, zahlt nur diese Szene neu. Ganzes Video ≈ 3.100 Zeichen.
 - **Stimme:** bayerisch, NICHT wienerisch (Betreiber, 14.10.2026). Der Klon der
   Betreiberstimme („Andi (MDU-Video)“, `rBHJ2c5Ox6KVBd8eW2q1`) klang wienerisch → verworfen.
-- **Stimme des Videos:** Benjamin (Bibliothek, leicht bayerisch), `ELEVENLABS_VOICE_ID=gRJR8Fqocw86Vixo4cZV` → 3:55.
+- **Stimme des Videos:** Benjamin (Bibliothek, leicht bayerisch), `ELEVENLABS_VOICE_ID=gRJR8Fqocw86Vixo4cZV` → 3:27 (Stand 14.10.2026).
 - **Klang:** euphorisch und etwas schneller — `STIMME` in `vertonen.js` (stability 0.3,
   style 0.65, speed 1.1; per ENV `STABILITY`/`STYLE`/`SPEED` änderbar).
 - **Flüssig statt abgehackt:** Jede Szene wird AM STÜCK gesprochen (`with-timestamps`),
@@ -52,5 +52,5 @@ ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-
 (Ausgabe nach `shots/`). Danach `app/zz-demo` wieder löschen.
 
 ## Offen
-- Szene 6 (Spielbericht digital) zeigt nur eine Grafik — echtes Formular braucht Login
+- Szene 6 (Spielbericht digital & live) zeigt nur eine Grafik — echtes Formular braucht Login
   (Screenshot vom Betreiber).

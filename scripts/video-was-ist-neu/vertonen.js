@@ -36,6 +36,10 @@ const PAUSE = +(process.env.PAUSE || 0.35); // Sekunden Luft am Ende jeder Szene
 const AUSSPRACHE = [
   [/mdudarts\.de/gi, 'Em De U Darts Punkt De'],
   [/\bMDU\b/g, 'Em De U'],
+  [/\bTC\b/g, 'Te-Zeh'],
+  // Auslassungspunkte: am Stück gesprochen stünden sonst „… …“ hintereinander,
+  // daran verschluckt sich die Stimme (Szene 6, 14.10.2026).
+  [/^\s*…\s*/, ''], [/\s*…\s*$/, ','], [/\s*…\s*/g, ', '],
 ];
 const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers), t);
 const FFMPEG = (() => { try { return require(path.join(DIR, 'node_modules/ffmpeg-static')); } catch { return 'ffmpeg'; } })();
@@ -127,7 +131,7 @@ async function main() {
     brauchtKey();
     const voice = process.argv[3];
     const datei = path.join(DIR, `probe-${voice}.mp3`);
-    await sprich(process.argv[4] || 'Servus! Ich möcht euch ganz kurz erklären, was es Neues auf der Homepage gibt! Passts bitte kurz auf. Good Darts – und bis boid!', voice, datei);
+    await sprich(process.argv[4] || 'Servus! Ich möcht euch ganz kurz erklären, was es Neues auf der Homepage gibt! Passts bitte kurz auf. Good Darts – und bis bald!', voice, datei);
     console.log('Probe:', datei);
     return;
   }
