@@ -397,5 +397,5 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Auf allen Seiten laufen (für die Header), außer Next-Interna und statischen
   // Assets — dort sind weder Guard noch Header nötig.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:webp|png|jpg|jpeg|svg|ico|txt|xml)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:webp|png|jpg|jpeg|svg|ico|txt|xml|mp4)$).*)'],
 };

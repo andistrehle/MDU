@@ -181,7 +181,7 @@ export default function AdminNewsPage() {
 
           <div style={{ marginBottom: 6 }}>
             <label style={labelStyle}>Inhalt</label>
-            <textarea style={{ ...inputStyle, minHeight: 180, resize: 'vertical', lineHeight: 1.6 }} value={form.contentText} onChange={e => field('contentText', e.target.value)} placeholder={'Absätze durch eine Leerzeile trennen.\n\nFür Fettschrift **so** schreiben.'} />
+            <textarea style={{ ...inputStyle, minHeight: 180, resize: 'vertical', lineHeight: 1.6 }} value={form.contentText} onChange={e => field('contentText', e.target.value)} placeholder={'Absätze durch eine Leerzeile trennen.\n\nFür Fettschrift **so** schreiben.\n\nVideo als eigener Absatz: [video:/videos/datei.mp4|/videos/vorschau.jpg]'} />
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 6 }}>
               Absätze durch eine Leerzeile trennen. <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>**fett**</code> wird unterstützt.
             </div>

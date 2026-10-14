@@ -18,6 +18,21 @@ function renderRich(text: string): ReactNode[] {
 }
 
 /**
+ * Video im Beitrag: ein Absatz, der nur aus `[video:/pfad.mp4]` besteht
+ * (optional mit Vorschaubild `[video:/pfad.mp4|/bild.jpg]`), wird als Player
+ * gezeigt. Dateien liegen unter public/videos/ (Vercel liefert sie aus —
+ * nicht Supabase Storage, dessen Freikontingent für Videos schnell aufgebraucht wäre).
+ */
+const VIDEO_RE = /^\[video:([^\]|\s]+)(?:\|([^\]\s]+))?\]$/;
+function videoAus(p: string): { src: string; poster?: string } | null {
+  const m = VIDEO_RE.exec(p.trim());
+  if (!m) return null;
+  const ok = (u: string) => u.startsWith('/') || u.startsWith('https://');
+  if (!ok(m[1]) || (m[2] && !ok(m[2]))) return null;
+  return { src: m[1], poster: m[2] };
+}
+
+/**
  * Featured news card for the Homepage „Aktuelles" section.
  * Shows only the key fact; on click a modal opens with the full text.
  * Themed via the shared --th-* tokens (dark + Old School light).
@@ -64,6 +79,7 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
   }, [open, article.id]);
 
   const articleUrl = `https://www.mdudarts.de/news#${article.id}`;
+  const hatVideo = article.content.some(p => videoAus(p) !== null);
 
   const copyLink = async () => {
     try {
@@ -112,7 +128,7 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
             display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10,
             fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)',
           }}>
-            Mehr lesen <Icon name="arrow-right" size={13} stroke={2.5} />
+            {hatVideo ? 'Video ansehen' : 'Mehr lesen'} <Icon name="arrow-right" size={13} stroke={2.5} />
           </div>
         </div>
       </button>
@@ -176,14 +192,28 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
             </h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {article.content.map((p, i) => (
+              {article.content.map((p, i) => {
+                const video = videoAus(p);
+                if (video) return (
+                  <video
+                    key={i}
+                    src={video.src}
+                    poster={video.poster}
+                    controls
+                    playsInline
+                    preload="none"
+                    style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 10, background: '#000', border: '1px solid var(--th-line-8)' }}
+                  />
+                );
+                return (
                 <p key={i} style={{
                   fontFamily: 'var(--font-manrope)', fontSize: 15, lineHeight: 1.65,
                   color: 'var(--th-text-body)', margin: 0,
                 }}>
                   {renderRich(p)}
                 </p>
-              ))}
+                );
+              })}
             </div>
 
             <div style={{
