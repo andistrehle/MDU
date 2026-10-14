@@ -9,9 +9,13 @@
 // der Kalender aktualisiert den Eintrag statt einen zweiten anzulegen.
 //
 // Nur öffentliche Angaben aus dem Spielplan (Teams, Termin, Spielort).
+// Dazu die EIGENEN Termine des Teams aus dem Team Manager (Migration 0048,
+// nur freigeschaltete Teams) — im Titel mit „Extern“ gekennzeichnet; geladen
+// in der Route, hier nur als Liste übergeben.
 // ============================================================
 
 import { alleBegegnungen27, team27, venue27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
+import type { TeamTermin } from '@/lib/supabase/termine';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mdudarts.de';
 /** Angenommene Dauer eines Spieltags (für das Ende des Termins). */
@@ -58,7 +62,7 @@ const VTIMEZONE = [
   'END:VTIMEZONE',
 ];
 
-export function teamKalender(teamId: string, jetzt = new Date()): string | null {
+export function teamKalender(teamId: string, jetzt = new Date(), eigene: TeamTermin[] = []): string | null {
   const t = team27(teamId);
   if (!t) return null;
   const liga = findLiga27(t.league);
@@ -96,6 +100,25 @@ export function teamKalender(teamId: string, jetzt = new Date()): string | null 
     }
     zeilen.push(`SUMMARY:${esc(titel)}`, `DESCRIPTION:${esc(info)}`, `URL:${SITE}/teams/${teamId}`);
     if (ort) zeilen.push(`LOCATION:${esc(ort.address ? `${ort.name}, ${ort.address}` : ort.name)}`);
+    zeilen.push('END:VEVENT');
+  }
+  for (const e of eigene) {
+    const titel = e.kind === 'spiel'
+      ? `Extern${e.league ? ` · ${e.league}` : ''}: ${e.is_home === false ? `${e.opponent} – ${t.name}` : `${t.name} – ${e.opponent}`}`
+      : `Extern · ${e.title}`;
+    const info = [
+      e.kind === 'spiel' ? `Spiel außerhalb der MDU · ${e.is_home === false ? 'Auswärtsspiel' : 'Heimspiel'}` : 'Termin außerhalb der MDU',
+      `Zu- und Absagen: ${SITE}/termin/${e.id}`,
+    ].join('\n');
+    zeilen.push('BEGIN:VEVENT', `UID:mdu-ext-${e.id}@mdudarts.de`, `DTSTAMP:${stamp}`);
+    if (e.start_time) {
+      const ende = e.end_time && e.end_time > e.start_time ? lokal(e.event_date, e.end_time) : plusStunden(e.event_date, e.start_time, e.kind === 'spiel' ? DAUER_STD : 2);
+      zeilen.push(`DTSTART;TZID=Europe/Berlin:${lokal(e.event_date, e.start_time)}`, `DTEND;TZID=Europe/Berlin:${ende}`);
+    } else {
+      zeilen.push(`DTSTART;VALUE=DATE:${e.event_date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${tagDanach(e.event_date)}`);
+    }
+    zeilen.push(`SUMMARY:${esc(titel)}`, `DESCRIPTION:${esc(info)}`, `URL:${SITE}/termin/${e.id}`);
+    if (e.venue || e.address) zeilen.push(`LOCATION:${esc([e.venue, e.address].filter(Boolean).join(', '))}`);
     zeilen.push('END:VEVENT');
   }
   zeilen.push('END:VCALENDAR');

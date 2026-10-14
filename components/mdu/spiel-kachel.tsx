@@ -16,8 +16,6 @@ export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin
   ichId: string | null; treffenMin: number; meetTime: string | null;
   notiz?: string | null; aufgaben?: Aufgabe[];
 }) {
-  const offeneAufgaben = aufgaben.filter(a => !a.done);
-  const fuerMich = ichId ? offeneAufgaben.filter(a => a.assignee_id === ichId).length : 0;
   const l = findLiga27(b.liga);
   const meins = ichId ? zusagen.find(z => z.player_id === ichId)?.status ?? null : undefined;
   const zahl = (s: ZusageStatus) => zusagen.filter(z => z.status === s).length;
@@ -28,8 +26,20 @@ export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin
         rechts={<Icon name="chevron" size={14} style={{ opacity: 0.7 }} />} />
       <Zeitleiste beginn={b.termin?.uhrzeit} treffenMin={treffenMin} meetTime={meetTime} />
       {b.termin?.vorlaeufig && <div style={{ padding: '6px 14px 0', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-gold)' }}>Termin wird noch geprüft</div>}
-      {(notiz || aufgaben.length > 0) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '8px 12px 0', padding: '8px 10px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-body)' }}>
+      <NotizAufgabenHinweis notiz={notiz} aufgaben={aufgaben} ichId={ichId} />
+      <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins} />
+      <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
+    </Link>
+  );
+}
+
+/** Hinweiszeile in der Kachel: Notiz (gekürzt) und offene Aufgaben, eigene hervorgehoben. */
+export function NotizAufgabenHinweis({ notiz, aufgaben, ichId }: { notiz: string | null; aufgaben: Aufgabe[]; ichId: string | null }) {
+  const offeneAufgaben = aufgaben.filter(a => !a.done);
+  const fuerMich = ichId ? offeneAufgaben.filter(a => a.assignee_id === ichId).length : 0;
+  if (!notiz && !aufgaben.length) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '8px 12px 0', padding: '8px 10px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-body)' }}>
           {notiz && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, flex: '1 1 160px' }}><Icon name="edit" size={14} style={{ color: 'var(--th-accent)', flexShrink: 0 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notiz}</span></span>}
           {aufgaben.length > 0 && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginLeft: notiz ? 'auto' : 0 }}>
@@ -39,9 +49,5 @@ export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin
             </span>
           )}
         </div>
-      )}
-      <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins} />
-      <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
-    </Link>
   );
 }

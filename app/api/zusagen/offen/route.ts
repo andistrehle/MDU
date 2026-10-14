@@ -6,7 +6,8 @@
 // eingestellt, Vorgabe 7 Tage, 0 = aus), für die der Spieler noch weder zu-
 // noch abgesagt hat. Ohne Zeitplan-Job: gerechnet wird beim Abruf. Die
 // Begegnungen stehen im Code (saison-2027), deshalb hier auf dem Server statt
-// im Browser-Paket der Glocke.
+// im Browser-Paket der Glocke. Eigene Termine des Teams (Migration 0048,
+// „Extern“) zählen genauso.
 // ============================================================
 
 import { NextResponse } from 'next/server';
@@ -43,24 +44,31 @@ export async function GET(request: Request) {
   const spiele = alleBegegnungen27()
     .filter(b => (b.home === teamId || b.away === teamId))
     .map(b => ({ b, datum: b.termin?.datum ?? b.fri }))
-    .filter(x => x.datum >= heute && x.datum <= bisIso);
+    .filter(x => x.datum >= heute && x.datum <= bisIso)
+    .map(({ b, datum }) => {
+      const heim = b.home === teamId;
+      const gegner = team27(heim ? b.away : b.home)?.name ?? '';
+      return { key: b.key, datum, text: `${b.termin ? terminKurz(b.termin) : `Wochenende ${wochenendeText(b.fri, b.sun, false)}`} · ${heim ? 'gegen' : 'bei'} ${gegner}` };
+    });
+  // Eigene Termine (fehlt die Tabelle noch, bleibt es bei den MDU-Spielen).
+  const { data: eigene } = await supabaseAdmin.from('team_events')
+    .select('id, kind, title, opponent, is_home, event_date, start_time')
+    .eq('season_id', NEUE_SAISON.id).eq('team_id', teamId).gte('event_date', heute).lte('event_date', bisIso);
+  for (const e of (eigene ?? []) as { id: string; kind: string; title: string | null; opponent: string | null; is_home: boolean | null; event_date: string; start_time: string | null }[]) {
+    const tag = terminKurz({ datum: e.event_date, uhrzeit: e.start_time ?? undefined });
+    spiele.push({ key: 'ext:' + e.id, datum: e.event_date, text: `${tag} · ${e.kind === 'spiel' ? `${e.is_home === false ? 'bei' : 'gegen'} ${e.opponent}` : e.title} (Extern)` });
+  }
   if (!spiele.length) return NextResponse.json({ offen: [] });
 
   const { data: antworten, error } = await supabaseAdmin.from('match_availability')
     .select('match_key').eq('season_id', NEUE_SAISON.id).eq('team_id', teamId).eq('player_id', playerId)
-    .in('match_key', spiele.map(x => x.b.key));
+    .in('match_key', spiele.map(x => x.key));
   if (error) return NextResponse.json({ offen: [] });
   const beantwortet = new Set(((antworten ?? []) as { match_key: string }[]).map(a => a.match_key));
 
-  const offen = spiele.filter(x => !beantwortet.has(x.b.key)).sort((a, z) => a.datum.localeCompare(z.datum)).map(({ b, datum }) => {
-    const heim = b.home === teamId;
-    const gegner = team27(heim ? b.away : b.home)?.name ?? '';
+  const offen = spiele.filter(x => !beantwortet.has(x.key)).sort((a, z) => a.datum.localeCompare(z.datum)).map(({ key, datum, text }) => {
     const tageBis = Math.round((Date.parse(datum + 'T12:00:00Z') - Date.parse(heute + 'T12:00:00Z')) / 864e5);
-    return {
-      key: b.key,
-      text: `${b.termin ? terminKurz(b.termin) : `Wochenende ${wochenendeText(b.fri, b.sun, false)}`} · ${heim ? 'gegen' : 'bei'} ${gegner}`,
-      dringend: tageBis <= DRINGEND_TAGE,
-    };
+    return { key, text, dringend: tageBis <= DRINGEND_TAGE };
   });
   return NextResponse.json({ offen }, { headers: { 'Cache-Control': 'no-store' } });
 }

@@ -73,6 +73,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   immer `passtSlug`. Ende = Beginn + 3,5 h; Treffen = Team-Vorgabe in Min. oder je Spiel;
   Aufstellung wählt der Kapitän aus den Zusagen auf H1–H8/G1–G8 wie im Spielbericht (1–4 Stamm,
   5–8 Ersatz; `lineup[i]` = Position i+1, '' = frei; Migration 0045, `match_team_details`).
+  **Eigene Termine außerhalb der MDU** (Migration 0048, `team_events`, `lib/supabase/termine.ts`):
+  nur der TC trägt sie ein (Spiel anderer Liga/Pokal oder Sonstiges), fürs ganze Team, violett
+  mit „Extern“ (`components/mdu/termin-ui.tsx`), Seite `/termin/<id>` (dynamisch, Daten per RLS
+  im Browser). Zu-/Absagen, Notiz, Treffzeit, Aufgaben nutzen dieselben Tabellen mit
+  `match_key = 'ext:<id>'`; Löschen räumt sie per Trigger mit ab, Glocken-Links über
+  `termin_link()`. Kalender-Abo nimmt sie mit („Extern“ im Titel), nach jeder Änderung markiert
+  `/api/termine/geaendert` NUR `/kalender/<team>.ics`. Premium = dieselbe Freischaltung.
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

@@ -410,6 +410,14 @@ Kapitän setzt Status für alle im Kader und stellt die Glocken-Erinnerung ein, 
 Erinnerungsfenster erscheinen in der Glocke (`/api/zusagen/offen`, ohne Zeitplan-Job).
 Keine Zeile = „offen“, keine harte Frist. Migration `0043_zusagen.sql`.
 
+### Eigene Termine außerhalb der MDU (14.10.2026, Migration 0048)
+Der TC trägt Spiele anderer Ligen/Pokale und Sonstiges (Training, Teamabend) fürs
+ganze Team ein; violett mit „Extern“, in derselben Liste wie die MDU-Spiele, eigene
+Seite `/termin/<id>`, Zu-/Absagen/Notiz/Aufgaben über `match_key = 'ext:<id>'`, mit
+im Kalender-Abo („Extern“ im Titel) und in der Glocke. Premium wie der Rest.
+- [ ] **Nächster Schritt (Betreiber): Import per Excel/CSV** — Vorlage zum Herunterladen,
+  ausfüllen, hochladen, Vorschau prüfen, dann übernehmen (`team_events.source = 'import'`).
+
 ### ⏳ Nächster Schritt — Nominierung (vom Betreiber so festgelegt, „merke dir das“)
 - Kapitän nominiert je Spieltag Spieler aus den Zusagen.
 - Offen zu klären: Sichtbarkeit fürs Team, Übernahme der Nominierung als vorbelegte

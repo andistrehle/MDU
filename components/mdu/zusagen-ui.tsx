@@ -85,11 +85,15 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
 }
 
 /** Zeitleiste Treffen → Beginn → Ende. */
-export function Zeitleiste({ beginn, treffenMin, meetTime }: { beginn: string | undefined; treffenMin: number; meetTime: string | null }) {
+export function Zeitleiste({ beginn, treffenMin, meetTime, ende }: {
+  beginn: string | undefined; treffenMin: number; meetTime: string | null;
+  /** Eigenes Ende (eigene Termine); sonst Beginn + 3,5 Std. */
+  ende?: string | null;
+}) {
   const zeiten: [string, string, string | null][] = [
     ['meet', 'Treffen', treffZeit(beginn, treffenMin, meetTime)],
     ['clock', 'Beginn', beginn ?? null],
-    ['flag-end', 'Ende ca.', endeZeit(beginn)],
+    ['flag-end', ende ? 'Ende' : 'Ende ca.', ende ?? (ende === null ? null : endeZeit(beginn))],
   ];
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, padding: '12px 12px 4px' }}>

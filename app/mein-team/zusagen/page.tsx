@@ -9,6 +9,9 @@
 // hervorgehoben. Antippen öffnet die Spieltag-Seite (/spieltag/[team]/[spiel],
 // teilbar). Der Kapitän stellt hier Erinnerung und Treffen-Vorgabe ein.
 // Vorerst nur freigeschaltete Teams (lib/features.ts). Daten: Migration 0043–0045.
+// Dazu EIGENE Termine des Teams (Migration 0048): Spiele anderer Ligen und
+// Sonstiges, vom TC eingetragen, violett mit „Extern“ — in derselben Liste
+// nach Datum einsortiert.
 // ============================================================
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -24,6 +27,8 @@ import {
   ERINNERUNG_VORGABE, TREFFEN_VORGABE, type Zusage, type SpielDetails, type TeamEinstellungen,
 } from '@/lib/supabase/zusagen';
 import { SpielKachel } from '@/components/mdu/spiel-kachel';
+import { TerminKachel, TerminFormular, EXTERN_FARBE } from '@/components/mdu/termin-ui';
+import { ladeTermine, speichereTermin, terminKey, type TeamTermin } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
 
@@ -46,23 +51,39 @@ export default function ZusagenPage() {
   const [einst, setEinst] = useState<TeamEinstellungen>({ reminder_days: ERINNERUNG_VORGABE, meet_minutes: TREFFEN_VORGABE });
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [alle, setAlle] = useState(false);
+  const [termine, setTermine] = useState<TeamTermin[]>([]);
+  const [termineBereit, setTermineBereit] = useState(false);
+  const [neu, setNeu] = useState(false);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
-    const [k, z, e, d, a] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId), ladeAufgaben(teamId)]);
-    setKader(k); setAufgaben(a); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d);
+    const [k, z, e, d, a, tr] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId), ladeAufgaben(teamId), ladeTermine(teamId)]);
+    setKader(k); setAufgaben(a); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d); setTermine(tr.rows); setTermineBereit(tr.bereit);
     if (z.error) setMsg({ kind: 'err', text: z.error });
   }, [teamId]);
 
   useEffect(() => { queueMicrotask(() => { void laden(); }); }, [laden]);
 
-  const spiele = useMemo(() => {
+  // MDU-Spiele (Code) und eigene Termine (DB) in EINER Liste nach Datum + Uhrzeit.
+  const spiele = useMemo<Eintrag[]>(() => {
     if (!teamId) return [];
     const heute = heuteIso();
-    return alleBegegnungen27()
+    const mdu: Eintrag[] = alleBegegnungen27()
       .filter(b => (b.home === teamId || b.away === teamId) && (b.termin?.datum ?? b.sun) >= heute)
-      .sort((a, b) => datumVon(a).localeCompare(datumVon(b)) || (a.termin?.uhrzeit ?? '').localeCompare(b.termin?.uhrzeit ?? ''));
-  }, [teamId]);
+      .map(b => ({ art: 'mdu', key: b.key, datum: datumVon(b), zeit: b.termin?.uhrzeit ?? '', b }));
+    const ext: Eintrag[] = termine.filter(t => t.event_date >= heute)
+      .map(t => ({ art: 'ext', key: terminKey(t.id), datum: t.event_date, zeit: t.start_time ?? '', t }));
+    return [...mdu, ...ext].sort((a, b) => a.datum.localeCompare(b.datum) || a.zeit.localeCompare(b.zeit));
+  }, [teamId, termine]);
+
+  async function terminNeu(e: Parameters<typeof speichereTermin>[1]) {
+    if (!user || !teamId) return false;
+    const { data, error } = await speichereTermin(teamId, e, user.id);
+    if (error || !data) { setMsg({ kind: 'err', text: error ?? 'Konnte nicht speichern.' }); return false; }
+    setTermine(l => [...l, data]); setNeu(false);
+    setMsg({ kind: 'ok', text: 'Termin eingetragen – dein Team kann jetzt zu- oder absagen.' });
+    return true;
+  }
 
   async function aendere(werte: Partial<TeamEinstellungen>, ok: string) {
     if (!user || !teamId) return;
@@ -122,20 +143,39 @@ export default function ZusagenPage() {
               </details>
             )}
 
-            <h2 style={h2}>{spiele.length ? 'Nächster Termin' : 'Keine anstehenden Spiele'}</h2>
-            {sichtbar.map((b, i) => (
-              <div key={b.key}>
+            {istKapitaen && termineBereit && (neu ? (
+              <TerminFormular titel="Termin eintragen" onSpeichern={terminNeu} onAbbrechen={() => setNeu(false)} />
+            ) : (
+              <button type="button" onClick={() => { setNeu(true); setMsg(null); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'left', background: 'var(--th-bg-card)', border: `1.5px dashed ${EXTERN_FARBE}`, color: 'var(--th-text-strong)' }}>
+                <span style={{ ...iconKreis, background: `${EXTERN_FARBE}22`, color: EXTERN_FARBE }}><Icon name="plus" size={18} stroke={2.4} /></span>
+                <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
+                  <span style={{ display: 'block', fontWeight: 800, fontSize: 14 }}>Termin eintragen</span>
+                  <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>Spiele anderer Ligen, Pokal, Training, Teamabend …</span>
+                </span>
+              </button>
+            ))}
+
+            <h2 style={h2}>{spiele.length ? 'Nächster Termin' : 'Keine anstehenden Termine'}</h2>
+            {sichtbar.map((x, i) => (
+              <div key={x.key}>
                 {i === 1 && <h2 style={{ ...h2, margin: '8px 0 12px' }}>Weitere Termine</h2>}
-                <SpielKachel b={b} teamId={teamId} liga={findLiga27(t.league)?.name ?? ''}
-                  zusagen={zusagen.filter(z => z.match_key === b.key)} kaderAnzahl={anzahlKader}
-                  ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[b.key]?.meet_time ?? null}
-                  notiz={details[b.key]?.note ?? null} aufgaben={aufgaben.filter(x => x.match_key === b.key)} />
+                {x.art === 'mdu' ? (
+                  <SpielKachel b={x.b} teamId={teamId} liga={findLiga27(t.league)?.name ?? ''}
+                    zusagen={zusagen.filter(z => z.match_key === x.key)} kaderAnzahl={anzahlKader}
+                    ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[x.key]?.meet_time ?? null}
+                    notiz={details[x.key]?.note ?? null} aufgaben={aufgaben.filter(a => a.match_key === x.key)} />
+                ) : (
+                  <TerminKachel t={x.t} teamId={teamId}
+                    zusagen={zusagen.filter(z => z.match_key === x.key)} kaderAnzahl={anzahlKader}
+                    ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[x.key]?.meet_time ?? null}
+                    notiz={details[x.key]?.note ?? null} aufgaben={aufgaben.filter(a => a.match_key === x.key)} />
+                )}
               </div>
             ))}
 
             {spiele.length > 4 && (
               <button type="button" onClick={() => setAlle(a => !a)} style={{ alignSelf: 'center', padding: '9px 18px', borderRadius: 8, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, border: '1.5px solid var(--th-accent)', background: 'transparent', color: 'var(--th-accent)' }}>
-                {alle ? 'Weniger anzeigen' : `Alle ${spiele.length} Spiele anzeigen`}
+                {alle ? 'Weniger anzeigen' : `Alle ${spiele.length} Termine anzeigen`}
               </button>
             )}
             <Muted>Spielplan deines Teams: <Link href="/mein-team/spielplan" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Mein Spielplan</Link></Muted>
@@ -144,6 +184,8 @@ export default function ZusagenPage() {
     </MemberShell>
   );
 }
+
+type Eintrag = { key: string; datum: string; zeit: string } & ({ art: 'mdu'; b: Begegnung27 } | { art: 'ext'; t: TeamTermin });
 
 const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 };
 const auswahl: React.CSSProperties = { padding: '8px 12px', borderRadius: 999, fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-card)', border: '1.5px solid var(--th-accent)', color: 'var(--th-accent)', cursor: 'pointer' };
