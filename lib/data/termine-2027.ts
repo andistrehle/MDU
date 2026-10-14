@@ -92,7 +92,7 @@ export const TERMINE_2027: Record<string, Termin27> = {
   "fiaker-deife|belfort-evolution": { datum: '2026-12-05', uhrzeit: '20:00' }, // Fiaker Deife – Belfort Evolution
   "spartans-vi|freibad-bazis": { datum: '2026-12-11', uhrzeit: '20:00' }, // Spartans VI – Freibad Bazis
   "treff-nix-freimann|oldies-co": { datum: '2026-12-11', uhrzeit: '20:00' }, // Treff Nix Freimann – Oldies & Co
-  "dc-animals-ii|fiaker-deife": { datum: '2026-12-12', uhrzeit: '20:30' }, // DC Animals – Fiaker Deife
+  "dc-animals-ii|fiaker-deife": { datum: '2026-12-11', uhrzeit: '20:30' }, // DC Animals – Fiaker Deife (14.10.2026 auf Wunsch DC Animals von Sa 12.12. auf Fr 11.12. vorgezogen)
   "belfort-evolution|team-illuminati--28d702": { datum: '2026-12-12', uhrzeit: '20:00' }, // Belfort Evolution – Illuminati
   "freibad-bazis|treff-nix-freimann": { datum: '2026-12-18', uhrzeit: '20:00' }, // Freibad Bazis – Treff Nix Freimann
   "fiaker-deife|spartans-vi": { datum: '2026-12-19', uhrzeit: '20:00' }, // Fiaker Deife – Spartans VI
