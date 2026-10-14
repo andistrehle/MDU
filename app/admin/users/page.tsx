@@ -532,7 +532,13 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   const linkedPlayerTeam = profile.player_id ? (PLAYER_TEAM.get(profile.player_id) ?? '') : '';
   const [playerId, setPlayerId] = useState(profile.player_id ?? nameSuggestion?.id ?? '');
   const [teamId, setTeamId] = useState(profile.team_id ?? (nameSuggestion ? suggestedTeamId : linkedPlayerTeam) ?? '');
-  const [teamAusKader, setTeamAusKader] = useState(false);
+  // Team folgt dem gewählten Spieler (Kader der laufenden Saison), solange es
+  // niemand von Hand gesetzt hat — abgeleitet statt per onChange gesetzt, damit
+  // es auch greift, wenn der Spieler schon im Feld steht.
+  const [teamManuell, setTeamManuell] = useState(!!profile.team_id);
+  const kaderTeam = playerId ? (PLAYER_TEAM.get(playerId) ?? '') : '';
+  const teamWert = teamManuell || teamId ? teamId : kaderTeam;
+  const teamAusKader = !teamManuell && !teamId && !!kaderTeam;
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
   // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
   const [noAssignment, setNoAssignment] = useState(profile.match_status === 'rejected');
@@ -590,7 +596,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
       display_name: newName,
       role,
       player_id: playerId || null,
-      team_id: teamId || null,
+      team_id: teamWert || null,
       match_status: matchStatus,
     };
     // Serverseitig über die Admin-API speichern (Rechteprüfung + service_role),
@@ -617,7 +623,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
       const r = await triggerAccountActivatedEmail(profile.email, newName, {
         role,
         playerName: playerId ? playerName(playerId) : undefined,
-        teamName: teamId ? teamName(teamId) : undefined,
+        teamName: teamWert ? teamName(teamWert) : undefined,
         profileId: profile.id,
       });
       const hint = r.status === 'sent'
@@ -720,14 +726,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           </Field>
 
           <Field label="Verknüpfter Spieler">
-            <select value={playerId} onChange={e => {
-              // Spieler gewählt → Team aus dem Kader der laufenden Saison vorbelegen
-              // (bleibt änderbar; ohne Kader-Eintrag bleibt das Team, wie es war).
-              const v = e.target.value;
-              setPlayerId(v);
-              const kaderTeam = v ? PLAYER_TEAM.get(v) : undefined;
-              if (kaderTeam) { setTeamId(kaderTeam); setTeamAusKader(true); } else setTeamAusKader(false);
-            }} style={inputStyle}>
+            <select value={playerId} onChange={e => setPlayerId(e.target.value)} style={inputStyle}>
               <option value="">— keine Verknüpfung —</option>
               {combinedPlayerOptions().map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
@@ -739,7 +738,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           </Field>
 
           <Field label="Verknüpftes Team">
-            <select value={teamId} onChange={e => { setTeamId(e.target.value); setTeamAusKader(false); }} style={inputStyle}>
+            <select value={teamWert} onChange={e => { setTeamId(e.target.value); setTeamManuell(true); }} style={inputStyle}>
               <option value="">— kein Team —</option>
               {combinedTeamOptions().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
