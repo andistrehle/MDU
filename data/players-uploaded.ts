@@ -47,6 +47,7 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|321|NEUBAUER|STEFAN|0|0||',
   '0|49|ROTH|MAX|0|0||',
   '0|110|BECKER|ANDRE|0|0||',
+  '0|411|KNEZOVIĆ|JOSEPH|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
