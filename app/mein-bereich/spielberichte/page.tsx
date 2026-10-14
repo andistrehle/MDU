@@ -15,6 +15,7 @@ import {
   type Begegnung27,
 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
+import { ladeAufstellungen } from '@/lib/supabase/zusagen';
 import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
@@ -191,6 +192,36 @@ function SpielberichteInner() {
     })();
     return () => { cancelled = true; };
   }, [kaderSaison, header.home_team_id, header.guest_team_id]);
+
+  // Aufstellungen aus dem Team Manager (beide Teams, falls hinterlegt) — zum
+  // Übernehmen in H1–H8 / G1–G8. Nur 2026/27-Begegnungen aus dem Plan.
+  const [tmAufstellung, setTmAufstellung] = useState<{ key: string; home: string[] | null; guest: string[] | null } | null>(null);
+  useEffect(() => {
+    const key = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
+    if (!key || !BEGEGNUNGEN.some(b => b.key === key)) { queueMicrotask(() => setTmAufstellung(null)); return; }
+    let weg = false;
+    void ladeAufstellungen(key).then(a => { if (!weg) setTmAufstellung({ key, ...a }); });
+    return () => { weg = true; };
+  }, [header.home_team_id, header.guest_team_id]);
+
+  function aufstellungUebernehmen() {
+    if (!tmAufstellung) return;
+    const fuelle = (lineup: string[] | null, roster: RosterOption[], set: typeof setHomePlayers) => {
+      if (!lineup) return 0;
+      set(arr => arr.map(p => {
+        const id = lineup[p.slot - 1];
+        if (!id) return p;
+        const opt = roster.find(o => o.id === id);
+        const name = opt?.name ?? (id.startsWith('name:') ? id.slice(5) : '');
+        if (!name) return p;
+        return { ...p, player_id: opt ? id : null, name, pass_no: opt?.passNo ?? p.pass_no };
+      }));
+      return lineup.filter(Boolean).length;
+    };
+    const h = fuelle(tmAufstellung.home, homeRoster, setHomePlayers);
+    const g = fuelle(tmAufstellung.guest, guestRoster, setGuestPlayers);
+    setMsg({ kind: 'ok', text: `Aufstellung übernommen – Heim: ${h ? `${h} Spieler` : 'nichts hinterlegt'} · Gast: ${g ? `${g} Spieler` : 'nichts hinterlegt'}. Bitte kurz prüfen.` });
+  }
 
   // Wählbare Begegnungen: Kapitän nur die HEIMSPIELE des eigenen Teams — es
   // trägt immer die Heimmannschaft ein, der Gast bestätigt (vom Betreiber
@@ -751,6 +782,17 @@ function SpielberichteInner() {
 
             {/* Aufstellung */}
             <Section title="Aufstellung (H1–H8 / G1–G8 · Position 1–4 startet, 5–8 Wechsel)">
+              {!readOnly && tmAufstellung && (tmAufstellung.home || tmAufstellung.guest) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)' }}>
+                  <span style={{ flex: '1 1 220px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.45 }}>
+                    <strong style={{ color: 'var(--th-text-strong)' }}>Aufstellung aus dem Team Manager:</strong>{' '}
+                    Heim {tmAufstellung.home ? `${tmAufstellung.home.filter(Boolean).length} Spieler` : '– nichts hinterlegt'} · Gast {tmAufstellung.guest ? `${tmAufstellung.guest.filter(Boolean).length} Spieler` : '– nichts hinterlegt'}
+                  </span>
+                  <button type="button" onClick={aufstellungUebernehmen} style={{ padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, border: '1.5px solid var(--th-accent)', background: 'var(--th-accent)', color: '#fff' }}>
+                    Übernehmen
+                  </button>
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <Lineup label="Heim" players={homePlayers} setPlayers={setHomePlayers} prefix="H" options={homeRoster} teamChosen={!!header.home_team_id} />
                 <Lineup label="Gast" players={guestPlayers} setPlayers={setGuestPlayers} prefix="G" options={guestRoster} teamChosen={!!header.guest_team_id} />

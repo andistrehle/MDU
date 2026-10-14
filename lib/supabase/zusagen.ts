@@ -153,3 +153,17 @@ export async function loescheAufgabe(id: string): Promise<{ error: string | null
   const { error } = await supabase.from('match_tasks').delete().eq('id', id);
   return { error: error ? 'Konnte nicht löschen: ' + error.message : null };
 }
+
+// ── Aufstellung für den Spielbericht (beide Teams, /api/spieltag/aufstellung) ──
+/** Hinterlegte Aufstellungen einer Begegnung (Position i+1 = lineup[i]); null = nichts hinterlegt. */
+export async function ladeAufstellungen(matchKey: string): Promise<{ home: string[] | null; guest: string[] | null }> {
+  const leer = { home: null, guest: null };
+  if (!supabase) return leer;
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return leer;
+  try {
+    const r = await fetch(`/api/spieltag/aufstellung?spiel=${encodeURIComponent(matchKey)}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    return r.ok ? await r.json() as { home: string[] | null; guest: string[] | null } : leer;
+  } catch { return leer; }
+}
