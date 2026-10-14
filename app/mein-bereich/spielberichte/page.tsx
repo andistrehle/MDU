@@ -16,6 +16,7 @@ import {
 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import { ladeAufstellungen } from '@/lib/supabase/zusagen';
+import { zusagenFuerTeam } from '@/lib/features';
 import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
@@ -198,11 +199,12 @@ function SpielberichteInner() {
   const [tmAufstellung, setTmAufstellung] = useState<{ key: string; home: string[] | null; guest: string[] | null } | null>(null);
   useEffect(() => {
     const key = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
-    if (!key || !BEGEGNUNGEN.some(b => b.key === key)) { queueMicrotask(() => setTmAufstellung(null)); return; }
+    // Nur mit Team Manager (Premium) im EIGENEN Team.
+    if (!key || !zusagenFuerTeam(user?.teamId) || !BEGEGNUNGEN.some(b => b.key === key)) { queueMicrotask(() => setTmAufstellung(null)); return; }
     let weg = false;
     void ladeAufstellungen(key).then(a => { if (!weg) setTmAufstellung({ key, ...a }); });
     return () => { weg = true; };
-  }, [header.home_team_id, header.guest_team_id]);
+  }, [header.home_team_id, header.guest_team_id, user?.teamId]);
 
   function aufstellungUebernehmen() {
     if (!tmAufstellung) return;

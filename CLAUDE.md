@@ -75,7 +75,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   5–8 Ersatz; `lineup[i]` = Position i+1, '' = frei; Migration 0045, `match_team_details`).
   Im Spielbericht-Formular übernimmt „Übernehmen“ die Aufstellung BEIDER Teams (falls hinterlegt)
   in H1–H8/G1–G8 — `/api/spieltag/aufstellung` (service_role, nur TCs der zwei Teams + Ligaleitung,
-  weil RLS die Gegner-Aufstellung sonst sperrt).
+  weil RLS die Gegner-Aufstellung sonst sperrt) — und NUR, wenn das eigene Team den Team Manager hat
+  (Premium, `zusagenFuerTeam`, gilt auch für die Ligaleitung).
   **Eigene Termine außerhalb der MDU** (Migration 0048, `team_events`, `lib/supabase/termine.ts`):
   nur der TC trägt sie ein (Spiel anderer Liga/Pokal oder Sonstiges), fürs ganze Team, violett
   mit „Extern“ (`components/mdu/termin-ui.tsx`), Seite `/termin/<id>` (dynamisch, Daten per RLS
