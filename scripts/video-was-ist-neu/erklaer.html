@@ -128,12 +128,13 @@ const SZENEN = [
         <div style="font-size:34px;font-weight:800;margin-top:6px">Mein Bereich → Spielbericht erfassen</div>
         <div style="font-size:24px;color:#5c6470;margin-top:6px">Begegnung aus dem Spielplan wählen – wie immer.</div>
       </div>
-      <div class="karte hw" data-k="0" style="left:120px;top:420px;width:820px;padding:30px 36px;display:block;border-left:5px solid #3E9C33">
-        <div style="font-weight:800;font-size:22px;color:#3E9C33;letter-spacing:.1em">SCHRITT 2 · NUR EIN TABLET</div>
+      <div class="karte hw" data-k="1" style="left:1000px;top:420px;width:800px;padding:30px 36px;display:block;border-left:5px solid #3E9C33">
+        <div style="font-weight:800;font-size:22px;color:#3E9C33;letter-spacing:.1em">ODER · NUR EIN TABLET</div>
         <div style="font-size:30px;font-weight:800;margin-top:6px">Eingeben und anzeigen in einem</div>
+        <div style="font-size:20px;color:#5c6470;margin-top:4px">geht auch am Handy – nur zum Mitschauen zu klein</div>
         <span style="display:inline-block;padding:10px 18px;border-radius:10px;background:#3E9C33;color:#fff;font-weight:800;font-size:24px;margin-top:10px">📺 Live-Modus (hier eingeben)</span>
       </div>
-      <div class="karte hw" data-k="1" style="left:1000px;top:420px;width:800px;padding:30px 36px;display:block;border-left:5px solid #4E7DBD">
+      <div class="karte hw" data-k="0" style="left:120px;top:420px;width:820px;padding:30px 36px;display:block;border-left:5px solid #4E7DBD">
         <div style="font-weight:800;font-size:22px;color:#4E7DBD;letter-spacing:.1em">SCHRITT 2 · LAPTOP + FERNSEHER</div>
         <div style="font-size:30px;font-weight:800;margin-top:6px">Aufs große Bild ziehen, Vollbild</div>
         <span style="display:inline-block;padding:10px 18px;border-radius:10px;background:#4E7DBD;color:#fff;font-weight:800;font-size:24px;margin-top:10px">Zweites Fenster</span>
@@ -142,27 +143,28 @@ const SZENEN = [
     schritte: [
       { s: 5, u: 'Du willst den Spielstand live im Lokal zeigen? So geht’s:', k: 0 },
       { s: 5, u: 'Unter Mein Bereich „Spielbericht erfassen“ öffnen und die Begegnung wählen.', k: 0 },
-      { s: 5.5, u: 'Nur ein Tablet? „Live-Modus“ antippen – du gibst ein, und alle schauen mit.', k: 1 },
-      { s: 6, u: 'Laptop am Fernseher? „Zweites Fenster“ öffnen, aufs große Bild ziehen, Vollbild.', k: 2 },
+      { s: 6, u: 'Laptop am Fernseher? „Zweites Fenster“ öffnen, aufs große Bild ziehen, Vollbild.', k: 1 },
+      { s: 5.5, u: 'Oder nur ein Tablet: „Live-Modus“ antippen – du gibst ein, und alle schauen mit.', k: 2 },
       { s: 4.5, u: 'Ab dann erscheint jede Eingabe sofort auf dem Bildschirm.', k: 3 } ] },
-
-  { nr: 7, titel: 'Live-Modus am Tablet', html: beispiel + tablet('live-tablet.png', 90, 125) + tablet('live-tablet-ergebnis.png', 690, 125)
-      + hinweise(1290, 260, 570, [['Ergebnis antippen', '2:0, 2:1, 1:2, 0:2 – fertig'], ['Spieler antippen', 'zum Auswechseln'], ['+ Highlight', '180er, High Finish, Short Leg']]),
-    schritte: [
-      { s: 5, u: 'Am Tablet gibt es den Live-Modus: alles groß, alles zum Antippen.', k: 0 },
-      { s: 4.5, u: 'Ergebnis antippen, Zahl wählen, fertig.', k: 1 },
-      { s: 4, u: 'Spieler antippen, um auszuwechseln.', k: 2 },
-      { s: 4, u: 'Und 180er trägst du direkt mit ein.', k: 3 } ] },
 
   { nr: 8, titel: 'Live auf dem Monitor', html: beispiel + desktop('live-monitor.png', 110, 110, 1280, 'Live-Ansicht')
       + `<div class="notiz" data-k="0" style="left:1430px;top:200px">2 laufende Spiele –<br>zwei Automaten</div>
          <div class="notiz" data-k="1" style="left:1430px;top:380px;transform:rotate(2deg)">Auswechslungen<br>↓ raus ↑ rein</div>
          <div class="notiz" data-k="2" style="left:1430px;top:560px">Punkte je Spieler<br>+ Highlights</div>`,
     schritte: [
-      { s: 5, u: 'Mit Laptop und Monitor schaut das ganze Lokal live mit – jede Eingabe sofort.', k: 0 },
+      { s: 5, u: 'Mit Laptop und Fernseher schaut das ganze Lokal live mit – jede Eingabe sofort.', k: 0 },
       { s: 4.5, u: 'Gespielt wird an zwei Automaten, also laufen zwei Spiele gleichzeitig.', k: 1 },
       { s: 5.5, u: 'Wer eingewechselt wird, steht automatisch auch in den nächsten Spielen. Rückwechsel erkennt die Seite.', k: 2 },
       { s: 5, u: 'Zwei 180er für denselben Spieler? Werden zusammengezählt. Angeben nur mit echten.', k: 3 } ] },
+
+  { nr: 7, titel: 'Live-Modus am Tablet', html: beispiel + tablet('live-tablet.png', 90, 125) + tablet('live-tablet-ergebnis.png', 690, 125)
+      + hinweise(1290, 260, 570, [['Ergebnis antippen', '2:0, 2:1, 1:2, 0:2 – fertig'], ['Spieler antippen', 'zum Auswechseln'], ['+ Highlight', '180er, High Finish, Short Leg']]),
+    schritte: [
+      { s: 6, u: 'Kein Laptop dabei? Dann reicht ein Tablet: Im Live-Modus gibst du ein, und alle schauen mit.', k: 0 },
+      { s: 5.5, u: 'Geht theoretisch auch am Handy – nur mitschauen kann dann keiner so richtig.', k: 0 },
+      { s: 4.5, u: 'Ergebnis antippen, Zahl wählen, fertig.', k: 1 },
+      { s: 4, u: 'Spieler antippen, um auszuwechseln.', k: 2 },
+      { s: 4, u: 'Und 180er trägst du direkt mit ein.', k: 3 } ] },
 
   { nr: 0, titel: 'Die bewährten Wege bleiben', html: `
       <div class="karte hw" data-k="0" style="left:150px;top:200px;width:780px;padding:36px 40px;display:block;border-left:5px solid #3E9C33">
