@@ -532,6 +532,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   const linkedPlayerTeam = profile.player_id ? (PLAYER_TEAM.get(profile.player_id) ?? '') : '';
   const [playerId, setPlayerId] = useState(profile.player_id ?? nameSuggestion?.id ?? '');
   const [teamId, setTeamId] = useState(profile.team_id ?? (nameSuggestion ? suggestedTeamId : linkedPlayerTeam) ?? '');
+  const [teamAusKader, setTeamAusKader] = useState(false);
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
   // und dem „offene Aufgaben"-Badge, ohne einen Spieler zu erfinden.
   const [noAssignment, setNoAssignment] = useState(profile.match_status === 'rejected');
@@ -719,7 +720,14 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           </Field>
 
           <Field label="Verknüpfter Spieler">
-            <select value={playerId} onChange={e => setPlayerId(e.target.value)} style={inputStyle}>
+            <select value={playerId} onChange={e => {
+              // Spieler gewählt → Team aus dem Kader der laufenden Saison vorbelegen
+              // (bleibt änderbar; ohne Kader-Eintrag bleibt das Team, wie es war).
+              const v = e.target.value;
+              setPlayerId(v);
+              const kaderTeam = v ? PLAYER_TEAM.get(v) : undefined;
+              if (kaderTeam) { setTeamId(kaderTeam); setTeamAusKader(true); } else setTeamAusKader(false);
+            }} style={inputStyle}>
               <option value="">— keine Verknüpfung —</option>
               {combinedPlayerOptions().map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
@@ -731,10 +739,15 @@ function EditModal({ actor, profile, onClose, onSaved }: {
           </Field>
 
           <Field label="Verknüpftes Team">
-            <select value={teamId} onChange={e => setTeamId(e.target.value)} style={inputStyle}>
+            <select value={teamId} onChange={e => { setTeamId(e.target.value); setTeamAusKader(false); }} style={inputStyle}>
               <option value="">— kein Team —</option>
               {combinedTeamOptions().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
+            {teamAusKader && (
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', margin: '6px 0 0', lineHeight: 1.5 }}>
+                Aus dem Kader übernommen — bitte prüfen und mit „Speichern“ bestätigen.
+              </p>
+            )}
           </Field>
 
           {!playerId && (
