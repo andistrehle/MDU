@@ -223,6 +223,20 @@ jeweils mit dem nächsten Schritt und der Meldung der Schnittstelle im Wortlaut.
 Der Grund stand vorher nur im Vercel-Protokoll, und das macht im Lokal niemand
 auf.
 
+**Das Token-Budget ist der wahrscheinlichste Grund** (14.10.2026 — nachgewiesen
+ist es nicht, dafür fehlte hier der Schlüssel; die Rechnung geht aber auf): Die
+Erkennung lief mit `max_tokens: 4000`. Aus diesem Budget kommt aber nicht nur
+die Liste, sondern auch das Nachdenken des Modells — bei den Claude-5-Modellen
+ist das von sich aus eingeschaltet. Ein Zettel mit 18 Zeilen braucht allein
+rund 1.200 Token für die Liste; reichte das Budget nicht, brach die Antwort
+mitten im JSON ab und die Seite meldete nur, sie sei „nicht verwertbar". Kurze
+Zettel gingen durch, lange nicht — ein Fehler, der mit der Zahl der Starter
+kommt und geht. Jetzt **16000** (wie beim MDU-Spielbericht), dazu meldet die
+Seite den Abbruchgrund `max_tokens` ausdrücklich: Am Foto zu drehen hilft in
+diesem Fall nämlich nichts. Das Nachdenken steht auf `effort: 'medium'` statt
+der Voreinstellung `high` — Abschreiben ist keine Denkaufgabe, und die
+Funktion hat 60 Sekunden. Wird die Erkennung schlechter, ist das die Stelle.
+
 **Laufzeit:** `maxDuration = 60` in `app/mdc/admin/ergebnis/page.tsx` (gilt bei
 Next je Seite für ALLE ihre Server-Aktionen; 60 s ist die Obergrenze des
 Hobby-Tarifs). Der Aufruf an Claude wartet höchstens 45 Sekunden und

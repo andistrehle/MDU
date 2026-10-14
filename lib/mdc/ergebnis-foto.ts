@@ -246,7 +246,23 @@ export async function liesErgebniszettel(
   try {
     antwort = await client.messages.create({
       model: cfg.model,
-      max_tokens: 4000,
+      // ZU KLEIN WAR 4000 (bis 14.10.2026). Das Budget teilen sich zwei Dinge:
+      // die Liste UND das Nachdenken des Modells — bei den Claude-5-Modellen
+      // ist das von sich aus eingeschaltet. Ein Zettel mit 18 Zeilen braucht
+      // allein rund 1.200 Token für die Liste; reicht das Budget nicht, bricht
+      // die Antwort MITTEN IM JSON ab, und die Seite meldete nur, sie sei
+      // „nicht verwertbar". Kürzere Zettel gingen durch, lange nicht — ein
+      // Fehler, der mit der Zahl der Starter kommt und geht. 16000 ist auch
+      // der Wert, mit dem der MDU-Spielbericht liest (`lib/ocr/providers/`).
+      max_tokens: 16000,
+      // Nachdenken auf mittlerer Stufe statt der Voreinstellung „high".
+      // Abschreiben, was auf dem Zettel steht, ist keine Denkaufgabe: Das
+      // Schema steht fest, geraten werden soll nichts, und jede Zeile wird
+      // ohnehin am Bildschirm geprüft. Die Voreinstellung kostet hier vor
+      // allem Zeit — und die Funktion hat bei Vercel eine harte Grenze von
+      // 60 Sekunden. Wird die Erkennung schlechter, ist das die Stelle:
+      // 'high' zurück, dafür länger warten.
+      output_config: { effort: 'medium' },
       system: 'Antworte ausschließlich mit einem einzigen, gültigen JSON-Objekt nach dem vorgegebenen Schema. Kein Markdown, kein erklärender Text.',
       messages: [{
         role: 'user',
@@ -277,9 +293,21 @@ export async function liesErgebniszettel(
   const geparst = text ? extractJson(text) : null;
   const geprueft = geparst ? ErkanntSchema.safeParse(geparst) : null;
   if (!geprueft?.success) {
+    // Abgeschnitten oder wirklich unverständlich? Das ist nicht dasselbe, und
+    // nur der erste Fall sagt einem, was zu tun ist. `max_tokens` heißt: Die
+    // Antwort war zu lang fürs Budget und endet mitten im Satz — am Foto zu
+    // drehen hilft dann gar nichts.
+    if (antwort.stop_reason === 'max_tokens') {
+      throw new FotoNichtLesbarError(
+        'Die Erkennung ist mitten in der Liste abgebrochen — die Antwort war länger, '
+        + 'als das eingestellte Budget zulässt. Das liegt nicht am Foto. Bitte melden; '
+        + 'der Wert steht in lib/mdc/ergebnis-foto.ts (max_tokens).',
+      );
+    }
     throw new FotoNichtLesbarError(
       'Die Antwort der Erkennung war nicht verwertbar. Bitte noch einmal versuchen — '
-      + 'am besten mit einem geraden, gut ausgeleuchteten Foto des ganzen Zettels.',
+      + 'am besten mit einem geraden, gut ausgeleuchteten Foto des ganzen Zettels.'
+      + (antwort.stop_reason ? `\n\n(Abbruchgrund: ${antwort.stop_reason})` : ''),
     );
   }
 
