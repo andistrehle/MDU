@@ -251,14 +251,15 @@ window.DAUER = gesamt;
 // die Sprachaufnahmen exakt unter das Bild.
 window.SPIEL = async () => {
   if (window.ZEITEN) SZENEN.forEach((sz, i) => sz.schritte.forEach((x, j) => { if (window.ZEITEN[i]?.[j]) x.s = window.ZEITEN[i][j]; }));
-  const summe = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + 0.8, 0);
+  const vor = window.VORLAUF ?? 0.8; // Sekunden Szenenwechsel, bevor gesprochen wird
+  const summe = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + vor, 0);
   window.DAUER = summe; window.MARKEN = []; window.START_EPOCH = Date.now();
   let vergangen = 0;
   for (let i = 0; i < SZENEN.length; i++) {
     const el = document.getElementById('sz' + i);
     document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
     el.classList.add('an');
-    await warte(800); vergangen += 0.8;
+    await warte(vor * 1000); vergangen += vor;
     for (let j = 0; j < SZENEN[i].schritte.length; j++) {
       const sch = SZENEN[i].schritte[j];
       window.MARKEN.push({ i, j, ms: Date.now() - window.START_EPOCH });

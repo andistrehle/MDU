@@ -26,12 +26,15 @@ node vertonen.js --probe <voiceId>         # Hörprobe → probe-<voiceId>.mp3
 ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-ist-neu.mp4
 ```
 
-- Jeder Satz wird nur EINMAL abgerufen (Zwischenspeicher `ton/`, Schlüssel = Stimme +
-  Modell + Text). Wer einen Satz ändert, zahlt nur diesen neu. Ganzes Video ≈ 3.100 Zeichen.
-- Die Szene läuft so lange, wie gesprochen wird (+0,7 s Luft), der Ton liegt exakt am
-  Untertitel (geprüft am 13.10.2026 per `silencedetect`: Einsatz 0,80 s = Untertitel).
-- **Stimme des Videos:** Klon der Betreiberstimme „Andi (MDU-Video)“ im ElevenLabs-Konto,
-  `ELEVENLABS_VOICE_ID=rBHJ2c5Ox6KVBd8eW2q1` (angelegt 14.10.2026 aus einer 1:33-Aufnahme).
+- Jede Szene wird nur EINMAL abgerufen (Zwischenspeicher `ton/`, Schlüssel = Stimme +
+  Modell + Klang + Text). Wer einen Satz ändert, zahlt nur diese Szene neu. Ganzes Video ≈ 3.100 Zeichen.
+- **Stimme:** bayerisch, NICHT wienerisch (Betreiber, 14.10.2026). Der Klon der
+  Betreiberstimme („Andi (MDU-Video)“, `rBHJ2c5Ox6KVBd8eW2q1`) klang wienerisch → verworfen.
+- **Klang:** euphorisch und etwas schneller — `STIMME` in `vertonen.js` (stability 0.3,
+  style 0.65, speed 1.1; per ENV `STABILITY`/`STYLE`/`SPEED` änderbar).
+- **Flüssig statt abgehackt:** Jede Szene wird AM STÜCK gesprochen (`with-timestamps`),
+  die Untertitel springen an den von ElevenLabs gelieferten Satzanfängen weiter.
+  Szenenwechsel 0,45 s (`VORLAUF`), Luft am Szenenende 0,35 s (`PAUSE`).
 - **Aussprache:** `AUSSPRACHE` in `vertonen.js` ersetzt Wörter NUR im gesprochenen Text
   („mdudarts.de“ → „Em De U Darts Punkt De“), der Untertitel bleibt.
 - **Stimmen:** `--stimmen` zeigt nur die englischen Standardstimmen des Kontos. Deutsche

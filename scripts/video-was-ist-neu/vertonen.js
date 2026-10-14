@@ -30,7 +30,7 @@ const AUFNAHME = path.join(DIR, 'aufnahme');
 const ZIEL = path.join(DIR, 'ausgabe', 'MDU-was-ist-neu.mp4');
 const KEY = process.env.ELEVENLABS_API_KEY;
 const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
-const PAUSE = 0.7; // Sekunden Luft nach jedem Satz
+const PAUSE = +(process.env.PAUSE || 0.35); // Sekunden Luft am Ende jeder Szene
 // Aussprache: gilt NUR für den gesprochenen Text, der Untertitel bleibt wie in erklaer.html.
 // Ohne das liest die Stimme „mdudarts“ als ein Wort („Mdu-darts“).
 const AUSSPRACHE = [
@@ -50,17 +50,53 @@ async function api(pfad, init = {}) {
   return r;
 }
 
+// Klang: euphorisch und etwas schneller (Betreiber, 14.10.2026). Über ENV anpassbar.
+const STIMME = {
+  stability: +(process.env.STABILITY || 0.3),
+  similarity_boost: 0.75,
+  style: +(process.env.STYLE || 0.65),
+  use_speaker_boost: true,
+  speed: +(process.env.SPEED || 1.1),
+};
+
+function trockenTon(text, datei) {
+  execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `sine=frequency=440:duration=${(text.length / 14).toFixed(2)}`, '-q:a', '6', datei]);
+}
+
 async function sprich(text, voice, datei) {
-  // Trockenlauf ohne Schlüssel: Ton in der ungefähren Sprechlänge (14 Zeichen/s).
-  if (process.env.TROCKEN === '1') {
-    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `sine=frequency=440:duration=${(text.length / 14).toFixed(2)}`, '-q:a', '6', datei]);
-    return;
-  }
+  if (process.env.TROCKEN === '1') return trockenTon(text, datei);
   const r = await api(`/v1/text-to-speech/${voice}?output_format=mp3_44100_128`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: sprechtext(text), model_id: MODELL, language_code: 'de', voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true } }),
+    body: JSON.stringify({ text: sprechtext(text), model_id: MODELL, language_code: 'de', voice_settings: STIMME }),
   });
   fs.writeFileSync(datei, Buffer.from(await r.arrayBuffer()));
+}
+
+// Eine ganze Szene AM STÜCK sprechen (sonst klingt es abgehackt) und aus den
+// Zeitmarken je Zeichen ablesen, wann welcher Satz beginnt.
+// Ergebnis: { datei, starts: [s je Satz], ende: s }
+async function sprichSzene(saetze, voice, basis) {
+  const teile = saetze.map(sprechtext);
+  const text = teile.join(' ');
+  const datei = basis + '.mp3', meta = basis + '.json';
+  if (fs.existsSync(datei) && fs.existsSync(meta)) return { datei, ...JSON.parse(fs.readFileSync(meta, 'utf8')), neu: 0 };
+  let starts, ende;
+  if (process.env.TROCKEN === '1') {
+    trockenTon(text, datei);
+    let pos = 0; starts = teile.map(t => { const s = pos / 14; pos += t.length + 1; return s; }); ende = text.length / 14;
+  } else {
+    const r = await api(`/v1/text-to-speech/${voice}/with-timestamps?output_format=mp3_44100_128`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, model_id: MODELL, language_code: 'de', voice_settings: STIMME }),
+    });
+    const j = await r.json();
+    fs.writeFileSync(datei, Buffer.from(j.audio_base64, 'base64'));
+    const a = j.alignment, t0 = a.character_start_times_seconds;
+    let pos = 0; starts = teile.map(t => { const s = t0[Math.min(pos, t0.length - 1)]; pos += t.length + 1; return s; });
+    ende = a.character_end_times_seconds[a.character_end_times_seconds.length - 1];
+  }
+  fs.writeFileSync(meta, JSON.stringify({ starts, ende }));
+  return { datei, starts, ende, neu: text.length };
 }
 
 function laenge(datei) {
@@ -102,20 +138,18 @@ async function main() {
   fs.mkdirSync(TON, { recursive: true }); fs.mkdirSync(path.dirname(ZIEL), { recursive: true });
   fs.rmSync(AUFNAHME, { recursive: true, force: true }); fs.mkdirSync(AUFNAHME, { recursive: true });
 
-  // 1–3: sprechen und messen
+  // 1–3: je Szene am Stück sprechen, Satzanfänge aus den Zeitmarken
   const szenen = await szenenLesen();
   const clips = []; const zeiten = [];
   let zeichen = 0;
   for (const [i, sz] of szenen.entries()) {
-    zeiten[i] = [];
-    for (const [j, text] of sz.saetze.entries()) {
-      const hash = crypto.createHash('sha1').update(`${voice}|${MODELL}|${sprechtext(text)}`).digest('hex').slice(0, 16);
-      const datei = path.join(TON, `${hash}.mp3`);
-      if (!fs.existsSync(datei)) { await sprich(text, voice, datei); zeichen += text.length; process.stdout.write('.'); }
-      const d = laenge(datei);
-      zeiten[i][j] = Math.max(2.5, +(d + PAUSE).toFixed(2));
-      clips.push({ i, j, datei });
-    }
+    const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+    const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
+    zeichen += t.neu; if (t.neu) process.stdout.write('.');
+    // Satz j läuft bis zum Anfang von Satz j+1; der letzte bis Sprechende + Luft.
+    zeiten[i] = t.starts.map((s, j) => +(j + 1 < t.starts.length ? t.starts[j + 1] - s : t.ende - s + PAUSE).toFixed(3));
+    zeiten[i][0] = +(zeiten[i][0] + t.starts[0]).toFixed(3);
+    clips.push({ i, j: 0, datei: t.datei });
   }
   console.log(`\nTon fertig (${zeichen} Zeichen neu abgerufen).`);
 
@@ -125,7 +159,7 @@ async function main() {
   const aufnahmeStart = Date.now();
   const p = await ctx.newPage();
   await p.goto('file://' + path.join(DIR, 'erklaer.html')); await p.waitForTimeout(2500);
-  await p.evaluate(z => { window.ZEITEN = z; window.SPIEL(); }, zeiten);
+  await p.evaluate(z => { window.ZEITEN = z; window.VORLAUF = 0.45; window.SPIEL(); }, zeiten);
   await p.waitForFunction(() => window.FERTIG === true, null, { timeout: 900000, polling: 500 });
   await p.waitForTimeout(1500);
   const { marken, start, dauer } = await p.evaluate(() => ({ marken: window.MARKEN, start: window.START_EPOCH, dauer: window.DAUER }));
