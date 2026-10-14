@@ -123,6 +123,19 @@ export async function speichereTermin(teamId: string, eingabe: TerminEingabe, us
   return { data: data as unknown as TeamTermin, error: null };
 }
 
+/** Mehrere Termine auf einmal anlegen (Import) — ein Aufruf, ein Kalender-Neubau. */
+export async function importiereTermine(teamId: string, liste: TerminEingabe[], userId: string): Promise<{ data: TeamTermin[]; error: string | null }> {
+  if (!supabase) return { data: [], error: 'Supabase ist nicht konfiguriert.' };
+  const zeilen = liste.map(e => pruefeTermin(e).werte).filter((w): w is TerminEingabe => !!w)
+    .map(w => ({ ...w, season_id: NEUE_SAISON.id, team_id: teamId, created_by: userId, source: 'import' }));
+  if (!zeilen.length) return { data: [], error: 'Keine gültigen Termine.' };
+  let { data, error } = await supabase.from('team_events').insert(zeilen).select(SPALTEN);
+  if (ohneFarbe(error)) ({ data, error } = await supabase.from('team_events').insert(zeilen.map(({ color: _f, ...r }) => { void _f; return r; })).select(SPALTEN_ALT));
+  if (error) return { data: [], error: fehlt(error) ? 'Eigene Termine sind noch nicht eingerichtet (Migration 0048).' : 'Konnte nicht importieren: ' + error.message };
+  void kalenderNeu(teamId);
+  return { data: (data ?? []) as unknown as TeamTermin[], error: null };
+}
+
 export async function loescheTermin(t: Pick<TeamTermin, 'id' | 'team_id'>): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const { error } = await supabase.from('team_events').delete().eq('id', t.id);

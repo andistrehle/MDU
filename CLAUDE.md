@@ -82,6 +82,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `/api/termine/geaendert` NUR `/kalender/<team>.ics`. Premium = dieselbe Freischaltung.
   Farbe je Termin wählt der TC (`TERMIN_FARBEN`, Migration 0049 — bewusst kein Grün/Blau, das
   ist Heim/Auswärts der MDU-Spiele); Kachel und Terminseite sind darin getönt (`terminGrund`).
+  **Import** (TC): Einfügen aus Excel/Google Tabellen oder CSV → Vorschau → alle auf einmal
+  (`lib/termin-import.ts`: Kopfzeile erkannt, sonst je Zelle geraten; „Team A – Team B“ mit dem
+  eigenen Team ergibt Gegner + Heim/Auswärts; Doppelte = gleiches Datum+Beginn+Gegner/Titel).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

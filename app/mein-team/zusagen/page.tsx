@@ -28,7 +28,8 @@ import {
 } from '@/lib/supabase/zusagen';
 import { SpielKachel } from '@/components/mdu/spiel-kachel';
 import { TerminKachel, TerminFormular, EXTERN_FARBE } from '@/components/mdu/termin-ui';
-import { ladeTermine, speichereTermin, terminKey, type TeamTermin } from '@/lib/supabase/termine';
+import { TerminImport } from '@/components/mdu/termin-import';
+import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
 
@@ -53,7 +54,7 @@ export default function ZusagenPage() {
   const [alle, setAlle] = useState(false);
   const [termine, setTermine] = useState<TeamTermin[]>([]);
   const [termineBereit, setTermineBereit] = useState(false);
-  const [neu, setNeu] = useState(false);
+  const [neu, setNeu] = useState<null | 'eintragen' | 'import'>(null);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
@@ -80,8 +81,17 @@ export default function ZusagenPage() {
     if (!user || !teamId) return false;
     const { data, error } = await speichereTermin(teamId, e, user.id);
     if (error || !data) { setMsg({ kind: 'err', text: error ?? 'Konnte nicht speichern.' }); return false; }
-    setTermine(l => [...l, data]); setNeu(false);
+    setTermine(l => [...l, data]); setNeu(null);
     setMsg({ kind: 'ok', text: 'Termin eingetragen – dein Team kann jetzt zu- oder absagen.' });
+    return true;
+  }
+
+  async function termineImport(liste: TerminEingabe[]) {
+    if (!user || !teamId) return false;
+    const { data, error } = await importiereTermine(teamId, liste, user.id);
+    if (error) { setMsg({ kind: 'err', text: error }); return false; }
+    setTermine(l => [...l, ...data]); setNeu(null);
+    setMsg({ kind: 'ok', text: `${data.length} ${data.length === 1 ? 'Termin' : 'Termine'} importiert – dein Team kann jetzt zu- oder absagen.` });
     return true;
   }
 
@@ -143,16 +153,27 @@ export default function ZusagenPage() {
               </details>
             )}
 
-            {istKapitaen && termineBereit && (neu ? (
-              <TerminFormular titel="Termin eintragen" onSpeichern={terminNeu} onAbbrechen={() => setNeu(false)} />
+            {istKapitaen && termineBereit && (neu === 'eintragen' ? (
+              <TerminFormular titel="Termin eintragen" onSpeichern={terminNeu} onAbbrechen={() => setNeu(null)} />
+            ) : neu === 'import' ? (
+              <TerminImport teamName={t.name} vorhanden={termine} onImport={termineImport} onAbbrechen={() => setNeu(null)} />
             ) : (
-              <button type="button" onClick={() => { setNeu(true); setMsg(null); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'left', background: 'var(--th-bg-card)', border: `1.5px dashed ${EXTERN_FARBE}`, color: 'var(--th-text-strong)' }}>
-                <span style={{ ...iconKreis, background: `${EXTERN_FARBE}22`, color: EXTERN_FARBE }}><Icon name="plus" size={18} stroke={2.4} /></span>
-                <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
-                  <span style={{ display: 'block', fontWeight: 800, fontSize: 14 }}>Termin eintragen</span>
-                  <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>Spiele anderer Ligen, Pokal, Training, Teamabend …</span>
-                </span>
-              </button>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => { setNeu('eintragen'); setMsg(null); }} style={{ ...neuKnopf, flex: '2 1 240px' }}>
+                  <span style={{ ...iconKreis, background: `${EXTERN_FARBE}22`, color: EXTERN_FARBE }}><Icon name="plus" size={18} stroke={2.4} /></span>
+                  <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
+                    <span style={{ display: 'block', fontWeight: 800, fontSize: 14 }}>Termin eintragen</span>
+                    <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>Spiele anderer Ligen, Pokal, Training, Teamabend …</span>
+                  </span>
+                </button>
+                <button type="button" onClick={() => { setNeu('import'); setMsg(null); }} style={{ ...neuKnopf, flex: '1 1 160px' }}>
+                  <span style={{ ...iconKreis, background: `${EXTERN_FARBE}22`, color: EXTERN_FARBE }}><Icon name="upload" size={17} stroke={2.2} /></span>
+                  <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
+                    <span style={{ display: 'block', fontWeight: 800, fontSize: 14 }}>Importieren</span>
+                    <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>Viele auf einmal aus Excel</span>
+                  </span>
+                </button>
+              </div>
             ))}
 
             <h2 style={h2}>{spiele.length ? 'Nächster Termin' : 'Keine anstehenden Termine'}</h2>
@@ -189,6 +210,7 @@ type Eintrag = { key: string; datum: string; zeit: string } & ({ art: 'mdu'; b: 
 
 const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)', margin: 0 };
 const auswahl: React.CSSProperties = { padding: '8px 12px', borderRadius: 999, fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-manrope)', background: 'var(--th-bg-card)', border: '1.5px solid var(--th-accent)', color: 'var(--th-accent)', cursor: 'pointer' };
+const neuKnopf: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'left', background: 'var(--th-bg-card)', border: `1.5px dashed ${EXTERN_FARBE}`, color: 'var(--th-text-strong)' };
 const iconKreis: React.CSSProperties = { width: 34, height: 34, borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--th-accent-a12)', color: 'var(--th-accent)' };
 
 function EinstZeile({ icon, titel, text, children }: { icon: string; titel: string; text: string; children: React.ReactNode }) {

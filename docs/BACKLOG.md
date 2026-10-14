@@ -415,8 +415,11 @@ Der TC trägt Spiele anderer Ligen/Pokale und Sonstiges (Training, Teamabend) f�
 ganze Team ein; violett mit „Extern“, in derselben Liste wie die MDU-Spiele, eigene
 Seite `/termin/<id>`, Zu-/Absagen/Notiz/Aufgaben über `match_key = 'ext:<id>'`, mit
 im Kalender-Abo („Extern“ im Titel) und in der Glocke. Premium wie der Rest.
-- [ ] **Nächster Schritt (Betreiber): Import per Excel/CSV** — Vorlage zum Herunterladen,
-  ausfüllen, hochladen, Vorschau prüfen, dann übernehmen (`team_events.source = 'import'`).
+- [x] **Import (14.10.2026):** Zeilen aus Excel/Google Tabellen einfügen oder eine CSV wählen,
+  Vorschau je Zeile (neu / schon vorhanden / Fehler), dann alle gültigen auf einmal
+  (`lib/termin-import.ts`, `components/mdu/termin-import.tsx`, `source = 'import'`). Vorlage
+  zum Herunterladen (Semikolon + BOM für deutsches Excel).
+- [ ] Idee (später): Foto/PDF eines fremden Spielplans per Texterkennung einlesen.
 
 ### ⏳ Nächster Schritt — Nominierung (vom Betreiber so festgelegt, „merke dir das“)
 - Kapitän nominiert je Spieltag Spieler aus den Zusagen.
