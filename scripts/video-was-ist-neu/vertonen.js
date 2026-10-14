@@ -184,6 +184,10 @@ async function main() {
   execFileSync(FFMPEG, ['-y', '-loglevel', 'error', ...eingaben, '-filter_complex', filter.join(';'),
     '-map', '0:v', '-map', '[ton]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '160k', '-t', (dauer + 1).toFixed(2), '-movflags', '+faststart', ZIEL], { stdio: 'inherit' });
+  // Szenengrenzen fürs Hochformat (reel.js): Start jeder Szene im fertigen Video.
+  const szenenStart = szenen.map((sz, i) => ({ i, titel: sz.titel, s: (marken.find(m => m.i === i && m.j === 0).ms / 1000),
+    saetze: sz.saetze.map((u, j) => ({ u, s: marken.find(m => m.i === i && m.j === j).ms / 1000 })) }));
+  fs.writeFileSync(path.join(path.dirname(ZIEL), 'szenen.json'), JSON.stringify({ dauer, szenen: szenenStart }, null, 1));
   console.log('Fertig:', ZIEL);
 }
 

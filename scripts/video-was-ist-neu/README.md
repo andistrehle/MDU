@@ -44,6 +44,14 @@ ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-
   `ELEVENLABS_VOICE_ID` (Starter-Plan reicht).
 - Test ohne Schlüssel: `TROCKEN=1 ELEVENLABS_VOICE_ID=x node vertonen.js` (Pieptöne).
 
+## Instagram (Hochformat)
+
+`node reel.js` (nach `vertonen.js`, kostet nichts) → `ausgabe/MDU-reel.mp4` (Szenen 1, 6, 7,
+11, 13, ~73 s) und `ausgabe/MDU-story.mp4` (Begrüßung + Schlusskarte mit Platz für den
+Link-Sticker). Auswahl in `FORMATE`. Grundlage ist `ausgabe/szenen.json`, das `vertonen.js`
+mitschreibt. Szenen werden einzeln ausgeschnitten — alles in einem ffmpeg-Filter sprengt
+den Speicher der Session.
+
 ## Screenshots neu machen
 
 `zz-demo.page.tsx.txt` nach `app/zz-demo/page.tsx` kopieren (NIE committen — in
