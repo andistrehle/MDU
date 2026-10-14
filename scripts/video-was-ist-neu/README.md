@@ -30,6 +30,7 @@ ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-
   Modell + Klang + Text). Wer einen Satz ändert, zahlt nur diese Szene neu. Ganzes Video ≈ 3.100 Zeichen.
 - **Stimme:** bayerisch, NICHT wienerisch (Betreiber, 14.10.2026). Der Klon der
   Betreiberstimme („Andi (MDU-Video)“, `rBHJ2c5Ox6KVBd8eW2q1`) klang wienerisch → verworfen.
+- **Stimme des Videos:** Benjamin (Bibliothek, leicht bayerisch), `ELEVENLABS_VOICE_ID=gRJR8Fqocw86Vixo4cZV` → 3:55.
 - **Klang:** euphorisch und etwas schneller — `STIMME` in `vertonen.js` (stability 0.3,
   style 0.65, speed 1.1; per ENV `STABILITY`/`STYLE`/`SPEED` änderbar).
 - **Flüssig statt abgehackt:** Jede Szene wird AM STÜCK gesprochen (`with-timestamps`),
