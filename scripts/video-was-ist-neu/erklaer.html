@@ -89,12 +89,13 @@ const SZENEN = [
           ${[['Fr 23.10.', '20:00', 'Freibad Bazis – Fiaker Deife', 'Fiaker Stüberl'], ['Fr 13.11.', '20:30', 'Freibad Bazis – DC Animals', 'Fiaker Stüberl'], ['Sa 21.11.', '20:00', 'Illuminati – Freibad Bazis', 'Ambasador']]
             .map(e => `<div style="display:flex;gap:16px;padding:16px 0;border-top:1px solid #e3e7ee"><div style="width:96px;font-weight:800;font-size:20px">${e[0]}<div style="font-size:17px;color:#5c6470">${e[1]}</div></div><div style="border-left:4px solid #3E9C33;padding-left:14px"><div style="font-weight:800;font-size:21px">${e[2]}</div><div style="font-size:17px;color:#5c6470">📍 ${e[3]}</div></div></div>`).join('')}
         </div>`
-      + hinweise(640, 250, 540, [['iPhone, Mac, Outlook', '„abonnieren“ antippen'], ['Android', 'über den Google Kalender'], ['Als Abo', 'Änderungen kommen von selbst nach']]),
+      + hinweise(640, 230, 560, [['iPhone / Mac / Outlook', 'Abo – Änderungen kommen von selbst'], ['Google Kalender (Android)', 'ebenfalls ein Abo'], ['Datei laden (.ics)', 'fester Stand – passt in jeden Kalender']]),
     schritte: [
       { s: 5, u: 'Unter Mein Bereich → Mein Spielplan holst du dir alle Spiele deines Teams in den Kalender.', k: 0 },
-      { s: 4, u: 'iPhone: einfach abonnieren.', k: 1 },
-      { s: 4, u: 'Android: über den Google Kalender.', k: 2 },
-      { s: 5.5, u: 'Als Abo zieht dein Kalender jede Terminänderung von selbst nach. Ausreden werden knapp.', k: 3 } ] },
+      { s: 5.5, u: 'Die ersten zwei Knöpfe sind Abos: iPhone, Mac und Outlook – oder der Google Kalender am Android.', k: 2 },
+      { s: 5, u: 'Ein Abo zieht jede Terminänderung von selbst nach. Ausreden werden knapp.', k: 2 },
+      { s: 6, u: 'Der dritte Knopf lädt eine Kalenderdatei. Die passt in jeden Kalender – ist aber ein fester Stand.', k: 3 },
+      { s: 4, u: 'Ändert sich ein Termin, die Datei einfach neu laden.', k: 3 } ] },
 
   { nr: 0, titel: 'Spielort-Plan für Wirte', html: desktop('desktop-spielort.png', 80, 140, 1080, 'mdudarts.de/spielstaetten/jolly-roger')
       + `<div class="notiz" data-k="0" style="left:150px;top:300px">KW · Tag · Uhrzeit · Liga</div>
