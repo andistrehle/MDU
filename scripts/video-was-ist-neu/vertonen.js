@@ -91,7 +91,7 @@ async function main() {
     brauchtKey();
     const voice = process.argv[3];
     const datei = path.join(DIR, `probe-${voice}.mp3`);
-    await sprich(process.argv[4] || 'Servus! In ein paar Minuten weißt du, was sich auf der Homepage alles getan hat. Kein Handbuch, versprochen.', voice, datei);
+    await sprich(process.argv[4] || 'Servus! Ich möcht euch ganz kurz erklären, was es Neues auf der Homepage gibt! Passts bitte kurz auf. Good Darts – und bis boid!', voice, datei);
     console.log('Probe:', datei);
     return;
   }
