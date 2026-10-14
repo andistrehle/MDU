@@ -30,6 +30,12 @@ ELEVENLABS_VOICE_ID=<id> node vertonen.js  # fertiges Video → ausgabe/MDU-was-
   Modell + Text). Wer einen Satz ändert, zahlt nur diesen neu. Ganzes Video ≈ 3.100 Zeichen.
 - Die Szene läuft so lange, wie gesprochen wird (+0,7 s Luft), der Ton liegt exakt am
   Untertitel (geprüft am 13.10.2026 per `silencedetect`: Einsatz 0,80 s = Untertitel).
+- **Aussprache:** `AUSSPRACHE` in `vertonen.js` ersetzt Wörter NUR im gesprochenen Text
+  („mdudarts.de“ → „Em De U Darts Punkt De“), der Untertitel bleibt.
+- **Stimmen:** `--stimmen` zeigt nur die englischen Standardstimmen des Kontos. Deutsche
+  (auch bayerische) gibt es in der ElevenLabs-Bibliothek (`/v1/shared-voices?language=de`,
+  Suche „bavarian“); deren `voice_id` funktioniert direkt mit `--probe` und
+  `ELEVENLABS_VOICE_ID` (Starter-Plan reicht).
 - Test ohne Schlüssel: `TROCKEN=1 ELEVENLABS_VOICE_ID=x node vertonen.js` (Pieptöne).
 
 ## Screenshots neu machen

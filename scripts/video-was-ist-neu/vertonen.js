@@ -31,6 +31,13 @@ const ZIEL = path.join(DIR, 'ausgabe', 'MDU-was-ist-neu.mp4');
 const KEY = process.env.ELEVENLABS_API_KEY;
 const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
 const PAUSE = 0.7; // Sekunden Luft nach jedem Satz
+// Aussprache: gilt NUR für den gesprochenen Text, der Untertitel bleibt wie in erklaer.html.
+// Ohne das liest die Stimme „mdudarts“ als ein Wort („Mdu-darts“).
+const AUSSPRACHE = [
+  [/mdudarts\.de/gi, 'Em De U Darts Punkt De'],
+  [/\bMDU\b/g, 'Em De U'],
+];
+const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers), t);
 const FFMPEG = (() => { try { return require(path.join(DIR, 'node_modules/ffmpeg-static')); } catch { return 'ffmpeg'; } })();
 
 function brauchtKey() {
@@ -51,7 +58,7 @@ async function sprich(text, voice, datei) {
   }
   const r = await api(`/v1/text-to-speech/${voice}?output_format=mp3_44100_128`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, model_id: MODELL, language_code: 'de', voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true } }),
+    body: JSON.stringify({ text: sprechtext(text), model_id: MODELL, language_code: 'de', voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true } }),
   });
   fs.writeFileSync(datei, Buffer.from(await r.arrayBuffer()));
 }
@@ -84,7 +91,7 @@ async function main() {
     brauchtKey();
     const voice = process.argv[3];
     const datei = path.join(DIR, `probe-${voice}.mp3`);
-    await sprich('Servus! In ein paar Minuten weißt du, was sich auf mdudarts.de alles getan hat. Kein Handbuch, versprochen.', voice, datei);
+    await sprich(process.argv[4] || 'Servus! In ein paar Minuten weißt du, was sich auf mdudarts.de alles getan hat. Gut Darts – wir sehen uns auf mdudarts.de!', voice, datei);
     console.log('Probe:', datei);
     return;
   }
@@ -102,7 +109,7 @@ async function main() {
   for (const [i, sz] of szenen.entries()) {
     zeiten[i] = [];
     for (const [j, text] of sz.saetze.entries()) {
-      const hash = crypto.createHash('sha1').update(`${voice}|${MODELL}|${text}`).digest('hex').slice(0, 16);
+      const hash = crypto.createHash('sha1').update(`${voice}|${MODELL}|${sprechtext(text)}`).digest('hex').slice(0, 16);
       const datei = path.join(TON, `${hash}.mp3`);
       if (!fs.existsSync(datei)) { await sprich(text, voice, datei); zeichen += text.length; process.stdout.write('.'); }
       const d = laenge(datei);
