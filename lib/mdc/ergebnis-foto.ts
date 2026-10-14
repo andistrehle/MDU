@@ -140,6 +140,78 @@ export class FotoNichtLesbarError extends Error {
 }
 
 /**
+ * Wie lange auf die Erkennung gewartet wird — und warum KEINE Wiederholung.
+ *
+ * Die Seite läuft bei Vercel in einer Funktion mit harter Laufzeitgrenze
+ * (`maxDuration` in `app/mdc/admin/ergebnis/page.tsx`, 60 Sekunden). Wird die
+ * überschritten, bricht die Umgebung ab, bevor dieser Code noch etwas sagen
+ * könnte: Der Browser bekommt keine Antwort und die Seite stünde wieder bei
+ * Schritt 1, ohne einen Grund zu nennen. Deshalb wartet der Aufruf höchstens
+ * 45 Sekunden und versucht es NICHT von selbst noch einmal — ein zweiter
+ * Anlauf nach einer Zeitüberschreitung käme nie mehr rechtzeitig zurück.
+ * Lieber eine ehrliche Meldung und ein Tipp auf „noch einmal lesen".
+ */
+const ZEITGRENZE_MS = 45_000;
+
+/**
+ * Was die Erkennung gesagt hat — im Klartext, mit dem, was zu tun ist.
+ *
+ * Vorher landete jeder API-Fehler im allgemeinen „Die Erkennung ist
+ * fehlgeschlagen"; der Grund stand nur im Vercel-Protokoll, das im Lokal
+ * niemand aufmacht. Für die Turnierleitung macht es aber den ganzen
+ * Unterschied, ob das Guthaben leer ist (nachlegen), der Schlüssel abgelehnt
+ * wird (ENV prüfen) oder der Dienst gerade überlastet ist (gleich noch einmal).
+ *
+ * Der Schlüssel selbst steht in keiner dieser Meldungen — die API gibt ihn nie
+ * zurück, und hier wird nur weitergegeben, was sie geschickt hat.
+ */
+function alsKlartext(fehler: unknown, modell: string): string {
+  if (fehler instanceof Anthropic.APIConnectionTimeoutError) {
+    return `Die Erkennung hat ${ZEITGRENZE_MS / 1000} Sekunden nicht geantwortet und wurde abgebrochen. `
+      + 'Bitte noch einmal lesen lassen — bei einem sehr großen Foto hilft ein zweiter Versuch meist.';
+  }
+  if (fehler instanceof Anthropic.APIConnectionError) {
+    return 'Die Erkennung war nicht erreichbar — keine Verbindung zu Anthropic. '
+      + 'Das liegt nicht am Zettel; bitte in einer Minute noch einmal versuchen.';
+  }
+  if (fehler instanceof Anthropic.APIError) {
+    const meldung = (fehler.message ?? '').replace(/\s+/g, ' ').trim().slice(0, 300);
+    const anhang = meldung ? `\n\nMeldung der Schnittstelle: ${meldung}` : '';
+
+    if (/credit balance is too low|insufficient.*credit/i.test(meldung)) {
+      return 'Das Guthaben des Anthropic-Kontos ist aufgebraucht — die Erkennung lehnt deshalb ab. '
+        + 'Unter console.anthropic.com → Billing nachlegen, danach geht es ohne weitere Änderung weiter.'
+        + anhang;
+    }
+    if (fehler.status === 401 || fehler.status === 403) {
+      return 'Der Schlüssel für die Erkennung wird abgelehnt. Bitte MDC_OCR_API_KEY im Vercel-Projekt '
+        + 'prüfen (abgelaufen, widerrufen oder beim Kopieren verstümmelt) und danach neu bereitstellen.'
+        + anhang;
+    }
+    if (fehler.status === 404) {
+      return `Das eingestellte Modell „${modell}" gibt es dort nicht. `
+        + 'Bitte MDC_OCR_MODEL im Vercel-Projekt prüfen — ohne gültigen Modellnamen kann kein Zettel gelesen werden.'
+        + anhang;
+    }
+    if (fehler.status === 413) {
+      return 'Das Foto ist für die Erkennung zu groß. Bitte noch einmal aufnehmen — '
+        + 'am besten nur den Zettel, ohne die halbe Theke drumherum.' + anhang;
+    }
+    if (fehler.status === 429) {
+      return 'Zu viele Anfragen in kurzer Zeit — die Erkennung bremst gerade ab. '
+        + 'Bitte eine Minute warten und denselben Zettel noch einmal lesen lassen.' + anhang;
+    }
+    if (fehler.status && fehler.status >= 500) {
+      return 'Die Erkennung ist gerade überlastet oder gestört (Fehler auf deren Seite). '
+        + 'Bitte gleich noch einmal versuchen — am Zettel liegt es nicht.' + anhang;
+    }
+    return `Die Erkennung hat die Anfrage abgelehnt${fehler.status ? ` (Fehler ${fehler.status})` : ''}.`
+      + anhang;
+  }
+  return '';
+}
+
+/**
  * Liest ein Foto und gibt die erkannten Zeilen zurück.
  *
  * Wirft, statt ein leeres Ergebnis zurückzugeben, wenn etwas grundsätzlich
@@ -163,22 +235,39 @@ export async function liesErgebniszettel(
     );
   }
 
-  const client = new Anthropic({ apiKey: cfg.apiKey });
-  const antwort = await client.messages.create({
-    model: cfg.model,
-    max_tokens: 4000,
-    system: 'Antworte ausschließlich mit einem einzigen, gültigen JSON-Objekt nach dem vorgegebenen Schema. Kein Markdown, kein erklärender Text.',
-    messages: [{
-      role: 'user',
-      content: [
-        {
-          type: 'image',
-          source: { type: 'base64', media_type: bild.mimeType as 'image/jpeg', data: bild.base64 },
-        },
-        { type: 'text', text: prompt(heute) },
-      ],
-    }],
+  const client = new Anthropic({
+    apiKey: cfg.apiKey,
+    timeout: ZEITGRENZE_MS,
+    // Keine eigenen Wiederholungen — siehe `ZEITGRENZE_MS`.
+    maxRetries: 0,
   });
+
+  let antwort: Anthropic.Message;
+  try {
+    antwort = await client.messages.create({
+      model: cfg.model,
+      max_tokens: 4000,
+      system: 'Antworte ausschließlich mit einem einzigen, gültigen JSON-Objekt nach dem vorgegebenen Schema. Kein Markdown, kein erklärender Text.',
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: bild.mimeType as 'image/jpeg', data: bild.base64 },
+          },
+          { type: 'text', text: prompt(heute) },
+        ],
+      }],
+    });
+  } catch (fehler) {
+    // Der Grund gehört auf den Bildschirm, nicht nur ins Protokoll: Im Lokal
+    // steht jemand mit dem Zettel in der Hand und muss wissen, ob er es noch
+    // einmal versuchen soll oder ob erst etwas eingerichtet werden muss.
+    const klartext = alsKlartext(fehler, cfg.model);
+    console.error('[mdc] Erkennung: Aufruf fehlgeschlagen', fehler);
+    if (klartext) throw new FotoNichtLesbarError(klartext);
+    throw fehler;
+  }
 
   const text = antwort.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')

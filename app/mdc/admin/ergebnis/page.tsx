@@ -38,6 +38,20 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Wie lange die Server-Aktionen dieser Seite laufen dürfen — und zwar ALLE,
+ * denn `maxDuration` gilt bei Next je Seite, nicht je Aktion
+ * (`node_modules/next/dist/docs/…/route-segment-config/maxDuration.md`).
+ *
+ * Das Lesen eines dicht beschriebenen Zettels dauert bei Claude gut und gerne
+ * 20 bis 40 Sekunden. Ohne diese Angabe gilt die Voreinstellung der Umgebung,
+ * und wird die überschritten, bricht Vercel die Funktion ab, BEVOR die Seite
+ * etwas sagen kann: Der Browser bekommt keine Antwort, und die Seite stünde
+ * wieder bei Schritt 1, ohne einen Grund zu nennen. 60 Sekunden sind die
+ * Obergrenze des Hobby-Tarifs — mehr würde die Bereitstellung ablehnen.
+ */
+export const maxDuration = 60;
+
 export default async function ErgebnisUploadPage() {
   const venues: UploadVenue[] = VENUES.map(venue => ({
     id: venue.id,

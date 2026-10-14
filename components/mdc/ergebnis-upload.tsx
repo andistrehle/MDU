@@ -19,7 +19,7 @@
 // Der Schlüssel hängt an der Feldgröße, ein Starter mehr ändert jede Zeile.
 // ============================================================
 
-import { useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, ArrowDown, ArrowUp, Camera, Check, CircleAlert, ExternalLink,
   Loader2, Trash2, Upload, UserPlus, X,
@@ -86,6 +86,24 @@ function zerlegeName(erkannt: string | null): { firstName: string; lastName: str
 }
 
 type Schritt = 'start' | 'liest' | 'pruefen' | 'sendet' | 'fertig';
+
+/**
+ * Die technische Ursache in einem Satzteil — für den Fall, dass eine
+ * Server-Aktion wirft statt zu antworten.
+ *
+ * Das steht in Klammern hinter der Erklärung und ist für den Betreiber
+ * gedacht, nicht für Besucher: Diese Seite liegt hinter der Passwortabfrage.
+ * „TypeError: Failed to fetch" sagt mehr als gar nichts, und gar nichts war
+ * bisher die Alternative.
+ */
+function kurzeMeldung(ausnahme: unknown): string {
+  const text = ausnahme instanceof Error
+    ? `${ausnahme.name}: ${ausnahme.message}`
+    : String(ausnahme);
+  const sauber = text.replace(/\s+/g, ' ').trim();
+  if (!sauber) return 'ohne Meldung';
+  return sauber.length > 160 ? `${sauber.slice(0, 160)}…` : sauber;
+}
 
 const MAX_KANTE = 1600;
 
@@ -306,9 +324,35 @@ export function ErgebnisUpload({
   /** Zettel, die nicht gelesen werden konnten — beim Namen genannt. */
   const [nichtGelesen, setNichtGelesen] = useState<string[]>([]);
   const [fehler, setFehler] = useState<string | null>(null);
+  /**
+   * Zähler, nicht Text: Zweimal dasselbe Missgeschick ergibt dieselbe
+   * Meldung, und ein `useEffect` auf den Text allein merkte davon nichts —
+   * beim zweiten Versuch würde nicht mehr hingescrollt.
+   */
+  const [fehlerStand, setFehlerStand] = useState(0);
   const [ergebnis, setErgebnis] = useState<{ url: string; turniere: AbgelegtesTurnier[] } | null>(null);
   const dateiRef = useRef<HTMLInputElement>(null);
   const kameraRef = useRef<HTMLInputElement>(null);
+  const fehlerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Meldung setzen UND dafür sorgen, dass sie gesehen wird.
+   *
+   * Am Handy steht die Schaltfläche „Zettel lesen" weit unten; die Karte mit
+   * der Meldung stand bisher ganz oben, also außerhalb des Bildes. Wer auf
+   * „lesen" tippte und einen Fehlschlag bekam, sah nur, dass wieder derselbe
+   * Zettel dastand — ohne ein Wort dazu, warum. Genau das ist am 14.10.2026
+   * passiert. Deshalb wird die Meldung jetzt zusätzlich ins Bild geholt.
+   */
+  function melde(text: string) {
+    setFehler(text);
+    setFehlerStand(n => n + 1);
+  }
+
+  useEffect(() => {
+    if (!fehler) return;
+    fehlerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [fehler, fehlerStand]);
 
   // Alle Nummern, die für einen Neuling in Frage kommen — Lücken zuerst.
   const freieNummern = useMemo(() => [...luecken, ...neueNummern], [luecken, neueNummern]);
@@ -358,7 +402,7 @@ export function ErgebnisUpload({
     setFehler(null);
     const platz = MAX_ZETTEL - fotos.length;
     if (platz <= 0) {
-      setFehler(`Mehr als ${MAX_ZETTEL} Zettel auf einmal gehen nicht. `
+      melde(`Mehr als ${MAX_ZETTEL} Zettel auf einmal gehen nicht. `
         + 'Diesen Stapel freigeben, dann den nächsten.');
       return;
     }
@@ -373,9 +417,9 @@ export function ErgebnisUpload({
     }
     setFotos(alt => [...alt, ...neue]);
     if (kaputt.length) {
-      setFehler(`Nicht verarbeiten ließ sich: ${kaputt.join(', ')}. Bitte noch einmal aufnehmen.`);
+      melde(`Nicht verarbeiten ließ sich: ${kaputt.join(', ')}. Bitte noch einmal aufnehmen.`);
     } else if (dateien.length > platz) {
-      setFehler(`Es gehen höchstens ${MAX_ZETTEL} Zettel auf einmal — `
+      melde(`Es gehen höchstens ${MAX_ZETTEL} Zettel auf einmal — `
         + `${dateien.length - platz} Foto${dateien.length - platz === 1 ? '' : 's'} `
         + 'wurde nicht übernommen.');
     }
@@ -403,50 +447,85 @@ export function ErgebnisUpload({
     // Zettel darf dieselbe nicht noch einmal verteilen.
     const belegt = new Set<number>();
 
-    for (const [i, foto] of fotos.entries()) {
-      setLeseStand({ nr: i + 1, von: fotos.length });
-      const antwort = await erkenneZettel(foto.bild);
-      if (!antwort.ok) {
-        schiefgegangen.push(`Zettel ${i + 1}: ${antwort.fehler}`);
-        continue;
+    // Um den ganzen Durchlauf, nicht nur um die Aktion: Was hier auch
+    // schiefgeht, darf die Seite nicht im Zustand „liest" zurücklassen —
+    // ein Drehrädchen, das sich nie mehr aufhört zu drehen, sagt dem
+    // Menschen im Lokal nichts, als dass er neu laden muss.
+    try {
+      for (const [i, foto] of fotos.entries()) {
+        setLeseStand({ nr: i + 1, von: fotos.length });
+
+        // Die Aktion gibt ihre Fehler normalerweise als Ergebnis zurück. Sie
+        // kann aber auch WERFEN, und dann liegt es nicht am Zettel: Die
+        // Funktion bei Vercel wurde abgebrochen (Laufzeitgrenze), die
+        // Verbindung brach ab, das Foto war zu groß für die Aktion oder es
+        // läuft gerade eine neue Bereitstellung. Ohne dieses `catch` blieb die
+        // Seite in diesem Fall einfach stehen — kein Hinweis, keine Meldung,
+        // immer wieder derselbe Zettel. Das ist das Gegenteil von ehrlich.
+        let antwort: Awaited<ReturnType<typeof erkenneZettel>>;
+        try {
+          antwort = await erkenneZettel(foto.bild);
+        } catch (ausnahme) {
+          schiefgegangen.push(
+            `Zettel ${i + 1}: Die Seite hat auf die Erkennung keine Antwort bekommen. `
+            + 'Das passiert, wenn das Lesen zu lange gedauert hat, die Verbindung '
+            + 'abgebrochen ist oder gerade eine neue Fassung der Seite ausgeliefert '
+            + `wird. Bitte noch einmal versuchen. (${kurzeMeldung(ausnahme)})`,
+          );
+          continue;
+        }
+
+        if (!antwort.ok) {
+          schiefgegangen.push(`Zettel ${i + 1}: ${antwort.fehler}`);
+          continue;
+        }
+        const vorschlag = antwort.vorschlag;
+        const zeilen = verteileFreieNummern(
+          vorschlag.zeilen.map(ausVorschlag),
+          freieNummern.filter(n => !belegt.has(n)),
+        );
+        for (const z of zeilen) {
+          const nummer = z.neu?.passNr ?? z.passNr;
+          if (nummer) belegt.add(nummer);
+        }
+
+        // DAS EINGESTELLTE DATUM GILT. Was der Zettel sagt, wird daneben
+        // gestellt, nie eingesetzt — siehe `datumPlausibel`. Beim Spielort ist
+        // es anders: Ein Stapel bringt fünf Lokale eines Abends mit, eine
+        // einzelne Vorgabe kann dort gar nicht für alle stimmen.
+        const vomZettel = vorschlag.datumLautZettel;
+        const probe = vomZettel ? datumPlausibel(vomZettel, heute) : null;
+        const erkannterOrt = spielortAusText(vorschlag.spielortLautZettel, venues);
+
+        gelesen.push({
+          key: foto.key,
+          datum,
+          spielortId: erkannterOrt ?? spielortId,
+          zeilen,
+          hinweise: vorschlag.hinweise,
+          teilnehmerLautZettel: vorschlag.teilnehmerLautZettel,
+          zettelDatum: vomZettel
+            ? { wert: vomZettel, plausibel: !!probe?.plausibel, grund: probe?.grund ?? null }
+            : null,
+          spielortLautZettel: vorschlag.spielortLautZettel,
+          spielortUebernommen: erkannterOrt !== null,
+        });
       }
-      const vorschlag = antwort.vorschlag;
-      const zeilen = verteileFreieNummern(
-        vorschlag.zeilen.map(ausVorschlag),
-        freieNummern.filter(n => !belegt.has(n)),
+    } catch (ausnahme) {
+      melde(
+        'Beim Lesen ist etwas schiefgegangen, womit die Seite nicht gerechnet hat. '
+        + 'Die Zettel sind noch ausgewählt — bitte noch einmal lesen lassen. '
+        + `(${kurzeMeldung(ausnahme)})`,
       );
-      for (const z of zeilen) {
-        const nummer = z.neu?.passNr ?? z.passNr;
-        if (nummer) belegt.add(nummer);
-      }
-
-      // DAS EINGESTELLTE DATUM GILT. Was der Zettel sagt, wird daneben
-      // gestellt, nie eingesetzt — siehe `datumPlausibel`. Beim Spielort ist
-      // es anders: Ein Stapel bringt fünf Lokale eines Abends mit, eine
-      // einzelne Vorgabe kann dort gar nicht für alle stimmen.
-      const vomZettel = vorschlag.datumLautZettel;
-      const probe = vomZettel ? datumPlausibel(vomZettel, heute) : null;
-      const erkannterOrt = spielortAusText(vorschlag.spielortLautZettel, venues);
-
-      gelesen.push({
-        key: foto.key,
-        datum,
-        spielortId: erkannterOrt ?? spielortId,
-        zeilen,
-        hinweise: vorschlag.hinweise,
-        teilnehmerLautZettel: vorschlag.teilnehmerLautZettel,
-        zettelDatum: vomZettel
-          ? { wert: vomZettel, plausibel: !!probe?.plausibel, grund: probe?.grund ?? null }
-          : null,
-        spielortLautZettel: vorschlag.spielortLautZettel,
-        spielortUebernommen: erkannterOrt !== null,
-      });
+      setSchritt('start');
+      return;
+    } finally {
+      setLeseStand(null);
     }
 
-    setLeseStand(null);
     setNichtGelesen(schiefgegangen);
     if (!gelesen.length) {
-      setFehler(schiefgegangen.join('\n') || 'Kein Zettel konnte gelesen werden.');
+      melde(schiefgegangen.join('\n') || 'Kein Zettel konnte gelesen werden.');
       setSchritt('start');
       return;
     }
@@ -461,14 +540,30 @@ export function ErgebnisUpload({
   async function freigeben() {
     setSchritt('sendet');
     setFehler(null);
-    const antwort = await gibErgebnisFrei(zettel.map(z => ({
-      datum: z.datum,
-      spielortId: z.spielortId,
-      zeilen: z.zeilen.map(r => ({ passNr: (r.neu?.passNr ?? r.passNr) as number })),
-      neueSpieler: z.zeilen.map(r => r.neu).filter((n): n is NeuerSpieler => n !== null),
-    })));
+    let antwort: Awaited<ReturnType<typeof gibErgebnisFrei>>;
+    try {
+      antwort = await gibErgebnisFrei(zettel.map(z => ({
+        datum: z.datum,
+        spielortId: z.spielortId,
+        zeilen: z.zeilen.map(r => ({ passNr: (r.neu?.passNr ?? r.passNr) as number })),
+        neueSpieler: z.zeilen.map(r => r.neu).filter((n): n is NeuerSpieler => n !== null),
+      })));
+    } catch (ausnahme) {
+      // Wie beim Lesen: Eine geworfene Aktion darf die Seite nicht stumm
+      // stehen lassen. Geschrieben wurde dann entweder nichts — oder der
+      // Commit lief doch durch und nur die Antwort ging verloren. Beides
+      // steht hier, statt eine der beiden Möglichkeiten zu behaupten.
+      melde(
+        'Auf die Freigabe ist keine Antwort gekommen. Bitte in einer Minute unter '
+        + '„Berichtigen" nachsehen, ob das Turnier doch abgelegt wurde — steht es dort '
+        + 'nicht, noch einmal freigeben. '
+        + `(${kurzeMeldung(ausnahme)})`,
+      );
+      setSchritt('pruefen');
+      return;
+    }
     if (!antwort.ok) {
-      setFehler(antwort.fehler);
+      melde(antwort.fehler);
       setSchritt('pruefen');
       return;
     }
@@ -552,23 +647,45 @@ export function ErgebnisUpload({
     );
   }
 
+  /**
+   * Die Meldung — und sie steht DORT, WO GETIPPT WURDE.
+   *
+   * In Schritt 1 unter der Schaltfläche „Zettel lesen", sonst oben über den
+   * Karten. Vorher stand sie immer oben: Am Handy ist die Karte „1 · Zettel"
+   * länger als das Bild, der Knopf liegt unten, und eine Meldung ganz oben hat
+   * niemand gesehen. Es blieb der Eindruck, der Zettel werde einfach „nicht
+   * gelesen", ohne dass die Seite etwas dazu sagte — dabei sagte sie es,
+   * nur außerhalb des Blickfelds.
+   */
+  const fehlerKarte = fehler ? (
+    <div
+      ref={fehlerRef}
+      className="mdc-card"
+      style={{ padding: '16px 18px', display: 'flex', gap: 12, alignItems: 'flex-start', borderColor: 'var(--mdc-red-a35)' }}
+    >
+      <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
+      {/* `pre-line`, damit der Rat, was zu tun ist, als eigener Absatz
+          unter der Meldung steht statt in einer Textwurst zu verschwinden.
+          `anywhere` ist Pflicht, seit die Meldung der Schnittstelle mit
+          dabeisteht: Die kommt als ein einziges langes JSON ohne Leerzeichen,
+          und `.mdc-card` schneidet ab (`overflow: hidden`) statt umzubrechen —
+          die halbe Begründung stünde dann außerhalb der Karte. */}
+      <p style={{ fontSize: '0.92rem', lineHeight: 1.65, whiteSpace: 'pre-line', minWidth: 0, overflowWrap: 'anywhere' }}>{fehler}</p>
+    </div>
+  ) : null;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {fehler && (
-        <div className="mdc-card" style={{ padding: '16px 18px', display: 'flex', gap: 12, alignItems: 'flex-start', borderColor: 'var(--mdc-red-a35)' }}>
-          <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-red)' }} />
-          {/* `pre-line`, damit der Rat, was zu tun ist, als eigener Absatz
-              unter der Meldung steht statt in einer Textwurst zu verschwinden. */}
-          <p style={{ fontSize: '0.92rem', lineHeight: 1.65, whiteSpace: 'pre-line' }}>{fehler}</p>
-        </div>
-      )}
+      {schritt !== 'start' && fehlerKarte}
 
       {/* Zettel, die nicht gelesen werden konnten. Sie werden genannt und
           nicht verschwiegen — die übrigen sind trotzdem durchgegangen. */}
       {nichtGelesen.length > 0 && schritt !== 'start' && (
         <div className="mdc-card" style={{ padding: '16px 18px', display: 'flex', gap: 12, alignItems: 'flex-start', borderColor: 'var(--mdc-warn-line)', background: 'var(--mdc-warn-tint)' }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2, color: 'var(--mdc-warn-ink)' }} />
-          <div style={{ fontSize: '0.9rem', lineHeight: 1.65 }}>
+          {/* Umbruch wie bei der Fehlerkarte: Hier stehen dieselben Meldungen,
+              samt dem langen JSON der Schnittstelle. */}
+          <div style={{ fontSize: '0.9rem', lineHeight: 1.65, minWidth: 0, overflowWrap: 'anywhere' }}>
             <strong>
               {nichtGelesen.length === 1 ? 'Ein Zettel' : `${nichtGelesen.length} Zettel`} konnte
               nicht gelesen werden
@@ -726,6 +843,9 @@ export function ErgebnisUpload({
                   </div>
                 </div>
               )}
+
+              {/* Hier, unter dem Knopf, statt ganz oben — siehe `fehlerKarte`. */}
+              {fehlerKarte && <div style={{ marginTop: 16 }}>{fehlerKarte}</div>}
             </>
           )}
 

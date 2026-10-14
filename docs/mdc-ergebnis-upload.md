@@ -199,6 +199,37 @@ keiner anderen Stelle.
   Solange es keinen solchen Fall gibt, steht das als Hinweis in den
   Datenschutzhinweisen; kommt einer, gehört eine Sperrliste dazu.
 
+## Wenn das Lesen schiefgeht (14.10.2026)
+
+Ein Zettel wurde nicht gelesen, und die Seite stand danach wieder bei Schritt 1
+— ohne ein Wort dazu, warum. Zwei Ursachen, beide behoben:
+
+- **Die Meldung stand außerhalb des Bildes.** Sie wurde ganz oben über den
+  Karten gezeigt, getippt wird aber unten auf „Zettel lesen". Am Handy sah man
+  nur wieder denselben Zettel. Jetzt steht sie in Schritt 1 **unter der
+  Schaltfläche** und wird ins Bild gescrollt (`fehlerKarte`, `melde()`).
+- **Eine Server-Aktion kann werfen statt zu antworten** — Laufzeitgrenze bei
+  Vercel, abgebrochene Verbindung, neue Bereitstellung mitten im Aufruf. Dann
+  lief `lesen()` auf einen unbehandelten Fehler, der Zustand blieb auf „liest",
+  und das Drehrädchen drehte sich bis zum Neuladen. Jetzt sagt die Seite, dass
+  keine Antwort kam, nennt die technische Ursache in Klammern und lässt die
+  Zettel ausgewählt. Dasselbe beim Freigeben — dort mit dem Rat, unter
+  „Berichtigen" nachzusehen, ob der Commit doch durchlief.
+
+Dazu nennt die Seite seither, **was die Erkennung gesagt hat** statt nur
+„fehlgeschlagen" (`alsKlartext` in `lib/mdc/ergebnis-foto.ts`): leeres Guthaben,
+abgelehnter Schlüssel, unbekanntes Modell, Überlastung, Zeitüberschreitung —
+jeweils mit dem nächsten Schritt und der Meldung der Schnittstelle im Wortlaut.
+Der Grund stand vorher nur im Vercel-Protokoll, und das macht im Lokal niemand
+auf.
+
+**Laufzeit:** `maxDuration = 60` in `app/mdc/admin/ergebnis/page.tsx` (gilt bei
+Next je Seite für ALLE ihre Server-Aktionen; 60 s ist die Obergrenze des
+Hobby-Tarifs). Der Aufruf an Claude wartet höchstens 45 Sekunden und
+wiederholt sich **nicht** von selbst: Ein zweiter Anlauf käme nach einer
+Zeitüberschreitung nie mehr rechtzeitig zurück — dann lieber eine ehrliche
+Meldung und ein Tipp auf „noch einmal lesen".
+
 ## Wo was steckt
 
 | Datei | Aufgabe |
