@@ -30,6 +30,7 @@ export const HEIMRECHT_GETAUSCHT: [string, string][] = [
   ['black-devils', 'funny-darters'],                       // C Liga
   ['team-dartpromillos--841baa', 'fuenf-sterne-boazn'],    // C Liga
   ['fuenf-sterne-boazn', 'team-jolly-pirates-vii-3156af'], // C Liga
+  ['dc-animals-ii', 'treff-nix-freimann'],                 // A Liga (15.10.2026, Termine bleiben)
 ];
 
 // Eingetragen am 11.10.2026 aus den Masterplänen aller fünf Ligen.
@@ -70,7 +71,7 @@ export const TERMINE_2027: Record<string, Termin27> = {
   "ohne-jackie|alptraum": { datum: '2027-05-07', uhrzeit: '20:00' }, // Ohne Jackie – Alptraum (Jahr 26→27)
   "jolly-pirates-kts|gambas": { datum: '2027-05-07', uhrzeit: '20:00', vorlaeufig: true }, // Jolly Pirates Kneipenterroristen – Gambas
   // ── A Liga ──
-  "dc-animals-ii|treff-nix-freimann": { datum: '2026-10-23', uhrzeit: '20:30' }, // DC Animals – Treff Nix Freimann
+  "treff-nix-freimann|dc-animals-ii": { datum: '2026-10-23', uhrzeit: '20:30' }, // Treff Nix Freimann – DC Animals (Heimrecht getauscht 15.10.2026)
   "freibad-bazis|fiaker-deife": { datum: '2026-10-23', uhrzeit: '20:00' }, // Freibad Bazis – Fiaker Deife
   "spartans-vi|jolly-pirates-v": { datum: '2026-10-24', uhrzeit: '20:30' }, // Spartans VI – Jolly Pirates V
   "team-illuminati--28d702|oldies-co": { datum: '2026-10-24', uhrzeit: '20:00' }, // Illuminati – Oldies & Co
@@ -106,7 +107,7 @@ export const TERMINE_2027: Record<string, Termin27> = {
   "oldies-co|dc-animals-ii": { datum: '2027-01-22', uhrzeit: '20:30' }, // Oldies & Co – DC Animals
   "jolly-pirates-v|fiaker-deife": { datum: '2027-01-23', uhrzeit: '20:00' }, // Jolly Pirates V – Fiaker Deife
   "jolly-pirates-v|spartans-vi": { datum: '2027-01-29', uhrzeit: '20:00' }, // Jolly Pirates V – Spartans VI
-  "treff-nix-freimann|dc-animals-ii": { datum: '2027-01-30', uhrzeit: '20:30' }, // Treff Nix Freimann – DC Animals
+  "dc-animals-ii|treff-nix-freimann": { datum: '2027-01-30', uhrzeit: '20:30' }, // DC Animals – Treff Nix Freimann (Heimrecht getauscht 15.10.2026)
   "fiaker-deife|freibad-bazis": { datum: '2027-01-30', uhrzeit: '20:00' }, // Fiaker Deife – Freibad Bazis
   "oldies-co|team-illuminati--28d702": { datum: '2027-02-12', uhrzeit: '20:00' }, // Oldies & Co – Illuminati
   "team-illuminati--28d702|jolly-pirates-v": { datum: '2027-02-20', uhrzeit: '20:00' }, // Illuminati – Jolly Pirates V
