@@ -318,9 +318,18 @@ Eine Begegnung hat 18 Spiele: acht Einzel, ein Doppel, acht Einzel und ein absch
 - Der TC stellt aus den Zusagen die Aufstellung zusammen.
 - Treffzeit, Notizen und Aufgaben stehen je Spiel an einer Stelle.
 - Eigene Termine außerhalb der MDU (andere Liga, Pokal, Training) lassen sich eintragen oder aus einer Tabelle importieren.
+- Die Teamkasse führt Strafen, Beiträge und den Kassenstand.
 
 Jedes Spiel hat eine eigene Seite, deren Link ihr in der Teamgruppe teilen könnt.`,
         stichworte: ['zusagen', 'absagen', 'aufstellung', 'premium'],
+      },
+      {
+        id: 'teamkasse',
+        frage: 'Wie funktioniert die Teamkasse?',
+        antwort: `Die Teamkasse gehört zum Team Manager. Der Kapitän und ein Kassenwart, den er bestimmt, tragen Strafen (gern aus einem eigenen Strafenkatalog), Beiträge, Einnahmen und Ausgaben ein. Alle im Team sehen den Kassenstand und wer noch was offen hat.
+
+Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt abgehakt ist. Auch Spieler ohne Konto können Strafen bekommen.`,
+        stichworte: ['kasse', 'strafen', 'strafenkatalog', 'beitrag', 'geld', 'kassenwart'],
       },
       {
         id: 'team-manager-freischalten',
