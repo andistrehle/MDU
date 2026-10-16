@@ -48,7 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPaths = [
     '', '/ligen', '/tabellen', '/spielplan', '/ergebnisse',
-    '/teams', '/spielstaetten', '/downloads', '/news',
+    '/teams', '/spielstaetten', '/downloads', '/faq', '/news',
     '/kontakt', '/impressum', '/datenschutz',
     // Archiv Saison 2025/26
     '/ligen/2025-26', '/tabellen/2025-26', '/spielplan/2025-26', '/ergebnisse/2025-26',

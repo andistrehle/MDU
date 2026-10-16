@@ -27,6 +27,13 @@ const SECTIONS = [
     ready: true,
   },
   {
+    href: '/faq',
+    icon: 'help',
+    label: 'Häufige Fragen',
+    description: 'Antworten rund um Konto, Spielbericht, Tabelle und Team Manager.',
+    ready: true,
+  },
+  {
     href: '/kontakt',
     icon: 'globe',
     label: 'Kontakt',

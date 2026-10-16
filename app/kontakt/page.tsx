@@ -21,7 +21,8 @@ export default function KontaktPage() {
       <div className="mdu-section-pad" style={{ maxWidth: 640, margin: '0 auto', padding: '32px 20px 80px' }}>
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>
           Fragen zur Liga, zur Plattform oder zu deinem Konto? Schreib uns einfach – wir helfen
-          gerne weiter.
+          gerne weiter. Vielleicht steht die Antwort auch schon bei den{' '}
+          <Link href="/faq" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>häufigen Fragen</Link>.
         </p>
 
         {/* Kontaktkarte */}

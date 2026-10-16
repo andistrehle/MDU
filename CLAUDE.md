@@ -110,6 +110,11 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   saisongetrennten Weg. Die Status-Texte „abgeschlossen" in `league-detail-client.tsx` sind
   richtig, weil diese Ansicht nur noch fürs Archiv läuft (26/27: `liga-27-client.tsx`).
 
+**FAQ** (`/faq`, seit 16.10.2026): Inhalt in `lib/data/faq.ts`, wird laufend erweitert. Bei neuen
+oder geänderten Funktionen die passende Antwort mitpflegen; nichts beschreiben, was die Plattform
+nicht kann, und nie von den Spielbedingungen abweichen. Die `id` ist der Direktlink (`/faq#id`) —
+nicht ändern.
+
 ## Supabase = Produktivdatenbank (Vorsicht bei Schreibaktionen)
 Schreibende Skripte (`scripts/*.mjs`, Service-Role) treffen echte Daten. Demo-Daten fürs
 Einführungsvideo (Demo-Kapitän `demo.kapitaen@example.com`, Demo-Spieler `demo.spieler@example.com`,
