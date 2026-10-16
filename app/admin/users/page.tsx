@@ -14,6 +14,7 @@
 // alles). RLS in der DB sichert das zusätzlich serverseitig ab.
 // ============================================================
 
+import { mitAnmeldung, ANMELDUNG_ABGELAUFEN } from '@/lib/auth/mit-anmeldung';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
@@ -271,12 +272,8 @@ export default function AdminUsersPage() {
     setStatus('idle');
     // Unbestätigte Konten (E-Mail nicht bestätigt) aus der Auth nachladen.
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (token) {
-        const res = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { const j = await res.json(); setUnconfirmed(new Set((j.unconfirmed ?? []) as string[])); }
-      }
+      const res = await mitAnmeldung('/api/admin/users');
+      if (res.ok) { const j = await res.json(); setUnconfirmed(new Set((j.unconfirmed ?? []) as string[])); }
     } catch { /* Status optional — Liste funktioniert auch ohne */ }
   }, []);
 
@@ -292,15 +289,10 @@ export default function AdminUsersPage() {
     if (!supabase) return;
     if (!confirm(`Benutzer „${p.display_name}" (${p.email}) endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
     setDeletingId(p.id);
-    const { data: sess } = await supabase.auth.getSession();
-    const token = sess.session?.access_token;
-    const res = await fetch(`/api/admin/users/${p.id}`, {
-      method: 'DELETE',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await mitAnmeldung(`/api/admin/users/${p.id}`, { method: 'DELETE' });
     const json = await res.json().catch(() => ({}));
     setDeletingId(null);
-    if (!res.ok) { alert(json.error ?? 'Löschen fehlgeschlagen.'); return; }
+    if (!res.ok) { alert(res.status === 401 ? ANMELDUNG_ABGELAUFEN : json.error ?? 'Löschen fehlgeschlagen.'); return; }
     setProfiles(prev => prev.filter(x => x.id !== p.id));
     setNotice(`Benutzer „${p.display_name}" wurde gelöscht.`);
   }
@@ -552,12 +544,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
     let cancelled = false;
     (async () => {
       if (!supabase) return;
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (!token) return;
-      const res = await fetch(`/api/admin/users/${profile.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => null);
+      const res = await mitAnmeldung(`/api/admin/users/${profile.id}`).catch(() => null);
       if (!res || !res.ok || cancelled) return;
       const json = await res.json().catch(() => ({} as { registrationComment?: string | null }));
       if (!cancelled) setRegComment(json.registrationComment ?? null);
@@ -601,18 +588,15 @@ function EditModal({ actor, profile, onClose, onSaved }: {
     };
     // Serverseitig über die Admin-API speichern (Rechteprüfung + service_role),
     // statt direkt aus dem Client in die DB zu schreiben (REV-016).
-    const { data: sess } = await supabase.auth.getSession();
-    const token = sess.session?.access_token;
-    if (!token) { setBusy(false); setErr('Keine aktive Sitzung.'); return; }
-    const res = await fetch(`/api/admin/users/${profile.id}`, {
+    const res = await mitAnmeldung(`/api/admin/users/${profile.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     });
     const json = await res.json().catch(() => ({} as { profile?: ProfileRow; error?: string }));
     if (!res.ok || !json.profile) {
       setBusy(false);
-      setErr(json.error ?? 'Speichern fehlgeschlagen.');
+      setErr(res.status === 401 ? ANMELDUNG_ABGELAUFEN : json.error ?? 'Speichern fehlgeschlagen.');
       return;
     }
     const data = json.profile as ProfileRow;
