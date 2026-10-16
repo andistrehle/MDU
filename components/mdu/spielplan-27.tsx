@@ -1,6 +1,7 @@
 import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import { Icon } from './icon';
+import { VerlegungEtikett } from './verlegung-etikett';
 import {
   team27, venue27, spieltage27, spieleFuerTeam27, wochenendeText, begegnungKey,
   termin27, terminVerlegt,
@@ -73,7 +74,7 @@ export function Etikett({ children, ton = 'gold' }: { children: React.ReactNode;
 }
 
 /** Kopfzeile eines Spiels: Termin (oder Wochenende) links, Etiketten rechts. */
-function TerminKopf({ t, fri, sun, derby }: { t: Termin27 | null; fri: string; sun: string; derby: boolean }) {
+function TerminKopf({ t, fri, sun, derby, k }: { t: Termin27 | null; fri: string; sun: string; derby: boolean; k: string }) {
   return (
     <div className="mdu-sp-kopf" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
       <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800, letterSpacing: '0.02em', color: t ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>
@@ -82,6 +83,7 @@ function TerminKopf({ t, fri, sun, derby }: { t: Termin27 | null; fri: string; s
       <span style={{ display: 'flex', gap: 6 }}>
         {t?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
         {terminVerlegt(t, fri, sun) && <Etikett>verlegt</Etikett>}
+        <VerlegungEtikett k={k} />
         {derby && <Etikett ton="grau">Derby</Etikett>}
       </span>
     </div>
@@ -123,7 +125,7 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
           const t = termin27(g.home, g.away);
           return (
             <div key={g.home + g.away} className="mdu-sp-spiel" style={{ borderTop: '1px solid var(--th-line-4)' }}>
-              <TerminKopf t={t} fri={md.fri} sun={md.sun} derby={g.derby} />
+              <TerminKopf t={t} fri={md.fri} sun={md.sun} derby={g.derby} k={begegnungKey(g.home, g.away)} />
               <div className="mdu-sp-paar" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gap: 10 }}>
                 <Seite id={g.home} heim />
                 <Mitte e={e} />
@@ -209,6 +211,7 @@ export function TeamSpielplan27({ teamId, ergebnisse }: { teamId: string; ergebn
                   <span style={{ color: 'var(--th-text-faint)' }}>· {s.spieltag}. ST</span>
                   {t?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
                   {terminVerlegt(t, s.fri, s.sun) && <Etikett>verlegt</Etikett>}
+                  <VerlegungEtikett k={s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)} />
                   {s.derby && <Etikett ton="grau">Derby</Etikett>}
                 </div>
               </div>

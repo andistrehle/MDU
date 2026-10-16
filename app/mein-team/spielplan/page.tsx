@@ -17,6 +17,7 @@ import { VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27, LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
+import { SpielVerlegen } from '@/components/mdu/spiel-verlegen';
 import { zusagenFreigeschaltet } from '@/lib/features';
 import { team27, findLiga27, venue27, spielplanDaten27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { printTeam, printMaster } from '@/lib/spielplan/printing';
@@ -61,6 +62,9 @@ export default function MeinSpielplanPage() {
           </Link>}
 
           <KalenderAbo teamId={t.id} teamName={t.name} />
+
+          {/* Spiel verlegen — TC/Ligaleitung (Migration 0050) */}
+          {darfDrucken && <SpielVerlegen teamId={t.id} />}
 
           {/* Druck — nur TC/Ligaleitung */}
           {darfDrucken && (

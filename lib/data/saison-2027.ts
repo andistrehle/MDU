@@ -12,7 +12,17 @@
 // ============================================================
 import data from './saison-2027.generated.json';
 import type { SpielplanData } from '@/lib/spielplan/types';
-import { TERMINE_2027, HEIMRECHT_GETAUSCHT, type Termin27 } from './termine-2027';
+import { TERMINE_2027 as TERMINE_MASTERPLAN, HEIMRECHT_GETAUSCHT, type Termin27 } from './termine-2027';
+import VERLEGUNGEN_JSON from './verlegungen-2027.json';
+
+/** Von den TCs verlegte Spiele (Seite schreibt per Commit, Migration 0050 /
+ *  lib/server/verlegung.ts) — liegen ÜBER den Masterplan-Terminen. Schlüssel
+ *  = Begegnung Heim|Gast nach Heimrechttausch. */
+export const VERLEGUNGEN_2027 = VERLEGUNGEN_JSON as Record<string, Termin27 & { am?: string }>;
+const TERMINE_2027: Record<string, Termin27> = {
+  ...TERMINE_MASTERPLAN,
+  ...Object.fromEntries(Object.entries(VERLEGUNGEN_2027).map(([k, v]) => [k, { datum: v.datum, ...(v.uhrzeit ? { uhrzeit: v.uhrzeit } : {}) }])),
+};
 import type { Match } from './matches';
 
 export const NEUE_SAISON = { id: 'season-2027', name: 'Saison 2026/2027', kurz: '2026/27' } as const;

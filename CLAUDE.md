@@ -89,6 +89,17 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   **Import** (TC): Einfügen aus Excel/Google Tabellen oder CSV → Vorschau → alle auf einmal
   (`lib/termin-import.ts`: Kopfzeile erkannt, sonst je Zelle geraten; „Team A – Team B“ mit dem
   eigenen Team ergibt Gegner + Heim/Auswärts; Doppelte = gleiches Datum+Beginn+Gegner/Titel).
+  **Spielverlegungen durch die TCs** (Migration 0050, `match_reschedules`, `lib/server/verlegung.ts`,
+  Betreiber 16.10.2026, für ALLE TCs): Karte „Spiel verlegen“ unter Mein Spielplan; ein TC fragt an,
+  der Gegner-TC bestätigt/lehnt ab, die Ligaleitung bekommt jede Bestätigung in die Glocke und muss
+  nur freigeben, wenn der Termin vor `SAISON_START`/nach `SAISON_ENDE` liegt (Admin → Verlegungen).
+  Bis zur Bestätigung bleibt der alte Termin öffentlich, mit „Verlegung angefragt“
+  (`VerlegungEtikett`, `/api/verlegung/offen`). Übernehmen = COMMIT nach
+  `lib/data/verlegungen-2027.json` (`lib/server/github-mdu.ts`, ENV `MDU_GITHUB_TOKEN`, getrennt von
+  der MDC) — liegt in `saison-2027.ts` ÜBER `TERMINE_2027`; der Neubau macht alles einheitlich.
+  Ohne Token bleibt die Anfrage „bestätigt – nicht übernommen“ und lässt sich dort erneut übernehmen.
+  Von Hand verlegte Termine weiter in `termine-2027.ts` — ein Eintrag in `verlegungen-2027.json`
+  schlägt ihn aber.
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

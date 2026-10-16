@@ -29,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: 'trophy',   label: 'Saison-Teams',  href: '/admin/season-teams',    require: 'league' },
   { icon: 'calendar', label: 'Spielplan / TC-Pläne', href: '/admin/spielplan-vorschlag', require: 'league' },
   { icon: 'file',     label: 'Spielberichte', href: '/admin/spielberichte', require: 'league' },
+  { icon: 'calendar', label: 'Verlegungen',   href: '/admin/verlegungen',   require: 'league' },
   { icon: 'user',     label: 'Nachmeldungen', href: '/admin/nachmeldungen', require: 'league', badgeKey: 'nominations' },
   { icon: 'bell',     label: 'News',          href: '/admin/news',          require: 'league' },
   { icon: 'download', label: 'Downloads',     href: '/admin/downloads',     require: 'league' },
