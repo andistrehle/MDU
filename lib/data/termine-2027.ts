@@ -75,7 +75,7 @@ export const TERMINE_2027: Record<string, Termin27> = {
   "freibad-bazis|fiaker-deife": { datum: '2026-10-23', uhrzeit: '20:00' }, // Freibad Bazis – Fiaker Deife
   "spartans-vi|jolly-pirates-v": { datum: '2026-10-24', uhrzeit: '20:30' }, // Spartans VI – Jolly Pirates V
   "team-illuminati--28d702|oldies-co": { datum: '2026-10-24', uhrzeit: '20:00' }, // Illuminati – Oldies & Co
-  "jolly-pirates-v|oldies-co": { datum: '2026-11-06' }, // Jolly Pirates V – Oldies & Co (16.10.2026 vom Betreiber bestätigt: 06.11., Uhrzeit folgt)
+  "jolly-pirates-v|oldies-co": { datum: '2026-11-06', uhrzeit: '20:00' }, // Jolly Pirates V – Oldies & Co (16.10.2026 vom Betreiber bestätigt: 06.11., 20:00)
   "oldies-co|fiaker-deife": { datum: '2026-11-13', uhrzeit: '20:00' }, // Oldies & Co – Fiaker Deife
   "freibad-bazis|dc-animals-ii": { datum: '2026-11-13', uhrzeit: '20:30' }, // Freibad Bazis – DC Animals
   "jolly-pirates-v|team-illuminati--28d702": { datum: '2026-11-14', uhrzeit: '20:00' }, // Jolly Pirates V – Illuminati
