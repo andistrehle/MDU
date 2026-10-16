@@ -5,7 +5,7 @@
 // eigene Strich-Icons statt Emojis, Signalfarben aus dem Theme (--th-win /
 // --th-gold / --th-loss), Saira Condensed für Zahlen und Überschriften.
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
 import { team27, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
@@ -129,16 +129,25 @@ export function springeZuGruppe(g: StandGruppe) {
   el.animate?.([{ background: 'var(--th-accent-a12)' }, { background: 'transparent' }], { duration: 1400, easing: 'ease-out' });
 }
 
+// Kann das Gerät „darüberfahren“? Am Handy (hover: none) klappt Antippen die Namen auf.
+const HOVER = '(hover: hover) and (pointer: fine)';
+const hoverAbo = (cb: () => void) => { const m = window.matchMedia(HOVER); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); };
+const useKannHover = () => useSyncExternalStore(hoverAbo, () => window.matchMedia(HOVER).matches, () => true);
+
 /**
  * Stand als Balken + Zahlen; `meins` hebt den eigenen Status hervor.
  * Mit `namen` (nur für Teammitglieder) werden die Felder interaktiv: Darüberfahren
- * zeigt, wer in der Gruppe ist, Antippen springt zur Gruppe in der Teilnehmerliste.
+ * zeigt, wer in der Gruppe ist, Klicken springt zur Gruppe in der Teilnehmerliste.
+ * Am Handy klappt Antippen die Namen unter den Zahlen auf (nochmal tippen = zu),
+ * von dort geht es mit „In der Liste anzeigen“ weiter.
  */
 export function StandLeiste({ zahl, offen, meins, namen }: {
   zahl: Record<ZusageStatus, number>; offen: number | null; meins?: ZusageStatus | null;
   namen?: Record<StandGruppe, string[]>;
 }) {
   const [zeige, setZeige] = useState<StandGruppe | null>(null);
+  const [aufgeklappt, setAufgeklappt] = useState<StandGruppe | null>(null);
+  const kannHover = useKannHover();
   const summe = zahl.yes + zahl.maybe + zahl.no + (offen ?? 0);
   const teile: [string, number][] = [['var(--th-win)', zahl.yes], ['var(--th-gold)', zahl.maybe], ['var(--th-loss)', zahl.no], ['var(--th-line-10)', offen ?? 0]];
   const zellen: { g: StandGruppe; text: string; farbe: string; inhalt: React.ReactNode; an: boolean }[] = [
@@ -162,14 +171,18 @@ export function StandLeiste({ zahl, offen, meins, namen }: {
           const liste = namen[z.g];
           return (
             <div key={z.g} style={{ position: 'relative' }}
-              onMouseEnter={() => setZeige(z.g)} onMouseLeave={() => setZeige(g => (g === z.g ? null : g))}>
-              <button type="button" onClick={() => { setZeige(null); if (liste.length) springeZuGruppe(z.g); }}
-                onFocus={() => setZeige(z.g)} onBlur={() => setZeige(g => (g === z.g ? null : g))}
-                aria-label={`${z.text}: ${liste.length ? liste.join(', ') : 'niemand'}`}
-                style={{ ...standZelle(z.an, z.farbe), width: '100%', cursor: liste.length ? 'pointer' : 'default', font: 'inherit' }}>
+              onMouseEnter={kannHover ? () => setZeige(z.g) : undefined} onMouseLeave={kannHover ? () => setZeige(g => (g === z.g ? null : g)) : undefined}>
+              <button type="button"
+                onClick={() => {
+                  if (kannHover) { setZeige(null); if (liste.length) springeZuGruppe(z.g); }
+                  else setAufgeklappt(g => (g === z.g ? null : z.g));
+                }}
+                onFocus={kannHover ? () => setZeige(z.g) : undefined} onBlur={kannHover ? () => setZeige(g => (g === z.g ? null : g)) : undefined}
+                aria-label={`${z.text}: ${liste.length ? liste.join(', ') : 'niemand'}`} aria-expanded={kannHover ? undefined : aufgeklappt === z.g}
+                style={{ ...standZelle(z.an || aufgeklappt === z.g, z.farbe), width: '100%', cursor: 'pointer', font: 'inherit' }}>
                 {z.inhalt}
               </button>
-              {zeige === z.g && (
+              {kannHover && zeige === z.g && (
                 <div role="tooltip" style={{
                   position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)', zIndex: 20,
                   minWidth: 140, maxWidth: 220, padding: '8px 10px', borderRadius: 10, pointerEvents: 'none',
@@ -190,6 +203,26 @@ export function StandLeiste({ zahl, offen, meins, namen }: {
           <span key={l} style={{ textAlign: 'center', fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--th-text-faint)' }}>{l}</span>
         ))}
       </div>
+      {namen && !kannHover && aufgeklappt && (() => {
+        const z = zellen.find(x => x.g === aufgeklappt)!;
+        const liste = namen[aufgeklappt];
+        return (
+          <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--th-bg-card3)', border: `1.5px solid ${z.farbe}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ flex: 1, fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: z.farbe }}>{z.text} · {liste.length}</span>
+              <button type="button" onClick={() => setAufgeklappt(null)} aria-label="Zuklappen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-text-muted)', padding: 2, display: 'flex' }}><Icon name="close" size={14} stroke={2.4} /></button>
+            </div>
+            {liste.length ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {liste.map(n => <span key={n} style={{ padding: '5px 10px', borderRadius: 999, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-text-strong)' }}>{n}</span>)}
+              </div>
+            ) : <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>niemand</div>}
+            {liste.length > 0 && (
+              <button type="button" onClick={() => springeZuGruppe(aufgeklappt)} style={{ marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, color: 'var(--th-accent)' }}>In der Liste anzeigen ↓</button>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
