@@ -127,7 +127,9 @@ export function TerminAnsicht({ id }: { id: string }) {
     const url = window.location.href;
     const text = `${label} – bitte zu- oder absagen`;
     try {
-      if (navigator.share) { await navigator.share({ title: label, text, url }); return; }
+      // Link IM Text statt als eigenes Feld: iOS „Kopieren“ nimmt sonst nur den Text mit
+      // (16.10.2026). WhatsApp & Co. erkennen den Link im Text trotzdem und zeigen die Vorschau.
+      if (navigator.share) { await navigator.share({ title: label, text: `${text}\n${url}` }); return; }
       await navigator.clipboard.writeText(`${text}\n${url}`);
       setMsg({ kind: 'ok', text: 'Link kopiert – jetzt einfach in die Gruppe einfügen.' });
     } catch (e) {
