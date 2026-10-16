@@ -32,7 +32,8 @@ import { TerminImport } from '@/components/mdu/termin-import';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
-import { TeamDashboard, type DashKasse } from '@/components/mdu/team-dashboard';
+import { TeamDashboard, type DashKasse, type DashGespielt } from '@/components/mdu/team-dashboard';
+import { mitAnmeldung } from '@/lib/auth/mit-anmeldung';
 import { ladeKasse, kassenstand, offenSumme, istForderung } from '@/lib/supabase/kasse';
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
@@ -58,12 +59,16 @@ export default function ZusagenPage() {
   const [termineBereit, setTermineBereit] = useState(false);
   const [neu, setNeu] = useState<null | 'eintragen' | 'import'>(null);
   const [kasse, setKasse] = useState<DashKasse | null>(null);
+  const [gespielt, setGespielt] = useState<DashGespielt | null>(null);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
     const [k, z, e, d, a, tr] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId), ladeAufgaben(teamId), ladeTermine(teamId)]);
     setKader(k); setAufgaben(a); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d); setTermine(tr.rows); setTermineBereit(tr.bereit);
     if (z.error) setMsg({ kind: 'err', text: z.error });
+    // „Gespielt“-Statistik aus den Spielberichten (Server, nur Zählungen).
+    mitAnmeldung(`/api/team-statistik?team=${encodeURIComponent(teamId)}`)
+      .then(r => (r.ok ? r.json() : null)).then(j => { if (j && typeof j.berichte === 'number') setGespielt(j as DashGespielt); }).catch(() => {});
     // Teamkasse fürs Dashboard (fehlt die Migration, bleibt die Kachel weg).
     const ka = await ladeKasse(teamId);
     if (ka.bereit && !ka.error) {
@@ -88,6 +93,16 @@ export default function ZusagenPage() {
     const ext: Eintrag[] = termine.filter(t => t.event_date >= heute)
       .map(t => ({ art: 'ext', key: terminKey(t.id), datum: t.event_date, zeit: t.start_time ?? '', t }));
     return [...mdu, ...ext].sort((a, b) => a.datum.localeCompare(b.datum) || a.zeit.localeCompare(b.zeit));
+  }, [teamId, termine]);
+
+  // Vergangene Termine der Saison (für die Zusage-Quote im Dashboard).
+  const vergangen = useMemo<string[]>(() => {
+    if (!teamId) return [];
+    const heute = heuteIso();
+    return [
+      ...alleBegegnungen27().filter(b => (b.home === teamId || b.away === teamId) && datumVon(b) < heute).map(b => b.key),
+      ...termine.filter(t => t.event_date < heute).map(t => terminKey(t.id)),
+    ];
   }, [teamId, termine]);
 
   async function terminNeu(e: Parameters<typeof speichereTermin>[1]) {
@@ -146,8 +161,9 @@ export default function ZusagenPage() {
               <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>
             )}
 
-            <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} zusagen={zusagen}
-              kaderAnzahl={anzahlKader} ichId={user.playerId ?? null} aufgaben={aufgaben} kasse={kasse} />
+            <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} vergangen={vergangen}
+              zusagen={zusagen} personen={personen ?? []} ichId={user.playerId ?? null} ichName={user.displayName ?? ''}
+              aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} />
 
             {istKapitaen && (
               <details className="mdu-einst" style={{ ...karte, padding: 0, overflow: 'hidden' }}>
