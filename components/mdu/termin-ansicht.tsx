@@ -24,7 +24,7 @@ import {
 import { ladeTermin, speichereTermin, loescheTermin, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
-import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
+import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, springeZuGruppe, type StandGruppe, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 import { NotizUndAufgaben, TreffzeitFeld } from './spieltag-ansicht';
 import { TerminKopf, TerminFormular, terminLabel, terminGrund } from './termin-ui';
 import { terminFarbe } from '@/lib/supabase/termine';
@@ -66,6 +66,14 @@ export function TerminAnsicht({ id }: { id: string }) {
     personen.push({ id: user.playerId, name: user.displayName, isCaptain: false, passNo: null });
   }
   const zuVon = (pid: string) => zusagen.find(z => z.player_id === pid);
+
+  // Aus der Übersicht kommend (#teilnehmer-offen …): zur Gruppe springen, sobald die Liste steht.
+  const listeDa = kader !== null && mitglied;
+  useEffect(() => {
+    if (!listeDa) return;
+    const g = window.location.hash.match(/^#teilnehmer-(yes|maybe|no|offen)$/)?.[1] as StandGruppe | undefined;
+    if (g) requestAnimationFrame(() => springeZuGruppe(g));
+  }, [listeDa]);
   const zahl = (s: ZusageStatus) => zusagen.filter(z => z.status === s).length;
 
   async function setze(p: { id: string; name: string }, status: ZusageStatus | null, note?: string | null, ohneGrund = false) {

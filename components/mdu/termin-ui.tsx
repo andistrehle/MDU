@@ -10,9 +10,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
-import { Zeitleiste, StandLeiste, chip, karte, knopf, h2 } from './zusagen-ui';
+import { Zeitleiste, StandLeiste, chip, karte, knopf, h2, namenJeGruppe, gruppenAnker } from './zusagen-ui';
 import { NotizAufgabenHinweis } from './spiel-kachel';
 import { team27 } from '@/lib/data/saison-2027';
 import { wochentag, tagMonat } from '@/lib/spieltag';
@@ -86,21 +87,30 @@ export function TerminKopf({ t, teamId, gross = false, rechts }: { t: TeamTermin
 }
 
 /** Kachel eines eigenen Termins in der Übersicht → /termin/<id>. */
-export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [] }: {
+export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [], personen }: {
   t: TeamTermin; teamId: string; zusagen: Zusage[]; kaderAnzahl: number; ichId: string | null;
   treffenMin: number; meetTime: string | null; notiz?: string | null; aufgaben?: Aufgabe[];
+  /** Kader (+ ich) — macht die Zahlen interaktiv (Namen, Sprung zur Teilnehmerliste). */
+  personen?: { id: string; name: string }[];
 }) {
+  const router = useRouter();
+  const pfad = terminPfad(t.id);
   const meins = ichId ? zusagen.find(z => z.player_id === ichId)?.status ?? null : undefined;
   const zahl = (s: ZusageStatus) => zusagen.filter(z => z.status === s).length;
   const farbe = terminFarbe(t);
   return (
-    <Link href={terminPfad(t.id)} className="mdu-spiel-kachel" style={{ display: 'block', textDecoration: 'none', borderRadius: 16, overflow: 'hidden', background: terminGrund(farbe), border: `1.5px solid ${farbe}`, boxShadow: '0 2px 12px var(--th-shadow)' }}>
+    <div className="mdu-spiel-kachel" style={{ borderRadius: 16, overflow: 'hidden', background: terminGrund(farbe), border: `1.5px solid ${farbe}`, boxShadow: '0 2px 12px var(--th-shadow)' }}>
+    <Link href={pfad} style={{ display: 'block', textDecoration: 'none' }}>
       <TerminKopf t={t} teamId={teamId} rechts={<Icon name="chevron" size={14} style={{ opacity: 0.7 }} />} />
       <Zeitleiste beginn={t.start_time ?? undefined} treffenMin={t.kind === 'spiel' ? treffenMin : 0} meetTime={meetTime} ende={t.end_time ?? (t.kind === 'spiel' ? undefined : null)} />
       <NotizAufgabenHinweis notiz={notiz} aufgaben={aufgaben} ichId={ichId} />
-      <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins} />
-      <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
     </Link>
+      {/* Außerhalb des Links: die Zahlen sind eigene Knöpfe (Namen zeigen, zur Teilnehmerliste springen). */}
+      <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
+        namen={personen ? namenJeGruppe(personen, id => zusagen.find(z => z.player_id === id)) : undefined}
+        zurListe={g => router.push(`${pfad}#${gruppenAnker(g)}`)} />
+      <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
+    </div>
   );
 }
 

@@ -141,9 +141,11 @@ const useKannHover = () => useSyncExternalStore(hoverAbo, () => window.matchMedi
  * Am Handy klappt Antippen die Namen unter den Zahlen auf (nochmal tippen = zu),
  * von dort geht es mit „In der Liste anzeigen“ weiter.
  */
-export function StandLeiste({ zahl, offen, meins, namen }: {
+export function StandLeiste({ zahl, offen, meins, namen, zurListe = springeZuGruppe }: {
   zahl: Record<ZusageStatus, number>; offen: number | null; meins?: ZusageStatus | null;
   namen?: Record<StandGruppe, string[]>;
+  /** Was „zur Gruppe“ heißt — auf der Seite scrollen, in der Übersichtskachel zur Spieltag-Seite. */
+  zurListe?: (g: StandGruppe) => void;
 }) {
   const [zeige, setZeige] = useState<StandGruppe | null>(null);
   const [aufgeklappt, setAufgeklappt] = useState<StandGruppe | null>(null);
@@ -174,7 +176,7 @@ export function StandLeiste({ zahl, offen, meins, namen }: {
               onMouseEnter={kannHover ? () => setZeige(z.g) : undefined} onMouseLeave={kannHover ? () => setZeige(g => (g === z.g ? null : g)) : undefined}>
               <button type="button"
                 onClick={() => {
-                  if (kannHover) { setZeige(null); if (liste.length) springeZuGruppe(z.g); }
+                  if (kannHover) { setZeige(null); if (liste.length) zurListe(z.g); }
                   else setAufgeklappt(g => (g === z.g ? null : z.g));
                 }}
                 onFocus={kannHover ? () => setZeige(z.g) : undefined} onBlur={kannHover ? () => setZeige(g => (g === z.g ? null : g)) : undefined}
@@ -218,7 +220,7 @@ export function StandLeiste({ zahl, offen, meins, namen }: {
               </div>
             ) : <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)' }}>niemand</div>}
             {liste.length > 0 && (
-              <button type="button" onClick={() => springeZuGruppe(aufgeklappt)} style={{ marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, color: 'var(--th-accent)' }}>In der Liste anzeigen ↓</button>
+              <button type="button" onClick={() => zurListe(aufgeklappt)} style={{ marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, color: 'var(--th-accent)' }}>In der Liste anzeigen ↓</button>
             )}
           </div>
         );

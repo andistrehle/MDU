@@ -105,6 +105,15 @@ export default function ZusagenPage() {
 
   const sichtbar = alle ? spiele : spiele.slice(0, 4);
   const anzahlKader = (kader?.length ?? 0) + (user?.playerId && kader && !kader.some(k => k.id === user.playerId) ? 1 : 0);
+  // Kader + ich (falls nicht im Kader) — für die Namen hinter den Zahlen der Kacheln.
+  const ichId = user?.playerId ?? null;
+  const ichName = user?.displayName ?? '';
+  const personen = useMemo(() => {
+    if (!kader) return undefined;
+    const l = kader.map(k => ({ id: k.id, name: k.name }));
+    if (ichId && !l.some(p => p.id === ichId)) l.push({ id: ichId, name: ichName });
+    return l;
+  }, [kader, ichId, ichName]);
 
   return (
     <MemberShell title="Team Manager">
@@ -193,12 +202,12 @@ export default function ZusagenPage() {
                   <SpielKachel b={x.b} teamId={teamId} liga={findLiga27(t.league)?.name ?? ''}
                     zusagen={zusagen.filter(z => z.match_key === x.key)} kaderAnzahl={anzahlKader}
                     ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[x.key]?.meet_time ?? null}
-                    notiz={details[x.key]?.note ?? null} aufgaben={aufgaben.filter(a => a.match_key === x.key)} />
+                    notiz={details[x.key]?.note ?? null} aufgaben={aufgaben.filter(a => a.match_key === x.key)} personen={personen} />
                 ) : (
                   <TerminKachel t={x.t} teamId={teamId}
                     zusagen={zusagen.filter(z => z.match_key === x.key)} kaderAnzahl={anzahlKader}
                     ichId={user.playerId ?? null} treffenMin={einst.meet_minutes} meetTime={details[x.key]?.meet_time ?? null}
-                    notiz={details[x.key]?.note ?? null} aufgaben={aufgaben.filter(a => a.match_key === x.key)} />
+                    notiz={details[x.key]?.note ?? null} aufgaben={aufgaben.filter(a => a.match_key === x.key)} personen={personen} />
                 )}
               </div>
             ))}

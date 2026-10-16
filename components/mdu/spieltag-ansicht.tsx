@@ -23,7 +23,7 @@ import {
 } from '@/lib/supabase/zusagen';
 import { spielSlug, treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
-import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
+import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, springeZuGruppe, type StandGruppe, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 
 type Stand = { yes: number; maybe: number; no: number; meetTime: string | null; meetMinutes: number | null };
 
@@ -69,6 +69,14 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
     personen.push({ id: user.playerId, name: user.displayName, isCaptain: false, passNo: null });
   }
   const zuVon = (id: string) => zusagen.find(z => z.player_id === id);
+
+  // Aus der Übersicht kommend (#teilnehmer-offen …): zur Gruppe springen, sobald die Liste steht.
+  const listeDa = kader !== null && mitglied;
+  useEffect(() => {
+    if (!listeDa) return;
+    const g = window.location.hash.match(/^#teilnehmer-(yes|maybe|no|offen)$/)?.[1] as StandGruppe | undefined;
+    if (g) requestAnimationFrame(() => springeZuGruppe(g));
+  }, [listeDa]);
   const zahl = (s: ZusageStatus) => (mitglied ? zusagen.filter(z => z.status === s).length : stand?.[s] ?? 0);
   const offen = mitglied ? Math.max(0, personen.length - zusagen.length) : null;
   const meetTime = mitglied ? details?.meet_time ?? null : stand?.meetTime ?? null;
