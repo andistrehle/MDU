@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { zusagenFreigeschaltet } from '@/lib/features';
+import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
@@ -81,7 +81,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
     // Spielplan 2026/27 (vorläufig) — für alle mit Team; Drucken dort nur für TCs.
     if (t27) {
       tiles.push(
-        { icon: 'calendar', label: 'Mein Spielplan', description: teamEditable
+        { icon: 'calendar', label: 'Mein Spielplan', description: teamEditable && TC_SITZUNG_DRUCK
             ? 'Spiele deines Teams 2026/27 — in deinen Handy-Kalender übernehmen oder für die TC-Sitzung drucken.'
             : 'Spiele deines Teams 2026/27 — auch zum Übernehmen in deinen Handy-Kalender.',
           href: '/mein-team/spielplan', ready: true },

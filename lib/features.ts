@@ -24,3 +24,11 @@ export function zusagenFreigeschaltet(user: Pick<UserProfile, 'role' | 'teamId'>
   if (!user) return false;
   return zusagenFuerTeam(user.teamId) || hasMinRole(user as UserProfile, 'league_admin');
 }
+
+/**
+ * Druckvorlagen „Für die TC-Sitzung drucken“ unter Mein Spielplan (Team-Blatt,
+ * Masterplan). Vom Betreiber am 16.10.2026 ausgeblendet — die TC-Sitzung
+ * 2026/27 ist vorbei. Code bleibt; zur nächsten Saison wieder auf true.
+ * Die Ligaleitung druckt weiter im Admin-Bereich.
+ */
+export const TC_SITZUNG_DRUCK = false;

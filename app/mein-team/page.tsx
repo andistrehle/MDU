@@ -159,7 +159,7 @@ export default function MeinTeamPage() {
               <ActionTile href="/mein-team/kader" icon="list" title="Kader"
                 desc="Spieler deines Teams ansehen." />
               {t27 && <ActionTile href="/mein-team/spielplan" icon="calendar" title="Spielplan"
-                desc="Spiele 2026/27 (vorläufig) und Druckvorlage für die TC-Sitzung." />}
+                desc="Spiele 2026/27, Kalender-Abo und Spiel verlegen." />}
             </div>
           ) : (
             <>

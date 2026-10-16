@@ -18,7 +18,7 @@ import { TeamSpielplan27, LigaSpielplan27 } from '@/components/mdu/spielplan-27'
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { SpielVerlegen } from '@/components/mdu/spiel-verlegen';
-import { zusagenFreigeschaltet } from '@/lib/features';
+import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
 import { team27, findLiga27, venue27, spielplanDaten27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { printTeam, printMaster } from '@/lib/spielplan/printing';
 
@@ -66,8 +66,8 @@ export default function MeinSpielplanPage() {
           {/* Spiel verlegen — TC/Ligaleitung (Migration 0050) */}
           {darfDrucken && <SpielVerlegen teamId={t.id} />}
 
-          {/* Druck — nur TC/Ligaleitung */}
-          {darfDrucken && (
+          {/* Druck für die TC-Sitzung — nur TC/Ligaleitung, außerhalb der Sitzungszeit aus (lib/features.ts) */}
+          {TC_SITZUNG_DRUCK && darfDrucken && (
             <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '18px 20px', marginBottom: 24 }}>
               <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 4 }}>Für die TC-Sitzung drucken</div>
               <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '0 0 14px' }}>
