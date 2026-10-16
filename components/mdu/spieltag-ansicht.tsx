@@ -23,7 +23,7 @@ import {
 } from '@/lib/supabase/zusagen';
 import { spielSlug, treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
-import { STATUS, REIHE, MeineAntwort, KaderZeile, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
+import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 
 type Stand = { yes: number; maybe: number; no: number; meetTime: string | null; meetMinutes: number | null };
 
@@ -157,7 +157,8 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
           </a>
         )}
         <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={offen}
-          meins={mitglied && user?.playerId ? zuVon(user.playerId)?.status ?? null : undefined} />
+          meins={mitglied && user?.playerId ? zuVon(user.playerId)?.status ?? null : undefined}
+          namen={mitglied && kader ? namenJeGruppe(personen, zuVon) : undefined} />
       </div>
 
       <button type="button" onClick={() => void teilen()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '13px 16px', borderRadius: 12, cursor: 'pointer', border: 'none', background: 'var(--th-accent)', color: '#fff', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, boxShadow: '0 4px 14px var(--th-accent-a30)' }}>
@@ -208,7 +209,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
                 const gruppe = personen.filter(p => (zuVon(p.id)?.status ?? null) === s);
                 if (!gruppe.length) return null;
                 return (
-                  <div key={s ?? 'offen'} style={{ marginTop: 8 }}>
+                  <div key={s ?? 'offen'} id={gruppenAnker(s ?? 'offen')} style={{ marginTop: 8, borderRadius: 8, scrollMarginTop: 90 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 4px', fontFamily: 'var(--font-manrope)', fontSize: 11.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: s ? STATUS[s].farbe : 'var(--th-text-faint)' }}>
                       {s ? STATUS[s].text : 'noch offen'}
                       <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-8)', color: 'var(--th-text-body)' }}>{gruppe.length}</span>

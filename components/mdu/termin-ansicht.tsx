@@ -24,7 +24,7 @@ import {
 import { ladeTermin, speichereTermin, loescheTermin, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
-import { STATUS, REIHE, MeineAntwort, KaderZeile, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
+import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 import { NotizUndAufgaben, TreffzeitFeld } from './spieltag-ansicht';
 import { TerminKopf, TerminFormular, terminLabel, terminGrund } from './termin-ui';
 import { terminFarbe } from '@/lib/supabase/termine';
@@ -182,7 +182,8 @@ export function TerminAnsicht({ id }: { id: string }) {
           )}
           <div style={{ padding: '8px 16px 0', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-faint)' }}>Termin außerhalb der MDU – vom Teamcaptain eingetragen.</div>
           <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={mitglied ? Math.max(0, personen.length - zusagen.length) : null}
-            meins={mitglied && user.playerId ? zuVon(user.playerId)?.status ?? null : undefined} />
+            meins={mitglied && user.playerId ? zuVon(user.playerId)?.status ?? null : undefined}
+            namen={mitglied && kader ? namenJeGruppe(personen, zuVon) : undefined} />
         </div>
       )}
 
@@ -227,7 +228,7 @@ export function TerminAnsicht({ id }: { id: string }) {
                 const gruppe = personen.filter(p => (zuVon(p.id)?.status ?? null) === s);
                 if (!gruppe.length) return null;
                 return (
-                  <div key={s ?? 'offen'} style={{ marginTop: 8 }}>
+                  <div key={s ?? 'offen'} id={gruppenAnker(s ?? 'offen')} style={{ marginTop: 8, borderRadius: 8, scrollMarginTop: 90 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 4px', fontFamily: 'var(--font-manrope)', fontSize: 11.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: s ? STATUS[s].farbe : 'var(--th-text-faint)' }}>
                       {s ? STATUS[s].text : 'noch offen'}
                       <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-8)', color: 'var(--th-text-body)' }}>{gruppe.length}</span>

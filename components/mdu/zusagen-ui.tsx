@@ -110,26 +110,80 @@ export function Zeitleiste({ beginn, treffenMin, meetTime, ende }: {
   );
 }
 
-/** Stand als Balken + Zahlen; `meins` hebt den eigenen Status hervor. */
-export function StandLeiste({ zahl, offen, meins }: { zahl: Record<ZusageStatus, number>; offen: number | null; meins?: ZusageStatus | null }) {
+/** Gruppe der Teilnehmerliste: Anker-ID zum Hinspringen aus der StandLeiste. */
+export type StandGruppe = ZusageStatus | 'offen';
+export const gruppenAnker = (g: StandGruppe) => `teilnehmer-${g}`;
+
+/** Namen je Gruppe für die StandLeiste (Hover-Liste). */
+export function namenJeGruppe(personen: { id: string; name: string }[], zuVon: (id: string) => { status: ZusageStatus } | undefined): Record<StandGruppe, string[]> {
+  const out: Record<StandGruppe, string[]> = { yes: [], maybe: [], no: [], offen: [] };
+  for (const p of personen) out[zuVon(p.id)?.status ?? 'offen'].push(p.name);
+  return out;
+}
+
+/** Zur Gruppe in der Teilnehmerliste scrollen (kurz hervorgehoben). */
+export function springeZuGruppe(g: StandGruppe) {
+  const el = document.getElementById(gruppenAnker(g));
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  el.animate?.([{ background: 'var(--th-accent-a12)' }, { background: 'transparent' }], { duration: 1400, easing: 'ease-out' });
+}
+
+/**
+ * Stand als Balken + Zahlen; `meins` hebt den eigenen Status hervor.
+ * Mit `namen` (nur für Teammitglieder) werden die Felder interaktiv: Darüberfahren
+ * zeigt, wer in der Gruppe ist, Antippen springt zur Gruppe in der Teilnehmerliste.
+ */
+export function StandLeiste({ zahl, offen, meins, namen }: {
+  zahl: Record<ZusageStatus, number>; offen: number | null; meins?: ZusageStatus | null;
+  namen?: Record<StandGruppe, string[]>;
+}) {
+  const [zeige, setZeige] = useState<StandGruppe | null>(null);
   const summe = zahl.yes + zahl.maybe + zahl.no + (offen ?? 0);
   const teile: [string, number][] = [['var(--th-win)', zahl.yes], ['var(--th-gold)', zahl.maybe], ['var(--th-loss)', zahl.no], ['var(--th-line-10)', offen ?? 0]];
+  const zellen: { g: StandGruppe; text: string; farbe: string; inhalt: React.ReactNode; an: boolean }[] = [
+    ...REIHE.map(s => ({
+      g: s as StandGruppe, text: STATUS[s].text, farbe: STATUS[s].farbe, an: meins === s,
+      inhalt: <><StatusIcon s={s} size={20} voll={meins === s} /><span style={standZahl}>{zahl[s]}</span></>,
+    })),
+    {
+      g: 'offen', text: 'noch offen', farbe: OFFEN_FARBE, an: meins === null,
+      inhalt: <><Icon name="users" size={17} style={{ color: 'var(--th-text-muted)' }} /><span style={{ ...standZahl, color: 'var(--th-text-muted)' }}>{offen ?? '–'}</span></>,
+    },
+  ];
   return (
     <div style={{ padding: '10px 12px 12px' }}>
       <div aria-hidden style={{ display: 'flex', height: 6, borderRadius: 999, overflow: 'hidden', background: 'var(--th-line-8)', gap: summe ? 2 : 0 }}>
         {summe > 0 && teile.filter(([, n]) => n > 0).map(([f, n], i) => <span key={i} style={{ flex: n, background: f }} />)}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, marginTop: 10 }}>
-        {REIHE.map(s => (
-          <div key={s} title={STATUS[s].text} style={standZelle(meins === s, STATUS[s].farbe)}>
-            <StatusIcon s={s} size={20} voll={meins === s} />
-            <span style={standZahl}>{zahl[s]}</span>
-          </div>
-        ))}
-        <div title="noch offen" style={standZelle(meins === null, OFFEN_FARBE)}>
-          <Icon name="users" size={17} style={{ color: 'var(--th-text-muted)' }} />
-          <span style={{ ...standZahl, color: 'var(--th-text-muted)' }}>{offen ?? '–'}</span>
-        </div>
+        {zellen.map(z => {
+          if (!namen) return <div key={z.g} title={z.text} style={standZelle(z.an, z.farbe)}>{z.inhalt}</div>;
+          const liste = namen[z.g];
+          return (
+            <div key={z.g} style={{ position: 'relative' }}
+              onMouseEnter={() => setZeige(z.g)} onMouseLeave={() => setZeige(g => (g === z.g ? null : g))}>
+              <button type="button" onClick={() => { setZeige(null); if (liste.length) springeZuGruppe(z.g); }}
+                onFocus={() => setZeige(z.g)} onBlur={() => setZeige(g => (g === z.g ? null : g))}
+                aria-label={`${z.text}: ${liste.length ? liste.join(', ') : 'niemand'}`}
+                style={{ ...standZelle(z.an, z.farbe), width: '100%', cursor: liste.length ? 'pointer' : 'default', font: 'inherit' }}>
+                {z.inhalt}
+              </button>
+              {zeige === z.g && (
+                <div role="tooltip" style={{
+                  position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)', zIndex: 20,
+                  minWidth: 140, maxWidth: 220, padding: '8px 10px', borderRadius: 10, pointerEvents: 'none',
+                  background: 'var(--th-bg-card)', border: `1.5px solid ${z.farbe}`, boxShadow: '0 6px 20px var(--th-shadow)',
+                  fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', textAlign: 'left',
+                }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: z.farbe, marginBottom: 4 }}>{z.text}</div>
+                  {liste.length ? liste.map(n => <div key={n} style={{ fontWeight: 700, lineHeight: 1.45 }}>{n}</div>)
+                    : <div style={{ color: 'var(--th-text-muted)' }}>niemand</div>}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, marginTop: 4 }}>
         {[...REIHE.map(s => STATUS[s].text), 'offen'].map(l => (
