@@ -42,7 +42,7 @@ const ART: Record<BuchungsArt, { name: string; plus: string }> = {
   ausgabe: { name: 'Ausgabe', plus: 'Ausgabe buchen' },
 };
 
-type Reiter = 'spieler' | 'buch' | 'katalog';
+type Reiter = 'spieler' | 'beitraege' | 'buch' | 'katalog';
 type Msg = { kind: 'ok' | 'err'; text: string } | null;
 
 export default function KassePage() {
@@ -94,6 +94,7 @@ export default function KassePage() {
     const { data, error } = await bucheMehrere({ teamId, userId: user.id, ...p });
     if (error) { melde({ kind: 'err', text: error }); return false; }
     setBuchungen(l => [...data, ...l]); setFormular(null); setVorwahl(null);
+    if (p.kind === 'beitrag') setReiter('beitraege');
     melde({ kind: 'ok', text: p.kind === 'strafe' || p.kind === 'beitrag'
       ? `${ART[p.kind].name} für ${data.length} ${data.length === 1 ? 'Spieler' : 'Spieler'} eingetragen.`
       : `${ART[p.kind].name} gebucht.` });
@@ -162,10 +163,10 @@ export default function KassePage() {
 
             {/* Reiter */}
             <div role="tablist" style={{ display: 'flex', gap: 6, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4 }}>
-              {([['spieler', 'Spieler'], ['buch', 'Kassenbuch'], ['katalog', 'Strafenkatalog']] as [Reiter, string][]).map(([r, n]) => (
+              {([['spieler', 'Spieler'], ['beitraege', 'Beiträge'], ['buch', 'Kassenbuch'], ['katalog', 'Strafen']] as [Reiter, string][]).map(([r, n]) => (
                 <button key={r} role="tab" aria-selected={reiter === r} type="button" onClick={() => setReiter(r)} style={{
                   flex: 1, padding: '8px 6px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13,
+                  fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5,
                   background: reiter === r ? 'var(--th-accent)' : 'transparent', color: reiter === r ? '#fff' : 'var(--th-text-muted)',
                 }}>{n}</button>
               ))}
@@ -180,6 +181,12 @@ export default function KassePage() {
                     onStrafe={() => { setVorwahl([s.key]); setFormular('strafe'); setMsg(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
                 ))}
               </div>
+            )}
+
+            {reiter === 'beitraege' && (
+              <Beitraege buchungen={buchungen} kader={kader} darfBuchen={darfBuchen} onBezahlt={bezahlt} onLoeschen={weg}
+                onNeu={() => { setFormular('beitrag'); setVorwahl(null); setMsg(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onNachtragen={(b, k) => void buchen({ kind: 'beitrag', title: b.title, cents: b.cents, datum: b.datum, spieler: [{ key: k.id, name: k.name }] })} />
             )}
 
             {reiter === 'buch' && <Kassenbuch buchungen={buchungen} opening={einst.opening_cents} darfBuchen={darfBuchen} onLoeschen={weg} />}
@@ -343,6 +350,82 @@ function SpielerZeile({ name, offen, posten, darfBuchen, onBezahlt, onLoeschen, 
             </div>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+/** Ein Beitrag = alle Beitrags-Posten mit gleicher Bezeichnung, gleichem Datum und Betrag. */
+type BeitragGruppe = { key: string; title: string; datum: string; cents: number; posten: Buchung[] };
+
+function Beitraege({ buchungen, kader, darfBuchen, onBezahlt, onLoeschen, onNeu, onNachtragen }: {
+  buchungen: Buchung[]; kader: KaderOption[]; darfBuchen: boolean;
+  onBezahlt: (ids: string[], ja: boolean) => void; onLoeschen: (b: Buchung) => void;
+  onNeu: () => void; onNachtragen: (g: BeitragGruppe, k: KaderOption) => void;
+}) {
+  const gruppen = useMemo(() => {
+    const m = new Map<string, BeitragGruppe>();
+    for (const b of buchungen) if (b.kind === 'beitrag') {
+      const key = `${b.title}|${b.entry_date}|${b.amount_cents}`;
+      if (!m.has(key)) m.set(key, { key, title: b.title, datum: b.entry_date, cents: b.amount_cents, posten: [] });
+      m.get(key)!.posten.push(b);
+    }
+    return [...m.values()].sort((a, b) => b.datum.localeCompare(a.datum));
+  }, [buchungen]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {darfBuchen && <button type="button" onClick={onNeu} style={{ ...plusKnopf, alignSelf: 'flex-start' }}><Icon name="plus" size={15} stroke={2.4} /> Neuer Beitrag</button>}
+      {gruppen.length === 0 && <Muted>{darfBuchen ? 'Noch keine Beiträge. Leg einen an, z. B. „Saisonbeitrag 30 €“ – er gilt erst mal für alle, abhaken kannst du jeden einzeln.' : 'Noch keine Beiträge.'}</Muted>}
+      {gruppen.map(g => <BeitragKarte key={g.key} g={g} kader={kader} darfBuchen={darfBuchen} onBezahlt={onBezahlt} onLoeschen={onLoeschen} onNachtragen={k => onNachtragen(g, k)} />)}
+    </div>
+  );
+}
+
+function BeitragKarte({ g, kader, darfBuchen, onBezahlt, onLoeschen, onNachtragen }: {
+  g: BeitragGruppe; kader: KaderOption[]; darfBuchen: boolean;
+  onBezahlt: (ids: string[], ja: boolean) => void; onLoeschen: (b: Buchung) => void; onNachtragen: (k: KaderOption) => void;
+}) {
+  const bezahlt = g.posten.filter(p => p.paid_at);
+  const fehlen = kader.filter(k => !g.posten.some(p => p.player_key === k.id));
+  const posten = [...g.posten].sort((a, b) => Number(!!a.paid_at) - Number(!!b.paid_at) || (a.player_name ?? '').localeCompare(b.player_name ?? '', 'de'));
+  const anteil = g.posten.length ? bezahlt.length / g.posten.length : 0;
+  return (
+    <div style={{ ...karte, gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <h2 style={{ ...h2Karte, flex: 1 }}>{g.title}</h2>
+        <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>{euro(g.cents)} je Spieler</span>
+      </div>
+      <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)' }}>
+        {datumKurz(g.datum)} · <b style={{ color: anteil === 1 ? GRUEN : 'var(--th-text-strong)' }}>{bezahlt.length} von {g.posten.length} bezahlt</b> · eingesammelt {euro(bezahlt.length * g.cents)}{bezahlt.length < g.posten.length ? `, offen ${euro((g.posten.length - bezahlt.length) * g.cents)}` : ''}
+      </div>
+      <div aria-hidden style={{ height: 6, borderRadius: 999, background: 'var(--th-line-8)', overflow: 'hidden' }}>
+        <div style={{ width: `${anteil * 100}%`, height: '100%', background: GRUEN, transition: 'width 200ms ease' }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {posten.map(p => (
+          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', borderRadius: 10, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
+            <button type="button" disabled={!darfBuchen} onClick={() => onBezahlt([p.id], !p.paid_at)}
+              aria-label={p.paid_at ? `${p.player_name}: bezahlt – wieder auf offen` : `${p.player_name}: als bezahlt abhaken`}
+              style={{ ...kleinKnopf(!!p.paid_at), cursor: darfBuchen ? 'pointer' : 'default' }}>
+              {p.paid_at && <Icon name="check" size={14} stroke={2.8} />}
+            </button>
+            <span style={{ flex: 1, fontWeight: 700, color: 'var(--th-text-strong)' }}>{p.player_name}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: p.paid_at ? GRUEN : ROT }}>{p.paid_at ? `bezahlt ${datumKurz(p.paid_at.slice(0, 10))}` : 'offen'}</span>
+            {darfBuchen && <button type="button" onClick={() => onLoeschen(p)} title="Aus dem Beitrag nehmen" aria-label="Aus dem Beitrag nehmen" style={kleinKnopf(false)}><Icon name="close" size={13} stroke={2.4} /></button>}
+          </div>
+        ))}
+      </div>
+      {darfBuchen && fehlen.length > 0 && (
+        <div>
+          <div style={label}>Noch nicht dabei – antippen zum Hinzufügen</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {fehlen.map(k => <button key={k.id} type="button" onClick={() => onNachtragen(k)} style={chipKnopf(false)}>+ {k.name}</button>)}
+          </div>
+        </div>
+      )}
+      {darfBuchen && bezahlt.length < g.posten.length && (
+        <button type="button" onClick={() => onBezahlt(g.posten.filter(p => !p.paid_at).map(p => p.id), true)} style={{ ...nebenKnopf, alignSelf: 'flex-start' }}>Alle als bezahlt abhaken</button>
       )}
     </div>
   );
