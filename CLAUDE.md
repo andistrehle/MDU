@@ -100,6 +100,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Ohne Token bleibt die Anfrage „bestätigt – nicht übernommen“ und lässt sich dort erneut übernehmen.
   Von Hand verlegte Termine weiter in `termine-2027.ts` — ein Eintrag in `verlegungen-2027.json`
   schlägt ihn aber.
+  **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
+  Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
+  (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +
+  Einnahmen − Ausgaben + BEZAHLTE Strafen/Beiträge. Buchen: TC, Kassenwart (`treasurer_player_id`,
+  vom TC gewählt), Ligaleitung (`kasse_darf`); lesen: ganzes Team, alles sichtbar. Bewusst KEINE
+  Glocken-Erinnerung. Beträge in Cent.
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

@@ -153,6 +153,15 @@ export default function ZusagenPage() {
               </details>
             )}
 
+            <Link href="/mein-team/kasse" style={{ ...neuKnopf, border: '1px solid var(--th-line-6)', textDecoration: 'none' }}>
+              <span style={iconKreis}><span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 900, fontSize: 16 }}>€</span></span>
+              <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
+                <span style={{ display: 'block', fontWeight: 800, fontSize: 14 }}>Teamkasse</span>
+                <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>Strafen, Beiträge und Kassenstand</span>
+              </span>
+              <Icon name="chevron" size={14} style={{ color: 'var(--th-text-muted)' }} />
+            </Link>
+
             {istKapitaen && termineBereit && (neu === 'eintragen' ? (
               <TerminFormular titel="Termin eintragen" onSpeichern={terminNeu} onAbbrechen={() => setNeu(null)} />
             ) : neu === 'import' ? (
