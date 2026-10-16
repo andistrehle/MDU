@@ -32,6 +32,8 @@ import { TerminImport } from '@/components/mdu/termin-import';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
+import { TeamDashboard, type DashKasse } from '@/components/mdu/team-dashboard';
+import { ladeKasse, kassenstand, offenSumme, istForderung } from '@/lib/supabase/kasse';
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const datumVon = (b: Begegnung27) => b.termin?.datum ?? b.fri;
@@ -55,13 +57,24 @@ export default function ZusagenPage() {
   const [termine, setTermine] = useState<TeamTermin[]>([]);
   const [termineBereit, setTermineBereit] = useState(false);
   const [neu, setNeu] = useState<null | 'eintragen' | 'import'>(null);
+  const [kasse, setKasse] = useState<DashKasse | null>(null);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
     const [k, z, e, d, a, tr] = await Promise.all([ladeKader(NEUE_SAISON.id, teamId), ladeZusagen(teamId), ladeEinstellungen(teamId), ladeDetails(teamId), ladeAufgaben(teamId), ladeTermine(teamId)]);
     setKader(k); setAufgaben(a); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d); setTermine(tr.rows); setTermineBereit(tr.bereit);
     if (z.error) setMsg({ kind: 'err', text: z.error });
-  }, [teamId]);
+    // Teamkasse fürs Dashboard (fehlt die Migration, bleibt die Kachel weg).
+    const ka = await ladeKasse(teamId);
+    if (ka.bereit && !ka.error) {
+      const ich = user?.playerId ?? null;
+      setKasse({
+        stand: kassenstand(ka.buchungen, ka.einst.opening_cents),
+        offen: offenSumme(ka.buchungen),
+        meinOffen: ich ? ka.buchungen.filter(b => istForderung(b) && !b.paid_at && b.player_key === ich).reduce((x, b) => x + b.amount_cents, 0) : null,
+      });
+    }
+  }, [teamId, user?.playerId]);
 
   useEffect(() => { queueMicrotask(() => { void laden(); }); }, [laden]);
 
@@ -133,6 +146,9 @@ export default function ZusagenPage() {
               <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>
             )}
 
+            <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} zusagen={zusagen}
+              kaderAnzahl={anzahlKader} ichId={user.playerId ?? null} aufgaben={aufgaben} kasse={kasse} />
+
             {istKapitaen && (
               <details className="mdu-einst" style={{ ...karte, padding: 0, overflow: 'hidden' }}>
                 <summary style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer', listStyle: 'none' }}>
@@ -162,15 +178,6 @@ export default function ZusagenPage() {
               </details>
             )}
 
-            <Link href="/mein-team/kasse" style={{ ...neuKnopf, border: '1px solid var(--th-line-6)', textDecoration: 'none' }}>
-              <span style={iconKreis}><span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 900, fontSize: 16 }}>€</span></span>
-              <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
-                <span style={{ display: 'block', fontWeight: 800, fontSize: 14 }}>Teamkasse</span>
-                <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)' }}>Strafen, Beiträge und Kassenstand</span>
-              </span>
-              <Icon name="chevron" size={14} style={{ color: 'var(--th-text-muted)' }} />
-            </Link>
-
             {istKapitaen && termineBereit && (neu === 'eintragen' ? (
               <TerminFormular titel="Termin eintragen" onSpeichern={terminNeu} onAbbrechen={() => setNeu(null)} />
             ) : neu === 'import' ? (
@@ -194,7 +201,7 @@ export default function ZusagenPage() {
               </div>
             ))}
 
-            <h2 style={h2}>{spiele.length ? 'Nächster Termin' : 'Keine anstehenden Termine'}</h2>
+            <h2 id="termine" style={{ ...h2, scrollMarginTop: 90, marginTop: 8 }}>{spiele.length ? 'Nächster Termin' : 'Keine anstehenden Termine'}</h2>
             {sichtbar.map((x, i) => (
               <div key={x.key}>
                 {i === 1 && <h2 style={{ ...h2, margin: '8px 0 12px' }}>Weitere Termine</h2>}
