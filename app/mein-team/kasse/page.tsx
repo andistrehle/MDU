@@ -42,7 +42,7 @@ const ART: Record<BuchungsArt, { name: string; plus: string }> = {
   ausgabe: { name: 'Ausgabe', plus: 'Ausgabe buchen' },
 };
 
-type Reiter = 'spieler' | 'beitraege' | 'buch' | 'katalog';
+type Reiter = 'offen' | 'spieler' | 'beitraege' | 'buch' | 'katalog';
 type Msg = { kind: 'ok' | 'err'; text: string } | null;
 
 export default function KassePage() {
@@ -162,10 +162,10 @@ export default function KassePage() {
             ))}
 
             {/* Reiter */}
-            <div role="tablist" style={{ display: 'flex', gap: 6, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4 }}>
-              {([['spieler', 'Spieler'], ['beitraege', 'Beiträge'], ['buch', 'Kassenbuch'], ['katalog', 'Strafen']] as [Reiter, string][]).map(([r, n]) => (
+            <div role="tablist" style={{ display: 'flex', gap: 4, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
+              {([...(darfBuchen ? [['offen', 'Offen']] : []), ['spieler', 'Spieler'], ['beitraege', 'Beiträge'], ['buch', 'Kassenbuch'], ['katalog', 'Strafen']] as [Reiter, string][]).map(([r, n]) => (
                 <button key={r} role="tab" aria-selected={reiter === r} type="button" onClick={() => setReiter(r)} style={{
-                  flex: 1, padding: '8px 6px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  flex: '1 0 auto', padding: '8px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
                   fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5,
                   background: reiter === r ? 'var(--th-accent)' : 'transparent', color: reiter === r ? '#fff' : 'var(--th-text-muted)',
                 }}>{n}</button>
@@ -182,6 +182,8 @@ export default function KassePage() {
                 ))}
               </div>
             )}
+
+            {reiter === 'offen' && darfBuchen && <OffeneListe buchungen={buchungen} onBezahlt={bezahlt} />}
 
             {reiter === 'beitraege' && (
               <Beitraege buchungen={buchungen} kader={kader} darfBuchen={darfBuchen} onBezahlt={bezahlt} onLoeschen={weg}
@@ -349,6 +351,52 @@ function SpielerZeile({ name, offen, posten, darfBuchen, onBezahlt, onLoeschen, 
               <button type="button" onClick={onStrafe} style={nebenKnopf}>+ Strafe</button>
             </div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Alle offenen Strafen und Beiträge auf einen Blick — ankreuzen, gesammelt abhaken (TC/Kassenwart). */
+function OffeneListe({ buchungen, onBezahlt }: { buchungen: Buchung[]; onBezahlt: (ids: string[], ja: boolean) => Promise<void> }) {
+  const offen = useMemo(() => buchungen.filter(b => istForderung(b) && !b.paid_at)
+    .sort((a, b) => (a.player_name ?? '').localeCompare(b.player_name ?? '', 'de') || a.entry_date.localeCompare(b.entry_date)), [buchungen]);
+  const [wahl, setWahl] = useState<Set<string>>(new Set());
+  const gewaehlt = offen.filter(b => wahl.has(b.id));
+  const summe = gewaehlt.reduce((x, b) => x + b.amount_cents, 0);
+  const alle = offen.length > 0 && gewaehlt.length === offen.length;
+  const umschalten = (id: string) => setWahl(w => { const n = new Set(w); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  if (offen.length === 0) return <Muted>Nichts offen – alle Strafen und Beiträge sind bezahlt. 🎯</Muted>;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 4px 4px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)' }}>
+        <button type="button" onClick={() => setWahl(alle ? new Set() : new Set(offen.map(b => b.id)))} aria-label={alle ? 'Keinen auswählen' : 'Alle auswählen'} style={kleinKnopf(alle)}>
+          {alle && <Icon name="check" size={14} stroke={2.8} />}
+        </button>
+        <span style={{ flex: 1 }}>{offen.length} offene Posten · {euro(offenSumme(offen))}</span>
+      </div>
+      {offen.map(b => {
+        const an = wahl.has(b.id);
+        return (
+          <button key={b.id} type="button" onClick={() => umschalten(b.id)} aria-pressed={an}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', width: '100%',
+              background: an ? 'rgba(34,197,94,0.10)' : 'var(--th-bg-card)', border: `1px solid ${an ? GRUEN : 'var(--th-line-6)'}`, fontFamily: 'var(--font-manrope)', fontSize: 13.5 }}>
+            <span style={kleinKnopf(an)}>{an && <Icon name="check" size={14} stroke={2.8} />}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontWeight: 800, color: 'var(--th-text-strong)' }}>{b.player_name}</span>
+              <span style={{ fontSize: 12, color: 'var(--th-text-muted)' }}>{ART[b.kind].name}: {b.title} · {datumKurz(b.entry_date)}</span>
+            </span>
+            <span style={{ fontWeight: 800, color: ROT, whiteSpace: 'nowrap' }}>{euro(b.amount_cents)}</span>
+          </button>
+        );
+      })}
+      {gewaehlt.length > 0 && (
+        <div style={{ position: 'sticky', bottom: 76, zIndex: 5, marginTop: 6 }}>
+          <button type="button" onClick={async () => { const ids = gewaehlt.map(b => b.id); setWahl(new Set()); await onBezahlt(ids, true); }}
+            style={{ ...hauptKnopf, width: '100%', padding: '13px 16px', fontSize: 14.5, background: GRUEN, boxShadow: '0 6px 18px var(--th-shadow)' }}>
+            {gewaehlt.length} Posten als bezahlt abhaken · {euro(summe)}
+          </button>
         </div>
       )}
     </div>
