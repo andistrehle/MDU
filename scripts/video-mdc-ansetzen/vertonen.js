@@ -56,6 +56,9 @@ const FFMPEG = (() => {
 const AUSSPRACHE = [
   [/mdc-ranking\.de/gi, 'Em De Ce Ranking Punkt De'],
   [/\bMDC\b/g, 'Em De Ce'],
+  // Auslassungspunkte: gesprochen verschluckt sich die Stimme daran. Am
+  // Satzende wird ein Komma daraus — dann klingt es offen, wie gemeint.
+  [/^\s*…\s*/, ''], [/\s*…\s*$/, ','], [/\s*…\s*/g, ', '],
 ];
 const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers), t);
 
@@ -76,7 +79,7 @@ const STIMME = {
 // ------------------------------------------------------------
 const SZENEN = [
   {
-    text: 'Servus! Ab sofort tragt ihr euer Ranking am Wochenende selbst ein.',
+    text: 'Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …',
     einblendung: 'Ranking ansetzen · mdc-ranking.de/admin/ansetzen',
     async tun() { /* nur das Bild stehen lassen */ },
   },

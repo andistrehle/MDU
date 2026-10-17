@@ -54,18 +54,18 @@ ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 
 | # | Zeit | Bild | Sprechertext | Einblendung |
 | --- | --- | --- | --- | --- |
-| 1 | 0:00–0:05 | Seitenkopf „Ranking ansetzen" | „Servus! Ab sofort tragt ihr euer Ranking am Wochenende selbst ein." | Ranking ansetzen · mdc-ranking.de/admin/ansetzen |
+| 1 | 0:00–0:05 | Seitenkopf „Ranking ansetzen" | „Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …" | Ranking ansetzen · mdc-ranking.de/admin/ansetzen |
 | 2 | 0:05–0:08 | Auswahl „Lokal" → Ambasador | „Zuerst euer Lokal auswählen." | 1 · Euer Lokal auswählen |
 | 3 | 0:08–0:14 | Datumsfeld → Sa, 24.10.2026 | „Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht." | 2 · Den Tag wählen |
-| 4 | 0:14–0:20 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
-| 5 | 0:20–0:25 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
-| 6 | 0:25–0:33 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
-| 7 | 0:33–0:37 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
-| 8 | 0:37–0:47 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+| 4 | 0:14–0:21 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
+| 5 | 0:21–0:25 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
+| 6 | 0:25–0:34 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
+| 7 | 0:34–0:38 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
+| 8 | 0:38–0:46 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
 
 ### Sprechertext am Stück (zum Einfügen bei ElevenLabs)
 
-> Servus! Ab sofort tragt ihr euer Ranking am Wochenende selbst ein.
+> Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …
 > Zuerst euer Lokal auswählen.
 > Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht.
 > Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit.
