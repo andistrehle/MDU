@@ -20,7 +20,7 @@ import { finalRankingOf, runningRankingOf, MDC_STATS, RUNNING_HAS_RESULTS } from
 import { getPlayer, playerName, PLAYERS } from '@/data/players';
 import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/tournament-results';
 import {
-  VENUES, playDaysFrom,
+  VENUES, playDaysFrom, festeSpieltageText,
   FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE,
 } from '@/data/venues';
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
@@ -336,7 +336,7 @@ export default function MdcHomePage() {
           <SectionHeading
             kicker="Spielplan"
             title="Diese Woche bei der MDC"
-            description="Von Montag bis Donnerstag wird gespielt — anmelden kann man sich direkt im Lokal, bis kurz vor Turnierstart."
+            description={`Gespielt wird ${festeSpieltageText()} — anmelden kann man sich direkt im Lokal, bis kurz vor Turnierstart.`}
             action={{ label: 'Alle Spielorte', href: mdcPath('/spielorte') }}
           />
 

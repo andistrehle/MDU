@@ -293,6 +293,33 @@ export const WEEKDAY_SHORT: Record<Weekday, string> = {
   1: 'Mo', 2: 'Di', 3: 'Mi', 4: 'Do', 5: 'Fr', 6: 'Sa', 7: 'So',
 };
 
+/**
+ * Die festen Spieltage in einem Satzteil: „Montag bis Donnerstag", oder
+ * „Montag, Mittwoch und Freitag", wenn sie nicht am Stück liegen.
+ *
+ * ABGELEITET UND NICHT HINGESCHRIEBEN. Auf Startseite und Turnierseite stand
+ * „Montag bis Donnerstag" als fester Text. Das stimmt, solange alle elf Lokale
+ * Mo–Do spielen — bekommt ein Wirt seinen festen Ranking-Abend am Freitag oder
+ * Samstag (was `/admin/spielorte` ohne Weiteres zulässt), behauptet die Seite
+ * etwas Falsches, und zwar an der Stelle, an der der neue Termin direkt
+ * darunter steht. Hier rechnet sie es aus den Spielorten aus, wie der
+ * Wochenplan auch.
+ */
+export function festeSpieltageText(
+  /** Nur zum Prüfen der Formulierung — normal kommen die Tage aus den Lokalen. */
+  wochentage: Weekday[] = [...new Set(VENUES.flatMap(v => v.weekdays))],
+): string {
+  const tage = [...wochentage].sort((a, b) => a - b);
+  if (!tage.length) return '';
+  const namen = tage.map(d => WEEKDAY_NAMES[d]);
+  if (namen.length === 1) return namen[0];
+  // Am Stück („Montag bis Donnerstag") liest sich besser als aufgezählt —
+  // ab drei Tagen. Bei zweien wäre „Montag bis Dienstag" nur umständlich.
+  const amStueck = tage.every((d, i) => i === 0 || d === tage[i - 1] + 1);
+  if (amStueck && namen.length > 2) return `${namen[0]} bis ${namen[namen.length - 1]}`;
+  return `${namen.slice(0, -1).join(', ')} und ${namen[namen.length - 1]}`;
+}
+
 /** Spielorte nach Wochentag gruppiert — Basis für „Diese Woche bei der MDC". */
 export function venuesByWeekday(): { weekday: Weekday; venues: Venue[] }[] {
   const days = [...new Set(VENUES.flatMap(v => v.weekdays))].sort((a, b) => a - b);

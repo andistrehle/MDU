@@ -21,7 +21,7 @@ import { PageHero, SectionHeading, StatCard } from '@/components/mdc/ui';
 import { TournamentCard } from '@/components/mdc/result-card';
 import { PlanKarte } from '@/components/mdc/plan-karte';
 import {
-  FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE, playDaysFrom,
+  FLEXIBLE_RANKING_DAYS, FLEXIBLE_RANKING_NOTE, playDaysFrom, festeSpieltageText,
 } from '@/data/venues';
 import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON, todayInMunich } from '@/data/season';
@@ -51,7 +51,7 @@ export default function TurnierePage() {
       <PageHero
         kicker="Spielbetrieb"
         title="Turniere"
-        description="Montag bis Donnerstag wird in den MDC-Lokalen gespielt, dazu am Wochenende nach Absprache. Vier bis 32 Starter pro Turnier, immer im Doppel-K.-o. — anmelden kann man sich direkt im Lokal bis kurz vor Turnierstart."
+        description={`Gespielt wird ${festeSpieltageText()} in den MDC-Lokalen, dazu am Wochenende nach Absprache. Vier bis 32 Starter pro Turnier, immer im Doppel-K.-o. — anmelden kann man sich direkt im Lokal bis kurz vor Turnierstart.`}
       />
 
       <section className="mdc-section" id="naechste">
