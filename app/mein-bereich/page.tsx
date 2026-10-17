@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
+import { premiumVorschau } from '@/lib/premium';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
@@ -88,6 +89,11 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       );
       // „Team Manager“ (Zu-/Absagen, Spieltag-Seite, Aufstellung, Aufgaben) —
       // geplante Premium-Funktion, vorerst nur freigeschaltete Teams (lib/features.ts)
+      // Vorschau der Upgrade-Seite — bis zum Start nur für den Super-Admin (lib/premium.ts)
+      if (premiumVorschau(user)) tiles.push(
+        { icon: 'star', label: 'Team Manager holen (Vorschau)', description: 'So sieht ein Teamcaptain später das Angebot: testen, Saisonpass oder monatlich.',
+          href: '/mein-team/premium', ready: true },
+      );
       if (zusagenFreigeschaltet(user)) tiles.push(
         { icon: 'check', label: 'Team Manager', description: teamEditable
             ? 'Zu- und Absagen, Aufstellung, Treffzeit und Aufgaben für jedes Spiel deines Teams.'
