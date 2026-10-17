@@ -181,24 +181,20 @@ function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, me
               </div>
               {ichId && onAntwort && (
                 <div style={{ position: 'relative', zIndex: 2, marginTop: 12 }}>
-                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: meins ? 'rgba(239,230,207,0.7)' : GOLD, marginBottom: 6 }}>
-                    {meins ? `Du: ${STATUS[meins].text}` : 'Bist du dabei?'}
-                  </div>
-                  <div role="group" aria-label="Deine Antwort" style={{ display: 'flex', gap: 6 }}>
+                  <div role="group" aria-label="Deine Antwort" style={{ display: 'flex', gap: 8 }}>
                     {REIHE.map(st => {
                       const an = meins === st;
                       return (
-                        <button key={st} type="button" aria-pressed={an}
+                        <button key={st} type="button" aria-pressed={an} aria-label={STATUS[st].knopf} title={STATUS[st].knopf}
                           onClick={() => { if (st === 'yes') { if (!an) void antworte('yes', null); } else setGrundFuer(g => (g === st ? null : st)); }}
                           style={{
-                            flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 4px', borderRadius: 12, cursor: 'pointer',
+                            width: 52, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 999, cursor: 'pointer',
                             background: an ? FARBE[st] : grundFuer === st ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)',
                             border: `1.5px solid ${an || grundFuer === st ? FARBE[st] : 'rgba(239,230,207,0.22)'}`,
                             color: an ? (st === 'maybe' ? '#3A2A00' : '#fff') : 'rgba(239,230,207,0.92)',
                             fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11.5, letterSpacing: '-0.01em', boxShadow: an ? `0 4px 14px ${FARBE[st]}55` : 'none',
                           }}>
-                          <StatusIcon s={st} size={20} voll={an} />
-                          {STATUS[st].knopf}
+                          <StatusIcon s={st} size={24} voll={an} />
                         </button>
                       );
                     })}
@@ -214,9 +210,9 @@ function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, me
             </div>
           )}
           {fehler && <div role="alert" style={{ position: 'relative', zIndex: 2, marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: '#FF8A80' }}>{fehler}</div>}
-          <div style={{ position: 'relative', display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(239,230,207,0.14)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700 }}>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 6, flexWrap: 'nowrap', marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(239,230,207,0.14)', fontFamily: 'var(--font-manrope)', fontSize: 'clamp(11px, 3.2vw, 12.5px)', fontWeight: 700, whiteSpace: 'nowrap' }}>
             {([['yes', n.yes, 'dabei'], ['maybe', n.maybe, 'unsicher'], ['no', n.no, 'Absage'], ['offen', offen, 'offen']] as const).map(([k, z, l]) => (
-              <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(239,230,207,0.9)' }}>
+              <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'rgba(239,230,207,0.9)' }}>
                 <span style={{ width: 9, height: 9, borderRadius: 999, background: k === 'offen' ? 'rgba(239,230,207,0.4)' : FARBE[k] }} />
                 <b style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 16, color: '#fff' }}>{z}</b> {l}
               </span>
