@@ -24,7 +24,7 @@ import { euro } from '@/lib/supabase/kasse';
 import { spieltagPfad, wochentag, tagMonat } from '@/lib/spieltag';
 import { TeamBadge } from './team-badge';
 import { Icon } from './icon';
-import { STATUS, StatusIcon } from './zusagen-ui';
+import { STATUS, REIHE, StatusIcon, GrundEingabe } from './zusagen-ui';
 
 export type DashEintrag = { key: string; datum: string; zeit: string } & ({ art: 'mdu'; b: Begegnung27 } | { art: 'ext'; t: TeamTermin });
 export interface DashKasse { stand: number; offen: number; meinOffen: number | null }
@@ -45,7 +45,7 @@ function titelVon(e: DashEintrag, teamId: string) {
 }
 const pfadVon = (e: DashEintrag, teamId: string) => (e.art === 'mdu' ? spieltagPfad(teamId, e.key) : terminPfad(e.t.id));
 
-export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusagen, personen, ichId, ichName, aufgaben, kasse, gespielt }: {
+export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusagen, personen, ichId, ichName, aufgaben, kasse, gespielt, onAntwort }: {
   teamId: string; teamName: string; liga: string;
   /** anstehende Termine (MDU + eigene), nach Datum */
   spiele: DashEintrag[];
@@ -53,6 +53,8 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
   vergangen: string[];
   zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; ichName: string;
   aufgaben: Aufgabe[]; kasse: DashKasse | null; gespielt: DashGespielt | null;
+  /** Eigene Zu-/Absage für einen Termin setzen; liefert eine Fehlermeldung oder null. */
+  onAntwort?: (key: string, status: ZusageStatus, note: string | null) => Promise<string | null>;
 }) {
   const naechstes = spiele[0];
   const zu = (key: string) => zusagen.filter(z => z.match_key === key);
@@ -69,7 +71,9 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
   return (
     <section aria-label="Überblick" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Hero teamId={teamId} teamName={teamName} liga={liga} vorname={vorname} e={naechstes}
-        zusagen={naechstes ? zu(naechstes.key) : []} personen={personen} ichId={ichId} meins={naechstes ? meins(naechstes.key) : null} />
+        zusagen={naechstes ? zu(naechstes.key) : []} personen={personen} ichId={ichId} meins={naechstes ? meins(naechstes.key) : null}
+        meineNotiz={naechstes && ichId ? zu(naechstes.key).find(z => z.player_id === ichId)?.note ?? null : null}
+        onAntwort={naechstes && onAntwort ? (st, note) => onAntwort(naechstes.key, st, note) : undefined} />
 
 
       {/* Kacheln */}
@@ -126,10 +130,19 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
 
 // ── Kopf mit der Team-Scheibe ───────────────────────────────
 
-function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, meins }: {
+function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, meins, meineNotiz, onAntwort }: {
   teamId: string; teamName: string; liga: string; vorname: string; e: DashEintrag | undefined;
   zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; meins: ZusageStatus | null;
+  meineNotiz: string | null; onAntwort?: (status: ZusageStatus, note: string | null) => Promise<string | null>;
 }) {
+  const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  async function antworte(st: ZusageStatus, note: string | null) {
+    if (!onAntwort) return;
+    setFehler(null); setGrundFuer(null);
+    const err = await onAntwort(st, note);
+    if (err) setFehler(err);
+  }
   const t = team27(teamId);
   const n = { yes: 0, maybe: 0, no: 0 } as Record<ZusageStatus, number>;
   for (const z of zusagen) n[z.status]++;
@@ -166,15 +179,41 @@ function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, me
               <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'rgba(239,230,207,0.8)', marginTop: 4 }}>
                 {wochentag(e.datum)} {tagMonat(e.datum)}{e.zeit ? ` · ${e.zeit} Uhr` : ''}{e.art === 'mdu' ? (e.b.home === teamId ? ' · Heimspiel' : ' · Auswärts') : ''}
               </div>
-              {ichId && (
-                <div style={{ marginTop: 10 }}>
-                  {meins
-                    ? <span style={pille(`${FARBE[meins]}`, meins === 'maybe' ? '#3A2A00' : '#fff')}><StatusIcon s={meins} size={15} voll /> Du: {STATUS[meins].text}</span>
-                    : <span style={{ ...pille(GOLD, '#3A2A00'), boxShadow: `0 0 0 4px ${GOLD}33` }}>Du bist noch offen – jetzt antworten →</span>}
+              {ichId && onAntwort && (
+                <div style={{ position: 'relative', zIndex: 2, marginTop: 12 }}>
+                  <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: meins ? 'rgba(239,230,207,0.7)' : GOLD, marginBottom: 6 }}>
+                    {meins ? `Du: ${STATUS[meins].text}` : 'Bist du dabei?'}
+                  </div>
+                  <div role="group" aria-label="Deine Antwort" style={{ display: 'flex', gap: 6 }}>
+                    {REIHE.map(st => {
+                      const an = meins === st;
+                      return (
+                        <button key={st} type="button" aria-pressed={an}
+                          onClick={() => { if (st === 'yes') { if (!an) void antworte('yes', null); } else setGrundFuer(g => (g === st ? null : st)); }}
+                          style={{
+                            flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 4px', borderRadius: 12, cursor: 'pointer',
+                            background: an ? FARBE[st] : grundFuer === st ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)',
+                            border: `1.5px solid ${an || grundFuer === st ? FARBE[st] : 'rgba(239,230,207,0.22)'}`,
+                            color: an ? (st === 'maybe' ? '#3A2A00' : '#fff') : 'rgba(239,230,207,0.92)',
+                            fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11.5, letterSpacing: '-0.01em', boxShadow: an ? `0 4px 14px ${FARBE[st]}55` : 'none',
+                          }}>
+                          <StatusIcon s={st} size={20} voll={an} />
+                          {STATUS[st].knopf}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
           </div>
+          {grundFuer && (
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <GrundEingabe key={grundFuer} status={grundFuer} start={meins === grundFuer ? meineNotiz ?? '' : ''}
+                onSenden={g => void antworte(grundFuer, g)} onAbbrechen={() => setGrundFuer(null)} />
+            </div>
+          )}
+          {fehler && <div role="alert" style={{ position: 'relative', zIndex: 2, marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: '#FF8A80' }}>{fehler}</div>}
           <div style={{ position: 'relative', display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(239,230,207,0.14)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700 }}>
             {([['yes', n.yes, 'dabei'], ['maybe', n.maybe, 'unsicher'], ['no', n.no, 'Absage'], ['offen', offen, 'offen']] as const).map(([k, z, l]) => (
               <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(239,230,207,0.9)' }}>
@@ -188,9 +227,11 @@ function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, me
       ) : (
         <div style={{ position: 'relative', marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'rgba(239,230,207,0.85)' }}>Keine anstehenden Termine.</div>
       )}
+      {/* Die ganze Karte führt zum Spiel — außer den Antwort-Knöpfen (liegen darüber, zIndex 2). */}
+      {e && <Link href={pfadVon(e, teamId)} aria-label={`Zum Termin: ${titelVon(e, teamId)}`} style={{ position: 'absolute', inset: 0, zIndex: 1 }} />}
     </div>
   );
-  return e ? <Link href={pfadVon(e, teamId)} className="mdu-dash-hover" style={{ display: 'block', textDecoration: 'none', borderRadius: 24 }}>{inhalt}</Link> : inhalt;
+  return e ? <div className="mdu-dash-hover" style={{ borderRadius: 24 }}>{inhalt}</div> : inhalt;
 }
 
 /** Die Team-Scheibe: ein Segment je Spieler (Farbe = Antwort), innen die Scheibe, im Bull der Countdown. */
@@ -401,6 +442,3 @@ function KartenKopf({ titel, rechts }: { titel: string; rechts?: React.ReactNode
 
 const karte: React.CSSProperties = { background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 16px var(--th-shadow)' };
 const linkKlein: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, color: 'var(--th-accent)', textDecoration: 'none' };
-function pille(bg: string, fg = '#fff'): React.CSSProperties {
-  return { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, background: bg, color: fg, fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 800 };
-}

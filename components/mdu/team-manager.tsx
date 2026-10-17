@@ -20,14 +20,14 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam } from '@/lib/auth/roles';
 import { zusagenFreigeschaltet } from '@/lib/features';
-import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, type Begegnung27 } from '@/lib/data/saison-2027';
+import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
-  ladeZusagen, ladeEinstellungen, setzeEinstellung, ladeDetails, ladeAufgaben, type Aufgabe,
+  ladeZusagen, ladeEinstellungen, setzeEinstellung, ladeDetails, ladeAufgaben, setzeZusage, type Aufgabe, type ZusageStatus,
   ERINNERUNG_VORGABE, TREFFEN_VORGABE, type Zusage, type SpielDetails, type TeamEinstellungen,
 } from '@/lib/supabase/zusagen';
 import { SpielKachel } from '@/components/mdu/spiel-kachel';
-import { TerminKachel, TerminFormular, EXTERN_FARBE } from '@/components/mdu/termin-ui';
+import { TerminKachel, TerminFormular, EXTERN_FARBE, terminLabel } from '@/components/mdu/termin-ui';
 import { TerminImport } from '@/components/mdu/termin-import';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
@@ -98,6 +98,23 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
     return [...mdu, ...ext].sort((a, b) => a.datum.localeCompare(b.datum) || a.zeit.localeCompare(b.zeit));
   }, [teamId, termine]);
 
+  // Eigene Zu-/Absage direkt aus dem Dashboard (gleiche Regeln wie auf der Spielseite).
+  async function antworte(key: string, status: ZusageStatus, note: string | null): Promise<string | null> {
+    if (!user?.playerId || !teamId || !t) return 'Dein Konto ist noch nicht mit einem Spieler verknüpft.';
+    const e = spiele.find(x => x.key === key);
+    if (!e) return 'Termin nicht gefunden.';
+    const label = e.art === 'mdu'
+      ? `${e.b.termin ? terminKurz(e.b.termin) : wochenendeText(e.b.fri, e.b.sun, false)} · ${team27(e.b.home)?.name ?? e.b.home} – ${team27(e.b.away)?.name ?? e.b.away}`
+      : terminLabel(e.t);
+    const ich = { id: user.playerId, name: user.displayName };
+    const vorher = zusagen;
+    setZusagen(z => [...z.filter(r => !(r.match_key === key && r.player_id === ich.id)),
+      { match_key: key, team_id: teamId, player_id: ich.id, player_name: ich.name, status, note, updated_by: user.id, updated_at: new Date().toISOString() }]);
+    const { error } = await setzeZusage({ matchKey: key, teamId, playerId: ich.id, playerName: ich.name, status, note, label, userId: user.id });
+    if (error) setZusagen(vorher);
+    return error;
+  }
+
   // Vergangene Termine der Saison (für die Zusage-Quote im Dashboard).
   const vergangen = useMemo<string[]>(() => {
     if (!teamId) return [];
@@ -167,7 +184,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             {dash ? (
             <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} vergangen={vergangen}
               zusagen={zusagen} personen={personen ?? []} ichId={user.playerId ?? null} ichName={user.displayName ?? ''}
-              aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} />
+              aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} onAntwort={antworte} />
             ) : (<>
             <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
 
