@@ -32,7 +32,7 @@ import { TerminImport } from '@/components/mdu/termin-import';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
-import { TeamDashboard, type DashKasse, type DashGespielt } from '@/components/mdu/team-dashboard';
+import { TeamDashboard, type DashKasse, type DashGespielt, type DashEinblick } from '@/components/mdu/team-dashboard';
 import { mitAnmeldung } from '@/lib/auth/mit-anmeldung';
 import { ladeKasse, kassenstand, offenSumme, istForderung } from '@/lib/supabase/kasse';
 
@@ -62,6 +62,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
   const [neu, setNeu] = useState<null | 'eintragen' | 'import'>(null);
   const [kasse, setKasse] = useState<DashKasse | null>(null);
   const [gespielt, setGespielt] = useState<DashGespielt | null>(null);
+  const [einblick, setEinblick] = useState<DashEinblick | null>(null);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
@@ -97,6 +98,19 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
       .map(t => ({ art: 'ext', key: terminKey(t.id), datum: t.event_date, zeit: t.start_time ?? '', t }));
     return [...mdu, ...ext].sort((a, b) => a.datum.localeCompare(b.datum) || a.zeit.localeCompare(b.zeit));
   }, [teamId, termine]);
+
+  // Highlights + Gegner-Infos (öffentliche Daten, /api/team-einblick) — nur im Dashboard.
+  const naechsterGegner = useMemo(() => {
+    const m = spiele.find(e => e.art === 'mdu');
+    return m && m.art === 'mdu' ? (m.b.home === teamId ? m.b.away : m.b.home) : '';
+  }, [spiele, teamId]);
+  useEffect(() => {
+    if (!dash || !teamId) return;
+    let weg = false;
+    fetch(`/api/team-einblick?team=${encodeURIComponent(teamId)}&gegner=${encodeURIComponent(naechsterGegner)}`)
+      .then(r => (r.ok ? r.json() : null)).then(j => { if (!weg && j && Array.isArray(j.highlights)) setEinblick(j as DashEinblick); }).catch(() => {});
+    return () => { weg = true; };
+  }, [dash, teamId, naechsterGegner]);
 
   // Vergangene Termine der Saison (für die Zusage-Quote im Dashboard).
   const vergangen = useMemo<string[]>(() => {
@@ -167,7 +181,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             {dash ? (
             <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} vergangen={vergangen}
               zusagen={zusagen} personen={personen ?? []} ichId={user.playerId ?? null} ichName={user.displayName ?? ''}
-              aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} />
+              aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} einblick={einblick} />
             ) : (<>
             <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
 
