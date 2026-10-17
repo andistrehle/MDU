@@ -61,7 +61,7 @@ ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 | 5 | 0:21–0:25 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
 | 6 | 0:25–0:34 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
 | 7 | 0:34–0:38 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
-| 8 | 0:38–0:46 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+| 8 | 0:38–0:46 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
 
 ### Sprechertext am Stück (zum Einfügen bei ElevenLabs)
 
@@ -72,7 +72,7 @@ ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 > Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite.
 > Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal.
 > Vertippt? Jeder Termin lässt sich wieder zurücknehmen.
-> Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!
+> Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!
 
 **Wenn die Adresse mitgesprochen werden soll** (statt nur eingeblendet), so
 schreiben — sonst buchstabiert die Stimme die Satzzeichen:
@@ -107,9 +107,9 @@ Das MP4 ist fertig — Schnitt ist keiner nötig. Falls du doch etwas änderst:
 Wenn du das Video in die Gruppe oder per WhatsApp schickst:
 
 > Ab sofort könnt ihr euer Ranking am Freitag, Samstag oder Sonntag selbst
-> eintragen: **mdc-ranking.de/admin/ansetzen** — das Passwort gibt's bei mir.
+> eintragen: **mdc-ranking.de/admin/ansetzen** — das Passwort gibt's bei Toni.
 > Es gilt für alle Lokale, bitte nicht weitergeben. Absagen und feste Spieltage
-> laufen weiter über mich.
+> laufen weiter über die Turnierleitung.
 
 Die Seite hat **keinen Knopf auf der Homepage**: Ein öffentlicher Verweis würde
 bei jedem Besucher die Passwortabfrage auslösen. Die Wirte bekommen die Adresse

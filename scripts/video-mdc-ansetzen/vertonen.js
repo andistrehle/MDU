@@ -135,7 +135,7 @@ const SZENEN = [
     },
   },
   {
-    text: 'Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!',
+    text: 'Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!',
     einblendung: 'Passwort bei der Turnierleitung',
     async tun(p) {
       await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
