@@ -1,8 +1,9 @@
 # Erklärvideo für die Wirte — „Ranking ansetzen"
 
-**Munich Darts Challenge · Kurzvideo, ca. 35 Sekunden**
+**Munich Darts Challenge · Kurzvideo, 47 Sekunden, fertig vertont**
 Stand: 17.10.2026 · Aufbau wie beim [MDU-Einführungsvideo](einfuehrungsvideo-konzept.md):
-Bildschirmaufnahme + Sprecherstimme (hier **ElevenLabs**), geschnitten in CapCut.
+Bildschirmaufnahme + **ElevenLabs**-Stimme — hier aber in EINEM Lauf erzeugt
+(`scripts/video-mdc-ansetzen/vertonen.js`), nicht von Hand geschnitten.
 
 > Beschreibt nur, was die Seite wirklich kann (`/admin/ansetzen`, siehe
 > [mdc-ansetzen.md](mdc-ansetzen.md)). Nichts versprechen, was nicht da ist.
@@ -15,7 +16,7 @@ Bildschirmaufnahme + Sprecherstimme (hier **ElevenLabs**), geschnitten in CapCut
 | --- | --- |
 | **Zielgruppe** | Die Wirte der zwölf MDC-Lokale — am Handy, oft hinterm Tresen |
 | **Ziel** | Sie sollen ihr Wochenendranking selbst eintragen, statt anzurufen |
-| **Länge** | ~35 Sekunden, ohne Vorspann |
+| **Länge** | 47 Sekunden, ohne Vorspann |
 | **Format** | Hochkant 860 × 1864 (Handy), passt für WhatsApp, Facebook und die Gruppe |
 | **Ton** | Freundlich, Du-Form, kein Werbesprech — wie die ganze Seite |
 
@@ -24,41 +25,43 @@ Passnummern, News, Spielorte. Das Video zeigt genau eine Sache.
 
 ---
 
-## 2. Die Bildschirmaufnahme
+## 2. Das fertige Video
 
-Liegt fertig vor, zwei Fassungen desselben Takes:
+**Es ist fertig vertont** — Bild und Stimme kommen aus einem Lauf, nichts muss
+mehr zusammengeschnitten werden:
 
 | Datei | Inhalt |
 | --- | --- |
-| `ansetzen-mit-text.webm` | mit eingeblendeten Schritten („1 · Euer Lokal auswählen" …) |
-| `ansetzen-ohne-text.webm` | dasselbe ohne Einblendungen — falls du in CapCut eigene setzt |
+| `MDC-ansetzen.mp4` | mit Stimme und eingeblendeten Schritten (47 s, 860 × 1864, H.264/AAC) |
+| `MDC-ansetzen-ohne-text.mp4` | dieselbe Vertonung, ohne Einblendungen — falls du in CapCut eigene setzt |
 
-Aufgenommen gegen den fertigen Build mit einem **GitHub-Doppelgänger**: Der
-Ablauf ist echt bis zum Commit, geschrieben wurde nichts. Skript:
-`video-ansetzen.mjs` (Arbeitsordner der Sitzung, nicht im Repo — die Aufnahme
-lässt sich damit jederzeit neu erzeugen, etwa wenn sich die Seite ändert).
+Erzeugt mit `scripts/video-mdc-ansetzen/vertonen.js` (siehe README dort):
+Erst spricht ElevenLabs jede Szene, dann wird die **echte Seite** so lange
+bedient, wie gesprochen wird, dann liegt der Ton exakt darunter. Wer einen Satz
+ändert, lässt das Skript neu laufen — nur die geänderte Szene wird neu
+abgerechnet.
 
-**WebM, nicht MP4.** CapCut am Rechner nimmt WebM; wenn du MP4 brauchst, sag
-Bescheid — dafür müsste ich ein zusätzliches Umwandlungsprogramm installieren.
-
----
+**Geschrieben wird dabei nichts.** Die Freigabe wird im Browser abgefangen und
+mit der Antwort beantwortet, die ein geglückter Commit zurückgäbe; die grüne
+Bestätigung im Video ist also echt dargestellt, aber folgenlos.
 
 ## 3. Szenen, Bild und Sprechertext
 
-Zeiten sind Richtwerte aus dem Take. **Tipp für ElevenLabs:** jede Szene als
-eigene Datei erzeugen, dann lassen sie sich in CapCut einzeln auf die passende
-Stelle ziehen, ohne dass das Timing an einem einzigen langen Stück hängt.
+Die Zeiten stammen aus dem fertigen Video (`ausgabe/szenen.json`). Jede Szene
+läuft genau so lange, wie gesprochen wird — das Skript misst den Ton und hält
+das Bild entsprechend. Der Text steht auch in `SZENEN` in `vertonen.js`; wer
+ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 
 | # | Zeit | Bild | Sprechertext | Einblendung |
 | --- | --- | --- | --- | --- |
-| 1 | 0:00–0:04 | Seitenkopf „Ranking ansetzen" | „Servus! Ab sofort tragt ihr euer Ranking am Wochenende selbst ein." | Ranking ansetzen · mdc-ranking.de/admin/ansetzen |
-| 2 | 0:04–0:08 | Auswahl „Lokal" → Ambasador | „Zuerst euer Lokal auswählen." | 1 · Euer Lokal auswählen |
-| 3 | 0:08–0:13 | Datumsfeld → Sa, 24.10.2026 | „Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht." | 2 · Den Tag wählen |
-| 4 | 0:13–0:18 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
-| 5 | 0:18–0:23 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
-| 6 | 0:23–0:27 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
-| 7 | 0:27–0:31 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
-| 8 | 0:31–0:35 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+| 1 | 0:00–0:05 | Seitenkopf „Ranking ansetzen" | „Servus! Ab sofort tragt ihr euer Ranking am Wochenende selbst ein." | Ranking ansetzen · mdc-ranking.de/admin/ansetzen |
+| 2 | 0:05–0:08 | Auswahl „Lokal" → Ambasador | „Zuerst euer Lokal auswählen." | 1 · Euer Lokal auswählen |
+| 3 | 0:08–0:14 | Datumsfeld → Sa, 24.10.2026 | „Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht." | 2 · Den Tag wählen |
+| 4 | 0:14–0:20 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
+| 5 | 0:20–0:25 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
+| 6 | 0:25–0:33 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
+| 7 | 0:33–0:37 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
+| 8 | 0:37–0:47 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Andi. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
 
 ### Sprechertext am Stück (zum Einfügen bei ElevenLabs)
 
@@ -76,32 +79,28 @@ schreiben — sonst buchstabiert die Stimme die Satzzeichen:
 
 > em-de-ce-ranking punkt de, schrägstrich admin, schrägstrich ansetzen
 
-### ElevenLabs-Einstellungen
+### ElevenLabs-Einstellungen (so ist es erzeugt)
 
-- **Stimme:** männlich, deutsch, ruhig; dieselbe wie beim MDU-Video, damit beide
-  zusammengehören. Keine Nachrichtensprecher-Stimme — das ist eine Anleitung für
-  den Tresen, kein Werbespot.
-- **Stability** eher hoch (gleichmäßig), **Style** niedrig. Tempo normal lassen:
-  Die Pausen macht der Schnitt, nicht die Stimme.
-- Nach dem Erzeugen **einmal selbst anhören**: „Ansetzen" muss auf der ersten
-  Silbe betont sein, sonst klingt es nach „an-SETZEN".
+- **Stimme:** Benjamin, `gRJR8Fqocw86Vixo4cZV` — dieselbe wie im MDU-Video.
+- **Klang:** ruhiger als dort, `speed` 1.0 statt 1.1 und `style` 0.45 statt
+  0.65. Das hier ist eine Anleitung; wer sie am Tresen schaut, tippt mit.
+- **Modell:** `eleven_multilingual_v2`, Sprache Deutsch.
+- Die Adresse wird nicht gesprochen, sondern nur eingeblendet. Soll sie mit in
+  den Ton, hinterlegt `AUSSPRACHE` in `vertonen.js` bereits die Schreibweise
+  „Em De Ce Ranking Punkt De" — sonst buchstabiert die Stimme die Satzzeichen.
 
----
+## 4. Nachbearbeiten (nur wenn du willst)
 
-## 4. Schnitt (CapCut)
+Das MP4 ist fertig — Schnitt ist keiner nötig. Falls du doch etwas änderst:
 
-1. Clip einfügen, Ton der Aufnahme gibt es nicht (stummer Take).
-2. Sprecherspuren auf die Szenen ziehen; wo die Stimme länger ist als das Bild,
-   den Standbild-Moment davor um ein paar Zehntel strecken — im Take sind nach
-   jedem Schritt ruhige Sekunden eingebaut.
-3. **Keine Musik** oder höchstens sehr leise. Das Video wird im Lokal am Handy
-   geschaut, oft ohne Kopfhörer.
-4. Am Ende 2 Sekunden Standbild mit der Adresse stehen lassen — daraus wird das
+1. **Keine Musik** darunterlegen oder höchstens sehr leise. Das Video wird im
+   Lokal am Handy geschaut, oft ohne Kopfhörer.
+2. Am Ende stehen zwei Sekunden mit der Adresse — daraus wird das
    Vorschaubild.
-5. Export: 1080 × 1920 oder die Originalgröße; mehr als 35 Sekunden braucht es
-   nicht.
-
----
+3. Anderer Satz, andere Reihenfolge, andere Stimme? Nicht in CapCut
+   nachbauen, sondern `SZENEN` in `scripts/video-mdc-ansetzen/vertonen.js`
+   ändern und das Skript neu laufen lassen. Dann passen Bild und Ton wieder
+   von selbst zusammen.
 
 ## 5. Was im Begleittext zur Weitergabe stehen sollte
 

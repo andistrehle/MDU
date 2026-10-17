@@ -1,0 +1,8 @@
+node_modules/
+package.json
+package-lock.json
+ton/
+ton-trocken/
+aufnahme/
+probe-*.mp3
+ausgabe/
