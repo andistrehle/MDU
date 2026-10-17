@@ -90,14 +90,6 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "19:00",
     "note": null
-  },
-  {
-    "id": "2026-10-18-fiakerstueberl-zusatz",
-    "date": "2026-10-18",
-    "venueId": "fiakerstueberl",
-    "art": "zusatz",
-    "time": "20:00",
-    "note": null
   }
 ];
 
