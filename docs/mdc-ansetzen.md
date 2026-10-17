@@ -30,6 +30,19 @@ Datenschutz. Die Gegenprobe ist die Turnierleitung: Sie sieht unter
 `/admin/kalender` jeden Eintrag und kann jeden zurücknehmen. Beides steht auch
 auf der Seite selbst, nicht nur hier.
 
+## Wie die Wirte hinkommen
+
+Auf der öffentlichen Seite **Spielorte**, ganz unten: die Karte **Wirte-Login**
+mit dem Knopf „Anmelden und Termin ansetzen" (`app/mdc/spielorte/page.tsx`).
+Bewusst dort und nicht in der Hauptnavigation: Wer ein Lokal betreibt, landet
+ohnehin auf dieser Seite; alle anderen geht der Zugang nichts an.
+
+Der Verweis ist ein gewöhnliches `<a>`, **kein `Link`** — sonst lüde Next das
+Ziel vor, der Wächter antwortete mit 401, und der Browser fragte mitten im
+Scrollen jeden Besucher nach dem Passwort. So passiert erst beim Tippen etwas,
+und dann ist die Abfrage gewollt. Der direkte Weg bleibt daneben bestehen:
+`mdc-ranking.de/admin/ansetzen`, am besten auf den Home-Bildschirm gelegt.
+
 ## Das Passwort in Vercel anlegen (geht auch am Handy)
 
 Im **MDC-Projekt** (das mit der Domain `mdc-ranking.de`), nicht im MDU-Projekt.

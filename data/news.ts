@@ -48,6 +48,20 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "wochenendranking-selbst-ansetzen",
+    "date": "2026-10-17",
+    "title": "Jetzt neu: Wochenendranking über die Homepage ansetzen",
+    "teaser": "Die Wirte tragen ihr Ranking am Freitag, Samstag oder Sonntag ab sofort selbst auf der Seite ein — Zugang unter Spielorte, „Wirte-Login“.",
+    "category": "Termine",
+    "paragraphs": [
+      "Das Ranking am Wochenende ist kein fester Abend: Es wird von Lokal zu Lokal verabredet, oft kurzfristig. Bisher ging das nur über die Turnierleitung. **Ab sofort tragen die Wirte den Abend selbst ein** — und er steht sofort dort, wo die Spieler ihn suchen: auf der Startseite, im Wochenplan und beim eigenen Lokal.",
+      "Den Zugang gibt es auf der Seite **Spielorte**, ganz unten: **Wirte-Login**. Antippen, Passwort eingeben, Lokal und Tag auswählen, Beginn eintragen — fertig. Ein kurzer Hinweis wie „Anmeldung bis 17:45“ kann dazu. Ein, zwei Minuten später steht der Termin online.",
+      "**Das Passwort gibt es bei der Turnierleitung.** Es öffnet nur diese eine Seite: Ergebnisse, Passnummern und alles andere bleiben zu. Absagen und dauerhafte Änderungen am festen Spieltag laufen weiter über die Turnierleitung.",
+      "Vertippt? Jeder selbst angesetzte Termin lässt sich an derselben Stelle wieder zurücknehmen."
+    ],
+    "published": true
+  },
+  {
     "id": "neues-ranking-in-der-aubinger-boazn",
     "date": "2026-10-07",
     "title": "Neues Ranking in der Aubinger Boazn",

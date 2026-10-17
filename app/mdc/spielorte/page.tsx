@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { KeyRound } from 'lucide-react';
 import { PageHero, SectionHeading } from '@/components/mdc/ui';
 import { VenueCard } from '@/components/mdc/venue-card';
 import {
@@ -6,6 +7,7 @@ import {
   venuesByWeekday, WEEKDAY_NAMES,
 } from '@/data/venues';
 import { mdcSeite } from '@/lib/mdc/metadata';
+import { mdcPath } from '@/lib/mdc/site';
 
 export const metadata: Metadata = mdcSeite({
   pfad: '/spielorte',
@@ -58,6 +60,40 @@ export default function SpielortePage() {
               </div>
             </div>
           ))}
+
+          {/* ── Zugang für die Wirte ──
+              Hier und nicht in der Hauptnavigation: Wer ein Lokal betreibt,
+              landet früher oder später auf dieser Seite; alle anderen geht der
+              Zugang nichts an.
+
+              ALS <a>, NICHT ALS `Link`. Next lädt Ziele im Blickfeld schon
+              vorab, und ein Vorabruf auf `/admin/...` beantwortet der Wächter
+              mit 401 — der Browser fragt dann mitten im Scrollen nach dem
+              Passwort, bei jedem Besucher. Ein `<a>` lädt erst beim Tippen,
+              und dann ist die Abfrage gewollt. */}
+          <div
+            className="mdc-card"
+            style={{ padding: '22px 20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}
+          >
+            <KeyRound size={20} style={{ flexShrink: 0, marginTop: 3, color: 'var(--mdc-red)' }} />
+            <div style={{ minWidth: 0 }}>
+              <h2 className="mdc-display mdc-h3">Wirte-Login</h2>
+              <p style={{ marginTop: 10, fontSize: '0.92rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
+                Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Tragt den Abend
+                selbst ein — er steht dann im Wochenplan, auf der Startseite und bei
+                eurem Lokal. Das Passwort dafür gibt es bei der Turnierleitung; der
+                Browser fragt danach, der Benutzername ist beliebig.
+              </p>
+              <a
+                href={mdcPath('/admin/ansetzen')}
+                className="mdc-btn mdc-btn-primary mdc-btn-sm"
+                style={{ marginTop: 14 }}
+              >
+                <KeyRound size={15} />
+                Anmelden und Termin ansetzen
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </>

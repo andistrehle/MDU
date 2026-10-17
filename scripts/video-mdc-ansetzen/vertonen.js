@@ -41,6 +41,12 @@ const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
 const PAUSE = +(process.env.PAUSE || 0.5);
 /** Wo die Seite läuft (siehe README) und das Passwort fürs Ansetzen. */
 const URL = process.env.ANSETZ_URL || 'http://localhost:3115/mdc/admin/ansetzen';
+/**
+ * Wo das Video ANFÄNGT: die öffentliche Spielorte-Seite mit dem Wirte-Login.
+ * Die Wirte sollen den Weg sehen, nicht nur das Formular — wer nicht weiß, wo
+ * der Zugang steckt, kommt gar nicht erst zum Ansetzen.
+ */
+const START_URL = process.env.START_URL || URL.replace(/\/admin\/ansetzen.*$/, '/spielorte');
 const PASSWORT = process.env.ANSETZ_PASSWORT || 'wirt456';
 const BROWSER = process.env.CHROMIUM
   || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
@@ -79,9 +85,30 @@ const STIMME = {
 // ------------------------------------------------------------
 const SZENEN = [
   {
+    // Gesprochen wie gehabt — nur läuft der Satz jetzt über die öffentliche
+    // Seite statt über das Formular. So gibt es kein zweites „Servus“ später.
     text: 'Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …',
-    einblendung: 'Ranking ansetzen · mdc-ranking.de/admin/ansetzen',
-    async tun() { /* nur das Bild stehen lassen */ },
+    einblendung: 'mdc-ranking.de · Spielorte',
+    async tun(p) {
+      await p.evaluate(() => window.scrollBy({ top: 320, behavior: 'smooth' }));
+    },
+  },
+  {
+    text: 'Den Zugang findet ihr unter Spielorte, ganz unten: Wirte-Login. Antippen und das Passwort eingeben.',
+    einblendung: 'Spielorte → ganz unten → Wirte-Login',
+    async tun(p, h) {
+      const karte = p.locator('.mdc-card').filter({ hasText: 'Wirte-Login' });
+      await h.zeigeAuf(karte);
+      await p.waitForTimeout(900);
+      // Der Verweis führt zur Passwortabfrage des Browsers. Im Film ist die
+      // Anmeldung schon erledigt (die Aufnahme bringt die Zugangsdaten mit),
+      // deshalb geht es direkt weiter — gesagt wird es trotzdem.
+      await Promise.all([
+        p.waitForURL(/\/admin\/ansetzen/, { timeout: 15000 }),
+        h.zeigeAuf(p.locator('a:has-text("Anmelden und Termin ansetzen")'), { klick: true }),
+      ]);
+      await p.waitForLoadState('networkidle');
+    },
   },
   {
     text: 'Zuerst euer Lokal auswählen.',
@@ -333,7 +360,7 @@ async function main() {
   const fehler = [];
   page.on('pageerror', (e) => fehler.push(String(e)));
   await freigabeAbfangen(page);
-  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.goto(START_URL, { waitUntil: 'networkidle' });
   await hilfsmittel(page);
   const h = helfer(page);
 
@@ -341,8 +368,11 @@ async function main() {
   const marken = [];
   for (const [i, sz] of SZENEN.entries()) {
     marken.push(Date.now() - start);
+    await hilfsmittel(page);          // nach einem Seitenwechsel sind sie weg
     await h.einblenden(sz.einblendung);
     await sz.tun(page, h);
+    await hilfsmittel(page);
+    await h.einblenden(sz.einblendung);
     const soll = ton[i].dauer + PAUSE;
     const offen = soll * 1000 - (Date.now() - start - marken[i]);
     if (offen > 0) await page.waitForTimeout(offen);

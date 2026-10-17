@@ -439,7 +439,10 @@ null) — doppelt, weil eine Aktions-Kennung auch an eine andere Adresse
 geschickt werden kann. Dort geht NUR `art: 'zusatz'`: kein Absagen (nimmt
 anderen den Abend weg), nichts in der Vergangenheit, höchstens 120 Tage
 voraus, und nicht am festen Spieltag des Lokals (stünde doppelt im Plan).
-Zurückgenommen wird nur, was auf `-zusatz` endet. **Keine `AdminNav` auf der
+Zurückgenommen wird nur, was auf `-zusatz` endet. **Hinein kommen die Wirte
+über die Spielorte-Seite** (Karte „Wirte-Login“ ganz unten, als `<a>` und nie
+als `Link`) oder direkt über die Adresse; dazu der News-Beitrag
+`wochenendranking-selbst-ansetzen`. **Keine `AdminNav` auf der
 Seite** — ein Vorabruf führte den Wirt sonst in Passwortabfragen für Seiten,
 die ihm nicht aufgehen. Ein Konto je Wirt gibt es bewusst nicht (bräuchte
 Sitzung, Cookie, Datenbank): Das Passwort ist für alle dasselbe, Einträge sind

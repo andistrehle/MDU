@@ -1,6 +1,6 @@
 # Erklärvideo für die Wirte — „Ranking ansetzen"
 
-**Munich Darts Challenge · Kurzvideo, 47 Sekunden, fertig vertont**
+**Munich Darts Challenge · Kurzvideo, 56 Sekunden, fertig vertont**
 Stand: 17.10.2026 · Aufbau wie beim [MDU-Einführungsvideo](einfuehrungsvideo-konzept.md):
 Bildschirmaufnahme + **ElevenLabs**-Stimme — hier aber in EINEM Lauf erzeugt
 (`scripts/video-mdc-ansetzen/vertonen.js`), nicht von Hand geschnitten.
@@ -16,7 +16,7 @@ Bildschirmaufnahme + **ElevenLabs**-Stimme — hier aber in EINEM Lauf erzeugt
 | --- | --- |
 | **Zielgruppe** | Die Wirte der zwölf MDC-Lokale — am Handy, oft hinterm Tresen |
 | **Ziel** | Sie sollen ihr Wochenendranking selbst eintragen, statt anzurufen |
-| **Länge** | 47 Sekunden, ohne Vorspann |
+| **Länge** | 56 Sekunden, ohne Vorspann |
 | **Format** | Hochkant 860 × 1864 (Handy), passt für WhatsApp, Facebook und die Gruppe |
 | **Ton** | Freundlich, Du-Form, kein Werbesprech — wie die ganze Seite |
 
@@ -32,7 +32,7 @@ mehr zusammengeschnitten werden:
 
 | Datei | Inhalt |
 | --- | --- |
-| `MDC-ansetzen.mp4` | mit Stimme und eingeblendeten Schritten (47 s, 860 × 1864, H.264/AAC) |
+| `MDC-ansetzen.mp4` | mit Stimme und eingeblendeten Schritten (56 s, 860 × 1864, H.264/AAC) |
 | `MDC-ansetzen-ohne-text.mp4` | dieselbe Vertonung, ohne Einblendungen — falls du in CapCut eigene setzt |
 
 Erzeugt mit `scripts/video-mdc-ansetzen/vertonen.js` (siehe README dort):
@@ -54,18 +54,25 @@ ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 
 | # | Zeit | Bild | Sprechertext | Einblendung |
 | --- | --- | --- | --- | --- |
-| 1 | 0:00–0:05 | Seitenkopf „Ranking ansetzen" | „Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …" | Ranking ansetzen · mdc-ranking.de/admin/ansetzen |
-| 2 | 0:05–0:08 | Auswahl „Lokal" → Ambasador | „Zuerst euer Lokal auswählen." | 1 · Euer Lokal auswählen |
-| 3 | 0:08–0:14 | Datumsfeld → Sa, 24.10.2026 | „Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht." | 2 · Den Tag wählen |
-| 4 | 0:14–0:21 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
-| 5 | 0:21–0:25 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
-| 6 | 0:25–0:34 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
-| 7 | 0:34–0:38 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
-| 8 | 0:38–0:46 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+| 1 | 0:00–0:05 | Spielorte-Seite, es wird gescrollt | „Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …" | mdc-ranking.de · Spielorte |
+| 2 | 0:05–0:14 | Karte „Wirte-Login" ganz unten → antippen | „Den Zugang findet ihr unter Spielorte, ganz unten: Wirte-Login. Antippen und das Passwort eingeben." | Spielorte → ganz unten → Wirte-Login |
+| 3 | 0:14–0:17 | Auswahl „Lokal" → Ambasador | „Zuerst euer Lokal auswählen." | 1 · Euer Lokal auswählen |
+| 4 | 0:17–0:23 | Datumsfeld → Sa, 24.10.2026 | „Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht." | 2 · Den Tag wählen |
+| 5 | 0:23–0:29 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
+| 6 | 0:29–0:34 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
+| 7 | 0:34–0:42 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
+| 8 | 0:42–0:46 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
+| 9 | 0:46–0:55 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+
+**Die Passwortabfrage selbst ist nicht im Bild.** Die Aufnahme bringt die
+Zugangsdaten mit, deshalb springt das Video von „Wirte-Login" direkt auf die
+Seite. Gesagt wird es („Antippen und das Passwort eingeben"), und in
+Wirklichkeit steht dazwischen das kleine Fenster des Browsers.
 
 ### Sprechertext am Stück (zum Einfügen bei ElevenLabs)
 
 > Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …
+> Den Zugang findet ihr unter Spielorte, ganz unten: Wirte-Login. Antippen und das Passwort eingeben.
 > Zuerst euer Lokal auswählen.
 > Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht.
 > Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit.
@@ -111,7 +118,10 @@ Wenn du das Video in die Gruppe oder per WhatsApp schickst:
 > Es gilt für alle Lokale, bitte nicht weitergeben. Absagen und feste Spieltage
 > laufen weiter über die Turnierleitung.
 
-Die Seite hat **keinen Knopf auf der Homepage**: Ein öffentlicher Verweis würde
-bei jedem Besucher die Passwortabfrage auslösen. Die Wirte bekommen die Adresse
-von dir — am besten als Link, den sie sich auf den Home-Bildschirm legen
-(Safari: Teilen → „Zum Home-Bildschirm").
+Seit 17.10.2026 gibt es den Zugang auch **auf der Seite selbst**: unter
+**Spielorte**, ganz unten, die Karte **Wirte-Login**. Bewusst dort und nicht in
+der Hauptnavigation — wer ein Lokal betreibt, landet ohnehin auf dieser Seite,
+alle anderen geht der Zugang nichts an. Der Verweis ist ein gewöhnliches `<a>`:
+Erst beim Tippen passiert etwas, und dann ist die Passwortabfrage gewollt.
+Zusätzlich lohnt sich der direkte Link, den die Wirte sich auf den
+Home-Bildschirm legen können (Safari: Teilen → „Zum Home-Bildschirm").
