@@ -136,7 +136,6 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
   // Ligaleitung / Vorstand aufwärts — Verwaltung (im Kapitäns-Modus ausgeblendet)
   if (canManageLeague(user) && !inCaptainMode) {
     tiles.push(
-      { icon: 'check',  label: 'Teams freigeben',         description: 'Teams für die Saison verwalten.', href: '/admin/teams', ready: true },
       { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true, badgeKey: 'users' },
       { icon: 'list',   label: 'Offene Saisonanmeldungen', description: 'Mannschaftsanmeldungen prüfen und freigeben.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
       { icon: 'trophy', label: 'Saison-Teams',            description: 'Freigegebene Mannschaften je Saison.', href: '/admin/season-teams', ready: true },

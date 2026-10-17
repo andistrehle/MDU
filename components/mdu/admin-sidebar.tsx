@@ -23,7 +23,6 @@ const NAV_ITEMS: NavItem[] = [
   { icon: 'bar',      label: 'Dashboard',     href: '/admin',               require: 'league' },
   { icon: 'users',    label: 'Benutzer',      href: '/admin/users',         require: 'league', badgeKey: 'users' },
   { icon: 'edit',     label: 'Rollen',        href: '/admin/roles',         require: 'league' },
-  { icon: 'trophy',   label: 'Teams',         href: '/admin/teams',         require: 'league' },
   { icon: 'user',     label: 'Spieler',       href: '/admin/players',       require: 'league' },
   { icon: 'list',     label: 'Anmeldungen',   href: '/admin/registrations',   require: 'league', badgeKey: 'registrations' },
   { icon: 'trophy',   label: 'Saison-Teams',  href: '/admin/season-teams',    require: 'league' },

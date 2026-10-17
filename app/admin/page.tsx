@@ -23,7 +23,7 @@ interface AdminCard {
 const CARDS: AdminCard[] = [
   { icon: 'users',    label: 'Benutzerverwaltung', desc: 'Konten, Rollen & Verknüpfungen.', href: '/admin/users', badgeKey: 'users' },
   { icon: 'edit',     label: 'Rollenverwaltung',   desc: 'Rollen & Rechte im Überblick.',   href: '/admin/roles' },
-  { icon: 'trophy',   label: 'Teams',              desc: 'Teams der Saison verwalten.',     href: '/admin/teams' },
+  { icon: 'trophy',   label: 'Saison-Teams',       desc: 'Mannschaften je Saison, Liga & Kader.', href: '/admin/season-teams' },
   { icon: 'user',     label: 'Spieler',            desc: 'Spieler & Verknüpfungen.',        href: '/admin/players' },
   { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/registrations', badgeKey: 'registrations' },
   { icon: 'user',     label: 'Nachmeldungen',      desc: 'Spieler-Nachmeldungen prüfen.',   href: '/admin/nachmeldungen', badgeKey: 'nominations' },
