@@ -69,22 +69,6 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
       <Hero teamId={teamId} teamName={teamName} liga={liga} vorname={vorname} e={naechstes}
         zusagen={naechstes ? zu(naechstes.key) : []} personen={personen} ichId={ichId} meins={naechstes ? meins(naechstes.key) : null} />
 
-      {/* Noch zuzusagen — der wichtigste Hinweis, deshalb als Leiste ganz oben */}
-      {ichId && ohneAntwort.length > 0 && (
-        <Link href={pfadVon(ohneAntwort[0], teamId)} className="mdu-dash-hover" style={{
-          display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 16, textDecoration: 'none',
-          background: 'linear-gradient(90deg, rgba(232,184,74,0.22), rgba(232,184,74,0.06))', border: `1.5px solid ${GOLD}`,
-        }}>
-          <span style={{ width: 34, height: 34, borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: GOLD, color: '#3A2A00', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20 }}>{ohneAntwort.length}</span>
-          <span style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
-            <span style={{ display: 'block', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Noch zuzusagen</span>
-            <span style={{ fontSize: 12.5, color: 'var(--th-text-muted)' }}>
-              {ohneAntwort.slice(0, 3).map(e => `${wochentag(e.datum)} ${tagMonat(e.datum)}`).join(' · ')}{ohneAntwort.length > 3 ? ' …' : ''}
-            </span>
-          </span>
-          <Icon name="chevron" size={14} style={{ color: '#B07A00' }} />
-        </Link>
-      )}
 
       {/* Kacheln */}
       <div className="mdu-dash-kacheln">
