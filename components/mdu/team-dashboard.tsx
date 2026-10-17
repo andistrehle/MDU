@@ -100,6 +100,8 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
         <Kachel href="/mein-team/termine" titel="Aufgaben" akzent="#7C5CD6" symbol={<Icon name="list" size={15} stroke={2.4} />}
           gross={offeneAufgaben.length ? `${offeneAufgaben.length} offen` : 'Keine'}
           klein={meineAufgaben.length ? <b style={{ color: '#7C5CD6' }}>{meineAufgaben.length} für dich</b> : 'an den Spieltagen'} />
+        <Kachel href="/mein-team/spielplan" titel="Spielplan" akzent={GRUEN} symbol={<Icon name="trophy" size={15} stroke={2.2} />}
+          gross={`${spiele.filter(e => e.art === 'mdu').length} Spiele`} klein={`noch in der Saison · ${liga}`} />
       </div>
 
       {/* Die nächsten Termine */}
