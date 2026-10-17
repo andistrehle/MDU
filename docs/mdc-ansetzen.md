@@ -47,20 +47,28 @@ und dann ist die Abfrage gewollt. Der direkte Weg bleibt daneben bestehen:
 
 Im **MDC-Projekt** (das mit der Domain `mdc-ranking.de`), nicht im MDU-Projekt.
 
-1. Direktlink im Browser öffnen — er fragt zuerst nach Team und Projekt und
-   springt dann genau auf die richtige Seite:
+1. Direkt dorthin (Projekt `mdc-ranking` im Team `andistrehles-projects`):
+   <https://vercel.com/andistrehles-projects/mdc-ranking/settings/environment-variables>
+
+   **Am Handy führt kein Weg durchs Menü dahin:** Settings öffnet immer die
+   Seite „General"; die Unterseiten der Einstellungen stehen in einer
+   Seitenleiste, die dort eingeklappt ist. Wer schon im Projekt ist, hängt
+   deshalb einfach `/environment-variables` an die Adresse an. Für ein anderes
+   Projekt tut es Vercels eigener Auswahllink:
    <https://vercel.com/d?to=/[team]/[project]/settings/environment-variables>
-   (steht so in Vercels eigener Anleitung; am Handy ist das der kürzeste Weg,
-   weil die Seitenleiste dort eingeklappt ist).
-   Ohne Direktlink: `vercel.com/dashboard` → Projekt antippen → die Reiterzeile
-   (Project · Deployments · Observability · …) nach rechts schieben bis
-   **Settings** → dort in der Liste **Environment Variables**.
 2. **Key** `MDC_TERMIN_PASSWORD`, **Value** das Passwort für die Wirte.
 3. Als Umgebung **Production** ankreuzen (Preview/Development nur, wenn du dort
    auch testen willst) → **Save**.
 4. **Redeploy:** Neue Variablen gelten erst für den nächsten Build. Also unter
    **Deployments** beim obersten Eintrag das Dreipunkt-Menü → **Redeploy**.
    Danach kommen die Wirte hinein.
+
+**Erledigt am 17.10.2026** — das Passwort ist vergeben und die Seite neu
+gebaut. Nachprüfen lässt es sich so: `/admin/kalender` aufmachen (mit dem
+Passwort der Turnierleitung); die Karte „Die Lokale setzen selbst an" sagt dort
+ausdrücklich, ob `MDC_TERMIN_PASSWORD` vergeben ist. Von außen sieht man es
+nicht — eine gesperrte Seite antwortet mit oder ohne gesetztes Passwort
+gleich, und das ist auch richtig so.
 
 Beim Anlegen fragt Vercel, ob der Wert **Config** oder **Secret** sein soll:
 Ein Secret lässt sich nach dem Speichern nicht mehr anzeigen. Für ein Passwort,
