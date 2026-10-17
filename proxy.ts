@@ -84,6 +84,38 @@ const CANONICAL_ORIGIN = 'https://www.mdudarts.de';
  */
 const MDC_ADMIN_PASSWORD = (process.env.MDC_ADMIN_PASSWORD ?? '').trim();
 
+/**
+ * Zweites Passwort — für die WIRTE, und nur fürs Ansetzen (seit 17.10.2026).
+ *
+ * Das Ranking am Freitag, Samstag oder Sonntag ist kein fester Abend, es wird
+ * von Lokal zu Lokal verabredet. Damit der Wirt den Termin selbst eintragen
+ * kann, ohne an Ergebnisse, Passnummern und News zu kommen, öffnet dieses
+ * Passwort GENAU EINE Seite: `/admin/ansetzen`. Überall sonst im
+ * Verwaltungsbereich gilt weiterhin nur `MDC_ADMIN_PASSWORD`.
+ *
+ * Ist es nicht gesetzt, ändert sich nichts: Dann kommt dort wie bisher nur die
+ * Turnierleitung hinein.
+ */
+const MDC_TERMIN_PASSWORD = (process.env.MDC_TERMIN_PASSWORD ?? '').trim();
+
+/**
+ * Die einzige Seite, die auch mit dem Termin-Passwort aufgeht.
+ *
+ * Der Pfad kommt je nach Domain mit oder ohne `/mdc` davor — auf
+ * mdc-ranking.de wird erst nach dem Wächter umgeschrieben. Beides prüfen,
+ * sonst hinge der Zugang daran, über welche Adresse jemand kommt.
+ *
+ * WICHTIG: Server-Aktionen von Next werden an die Adresse der Seite geschickt,
+ * auf der sie stehen. Die Aktionen zum Ansetzen liegen deshalb unter genau
+ * diesem Pfad — und jede von ihnen prüft den Zugang zusätzlich selbst
+ * (`lib/mdc/zugang.ts`), weil eine Aktions-Kennung auch an eine andere
+ * Adresse geschickt werden könnte.
+ */
+function istAnsetzSeite(pfad: string): boolean {
+  const p = pfad.startsWith('/mdc/') ? pfad.slice('/mdc'.length) : pfad;
+  return p === '/admin/ansetzen' || p.startsWith('/admin/ansetzen/');
+}
+
 /** Vergleich ohne frühen Abbruch — gleiche Laufzeit bei gleicher Länge. */
 function gleich(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -118,10 +150,11 @@ function passwortAus(header: string): string | null {
  * fragt, dass der Benutzername beliebig ist und wie man es noch einmal
  * versucht.
  */
-const ABWEISUNG = `<!doctype html>
+function abweisungsSeite(ansetzen: boolean): string {
+  return `<!doctype html>
 <html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Turnierverwaltung — Zugang</title>
+<title>${ansetzen ? 'Ranking ansetzen' : 'Turnierverwaltung'} — Zugang</title>
 <style>
   body { margin:0; padding:32px 22px; font-family: system-ui, -apple-system, sans-serif;
          color:#141A24; background:#F3F7FC; line-height:1.6; }
@@ -132,19 +165,23 @@ const ABWEISUNG = `<!doctype html>
   a { color:#D61A1A; }
 </style></head>
 <body><main>
-  <h1>Zugang nur für die Turnierverwaltung</h1>
+  <h1>${ansetzen ? 'Zugang für die Lokale' : 'Zugang nur für die Turnierverwaltung'}</h1>
   <p>Diese Seite ist mit einem Passwort geschützt. Der Browser fragt danach in
      einem eigenen kleinen Fenster.</p>
   <ul>
     <li><strong>Benutzername:</strong> beliebig — zum Beispiel <code>mdc</code>.
         Das Feld wird nicht geprüft.</li>
-    <li><strong>Passwort:</strong> das von der Turnierleitung vergebene.</li>
+    <li><strong>Passwort:</strong> ${ansetzen
+      ? 'das Passwort fürs Ansetzen, das du von der Turnierleitung bekommen hast. '
+        + 'Es öffnet nur diese Seite — Ergebnisse und Passnummern bleiben zu.'
+      : 'das von der Turnierleitung vergebene.'}</li>
   </ul>
   <p>Diese Meldung erscheint, wenn die Abfrage abgebrochen wurde oder das
      Passwort nicht gepasst hat. <strong>Seite neu laden</strong>, dann fragt
      der Browser erneut.</p>
   <p><a href="/">Zurück zur Startseite</a></p>
 </main></body></html>`;
+}
 
 /**
  * Holt der Browser die Seite im Hintergrund, ohne dass jemand darauf geklickt
@@ -242,12 +279,19 @@ const GESPERRT = `<!doctype html>
  * Prüft den Zugang zum MDC-Verwaltungsbereich.
  * Gibt `null` zurück, wenn durchgelassen werden darf.
  */
-function mdcAdminGuard(request: NextRequest): NextResponse | null {
+function mdcAdminGuard(request: NextRequest, pfad: string): NextResponse | null {
   if (!MDC_ADMIN_PASSWORD) return null;   // nicht eingerichtet → nur die Demo
+
+  // Auf der Ansetz-Seite zählt zusätzlich das Passwort der Wirte. Überall
+  // sonst bleibt es bei dem einen.
+  const ansetzen = istAnsetzSeite(pfad);
+  const erlaubt = ansetzen && MDC_TERMIN_PASSWORD
+    ? [MDC_ADMIN_PASSWORD, MDC_TERMIN_PASSWORD]
+    : [MDC_ADMIN_PASSWORD];
 
   const schluessel = absender(request);
   const passwort = passwortAus(request.headers.get('authorization') ?? '');
-  if (passwort !== null && gleich(passwort, MDC_ADMIN_PASSWORD)) {
+  if (passwort !== null && erlaubt.some(p => gleich(passwort, p))) {
     FEHLVERSUCHE.delete(schluessel);   // richtig geraten ist kein Fehlversuch
     return null;
   }
@@ -276,7 +320,7 @@ function mdcAdminGuard(request: NextRequest): NextResponse | null {
     kopf['WWW-Authenticate'] = 'Basic realm="MDC Turnierverwaltung", charset="UTF-8"';
   }
 
-  return withSecurityHeaders(new NextResponse(ABWEISUNG, { status: 401, headers: kopf }));
+  return withSecurityHeaders(new NextResponse(abweisungsSeite(ansetzen), { status: 401, headers: kopf }));
 }
 
 function withSecurityHeaders(res: NextResponse): NextResponse {
@@ -308,7 +352,7 @@ export function proxy(request: NextRequest) {
     // Verwaltung: vor dem Umschreiben prüfen. Die Abfrage gilt auch für die
     // Formularsendungen der Upload-Seite — die laufen über dieselbe Adresse.
     if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-      const abweisung = mdcAdminGuard(request);
+      const abweisung = mdcAdminGuard(request, pathname);
       if (abweisung) return abweisung;
     }
     const url = request.nextUrl.clone();
@@ -339,7 +383,7 @@ export function proxy(request: NextRequest) {
     // Solange die MDC hier noch ausgeliefert wird, gilt für ihre Verwaltung
     // dieselbe Abfrage wie auf der eigenen Domain.
     if (pathname === '/mdc/admin' || pathname.startsWith('/mdc/admin/')) {
-      const abweisung = mdcAdminGuard(request);
+      const abweisung = mdcAdminGuard(request, pathname);
       if (abweisung) return abweisung;
     }
     return withSecurityHeaders(NextResponse.next());

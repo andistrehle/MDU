@@ -428,6 +428,23 @@ Spielort-Seiten, Knopf in der Kopfzeile. Der Spielort ist immer eines der elf
 Lokale — freie Eingabe gibt es bewusst nicht (sonst kein Adresse/Karte/Seite).
 Dauerhafte Änderungen am Spieltag gehören nicht hierher, sondern zu den
 Spielorten (siehe unten).
+**ZWEITES PASSWORT FÜR DIE WIRTE (seit 17.10.2026, vom Betreiber angewiesen):**
+Das Wochenendranking ist kein fester Abend, es wird je Lokal verabredet —
+deshalb setzen die Wirte es selbst an. `MDC_TERMIN_PASSWORD` (server-only, im
+MDC-Projekt) öffnet GENAU EINE Seite: `/admin/ansetzen`. Entschieden wird am
+Pfad in `proxy.ts` (`istAnsetzSeite`, mit und ohne `/mdc`-Präfix); überall
+sonst gilt weiter nur `MDC_ADMIN_PASSWORD`. Dieselbe Prüfung für die
+Server-Aktionen steht in `lib/mdc/zugang.ts` (`werDaIst` → 'leitung' | 'wirt' |
+null) — doppelt, weil eine Aktions-Kennung auch an eine andere Adresse
+geschickt werden kann. Dort geht NUR `art: 'zusatz'`: kein Absagen (nimmt
+anderen den Abend weg), nichts in der Vergangenheit, höchstens 120 Tage
+voraus, und nicht am festen Spieltag des Lokals (stünde doppelt im Plan).
+Zurückgenommen wird nur, was auf `-zusatz` endet. **Keine `AdminNav` auf der
+Seite** — ein Vorabruf führte den Wirt sonst in Passwortabfragen für Seiten,
+die ihm nicht aufgehen. Ein Konto je Wirt gibt es bewusst nicht (bräuchte
+Sitzung, Cookie, Datenbank): Das Passwort ist für alle dasselbe, Einträge sind
+keinem Wirt zuzuordnen, und das steht so auch auf der Seite. Einzelheiten:
+`docs/mdc-ansetzen.md`.
 **Spielorte (seit 16.09.2026 von der Seite aus änderbar):** Maßgeblich bleibt
 die Spielorte-Übersicht des Betreibers, abgetippt in `VENUES_BASIS`
 (`data/venues.ts`) — von Hand gepflegt, mit Kommentaren, nach Wochentagen

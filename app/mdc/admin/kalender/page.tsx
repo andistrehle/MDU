@@ -10,6 +10,7 @@
 // ============================================================
 
 import type { Metadata } from 'next';
+import { CalendarPlus } from 'lucide-react';
 import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import {
@@ -19,6 +20,8 @@ import { KALENDER } from '@/data/kalender';
 import { VENUES, playDaysFrom } from '@/data/venues';
 import { todayInMunich } from '@/data/season';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
+import { terminPasswortGesetzt } from '@/lib/mdc/zugang';
+import { mdcPath } from '@/lib/mdc/site';
 import { terminId } from '@/lib/mdc/kalender-commit';
 
 export const metadata: Metadata = {
@@ -31,6 +34,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminKalenderPage() {
   const heute = todayInMunich();
+  const terminZugang = terminPasswortGesetzt();
 
   const venues: KalenderVenue[] = VENUES.map(v => ({
     id: v.id,
@@ -83,6 +87,38 @@ export default async function AdminKalenderPage() {
             heute={heute}
             status={getUploadStatus()}
           />
+
+          {/* ── Der Zugang für die Wirte ──
+              Die Wirte setzen ihre Wochenendtermine selbst an; diese Karte
+              sagt der Turnierleitung, wo das passiert und ob es überhaupt
+              offen ist. Verweis als <a> und nicht als Link: Ein Vorabruf auf
+              eine /admin-Adresse fragt sonst mitten im Scrollen nach dem
+              Passwort. */}
+          <div className="mdc-card" style={{ padding: '18px 20px' }}>
+            <h2 className="mdc-display" style={{ fontSize: '1.05rem' }}>Die Lokale setzen selbst an</h2>
+            <p style={{ marginTop: 8, fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+              Unter <code>/admin/ansetzen</code> können die Wirte einen zusätzlichen Turnierabend
+              eintragen — mit einem <strong>zweiten Passwort</strong>, das nur diese eine Seite
+              öffnet. Absagen, fremde Tage und alles andere bleiben hier. Jeder Eintrag von dort
+              steht oben in dieser Liste und lässt sich zurücknehmen.
+            </p>
+            <p style={{ marginTop: 8, fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)' }}>
+              {terminZugang
+                ? <>Das Passwort ist vergeben (<code>MDC_TERMIN_PASSWORD</code> im Vercel-Projekt).</>
+                : (
+                  <>
+                    <strong>Noch nicht vergeben:</strong> Solange <code>MDC_TERMIN_PASSWORD</code>{' '}
+                    im Vercel-Projekt fehlt, kommt dort nur die Turnierleitung hinein. Es ist für
+                    alle Lokale dasselbe Passwort — ein Eintrag lässt sich also keinem bestimmten
+                    Wirt zuordnen.
+                  </>
+                )}
+            </p>
+            <a href={mdcPath('/admin/ansetzen')} className="mdc-btn mdc-btn-ghost mdc-btn-sm" style={{ marginTop: 12 }}>
+              <CalendarPlus size={15} />
+              Die Seite ansehen
+            </a>
+          </div>
 
           <p style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--mdc-ink-dim)', maxWidth: 720 }}>
             Der Wochenplan selbst steht nicht in einer Terminliste, sondern in den Spielorten:
