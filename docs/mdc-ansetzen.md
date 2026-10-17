@@ -30,6 +30,30 @@ Datenschutz. Die Gegenprobe ist die Turnierleitung: Sie sieht unter
 `/admin/kalender` jeden Eintrag und kann jeden zurücknehmen. Beides steht auch
 auf der Seite selbst, nicht nur hier.
 
+## Das Passwort in Vercel anlegen (geht auch am Handy)
+
+Im **MDC-Projekt** (das mit der Domain `mdc-ranking.de`), nicht im MDU-Projekt.
+
+1. Direktlink im Browser öffnen — er fragt zuerst nach Team und Projekt und
+   springt dann genau auf die richtige Seite:
+   <https://vercel.com/d?to=/[team]/[project]/settings/environment-variables>
+   (steht so in Vercels eigener Anleitung; am Handy ist das der kürzeste Weg,
+   weil die Seitenleiste dort eingeklappt ist).
+   Ohne Direktlink: `vercel.com/dashboard` → Projekt antippen → die Reiterzeile
+   (Project · Deployments · Observability · …) nach rechts schieben bis
+   **Settings** → dort in der Liste **Environment Variables**.
+2. **Key** `MDC_TERMIN_PASSWORD`, **Value** das Passwort für die Wirte.
+3. Als Umgebung **Production** ankreuzen (Preview/Development nur, wenn du dort
+   auch testen willst) → **Save**.
+4. **Redeploy:** Neue Variablen gelten erst für den nächsten Build. Also unter
+   **Deployments** beim obersten Eintrag das Dreipunkt-Menü → **Redeploy**.
+   Danach kommen die Wirte hinein.
+
+Beim Anlegen fragt Vercel, ob der Wert **Config** oder **Secret** sein soll:
+Ein Secret lässt sich nach dem Speichern nicht mehr anzeigen. Für ein Passwort,
+das du den Wirten vorlesen können musst, ist **Config** praktischer — sonst
+brauchst du eine eigene Notiz, wo es steht.
+
 ## Was dort geht — und was nicht
 
 Geht:
