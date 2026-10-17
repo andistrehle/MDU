@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================
-// Team Manager — Dashboard (Kopf der Seite /mein-team/zusagen)
+// Team Manager — Dashboard (/mein-team/zusagen; die Terminliste liegt unter /mein-team/termine)
 // ============================================================
 //
 // Vom Betreiber gewählt (16.10.2026): Entwurf „Dartscheibe“, nur stylischer.
@@ -89,22 +89,23 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
       {/* Kacheln */}
       <div className="mdu-dash-kacheln">
         {kasse && (
-          <Kachel breit href="/mein-team/kasse" titel="Teamkasse" akzent={GOLD} symbol="€"
+          <Kachel href="/mein-team/kasse" titel="Teamkasse" akzent={GOLD} symbol="€"
             gross={euro(kasse.stand)} grossFarbe={kasse.stand < 0 ? '#E5484D' : undefined}
             klein={kasse.meinOffen ? <b style={{ color: '#E5484D' }}>Du: {euro(kasse.meinOffen)} offen</b>
               : kasse.offen ? `${euro(kasse.offen)} offen im Team` : 'Alles bezahlt ✓'} />
         )}
-        <Kachel href="#termine" titel="Aufgaben" akzent="#7C5CD6" symbol={<Icon name="list" size={15} stroke={2.4} />}
+        <Kachel href="/mein-team/termine" titel="Termine" akzent="#4E7DBD" symbol={<Icon name="calendar" size={15} stroke={2.2} />}
+          gross={`${spiele.length} anstehend`}
+          klein={ichId && ohneAntwort.length ? <b style={{ color: '#B07A00' }}>{ohneAntwort.length} noch zuzusagen</b> : 'Zu-/Absagen, Aufstellung'} />
+        <Kachel href="/mein-team/termine" titel="Aufgaben" akzent="#7C5CD6" symbol={<Icon name="list" size={15} stroke={2.4} />}
           gross={offeneAufgaben.length ? `${offeneAufgaben.length} offen` : 'Keine'}
           klein={meineAufgaben.length ? <b style={{ color: '#7C5CD6' }}>{meineAufgaben.length} für dich</b> : 'an den Spieltagen'} />
-        <Kachel href="/mein-team/spielplan" titel="Spielplan" akzent={GRUEN} symbol={<Icon name="calendar" size={15} stroke={2.2} />}
-          gross={`${spiele.filter(e => e.art === 'mdu').length} Spiele`} klein={`noch in der Saison · ${liga}`} />
       </div>
 
       {/* Die nächsten Termine */}
       {spiele.length > 1 && (
         <div style={karte}>
-          <KartenKopf titel="Danach" rechts={<a href="#termine" style={linkKlein}>Alle Termine ↓</a>} />
+          <KartenKopf titel="Danach" rechts={<Link href="/mein-team/termine" style={linkKlein}>Alle Termine →</Link>} />
           {spiele.slice(1, 4).map(e => {
             const m = meins(e.key);
             const farbe = e.art === 'ext' ? terminFarbe(e.t) : e.b.home === teamId ? GRUEN : '#4E7DBD';
@@ -127,7 +128,7 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
 
       <Statistik vergangen={vergangen} zusagen={zusagen} personen={personen} ichId={ichId} gespielt={gespielt} />
 
-      <style>{'.mdu-dash-hover{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-dash-hover:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--th-shadow)}.mdu-dash-zeile:hover{background:var(--th-bg-card3)}.mdu-dash-kacheln{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}@media (max-width:520px){.mdu-dash-kacheln{grid-template-columns:1fr 1fr}.mdu-dash-breit{grid-column:1/-1}}'}</style>
+      <style>{'.mdu-dash-hover{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-dash-hover:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--th-shadow)}.mdu-dash-zeile:hover{background:var(--th-bg-card3)}.mdu-dash-kacheln{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media (max-width:640px){.mdu-dash-kacheln{grid-template-columns:1fr 1fr}}'}</style>
     </section>
   );
 }
@@ -152,7 +153,6 @@ function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, me
     }}>
       {/* Scheiben-Segmente als Struktur im Hintergrund */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: `repeating-conic-gradient(from 9deg at 22% 62%, rgba(255,255,255,0.045) 0 18deg, transparent 18deg 36deg)` }} />
-      <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 4, background: `repeating-linear-gradient(90deg, ${ROT} 0 22px, ${GRUEN} 22px 44px)` }} />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
         <TeamBadge initials={t?.short ?? teamName.slice(0, 3)} color={t?.color} logoUrl={t?.logoUrl ?? undefined} size={36} ring={CREME} />

@@ -128,7 +128,7 @@ export function TerminAnsicht({ id }: { id: string }) {
     if (!t || !window.confirm('Termin wirklich löschen? Zu- und Absagen, Notiz und Aufgaben dazu werden mit gelöscht.')) return;
     const { error } = await loescheTermin(t);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
-    router.push('/mein-team/zusagen');
+    router.push('/mein-team/termine');
   }
 
   async function teilen() {
@@ -169,7 +169,7 @@ export function TerminAnsicht({ id }: { id: string }) {
   const farbe = terminFarbe(t);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Termine</Link>
+      <Link href="/mein-team/termine" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Termine</Link>
 
       {bearbeiten ? (
         <TerminFormular start={t} titel="Termin ändern" onSpeichern={aendern} onAbbrechen={() => setBearbeiten(false)} onLoeschen={() => void loeschen()} />

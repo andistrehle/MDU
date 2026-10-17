@@ -132,7 +132,7 @@ export function NotificationBell() {
               <button
                 key={o.key}
                 type="button"
-                onClick={() => { setOpen(false); router.push('/mein-team/zusagen'); }}
+                onClick={() => { setOpen(false); router.push('/mein-team/termine'); }}
                 style={{
                   display: 'flex', alignItems: 'flex-start', gap: 10, width: '100%', textAlign: 'left',
                   padding: '12px 16px', cursor: 'pointer', border: 'none', borderBottom: '1px solid var(--th-line-4)',

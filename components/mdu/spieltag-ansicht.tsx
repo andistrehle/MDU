@@ -141,7 +141,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {mitglied && (
-        <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Spiele</Link>
+        <Link href="/mein-team/termine" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Spiele</Link>
       )}
 
       {/* ── Übersicht ── */}
