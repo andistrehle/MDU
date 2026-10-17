@@ -421,6 +421,13 @@ im Kalender-Abo („Extern“ im Titel) und in der Glocke. Premium wie der Rest.
   zum Herunterladen (Semikolon + BOM für deutsches Excel).
 - [ ] Idee (später): Foto/PDF eines fremden Spielplans per Texterkennung einlesen.
 
+### Geparkt — Highlights-Wand (17.10.2026)
+- [ ] Team-Bestwerte aus den Spielberichten (180er, 171er, High Finish, Short Leg) mit
+  Saisonrekord und Tabelle je Spieler. Gebaut und wieder aus dem Team-Manager-Dashboard
+  genommen (Betreiber: „das ist meine Premium-Funktion, kommt evtl. an anderer Stelle“).
+  Code im Git-Verlauf (Commit „Gegner-Infos und Highlights-Wand“, `HighlightWand` in
+  `components/mdu/team-dashboard.tsx`). Ort und Umfang noch offen.
+
 ### ⏳ Nächster Schritt — Nominierung (vom Betreiber so festgelegt, „merke dir das“)
 - Kapitän nominiert je Spieltag Spieler aus den Zusagen.
 - Offen zu klären: Sichtbarkeit fürs Team, Übernahme der Nominierung als vorbelegte

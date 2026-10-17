@@ -29,14 +29,6 @@ import { STATUS, StatusIcon } from './zusagen-ui';
 export type DashEintrag = { key: string; datum: string; zeit: string } & ({ art: 'mdu'; b: Begegnung27 } | { art: 'ext'; t: TeamTermin });
 export interface DashKasse { stand: number; offen: number; meinOffen: number | null }
 export interface DashGespielt { berichte: number; gespielt: Record<string, number> }
-export interface DashHighlight { name: string; playerId: string | null; b180: number; b171: number; highFinish: number | null; shortLeg: number | null; einsaetze: number; singles: number; wins: number; points: number }
-export interface DashGegner {
-  tabelle: { pos: number; pts: number; sp: number; s: number; u: number; n: number; teams: number } | null;
-  letzte: { key: string; datum: string | null; gegen: string; gegenName: string; f: number; a: number; ergebnis: 'S' | 'U' | 'N'; wertung: boolean; bestaetigt: boolean }[];
-  vergleich: { datum: string | null; wir: number; sie: number }[];
-  beste: { name: string; points: number; wins: number; singles: number; b180: number }[];
-}
-export interface DashEinblick { highlights: DashHighlight[]; gegner: DashGegner | null }
 
 // Farben der Scheibe
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A', CREME = '#EFE6CF', SCHWARZ = '#141414';
@@ -53,14 +45,14 @@ function titelVon(e: DashEintrag, teamId: string) {
 }
 const pfadVon = (e: DashEintrag, teamId: string) => (e.art === 'mdu' ? spieltagPfad(teamId, e.key) : terminPfad(e.t.id));
 
-export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusagen, personen, ichId, ichName, aufgaben, kasse, gespielt, einblick }: {
+export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusagen, personen, ichId, ichName, aufgaben, kasse, gespielt }: {
   teamId: string; teamName: string; liga: string;
   /** anstehende Termine (MDU + eigene), nach Datum */
   spiele: DashEintrag[];
   /** Kennungen der VERGANGENEN Termine der Saison (für die Zusage-Quote) */
   vergangen: string[];
   zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; ichName: string;
-  aufgaben: Aufgabe[]; kasse: DashKasse | null; gespielt: DashGespielt | null; einblick: DashEinblick | null;
+  aufgaben: Aufgabe[]; kasse: DashKasse | null; gespielt: DashGespielt | null;
 }) {
   const naechstes = spiele[0];
   const zu = (key: string) => zusagen.filter(z => z.match_key === key);
@@ -68,6 +60,8 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
   const vorname = ichName.split(' ')[0] || 'du';
 
   const ohneAntwort = ichId ? spiele.filter(e => !meins(e.key)) : [];
+  const naechstesSpiel = spiele.find(e => e.art === 'mdu');
+  const gegnerId = naechstesSpiel && naechstesSpiel.art === 'mdu' ? (naechstesSpiel.b.home === teamId ? naechstesSpiel.b.away : naechstesSpiel.b.home) : null;
   const keys = new Set(spiele.map(e => e.key));
   const offeneAufgaben = aufgaben.filter(a => !a.done && keys.has(a.match_key));
   const meineAufgaben = ichId ? offeneAufgaben.filter(a => a.assignee_id === ichId) : [];
@@ -81,7 +75,7 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
       {/* Kacheln */}
       <div className="mdu-dash-kacheln">
         {kasse && (
-          <Kachel breit href="/mein-team/kasse" titel="Teamkasse" akzent={GOLD} symbol="€"
+          <Kachel href="/mein-team/kasse" titel="Teamkasse" akzent={GOLD} symbol="€"
             gross={euro(kasse.stand)} grossFarbe={kasse.stand < 0 ? '#E5484D' : undefined}
             klein={kasse.meinOffen ? <b style={{ color: '#E5484D' }}>Du: {euro(kasse.meinOffen)} offen</b>
               : kasse.offen ? `${euro(kasse.offen)} offen im Team` : 'Alles bezahlt ✓'} />
@@ -92,15 +86,12 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
         <Kachel href="/mein-team/termine" titel="Aufgaben" akzent="#7C5CD6" symbol={<Icon name="list" size={15} stroke={2.4} />}
           gross={offeneAufgaben.length ? `${offeneAufgaben.length} offen` : 'Keine'}
           klein={meineAufgaben.length ? <b style={{ color: '#7C5CD6' }}>{meineAufgaben.length} für dich</b> : 'an den Spieltagen'} />
+        {gegnerId && (
+          <Kachel href="/mein-team/gegner" titel="Gegneranalyse" akzent={ROT} symbol={<Icon name="flag" size={15} stroke={2.2} />}
+            gross={team27(gegnerId)?.name ?? gegnerId} klein="nächster Gegner" kleinGross />
+        )}
       </div>
 
-      {/* Nächster Gegner (nächstes MDU-Spiel) */}
-      {(() => {
-        const m = spiele.find(e => e.art === 'mdu');
-        if (!m || m.art !== 'mdu') return null;
-        const gid = m.b.home === teamId ? m.b.away : m.b.home;
-        return <GegnerKarte teamId={teamId} gegnerId={gid} e={m} info={einblick?.gegner ?? null} geladen={!!einblick} />;
-      })()}
 
       {/* Die nächsten Termine */}
       {spiele.length > 1 && (
@@ -128,9 +119,7 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
 
       <Statistik vergangen={vergangen} zusagen={zusagen} personen={personen} ichId={ichId} gespielt={gespielt} />
 
-      <HighlightWand liste={einblick?.highlights ?? []} ichId={ichId} geladen={!!einblick} />
-
-      <style>{'.mdu-dash-hover{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-dash-hover:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--th-shadow)}.mdu-dash-zeile:hover{background:var(--th-bg-card3)}.mdu-dash-kacheln{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}@media (max-width:640px){.mdu-dash-kacheln{grid-template-columns:1fr 1fr}.mdu-dash-breit{grid-column:1/-1}}'}</style>
+      <style>{'.mdu-dash-hover{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-dash-hover:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--th-shadow)}.mdu-dash-zeile:hover{background:var(--th-bg-card3)}.mdu-dash-kacheln{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media (max-width:640px){.mdu-dash-kacheln{grid-template-columns:1fr 1fr}.mdu-dash-breit{grid-column:1/-1}}'}</style>
     </section>
   );
 }
@@ -373,137 +362,10 @@ function Balken({ anteil, farbe }: { anteil: number; farbe: string }) {
   );
 }
 
-// ── Nächster Gegner ─────────────────────────────────────────
-
-const ERG_FARBE = { S: '#22C55E', U: GOLD, N: '#E5484D' } as const;
-
-function GegnerKarte({ teamId, gegnerId, e, info, geladen }: { teamId: string; gegnerId: string; e: DashEintrag; info: DashGegner | null; geladen: boolean }) {
-  const G = team27(gegnerId);
-  const tab = info?.tabelle;
-  const hatDaten = !!info && (info.letzte.length > 0 || (tab?.sp ?? 0) > 0);
-  return (
-    <Link href={pfadVon(e, teamId)} className="mdu-dash-hover" style={{ ...karte, display: 'block', textDecoration: 'none' }}>
-      <KartenKopf titel="Nächster Gegner" rechts={<span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-muted)' }}>{wochentag(e.datum)} {tagMonat(e.datum)}</span>} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <TeamBadge initials={G?.short ?? gegnerId.slice(0, 3)} color={G?.color} logoUrl={G?.logoUrl ?? undefined} size={48} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, lineHeight: 1.05, textTransform: 'uppercase', color: 'var(--th-text-strong)', overflowWrap: 'anywhere' }}>{G?.name ?? gegnerId}</div>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', marginTop: 2 }}>
-            {tab && tab.sp > 0 ? <>Platz <b style={{ color: 'var(--th-text-strong)' }}>{tab.pos}</b> von {tab.teams} · {tab.pts} Punkte · {tab.s}-{tab.u}-{tab.n}</> : 'Noch ohne Spiel in dieser Saison'}
-          </div>
-        </div>
-        {tab && tab.sp > 0 && (
-          <div style={{ width: 52, height: 52, borderRadius: 999, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `conic-gradient(${ROT} 0 25%, ${GRUEN} 25% 50%, ${ROT} 50% 75%, ${GRUEN} 75%)`, padding: 4 }}>
-            <div style={{ width: '100%', height: '100%', borderRadius: 999, background: 'var(--th-bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 20, color: 'var(--th-text-strong)' }}>{tab.pos}.</div>
-          </div>
-        )}
-      </div>
-
-      {!geladen ? null : !hatDaten ? (
-        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', marginTop: 10 }}>Sobald die ersten Ergebnisse da sind, stehen hier Form, Vergleich und die besten Spieler des Gegners.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
-          {info!.letzte.length > 0 && (
-            <div>
-              <div style={miniTitel}>Form · letzte Spiele</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {info!.letzte.map(l => (
-                  <span key={l.key} title={`${l.gegenName} ${l.f}:${l.a}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 9px 4px 4px', borderRadius: 999, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-body)' }}>
-                    <span style={{ width: 20, height: 20, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: ERG_FARBE[l.ergebnis], color: l.ergebnis === 'U' ? '#3A2A00' : '#fff', fontSize: 11, fontWeight: 900 }}>{l.ergebnis}</span>
-                    {l.f}:{l.a}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {info!.vergleich.length > 0 && (
-            <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-              <span style={miniTitel}>Diese Saison gegen euch: </span>
-              {info!.vergleich.map((v, i) => <b key={i} style={{ marginRight: 8, color: v.wir > v.sie ? '#16A34A' : v.wir < v.sie ? '#DC2626' : '#B07A00' }}>{v.wir}:{v.sie}</b>)}
-            </div>
-          )}
-          {info!.beste.length > 0 && (
-            <div>
-              <div style={miniTitel}>Ihre Besten im Einzel</div>
-              {info!.beste.map((b, i) => (
-                <div key={b.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
-                  <span style={{ width: 18, fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 15, color: i === 0 ? GOLD : 'var(--th-text-faint)' }}>{i + 1}</span>
-                  <span style={{ flex: 1, fontWeight: 700, color: 'var(--th-text-strong)' }}>{b.name}</span>
-                  <span style={{ color: 'var(--th-text-muted)' }}>{b.wins}/{b.singles} Siege{b.b180 ? ` · ${b.b180}× 180` : ''}</span>
-                  <b style={{ width: 44, textAlign: 'right', color: 'var(--th-text-strong)' }}>{b.points} P.</b>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </Link>
-  );
-}
-
-// ── Highlights-Wand ─────────────────────────────────────────
-
-function HighlightWand({ liste, ichId, geladen }: { liste: DashHighlight[]; ichId: string | null; geladen: boolean }) {
-  if (!geladen) return null;
-  const summe = (f: (h: DashHighlight) => number) => liste.reduce((s, h) => s + f(h), 0);
-  const spitze = <K extends 'b180' | 'b171'>(k: K) => [...liste].filter(h => h[k] > 0).sort((a, b) => b[k] - a[k])[0];
-  const hf = [...liste].filter(h => h.highFinish).sort((a, b) => (b.highFinish ?? 0) - (a.highFinish ?? 0))[0];
-  const sl = [...liste].filter(h => h.shortLeg).sort((a, b) => (a.shortLeg ?? 99) - (b.shortLeg ?? 99))[0];
-  const leer = !liste.some(h => h.b180 || h.b171 || h.highFinish || h.shortLeg);
-  const rekorde: { titel: string; wert: string; wer: string | null; farbe: string }[] = [
-    { titel: '180er', wert: String(summe(h => h.b180)), wer: spitze('b180') ? `${spitze('b180')!.name} (${spitze('b180')!.b180})` : null, farbe: ROT },
-    { titel: '171er', wert: String(summe(h => h.b171)), wer: spitze('b171') ? `${spitze('b171')!.name} (${spitze('b171')!.b171})` : null, farbe: GRUEN },
-    { titel: 'High Finish', wert: hf?.highFinish ? String(hf.highFinish) : '–', wer: hf?.name ?? null, farbe: GOLD },
-    { titel: 'Short Leg', wert: sl?.shortLeg ? `${sl.shortLeg} Darts` : '–', wer: sl?.name ?? null, farbe: '#4E7DBD' },
-  ];
-  const tabelle = [...liste].filter(h => h.b180 || h.b171 || h.highFinish || h.shortLeg)
-    .sort((a, b) => b.b180 - a.b180 || b.b171 - a.b171 || (b.highFinish ?? 0) - (a.highFinish ?? 0)).slice(0, 6);
-  return (
-    <div style={karte}>
-      <KartenKopf titel="Highlights" rechts={<span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>Team · Saison</span>} />
-      {leer ? (
-        <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)', lineHeight: 1.55 }}>Noch keine Highlights. Jede 180, jedes High Finish und jedes Short Leg aus euren Spielberichten landet hier – mit Saisonrekord.</div>
-      ) : (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-            {rekorde.map(r => (
-              <div key={r.titel} style={{ position: 'relative', overflow: 'hidden', padding: '10px 12px', borderRadius: 14, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)' }}>
-                <span aria-hidden style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: r.farbe }} />
-                <div style={miniTitel}>{r.titel}</div>
-                <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26, lineHeight: 1, color: 'var(--th-text-strong)' }}>{r.wert}</div>
-                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.wer ?? '—'}</div>
-              </div>
-            ))}
-          </div>
-          {tabelle.length > 0 && (
-            <div style={{ marginTop: 10, borderTop: '1px solid var(--th-line-5)', paddingTop: 6 }}>
-              <div style={{ ...miniTitel, display: 'grid', gridTemplateColumns: '1fr 34px 34px 40px 40px', gap: 6, padding: '4px 8px', marginBottom: 0 }}>
-                <span>Spieler</span><span style={{ textAlign: 'right' }}>180</span><span style={{ textAlign: 'right' }}>171</span><span style={{ textAlign: 'right' }}>HF</span><span style={{ textAlign: 'right' }}>SL</span>
-              </div>
-              {tabelle.map(h => {
-                const ich = !!ichId && h.playerId === ichId;
-                return (
-                  <div key={h.name} style={{ display: 'grid', gridTemplateColumns: '1fr 34px 34px 40px 40px', gap: 6, padding: '6px 8px', borderRadius: 10, background: ich ? 'rgba(210,53,43,0.08)' : 'transparent', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
-                    <span style={{ fontWeight: ich ? 900 : 700, color: ich ? ROT : 'var(--th-text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ich ? 'Du' : h.name}</span>
-                    <b style={{ textAlign: 'right' }}>{h.b180 || '·'}</b><b style={{ textAlign: 'right' }}>{h.b171 || '·'}</b>
-                    <b style={{ textAlign: 'right' }}>{h.highFinish ?? '·'}</b><b style={{ textAlign: 'right' }}>{h.shortLeg ?? '·'}</b>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-const miniTitel: React.CSSProperties = { display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-muted)', marginBottom: 5 };
-
 // ── Bausteine ───────────────────────────────────────────────
 
-function Kachel({ href, titel, akzent, symbol, gross, grossFarbe, klein, breit = false }: {
-  breit?: boolean; href: string; titel: string; akzent: string; symbol: React.ReactNode; gross: React.ReactNode; grossFarbe?: string; klein: React.ReactNode;
+function Kachel({ href, titel, akzent, symbol, gross, grossFarbe, klein, breit = false, kleinGross = false }: {
+  breit?: boolean; kleinGross?: boolean; href: string; titel: string; akzent: string; symbol: React.ReactNode; gross: React.ReactNode; grossFarbe?: string; klein: React.ReactNode;
 }) {
   const inhalt = (
     <>
@@ -516,7 +378,7 @@ function Kachel({ href, titel, akzent, symbol, gross, grossFarbe, klein, breit =
         <span style={{ width: 28, height: 28, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: akzent, color: '#fff', fontFamily: 'var(--font-manrope)', fontWeight: 900, fontSize: 14 }}>{symbol}</span>
         <span style={{ flex: 1, fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-muted)' }}>{titel}</span>
       </div>
-      <div style={{ position: 'relative', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, lineHeight: 1.05, marginTop: 10, color: grossFarbe ?? 'var(--th-text-strong)' }}>{gross}</div>
+      <div style={{ position: 'relative', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: kleinGross ? 22 : 28, lineHeight: 1.05, marginTop: 10, color: grossFarbe ?? 'var(--th-text-strong)', overflowWrap: 'anywhere' }}>{gross}</div>
       <div style={{ position: 'relative', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>{klein}</div>
     </>
   );
