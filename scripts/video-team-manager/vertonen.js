@@ -35,7 +35,7 @@ const PAUSE = +(process.env.PAUSE || 0.35); // Sekunden Luft am Ende jeder Szene
 // Aussprache: gilt NUR für den gesprochenen Text, der Untertitel bleibt wie in erklaer.html.
 // Ohne das liest die Stimme „mdudarts“ als ein Wort („Mdu-darts“).
 const AUSSPRACHE = [
-  [/mdudarts\.de/gi, 'Em De U Darts Punkt De'],
+  [/mdudarts\.de/gi, 'Em-De-U-Darts Punkt De-E'], // so trennt die Stimme die Buchstaben (per Spracherkennung geprüft)
   [/\bMDU\b/g, 'Em De U'],
   [/\bTC\b/g, 'Teamcaptain'],
   [/7,99\s*€/g, 'sieben neunundneunzig'],
@@ -117,7 +117,7 @@ async function szenenLesen() {
   const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });
   const p = await b.newPage();
   await p.goto('file://' + path.join(DIR, 'erklaer.html')); await p.waitForTimeout(500);
-  const sz = await p.evaluate(() => SZENEN.map(s => ({ titel: s.titel, saetze: s.schritte.map(x => x.u) })));
+  const sz = await p.evaluate(() => SZENEN.map(s => ({ titel: s.titel || '(ohne Titel)', saetze: s.schritte.filter(x => !x.weiter).map(x => x.u) })));
   await b.close();
   return sz;
 }
@@ -168,6 +168,22 @@ async function main() {
     const datei = path.join(DIR, `probe-${voice}.mp3`);
     await sprich(process.argv[4] || 'Servus! Ich möcht euch ganz kurz erklären, was es Neues auf der Homepage gibt! Passts bitte kurz auf. Good Darts – und bis bald!', voice, datei);
     console.log('Probe:', datei);
+    return;
+  }
+
+  if (arg === '--probe-szenen') {
+    // Hörprobe ganzer Szenen (Nummern ab 1, z. B. 1,15) — landet zugleich im Zwischenspeicher
+    brauchtKey();
+    const voice = process.env.ELEVENLABS_VOICE_ID;
+    fs.mkdirSync(TON, { recursive: true });
+    const szenen = await szenenLesen();
+    for (const nr of process.argv[3].split(',').map(Number)) {
+      const sz = szenen[nr - 1];
+      const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+      const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
+      fs.copyFileSync(t.datei, path.join(DIR, `probe-szene-${nr}.mp3`));
+      console.log(`Szene ${nr}: ${t.ende.toFixed(1)} s, ${t.neu} Zeichen neu → probe-szene-${nr}.mp3`);
+    }
     return;
   }
 

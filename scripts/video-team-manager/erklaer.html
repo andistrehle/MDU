@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<title>MDU – Der Team Manager ist da</title>
+<link href="fonts.css" rel="stylesheet">
+<style>
+  /* Farben wie mdudarts.de (Hell-Modus) + Team-Manager-Grün der Kopfkarte */
+  :root { --gruen:#3E9C33; --dunkel:#10301C; --gold:#E8B84A; --rot:#D2352B; --blau1:#6B95CE; --blau2:#4E7DBD; --text:#1A1D24; --muted:#5C6470; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; width:1920px; height:1080px; overflow:hidden; background:#F2F4F7; font-family: Manrope, sans-serif; color:var(--text); }
+  body.hoch, body.hoch html { width:1080px; height:1920px; }
+  #stage { position:absolute; inset:0; background: radial-gradient(60% 70% at 85% 80%, rgba(78,125,189,.12), transparent 70%), radial-gradient(50% 60% at 10% 10%, rgba(62,156,51,.10), transparent 70%), #F2F4F7; overflow:hidden; }
+  .szene { position:absolute; inset:0; opacity:0; transition: opacity .45s ease; }
+  .szene.an { opacity:1; }
+  .tc { font-family:'Saira Condensed'; font-weight:900; text-transform:uppercase; letter-spacing:.02em; line-height:.95; }
+
+  /* Szenentitel oben links */
+  .titel { position:absolute; left:70px; top:40px; display:flex; align-items:center; gap:18px; z-index:5; }
+  .titel img { height:58px; }
+  .titel .t { font-family:'Saira Condensed'; font-weight:900; font-size:54px; text-transform:uppercase; line-height:1; color:var(--text); }
+  .titel .t i { font-style:normal; color:var(--gruen); }
+  .szene.an .titel .t { animation: rein .5s cubic-bezier(.2,1.4,.4,1) both; }
+  @keyframes rein { from { transform: translateX(-40px); opacity:0; } to { transform:none; opacity:1; } }
+  .beispiel { position:absolute; right:40px; top:44px; padding:7px 16px; border-radius:999px; background:rgba(26,29,36,.08); color:var(--muted); font-weight:700; font-size:17px; z-index:5; }
+
+  /* Laptop links */
+  .laptop { position:absolute; left:60px; top:140px; width:1180px; }
+  .laptop .rand { background:#1A1D24; border-radius:26px 26px 8px 8px; padding:22px 22px 26px; box-shadow: 0 40px 80px rgba(15,23,42,.35); position:relative; }
+  .laptop .rand::before { content:''; position:absolute; top:8px; left:50%; width:8px; height:8px; margin-left:-4px; border-radius:50%; background:#3a3f4a; }
+  .laptop .schirm { position:relative; width:1136px; height:710px; overflow:hidden; border-radius:6px; background:#fff; }
+  .laptop .fuss { height:26px; margin:0 -60px; background:linear-gradient(#cfd4dc,#9aa1ad); border-radius:0 0 26px 26px; position:relative; }
+  .laptop .fuss::before { content:''; position:absolute; left:50%; top:0; width:180px; height:10px; margin-left:-90px; background:#b9bfc9; border-radius:0 0 10px 10px; }
+  /* Handy rechts */
+  .handy { position:absolute; left:1340px; top:120px; width:410px; border-radius:58px; padding:14px; background:#1A1D24; box-shadow: 0 40px 80px rgba(15,23,42,.38), inset 0 0 0 2px #3a3f4a; }
+  .handy .schirm { position:relative; width:382px; height:827px; overflow:hidden; border-radius:46px; background:#fff; }
+  .handy .schirm::after { content:''; position:absolute; top:12px; left:50%; width:110px; height:30px; margin-left:-55px; border-radius:20px; background:#1A1D24; z-index:4; }
+  .schirm img { position:absolute; left:0; top:0; width:100%; opacity:0; transition: opacity .35s ease, transform .9s cubic-bezier(.3,.8,.3,1); transform-origin: 50% 0; }
+  .schirm img.an { opacity:1; }
+
+  /* Untertitel */
+  .unter { position:absolute; left:60px; right:60px; bottom:26px; min-height:92px; display:flex; align-items:center; justify-content:center; text-align:center;
+           padding:16px 40px; border-radius:18px; background:rgba(16,48,28,.93); color:#fff; font-size:38px; font-weight:800; line-height:1.25; z-index:20;
+           box-shadow:0 12px 34px rgba(15,23,42,.3); border-bottom:5px solid var(--gold); }
+  .unter:empty { display:none; }
+  .fortschritt { position:absolute; left:0; bottom:0; height:6px; background:var(--gold); z-index:21; transition: width .4s linear; }
+
+  /* Einblendungen (data-k) */
+  .stempel { position:absolute; z-index:15; padding:16px 26px; border-radius:16px; background:var(--gruen); color:#fff; font-weight:900; font-size:36px; transform:rotate(-4deg) scale(.6); opacity:0;
+             box-shadow:0 14px 34px rgba(62,156,51,.45); transition: transform .35s cubic-bezier(.2,1.6,.4,1), opacity .2s; font-family:'Saira Condensed'; text-transform:uppercase; letter-spacing:.02em; }
+  .stempel.an { transform:rotate(-4deg) scale(1); opacity:1; }
+  .stempel.gold { background:var(--gold); color:#1A1D24; box-shadow:0 14px 34px rgba(232,184,74,.5); }
+  .stempel.rot { background:var(--rot); box-shadow:0 14px 34px rgba(210,53,43,.45); }
+
+  /* Szene 1 */
+  .intro { position:absolute; inset:0; background:#0A1A10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; color:#fff; z-index:8; transition: opacity .6s; }
+  .intro::before { content:''; position:absolute; inset:-50%; background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.05) 0 9deg, transparent 9deg 18deg); animation: dreh 14s linear infinite; }
+  .intro .logo { width:420px; position:relative; transform:scale(0); }
+  .szene.an .intro .logo { animation: knall .6s .3s cubic-bezier(.2,1.8,.4,1) forwards; }
+  .intro .gross { position:relative; font-size:150px; text-align:center; transform:scale(0); color:#fff; text-shadow: 0 8px 40px rgba(232,184,74,.4); }
+  .intro .gross b { color:var(--gold); }
+  .intro.weg { opacity:0; }
+  .intro.titel-da .gross { animation: knall .55s cubic-bezier(.2,1.8,.4,1) forwards; }
+  .scheibe { position:absolute; width:520px; height:520px; border-radius:50%; right:-120px; bottom:-140px; animation: dreh 6s linear infinite;
+             background: radial-gradient(circle, #D2352B 0 6%, #1FA34A 6% 11%, transparent 11%), repeating-conic-gradient(#1A1D24 0 9deg, #EFE6CF 9deg 18deg);
+             box-shadow: 0 0 0 26px #1A1D24, 0 0 0 30px #3a3f4a; opacity:.9; }
+  .scheibe.links { left:-160px; top:-160px; right:auto; bottom:auto; width:380px; height:380px; animation-duration:9s; animation-direction: reverse; }
+  @keyframes dreh { to { transform: rotate(360deg); } }
+  @keyframes knall { 0% { transform:scale(0) rotate(-8deg); } 100% { transform:scale(1) rotate(0); } }
+
+  /* Szene 2: WhatsApp */
+  .wa { position:absolute; inset:0; background:#EFE7DD; padding:22px 26px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
+  .wa .kopf { margin:-22px -26px 6px; padding:16px 26px; background:#075E54; color:#fff; font-weight:800; font-size:24px; display:flex; gap:14px; align-items:center; }
+  .wa .kopf small { display:block; font-weight:600; font-size:15px; opacity:.8; }
+  .wa .m { max-width:78%; padding:10px 16px; border-radius:12px; background:#fff; font-size:22px; box-shadow:0 1px 1px rgba(0,0,0,.12); opacity:0; transform:translateY(16px); transition: all .25s; }
+  .wa .m.ich { align-self:flex-end; background:#DCF8C6; }
+  .wa .m b { display:block; font-size:16px; color:#075E54; }
+  .wa .m.an { opacity:1; transform:none; }
+  .handy .wa { padding:56px 16px 16px; gap:9px; }
+  .handy .wa .kopf { margin:-56px -16px 4px; padding:52px 16px 12px; font-size:19px; }
+  .handy .wa .m { font-size:17px; padding:8px 12px; }
+  .handy .wa .m b { font-size:13px; }
+  .strich { position:absolute; inset:0; z-index:12; pointer-events:none; opacity:0; transition:opacity .2s; }
+  .strich.an { opacity:1; }
+  .strich::before, .strich::after { content:''; position:absolute; left:50%; top:50%; width:150%; height:26px; background:var(--rot); border-radius:13px; box-shadow:0 6px 24px rgba(210,53,43,.5); }
+  .strich::before { transform: translate(-50%,-50%) rotate(-28deg) scaleX(0); transition: transform .35s ease-out; }
+  .strich::after { transform: translate(-50%,-50%) rotate(28deg) scaleX(0); transition: transform .35s .2s ease-out; }
+  .strich.an::before { transform: translate(-50%,-50%) rotate(-28deg) scaleX(1); }
+  .strich.an::after { transform: translate(-50%,-50%) rotate(28deg) scaleX(1); }
+
+  /* Szene 12: Teilen-Vorschau */
+  .vorschau { margin-top:10px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.15); align-self:flex-end; max-width:86%; opacity:0; transform:translateY(16px); transition:all .3s; }
+  .vorschau.an { opacity:1; transform:none; }
+  .vorschau .bild { height:150px; background:linear-gradient(160deg,#10301C,#1E5A31); display:flex; align-items:center; justify-content:center; gap:16px; color:#fff; }
+  .vorschau .bild img { height:64px; }
+  .vorschau .txt { padding:10px 14px; background:#DCF8C6; font-size:16px; }
+  .vorschau .txt b { display:block; font-size:17px; }
+  .vorschau .txt small { color:#5C6470; }
+
+  /* Szene 13: Collage */
+  .collage { position:absolute; inset:0; display:grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap:14px; padding:14px; background:#0A1A10; }
+  .collage div { background-size:cover; background-position:top center; border-radius:12px; opacity:0; transform:scale(.6) rotate(-3deg); transition: all .3s cubic-bezier(.2,1.5,.4,1); }
+  .collage div.an { opacity:1; transform:none; }
+  .frage { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%) scale(0); text-align:center; z-index:9; transition: transform .45s cubic-bezier(.2,1.7,.4,1); }
+  .frage.an { transform:translateY(-50%) scale(1); }
+  .frage span { display:inline-block; padding:24px 44px; background:var(--gold); color:#1A1D24; border-radius:22px; font-size:118px; box-shadow:0 24px 60px rgba(0,0,0,.45); transform:rotate(-2deg); }
+  .trommel { animation: wackel .08s linear infinite; }
+  @keyframes wackel { 0% { transform:translate(1px,0); } 50% { transform:translate(-1px,1px); } 100% { transform:translate(0,-1px); } }
+
+  /* Szene 14/15: Preis */
+  .preis { position:absolute; inset:0; background: radial-gradient(120% 80% at 0% 0%, #1E5A31 0%, transparent 60%), radial-gradient(90% 90% at 100% 100%, rgba(210,53,43,0.35) 0%, transparent 55%), linear-gradient(160deg, #10301C 0%, #0A1A10 100%); color:#fff; }
+  .preis::before { content:''; position:absolute; inset:0; background: repeating-conic-gradient(from 9deg at 90% 20%, rgba(255,255,255,0.045) 0 18deg, transparent 18deg 36deg); }
+  .vgl { position:absolute; display:flex; align-items:center; gap:22px; font-size:56px; font-weight:900; opacity:0; transform:scale(.5); transition: all .35s cubic-bezier(.2,1.6,.4,1); }
+  .vgl.an { opacity:1; transform:none; }
+  .vgl .em { font-size:120px; line-height:1; }
+  .klirr .em { display:inline-block; animation: klirr .5s ease-in-out 2; }
+  @keyframes klirr { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-14deg) translateX(-10px); } }
+  .automat { width:150px; height:190px; border-radius:18px 18px 8px 8px; background:linear-gradient(#2a2f3a,#14171e); border:4px solid #E8B84A; position:relative; display:flex; align-items:center; justify-content:center; }
+  .automat::before { content:''; width:96px; height:96px; border-radius:50%; background: radial-gradient(circle, #D2352B 0 8%, #1FA34A 8% 14%, transparent 14%), repeating-conic-gradient(#1A1D24 0 9deg, #EFE6CF 9deg 18deg); box-shadow:0 0 0 6px #1A1D24; }
+  .automat b { position:absolute; bottom:-46px; left:50%; transform:translateX(-50%); white-space:nowrap; font-size:30px; color:var(--gold); }
+  .preisgross { position:absolute; text-align:center; opacity:0; transform:scale(.4); transition: all .4s cubic-bezier(.2,1.6,.4,1); }
+  .preisgross.an { opacity:1; transform:none; }
+  .preisgross .z { font-size:200px; color:var(--gold); text-shadow:0 10px 50px rgba(232,184,74,.35); }
+  .preisgross .z small { font-size:70px; color:#fff; }
+  .preisgross .u { font-size:42px; font-weight:800; margin-top:6px; }
+  .oder { position:absolute; padding:16px 32px; border-radius:18px; border:3px solid var(--gold); font-size:52px; opacity:0; transform:translateY(30px); transition: all .35s; }
+  .oder.an { opacity:1; transform:none; }
+  .oder b { color:var(--gold); }
+  .gratis { position:absolute; padding:22px 44px; border-radius:999px; background:var(--gold); color:#1A1D24; font-size:84px; transform:rotate(-3deg) scale(0); transition: transform .45s cubic-bezier(.2,1.7,.4,1); box-shadow:0 20px 60px rgba(232,184,74,.45); }
+  .gratis.an { transform:rotate(-3deg) scale(1); }
+  .weg-zu { position:absolute; display:flex; align-items:center; gap:18px; font-size:44px; font-weight:800; opacity:0; transition: opacity .3s; }
+  .weg-zu.an { opacity:1; }
+  .weg-zu span { padding:12px 22px; border-radius:14px; background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.35); }
+  .weg-zu i { font-style:normal; color:var(--gold); font-size:50px; }
+
+  /* ── Hochformat (nur Handy) ── */
+  body.hoch .laptop { display:none; }
+  body.hoch .handy { left:230px; top:250px; width:620px; border-radius:84px; padding:20px; }
+  body.hoch .handy .schirm { width:580px; height:1255px; border-radius:66px; }
+  body.hoch .handy .schirm::after { width:190px; height:52px; margin-left:-95px; top:20px; border-radius:30px; }
+  body.hoch .titel { left:60px; top:70px; right:60px; justify-content:center; }
+  body.hoch .titel img { height:86px; }
+  body.hoch .titel .t { font-size:70px; text-align:left; }
+  body.hoch .beispiel { top:200px; right:40px; font-size:24px; }
+  body.hoch .unter { left:50px; right:50px; bottom:auto; top:1560px; min-height:150px; font-size:52px; padding:26px 40px; }
+  body.hoch .stempel { font-size:52px; }
+  body.hoch .handy .wa { padding:96px 28px 28px; gap:16px; }
+  body.hoch .handy .wa .kopf { margin:-96px -28px 6px; padding:90px 28px 20px; font-size:34px; }
+  body.hoch .handy .wa .m { font-size:32px; padding:14px 20px; }
+  body.hoch .handy .wa .m b { font-size:24px; }
+  body.hoch .vorschau .bild { height:260px; } body.hoch .vorschau .bild img { height:110px; }
+  body.hoch .vorschau .txt { font-size:28px; } body.hoch .vorschau .txt b { font-size:30px; }
+  body.hoch .intro .gross { font-size:150px; }
+  body.hoch .intro .logo { width:520px; }
+  body.hoch .collage { grid-template-columns: repeat(3, 1fr); }
+  body.hoch .frage span { font-size:120px; }
+</style></head>
+<body><div id="stage"></div>
+<script>
+const HOCH = location.hash === '#hoch';
+if (HOCH) document.body.classList.add('hoch');
+const LOGO = '../../public/mdu-logo.webp';
+const S = 'shots/';
+const W = 1920, H = HOCH ? 1920 : 1080;
+
+// ── Bausteine ──
+const titel = (t) => `<div class="titel"><img src="${LOGO}"><div class="t">${t}</div></div>`;
+const beispiel = `<div class="beispiel">Beispieldaten</div>`;
+// Bilder: Liste von Shot-Namen; je Satz wählt `b` das gezeigte Bild, `z` zoomt im Laptop ([x%, y%, Faktor]).
+const geraete = (namen) => `
+  <div class="laptop"><div class="rand"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}web-${n}.jpg">`).join('')}</div></div><div class="fuss"></div></div>
+  <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}</div></div>`;
+const stempel = (k, text, x, y, art = '', xh, yh, bis) => `<div class="stempel ${art}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${HOCH ? xh ?? x : x}px;top:${HOCH ? yh ?? y : y}px">${text}</div>`;
+
+const chat = (zeilen) => `<div class="wa"><div class="kopf">👥 <span>DC Demo München<small>Max, Tim, Lena, Sepp, Kai, Flo …</small></span></div>
+  ${zeilen.map(([wer, txt, k], i) => `<div class="m ${wer === 'Max' ? 'ich' : ''}" data-k="${k ?? i}">${wer === 'Max' ? '' : `<b>${wer}</b>`}${txt}</div>`).join('')}</div>`;
+const CHAOS = [['Max', 'Wer kommt Freitag? 🎯', 0], ['Tim', 'Keine Ahnung 🤷', 0], ['Sepp', 'Ich vielleicht', 0], ['Lena', 'Welcher Freitag?', 1],
+  ['Kai', 'Bin evtl. im Urlaub', 1], ['Flo', '👍', 1], ['Vroni', 'Wer hat den Spielbericht?', 1], ['Max', 'Leute?? Brauch 4 Leute!', 1], ['Ali', '???', 1]];
+const teilen = `<div class="wa"><div class="kopf">👥 <span>DC Demo München<small>Max, Tim, Lena, Sepp, Kai, Flo …</small></span></div>
+  <div class="vorschau" data-k="1"><div class="bild"><img src="${LOGO}"><span class="tc" style="font-size:${HOCH ? 54 : 32}px">DC Demo München<br><span style="color:#E8B84A">vs. Bullseye Buam</span></span></div>
+  <div class="txt"><b>Fr 23.10. 20:00 · DC Demo München – Bullseye Buam</b><small>DC Demo München: Wer ist dabei? Zu- und Absagen für dieses Spiel.</small><br><span style="color:#075E54">mdudarts.de</span></div></div>
+  <div class="m an" data-k="2" style="align-self:flex-start"><b>Tim</b>Bin dabei! ✅</div><div class="m an" data-k="2" style="align-self:flex-start"><b>Lena</b>Zugesagt 💪</div></div>`;
+
+// Jede Szene: Titel, HTML, Schritte (Untertitel = Sprechertext; k = sichtbare Einblendungen; b = Bild; z = Zoom)
+const Z = { voll: null, inhalt: [44, 0, 1.38] };
+const SZENEN = [
+  { titel: 'Der Team Manager ist da', html: `${geraete(['dash-n9'])}
+      <div class="intro" id="intro"><div class="scheibe"></div><div class="scheibe links"></div><img class="logo" src="${LOGO}">
+        <div class="gross tc">Der Team Manager<br><b>ist da!</b></div></div>`,
+    schritte: [
+      { s: 3, u: 'Achtung, alle Darter Münchens!', b: 0, z: Z.inhalt },
+      { s: 4, u: 'Jetzt wird’s richtig gut: Der Team Manager ist da!', b: 0, z: Z.inhalt, intro: 'titel' } ] },
+
+  { titel: 'Schluss mit dem <i>Chaos</i>', html: `
+      <div class="laptop"><div class="rand"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="2"></div></div></div><div class="fuss"></div></div>
+      <div class="handy"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="2"></div></div></div>`,
+    schritte: [
+      { s: 3, u: 'Schluss mit dem WhatsApp-Chaos!', k: 1 },
+      { s: 4, u: 'Kein „Wer kommt am Freitag?“, kein Durcheinander mehr.', k: 3 } ] },
+
+  { titel: 'Alles auf <i>einen Blick</i>', html: beispiel + geraete(['dash-n2', 'dash-n5', 'dash-n9'])
+      + stempel(0, 'Countdown ⏱', 760, 330, 'gold', 120, 1130) + stempel(1, 'Wer ist dabei? 🎯', 120, 480, '', 560, 1130),
+    schritte: [
+      { s: 4, u: 'Ein Blick, und du weißt alles: nächstes Spiel, Countdown –', b: 0, z: [44, 18, 1.55], k: 1 },
+      { s: 2, u: 'und auf der Team-Scheibe siehst du sofort, wer dabei ist.', b: 1, z: [36, 26, 1.9], k: 2 },
+      { s: 2, b: 2, z: [36, 26, 1.9], k: 2, weiter: true } ] },
+
+  { titel: 'Zusagen mit <i>einem Tipp</i>', html: beispiel + geraete(['dash-n9', 'dash-ja', 'dash-grund'])
+      + stempel(0, '✓ Dabei!', 860, 600, '', 160, 1150, 1) + stempel(1, 'Mit Begründung', 830, 690, 'rot', 560, 1150),
+    schritte: [
+      { s: 2.5, u: 'Zusagen? Ein Tipp.', b: 1, z: [40, 22, 1.7], k: 1 },
+      { s: 3.5, u: 'Absagen? Ein Tipp und kurz der Grund dazu.', b: 2, z: [40, 28, 1.7], k: 2 },
+      { s: 1.5, u: 'Fertig!', b: 2, z: [40, 28, 1.7], k: 2 } ] },
+
+  { titel: 'Der TC trägt <i>für alle</i> ein', html: beispiel + geraete(['spiel-kader', 'spiel-kader-tc'])
+      + stempel(0, 'Ohne Konto? Kein Problem!', 640, 210, 'gold', 140, 1150),
+    schritte: [
+      { s: 3, u: 'Und das Beste: Nicht jeder braucht ein Konto.', b: 0, z: Z.inhalt, k: 1 },
+      { s: 3, u: 'Der Teamcaptain trägt einfach fürs ganze Team ein.', b: 1, z: [44, 0, 1.6], k: 1 },
+      { s: 3, u: 'Noch besser ist’s natürlich, wenn alle dabei sind!', b: 1, z: Z.inhalt, k: 1 } ] },
+
+  { titel: 'Wer <i>fehlt</i> noch?', html: beispiel + geraete(['spiel-offen', 'glocke'])
+      + stempel(0, '🔔 Erinnerung', 980, 170, 'gold', 560, 1150),
+    schritte: [
+      { s: 3.5, u: 'Wer fehlt noch? Ein Tipp auf die Zahl, und du siehst es.', b: 0, z: [52, 4, 1.75] },
+      { s: 3, u: 'Und wer trödelt, wird von der Glocke erinnert.', b: 1, z: [82, 0, 1.4], k: 1 } ] },
+
+  { titel: 'Aufstellung in <i>Sekunden</i>', html: beispiel + geraete(['spiel-aufstellung', 'bericht-leer', 'bericht-voll'])
+      + stempel(0, 'Ein Klick! ⚡', 850, 300, 'gold', 560, 1150),
+    schritte: [
+      { s: 3, u: 'Die Aufstellung baust du direkt aus den Zusagen –', b: 0, z: [44, 0, 1.6] },
+      { s: 1.5, u: 'und mit einem Klick landet sie im Spielbericht.', b: 1, z: [44, 8, 1.35] },
+      { s: 1.5, b: 2, z: [44, 8, 1.35], k: 1, weiter: true },
+      { s: 1.5, u: 'Wahnsinn!', b: 2, z: [44, 8, 1.35], k: 1 } ] },
+
+  { titel: 'Alles <i>am Spiel</i> dran', html: beispiel + geraete(['spiel-kopf', 'spiel-notiz', 'glocke-tim'])
+      + stempel(0, 'Tim weiß Bescheid 🔔', 860, 170, '', 140, 1150),
+    schritte: [
+      { s: 3, u: 'Treffzeit, Notizen, Aufgaben – alles am Spiel dran.', b: 0, z: [44, 6, 1.5] },
+      { s: 1.6, b: 1, z: [44, 0, 1.55], weiter: true },
+      { s: 2.5, u: 'Tim soll den Spielbericht mitbringen? Aufgabe rein,', b: 1, z: [44, 0, 1.55] },
+      { s: 2.5, u: 'und Tim wird benachrichtigt!', b: 2, z: [82, 0, 1.4], k: 1 } ] },
+
+  { titel: 'Die <i>Teamkasse</i>', html: beispiel + geraete(['kasse-spieler', 'kasse-strafe', 'kasse-beitraege', 'kasse-buch', 'kasse-offen', 'kasse-wart'])
+      + stempel(0, 'Bull verfehlt · 0,50 € 🎯', 820, 610, 'rot', 120, 1150, 1) + stempel(1, 'Abgehakt! ✓', 880, 640, '', 560, 1150),
+    schritte: [
+      { s: 2.5, u: 'Die Teamkasse ist auch an Bord!', b: 0, z: [44, 8, 1.5] },
+      { s: 1.4, u: 'Strafenkatalog, Beiträge, Kassenbuch –', b: 1, z: [44, 30, 1.5], k: 1 },
+      { s: 1.2, b: 2, z: [44, 0, 1.5], weiter: true },
+      { s: 1.2, b: 3, z: [44, 30, 1.5], weiter: true },
+      { s: 3, u: 'und wer was offen hat, hakst du mit einem Wisch ab.', b: 4, z: [44, 62, 1.5], k: 2 },
+      { s: 2.5, u: 'Sogar einen Kassenwart kannst du bestimmen.', b: 5, z: [44, 60, 1.5] },
+      { s: 2.5, u: 'Schluss mit der Zettelwirtschaft!', b: 0, z: [44, 8, 1.5] } ] },
+
+  { titel: '<i>Gegner</i>analyse', html: beispiel + geraete(['gegner', 'gegner-top']),
+    schritte: [
+      { s: 2.5, u: 'Vor dem Spiel schon wissen, was auf euch zukommt?', b: 0, z: [44, 10, 1.5] },
+      { s: 4, u: 'Die Gegneranalyse zeigt Tabelle, Form und die besten Spieler des Gegners.', b: 1, z: [44, 30, 1.5] } ] },
+
+  { titel: 'Eigene <i>Termine</i>', html: beispiel + geraete(['termine', 'termine-import', 'kalender'])
+      + stempel(0, 'Aus Excel 📋', 860, 560, 'gold', 560, 1150, 2) + stempel(1, '📱 Kalender-Abo', 820, 300, '', 140, 1150),
+    schritte: [
+      { s: 3, u: 'Pokal, andere Liga, Training, Weihnachtsfeier? Rein damit –', b: 0, z: [44, 40, 1.5] },
+      { s: 3, u: 'in deiner Farbe, sogar ganze Listen aus Excel.', b: 1, z: [44, 40, 1.5], k: 1 },
+      { s: 3, u: 'Und alles landet automatisch in deinem Handykalender.', b: 2, z: [44, 6, 1.5], k: 2 } ] },
+
+  { titel: 'Die <i>Statistik</i>', html: beispiel + geraete(['stat', 'stat-gespielt'])
+      + stempel(0, '92 % 🏆', 900, 380, 'gold', 560, 1150),
+    schritte: [
+      { s: 2.5, u: 'Und wer ist der treueste Spieler im Team?', b: 0, z: [44, 30, 1.55] },
+      { s: 3.5, u: 'Die Statistik zeigt, wer wie oft zugesagt – und wer wirklich gespielt hat.', b: 1, z: [44, 30, 1.55] },
+      { s: 2.5, u: 'Deine Quote gegen den Team-Schnitt!', b: 0, z: [36, 38, 1.9], k: 1 } ] },
+
+  { titel: 'Ab in die <i>Gruppe</i>', html: beispiel + `
+      <div class="laptop"><div class="rand"><div class="schirm"><img data-b="0" src="${S}web-spiel-teilen.jpg"></div></div><div class="fuss"></div></div>
+      <div class="handy"><div class="schirm"><img data-b="0" src="${S}handy-spiel-teilen.jpg"><div data-k="0" class="tausch" style="position:absolute;inset:0;opacity:0;transition:opacity .3s">${teilen}</div></div></div>`,
+    schritte: [
+      { s: 4, u: 'Ein Klick auf „Teilen“, und der Link ist in eurer Gruppe.', b: 0, z: [44, 30, 1.6], k: 3 } ] },
+
+  { titel: '', html: `<div class="collage" id="collage"></div><div class="frage" data-k="1"><span class="tc">Und was kostet<br>der Spaß?</span></div>`,
+    schritte: [
+      { s: 2, u: 'Das alles für euer Team.', k: 0, collage: true },
+      { s: 3.5, u: 'Und jetzt haltet euch fest – was kostet der ganze Spaß?', k: 2, collage: true, trommel: true } ] },
+
+  { titel: '', html: `<div class="preis">
+      <div class="vgl klirr tc" data-k="0" style="${HOCH ? 'left:140px;top:240px' : 'left:150px;top:120px'}"><span class="em">🥃🥃</span>2 Rüscherl</div>
+      <div class="vgl tc" data-k="1" style="${HOCH ? 'left:600px;top:200px' : 'left:1180px;top:90px'}"><span class="automat"><b>12 Spiele</b></span></div>
+      <div class="preisgross tc" data-k="2" style="${HOCH ? 'left:0;right:0;top:640px' : 'left:0;right:0;top:390px'}"><div class="z">7,99 € <small>/ Monat</small></div><div class="u" style="font-family:Manrope">fürs ganze Team</div></div>
+      <div class="oder tc" data-k="3" style="${HOCH ? 'left:120px;right:120px;top:1060px;text-align:center' : 'left:560px;right:560px;top:720px;text-align:center'}">oder <b>49 €</b> die ganze Saison</div>
+    </div>`,
+    schritte: [
+      { s: 4, u: 'Zwei Rüscherl im Monat! Oder zwölf Spiele am Automaten!', k: 2 },
+      { s: 3, u: '7,99 € im Monat fürs ganze Team –', k: 3 },
+      { s: 3.5, u: 'oder 49 € für die ganze Saison. Ein Spottpreis!', k: 4 } ] },
+
+  { titel: '', html: `<div class="preis">
+      <div class="laptop" style="transform:scale(.62);transform-origin:0 0;left:80px;top:300px"><div class="rand"><div class="schirm"><img class="an" src="${S}web-premium.jpg" style="transform:scale(1.4);transform-origin:44% 0"></div></div><div class="fuss"></div></div>
+      <div class="handy" style="${HOCH ? 'display:none' : 'left:1440px;top:260px;transform:scale(.85);transform-origin:0 0'}"><div class="schirm"><img class="an" src="${S}handy-premium.jpg"></div></div>
+      <img src="${LOGO}" style="position:absolute;${HOCH ? 'left:290px;top:260px;width:500px' : 'display:none'}"><div class="gratis tc" data-k="0" style="${HOCH ? 'left:90px;top:720px' : 'left:700px;top:80px'}">14 Tage gratis testen</div>
+      <div class="weg-zu" data-k="1" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:330px;flex-direction:column;align-items:flex-start'}"><span>mdudarts.de</span><i>→</i><span>Mein Bereich</span><i>→</i><span>Team Manager</span></div>
+    </div>`,
+    schritte: [
+      { s: 3, u: 'Und die ersten vierzehn Tage sind gratis!', k: 1 },
+      { s: 4.5, u: 'Also los: mdudarts.de, Mein Bereich, Team Manager. Packt’s an!', k: 2 } ] },
+];
+
+// ── Ablauf ────────────────────────────────────────────────
+const stage = document.getElementById('stage');
+stage.innerHTML = SZENEN.map((sz, i) => `<div class="szene" id="sz${i}">${sz.titel ? titel(sz.titel) : ''}${sz.html}</div>`).join('')
+  + `<div class="unter" id="unter"></div><div class="fortschritt" id="fort" style="width:0"></div>`;
+// Collage aus allen Shots (Szene „Und was kostet der Spaß?“)
+const COLLAGE = ['dash-n9', 'dash-grund', 'spiel-kader-tc', 'spiel-offen', 'glocke', 'spiel-aufstellung', 'bericht-voll', 'spiel-notiz', 'kasse-strafe', 'kasse-offen',
+  'kasse-buch', 'gegner', 'gegner-top', 'termine', 'termine-import', 'kalender', 'stat', 'stat-gespielt', 'spiel-teilen', 'glocke-tim'];
+document.getElementById('collage').innerHTML = COLLAGE.slice(0, HOCH ? 12 : 20).map((n, i) => `<div data-c="${i}" style="background-image:url(${S}${HOCH ? 'handy' : 'web'}-${n}.jpg)"></div>`).join('');
+
+const warte = ms => new Promise(r => setTimeout(r, ms));
+// Untertitel: der Satz, der gesprochen wird; „weiter“-Schritte wechseln nur das Bild.
+SZENEN.forEach(sz => { let letzter = ''; sz.schritte.forEach(x => { if (x.weiter) x.u = x.u ?? letzter; letzter = x.u; }); });
+
+function zeige(el, x) {
+  const k = x.k ?? 0;
+  el.querySelectorAll('[data-k]').forEach(e => e.classList.toggle('an', Number(e.dataset.k) < k && (e.dataset.bis === undefined || k <= Number(e.dataset.bis))));
+  el.querySelectorAll('.tausch').forEach(e => { e.style.opacity = e.classList.contains('an') ? 1 : 0; });
+  if (x.b !== undefined) el.querySelectorAll('img[data-b]').forEach(img => {
+    const an = Number(img.dataset.b) === x.b;
+    img.classList.toggle('an', an);
+    if (img.closest('.laptop')) img.style.transform = x.z ? `scale(${x.z[2]})` : 'none', img.style.transformOrigin = x.z ? `${x.z[0]}% ${x.z[1]}%` : '50% 0';
+  });
+  if (x.intro === 'titel') { const t = el.querySelector('#intro'); t.classList.add('titel-da'); }
+}
+
+window.DAUER = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + 0.45, 0);
+// window.ZEITEN[i][j] = Dauer des GESPROCHENEN Satzes j (vertonen.js zählt nur Sätze mit eigenem Text).
+window.SPIEL = async () => {
+  const vor = window.VORLAUF ?? 0.45;
+  if (window.ZEITEN) SZENEN.forEach((sz, i) => {
+    // gesprochene Sätze = Schritte ohne `weiter`; ein `weiter`-Schritt nimmt sich seinen Anteil vom vorigen Satz
+    let j = -1; const gruppen = [];
+    sz.schritte.forEach(x => { if (!x.weiter) { j++; gruppen[j] = [x]; } else gruppen[j].push(x); });
+    gruppen.forEach((g, n) => {
+      const ziel = window.ZEITEN[i]?.[n]; if (!ziel) return;
+      const summe = g.reduce((a, x) => a + x.s, 0);
+      g.forEach(x => { x.s = x.s / summe * ziel; });
+    });
+  });
+  const summe = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + vor, 0);
+  window.DAUER = summe; window.MARKEN = []; window.START_EPOCH = Date.now();
+  let vergangen = 0;
+  for (let i = 0; i < SZENEN.length; i++) {
+    const el = document.getElementById('sz' + i);
+    document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
+    el.classList.add('an');
+    zeige(el, { ...SZENEN[i].schritte[0], k: 0 });
+    await warte(vor * 1000); vergangen += vor;
+    let satz = -1;
+    for (let j = 0; j < SZENEN[i].schritte.length; j++) {
+      const sch = SZENEN[i].schritte[j];
+      if (!sch.weiter) { satz++; window.MARKEN.push({ i, j: satz, ms: Date.now() - window.START_EPOCH }); }
+      document.getElementById('unter').textContent = sch.u ?? '';
+      zeige(el, sch);
+      if (sch.collage) el.querySelectorAll('[data-c]').forEach((c, n) => setTimeout(() => c.classList.add('an'), n * 70));
+      el.querySelector('.frage span')?.classList.toggle('trommel', !!sch.trommel);
+      if (i === 0 && j === 1) setTimeout(() => el.querySelector('#intro').classList.add('weg'), sch.s * 1000 * 0.62);
+      document.getElementById('fort').style.width = (vergangen / summe * 100) + '%';
+      await warte(sch.s * 1000); vergangen += sch.s;
+    }
+  }
+  document.getElementById('fort').style.width = '100%';
+  window.FERTIG = true;
+};
+</script></body></html>
