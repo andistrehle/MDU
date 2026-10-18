@@ -109,7 +109,25 @@ Das MP4 ist fertig — Schnitt ist keiner nötig. Falls du doch etwas änderst:
    ändern und das Skript neu laufen lassen. Dann passen Bild und Ton wieder
    von selbst zusammen.
 
-## 5. Was im Begleittext zur Weitergabe stehen sollte
+## 5. Facebook-Beitrag (zum Video, in die Gruppe)
+
+Kurz halten — wer am Handy scrollt, liest drei Zeilen. Das Video dazu hängen,
+dann erklärt es sich selbst. In eine Facebook-GRUPPE kann kein Programm
+schreiben (Meta hat das abgeschaltet), also kopieren und einfügen:
+
+> 🎯 **Neu: Wochenend-Ranking selbst eintragen**
+>
+> Wirte: Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Tragt es ab
+> sofort selbst auf der Seite ein — es steht dann gleich im Wochenplan und bei
+> eurem Lokal.
+>
+> 👉 mdc-ranking.de/spielorte → ganz unten „Wirte-Login"
+> Das Passwort gibt's bei Toni.
+>
+> Für alle anderen: Die Zusatztermine stehen damit genauso auf der Seite wie
+> die festen Abende. Gut Pfeil!
+
+## 6. Was im Begleittext zur Weitergabe stehen sollte
 
 Wenn du das Video in die Gruppe oder per WhatsApp schickst:
 
