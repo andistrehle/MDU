@@ -1,0 +1,156 @@
+// NUR LOKAL für das Promo-Video (nie committen): erfundene Demo-Daten.
+// Benennt das Demo-Team und seine Gegner NUR im Browser dieser Seite um
+// (die Ligadaten sind ein gemeinsames Objekt) — keine echten Teams/Personen im Bild.
+import data from '@/lib/data/saison-2027.generated.json';
+import type { KaderOption } from '@/lib/supabase/season-teams';
+import type { Zusage, ZusageStatus, Aufgabe, SpielDetails } from '@/lib/supabase/zusagen';
+import type { TeamTermin } from '@/lib/supabase/termine';
+import type { Buchung, Strafart, KassenEinstellung } from '@/lib/supabase/kasse';
+import type { UserProfile } from '@/lib/auth/roles';
+
+type RawT = { teams: Record<string, { name: string; short: string; logoUrl: string | null; color: string }>; venues: Record<string, { name: string; address?: string }> };
+const RAW = data as unknown as RawT;
+const UMBENENNEN: Record<string, [string, string, string]> = {
+  'freibad-bazis': ['DC Demo München', 'DM', '#2E7D32'],
+  'fiaker-deife': ['Bullseye Buam', 'BUL', '#C62828'],
+  'dc-animals-ii': ['Triple Twenty', 'T20', '#1565C0'],
+  'team-illuminati--28d702': ['Doppel Dreier', 'DD', '#6A1B9A'],
+  'jolly-pirates-v': ['Shanghai Spatzn', 'SHS', '#EF6C00'],
+};
+for (const [id, [name, short, color]] of Object.entries(UMBENENNEN)) {
+  const t = RAW.teams[id]; if (t) Object.assign(t, { name, short, color, logoUrl: null });
+}
+const LOKALE: Record<string, [string, string]> = {
+  'venue-6be8d719f9': ['Zum Goldenen Pfeil', 'Pfeilstraße 1, 80331 München'],
+  'venue-2f7039adec': ['Wirtshaus am Bull', 'Bullweg 20, 80469 München'],
+};
+for (const [id, [name, address]] of Object.entries(LOKALE)) {
+  const v = RAW.venues[id]; if (v) Object.assign(v, { name, address });
+}
+
+export const TEAM = 'freibad-bazis';
+export const SPIEL = 'freibad-bazis|fiaker-deife'; // nächstes Spiel (Fr 23.10., 20:00)
+export const SPIEL2 = 'freibad-bazis|dc-animals-ii';
+
+const Q = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search);
+export const q = (k: string, d = '') => Q.get(k) ?? d;
+
+export const NAMEN = ['Max Mustermann', 'Tim Treffer', 'Lena Probst', 'Sepp Huber', 'Kai Demo', 'Flo Wurfmann', 'Vroni Triple', 'Ali Bullseye', 'Gabi Doppel', 'Hans Checkout'];
+export const KADER: KaderOption[] = NAMEN.map((name, i) => ({ id: 'p' + i, name, isCaptain: i === 0, passNo: null }));
+export const PERSONEN = KADER.map(k => ({ id: k.id, name: k.name }));
+
+export const DEMO_USER: UserProfile = {
+  id: 'demo-u0', email: 'kapitaen@demo.invalid', displayName: 'Max Mustermann', role: 'team_captain',
+  playerId: 'p0', teamId: TEAM, createdAt: '2026-09-01T10:00:00Z', updatedAt: '2026-09-01T10:00:00Z',
+} as UserProfile;
+
+const zs = (key: string, i: number, status: ZusageStatus, note: string | null = null, sek = 0): Zusage => ({
+  match_key: key, team_id: TEAM, player_id: 'p' + i, player_name: NAMEN[i], status, note, updated_by: null,
+  updated_at: new Date(Date.UTC(2026, 9, 17, 18, 0, sek)).toISOString(),
+});
+
+// Reihenfolge, in der sich die Scheibe fürs nächste Spiel füllt (?n=… Antworten)
+const NAECHSTES: [number, ZusageStatus, string | null][] = [
+  [1, 'yes', null], [2, 'yes', null], [5, 'yes', null], [3, 'maybe', 'Spätschicht – sag Mittwoch Bescheid'],
+  [7, 'yes', null], [4, 'no', 'bin im Urlaub'], [6, 'yes', null], [8, 'yes', null], [9, 'no', 'Hochzeit vom Cousin'], [0, 'yes', null],
+];
+export const naechsteZusagen = (n: number) => NAECHSTES.slice(0, n).map(([i, s, note], k) => zs(SPIEL, i, s, note, k));
+
+// Vergangene eigene Termine (für die Statistik) + anstehende
+const t = (id: string, datum: string, zeit: string | null, kind: 'spiel' | 'sonstiges', extra: Partial<TeamTermin>): TeamTermin => ({
+  id, team_id: TEAM, kind, title: null, league: null, opponent: null, is_home: null, event_date: datum, start_time: zeit, end_time: null,
+  venue: null, address: null, color: null, ...extra,
+});
+export const VERGANGEN_TERMINE: TeamTermin[] = [
+  '2026-09-03', '2026-09-10', '2026-09-17', '2026-09-24', '2026-10-01', '2026-10-08', '2026-10-15',
+].map((d, i) => t('tr' + i, d, '19:30', 'sonstiges', { title: 'Training', venue: 'Zum Goldenen Pfeil', color: '#0F9A9A' }))
+  .concat([
+    t('pk1', '2026-09-12', '19:00', 'spiel', { league: 'Pokal', opponent: 'Dartfreunde Nord', is_home: true, color: '#E07A1F' }),
+    t('pk2', '2026-09-26', '19:00', 'spiel', { league: 'Pokal', opponent: 'Steel City', is_home: false, color: '#E07A1F' }),
+    t('ts1', '2026-10-03', '18:00', 'spiel', { league: 'Testspiel', opponent: 'Flight Club', is_home: true, color: '#7C5CD6' }),
+    t('ts2', '2026-10-10', '18:00', 'spiel', { league: 'Testspiel', opponent: 'Checkout Crew', is_home: false, color: '#7C5CD6' }),
+    t('fe1', '2026-10-11', '18:00', 'sonstiges', { title: 'Saisonauftakt-Grillen', color: '#D6457E' }),
+  ]);
+export const ANSTEHEND_TERMINE: TeamTermin[] = [
+  t('pk3', '2026-10-30', '19:30', 'spiel', { league: 'Pokal', opponent: 'Dartfreunde Nord', is_home: false, venue: 'Sportheim Nord', color: '#E07A1F' }),
+  t('tr9', '2026-11-05', '19:30', 'sonstiges', { title: 'Training', venue: 'Zum Goldenen Pfeil', color: '#0F9A9A' }),
+  t('wf1', '2026-12-12', '18:00', 'sonstiges', { title: 'Weihnachtsfeier', venue: 'Wirtshaus am Bull', color: '#D6457E' }),
+];
+export const TERMINE: TeamTermin[] = [...VERGANGEN_TERMINE, ...ANSTEHEND_TERMINE];
+
+// Zusagen der vergangenen Termine: so verteilt, dass Max (p0) auf 92 % kommt
+const QUOTE = [11, 11, 10, 9, 12, 8, 7, 10, 6, 5]; // „yes“ je Spieler von 12
+const VERGANGEN_ZUSAGEN: Zusage[] = KADER.flatMap((k, i) => VERGANGEN_TERMINE.map((tt, j) =>
+  zs('ext:' + tt.id, i, j < QUOTE[i] ? 'yes' : (j % 2 ? 'no' : 'maybe'), j < QUOTE[i] ? null : 'keine Zeit', j)));
+
+export const zusagenAlle = (n: number): Zusage[] => [
+  ...naechsteZusagen(n),
+  ...[1, 2, 3, 5, 7].map((i, k) => zs(SPIEL2, i, 'yes', null, k)),
+  ...[0, 1, 2, 6].map((i, k) => zs('ext:pk3', i, 'yes', null, k)),
+  ...[0, 1, 2, 3, 4, 5, 6, 7].map((i, k) => zs('ext:wf1', i, 'yes', null, k)),
+  ...VERGANGEN_ZUSAGEN,
+];
+
+export const DETAILS: Record<string, SpielDetails> = {
+  [SPIEL]: { match_key: SPIEL, meet_time: null, lineup: ['p1', 'p0', 'p2', 'p5', 'p7', 'p6', '', ''], note: 'Bitte Trikots mitbringen! 👕' },
+};
+export const AUFGABEN: Aufgabe[] = [
+  { id: 'a1', match_key: SPIEL, title: 'Spielbericht drucken', assignee_id: 'p1', assignee_name: 'Tim Treffer', done: false, done_at: null, created_at: '2026-10-17T18:00:00Z' },
+  { id: 'a2', match_key: SPIEL, title: 'Tisch beim Wirt reservieren', assignee_id: 'p0', assignee_name: 'Max Mustermann', done: true, done_at: '2026-10-17T19:00:00Z', created_at: '2026-10-17T18:00:00Z' },
+  { id: 'a3', match_key: SPIEL, title: 'Neue Flights für Lena besorgen', assignee_id: 'p5', assignee_name: 'Flo Wurfmann', done: false, done_at: null, created_at: '2026-10-17T18:00:00Z' },
+];
+export const GESPIELT = { berichte: 6, gespielt: { p0: 6, p1: 6, p2: 5, p3: 3, p4: 4, p5: 5, p6: 2, p7: 4, p8: 1, p9: 2 } as Record<string, number> };
+
+// ── Teamkasse ──
+export const STRAFARTEN: Strafart[] = [
+  ['Bull verfehlt', 50], ['Unter 26 geworfen', 20], ['Zu spät', 100], ['Handy am Board', 100], ['Kein Trikot', 200], ['Runde schmeißen vergessen', 300],
+].map(([title, amount_cents], i) => ({ id: 's' + i, title: title as string, amount_cents: amount_cents as number, sort: i }));
+let bn = 0;
+const bu = (kind: Buchung['kind'], i: number | null, title: string, cents: number, datum: string, bezahlt: boolean): Buchung => ({
+  id: 'b' + (++bn), team_id: TEAM, kind, player_key: i === null ? null : 'p' + i, player_name: i === null ? null : NAMEN[i],
+  title, amount_cents: cents, entry_date: datum, paid_at: bezahlt ? datum + 'T21:00:00Z' : null, created_at: datum + 'T20:00:00Z',
+});
+export const BUCHUNGEN: Buchung[] = [
+  ...KADER.map((k, i) => bu('beitrag', i, 'Saisonbeitrag 2026/27', 3000, '2026-09-01', ![3, 6, 8].includes(i))),
+  bu('strafe', 1, 'Bull verfehlt', 50, '2026-10-15', false), bu('strafe', 4, 'Bull verfehlt', 50, '2026-10-15', false),
+  bu('strafe', 7, 'Bull verfehlt', 50, '2026-10-15', false), bu('strafe', 3, 'Zu spät', 100, '2026-10-08', false),
+  bu('strafe', 6, 'Kein Trikot', 200, '2026-10-01', true), bu('strafe', 2, 'Unter 26 geworfen', 20, '2026-10-08', true),
+  bu('strafe', 9, 'Handy am Board', 100, '2026-10-15', false), bu('strafe', 5, 'Runde schmeißen vergessen', 300, '2026-09-24', true),
+  bu('einnahme', null, 'Zuschuss vom Wirt', 5000, '2026-09-05', false), bu('ausgabe', null, 'Neue Trikots (Anzahlung)', 12000, '2026-09-20', false),
+  bu('ausgabe', null, 'Flights & Shafts', 2490, '2026-10-02', false),
+];
+export const KASSE_EINST: KassenEinstellung = { treasurer_player_id: 'p2', opening_cents: 8500 };
+
+// ── Gegneranalyse (Beispielwerte) ──
+export const GEGNER = {
+  tabelle: { pos: 2, pts: 13, sp: 6, s: 4, u: 1, n: 1, teams: 8 },
+  letzte: [
+    ['l1', '2026-10-09', 'dc-animals-ii', 'Triple Twenty', 11, 7, 'S'], ['l2', '2026-10-02', 'jolly-pirates-v', 'Shanghai Spatzn', 9, 9, 'U'],
+    ['l3', '2026-09-25', 'team-illuminati--28d702', 'Doppel Dreier', 12, 6, 'S'], ['l4', '2026-09-18', 'x1', 'Flight Club', 7, 11, 'N'],
+    ['l5', '2026-09-11', 'x2', 'Checkout Crew', 13, 5, 'S'],
+  ].map(([key, datum, gegen, gegenName, f, a, ergebnis]) => ({ key, datum, gegen, gegenName, f, a, ergebnis, wertung: true, bestaetigt: true })) as never[],
+  vergleich: [
+    { saison: '2025/26', wettbewerb: 'A Liga', datum: '2026-03-13', wir: 10, sie: 8 },
+    { saison: '2025/26', wettbewerb: 'A Liga', datum: '2025-11-07', wir: 7, sie: 11 },
+    { saison: '2024/25', wettbewerb: 'B Liga', datum: '2025-02-21', wir: 12, sie: 6 },
+  ],
+  beste: [
+    { name: 'Rudi Rakete', points: 31, wins: 11, singles: 12, b180: 4 }, { name: 'Moni Maximum', points: 27, wins: 9, singles: 12, b180: 2 },
+    { name: 'Bert Bogen', points: 22, wins: 8, singles: 11, b180: 1 }, { name: 'Lotte Leg', points: 19, wins: 6, singles: 10, b180: 0 },
+    { name: 'Fritz Finish', points: 15, wins: 5, singles: 9, b180: 1 },
+  ],
+};
+
+// ── Glocke ──
+export const GLOCKE_OFFEN = [{ key: SPIEL, text: 'Fr 23.10. · 20:00 · gegen Bullseye Buam', dringend: true }];
+export const glockeItems = (fuerTim: boolean) => {
+  const n = (id: string, short_text: string, min: number, read = false) => ({
+    id, recipient_user_id: 'demo', type: 'info', title: short_text, message: short_text, short_text, related_entity_type: null,
+    related_entity_id: null, action_url: null, read_at: read ? '2026-10-18T10:00:00Z' : null,
+    created_at: new Date(Date.now() - min * 60000).toISOString(),
+  });
+  return fuerTim
+    ? [n('g1', 'Neue Aufgabe: Spielbericht drucken · Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam', 1), n('g2', 'Lena Probst hat zugesagt · Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam', 30, true)]
+    : [n('g1', 'Lena Probst hat zugesagt · Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam', 2), n('g2', 'Kai Demo hat abgesagt · Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam – „bin im Urlaub“', 14),
+       n('g3', 'Sepp Huber ist unsicher · Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam – „Spätschicht – sag Mittwoch Bescheid“', 45), n('g4', 'Tim Treffer hat zugesagt · Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam', 120, true)];
+};
