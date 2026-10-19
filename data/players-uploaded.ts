@@ -50,6 +50,7 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|411|KNEZOVIĆ|JOSEPH|0|0||',
   '0|412|FINK|CHRIS|0|0||',
   '0|414|BAUER|DANIEL|0|0||',
+  '0|419|WÜRMTAL|STEFAN|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
