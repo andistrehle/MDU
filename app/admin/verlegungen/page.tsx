@@ -21,7 +21,7 @@ const termin = (d: string | null, t: string | null) => (d ? `${tag(d)}${t ? ` ${
 const name = (id: string) => team27(id)?.name ?? id;
 const STATUS: Record<Verlegung['status'], [string, string]> = {
   offen: ['wartet auf Gegner', 'var(--th-text-muted)'], freigabe: ['Freigabe nötig', 'var(--th-gold)'],
-  bestaetigt: ['bestätigt – nicht übernommen', 'var(--th-loss)'], uebernommen: ['verlegt', 'var(--th-win)'],
+  bestaetigt: ['bestätigt – nicht übernommen', 'var(--th-loss)'], uebernommen: ['erledigt', 'var(--th-win)'],
   abgelehnt: ['abgelehnt', 'var(--th-text-muted)'], zurueckgezogen: ['zurückgezogen', 'var(--th-text-faint)'],
 };
 
@@ -66,7 +66,7 @@ export default function AdminVerlegungenPage() {
                 <div key={v.id} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                   <div style={{ flex: '1 1 280px', minWidth: 0 }}>
                     <div style={{ ...txt, fontWeight: 800, color: 'var(--th-text-strong)' }}>{name(v.home_team_id)} – {name(v.away_team_id)}</div>
-                    <div style={txt}><s>{termin(v.old_date, v.old_time)}</s> → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b> · angefragt von {name(v.requested_team)}{v.reason ? ` · „${v.reason}“` : ''}</div>
+                    <div style={txt}>{v.kind === 'heimrecht' ? <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen (Hin- und Rückspiel, Termine bleiben)</b> : <><s>{termin(v.old_date, v.old_time)}</s> → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>} · angefragt von {name(v.requested_team)}{v.reason ? ` · „${v.reason}“` : ''}</div>
                     {v.note && <div style={{ ...txt, fontSize: 12, color: v.status === 'bestaetigt' ? 'var(--th-loss)' : 'var(--th-text-faint)' }}>{v.note}</div>}
                   </div>
                   <span style={{ ...txt, fontWeight: 800, color: STATUS[v.status][1] }}>{STATUS[v.status][0]}</span>

@@ -9,9 +9,10 @@
 import { supabase } from './client';
 
 export type VerlegungStatus = 'offen' | 'freigabe' | 'bestaetigt' | 'uebernommen' | 'abgelehnt' | 'zurueckgezogen';
+export type AnfrageArt = 'verlegung' | 'heimrecht';
 export interface Verlegung {
-  id: string; match_key: string; home_team_id: string; away_team_id: string;
-  old_date: string | null; old_time: string | null; new_date: string; new_time: string | null;
+  id: string; kind: AnfrageArt; match_key: string; home_team_id: string; away_team_id: string;
+  old_date: string | null; old_time: string | null; new_date: string | null; new_time: string | null;
   reason: string | null; requested_team: string; status: VerlegungStatus; needs_admin: boolean;
   note: string | null; created_at: string; decided_at: string | null; applied_at: string | null;
 }
@@ -43,6 +44,7 @@ async function post<T>(pfad: string, body: unknown): Promise<{ data: T | null; e
 }
 
 export const frageVerlegungAn = (e: { key: string; datum: string; uhrzeit: string | null; grund: string | null }) => post<Verlegung>('/api/verlegung', e);
+export const frageHeimrechtAn = (e: { key: string; grund: string | null }) => post<Verlegung>('/api/verlegung', { art: 'heimrecht', ...e });
 export const verlegungAktion = (id: string, aktion: string, grund?: string | null, alsLigaleitung = false) =>
   post<Verlegung>('/api/verlegung/aktion', { id, aktion, grund, alsLigaleitung });
 

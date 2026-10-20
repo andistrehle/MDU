@@ -277,6 +277,14 @@ Laut [Spielbedingungen](/spielbedingungen) gilt außerdem: Die Ligaleitung muss 
         stichworte: ['verschieben', 'termin ändern', 'verlegung'],
       },
       {
+        id: 'heimrecht-tauschen',
+        frage: 'Können wir das Heimrecht tauschen?',
+        antwort: `Ja. Unter [Mein Spielplan](/mein-team/spielplan) in der Karte „Spiel verlegen / Heimrecht tauschen“ wählt ein TC „Heimrecht tauschen“ und den Gegner. Dann wechseln Hin- und Rückspiel Heim und Gast – Datum und Uhrzeit bleiben. Der TC des Gegners bestätigt, die Ligaleitung wird informiert.
+
+Das geht nur, solange es für keines der beiden Spiele einen Spielbericht gibt. Zusagen und Aufstellung wandern automatisch zum richtigen Spiel mit.`,
+        stichworte: ['heimrecht', 'tausch', 'heimspiel', 'auswärts', 'lokal'],
+      },
+      {
         id: 'kalender-abo',
         frage: 'Wie bekomme ich unsere Spieltage in meinen Kalender?',
         antwort: `Angemeldet unter [Mein Spielplan](/mein-team/spielplan) in der Karte „Spieltage in meinen Kalender“:

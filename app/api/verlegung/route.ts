@@ -2,11 +2,12 @@
 // /api/verlegung — Spielverlegungen (Migration 0050, lib/server/verlegung.ts)
 //   GET  → Anfragen des eigenen Teams (Ligaleitung: alle)
 //   POST → neue Anfrage { key, datum, uhrzeit?, grund? } (nur TCs der beiden Teams)
+//          bzw. Heimrechttausch { art: 'heimrecht', key, grund? } (Migration 0053)
 // ============================================================
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/server/auth';
-import { ladeVerlegungen, frageVerlegungAn } from '@/lib/server/verlegung';
+import { ladeVerlegungen, frageVerlegungAn, frageHeimrechtAn } from '@/lib/server/verlegung';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,9 +26,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await authenticateRequest(request);
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
-  const body = (await request.json().catch(() => ({}))) as { key?: string; datum?: string; uhrzeit?: string | null; grund?: string | null };
+  const body = (await request.json().catch(() => ({}))) as { art?: string; key?: string; datum?: string; uhrzeit?: string | null; grund?: string | null };
   try {
-    const v = await frageVerlegungAn(auth.user, { key: body.key ?? '', datum: body.datum ?? '', uhrzeit: body.uhrzeit, grund: body.grund });
+    const v = body.art === 'heimrecht'
+      ? await frageHeimrechtAn(auth.user, { key: body.key ?? '', grund: body.grund })
+      : await frageVerlegungAn(auth.user, { key: body.key ?? '', datum: body.datum ?? '', uhrzeit: body.uhrzeit, grund: body.grund });
     return NextResponse.json({ verlegung: v });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });

@@ -103,6 +103,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Ohne Token bleibt die Anfrage „bestätigt – nicht übernommen“ und lässt sich dort erneut übernehmen.
   Von Hand verlegte Termine weiter in `termine-2027.ts` — ein Eintrag in `verlegungen-2027.json`
   schlägt ihn aber.
+  **Heimrechttausch durch die TCs** (Migration 0053, Betreiber 20.10.2026): gleiche Karte/Tabelle,
+  `kind = 'heimrecht'`, `match_key` = Hinspiel. Gegner-TC bestätigt, Ligaleitung nur informiert, nur
+  ohne Spielbericht. Übernehmen = Commit nach `lib/data/heimrecht-2027.json` (`{a,b}` = Hinspiel VOR
+  dem Tausch; jeder Eintrag SCHALTET die Paarung um, zusammen mit `HEIMRECHT_GETAUSCHT`), die
+  Masterplan-Termine wechseln in `saison-2027.ts` den Schlüssel mit (Termine bleiben), verlegte Termine
+  der Paarung werden in `verlegungen-2027.json` umgeschlüsselt, und Zusagen/Details/Aufgaben in der DB
+  bekommen die neue Kennung (`kennungenTauschen`).
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +

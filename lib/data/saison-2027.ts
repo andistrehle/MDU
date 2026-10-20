@@ -14,13 +14,29 @@ import data from './saison-2027.generated.json';
 import type { SpielplanData } from '@/lib/spielplan/types';
 import { TERMINE_2027 as TERMINE_MASTERPLAN, HEIMRECHT_GETAUSCHT, type Termin27 } from './termine-2027';
 import VERLEGUNGEN_JSON from './verlegungen-2027.json';
+import HEIMRECHT_JSON from './heimrecht-2027.json';
 
 /** Von den TCs verlegte Spiele (Seite schreibt per Commit, Migration 0050 /
  *  lib/server/verlegung.ts) — liegen ÜBER den Masterplan-Terminen. Schlüssel
- *  = Begegnung Heim|Gast nach Heimrechttausch. */
+ *  = Begegnung Heim|Gast nach ALLEN Heimrechttauschen (beim Tausch schreibt die
+ *  Seite die betroffenen Schlüssel mit um). */
 export const VERLEGUNGEN_2027 = VERLEGUNGEN_JSON as Record<string, Termin27 & { am?: string }>;
+
+/** Von den TCs getauschtes Heimrecht (Migration 0053, lib/server/verlegung.ts).
+ *  a|b = Hinspiel VOR dem Tausch. Jeder Eintrag schaltet die Paarung um (ein
+ *  zweiter Tausch derselben Paarung tauscht zurück). Datum/Uhrzeit bleiben:
+ *  die Masterplan-Termine der beiden Spiele wechseln den Schlüssel mit. */
+export const HEIMRECHT_TCS_2027 = HEIMRECHT_JSON as { a: string; b: string; am?: string }[];
+
+const TERMINE_BASIS: Record<string, Termin27> = { ...TERMINE_MASTERPLAN };
+for (const { a, b } of HEIMRECHT_TCS_2027) {
+  const hin = TERMINE_BASIS[`${a}|${b}`], rueck = TERMINE_BASIS[`${b}|${a}`];
+  delete TERMINE_BASIS[`${a}|${b}`]; delete TERMINE_BASIS[`${b}|${a}`];
+  if (hin) TERMINE_BASIS[`${b}|${a}`] = hin;
+  if (rueck) TERMINE_BASIS[`${a}|${b}`] = rueck;
+}
 const TERMINE_2027: Record<string, Termin27> = {
-  ...TERMINE_MASTERPLAN,
+  ...TERMINE_BASIS,
   ...Object.fromEntries(Object.entries(VERLEGUNGEN_2027).map(([k, v]) => [k, { datum: v.datum, ...(v.uhrzeit ? { uhrzeit: v.uhrzeit } : {}) }])),
 };
 import type { Match } from './matches';
@@ -77,7 +93,13 @@ const RAW = data as unknown as Raw;
 
 // Plan mit Heimrechttausch (termine-2027.ts): Heim und Gast getauscht, Spieltag
 // bleibt. ALLES liest den Plan über SCHEDULE, nie über RAW.schedule.
-const TAUSCH = new Set(HEIMRECHT_GETAUSCHT.flatMap(([a, b]) => [`${a}|${b}`, `${b}|${a}`]));
+// Masterplan-HRT + Tausch durch die TCs; jede Nennung schaltet die Paarung um.
+const TAUSCH_ZAEHLER = new Map<string, number>();
+for (const [a, b] of [...HEIMRECHT_GETAUSCHT, ...HEIMRECHT_TCS_2027.map(e => [e.a, e.b] as [string, string])]) {
+  const k = [a, b].sort().join('|');
+  TAUSCH_ZAEHLER.set(k, (TAUSCH_ZAEHLER.get(k) ?? 0) + 1);
+}
+const TAUSCH = new Set([...TAUSCH_ZAEHLER].filter(([, n]) => n % 2 === 1).flatMap(([k]) => { const [a, b] = k.split('|'); return [`${a}|${b}`, `${b}|${a}`]; }));
 const SCHEDULE: Raw['schedule'] = Object.fromEntries(Object.entries(RAW.schedule).map(([lg, mds]) => [lg, mds.map(m => ({
   ...m, games: m.games.map(g => (TAUSCH.has(`${g.home}|${g.away}`) ? { ...g, home: g.away, away: g.home } : g)),
 }))]));
