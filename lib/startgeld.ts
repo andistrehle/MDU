@@ -3,7 +3,8 @@
 // ============================================================
 //
 // Grundsatz: 20 € je Spieler + 20 € je Mannschaft. Nachmeldungen kosten
-// ebenfalls 20 € — ab Saisonstart (erster Spieltag) 25 €. Maßgeblich ist der
+// ebenfalls 20 € — nach dem Anmeldeschluss 25 € (Betreiber, 21.10.2026: ab dem
+// Tag nach dem Anmeldeschluss, auch rückwirkend). Maßgeblich ist der
 // Tag der MELDUNG (player_nominations.created_at), nicht der Freigabe: Wie lange
 // die Ligaleitung zum Bestätigen braucht, geht nicht zu Lasten des Teams.
 //
@@ -13,38 +14,40 @@
 // die Differenz offen.
 // ============================================================
 
-import { SAISON_START } from '@/lib/data/saison-2027';
 
-/** Startgeld je Spieler (Anmeldung und Nachmeldung vor Saisonstart). */
+/** Startgeld je Spieler (Anmeldung und Nachmeldung bis Anmeldeschluss). */
 export const PLAYER_FEE_EUR = 20;
 /** Mannschaftsbeitrag, einmal je Team. */
 export const TEAM_FEE_EUR = 20;
-/** Nachmeldung ab Saisonstart. */
+/** Nachmeldung nach dem Anmeldeschluss. */
 export const LATE_NOMINATION_FEE_EUR = 25;
+
+/** Anmeldeschluss 2026/27 — wer an diesem Tag noch meldet, zahlt 20 €. */
+export const ANMELDESCHLUSS_2027 = '2026-09-20';
 
 /**
  * Ab welchem Tag (YYYY-MM-DD) eine Nachmeldung den höheren Satz kostet.
- * Saison 2026/27: erster Spieltag (Wochenende ab 23.10.2026). Für ältere
- * Saisons gab es die Regel nicht — dort bleibt alles bei 20 €.
+ * Saison 2026/27: Tag nach dem Anmeldeschluss. Für ältere Saisons gab es die
+ * Regel nicht — dort bleibt alles bei 20 €.
  */
 export function lateNominationFrom(seasonId: string): string | null {
-  return seasonId === 'season-2027' ? SAISON_START : null;
+  return seasonId === 'season-2027' ? '2026-09-21' : null;
 }
 
 /** Ein Kadermitglied für die Rechnung: Nachmeldungen tragen ihr Meldedatum. */
 export interface FeeMember {
   /** Gesetzt nur bei Nachmeldungen (ISO-Zeitpunkt der Meldung). */
   nominatedAt?: string | null;
-  /** Nachmeldung, aber Datum nicht lesbar → wie vor Saisonstart gerechnet. */
+  /** Nachmeldung, aber Datum nicht lesbar → wie bis Anmeldeschluss gerechnet. */
   isNomination?: boolean;
 }
 
 export interface TeamFee {
   /** Spieler zum Grundsatz (Anmeldung + frühe Nachmeldungen). */
   regular: number;
-  /** Davon Nachmeldungen vor Saisonstart (nur zur Anzeige). */
+  /** Davon Nachmeldungen bis Anmeldeschluss (nur zur Anzeige). */
   earlyNominations: number;
-  /** Nachmeldungen ab Saisonstart (höherer Satz). */
+  /** Nachmeldungen nach dem Anmeldeschluss (höherer Satz). */
   lateNominations: number;
   /** Fälliger Gesamtbetrag in Euro (0 bei leerem Kader). */
   total: number;

@@ -118,7 +118,7 @@ export default function MeinTeamPage() {
                   </div>
                   {fee.fee.earlyNominations > 0 && (
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 3 }}>
-                      Davon {fee.fee.earlyNominations} {fee.fee.earlyNominations === 1 ? 'Nachmeldung' : 'Nachmeldungen'} vor Saisonstart (20 €).
+                      Davon {fee.fee.earlyNominations} {fee.fee.earlyNominations === 1 ? 'Nachmeldung' : 'Nachmeldungen'} bis Anmeldeschluss (20 €).
                     </div>
                   )}
                 </div>
