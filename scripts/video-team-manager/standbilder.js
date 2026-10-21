@@ -12,7 +12,6 @@ const { chromium } = require('playwright'); const path = require('path');
       const el = document.getElementById('sz' + i); el.classList.add('an');
       for (let q = 0; q <= j; q++) { const sch = SZENEN[i].schritte[q]; zeige(el, sch); document.getElementById('unter').textContent = sch.u ?? '';
         if (sch.collage) el.querySelectorAll('[data-c]').forEach(c => c.classList.add('an')); }
-      if (i === 0 && j === 1) el.querySelector('#intro').classList.add('weg');
     }, [i, j]);
     await p.waitForTimeout(1100);
     await p.screenshot({ path: `${process.argv[2]}/${hoch ? 'h' : 'q'}-${String(i + 1).padStart(2, '0')}-${j}.png` });
