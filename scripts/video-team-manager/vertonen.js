@@ -38,6 +38,7 @@ const AUSSPRACHE = [
   [/mdudarts\.de/gi, 'Em-De-U-Darts Punkt De-E'], // so trennt die Stimme die Buchstaben (per Spracherkennung geprüft)
   [/\bMDU\b/g, 'Em De U'],
   [/\bTC\b/g, 'Teamcaptain'],
+  [/BSDABBV/g, 'Be-Es-De-A-Be-Be-Vau'],
   [/7,99\s*€/g, 'sieben neunundneunzig'],
   [/49\s*€/g, 'neunundvierzig Euro'],
   // Auslassungspunkte: am Stück gesprochen stünden sonst „… …“ hintereinander,
@@ -59,11 +60,11 @@ async function api(pfad, init = {}) {
 
 // Klang: noch euphorischer als „Was ist neu“ (Betreiber, 18.10.2026). Über ENV anpassbar.
 const STIMME = {
-  stability: +(process.env.STABILITY || 0.25),
+  stability: +(process.env.STABILITY || 0.2),
   similarity_boost: 0.75,
-  style: +(process.env.STYLE || 0.8),
+  style: +(process.env.STYLE || 0.9),
   use_speaker_boost: true,
-  speed: +(process.env.SPEED || 1.12),
+  speed: +(process.env.SPEED || 1.15),
 };
 
 function trockenTon(text, datei) {
@@ -181,7 +182,9 @@ async function main() {
     for (const nr of process.argv[3].split(',').map(Number)) {
       const sz = szenen[nr - 1];
       const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
-      const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
+      // NEU=2,4 → diese Szenen (Nummer ab 1) neu sprechen lassen, z. B. nach einem Versprecher
+    if ((process.env.NEU || '').split(',').map(Number).includes(i + 1)) for (const e of ['.mp3', '.json']) fs.rmSync(path.join(TON, 'szene-' + hash + e), { force: true });
+    const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
       fs.copyFileSync(t.datei, path.join(DIR, `probe-szene-${nr}.mp3`));
       console.log(`Szene ${nr}: ${t.ende.toFixed(1)} s, ${t.neu} Zeichen neu → probe-szene-${nr}.mp3`);
     }
@@ -200,6 +203,8 @@ async function main() {
   let zeichen = 0;
   for (const [i, sz] of szenen.entries()) {
     const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+    // NEU=2,4 → diese Szenen (Nummer ab 1) neu sprechen lassen, z. B. nach einem Versprecher
+    if ((process.env.NEU || '').split(',').map(Number).includes(i + 1)) for (const e of ['.mp3', '.json']) fs.rmSync(path.join(TON, 'szene-' + hash + e), { force: true });
     const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
     zeichen += t.neu; if (t.neu) process.stdout.write('.');
     // Satz j läuft bis zum Anfang von Satz j+1; der letzte bis Sprechende + Luft.

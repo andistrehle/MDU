@@ -1,7 +1,7 @@
 # Promo-Video „Der Team Manager ist da!“
 
-Drehbuch: [`docs/video-team-manager-promo.md`](../../docs/video-team-manager-promo.md). 16 Szenen
-(Drehbuch 1–15, 7b als eigene Szene), 2:16, Stimme Benjamin, euphorisch. Gleiche Mechanik wie
+Drehbuch: [`docs/video-team-manager-promo.md`](../../docs/video-team-manager-promo.md). 15 Szenen
+nach dem Skript des Betreibers (21.10.2026), 3:08, Stimme **Toby** (`eEmoQJhC4SAEQpCINUov`), euphorisch. Gleiche Mechanik wie
 [`scripts/video-was-ist-neu`](../video-was-ist-neu). Wird NICHT deployt, nicht typgeprüft.
 
 | Datei | Zweck |
@@ -19,12 +19,15 @@ Drehbuch: [`docs/video-team-manager-promo.md`](../../docs/video-team-manager-pro
 ```bash
 npm install --no-save --prefix . ffmpeg-static     # einmal je Session
 export NODE_PATH=/opt/node22/lib/node_modules
-ELEVENLABS_VOICE_ID=gRJR8Fqocw86Vixo4cZV node vertonen.js --probe-szenen 1,16   # Hörprobe
-ELEVENLABS_VOICE_ID=gRJR8Fqocw86Vixo4cZV node vertonen.js                      # → ausgabe/
+ELEVENLABS_VOICE_ID=eEmoQJhC4SAEQpCINUov node vertonen.js --probe-szenen 1,15   # Hörprobe
+OHNE_HOCH=1 ELEVENLABS_VOICE_ID=eEmoQJhC4SAEQpCINUov node vertonen.js           # → ausgabe/
 node reel.js
 ```
 
-- **Klang:** stability 0.25, style 0.8, speed 1.12 (ENV `STABILITY`/`STYLE`/`SPEED`).
+- **Klang:** stability 0.2, style 0.9, speed 1.15 (ENV `STABILITY`/`STYLE`/`SPEED`). Benjamin war dem Betreiber zu müde.
+- **Vorschau ohne Ton:** `TROCKEN=1 OHNE_HOCH=1 ELEVENLABS_VOICE_ID=x node vertonen.js` → Stille, Satzlänge geschätzt (14 Zeichen/s), kostet nichts.
+- **Versprecher:** `NEU=2,4` spricht nur diese Szenen neu (Toby verhaspelte sich in Szene 2, lachte grundlos in 4).
+- **Gleichlauf prüfen:** Speech-to-Text mit Wort-Zeitstempeln gegen `ausgabe/szenen.json` — 21.10.2026: größte Abweichung 0,16 s.
 - **Aussprache** (`AUSSPRACHE`, nur gesprochen): „mdudarts.de“ → „Em-De-U-Darts Punkt De-E“
   (mit Bindestrichen trennt die Stimme die Buchstaben; „Em De U Darts Punkt De“ verstand die
   Spracherkennung als „MDI Darts Punkte“), „TC“ → „Teamcaptain“, „7,99 €“ → „sieben
