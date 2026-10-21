@@ -27,7 +27,7 @@ const { chromium } = require('playwright');
 const DIR = __dirname;
 const TON = path.join(DIR, process.env.TROCKEN === '1' ? 'ton-trocken' : 'ton');
 const AUFNAHME = path.join(DIR, 'aufnahme');
-const ZIEL = path.join(DIR, 'ausgabe', 'MDU-team-manager.mp4');
+const ZIEL = path.join(DIR, 'ausgabe', process.env.TROCKEN === '1' ? 'MDU-team-manager-ohne-ton.mp4' : 'MDU-team-manager.mp4');
 const ZIEL_HOCH = path.join(DIR, 'ausgabe', 'MDU-team-manager-hoch.mp4'); // nur Handy, für reel.js
 const KEY = process.env.ELEVENLABS_API_KEY;
 const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
@@ -67,7 +67,8 @@ const STIMME = {
 };
 
 function trockenTon(text, datei) {
-  execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `sine=frequency=440:duration=${(text.length / 14).toFixed(2)}`, '-q:a', '6', datei]);
+  // Stille in der ungefähren Sprechlänge (14 Zeichen/s) — Vorschau ohne Ton, kostet nichts
+  execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `anullsrc=r=44100:cl=mono`, '-t', (text.length / 14).toFixed(2), '-q:a', '6', datei]);
 }
 
 async function sprich(text, voice, datei) {

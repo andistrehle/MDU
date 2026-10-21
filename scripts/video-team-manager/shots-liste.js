@@ -42,7 +42,7 @@ module.exports = [
   ['glocke-tim', 's=spiel&n=10&tim=1', async p => { await p.evaluate(() => [...document.querySelectorAll('.demo-glocke button')].find(b => b.offsetParent !== null).click()); await p.waitForTimeout(800); }],
   // Szene 8: Teamkasse
   ['kasse-spieler', 's=kasse'],
-  ['kasse-strafe', 's=kasse&formular=strafe&vorwahl=p1,p4,p7', klick('button:has-text("Bull verfehlt")')],
+  ['kasse-strafe', 's=kasse&formular=strafe&vorwahl=p7', klick('button:has-text("Captain beleidigt")')],
   ['kasse-beitraege', 's=kasse&reiter=beitraege', zu('Mein Bereich', 0)],
   ['kasse-offen', 's=kasse&reiter=offen&wahl=b11,b12,b13,b14'],
   ['kasse-buch', 's=kasse&reiter=buch'],

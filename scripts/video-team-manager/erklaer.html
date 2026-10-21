@@ -74,6 +74,10 @@
   .wa .m.ich { align-self:flex-end; background:#DCF8C6; }
   .wa .m b { display:block; font-size:16px; color:#075E54; }
   .wa .m.an { opacity:1; transform:none; }
+  .wa .verlauf { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:flex-end; gap:inherit; overflow:hidden; }
+  .wa .verlauf .m { display:none; flex-shrink:0; }
+  .wa .verlauf .m.an { display:block; animation: plopp .3s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes plopp { from { opacity:0; transform: translateY(18px) scale(.96); } to { opacity:1; transform:none; } }
   .handy .wa { padding:56px 16px 16px; gap:9px; }
   .handy .wa .kopf { margin:-56px -16px 4px; padding:52px 16px 12px; font-size:19px; }
   .handy .wa .m { font-size:17px; padding:8px 12px; }
@@ -170,8 +174,9 @@ const geraete = (namen) => `
   <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}</div></div>`;
 const stempel = (k, text, x, y, art = '', xh, yh, bis) => `<div class="stempel ${art}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${HOCH ? xh ?? x : x}px;top:${HOCH ? yh ?? y : y}px">${text}</div>`;
 
+// Neueste Nachricht unten, ältere wandern nach oben (wie im echten Chat); unsichtbare nehmen keinen Platz.
 const chat = (zeilen) => `<div class="wa"><div class="kopf">👥 <span>DC Demo München<small>Max, Tim, Lena, Sepp, Kai, Flo …</small></span></div>
-  ${zeilen.map(([wer, txt, k], i) => `<div class="m ${wer === 'Max' ? 'ich' : ''}" data-k="${k ?? i}">${wer === 'Max' ? '' : `<b>${wer}</b>`}${txt}</div>`).join('')}</div>`;
+  <div class="verlauf">${zeilen.map(([wer, txt, k], i) => `<div class="m ${wer === 'Max' ? 'ich' : ''}" data-k="${k ?? i}">${wer === 'Max' ? '' : `<b>${wer}</b>`}${txt}</div>`).join('')}</div></div>`;
 const teilen = `<div class="wa"><div class="kopf">👥 <span>DC Demo München<small>Max, Tim, Lena, Sepp, Kai, Flo …</small></span></div>
   <div class="vorschau" data-k="1"><div class="bild"><img src="${LOGO}"><span class="tc" style="font-size:${HOCH ? 54 : 32}px">DC Demo München<br><span style="color:#E8B84A">vs. Bullseye Buam</span></span></div>
   <div class="txt"><b>Fr 23.10. 20:00 · DC Demo München – Bullseye Buam</b><small>DC Demo München: Wer ist dabei? Zu- und Absagen für dieses Spiel.</small><br><span style="color:#075E54">mdudarts.de</span></div></div>

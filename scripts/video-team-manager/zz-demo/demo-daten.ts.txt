@@ -103,7 +103,7 @@ export const GESPIELT = { berichte: 6, gespielt: { p0: 6, p1: 6, p2: 5, p3: 3, p
 
 // ── Teamkasse ──
 export const STRAFARTEN: Strafart[] = [
-  ['Bull verfehlt', 50], ['Unter 26 geworfen', 20], ['Zu spät', 100], ['Handy am Board', 100], ['Kein Trikot', 200], ['Runde schmeißen vergessen', 300],
+  ['Captain beleidigt', 500], ['Bull verfehlt', 50], ['Unter 26 geworfen', 20], ['Zu spät', 100], ['Handy am Board', 100], ['Kein Trikot', 200], ['Runde schmeißen vergessen', 300],
 ].map(([title, amount_cents], i) => ({ id: 's' + i, title: title as string, amount_cents: amount_cents as number, sort: i }));
 let bn = 0;
 const bu = (kind: Buchung['kind'], i: number | null, title: string, cents: number, datum: string, bezahlt: boolean): Buchung => ({
@@ -118,6 +118,7 @@ export const BUCHUNGEN: Buchung[] = [
   bu('strafe', 9, 'Handy am Board', 100, '2026-10-15', false), bu('strafe', 5, 'Runde schmeißen vergessen', 300, '2026-09-24', true),
   bu('einnahme', null, 'Zuschuss vom Wirt', 5000, '2026-09-05', false), bu('ausgabe', null, 'Neue Trikots (Anzahlung)', 12000, '2026-09-20', false),
   bu('ausgabe', null, 'Flights & Shafts', 2490, '2026-10-02', false),
+  bu('strafe', 7, 'Captain beleidigt', 500, '2026-10-17', false),
 ];
 export const KASSE_EINST: KassenEinstellung = { treasurer_player_id: 'p2', opening_cents: 8500 };
 
