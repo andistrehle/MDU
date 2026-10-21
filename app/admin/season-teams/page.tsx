@@ -101,7 +101,7 @@ export default function AdminSeasonTeamsPage() {
   }, [canView, seasonId]);
 
   const rosterFor = (teamId: string) => roster.filter(p => p.team_id === teamId);
-  /** Startgeld eines Teams: fällig, bezahlt, offen (Nachmeldungen nach Anmeldeschluss 25 €). */
+  /** Startgeld eines Teams: fällig, bezahlt, offen (Nachmeldungen nach TC-Sitzung 25 €). */
   const feeFor = (teamId: string) => {
     const fee = computeTeamFee(seasonId, rosterFor(teamId).map(p => ({ isNomination: p.is_nomination, nominatedAt: p.nominated_at })));
     const pay = payments.get(teamId);
@@ -411,7 +411,7 @@ export default function AdminSeasonTeamsPage() {
               <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                 <span>{feeBreakdown(fee).replace(/ = \d+ €$/, '')} = <strong>{fee.total} €</strong>
-                  {fee.earlyNominations > 0 && <span style={{ color: 'var(--th-text-faint)', fontSize: 12 }}> (davon {fee.earlyNominations} Nachm. bis Anmeldeschluss)</span>}
+                  {fee.earlyNominations > 0 && <span style={{ color: 'var(--th-text-faint)', fontSize: 12 }}> (davon {fee.earlyNominations} Nachm. bis TC-Sitzung)</span>}
                   {rest && <span style={{ color: '#9a6b00', fontWeight: 700 }}> · bezahlt waren {fee.total - openFee} €, offen {openFee} €</span>}
                 </span>
                 {rest && (
@@ -709,7 +709,7 @@ export default function AdminSeasonTeamsPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, padding: '12px 16px 0' }}>
             <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Startgeld · Saisonbeiträge</span>
-            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler + {TEAM_FEE_EUR} € / Team · Nachmeldung nach Anmeldeschluss {LATE_NOMINATION_FEE_EUR} €</span>
+            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>{PLAYER_FEE_EUR} € / Spieler + {TEAM_FEE_EUR} € / Team · Nachmeldung nach TC-Sitzung {LATE_NOMINATION_FEE_EUR} €</span>
           </div>
           <div style={{ display: 'flex', padding: '10px 6px 14px' }}>
             {([

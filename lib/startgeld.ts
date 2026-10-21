@@ -3,8 +3,8 @@
 // ============================================================
 //
 // Grundsatz: 20 € je Spieler + 20 € je Mannschaft. Nachmeldungen kosten
-// ebenfalls 20 € — nach dem Anmeldeschluss 25 € (Betreiber, 21.10.2026: ab dem
-// Tag nach dem Anmeldeschluss, auch rückwirkend). Maßgeblich ist der
+// ebenfalls 20 € — nach der TC-Sitzung (11.10.2026) 25 € (Betreiber, 21.10.2026:
+// bis dahin hatten die meisten Teams schon bezahlt). Maßgeblich ist der
 // Tag der MELDUNG (player_nominations.created_at), nicht der Freigabe: Wie lange
 // die Ligaleitung zum Bestätigen braucht, geht nicht zu Lasten des Teams.
 //
@@ -15,39 +15,37 @@
 // ============================================================
 
 
-/** Startgeld je Spieler (Anmeldung und Nachmeldung bis Anmeldeschluss). */
+/** Startgeld je Spieler (Anmeldung und Nachmeldung bis zur TC-Sitzung). */
 export const PLAYER_FEE_EUR = 20;
 /** Mannschaftsbeitrag, einmal je Team. */
 export const TEAM_FEE_EUR = 20;
-/** Nachmeldung nach dem Anmeldeschluss. */
+/** Nachmeldung nach der TC-Sitzung. */
 export const LATE_NOMINATION_FEE_EUR = 25;
-
-/** Anmeldeschluss 2026/27 — wer an diesem Tag noch meldet, zahlt 20 €. */
-export const ANMELDESCHLUSS_2027 = '2026-09-20';
 
 /**
  * Ab welchem Tag (YYYY-MM-DD) eine Nachmeldung den höheren Satz kostet.
- * Saison 2026/27: Tag nach dem Anmeldeschluss. Für ältere Saisons gab es die
+ * Saison 2026/27: Tag nach der TC-Sitzung (11.10.2026), wer am Tag der Sitzung
+ * noch meldet, zahlt 20 €. Für ältere Saisons gab es die
  * Regel nicht — dort bleibt alles bei 20 €.
  */
 export function lateNominationFrom(seasonId: string): string | null {
-  return seasonId === 'season-2027' ? '2026-09-21' : null;
+  return seasonId === 'season-2027' ? '2026-10-12' : null;
 }
 
 /** Ein Kadermitglied für die Rechnung: Nachmeldungen tragen ihr Meldedatum. */
 export interface FeeMember {
   /** Gesetzt nur bei Nachmeldungen (ISO-Zeitpunkt der Meldung). */
   nominatedAt?: string | null;
-  /** Nachmeldung, aber Datum nicht lesbar → wie bis Anmeldeschluss gerechnet. */
+  /** Nachmeldung, aber Datum nicht lesbar → wie bis zur TC-Sitzung gerechnet. */
   isNomination?: boolean;
 }
 
 export interface TeamFee {
   /** Spieler zum Grundsatz (Anmeldung + frühe Nachmeldungen). */
   regular: number;
-  /** Davon Nachmeldungen bis Anmeldeschluss (nur zur Anzeige). */
+  /** Davon Nachmeldungen bis zur TC-Sitzung (nur zur Anzeige). */
   earlyNominations: number;
-  /** Nachmeldungen nach dem Anmeldeschluss (höherer Satz). */
+  /** Nachmeldungen nach der TC-Sitzung (höherer Satz). */
   lateNominations: number;
   /** Fälliger Gesamtbetrag in Euro (0 bei leerem Kader). */
   total: number;
