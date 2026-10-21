@@ -14,7 +14,8 @@ import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/server/auth';
 import { zusagenFuerTeam } from '@/lib/features';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { alleBegegnungen27, team27, terminKurz, wochenendeText, NEUE_SAISON } from '@/lib/data/saison-2027';
+import { NEUE_SAISON } from '@/lib/data/saison-2027';
+import { termineImFenster, heuteBerlin } from '@/lib/server/zusagen-fenster';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,26 +39,8 @@ export async function GET(request: Request) {
   const tage = (einst as { reminder_days?: number } | null)?.reminder_days ?? VORGABE_TAGE;
   if (tage <= 0) return NextResponse.json({ offen: [] });
 
-  const heute = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
-  const bis = new Date(heute + 'T12:00:00Z'); bis.setUTCDate(bis.getUTCDate() + tage);
-  const bisIso = bis.toISOString().slice(0, 10);
-  const spiele = alleBegegnungen27()
-    .filter(b => (b.home === teamId || b.away === teamId))
-    .map(b => ({ b, datum: b.termin?.datum ?? b.fri }))
-    .filter(x => x.datum >= heute && x.datum <= bisIso)
-    .map(({ b, datum }) => {
-      const heim = b.home === teamId;
-      const gegner = team27(heim ? b.away : b.home)?.name ?? '';
-      return { key: b.key, datum, text: `${b.termin ? terminKurz(b.termin) : `Wochenende ${wochenendeText(b.fri, b.sun, false)}`} · ${heim ? 'gegen' : 'bei'} ${gegner}` };
-    });
-  // Eigene Termine (fehlt die Tabelle noch, bleibt es bei den MDU-Spielen).
-  const { data: eigene } = await supabaseAdmin.from('team_events')
-    .select('id, kind, title, opponent, is_home, event_date, start_time')
-    .eq('season_id', NEUE_SAISON.id).eq('team_id', teamId).gte('event_date', heute).lte('event_date', bisIso);
-  for (const e of (eigene ?? []) as { id: string; kind: string; title: string | null; opponent: string | null; is_home: boolean | null; event_date: string; start_time: string | null }[]) {
-    const tag = terminKurz({ datum: e.event_date, uhrzeit: e.start_time ?? undefined });
-    spiele.push({ key: 'ext:' + e.id, datum: e.event_date, text: `${tag} · ${e.kind === 'spiel' ? `${e.is_home === false ? 'bei' : 'gegen'} ${e.opponent}` : e.title} (Extern)` });
-  }
+  const heute = heuteBerlin();
+  const spiele = await termineImFenster(teamId, tage);
   if (!spiele.length) return NextResponse.json({ offen: [] });
 
   const { data: antworten, error } = await supabaseAdmin.from('match_availability')
@@ -66,7 +49,7 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ offen: [] });
   const beantwortet = new Set(((antworten ?? []) as { match_key: string }[]).map(a => a.match_key));
 
-  const offen = spiele.filter(x => !beantwortet.has(x.key)).sort((a, z) => a.datum.localeCompare(z.datum)).map(({ key, datum, text }) => {
+  const offen = spiele.filter(x => !beantwortet.has(x.key)).map(({ key, datum, text }) => {
     const tageBis = Math.round((Date.parse(datum + 'T12:00:00Z') - Date.parse(heute + 'T12:00:00Z')) / 864e5);
     return { key, text, dringend: tageBis <= DRINGEND_TAGE };
   });

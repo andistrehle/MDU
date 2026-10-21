@@ -195,7 +195,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
                   <span style={{ flex: 1 }}>
                     <span style={{ ...h2Karte, display: 'block' }}>Einstellungen fürs Team</span>
                     <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>
-                      Erinnerung {einst.reminder_days ? `${einst.reminder_days} ${einst.reminder_days === 1 ? 'Tag' : 'Tage'} vorher` : 'aus'} · Treffen {einst.meet_minutes ? `${einst.meet_minutes} Min. vorher` : 'keins'}
+                      Erinnerung {einst.reminder_days ? `${einst.reminder_days} ${einst.reminder_days === 1 ? 'Tag' : 'Tage'} vorher${einst.email_reminder ? ' + Mail' : ''}` : 'aus'} · Treffen {einst.meet_minutes ? `${einst.meet_minutes} Min. vorher` : 'keins'}
                     </span>
                   </span>
                   <Icon name="chevron-down" size={16} className="mdu-einst-pfeil" style={{ color: 'var(--th-text-muted)', transition: 'transform 160ms ease' }} />
@@ -211,6 +211,14 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
                       {TREFFEN_OPTIONEN.map(n => <option key={n} value={n}>{n === 0 ? 'kein Treffen' : `${n} Min. vorher`}</option>)}
                     </select>
                   </EinstZeile>
+                  {einst.email_moeglich && (
+                    <EinstZeile icon="mail" titel="E-Mail-Erinnerung" text="Wer noch offen ist, bekommt zusätzlich eine Mail – im selben Zeitraum wie die Glocke, je Termin einmal. Jeder kann sich selbst abmelden.">
+                      <select value={einst.email_reminder ? 'an' : 'aus'} aria-label="E-Mail-Erinnerung" onChange={e => { const an = e.target.value === 'an'; void aendere({ email_reminder: an }, an ? (einst.reminder_days ? 'E-Mail-Erinnerung ist an – offene Spieler bekommen eine Mail.' : 'E-Mail-Erinnerung ist an – sie kommt aber erst, wenn auch die Erinnerung eingeschaltet ist.') : 'E-Mail-Erinnerung ist aus.'); }} style={auswahl}>
+                        <option value="aus">aus</option>
+                        <option value="an">an</option>
+                      </select>
+                    </EinstZeile>
+                  )}
                   <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.5, marginTop: 2 }}>Du bekommst jede Zu- und Absage in die Glocke.</span>
                 </div>
                 <style>{'.mdu-einst summary::-webkit-details-marker{display:none}.mdu-einst[open] .mdu-einst-pfeil{transform:rotate(180deg)}'}</style>

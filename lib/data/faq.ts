@@ -340,6 +340,12 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
         stichworte: ['kasse', 'strafen', 'strafenkatalog', 'beitrag', 'geld', 'kassenwart'],
       },
       {
+        id: 'erinnerung-zusagen',
+        frage: 'Werde ich erinnert, wenn ich noch nicht zu- oder abgesagt habe?',
+        antwort: `Ja, mit Team Manager. Wer für ein Spiel oder einen Termin noch nicht geantwortet hat, bekommt eine Erinnerung in die Glocke – wie viele Tage vorher, stellt der TC ein. Zusätzlich kann der TC eine **E-Mail-Erinnerung** fürs Team einschalten: Dann kommt für jeden offenen Termin einmal eine Mail. Abmelden kannst du dich über den Link in der Mail. Der TC selbst bekommt jede Zu- und Absage in die Glocke.`,
+        stichworte: ['erinnerung', 'e-mail', 'mail', 'glocke', 'zusage'],
+      },
+      {
         id: 'team-manager-freischalten',
         frage: 'Wie bekommt unser Team den Team Manager?',
         antwort: `Der Team Manager läuft gerade im Test bei einzelnen Teams. Später wird er allen Teams als kostenpflichtige Zusatzfunktion angeboten. Bei Interesse meldet euch gern über das [Kontaktformular](/kontakt).`,

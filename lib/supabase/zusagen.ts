@@ -66,24 +66,34 @@ export async function setzeZusage(p: {
   return { error: error ? 'Konnte nicht speichern: ' + error.message : null };
 }
 
-export interface TeamEinstellungen { reminder_days: number; meet_minutes: number }
+export interface TeamEinstellungen {
+  reminder_days: number; meet_minutes: number;
+  /** E-Mail-Erinnerung fürs Team (Migration 0054, Vorgabe aus) */
+  email_reminder?: boolean;
+  /** false = Spalte fehlt noch (Migration 0054 nicht eingespielt) → Schalter ausblenden */
+  email_moeglich?: boolean;
+}
 export const TREFFEN_VORGABE = 30;
 
 /** Erinnerung (Tage vor dem Spiel, 0 = aus) und Treffen-Vorgabe (Minuten vor Beginn, 0 = keins). */
 export async function ladeEinstellungen(teamId: string): Promise<TeamEinstellungen> {
   const vorgabe = { reminder_days: ERINNERUNG_VORGABE, meet_minutes: TREFFEN_VORGABE };
   if (!supabase) return vorgabe;
-  const voll = await supabase.from('team_availability_settings').select('reminder_days, meet_minutes').eq('team_id', teamId).maybeSingle();
-  // meet_minutes erst ab Migration 0045
-  const { data } = voll.error ? await supabase.from('team_availability_settings').select('reminder_days').eq('team_id', teamId).maybeSingle() : voll;
+  const q = (felder: string) => supabase!.from('team_availability_settings').select(felder).eq('team_id', teamId).maybeSingle();
+  // email_reminder erst ab Migration 0054, meet_minutes ab 0045
+  const mitMail = await q('reminder_days, meet_minutes, email_reminder');
+  const voll = mitMail.error ? await q('reminder_days, meet_minutes') : mitMail;
+  const { data } = voll.error ? await q('reminder_days') : voll;
   const r = data as Partial<TeamEinstellungen> | null;
-  return { reminder_days: r?.reminder_days ?? vorgabe.reminder_days, meet_minutes: r?.meet_minutes ?? vorgabe.meet_minutes };
+  return { reminder_days: r?.reminder_days ?? vorgabe.reminder_days, meet_minutes: r?.meet_minutes ?? vorgabe.meet_minutes,
+    email_reminder: r?.email_reminder ?? false, email_moeglich: !mitMail.error };
 }
 
 export async function setzeEinstellung(teamId: string, werte: Partial<TeamEinstellungen>, userId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
+  const { email_moeglich: _m, ...spalten } = werte; void _m;
   const { error } = await supabase.from('team_availability_settings')
-    .upsert({ team_id: teamId, ...werte, updated_by: userId, updated_at: new Date().toISOString() });
+    .upsert({ team_id: teamId, ...spalten, updated_by: userId, updated_at: new Date().toISOString() });
   return { error: error ? 'Konnte nicht speichern: ' + error.message : null };
 }
 

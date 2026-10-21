@@ -69,7 +69,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   **Zu-/Absagen je Spieltag** (Migration 0043, `lib/supabase/zusagen.ts`):
   keine Zeile = offen, keine harte Frist; Glocken-Erinnerung über `/api/zusagen/offen` (Fenster
   stellt der Kapitän ein); `zusagen-offen.ts` bleibt ohne Spielplan-Import (Glocke ist auf jeder
-  Seite). Nominierung = nächster Schritt (docs/BACKLOG.md). Je Spiel eine Kachel
+  Seite). **E-Mail-Erinnerung** (Migration 0054, Betreiber 21.10.2026): der TC schaltet sie fürs Team
+  ein (`email_reminder`, Vorgabe aus), täglicher Cron `/api/cron/zusagen-mails` (15:00 UTC) mailt
+  offenen Spielern im selben Fenster wie die Glocke (`lib/server/zusagen-fenster.ts`, eine Quelle
+  für beide), je Spieler+Termin EINMAL (`zusage_mail_log`); Abmelden per signiertem Link
+  (`/api/zusagen/mail-abmelden`, GET zeigt nur einen Knopf — Mail-Scanner rufen Links vorab auf).
+  Nominierung = nächster Schritt (docs/BACKLOG.md). Je Spiel eine Kachel
   (`spiel-kachel.tsx`, nächste 4 + „Alle anzeigen“) → teilbare Seite `/spieltag/<team>/<heim>--<gast>`
   (statisch, nur freigeschaltete Teams; Fremde sehen nur Zahlen über `/api/spieltag/stand`,
   Namen/Abstimmen nur Teammitglieder per RLS). Slug NIE zurückrechnen (Team-IDs enthalten „--“),
