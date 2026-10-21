@@ -225,12 +225,13 @@ const SZENEN = [
       { s: 3.5, u: 'Geht aber auch ohne: Dann trägt halt der Teamcaptain für ihn ein.', b: 1, z: [44, 0, 1.6], k: 1 } ] },
 
   { titel: 'Zusagen mit <i>einem Tipp</i>', html: beispiel + geraete(['dash-ja', 'dash-grund', 'spiel-offen', 'glocke'])
-      + stempel(0, '✓ Dabei!', 860, 600, '', 160, 1150, 1) + stempel(1, 'Mit Begründung', 830, 690, 'rot', 560, 1150, 2) + stempel(2, '🔔 Erinnerung', 980, 170, 'gold', 560, 1150),
+      + stempel(0, '✓ Dabei!', 860, 600, '', 160, 1150, 1) + stempel(1, 'Mit Begründung', 830, 690, 'rot', 560, 1150, 2) + stempel(2, '🔔 Erinnerung', 980, 170, 'gold', 560, 1150, 3) + stempel(3, 'Captain weiß Bescheid ✓', 900, 170, '', 140, 1150),
     schritte: [
       { s: 2, u: 'Zusagen? Ein Tipp.', b: 0, z: [40, 22, 1.7], k: 1 },
       { s: 3, u: 'Absagen? Ein Tipp und kurz der Grund dazu.', b: 1, z: [40, 28, 1.7], k: 2 },
-      { s: 2.5, u: 'Wer noch fehlt, siehst du sofort –', b: 2, z: [52, 4, 1.75] },
-      { s: 2.5, u: 'und wer trödelt, den erinnert die Glocke.', b: 3, z: [82, 0, 1.4], k: 3 } ] },
+      { s: 2.5, u: 'Wer noch fehlt, siehst du sofort.', b: 2, z: [52, 4, 1.75] },
+      { s: 3.5, u: 'Wer nicht zu- oder absagt, wird von der Glocke erinnert –', b: 3, z: [82, 0, 1.4], k: 3 },
+      { s: 3.5, u: 'und du als Captain kriegst jede Zu- und Absage direkt in die Glocke.', b: 3, z: [82, 0, 1.4], k: 4 } ] },
 
   { titel: 'Aufstellung <i>&amp; Aufgaben</i>', html: beispiel + geraete(['spiel-aufstellung', 'bericht-voll', 'bericht-voll', 'spiel-notiz', 'glocke-tim'])
       + stempel(0, 'Ein Klick! ⚡', 850, 300, 'gold', 560, 1150, 1) + stempel(1, 'Auch fürs Gegner-Team 🤝', 760, 560, '', 140, 1150, 2) + stempel(2, 'Tim weiß Bescheid 🔔', 860, 170, '', 140, 1150),
