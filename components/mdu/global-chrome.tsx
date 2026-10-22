@@ -17,6 +17,7 @@ import { BottomNav } from './bottom-nav';
 import { DemoTour } from './demo-tour';
 import { DemoTourButton } from './tour-restart-link';
 import { AnalyticsTracker } from './analytics-tracker';
+import { PushAbfrage } from './push-abfrage';
 
 export function GlobalChrome() {
   const pathname = usePathname();
@@ -30,6 +31,7 @@ export function GlobalChrome() {
       <DemoTourButton />
       <DemoTour />
       <AnalyticsTracker />
+      <PushAbfrage />
     </>
   );
 }

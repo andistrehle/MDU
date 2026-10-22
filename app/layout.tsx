@@ -40,6 +40,8 @@ export const metadata: Metadata = {
     'Offizielle Seite der Münchner Dart Union (MDU): Ligabetrieb, Tabellen, Spielpläne, ' +
     'Ergebnisse und Teams im organisierten Dartsport in München.',
   applicationName: 'Münchner Dart Union',
+  // Installierte Web-App auf dem iPhone (app/manifest.ts): Name unter dem Symbol, Vollbild.
+  appleWebApp: { capable: true, title: 'MDU', statusBarStyle: 'default' },
   keywords: [
     'Münchner Dart Union', 'MDU', 'MDU München', 'MDU Dart', 'MDU Darts',
     'Dart Liga München', 'Dartliga München', 'Darts München', 'Dartsport München',
