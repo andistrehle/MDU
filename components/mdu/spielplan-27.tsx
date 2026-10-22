@@ -169,13 +169,26 @@ export function LigaSpielplan27({ liga, ergebnisse }: { liga: Liga27; ergebnisse
 
 /** Spiele eines Teams als Liste, nach dem echten Termin sortiert (verlegte
  *  Spiele und getauschtes Heimrecht stehen dort, wo sie wirklich stattfinden). */
-export function TeamSpielplan27({ teamId, ergebnisse }: { teamId: string; ergebnisse?: ErgebnisMap27 }) {
+/** `nur`: 'offen' = noch ohne Ergebnis (Spielfrei nur, wenn noch nicht vorbei),
+ *  'gespielt' = mit Ergebnis, neueste zuerst. Ohne = ganze Saison. */
+export function TeamSpielplan27({ teamId, ergebnisse, nur, leer, max }: { teamId: string; ergebnisse?: ErgebnisMap27; nur?: 'offen' | 'gespielt'; leer?: string; max?: number }) {
   const self = team27(teamId);
   if (!self) return null;
-  const zeilen = spieleFuerTeam27(teamId).map(s => {
+  const heute = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+  const hatErgebnis = (s: { heim: boolean; gegner: string }) =>
+    !!s.gegner && !!ergebnisse?.[s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)];
+  let zeilen = spieleFuerTeam27(teamId).map(s => {
     const t = s.gegner ? (s.heim ? termin27(teamId, s.gegner) : termin27(s.gegner, teamId)) : null;
     return { s, t, sort: t?.datum ?? s.fri };
   }).sort((a, b) => a.sort.localeCompare(b.sort) || a.s.spieltag - b.s.spieltag);
+  if (nur === 'offen') zeilen = zeilen.filter(z => !hatErgebnis(z.s) && (z.s.gegner || z.s.sun >= heute));
+  if (nur === 'gespielt') zeilen = zeilen.filter(z => hatErgebnis(z.s)).reverse();
+  if (max) zeilen = zeilen.slice(0, max);
+  if (!zeilen.length) return (
+    <div style={{ borderRadius: 14, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', padding: '22px 24px', ...faint, fontSize: 13, fontStyle: 'italic' }}>
+      {leer ?? 'Keine Spiele.'}
+    </div>
+  );
   return (
     <div style={{ borderRadius: 14, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', overflow: 'hidden' }}>
       {zeilen.map(({ s, t }, i) => {

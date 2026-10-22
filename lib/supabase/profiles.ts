@@ -133,6 +133,24 @@ export async function loadPublicPlayerProfile(playerId: string): Promise<{ nickn
   };
 }
 
+/** Öffentliche Profilbilder mehrerer Spieler auf einmal (Kader der Teamseite) —
+ *  wie loadPublicPlayerProfile nur mit Einwilligung (show_photo). */
+export async function loadPublicPlayerPhotos(playerIds: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon || !playerIds.length) return out;
+  const client = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data } = await client
+    .from('player_profiles')
+    .select('player_id, profile_image_url, show_photo')
+    .in('player_id', playerIds);
+  for (const r of (data ?? []) as { player_id: string; profile_image_url: string | null; show_photo: boolean | null }[]) {
+    if (r.show_photo && r.profile_image_url) out.set(r.player_id, r.profile_image_url);
+  }
+  return out;
+}
+
 // ── Teamprofil ────────────────────────────────────────────────
 
 /**

@@ -1,9 +1,6 @@
-import Image from 'next/image';
-import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Pill } from '@/components/mdu/pill';
-import { Icon } from '@/components/mdu/icon';
 import { TeamDetailClient, type RosterEntry } from '@/components/mdu/team-detail-client';
 import {
   findTeam, findLeague, findVenue,
@@ -11,19 +8,20 @@ import {
   getCurrentSeason, getStandings, getVenueFullAddress,
   getScheduledMatchesForTeam, getCompletedMatchesForTeam,
   getPlayerDisplayName, getCurrentCompetitionForTeam,
-  getStatisticsForLeague,
+  getStatisticsForLeague, findPlayer,
 } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { shade } from '@/lib/utils';
-import { loadPublicTeamProfile } from '@/lib/supabase/profiles';
+import { loadPublicTeamProfile, loadPublicPlayerPhotos } from '@/lib/supabase/profiles';
 import { getActiveSeason, getSeasonTeam, getSeasonRoster, getDbRosterForTeam, getAnySeasonTeamView } from '@/lib/server/season-data';
 import { SeasonTeamView } from '@/components/mdu/season-team-view';
 import { getRowOutcome } from '@/lib/data/competition-outcomes';
 import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27 } from '@/components/mdu/spielplan-27';
-import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
-import { Card } from '@/components/mdu/season-team-view';
-import { team27, findLiga27, istArchivParam, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
+import { ladeErgebnisse27, ladeEinzel27, tabelle27 } from '@/lib/server/ergebnisse-2027';
+import { TeamHero, Mannschaftsbild } from '@/components/mdu/team-hero';
+import { TeamTabs } from '@/components/mdu/team-tabs';
+import { Uebersicht27, Kader27, Statistik27, type Kader27Eintrag } from '@/components/mdu/team-27';
+import { team27, findLiga27, venue27, istArchivParam, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   const { id } = await props.params;
@@ -40,23 +38,88 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   if (t27 && !archiv) {
     const st = await getSeasonTeam(NEUE_SAISON.id, id);
     if (st) {
-      const [roster, { byKey: ergebnisse }] = await Promise.all([getSeasonRoster(NEUE_SAISON.id, id), ladeErgebnisse27()]);
+      const [roster, { byKey: ergebnisse }, tabelle, einzel, media] = await Promise.all([
+        getSeasonRoster(NEUE_SAISON.id, id), ladeErgebnisse27(), tabelle27(t27.league), ladeEinzel27(), loadPublicTeamProfile(id),
+      ]);
+      const fotos = await loadPublicPlayerPhotos(roster.map(p => p.playerId).filter((x): x is string => !!x));
+      const liga = findLiga27(t27.league);
+      const ligaName = liga?.name ?? st.leagueName ?? 'Liga folgt';
+      const ligaHref = `/ligen/${t27.league}`;
+      const venue = venue27(t27.venueId);
+      const zeile = tabelle.find(z => z.team === id) ?? null;
+      const gespielt = zeile && zeile.sp > 0 ? zeile : null;
+      const captain = roster.find(p => p.isCaptain);
+      const captainName = captain ? `${captain.firstName} ${captain.lastName}`.trim() : null;
+
+      // Kader: nach der Einzelrangliste, wer noch nicht gespielt hat dahinter
+      // (TC zuerst, dann nach Nachname). Bild: Profilbild mit Einwilligung,
+      // sonst das aus den Stammdaten.
+      const kader: Kader27Eintrag[] = roster.map(p => ({
+        playerId: p.playerId,
+        name: `${p.firstName} ${p.lastName}`.trim(),
+        licenseNumber: p.licenseNumber,
+        isCaptain: p.isCaptain,
+        neu: p.status === 'pending_review',
+        photoUrl: (p.playerId && (fotos.get(p.playerId) ?? findPlayer(p.playerId)?.photoUrl)) || null,
+        stats: (p.playerId && einzel.byPlayer[p.playerId]) || null,
+      }));
+      const nachname = (k: Kader27Eintrag) => k.name.split(' ').slice(-1)[0] ?? '';
+      kader.sort((a, b) => (a.stats && b.stats) ? a.stats.pos - b.stats.pos
+        : a.stats ? -1 : b.stats ? 1
+        : (Number(b.isCaptain) - Number(a.isCaptain)) || nachname(a).localeCompare(nachname(b), 'de'));
+
       return (
-        <SeasonTeamView
-          seasonName={NEUE_SAISON.name}
-          team={st}
-          roster={roster}
-          leagueName={findLiga27(t27.league)?.name}
-          umschalter={staticTeam
-            ? <SaisonUmschalter archiv={false} neuHref={`/teams/${id}`} archivHref={archivHref} style={{ marginBottom: 0 }} />
-            : undefined}
-          spielplan={
-            <Card title={`Spielplan · ${NEUE_SAISON.name}`}>
-              <VorlaeufigHinweis style={{ marginBottom: 14, fontSize: 12.5 }} />
-              <TeamSpielplan27 teamId={id} ergebnisse={ergebnisse} />
-            </Card>
-          }
-        />
+        <div style={{ background: 'var(--th-bg-deep)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
+          <DesktopHeader activeHref="/teams" />
+          <TeamHero
+            name={t27.name}
+            short={t27.short}
+            color={t27.color}
+            logoUrl={media.logoUrl ?? st.logoUrl ?? t27.logoUrl}
+            umschalter={staticTeam
+              ? <SaisonUmschalter archiv={false} neuHref={`/teams/${id}`} archivHref={archivHref} style={{ marginTop: -8 }} />
+              : undefined}
+            pills={<>
+              <Pill tone="red">{ligaName}</Pill>
+              {gespielt?.pos === 1 && <Pill tone="gold">Tabellenführer</Pill>}
+            </>}
+            infos={[
+              { icon: 'pin', text: venue?.name ?? st.venueName ?? 'Spielort folgt' },
+              { icon: 'trophy', text: ligaName },
+              ...(gespielt ? [{ icon: 'bar' as const, text: `Platz ${gespielt.pos} · ${gespielt.pts} Pkt.` }] : []),
+            ]}
+            kpis={[
+              { n: gespielt ? `${gespielt.pos}.` : '—', l: 'Tabellenplatz', c: gespielt?.pos === 1 ? 'var(--th-gold)' : undefined },
+              { n: String(zeile?.sp ?? 0), l: 'Spiele' },
+              { n: String(zeile?.s ?? 0), l: 'Siege' },
+              { n: String(zeile?.u ?? 0), l: 'Unentschieden' },
+              { n: String(zeile?.n ?? 0), l: 'Niederlagen' },
+              { n: String(zeile?.pts ?? 0), l: 'Punkte' },
+            ]}
+          />
+          <Mannschaftsbild url={media.teamImageUrl} name={t27.name} />
+          <TeamTabs color={t27.color} tabs={[
+            { label: 'Übersicht', content: (
+              <Uebersicht27 teamId={id} color={t27.color} seasonName={NEUE_SAISON.name} ligaName={ligaName} ligaHref={ligaHref}
+                venueName={venue?.name ?? st.venueName} venueAddress={venue?.address ?? null} captain={captainName}
+                zeile={zeile} ergebnisse={ergebnisse} />
+            ) },
+            { label: 'Kader', content: <Kader27 kader={kader} color={t27.color} /> },
+            { label: 'Spielplan', content: (
+              <>
+                <VorlaeufigHinweis style={{ marginBottom: 14, fontSize: 12.5 }} />
+                <TeamSpielplan27 teamId={id} ergebnisse={ergebnisse} nur="offen" leer="Keine offenen Spiele mehr in dieser Saison." />
+              </>
+            ) },
+            { label: 'Ergebnisse', content: (
+              <TeamSpielplan27 teamId={id} ergebnisse={ergebnisse} nur="gespielt" leer="Noch keine Ergebnisse — sie erscheinen hier, sobald ein Spielbericht eingereicht ist." />
+            ) },
+            { label: 'Statistik', content: (
+              <Statistik27 spieler={einzel.jeLiga[t27.league].filter(z => z.teamId === id)} color={t27.color} />
+            ) },
+          ]} />
+          <Footer />
+        </div>
       );
     }
   }
@@ -175,134 +238,34 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
     <div style={{ background: 'var(--th-bg-deep)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
       <DesktopHeader activeHref="/teams" />
 
-      {/* Hero */}
-      <div style={{
-        position: 'relative', overflow: 'hidden',
-        background: `linear-gradient(180deg, ${shade(team.color, -0.55)}22 0%, var(--th-bg-deep) 100%), var(--th-bg-deep)`,
-        borderBottom: '1px solid var(--th-line-6)',
-      }}>
-        <div aria-hidden className="mdu-banner-dartboard" style={{
-          position: 'absolute', right: -220, top: '50%', transform: 'translateY(-50%)',
-          width: 680, height: 680, pointerEvents: 'none', opacity: 0.5,
-          WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
-          maskImage: 'radial-gradient(circle at 50% 50%, #000 0%, #000 65%, transparent 92%)',
-        }}>
-          <Image src="/mdu-hero-dartboard-2.webp"
-            unoptimized alt="" width={680} height={680}
-            style={{ width: 680, height: 680, objectFit: 'cover', objectPosition: 'center' }} />
-        </div>
-        <div aria-hidden style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `radial-gradient(circle at 20% 50%, ${team.color}20, transparent 50%)`,
-        }} />
-        <div aria-hidden style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(90deg, var(--th-bg-deep) 35%, var(--th-veil-40) 65%, var(--th-veil-70))',
-        }} />
+      <TeamHero
+        name={team.name}
+        short={team.short}
+        color={team.color}
+        logoUrl={shownLogo}
+        umschalter={<SaisonUmschalter archiv neuHref={t27 ? `/teams/${id}` : '/teams'} archivHref={archivHref} style={{ marginTop: -8 }} />}
+        pills={<>
+          {teamLeague && <Pill tone="red">{leagueLabel}</Pill>}
+          {teamStanding?.pos === 1 && <Pill tone="gold">Tabellenführer</Pill>}
+          {teamPill && <Pill tone={teamPill.tone}>{teamPill.label}</Pill>}
+          {team.status === 'inactive' && <Pill tone="neutral">Zurückgezogen</Pill>}
+        </>}
+        infos={[
+          { icon: 'pin', text: venueLabel },
+          { icon: 'trophy', text: leagueLabel },
+          ...(teamStanding ? [{ icon: 'bar' as const, text: `Platz ${teamStanding.pos} · ${teamStanding.pts} Pkt.` }] : []),
+        ]}
+        kpis={[
+          { n: teamStanding ? `${teamStanding.pos}.` : '—', l: 'Tabellenplatz', c: teamStanding?.pos === 1 ? 'var(--th-gold)' : undefined },
+          { n: teamStanding ? String(teamStanding.sp) : '—', l: 'Spiele' },
+          { n: teamStanding ? String(teamStanding.s)  : '—', l: 'Siege' },
+          { n: teamStanding ? String(teamStanding.u)  : '—', l: 'Unentschieden' },
+          { n: teamStanding ? String(teamStanding.n)  : '—', l: 'Niederlagen' },
+          { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte' },
+        ]}
+      />
 
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '34px 32px 30px', position: 'relative' }}>
-          {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-dim)', marginBottom: 24 }}>
-            <Link href="/" style={{ color: 'var(--th-text-dim)', textDecoration: 'none' }}>Startseite</Link>
-            <Icon name="chevron" size={12} />
-            <Link href="/teams" style={{ color: 'var(--th-text-dim)', textDecoration: 'none' }}>Teams</Link>
-            <Icon name="chevron" size={12} />
-            <span style={{ color: 'var(--th-text-strong)' }}>{team.name}</span>
-          </div>
-          <SaisonUmschalter archiv neuHref={t27 ? `/teams/${id}` : '/teams'} archivHref={archivHref} style={{ marginTop: -8 }} />
-
-          {/* Team identity */}
-          <div className="mdu-team-hero-flex" style={{ display: 'flex', alignItems: 'flex-end', gap: 30 }}>
-            <div className="mdu-team-logo" style={{
-              width: 144, height: 144, borderRadius: '24%', flexShrink: 0,
-              background: shownLogo ? 'var(--th-text-strong)' : `linear-gradient(135deg, ${team.color}, ${shade(team.color, -0.5)})`,
-              border: '2px solid var(--th-gold)',
-              boxShadow: `0 24px 60px ${team.color}50, inset 0 2px 0 rgba(255,255,255,0.2)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden',
-              fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 64, color: 'var(--th-text-strong)',
-            }}>
-              {shownLogo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={shownLogo} alt={team.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
-              ) : (
-                team.short
-              )}
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                {teamLeague && <Pill tone="red">{leagueLabel}</Pill>}
-                {teamStanding?.pos === 1 && <Pill tone="gold">Tabellenführer</Pill>}
-                {teamPill && <Pill tone={teamPill.tone}>{teamPill.label}</Pill>}
-                {team.status === 'inactive' && <Pill tone="neutral">Zurückgezogen</Pill>}
-              </div>
-              <h1 className="mdu-team-name" style={{
-                fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 72,
-                lineHeight: 0.9, letterSpacing: '-0.005em', color: 'var(--th-text-strong)',
-                margin: 0, textTransform: 'uppercase',
-              }}>
-                {team.name}
-              </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 14, fontFamily: 'var(--font-manrope)', fontSize: 14, color: 'var(--th-text-body)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Icon name="pin" size={14} stroke={2} /> {venueLabel}
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Icon name="trophy" size={14} stroke={2} /> {leagueLabel}
-                </span>
-                {teamStanding && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Icon name="bar" size={14} stroke={2} /> Platz {teamStanding.pos} · {teamStanding.pts} Pkt.
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* KPI strip */}
-          <div className="mdu-kpi-strip" style={{
-            marginTop: 34, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1,
-            background: 'var(--th-line-6)', border: '1px solid var(--th-line-6)',
-            borderRadius: 14, overflow: 'hidden',
-          }}>
-            {[
-              { n: teamStanding ? `${teamStanding.pos}.` : '—', l: 'Tabellenplatz', c: teamStanding?.pos === 1 ? 'var(--th-gold)' : undefined },
-              { n: teamStanding ? String(teamStanding.sp) : '—', l: 'Spiele' },
-              { n: teamStanding ? String(teamStanding.s)  : '—', l: 'Siege' },
-              { n: teamStanding ? String(teamStanding.u)  : '—', l: 'Unentschieden' },
-              { n: teamStanding ? String(teamStanding.n)  : '—', l: 'Niederlagen' },
-              { n: teamStanding ? String(teamStanding.pts) : '—', l: 'Punkte' },
-            ].map((s, i) => (
-              <div key={i} className="mdu-kpi-cell" style={{ background: 'var(--th-bg-card3)', padding: '18px 18px' }}>
-                <div style={{
-                  fontFamily: 'var(--font-saira-condensed)',
-                  fontWeight: 900, fontSize: 32,
-                  color: s.c ?? 'var(--th-text-strong)', lineHeight: 1,
-                }}>
-                  {s.n}
-                </div>
-                <div style={{
-                  fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700,
-                  letterSpacing: '0.16em', color: 'var(--th-text-dim)', textTransform: 'uppercase', marginTop: 8,
-                }}>
-                  {s.l}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Mannschaftsbild (nur wenn hochgeladen) */}
-      {teamMedia.teamImageUrl && (
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 32px 0' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={teamMedia.teamImageUrl} alt={`Mannschaftsbild ${team.name}`}
-            style={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 16, border: '1px solid var(--th-line-6)', display: 'block' }} />
-        </div>
-      )}
+      <Mannschaftsbild url={teamMedia.teamImageUrl} name={team.name} />
 
       {/* Interactive tabs + content */}
       <TeamDetailClient
