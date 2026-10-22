@@ -22,6 +22,7 @@ import { ZUSAGEN_TEAMS } from '@/lib/features';
 import { NEUE_SAISON, team27 } from '@/lib/data/saison-2027';
 import { termineImFenster } from '@/lib/server/zusagen-fenster';
 import { sendTextEmail } from '@/lib/server/email/send-email';
+import { pushAn, pushBereit } from '@/lib/server/push';
 import { abmeldeSchluessel } from '@/lib/server/zusage-mail-token';
 
 export const runtime = 'nodejs';
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
     if (einstErr) { bericht.push({ teamId, uebersprungen: 'Einstellungen nicht lesbar (Migration 0054?)' }); continue; }
     const e = einst as { reminder_days?: number; email_reminder?: boolean } | null;
     const tage = e?.reminder_days ?? VORGABE_TAGE;
-    if (!e?.email_reminder || tage <= 0) { bericht.push({ teamId, uebersprungen: 'E-Mail-Erinnerung aus' }); continue; }
+    if (tage <= 0) { bericht.push({ teamId, uebersprungen: 'Erinnerung aus' }); continue; }
 
     const termine = await termineImFenster(teamId, tage);
     if (!termine.length) { bericht.push({ teamId, termine: 0 }); continue; }
@@ -63,6 +64,11 @@ export async function GET(request: Request) {
     const gemailt = new Set(((log ?? []) as { user_id: string; match_key: string }[]).map(l => l.user_id + '|' + l.match_key));
     const teamName = team27(teamId)?.name ?? 'dein Team';
 
+    // Push (Migration 0056) — wie die Glocke immer, unabhängig von der E-Mail-Einstellung;
+    // je Spieler und Termin einmal (zusage_push_log).
+    const push = await zusagenPush(teamId, termine, (profile ?? []) as Profil[], beantwortet);
+
+    if (!e?.email_reminder) { bericht.push({ teamId, termine: termine.length, push, mail: 'E-Mail-Erinnerung aus' }); continue; }
     const versand: { an: string; termine: number; status: string }[] = [];
     for (const p of (profile ?? []) as Profil[]) {
       if (p.zusage_mail_aus || !p.email || !p.player_id) continue;
@@ -92,7 +98,32 @@ export async function GET(request: Request) {
       // Nur wirklich Versendetes merken — sonst käme die Erinnerung nie mehr.
       if (r.status === 'sent') await db.from('zusage_mail_log').upsert(offen.map(t => ({ user_id: p.id, match_key: t.key, team_id: teamId })));
     }
-    bericht.push({ teamId, termine: termine.length, versand });
+    bericht.push({ teamId, termine: termine.length, push, versand });
   }
   return NextResponse.json({ ok: true, bericht });
+}
+
+type Termin = Awaited<ReturnType<typeof termineImFenster>>[number];
+
+/** Zusagen-Erinnerung als Push: wer offene Termine hat und dafür noch keinen Push bekam. */
+async function zusagenPush(teamId: string, termine: Termin[], profile: Profil[], beantwortet: Set<string>): Promise<string | number> {
+  if (!pushBereit() || !supabaseAdmin) return 'nicht eingerichtet';
+  const db = supabaseAdmin;
+  const { data: log, error } = await db.from('zusage_push_log').select('user_id, match_key').in('match_key', termine.map(t => t.key));
+  if (error) return 'Migration 0056 fehlt';
+  const gepusht = new Set(((log ?? []) as { user_id: string; match_key: string }[]).map(l => l.user_id + '|' + l.match_key));
+  let n = 0;
+  for (const p of profile) {
+    if (!p.player_id) continue;
+    const offen = termine.filter(t => !beantwortet.has(p.player_id + '|' + t.key) && !gepusht.has(p.id + '|' + t.key));
+    if (!offen.length) continue;
+    const r = await pushAn([p.id], {
+      titel: offen.length === 1 ? 'Sag kurz zu oder ab' : `${offen.length} Termine: zu- oder absagen`,
+      text: offen.length === 1 ? offen[0].text : offen.map(t => t.text).join(' · '),
+      url: offen.length === 1 ? offen[0].pfad : '/mein-team/termine', tag: `zusage-${teamId}`,
+    });
+    // Nur merken, wenn ein Gerät erreicht wurde — wer Push erst später einschaltet, bekommt ihn dann.
+    if (r.gesendet > 0) { n += 1; await db.from('zusage_push_log').upsert(offen.map(t => ({ user_id: p.id, match_key: t.key }))); }
+  }
+  return n;
 }

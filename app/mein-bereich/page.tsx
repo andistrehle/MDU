@@ -5,6 +5,7 @@ import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
 import { premiumVorschau } from '@/lib/premium';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
+import { PushEinstellung } from '@/components/mdu/push-abfrage';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers, canEditTeam } from '@/lib/auth/roles';
@@ -278,6 +279,9 @@ export default function MeinBereichPage() {
                 Logout
               </button>
             </div>
+
+            {/* Push aufs Handy (Migration 0056) — Ein/Aus, Anleitung bei Blockade */}
+            <PushEinstellung />
 
             {/* Kapitäns-Modus — nur für Ligaleitung/Super-Admin mit eigenem Team */}
             {canUseCaptainMode(user) && (

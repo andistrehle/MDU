@@ -127,6 +127,16 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   speichern). `lib/server/erfassung.ts` ordnet je Begegnung zu: Foto (`source='ocr'`) / live (erstes
   Ergebnis vor Beginn + 3,5 h) / abgeschrieben; ohne Protokoll „geschätzt“ aus `created_at`.
   Admin → Erfassung + Kachel im Dashboard; lesen nur service_role.
+  **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
+  (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
+  Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →
+  `/api/push/senden` (Geheimnis `PUSH_WEBHOOK_SECRET`, steht in `private.push_config`) → `lib/server/push.ts`
+  (web-push, VAPID-ENV) an alle Geräte des Empfängers; 404/410 löscht das Abo. Zusagen-Erinnerung (wird
+  nicht als Zeile gespeichert) pusht der tägliche Cron `zusagen-mails` einmal je Spieler+Termin
+  (`zusage_push_log`), unabhängig von der E-Mail-Einstellung. Abfrage direkt nach dem Login
+  (`components/mdu/push-abfrage.tsx`, „Später“ = 7 Tage), Ein/Aus + Anleitung bei Blockade unter Mein
+  Bereich. Abmelden löscht das Abo des Geräts; bewusst ausgeschaltet bleibt aus (`mdu-push-aus`).
+  iPhone: nur als installierte Web-App (iOS 16.4+). Datenschutz-Absatz dazu: nur auf Anweisung.
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +

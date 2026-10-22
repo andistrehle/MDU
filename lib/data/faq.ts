@@ -359,12 +359,22 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
       {
         id: 'app',
         frage: 'Gibt es eine App?',
-        antwort: `Eine eigene App aus dem App Store gibt es nicht, die Seite funktioniert aber auf dem Handy wie eine. Leg sie dir als Symbol auf den Home-Bildschirm:
+        antwort: `Eine eigene App aus dem App Store gibt es nicht, die Seite lässt sich aber wie eine App installieren – mit MDU-Symbol, im Vollbild und mit Benachrichtigungen:
 - **iPhone (Safari):** Teilen-Symbol → „Zum Home-Bildschirm“.
-- **Android (Chrome):** Menü ⋮ → „Zum Startbildschirm hinzufügen“.
+- **Android (Chrome):** Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
 
 Angemeldet bleibst du dort genauso wie im Browser.`,
-        stichworte: ['handy', 'home-bildschirm', 'iphone', 'android'],
+        stichworte: ['handy', 'home-bildschirm', 'iphone', 'android', 'installieren'],
+      },
+      {
+        id: 'push',
+        frage: 'Bekomme ich Benachrichtigungen aufs Handy?',
+        antwort: `Ja, wenn du sie einschaltest. Nach dem Login fragt die Seite einmal nach, danach geht es jederzeit unter [Mein Bereich](/mein-bereich) → „Benachrichtigungen aufs Handy“ (ein- und ausschalten). Du bekommst dann alles, was in deiner Glocke landet, zum Beispiel einen Spielbericht zum Bestätigen, eine Spielverlegung oder, mit Team Manager, die Erinnerung zum Zu-/Absagen.
+- **iPhone:** Benachrichtigungen gibt es nur, wenn die MDU als App auf dem Home-Bildschirm liegt und du sie darüber öffnest (iOS 16.4 oder neuer).
+- **Aus Versehen abgelehnt?** Dann darf die Seite nicht noch einmal fragen. Erlauben kannst du es in den Einstellungen: iPhone → Einstellungen → Mitteilungen → MDU; im Browser über das Schloss-Symbol neben der Adresse → Benachrichtigungen.
+
+Meldest du dich ab, bekommt das Gerät keine Benachrichtigungen mehr.`,
+        stichworte: ['push', 'benachrichtigung', 'mitteilung', 'handy', 'erinnerung'],
       },
       {
         id: 'glocke',
