@@ -115,6 +115,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Masterplan-Termine wechseln in `saison-2027.ts` den Schlüssel mit (Termine bleiben), verlegte Termine
   der Paarung werden in `verlegungen-2027.json` umgeschlüsselt, und Zusagen/Details/Aufgaben in der DB
   bekommen die neue Kennung (`kennungenTauschen`).
+  **Erfassung der Spielberichte** (Migration 0055, Betreiber 22.10.2026, Entscheidungshilfe für einen
+  Live-Ticker): Jedes Speichern im Formular schreibt `match_report_saves` (Uhrzeit, Zahl der Ergebnisse,
+  Live-Modus, erste/letzte Eingabe auf dem Gerät — lokal gemerkt, weil Live-Tipper oft erst am Ende
+  speichern). `lib/server/erfassung.ts` ordnet je Begegnung zu: Foto (`source='ocr'`) / live (erstes
+  Ergebnis vor Beginn + 3,5 h) / abgeschrieben; ohne Protokoll „geschätzt“ aus `created_at`.
+  Admin → Erfassung + Kachel im Dashboard; lesen nur service_role.
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +

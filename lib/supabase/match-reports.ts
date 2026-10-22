@@ -389,6 +389,26 @@ async function replaceChildren(reportId: string, players: ReportPlayer[], games:
 }
 
 /**
+ * Speichern mitschreiben (Migration 0055, Admin → Erfassung): Uhrzeit, wie
+ * viele Spiele schon ein Ergebnis haben, ob der Live-Modus offen war und wann
+ * auf dem Gerät das erste/letzte Ergebnis eingetippt wurde. Nur Statistik —
+ * schlägt es fehl (z. B. Migration fehlt), merkt niemand etwas.
+ */
+export async function protokolliereSpeichern(
+  reportId: string, games: ReportGame[], liveModus: boolean, eingabe: { erstes: number; letztes: number } | null,
+): Promise<void> {
+  if (!supabase) return;
+  try {
+    const gamesFilled = games.filter(g => g.legs_home != null && g.legs_guest != null).length;
+    await supabase.from('match_report_saves').insert({
+      report_id: reportId, games_filled: gamesFilled, live_mode: liveModus,
+      first_input_at: eingabe ? new Date(eingabe.erstes).toISOString() : null,
+      last_input_at: eingabe ? new Date(eingabe.letztes).toISOString() : null,
+    });
+  } catch { /* nur Statistik */ }
+}
+
+/**
  * Ergebnis-Seiten (Tabellen, Ergebnisse, Spielplan, Liga- und Teamseiten) zum
  * Neubau markieren — nach jeder Änderung, die das Ergebnis betrifft. Schlägt
  * es fehl, holen die Seiten den Stand spätestens beim nächsten Neubau nach.

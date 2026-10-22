@@ -22,7 +22,7 @@ import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
-  createReport, updateReport, submitReport, notifyReportChange,
+  createReport, updateReport, submitReport, notifyReportChange, protokolliereSpeichern,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking, adminBestaetigen,
   HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
@@ -325,6 +325,27 @@ function SpielberichteInner() {
     setWiederhergestellt(null);
     try { if (sicherungsKey) localStorage.removeItem(sicherungsKey); } catch { /* egal */ }
   }
+  // ── Erfassung mitschreiben (Admin → Erfassung, Migration 0055) ──────
+  // Wann kam auf diesem Gerät das erste und das letzte Spielergebnis dazu?
+  // Geladene Stände zählen nicht, nur Eingaben. Liegt im localStorage, weil
+  // wer live tippt, oft erst am Ende in die Datenbank speichert.
+  const erfassungKey = user ? `mdu-sb-erfassung:${user.id}:${idParam ?? 'neu'}` : null;
+  const gefuellt = games.filter(g => g.legs_home != null && g.legs_guest != null).length;
+  const gefuelltRef = useRef<{ key: string; n: number } | null>(null);
+  useEffect(() => {
+    if (!geladen || !erfassungKey || readOnly) return;
+    const vorher = gefuelltRef.current;
+    gefuelltRef.current = { key: erfassungKey, n: gefuellt };
+    if (vorher?.key !== erfassungKey || gefuellt <= vorher.n) return;
+    try {
+      const alt = JSON.parse(localStorage.getItem(erfassungKey) ?? 'null') as { erstes: number } | null;
+      const jetzt = Date.now();
+      localStorage.setItem(erfassungKey, JSON.stringify({ erstes: alt?.erstes ?? jetzt, letztes: jetzt }));
+    } catch { /* nur Statistik */ }
+  }, [geladen, erfassungKey, gefuellt, readOnly]);
+  function erfassungLesen(): { erstes: number; letztes: number } | null {
+    try { return erfassungKey ? JSON.parse(localStorage.getItem(erfassungKey) ?? 'null') : null; } catch { return null; }
+  }
   function sicherungVerwerfen() {
     try { if (sicherungsKey) localStorage.removeItem(sicherungsKey); } catch { /* egal */ }
     window.location.reload();
@@ -546,10 +567,12 @@ function SpielberichteInner() {
     if (regId) {
       const { error } = await updateReport(regId, payload, players, games);
       if (error) { setMsg({ kind: 'err', text: error }); return null; }
+      void protokolliereSpeichern(regId, games, liveModus, erfassungLesen());
       return regId;
     }
     const { id, error } = await createReport(payload, players, games);
     if (error || !id) { setMsg({ kind: 'err', text: error ?? 'Speichern fehlgeschlagen.' }); return null; }
+    void protokolliereSpeichern(id, games, liveModus, erfassungLesen());
     setRegId(id);
     return id;
   }

@@ -9,6 +9,8 @@ import { TEAMS, PLAYERS, LEAGUES } from '@/lib/data';
 import { useNotifications, relativeTime } from '@/lib/supabase/user-notifications';
 import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/supabase/admin-counts';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
+import { useEffect, useState } from 'react';
+import { ladeErfassung, zaehle, WEG, WEGE, type Erfassung } from '@/lib/supabase/erfassung';
 
 interface AdminCard {
   icon: string;
@@ -30,6 +32,7 @@ const CARDS: AdminCard[] = [
   { icon: 'user',     label: 'Nachmeldungen',      desc: 'Spieler-Nachmeldungen prüfen.',   href: '/admin/nachmeldungen', badgeKey: 'nominations' },
   { icon: 'calendar', label: 'Spielplan / TC-Pläne', desc: 'Pläne je Mannschaft, Liga und Spielort drucken.', href: '/admin/spielplan-vorschlag' },
   { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte', badgeKey: 'matchReports' },
+  { icon: 'bar',      label: 'Erfassung',          desc: 'Live, Foto oder abgeschrieben?',  href: '/admin/erfassung' },
   { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
   { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },
   { icon: 'upload',   label: 'Datenimport',        desc: 'dartunion.de-Importstatus.',      href: '/admin/import' },
@@ -66,6 +69,7 @@ export default function AdminDashboardPage() {
 
       {/* Offene Hinweise für Ligaleitung / Super Admin */}
       {canManageLeague(user) && <NotificationsPanel />}
+      {canManageLeague(user) && <ErfassungKachel />}
 
       {/* System-Status (echte Zahlen aus Projektdaten) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12, marginBottom: 22 }}>
@@ -169,5 +173,29 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
       <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26, color: accent ? 'var(--th-win)' : 'var(--th-text-strong)', lineHeight: 1 }}>{value}</div>
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', marginTop: 6 }}>{label}</div>
     </div>
+  );
+}
+
+/** Letzter Spieltag mit Berichten: live / Foto / abgeschrieben (Admin → Erfassung). */
+function ErfassungKachel() {
+  const [daten, setDaten] = useState<Erfassung | null>(null);
+  useEffect(() => { void ladeErfassung().then(r => setDaten(r.data)); }, []);
+  const zeilen = daten?.zeilen ?? [];
+  if (!zeilen.length) return null;
+  const st = Math.max(...zeilen.map(z => z.spieltag));
+  const z = zaehle(zeilen.filter(x => x.spieltag === st));
+  return (
+    <Link href="/admin/erfassung" style={{
+      display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, textDecoration: 'none',
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '14px 18px', marginBottom: 18,
+    }}>
+      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Spielberichte {st}. Spieltag:</span>
+      {WEGE.map(w => (
+        <span key={w} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13.5, color: 'var(--th-text-body)' }}>
+          {WEG[w].icon} <b style={{ color: WEG[w].farbe }}>{z[w]}</b> {WEG[w].label.toLowerCase()}
+        </span>
+      ))}
+      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)' }}>Auswertung →</span>
+    </Link>
   );
 }
