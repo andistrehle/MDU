@@ -64,8 +64,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Siege, sonst geteilter Platz; Liga = Team des letzten Einsatzes), Lader `ladeEinzel27`,
   Reiter „Einzelrangliste" auf der Ligaseite + Saison-Karte im Spielerprofil.
   **Öffentlicher Spielbericht** (Betreiber, 23.10.2026): `/spielbericht/<heim>--<gast>` (`ladeBericht27`,
-  nur zählende Berichte) zeigt Aufstellung (Namen), alle Spiele mit Legs, Highlights, Endstand — NICHT
-  Passnummern, TCs, Protest/Notizen, Fotos. Erreichbar über jedes Ergebnis 2026/27 (Spielplan, Ergebnisse, Liga,
+  nur zählende Berichte) ist der ganze Bericht im Aufbau des Papierbogens: Kopf, Mannschaften, Aufstellung
+  H1–H8/G1–G8 mit Einzelranglisten-Punkten des Abends, Spielablauf 1–18 inkl. Doppel mit Zwischenstand,
+  Gesamtergebnis, Highlights — NICHT Passnummern, TCs, Protest/Notizen, Unterschriften, Fotos. Erreichbar über jedes Ergebnis 2026/27 (Spielplan, Ergebnisse, Liga,
   Team, Startseite — `berichtPfad`, nicht bei Wertungen) und aus dem Spielerprofil (letzte 5 Einzel +
   „Alle anzeigen“, Sprung per `#spiel-<nr>`).
   **Team Manager**: `/mein-team/zusagen` = Dashboard (`team-dashboard.tsx`: Team-Scheibe, Kacheln Kasse/Termine/
