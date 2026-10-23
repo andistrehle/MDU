@@ -34,6 +34,7 @@ const SPRUECHE: Record<number, string[]> = {
 };
 const EXTRAS = [
   ['✈️ Ich fliege mit – brauche Mitfahrt', '🚕 Brauch eine Mitfahrgelegenheit', '🙋 Wer nimmt mich mit?'],
+  ['🚗 Ich kann einsammeln', '🚗 Taxi Bazis – ich sammel ein', '🚗 Hab noch Plätze frei – ich sammel ein'],
   ['🛋️ Bin heut raus – haut’s rein!', '❌ Kann leider nicht – Daumen sind gedrückt', '🤒 Diesmal ohne mich'],
 ];
 const TITEL_HEIM = ['🎯 Spieltag! {spitz} vs. {gegner} im {lokal} – Dein Status?', '🎯 Heimspiel! {spitz} gegen {gegner} – wann bist du da?', '🎯 Heute zuhause: {spitz} vs. {gegner} – wann rollst du ein?'];
@@ -66,7 +67,7 @@ export function umfrageFuer(datum: string | null): Umfrage | null {
     const zeit = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')} Uhr`;
     return fuell(w(SPRUECHE[vor], i), { zeit });
   });
-  optionen.push(w(EXTRAS[0], 20), w(EXTRAS[1], 21));
+  optionen.push(w(EXTRAS[0], 20), w(EXTRAS[1], 22), w(EXTRAS[2], 21));
   let name = fuell(w(heim ? TITEL_HEIM : TITEL_AUSWAERTS, 30), { spitz: SPITZ, gegner, lokal });
   // Besondere Abende vorne dran: Derby und/oder erstes Spiel der Saison.
   const auftakt = b === eigene[0];
