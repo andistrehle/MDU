@@ -15,6 +15,7 @@ name: Bazis · Ankunfts-Umfrage (WhatsApp)
 #
 # Von Hand (Actions → dieser Workflow → Run workflow):
 #   anmelden — einmalig: Kopplungscode im Protokoll, in WhatsApp eingeben
+#   anmelden-qr — wie anmelden, aber per QR-Code (Protokoll am Laptop öffnen, mit dem Handy scannen)
 #   test     — Umfrage fürs nächste Spiel an dich selbst schicken
 #   umfrage  — wie der tägliche Lauf
 on:
@@ -26,7 +27,7 @@ on:
       modus:
         description: 'Was soll der Bot tun?'
         type: choice
-        options: [anmelden, test, umfrage]
+        options: [anmelden, anmelden-qr, test, umfrage]
         default: anmelden
 
 concurrency:

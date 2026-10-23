@@ -11,6 +11,7 @@
 // nur VERSCHLÜSSELT (AES-256-GCM, Schlüssel WA_SCHLUESSEL) im Cache der Actions.
 //
 //   node bot.mjs anmelden   → Kopplungscode ausgeben, Gerät verknüpfen, Gruppe prüfen
+//   node bot.mjs anmelden-qr → stattdessen QR-Code ins Protokoll (zweites Gerät zum Anzeigen nötig)
 //   node bot.mjs umfrage    → heute Spieltag + ab 11 Uhr + noch nicht gepostet → posten
 //   node bot.mjs test       → Umfrage fürs nächste Spiel an dich selbst („Du“-Chat)
 // Umfrage-Inhalt: umfrage.json (erzeugt von umfrage.ts, im Workflow davor).
@@ -23,6 +24,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, { Browsers, DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState as authAusOrdner, delay } from 'baileys';
 import pino from 'pino';
+import QRCode from 'qrcode';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const SITZUNG = join(HIER, 'sitzung', 'sitzung.enc');
@@ -57,7 +59,7 @@ function sitzungSpeichern(merker) {
 }
 
 // ── Verbinden (mit Neustart nach dem Koppeln, Code 515) ──
-async function verbinden({ koppeln = false } = {}) {
+async function verbinden({ koppeln = false, qr = false } = {}) {
   const { state, saveCreds } = await authAusOrdner(AUTH);
   const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: undefined }));
   let codeAngefordert = false;
@@ -67,6 +69,12 @@ async function verbinden({ koppeln = false } = {}) {
       markOnlineOnConnect: false, syncFullHistory: false,
     });
     sock.ev.on('creds.update', saveCreds);
+    // QR-Weg (Modus „anmelden-qr“): QR-Code ins Protokoll, mit dem Handy abscannen.
+    if (qr) sock.ev.on('connection.update', async (u) => {
+      if (!u.qr) return;
+      sag('Neuer QR-Code (gilt ca. 20 Sekunden) – WhatsApp → Verknüpfte Geräte → Gerät hinzufügen → scannen:');
+      console.log(await QRCode.toString(u.qr, { type: 'terminal', small: true }));
+    });
     // Kopplungscode nur EINMAL anfordern: Ein neuer Code macht den alten ungültig.
     // Angefordert wird erst, wenn der Server bereit ist (erstes „qr“-Ereignis).
     if (koppeln && !state.creds.registered && !codeAngefordert) {
@@ -87,7 +95,7 @@ async function verbinden({ koppeln = false } = {}) {
       sag('──────────────────────────────────────────');
     }
     const ergebnis = await new Promise((fertig) => {
-      const uhr = setTimeout(() => fertig('zeit'), koppeln ? 4 * 60_000 : 60_000);
+      const uhr = setTimeout(() => fertig('zeit'), koppeln || qr ? 4 * 60_000 : 60_000);
       sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
         if (connection === 'open') { clearTimeout(uhr); fertig('offen'); }
         if (connection === 'close') {
@@ -134,13 +142,13 @@ async function main() {
     if (stundeBerlin() < 11) { sag('Noch vor 11 Uhr – der nächste Lauf postet.'); return; }
     if (merker.gepostet.includes(u.datum)) { sag('Umfrage für heute ist schon in der Gruppe.'); return; }
   }
-  if (modus !== 'anmelden' && !existsSync(join(AUTH, 'creds.json'))) {
+  if (!modus.startsWith('anmelden') && !existsSync(join(AUTH, 'creds.json'))) {
     throw new Error('Noch nicht angemeldet – Workflow zuerst einmal mit Modus „anmelden“ starten (Standard ist „test“).');
   }
 
-  const sock = await verbinden({ koppeln: modus === 'anmelden' });
+  const sock = await verbinden({ koppeln: modus === 'anmelden', qr: modus === 'anmelden-qr' });
   try {
-    if (modus === 'anmelden') {
+    if (modus.startsWith('anmelden')) {
       await gruppeFinden(sock);
       sag('Angemeldet ✓ – Gruppe gefunden ✓. Ab jetzt postet der Bot an jedem Spieltag um 11 Uhr.');
     } else if (modus === 'test') {
