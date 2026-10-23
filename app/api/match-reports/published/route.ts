@@ -34,5 +34,6 @@ export async function POST(request: Request) {
   revalidatePath('/ligen/[code]', 'page');
   revalidatePath('/teams/[id]', 'page');
   revalidatePath('/spieler/[playerId]', 'page');
+  revalidatePath('/spielbericht/[spiel]', 'page');
   return NextResponse.json({ ok: true });
 }

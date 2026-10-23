@@ -16,6 +16,8 @@ import { loadPublicPlayerProfile } from '@/lib/supabase/profiles';
 import { getDbPlayer, getRosterTeamForPlayer } from '@/lib/server/season-data';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { ladeEinzel27 } from '@/lib/server/ergebnisse-2027';
+import type { EinzelSpiel } from '@/lib/einzelrangliste-2027';
+import { spielSlug } from '@/lib/spieltag';
 import { team27, findLiga27, venue27, istArchivParam, datumText, NEUE_SAISON, ARCHIV_SAISON, SAISON_START } from '@/lib/data/saison-2027';
 
 export default async function PlayerProfilePage(
@@ -287,13 +289,20 @@ export default async function PlayerProfilePage(
                   <div style={{ marginTop: 18 }}>
                     <SubLabel>Letzte Ergebnisse</SubLabel>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {[...e27.verlauf].reverse().slice(0, 5).map((v, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
-                          <FormBadge outcome={v.legs > v.legsGegner ? 'W' : 'L'} />
-                          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{v.legs}:{v.legsGegner}{v.offen && <span title="noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</span>
-                          <span style={{ color: 'var(--th-text-muted)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {v.gegner} <span style={{ color: 'var(--th-text-faint)' }}>({team27(v.gegnerTeam)?.name ?? v.gegnerTeam})</span></span>
+                      {[...e27.verlauf].reverse().slice(0, 5).map((v, i) => <EinzelZeile27 key={i} v={v} />)}
+                    </div>
+                    {e27.verlauf.length > 5 && (
+                      <details style={{ marginTop: 10 }}>
+                        <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-accent)' }}>
+                          Alle {e27.verlauf.length} Einzel anzeigen
+                        </summary>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+                          {[...e27.verlauf].reverse().slice(5).map((v, i) => <EinzelZeile27 key={i} v={v} />)}
                         </div>
-                      ))}
+                      </details>
+                    )}
+                    <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>
+                      Antippen öffnet den ganzen Spielbericht.
                     </div>
                   </div>
                 </>
@@ -467,6 +476,24 @@ function SpecialTile({ label, value }: { label: string; value: number | null | u
         {label}
       </div>
     </div>
+  );
+}
+
+function EinzelZeile27({ v }: { v: EinzelSpiel }) {
+  const inhalt = (
+    <>
+      <FormBadge outcome={v.legs > v.legsGegner ? 'W' : 'L'} />
+      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{v.legs}:{v.legsGegner}{v.offen && <span title="noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</span>
+      <span style={{ flex: 1, color: 'var(--th-text-muted)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>vs {v.gegner} <span style={{ color: 'var(--th-text-faint)' }}>({team27(v.gegnerTeam)?.name ?? v.gegnerTeam})</span></span>
+      {v.begegnung && <span aria-hidden style={{ color: 'var(--th-text-faint)' }}>›</span>}
+    </>
+  );
+  const stil: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-manrope)', fontSize: 13 };
+  if (!v.begegnung) return <div style={stil}>{inhalt}</div>;
+  return (
+    <Link href={`/spielbericht/${spielSlug(v.begegnung)}${v.spielNr ? `#spiel-${v.spielNr}` : ''}`} style={{ ...stil, textDecoration: 'none' }}>
+      {inhalt}
+    </Link>
   );
 }
 

@@ -251,8 +251,8 @@ Angetreten ist eine Mannschaft, wenn spätestens 30 Minuten nach der Startzeit m
 - **Best of 3:** 2:0 = 3 Punkte, 2:1 = 2, 1:2 = 1, 0:2 = 0.
 - **La Liga (Best of 5):** 3:0 = 5, 3:1 = 4, 3:2 = 3, 2:3 = 2, 1:3 = 1, 0:3 = 0.
 
-Bei Punktgleichheit entscheidet die Legdifferenz, danach die Zahl der Siege; ist auch das gleich, teilen sich die Spieler den Platz. Du findest die Rangliste auf der jeweiligen Ligaseite unter „Einzelrangliste“ und deine Werte in deinem Spielerprofil.`,
-        stichworte: ['rangliste', 'einzel', 'punkte'],
+Bei Punktgleichheit entscheidet die Legdifferenz, danach die Zahl der Siege; ist auch das gleich, teilen sich die Spieler den Platz. Du findest die Rangliste auf der jeweiligen Ligaseite unter „Einzelrangliste“ und deine Werte in deinem Spielerprofil. Dort stehen auch alle deine Einzel; tippst du auf eins, öffnet sich der ganze Spielbericht der Begegnung (Aufstellung, alle Spiele mit Legs, Highlights).`,
+        stichworte: ['rangliste', 'einzel', 'punkte', 'spielbericht'],
       },
       {
         id: 'statistiken',

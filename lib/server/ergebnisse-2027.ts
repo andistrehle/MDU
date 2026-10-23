@@ -4,8 +4,8 @@
 //
 // Spielberichte sind per RLS nur für die beiden Teams und die Ligaleitung
 // lesbar — öffentlich angezeigt wird deshalb nur, was HIER (service_role)
-// daraus gerechnet wird: Spielstand, Legs, Punkte, Bestätigt-Status. Keine
-// Aufstellungen, keine Namen, keine Notizen.
+// daraus gerechnet wird: Spielstand, Legs, Punkte, Bestätigt-Status — und
+// seit 23.10.2026 der Bericht selbst ohne Interna (ladeBericht27, unten).
 //
 // Gezählt werden nur Berichte zu einer Begegnung des Spielplans 2026/27
 // (Heim + Gast wie im Plan). Was nicht passt, steht in `ohneBegegnung` —
@@ -94,7 +94,7 @@ export const ladeEinzel27 = cache(async (): Promise<Einzel27> => {
   const [rep, pl, gm] = await Promise.all([
     supabaseAdmin.from('match_reports').select('id, highlights').in('id', ids),
     supabaseAdmin.from('match_report_players').select('report_id, side, slot, name, player_id').in('report_id', ids),
-    supabaseAdmin.from('match_report_games').select('report_id, game_type, home_slot, guest_slot, legs_home, legs_guest').in('report_id', ids),
+    supabaseAdmin.from('match_report_games').select('report_id, game_no, game_type, home_slot, guest_slot, legs_home, legs_guest').in('report_id', ids),
   ]);
   const hl = new Map(((rep.data ?? []) as { id: string; highlights: EinzelBericht['highlights'] | null }[]).map(r => [r.id, r.highlights ?? []]));
   const byRep = <T extends { report_id: string }>(rows: T[]) => {
@@ -106,7 +106,7 @@ export const ladeEinzel27 = cache(async (): Promise<Einzel27> => {
   const games = byRep((gm.data ?? []) as (EinzelBericht['games'][number] & { report_id: string })[]);
 
   const berichte: EinzelBericht[] = zaehlend.map(e => ({
-    id: e.reportId, homeTeam: e.home, guestTeam: e.away, bestaetigt: e.bestaetigt, datum: e.datum,
+    id: e.reportId, homeTeam: e.home, guestTeam: e.away, bestaetigt: e.bestaetigt, datum: e.datum, begegnung: e.key,
     players: players.get(e.reportId) ?? [], games: games.get(e.reportId) ?? [], highlights: hl.get(e.reportId) ?? [],
   }));
   const alle = [...berechneEinzel(berichte).values()];
@@ -117,4 +117,43 @@ export const ladeEinzel27 = cache(async (): Promise<Einzel27> => {
     for (const z of liste) if (z.playerId) out.byPlayer[z.playerId] = { ...z, liga: l.code };
   }
   return out;
+});
+
+// ── Öffentlicher Spielbericht 2026/27 (/spielbericht/<heim>--<gast>) ──
+// Betreiber, 23.10.2026: Jeder darf den Bericht einer Begegnung sehen, die in
+// Tabelle und Rangliste zählt. Gezeigt wird nur, was zum Ergebnis gehört:
+// Aufstellung (Namen), die Spiele mit Legs, Highlights, Endstand. NICHT:
+// Passnummern, Teamkapitäne, Protest/Notizen, Fotos, wer eingetragen hat.
+
+export interface Bericht27 {
+  e: Ergebnis27;
+  spieler: { side: 'home' | 'guest'; slot: number; name: string; playerId: string | null }[];
+  spiele: { nr: number; doppel: boolean; heim: number[]; gast: number[]; legsHeim: number | null; legsGast: number | null }[];
+  highlights: EinzelBericht['highlights'];
+}
+
+export const ladeBericht27 = cache(async (key: string): Promise<Bericht27 | null> => {
+  if (!supabaseAdmin) return null;
+  const e = (await ladeErgebnisse27()).byKey[key];
+  if (!e || e.wertung) return null;
+  const [rep, pl, gm] = await Promise.all([
+    supabaseAdmin.from('match_reports').select('highlights').eq('id', e.reportId).maybeSingle(),
+    supabaseAdmin.from('match_report_players').select('side, slot, name, player_id').eq('report_id', e.reportId),
+    supabaseAdmin.from('match_report_games').select('game_no, game_type, home_slot, guest_slot, home_slot2, guest_slot2, legs_home, legs_guest').eq('report_id', e.reportId).order('game_no'),
+  ]);
+  type G = { game_no: number; game_type: string; home_slot: number | null; guest_slot: number | null; home_slot2: number | null; guest_slot2: number | null; legs_home: number | null; legs_guest: number | null };
+  const slots = (...s: (number | null)[]) => s.filter((x): x is number => x != null);
+  return {
+    e,
+    spieler: ((pl.data ?? []) as { side: 'home' | 'guest'; slot: number; name: string; player_id: string | null }[])
+      .filter(p => p.name?.trim())
+      .map(p => ({ side: p.side, slot: p.slot, name: p.name.trim(), playerId: p.player_id }))
+      .sort((a, b) => a.slot - b.slot),
+    spiele: ((gm.data ?? []) as G[]).map(g => ({
+      nr: g.game_no, doppel: g.game_type === 'double',
+      heim: slots(g.home_slot, g.home_slot2), gast: slots(g.guest_slot, g.guest_slot2),
+      legsHeim: g.legs_home, legsGast: g.legs_guest,
+    })),
+    highlights: ((rep.data as { highlights: EinzelBericht['highlights'] | null } | null)?.highlights ?? []),
+  };
 });

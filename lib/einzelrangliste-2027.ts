@@ -20,8 +20,10 @@ export interface EinzelBericht {
   guestTeam: string;
   bestaetigt: boolean;
   datum: string | null;
+  /** Begegnung (Heim|Gast) — Link aufs Spielerprofil → /spielbericht/<slug> */
+  begegnung?: string;
   players: { side: 'home' | 'guest'; slot: number; name: string; player_id: string | null }[];
-  games: { game_type: string; home_slot: number | null; guest_slot: number | null; legs_home: number | null; legs_guest: number | null }[];
+  games: { game_no?: number; game_type: string; home_slot: number | null; guest_slot: number | null; legs_home: number | null; legs_guest: number | null }[];
   highlights: { side: 'home' | 'guest'; slot: number; type: string; value: number | null }[];
 }
 
@@ -51,6 +53,9 @@ export interface EinzelZeile {
 
 export interface EinzelSpiel {
   datum: string | null;
+  /** Begegnung (Heim|Gast) und Spiel-Nr. im Bericht, falls bekannt */
+  begegnung: string | null;
+  spielNr: number | null;
   gegner: string;
   gegnerTeam: string;
   legs: number;
@@ -95,7 +100,7 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
         z.points += pointsForLegs(f, a);
         if (!r.bestaetigt) z.offen += 1;
         const gegen = keyOf(side === 'home' ? 'guest' : 'home', side === 'home' ? g.guest_slot : g.home_slot);
-        z.verlauf.push({ datum: r.datum ?? null, gegner: gegen?.p.name.trim() ?? 'Unbekannt', gegnerTeam: side === 'home' ? r.guestTeam : r.homeTeam, legs: f, legsGegner: a, offen: !r.bestaetigt });
+        z.verlauf.push({ datum: r.datum ?? null, begegnung: r.begegnung ?? null, spielNr: g.game_no ?? null, gegner: gegen?.p.name.trim() ?? 'Unbekannt', gegnerTeam: side === 'home' ? r.guestTeam : r.homeTeam, legs: f, legsGegner: a, offen: !r.bestaetigt });
         imBericht.add(z.key);
       }
     }
