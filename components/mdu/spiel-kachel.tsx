@@ -10,14 +10,16 @@ import { findLiga27, type Begegnung27 } from '@/lib/data/saison-2027';
 import type { Zusage, ZusageStatus, Aufgabe } from '@/lib/supabase/zusagen';
 import { spieltagPfad } from '@/lib/spieltag';
 import { Icon } from './icon';
-import { SpielKopf, Zeitleiste, StandLeiste, namenJeGruppe, gruppenAnker } from './zusagen-ui';
+import { SpielKopf, Zeitleiste, StandLeiste, KachelFuss, namenJeGruppe, gruppenAnker } from './zusagen-ui';
 
-export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [], personen }: {
+export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [], personen, onAntwort }: {
   b: Begegnung27; teamId: string; liga?: string; zusagen: Zusage[]; kaderAnzahl: number;
   ichId: string | null; treffenMin: number; meetTime: string | null;
   notiz?: string | null; aufgaben?: Aufgabe[];
   /** Kader (+ ich) — macht die Zahlen interaktiv (Namen, Sprung zur Teilnehmerliste). */
   personen?: { id: string; name: string }[];
+  /** Eigene Antwort direkt in der Kachel (Terminliste). */
+  onAntwort?: (status: ZusageStatus, note: string | null) => Promise<string | null>;
 }) {
   const router = useRouter();
   const pfad = spieltagPfad(teamId, b.key);
@@ -34,10 +36,13 @@ export function SpielKachel({ b, teamId, zusagen, kaderAnzahl, ichId, treffenMin
       {b.termin?.vorlaeufig && <div style={{ padding: '6px 14px 0', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-gold)' }}>Termin wird noch geprüft</div>}
       <NotizAufgabenHinweis notiz={notiz} aufgaben={aufgaben} ichId={ichId} />
     </Link>
-      {/* Außerhalb des Links: die Zahlen sind eigene Knöpfe (Namen zeigen, zur Teilnehmerliste springen). */}
-      <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
-        namen={personen ? namenJeGruppe(personen, id => zusagen.find(z => z.player_id === id)) : undefined}
-        zurListe={g => router.push(`${pfad}#${gruppenAnker(g)}`)} />
+      {/* Außerhalb des Links: eigene Antwort + Stand (aufklappbar: Namen, Sprung zur Teilnehmerliste). */}
+      <KachelFuss zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
+        meineNotiz={ichId ? zusagen.find(z => z.player_id === ichId)?.note ?? null : null} onAntwort={ichId ? onAntwort : undefined}>
+        <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
+          namen={personen ? namenJeGruppe(personen, id => zusagen.find(z => z.player_id === id)) : undefined}
+          zurListe={g => router.push(`${pfad}#${gruppenAnker(g)}`)} />
+      </KachelFuss>
       <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
     </div>
   );

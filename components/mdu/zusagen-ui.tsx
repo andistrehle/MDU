@@ -230,6 +230,73 @@ export function StandLeiste({ zahl, offen, meins, namen, zurListe = springeZuGru
 }
 
 /** Eingabe der Begründung (Pflicht bei Absage/unsicher, min. GRUND_MIN Zeichen). */
+/**
+ * Fuß einer Termin-Kachel (Terminliste): eigene Antwort mit drei runden Knöpfen
+ * (✓ speichert sofort, ? und ✕ fragen nach dem Grund) und der Teamstand als
+ * kurze Zeile, die mit ▾ die volle StandLeiste (Namen, Sprung zur Liste) aufklappt.
+ * Ohne `onAntwort` (kein eigener Kader-Eintrag) nur der Stand.
+ */
+export function KachelFuss({ zahl, offen, meins, meineNotiz, onAntwort, children }: {
+  zahl: Record<ZusageStatus, number>; offen: number; meins?: ZusageStatus | null; meineNotiz: string | null;
+  onAntwort?: (status: ZusageStatus, note: string | null) => Promise<string | null>;
+  /** Die volle StandLeiste — erscheint beim Aufklappen. */
+  children: React.ReactNode;
+}) {
+  const [auf, setAuf] = useState(false);
+  const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
+  const [laeuft, setLaeuft] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
+  async function antworte(st: ZusageStatus, note: string | null) {
+    if (!onAntwort) return;
+    setLaeuft(true); setFehler(null); setGrundFuer(null);
+    const err = await onAntwort(st, note);
+    setLaeuft(false);
+    if (err) setFehler(err);
+  }
+  return (
+    <div style={{ borderTop: '1px solid var(--th-line-6)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', flexWrap: 'wrap' }}>
+        {onAntwort && (
+          <div role="group" aria-label="Deine Antwort" style={{ display: 'flex', gap: 6 }}>
+            {REIHE.map(st => {
+              const an = meins === st;
+              return (
+                <button key={st} type="button" disabled={laeuft} aria-pressed={an} aria-label={STATUS[st].knopf} title={STATUS[st].knopf}
+                  onClick={() => { if (st === 'yes') { if (!an) void antworte('yes', null); } else setGrundFuer(g => (g === st ? null : st)); }}
+                  style={{
+                    width: 46, height: 40, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 999,
+                    cursor: laeuft ? 'wait' : 'pointer', opacity: laeuft ? 0.6 : 1,
+                    background: an ? STATUS[st].farbe : 'var(--th-bg-card3)',
+                    border: `1.5px solid ${an || grundFuer === st ? STATUS[st].farbe : 'var(--th-line-10)'}`,
+                  }}>
+                  <StatusIcon s={st} size={22} voll={an} />
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <button type="button" onClick={() => setAuf(a => !a)} aria-expanded={auf} title="Wer hat zugesagt?"
+          style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 999, cursor: 'pointer',
+            background: 'transparent', border: '1px solid var(--th-line-10)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, color: 'var(--th-text-body)' }}>
+          <span style={{ color: 'var(--th-win)' }}>✓ {zahl.yes}</span>
+          <span style={{ color: 'var(--th-gold)' }}>? {zahl.maybe}</span>
+          <span style={{ color: 'var(--th-loss)' }}>✕ {zahl.no}</span>
+          <span style={{ color: 'var(--th-text-muted)' }}>· {offen} offen</span>
+          <span aria-hidden style={{ display: 'inline-block', transform: auf ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease', color: 'var(--th-text-muted)' }}>▾</span>
+        </button>
+      </div>
+      {grundFuer && (
+        <div style={{ padding: '0 12px 10px' }}>
+          <GrundEingabe key={grundFuer} status={grundFuer} start={meins === grundFuer ? meineNotiz ?? '' : ''}
+            onSenden={g => void antworte(grundFuer, g)} onAbbrechen={() => setGrundFuer(null)} />
+        </div>
+      )}
+      {fehler && <div role="alert" style={{ padding: '0 12px 10px', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-loss)' }}>{fehler}</div>}
+      {auf && children}
+    </div>
+  );
+}
+
 export function GrundEingabe({ status, start, onSenden, onAbbrechen, freiwillig = false }: {
   status: ZusageStatus; start: string; onSenden: (grund: string) => void; onAbbrechen: () => void;
   /** TC setzt für jemand anderen: Begründung optional, eigener Knopf „ohne Begründung“. */

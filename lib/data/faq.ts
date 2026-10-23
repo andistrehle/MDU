@@ -322,7 +322,7 @@ Eine Begegnung hat 18 Spiele: acht Einzel, ein Doppel, acht Einzel und ein absch
         id: 'was-ist-team-manager',
         frage: 'Was ist der Team Manager?',
         antwort: `Der Team Manager hilft beim Organisieren rund um den Spieltag:
-- Spieler sagen je Spiel zu oder ab.
+- Spieler sagen je Spiel zu oder ab, auch direkt in der Terminliste mit ✓ ? ✕, ohne jeden Termin einzeln zu öffnen.
 - Der TC stellt aus den Zusagen die Aufstellung zusammen.
 - Treffzeit, Notizen und Aufgaben stehen je Spiel an einer Stelle.
 - Eigene Termine außerhalb der MDU (andere Liga, Pokal, Training) lassen sich eintragen oder aus einer Tabelle importieren.

@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
-import { Zeitleiste, StandLeiste, chip, karte, knopf, h2, namenJeGruppe, gruppenAnker } from './zusagen-ui';
+import { Zeitleiste, StandLeiste, KachelFuss, chip, karte, knopf, h2, namenJeGruppe, gruppenAnker } from './zusagen-ui';
 import { NotizAufgabenHinweis } from './spiel-kachel';
 import { team27 } from '@/lib/data/saison-2027';
 import { wochentag, tagMonat } from '@/lib/spieltag';
@@ -87,11 +87,13 @@ export function TerminKopf({ t, teamId, gross = false, rechts }: { t: TeamTermin
 }
 
 /** Kachel eines eigenen Termins in der Übersicht → /termin/<id>. */
-export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [], personen }: {
+export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMin, meetTime, notiz = null, aufgaben = [], personen, onAntwort }: {
   t: TeamTermin; teamId: string; zusagen: Zusage[]; kaderAnzahl: number; ichId: string | null;
   treffenMin: number; meetTime: string | null; notiz?: string | null; aufgaben?: Aufgabe[];
   /** Kader (+ ich) — macht die Zahlen interaktiv (Namen, Sprung zur Teilnehmerliste). */
   personen?: { id: string; name: string }[];
+  /** Eigene Antwort direkt in der Kachel (Terminliste). */
+  onAntwort?: (status: ZusageStatus, note: string | null) => Promise<string | null>;
 }) {
   const router = useRouter();
   const pfad = terminPfad(t.id);
@@ -105,10 +107,13 @@ export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMi
       <Zeitleiste beginn={t.start_time ?? undefined} treffenMin={t.kind === 'spiel' ? treffenMin : 0} meetTime={meetTime} ende={t.end_time ?? (t.kind === 'spiel' ? undefined : null)} />
       <NotizAufgabenHinweis notiz={notiz} aufgaben={aufgaben} ichId={ichId} />
     </Link>
-      {/* Außerhalb des Links: die Zahlen sind eigene Knöpfe (Namen zeigen, zur Teilnehmerliste springen). */}
-      <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
-        namen={personen ? namenJeGruppe(personen, id => zusagen.find(z => z.player_id === id)) : undefined}
-        zurListe={g => router.push(`${pfad}#${gruppenAnker(g)}`)} />
+      {/* Außerhalb des Links: eigene Antwort + Stand (aufklappbar: Namen, Sprung zur Teilnehmerliste). */}
+      <KachelFuss zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
+        meineNotiz={ichId ? zusagen.find(z => z.player_id === ichId)?.note ?? null : null} onAntwort={ichId ? onAntwort : undefined}>
+        <StandLeiste zahl={{ yes: zahl('yes'), maybe: zahl('maybe'), no: zahl('no') }} offen={Math.max(0, kaderAnzahl - zusagen.length)} meins={meins}
+          namen={personen ? namenJeGruppe(personen, id => zusagen.find(z => z.player_id === id)) : undefined}
+          zurListe={g => router.push(`${pfad}#${gruppenAnker(g)}`)} />
+      </KachelFuss>
       <style>{'.mdu-spiel-kachel{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-spiel-kachel:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--th-shadow)!important}'}</style>
     </div>
   );
