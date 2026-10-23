@@ -35,7 +35,7 @@ const SPRUECHE: Record<number, string[]> = {
 const EXTRAS = [
   ['✈️ Ich fliege mit – brauche Mitfahrt', '🚕 Brauch eine Mitfahrgelegenheit', '🙋 Wer nimmt mich mit?'],
   ['🚗 Ich kann einsammeln', '🚗 Taxi Bazis – ich sammel ein', '🚗 Hab noch Plätze frei – ich sammel ein'],
-  ['❌ Bin leider raus – gute Darts!! 🎯'],
+  ['❌ Bin leider raus – Good Darts!! 🎯'],
 ];
 const TITEL_HEIM = ['🎯 Spieltag! {spitz} vs. {gegner} im {lokal} – Dein Status?', '🎯 Heimspiel! {spitz} gegen {gegner} – wann bist du da?', '🎯 Heute zuhause: {spitz} vs. {gegner} – wann rollst du ein?'];
 const TITEL_AUSWAERTS = ['🎯 Spieltag! {spitz} @ {lokal} – Dein Status?', '🎯 Auswärts bei {gegner} ({lokal}) – wann bist du da?', '🎯 {spitz} on tour: {gegner} im {lokal} – wann rollst du ein?'];
