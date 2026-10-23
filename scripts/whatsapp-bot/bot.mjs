@@ -124,7 +124,9 @@ async function main() {
     if (!u || u.datum !== heute()) { sag('Heute kein Spiel mit fester Uhrzeit – nichts zu tun.'); return; }
     if (stundeBerlin() < 11) { sag('Noch vor 11 Uhr – der nächste Lauf postet.'); return; }
     if (merker.gepostet.includes(u.datum)) { sag('Umfrage für heute ist schon in der Gruppe.'); return; }
-    if (!existsSync(join(AUTH, 'creds.json'))) throw new Error('Noch nicht angemeldet – Workflow einmal mit Modus „anmelden“ starten.');
+  }
+  if (modus !== 'anmelden' && !existsSync(join(AUTH, 'creds.json'))) {
+    throw new Error('Noch nicht angemeldet – Workflow zuerst einmal mit Modus „anmelden“ starten (Standard ist „test“).');
   }
 
   const sock = await verbinden({ koppeln: modus === 'anmelden' });

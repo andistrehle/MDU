@@ -26,8 +26,8 @@ on:
       modus:
         description: 'Was soll der Bot tun?'
         type: choice
-        options: [test, anmelden, umfrage]
-        default: test
+        options: [anmelden, test, umfrage]
+        default: anmelden
 
 concurrency:
   group: bazis-bot
