@@ -5,8 +5,10 @@ name: Bazis · Ankunfts-Umfrage (WhatsApp)
 # „Mitfahrt“ und „Bin raus“ (scripts/whatsapp-bot/). INOFFIZIELL über ein
 # verknüpftes Gerät — vom Betreiber bewusst so gewählt (23.10.2026).
 #
-# Läuft zweimal am Tag (09:05 und 10:05 UTC), weil Cron keine Zeitumstellung
-# kennt: Der Bot postet erst ab 11:00 Münchner Zeit und nur einmal je Tag.
+# Läuft viermal am Vormittag (09:17/09:47/10:17/10:47 UTC): Cron kennt keine
+# Zeitumstellung, und GitHub startet zeitgesteuerte Läufe oft verspätet oder lässt
+# sie bei Last ganz aus (am 23.10.2026 kam der 09:05-Lauf nicht). Der Bot postet
+# erst ab 11:00 Münchner Zeit und nur EINMAL je Tag — die übrigen Läufe tun nichts.
 # Ohne Spiel heute meldet er sich gar nicht erst bei WhatsApp an.
 #
 # Das Repo ist öffentlich: Die Anmeldung liegt NUR verschlüsselt im Cache der
@@ -22,8 +24,10 @@ name: Bazis · Ankunfts-Umfrage (WhatsApp)
 #   umfrage  — wie der tägliche Lauf
 on:
   schedule:
-    - cron: '5 9 * * *'
-    - cron: '5 10 * * *'
+    - cron: '17 9 * * *'
+    - cron: '47 9 * * *'
+    - cron: '17 10 * * *'
+    - cron: '47 10 * * *'
   workflow_dispatch:
     inputs:
       modus:
