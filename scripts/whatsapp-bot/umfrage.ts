@@ -67,7 +67,11 @@ export function umfrageFuer(datum: string | null): Umfrage | null {
     return fuell(w(SPRUECHE[vor], i), { zeit });
   });
   optionen.push(w(EXTRAS[0], 20), w(EXTRAS[1], 21));
-  const name = fuell(w(heim ? TITEL_HEIM : TITEL_AUSWAERTS, 30), { spitz: SPITZ, gegner, lokal });
+  let name = fuell(w(heim ? TITEL_HEIM : TITEL_AUSWAERTS, 30), { spitz: SPITZ, gegner, lokal });
+  // Besondere Abende vorne dran: Derby und/oder erstes Spiel der Saison.
+  const auftakt = b === eigene[0];
+  const vorsatz = b.derby && auftakt ? '🔥 Derby-Time zum Saisonauftakt!' : b.derby ? '🔥 Derby-Time!' : auftakt ? '🚀 Saisonauftakt!' : '';
+  if (vorsatz) name = `${vorsatz} ${name.replace(/^🎯 (Spieltag!|Heimspiel!|Heute zuhause:|Auswärts)\s*/, '')}`;
   return { datum: tag, uhrzeit, name, optionen };
 }
 
