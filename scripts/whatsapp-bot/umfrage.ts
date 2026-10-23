@@ -3,7 +3,7 @@
 // ============================================================
 // Liest den Spielplan 2026/27 (inkl. Verlegungen und Heimrechttausch, also
 // genau das, was auch auf der Seite steht) und baut für das Spiel des Teams
-// HEUTE die Ankunfts-Umfrage: ab 2 Stunden vor Beginn alle 15 Minuten bis zum
+// HEUTE die Ankunfts-Umfrage: ab 1,5 Stunden vor Beginn alle 15 Minuten bis zum
 // Anpfiff, jede Zeit mit einem Spruch, dazu „Mitfahrt“ und „Bin raus“.
 // Die Sprüche wechseln je Spieltag (fest aus dem Datum gewürfelt, damit ein
 // zweiter Lauf am selben Tag dieselbe Umfrage ergäbe).
@@ -61,7 +61,7 @@ export function umfrageFuer(datum: string | null): Umfrage | null {
   const lokal = venue27(team27(b.home)?.venueId)?.name ?? 'Lokal';
   const w = wuerfel(tag + TEAM);
   const [hh, mm] = uhrzeit.split(':').map(Number);
-  const optionen = [120, 105, 90, 75, 60, 45, 30, 15, 0].map((vor, i) => {
+  const optionen = [90, 75, 60, 45, 30, 15, 0].map((vor, i) => {
     const min = hh * 60 + mm - vor;
     const zeit = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')} Uhr`;
     return fuell(w(SPRUECHE[vor], i), { zeit });

@@ -139,7 +139,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
 
 **Bazis-Bot (WhatsApp, INOFFIZIELL, Betreiber 23.10.2026 nach Hinweis auf Sperrrisiko so gewählt):**
 `scripts/whatsapp-bot/` + `.github/workflows/bazis-umfrage.yml` — postet an jedem Spieltag der Freibad
-Bazis ab 11 Uhr eine Ankunfts-Umfrage (ab 2 h vorher alle 15 Min, Sprüche, Mitfahrt/Bin raus; Inhalt aus
+Bazis ab 11 Uhr eine Ankunfts-Umfrage (ab 1,5 h vorher alle 15 Min, Sprüche, Mitfahrt/Bin raus; Inhalt aus
 dem Spielplan inkl. Verlegungen, `umfrage.ts`) über ein verknüpftes Gerät (baileys) mit der Nummer des
 Betreibers. Repo ist ÖFFENTLICH: Anmeldung nur AES-verschlüsselt im Actions-Cache (`WA_SCHLUESSEL`),
 Protokoll nennt weder Gruppe noch Nummer — so lassen. Geheimnisse `WA_SCHLUESSEL`, `WA_GRUPPE`

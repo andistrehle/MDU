@@ -1,7 +1,7 @@
 name: Bazis · Ankunfts-Umfrage (WhatsApp)
 
 # An jedem Spieltag der Freibad Bazis um 11 Uhr eine Umfrage in die
-# WhatsApp-Gruppe: ab 2 h vor Beginn alle 15 Minuten, mit Sprüchen, dazu
+# WhatsApp-Gruppe: ab 1,5 h vor Beginn alle 15 Minuten, mit Sprüchen, dazu
 # „Mitfahrt“ und „Bin raus“ (scripts/whatsapp-bot/). INOFFIZIELL über ein
 # verknüpftes Gerät — vom Betreiber bewusst so gewählt (23.10.2026).
 #
