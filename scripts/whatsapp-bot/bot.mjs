@@ -164,12 +164,12 @@ async function main() {
       if (!u) throw new Error('Kein kommendes Spiel mit fester Uhrzeit gefunden.');
       await gruppeFinden(sock);
       const ich = sock.user.id.replace(/:\d+@/, '@');
-      await sock.sendMessage(ich, { poll: { name: `[TEST] ${u.name}`, values: u.optionen, selectableCount: 1 } });
+      await sock.sendMessage(ich, { poll: { name: `[TEST] ${u.name}`, values: u.optionen, selectableCount: 0 } });
       sag('Test-Umfrage an dich selbst geschickt ✓ (Chat „Du“/„Ich“ in WhatsApp). Gruppe gefunden ✓.');
     } else {
       const u = umfrageLesen();
       const gruppe = await gruppeFinden(sock);
-      await sock.sendMessage(gruppe, { poll: { name: u.name, values: u.optionen, selectableCount: 1 } });
+      await sock.sendMessage(gruppe, { poll: { name: u.name, values: u.optionen, selectableCount: 0 } });
       merker.gepostet = [...merker.gepostet, u.datum].slice(-60);
       sag(`Umfrage für ${u.datum} (${u.uhrzeit} Uhr) gepostet ✓`);
     }
