@@ -1,0 +1,82 @@
+name: Bazis · Ankunfts-Umfrage (WhatsApp)
+
+# An jedem Spieltag der Freibad Bazis um 11 Uhr eine Umfrage in die
+# WhatsApp-Gruppe: ab 2 h vor Beginn alle 15 Minuten, mit Sprüchen, dazu
+# „Mitfahrt“ und „Bin raus“ (scripts/whatsapp-bot/). INOFFIZIELL über ein
+# verknüpftes Gerät — vom Betreiber bewusst so gewählt (23.10.2026).
+#
+# Läuft zweimal am Tag (09:05 und 10:05 UTC), weil Cron keine Zeitumstellung
+# kennt: Der Bot postet erst ab 11:00 Münchner Zeit und nur einmal je Tag.
+# Ohne Spiel heute meldet er sich gar nicht erst bei WhatsApp an.
+#
+# Das Repo ist öffentlich: Die Anmeldung liegt NUR verschlüsselt im Cache der
+# Actions (Schlüssel = Geheimnis WA_SCHLUESSEL), das Protokoll nennt weder
+# Gruppe noch Nummer. Geheimnisse: WA_SCHLUESSEL, WA_GRUPPE, WA_NUMMER.
+#
+# Von Hand (Actions → dieser Workflow → Run workflow):
+#   anmelden — einmalig: Kopplungscode im Protokoll, in WhatsApp eingeben
+#   test     — Umfrage fürs nächste Spiel an dich selbst schicken
+#   umfrage  — wie der tägliche Lauf
+on:
+  schedule:
+    - cron: '5 9 * * *'
+    - cron: '5 10 * * *'
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: 'Was soll der Bot tun?'
+        type: choice
+        options: [test, anmelden, umfrage]
+        default: test
+
+concurrency:
+  group: bazis-bot
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODUS: ${{ inputs.modus || 'umfrage' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Umfrage aus dem Spielplan bauen
+        run: |
+          if [ "$MODUS" = "test" ]; then ARG=--naechstes; else ARG=; fi
+          npx --yes tsx@4 scripts/whatsapp-bot/umfrage.ts $ARG > scripts/whatsapp-bot/umfrage.json
+          echo "Spiel: $(node -e "const u=require('./scripts/whatsapp-bot/umfrage.json'); console.log(u ? u.datum + ' ' + u.uhrzeit : 'keins')")"
+
+      - name: Gespeicherte Anmeldung holen
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/whatsapp-bot/sitzung
+          key: wa-sitzung-none
+          restore-keys: wa-sitzung-
+
+      - name: Bot-Abhängigkeiten
+        working-directory: scripts/whatsapp-bot
+        run: npm ci --no-audit --no-fund
+
+      - name: Bot
+        working-directory: scripts/whatsapp-bot
+        env:
+          WA_SCHLUESSEL: ${{ secrets.WA_SCHLUESSEL }}
+          WA_GRUPPE: ${{ secrets.WA_GRUPPE }}
+          WA_NUMMER: ${{ secrets.WA_NUMMER }}
+        run: node bot.mjs "$MODUS"
+
+      - name: Anmeldung (verschlüsselt) sichern
+        if: always() && hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/whatsapp-bot/sitzung
+          key: wa-sitzung-${{ hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') }}

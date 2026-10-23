@@ -137,6 +137,14 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   saisongetrennten Weg. Die Status-Texte „abgeschlossen" in `league-detail-client.tsx` sind
   richtig, weil diese Ansicht nur noch fürs Archiv läuft (26/27: `liga-27-client.tsx`).
 
+**Bazis-Bot (WhatsApp, INOFFIZIELL, Betreiber 23.10.2026 nach Hinweis auf Sperrrisiko so gewählt):**
+`scripts/whatsapp-bot/` + `.github/workflows/bazis-umfrage.yml` — postet an jedem Spieltag der Freibad
+Bazis ab 11 Uhr eine Ankunfts-Umfrage (ab 2 h vorher alle 15 Min, Sprüche, Mitfahrt/Bin raus; Inhalt aus
+dem Spielplan inkl. Verlegungen, `umfrage.ts`) über ein verknüpftes Gerät (baileys) mit der Nummer des
+Betreibers. Repo ist ÖFFENTLICH: Anmeldung nur AES-verschlüsselt im Actions-Cache (`WA_SCHLUESSEL`),
+Protokoll nennt weder Gruppe noch Nummer — so lassen. Geheimnisse `WA_SCHLUESSEL`, `WA_GRUPPE`
+(genauer Gruppenname), `WA_NUMMER`. Von Hand: anmelden / test / umfrage. Nicht bei Vercel (.vercelignore).
+
 **FAQ** (`/faq`, seit 16.10.2026): Inhalt in `lib/data/faq.ts`, wird laufend erweitert. Bei neuen
 oder geänderten Funktionen die passende Antwort mitpflegen; nichts beschreiben, was die Plattform
 nicht kann, und nie von den Spielbedingungen abweichen. Die `id` ist der Direktlink (`/faq#id`) —

@@ -1,0 +1,10 @@
+{
+  "name": "bazis-bot",
+  "private": true,
+  "type": "module",
+  "description": "Ankunfts-Umfrage in die WhatsApp-Gruppe (inoffiziell, GitHub Actions). Siehe bot.mjs.",
+  "dependencies": {
+    "baileys": "7.0.0-rc14",
+    "pino": "^9.6.0"
+  }
+}
