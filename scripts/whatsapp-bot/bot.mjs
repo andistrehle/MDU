@@ -12,6 +12,9 @@
 //
 //   node bot.mjs anmelden   → Kopplungscode ausgeben, Gerät verknüpfen, Gruppe prüfen
 //   node bot.mjs anmelden-qr → stattdessen QR-Code ins Protokoll (zweites Gerät zum Anzeigen nötig)
+//   node bot.mjs anmelden-lokal → AUF DEM EIGENEN RECHNER: QR-Code im Terminal scannen, danach
+//      steht die verschlüsselte Anmeldung in WA_SITZUNG.txt → als GitHub-Geheimnis WA_SITZUNG
+//      eintragen. Nötig, weil WhatsApp das Koppeln von GitHub-Rechnern (Rechenzentrum) ablehnte.
 //   node bot.mjs umfrage    → heute Spieltag + ab 11 Uhr + noch nicht gepostet → posten
 //   node bot.mjs test       → Umfrage fürs nächste Spiel an dich selbst („Du“-Chat)
 // Umfrage-Inhalt: umfrage.json (erzeugt von umfrage.ts, im Workflow davor).
@@ -40,6 +43,11 @@ const stundeBerlin = () => Number(new Intl.DateTimeFormat('en-GB', { timeZone: '
 function schluessel(salz) { return scryptSync(SCHLUESSEL, salz, 32); }
 function sitzungLaden() {
   rmSync(AUTH, { recursive: true, force: true }); mkdirSync(AUTH, { recursive: true });
+  // Noch nichts im Cache, aber lokal angemeldet (Geheimnis WA_SITZUNG) → das ist der Anfang.
+  if (!existsSync(SITZUNG) && process.env.WA_SITZUNG) {
+    mkdirSync(dirname(SITZUNG), { recursive: true });
+    writeFileSync(SITZUNG, Buffer.from(process.env.WA_SITZUNG.trim(), 'base64'));
+  }
   if (!existsSync(SITZUNG)) return { gepostet: [] };
   const roh = readFileSync(SITZUNG);
   const salz = roh.subarray(0, 16), iv = roh.subarray(16, 28), tag = roh.subarray(28, 44), daten = roh.subarray(44);
@@ -48,9 +56,9 @@ function sitzungLaden() {
   for (const [name, text] of Object.entries(inhalt.dateien)) writeFileSync(join(AUTH, name), text);
   return inhalt.merker ?? { gepostet: [] };
 }
-function sitzungSpeichern(merker) {
+function sitzungSpeichern(merker, nur = null) {
   const dateien = {};
-  for (const name of readdirSync(AUTH)) dateien[name] = readFileSync(join(AUTH, name), 'utf8');
+  for (const name of readdirSync(AUTH)) if (!nur || nur.includes(name)) dateien[name] = readFileSync(join(AUTH, name), 'utf8');
   const salz = randomBytes(16), iv = randomBytes(12);
   const c = createCipheriv('aes-256-gcm', schluessel(salz), iv);
   const daten = Buffer.concat([c.update(JSON.stringify({ dateien, merker }), 'utf8'), c.final()]);
@@ -146,7 +154,7 @@ async function main() {
     throw new Error('Noch nicht angemeldet – Workflow zuerst einmal mit Modus „anmelden“ starten (Standard ist „test“).');
   }
 
-  const sock = await verbinden({ koppeln: modus === 'anmelden', qr: modus === 'anmelden-qr' });
+  const sock = await verbinden({ koppeln: modus === 'anmelden', qr: modus === 'anmelden-qr' || modus === 'anmelden-lokal' });
   try {
     if (modus.startsWith('anmelden')) {
       await gruppeFinden(sock);
@@ -170,6 +178,14 @@ async function main() {
     sock.end(undefined);
     await delay(1000);
     sitzungSpeichern(merker);
+    if (modus === 'anmelden-lokal' && existsSync(join(AUTH, 'creds.json'))) {
+      // Für das GitHub-Geheimnis (max. 48 KB) nur die Zugangsdaten — der Rest entsteht neu.
+      sitzungSpeichern(merker, ['creds.json']);
+      writeFileSync(join(HIER, 'WA_SITZUNG.txt'), readFileSync(SITZUNG).toString('base64'));
+      rmSync(dirname(SITZUNG), { recursive: true, force: true });
+      sag('Fertig ✓  Die Datei WA_SITZUNG.txt (in diesem Ordner) mit dem Editor öffnen, den');
+      sag('ganzen Inhalt kopieren und in GitHub als Geheimnis „WA_SITZUNG“ eintragen. Danach die Datei löschen.');
+    }
     rmSync(AUTH, { recursive: true, force: true });
   }
 }

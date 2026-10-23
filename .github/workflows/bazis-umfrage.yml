@@ -11,7 +11,9 @@ name: Bazis · Ankunfts-Umfrage (WhatsApp)
 #
 # Das Repo ist öffentlich: Die Anmeldung liegt NUR verschlüsselt im Cache der
 # Actions (Schlüssel = Geheimnis WA_SCHLUESSEL), das Protokoll nennt weder
-# Gruppe noch Nummer. Geheimnisse: WA_SCHLUESSEL, WA_GRUPPE, WA_NUMMER.
+# Gruppe noch Nummer. Geheimnisse: WA_SCHLUESSEL, WA_GRUPPE, WA_NUMMER, WA_SITZUNG
+# (verschlüsselte Anmeldung vom eigenen Rechner, `node bot.mjs anmelden-lokal` — der Weg,
+# wenn WhatsApp das Koppeln von GitHub aus ablehnt).
 #
 # Von Hand (Actions → dieser Workflow → Run workflow):
 #   anmelden — einmalig: Kopplungscode im Protokoll, in WhatsApp eingeben
@@ -73,6 +75,7 @@ jobs:
           WA_SCHLUESSEL: ${{ secrets.WA_SCHLUESSEL }}
           WA_GRUPPE: ${{ secrets.WA_GRUPPE }}
           WA_NUMMER: ${{ secrets.WA_NUMMER }}
+          WA_SITZUNG: ${{ secrets.WA_SITZUNG }}
         run: node bot.mjs "$MODUS"
 
       - name: Anmeldung (verschlüsselt) sichern
