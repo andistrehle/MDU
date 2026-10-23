@@ -60,16 +60,25 @@ function sitzungSpeichern(merker) {
 async function verbinden({ koppeln = false } = {}) {
   const { state, saveCreds } = await authAusOrdner(AUTH);
   const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: undefined }));
+  let codeAngefordert = false;
   for (let versuch = 0; versuch < 4; versuch++) {
     const sock = makeWASocket({
-      version, auth: state, browser: Browsers.macOS('Bazis-Bot'), logger: pino({ level: 'silent' }),
+      version, auth: state, browser: Browsers.macOS('Chrome'), logger: pino({ level: 'silent' }),
       markOnlineOnConnect: false, syncFullHistory: false,
     });
     sock.ev.on('creds.update', saveCreds);
-    if (koppeln && !state.creds.registered) {
-      const nummer = (process.env.WA_NUMMER || '').replace(/\D/g, '');
-      if (!nummer) throw new Error('WA_NUMMER fehlt (Geheimnis in GitHub, z. B. 4917612345678).');
-      await delay(3000);
+    // Kopplungscode nur EINMAL anfordern: Ein neuer Code macht den alten ungültig.
+    // Angefordert wird erst, wenn der Server bereit ist (erstes „qr“-Ereignis).
+    if (koppeln && !state.creds.registered && !codeAngefordert) {
+      codeAngefordert = true;
+      let nummer = (process.env.WA_NUMMER || '').replace(/\D/g, '');
+      if (nummer.startsWith('00')) nummer = nummer.slice(2);
+      if (nummer.startsWith('0')) nummer = '49' + nummer.slice(1);
+      if (nummer.length < 10) throw new Error('WA_NUMMER fehlt oder ist zu kurz (Geheimnis in GitHub, z. B. 4917612345678).');
+      await new Promise((bereit) => {
+        const uhr = setTimeout(bereit, 10_000);
+        sock.ev.on('connection.update', (u) => { if (u.qr) { clearTimeout(uhr); bereit(); } });
+      });
       const code = await sock.requestPairingCode(nummer);
       sag('──────────────────────────────────────────');
       sag(`KOPPLUNGSCODE:  ${code.slice(0, 4)}-${code.slice(4)}`);
