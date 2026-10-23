@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import { Icon } from './icon';
@@ -9,6 +10,7 @@ import {
 } from '@/lib/data/saison-2027';
 import type { Ergebnis27 } from '@/lib/tabelle-2027';
 import type { Termin27 } from '@/lib/data/termine-2027';
+import { berichtPfad } from '@/lib/spieltag';
 
 /** Ergebnisse je Begegnung (Heim|Gast), aus lib/server/ergebnisse-2027.ts. */
 export type ErgebnisMap27 = Record<string, Ergebnis27>;
@@ -27,6 +29,12 @@ function ErgebnisZeile({ e, gast = false }: { e: Ergebnis27; gast?: boolean }) {
       {!e.bestaetigt && <span style={{ color: '#9A6B00' }}> · noch nicht bestätigt</span>}
     </>
   );
+}
+
+/** Ergebnis anklickbar → öffentlicher Spielbericht (nicht bei Wertungen ohne Bericht). */
+function ZumBericht({ e, children, style }: { e: Ergebnis27; children: React.ReactNode; style?: React.CSSProperties }) {
+  if (e.wertung) return <>{children}</>;
+  return <Link href={berichtPfad(e.key)} title="Spielbericht ansehen" style={{ color: 'inherit', textDecoration: 'none', ...style }}>{children}</Link>;
 }
 
 // Anzeige des Spielplans 2026/27 (Server-tauglich, keine Hooks).
@@ -109,7 +117,7 @@ function Mitte({ e }: { e?: Ergebnis27 }) {
   if (!e) return <span className="mdu-sp-mitte" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', color: 'var(--th-text-faint)' }}>VS</span>;
   return (
     <span title={e.bestaetigt ? undefined : 'Vom Gegner noch nicht bestätigt'} style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 24, letterSpacing: '0.02em', color: 'var(--th-text-strong)', whiteSpace: 'nowrap' }} className="mdu-sp-mitte">
-      {e.spieleHome}:{e.spieleAway}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}
+      <ZumBericht e={e}>{e.spieleHome}:{e.spieleAway}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}</ZumBericht>
     </span>
   );
 }
@@ -132,7 +140,7 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
                 <Seite id={g.away} />
               </div>
               <div className="mdu-sp-ort" style={{ ...faint, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                {e ? <ErgebnisZeile e={e} /> : <><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</>}
+                {e ? <ZumBericht e={e}><ErgebnisZeile e={e} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</>}
               </div>
             </div>
           );
@@ -215,12 +223,12 @@ export function TeamSpielplan27({ teamId, ergebnisse, nur, leer, max }: { teamId
                   <div style={{ flex: 1, minWidth: 0 }}><TeamChip27 id={s.gegner} size={26} /></div>
                   {e && (
                     <span style={{ flexShrink: 0, fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: eigen > fremd ? 'var(--th-win)' : eigen < fremd ? '#C0392B' : 'var(--th-text-strong)' }}>
-                      {eigen}:{fremd}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}
+                      <ZumBericht e={e}>{eigen}:{fremd}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}</ZumBericht>
                     </span>
                   )}
                 </div>
                 <div style={{ ...faint, marginTop: 6, marginLeft: 34, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 8px' }}>
-                  {e ? <ErgebnisZeile e={e} gast={!s.heim} /> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="pin" size={12} stroke={2} />{ort?.name ?? 'Spielort folgt'}</span>}
+                  {e ? <ZumBericht e={e}><ErgebnisZeile e={e} gast={!s.heim} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="pin" size={12} stroke={2} />{ort?.name ?? 'Spielort folgt'}</span>}
                   <span style={{ color: 'var(--th-text-faint)' }}>· {s.spieltag}. ST</span>
                   {t?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
                   {terminVerlegt(t, s.fri, s.sun) && <Etikett>verlegt</Etikett>}

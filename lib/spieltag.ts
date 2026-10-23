@@ -12,6 +12,8 @@ export const spielSlug = (key: string) => key.replace('|', '--');
 // Kein Zurückrechnen aus dem Slug: Team-IDs können selbst „--“ enthalten
 // (team-illuminati--28d702). Aufgelöst wird per Vergleich mit spielSlug().
 export const passtSlug = (key: string, slug: string) => spielSlug(key) === decodeURIComponent(slug);
+/** Öffentlicher Spielbericht einer Begegnung (app/spielbericht/[spiel]). */
+export const berichtPfad = (key: string) => `/spielbericht/${spielSlug(key)}`;
 export const spieltagPfad = (teamId: string, key: string) => `/spieltag/${teamId}/${spielSlug(key)}`;
 
 const zuMin = (hhmm: string) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };

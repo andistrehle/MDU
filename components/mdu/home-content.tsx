@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { berichtPfad } from '@/lib/spieltag';
 import { SOCIAL_LINKS } from '@/lib/site-config';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
@@ -54,10 +55,10 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
   const recent27 = Object.values(erg27)
     .sort((a, b) => (b.datum ?? '').localeCompare(a.datum ?? ''))
     .slice(0, 5)
-    .map(e => ({ homeTeamId: e.home, awayTeamId: e.away, leagueName: findLiga27(team27(e.home)?.league)?.name ?? '', date: e.datum, result: { home: e.spieleHome, away: e.spieleAway }, offen: !e.bestaetigt, neu: true as const }));
+    .map(e => ({ homeTeamId: e.home, awayTeamId: e.away, leagueName: findLiga27(team27(e.home)?.league)?.name ?? '', date: e.datum, result: { home: e.spieleHome, away: e.spieleAway }, offen: !e.bestaetigt, neu: true as const, bericht: e.wertung ? null : berichtPfad(e.key) }));
   const recent = recent27.length
     ? recent27
-    : getRecentResults(undefined, 5).map(m => ({ homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId, leagueName: findLeague(m.leagueId)?.name ?? m.leagueId, date: m.date, result: m.result, offen: false, neu: false as const }));
+    : getRecentResults(undefined, 5).map(m => ({ homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId, leagueName: findLeague(m.leagueId)?.name ?? m.leagueId, date: m.date, result: m.result, offen: false, neu: false as const, bericht: null }));
   // Nächstes Spielwochenende der Saison 2026/27 (vorläufiger Plan), alle Ligen.
   const naechstes = naechstesWochenende27();
   const newsArticles = await getHomepageNews();
@@ -291,7 +292,9 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
                           padding: '2px 10px', background: 'var(--th-line-6)',
                           borderRadius: 6, letterSpacing: '0.05em',
                         }}>
-                          {m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}
+                          {m.bericht
+                            ? <Link href={m.bericht} title="Spielbericht ansehen" style={{ color: 'inherit', textDecoration: 'none' }}>{m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</Link>
+                            : <>{m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</>}
                         </span>
                         <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
                           <span className="mdu-link-name" style={{

@@ -65,8 +65,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Reiter „Einzelrangliste" auf der Ligaseite + Saison-Karte im Spielerprofil.
   **Öffentlicher Spielbericht** (Betreiber, 23.10.2026): `/spielbericht/<heim>--<gast>` (`ladeBericht27`,
   nur zählende Berichte) zeigt Aufstellung (Namen), alle Spiele mit Legs, Highlights, Endstand — NICHT
-  Passnummern, TCs, Protest/Notizen, Fotos. Erreichbar aus dem Spielerprofil (letzte 5 Einzel + „Alle
-  anzeigen“, Sprung per `#spiel-<nr>`).
+  Passnummern, TCs, Protest/Notizen, Fotos. Erreichbar über jedes Ergebnis 2026/27 (Spielplan, Ergebnisse, Liga,
+  Team, Startseite — `berichtPfad`, nicht bei Wertungen) und aus dem Spielerprofil (letzte 5 Einzel +
+  „Alle anzeigen“, Sprung per `#spiel-<nr>`).
   **Team Manager**: `/mein-team/zusagen` = Dashboard (`team-dashboard.tsx`: Team-Scheibe, Kacheln Kasse/Termine/
   Aufgaben, Statistik zugesagt/gespielt über `/api/team-statistik`), `/mein-team/termine` = Terminliste;
   beide über `components/mdu/team-manager.tsx` (`ansicht`).
