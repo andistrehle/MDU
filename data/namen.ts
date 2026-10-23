@@ -84,6 +84,13 @@ export const NAMEN: Namenskorrektur[] = [
     "firstName": "REINHOLD",
     "alteId": "reinhold-machete",
     "note": "Lief in der Saison 2025/26 als „Machete Reinhold“ unter dem Lokalnamen."
+  },
+  {
+    "passNr": 411,
+    "lastName": "KNEZOVIĆ",
+    "firstName": "JOSIP",
+    "alteId": "joseph-knezovic",
+    "note": null
   }
 ];
 
