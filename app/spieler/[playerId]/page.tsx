@@ -239,9 +239,10 @@ export default async function PlayerProfilePage(
                       <StatRow label="Punkte" value={String(e27.points)} />
                       <StatRow label="Einzel (S–N)" value={`${e27.singles} (${e27.wins}–${e27.losses})`} />
                       <StatRow label="Legs" value={`${e27.legsWon}:${e27.legsLost}`} />
-                      {(e27.b180 > 0 || e27.b171 > 0) && <StatRow label="180er / 171er" value={`${e27.b180} / ${e27.b171}`} />}
-                      {e27.highFinish != null && <StatRow label="Höchstes Finish" value={String(e27.highFinish)} />}
-                      <StatRow label="Kürzestes Leg" value={e27.shortLeg != null ? `${e27.shortLeg} Darts` : '–'} last />
+                      <StatRow label="180er" value={String(e27.b180)} />
+                      <StatRow label="171er" value={String(e27.b171)} />
+                      <StatRow label="High Finishes" value={e27.hfAnzahl ? `${e27.hfAnzahl} · höchstes ${e27.highFinish}` : '0'} />
+                      <StatRow label="Short Legs" value={e27.slAnzahl ? `${e27.slAnzahl} · kürzestes ${e27.shortLeg} Darts` : '0'} last />
                       <div style={{ marginTop: 12, fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.6 }}>
                         {e27.offen > 0 && <><span style={{ color: '#9A6B00', fontWeight: 800 }}>*</span> Enthält Ergebnisse, die der Gegner noch nicht bestätigt hat.{' '}</>}
                         <Link href={`/ligen/${e27.liga}?tab=einzelrangliste`} style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Ganze Einzelrangliste</Link>

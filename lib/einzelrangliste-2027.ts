@@ -42,6 +42,9 @@ export interface EinzelZeile {
   b180: number; b171: number;
   /** höchstes Finish (100–170) */
   highFinish: number | null;
+  /** Anzahl High Finishes / Short Legs (je Eintrag im Bericht einer) */
+  hfAnzahl: number;
+  slAnzahl: number;
   /** kürzestes Leg (Darts) */
   shortLeg: number | null;
   /** Davon aus noch nicht bestätigten Berichten */
@@ -82,7 +85,7 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
     const ensure = (k: NonNullable<ReturnType<typeof keyOf>>) => {
       let z = out.get(k.key);
       if (!z) {
-        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, shortLeg: null, offen: 0, pos: 0, verlauf: [] };
+        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, hfAnzahl: 0, shortLeg: null, slAnzahl: 0, offen: 0, pos: 0, verlauf: [] };
         out.set(k.key, z);
       }
       z.teamId = k.team; z.name = k.p.name.trim();
@@ -111,8 +114,8 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
       const z = ensure(k);
       if (h.type === '180') z.b180 += h.value;
       else if (h.type === '171') z.b171 += h.value;
-      else if (h.type === 'high_finish') z.highFinish = Math.max(z.highFinish ?? 0, h.value);
-      else if (h.type === 'short_leg') z.shortLeg = z.shortLeg == null ? h.value : Math.min(z.shortLeg, h.value);
+      else if (h.type === 'high_finish') { z.highFinish = Math.max(z.highFinish ?? 0, h.value); z.hfAnzahl += 1; }
+      else if (h.type === 'short_leg') { z.shortLeg = z.shortLeg == null ? h.value : Math.min(z.shortLeg, h.value); z.slAnzahl += 1; }
     }
   }
   return out;

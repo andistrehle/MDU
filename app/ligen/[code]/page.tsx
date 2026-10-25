@@ -44,7 +44,7 @@ export default async function LeagueDetailPage(props: PageProps<'/ligen/[code]'>
         <LeagueBanner name={liga27.name} color={liga27.color} ligenHref="/ligen" eyebrow={NEUE_SAISON.name}>
           <SaisonUmschalter archiv={false} neuHref={`/ligen/${code}`} archivHref={league ? `/ligen/${code}?saison=${ARCHIV_SAISON.slug}` : '/ligen/2025-26'} style={{ marginTop: 18, marginBottom: 0 }} />
         </LeagueBanner>
-        <Liga27Client code={liga27.code} initialTab={t >= 0 ? t : 0} tabelle={tabelle} ergebnisse={ergebnisse} einzel={einzel.jeLiga[liga27.code]} />
+        <Liga27Client code={liga27.code} initialTab={t >= 0 ? t : 0} tabelle={tabelle} ergebnisse={ergebnisse} einzel={einzel.jeLiga[liga27.code].map(ohneVerlauf)} einzelAlle={Object.values(einzel.jeLiga).flat().map(ohneVerlauf)} />
         <Footer />
       </div>
     );
@@ -155,3 +155,6 @@ function LeagueBanner({ name, color, ligenHref, eyebrow, children }: { name: str
       </div>
   );
 }
+
+/** Der Verlauf (jedes Einzel) wird in der Rangliste nicht gebraucht — nicht mit in die Seite schicken. */
+const ohneVerlauf = <T extends { verlauf: unknown[] }>(z: T): T => ({ ...z, verlauf: [] });

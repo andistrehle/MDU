@@ -24,8 +24,10 @@ const card: React.CSSProperties = { background: 'var(--th-bg-card)', border: '1p
 const label: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', color: 'var(--th-accent)', textTransform: 'uppercase', marginBottom: 12 };
 const body: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 13.5, lineHeight: 1.6, color: 'var(--th-text-body)' };
 
-export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel }: {
+export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel, einzelAlle }: {
   code: Liga27Code; initialTab?: number; tabelle: TabellenZeile[]; ergebnisse: ErgebnisMap27; einzel: EinzelZeile[];
+  /** alle Ligen — für die Highlight-Listen „Alle Ligen“ */
+  einzelAlle?: EinzelZeile[];
 }) {
   const [tab, setTab] = useState(initialTab);
   const liga = findLiga27(code)!;
@@ -116,7 +118,7 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
 
         {tab === 4 && (
           <div style={{ ...card, padding: 0, overflow: 'hidden', maxWidth: 900 }}>
-            <Einzelrangliste27 zeilen={einzel} bestOf={code === 'la' ? 5 : 3} />
+            <Einzelrangliste27 zeilen={einzel} alle={einzelAlle} bestOf={code === 'la' ? 5 : 3} />
           </div>
         )}
 

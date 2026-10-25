@@ -63,6 +63,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `lib/einzelrangliste-2027.ts` (nur Einzel, 2:0=3/2:1=2/1:2=1/0:2=0; Punkte → Legdifferenz →
   Siege, sonst geteilter Platz; Liga = Team des letzten Einsatzes), Lader `ladeEinzel27`,
   Reiter „Einzelrangliste" auf der Ligaseite + Saison-Karte im Spielerprofil.
+  Umschalter in der Einzelrangliste (Betreiber, 25.10.2026): Punkte · 180er · 171er · High Finishes · Short
+  Legs, die Highlight-Listen auch „Alle Ligen“; HF/SL nach Anzahl (`hfAnzahl`/`slAnzahl`, je Eintrag im
+  Bericht einer), Gleichstand → Bestwert. Handy: zwei Zeilen je Spieler (Werte klein unter dem Namen).
   **Öffentlicher Spielbericht** (Betreiber, 23.10.2026): `/spielbericht/<heim>--<gast>` (`ladeBericht27`,
   nur zählende Berichte) ist der ganze Bericht im Aufbau des Papierbogens: Kopf, Mannschaften, Aufstellung
   H1–H8/G1–G8 mit Einzelranglisten-Punkten des Abends, Spielablauf 1–18 inkl. Doppel mit Zwischenstand,
