@@ -145,13 +145,13 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true },
       { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
+      { icon: 'bar',    label: 'Statistik',               description: 'Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
     );
   }
 
   // Super Admin — exklusiv (im Kapitäns-Modus ausgeblendet)
   if (canManageUsers(user) && !inCaptainMode) {
     tiles.push(
-      { icon: 'bar',      label: 'Statistik',           description: 'Anonyme Nutzungsstatistik (Aufrufe, Top-Seiten, Dark/Classic, Login-Quote).', href: '/admin/analytics', ready: true },
       { icon: 'edit',     label: 'Rollenverwaltung',    description: 'Rollen vergeben (in der Benutzerverwaltung).', href: '/admin/users', ready: true },
       { icon: 'settings', label: 'Systemeinstellungen', description: 'Plattform-Einstellungen (folgt).', ready: false },
     );
