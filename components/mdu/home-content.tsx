@@ -56,6 +56,14 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
     .sort((a, b) => (b.datum ?? '').localeCompare(a.datum ?? ''))
     .slice(0, 5)
     .map(e => ({ homeTeamId: e.home, awayTeamId: e.away, leagueName: findLiga27(team27(e.home)?.league)?.name ?? '', date: e.datum, result: { home: e.spieleHome, away: e.spieleAway }, offen: !e.bestaetigt, neu: true as const, bericht: e.wertung ? null : berichtPfad(e.key) }));
+  // Je Liga die Ergebnisse ihres letzten Spielwochenendes (Woche des neuesten Ergebnisses), neueste zuerst.
+  const woche = (iso: string) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d.toISOString().slice(0, 10); };
+  const letzte27 = LIGEN_2027.map(liga => {
+    const alle = Object.values(erg27).filter(e => team27(e.home)?.league === liga.code && e.datum)
+      .sort((a, b) => (b.datum ?? '').localeCompare(a.datum ?? ''));
+    const w = alle[0] ? woche(alle[0].datum!) : null;
+    return { liga, spiele: alle.filter(e => w && woche(e.datum!) === w) };
+  }).filter(g => g.spiele.length > 0);
   const recent = recent27.length
     ? recent27
     : getRecentResults(undefined, 5).map(m => ({ homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId, leagueName: findLeague(m.leagueId)?.name ?? m.leagueId, date: m.date, result: m.result, offen: false, neu: false as const, bericht: null }));
@@ -253,63 +261,86 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
                   Alle anzeigen
                 </Link>
               </div>
+              {letzte27.length ? (
+                // Wie „Nächste Spiele“: je Liga eine Gruppe (das letzte Spielwochenende dieser Liga), die Ligen wechseln sich ab.
+                <div className="mdu-home-match-preview">
+                  <NaechsteSpieleRotator gruppen={letzte27.map(g => ({
+                    code: g.liga.code, name: g.liga.name, color: g.liga.color, anzahl: g.spiele.length,
+                    inhalt: g.spiele.map(e => (
+                      <div key={e.key} className="mdu-match-card" style={{ padding: '12px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
+                        <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-text-muted)', marginBottom: 8 }}>
+                          {e.datum ? formatMatchDate(e.datum) : ''}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}> · noch nicht bestätigt</span>}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 8 }}>
+                          <TeamChip27 id={e.home} />
+                          {e.wertung
+                            ? <span style={ergebnisStil}>{e.spieleHome}&thinsp;:&thinsp;{e.spieleAway}</span>
+                            : <Link href={berichtPfad(e.key)} title="Spielbericht ansehen" style={{ ...ergebnisStil, textDecoration: 'none' }}>{e.spieleHome}&thinsp;:&thinsp;{e.spieleAway}{!e.bestaetigt && <span style={{ color: '#9A6B00' }}>*</span>}</Link>}
+                          <TeamChip27 id={e.away} align="right" />
+                        </div>
+                      </div>
+                    )),
+                  }))} />
+                </div>
+              ) : (
               <div className="mdu-home-match-preview" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {recent.map((m, i) => {
-                  const home   = m.neu ? { name: team27(m.homeTeamId)?.name ?? m.homeTeamId } : getExtendedTeam(m.homeTeamId);
-                  const away   = m.neu ? { name: team27(m.awayTeamId)?.name ?? m.awayTeamId } : getExtendedTeam(m.awayTeamId);
-                  return (
-                    <div
-                      key={i}
-                      className="mdu-match-card"
-                      style={{
-                        padding: '14px 20px', borderRadius: 12,
-                        background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
-                      }}
-                    >
-                      <div style={{
-                        fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
-                        letterSpacing: '0.16em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
-                        marginBottom: 10,
-                      }}>
-                        {m.leagueName}
-                        {m.date && (
-                          <span style={{ color: 'var(--th-text-faint)' }}> · {formatMatchDate(m.date)}</span>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <TeamLink teamId={m.homeTeamId} teamName={home.name} style={{ flex: 1, minWidth: 0 }}>
-                          <span className="mdu-link-name" style={{
-                            fontFamily: 'var(--font-manrope)', fontWeight: 700,
-                            fontSize: 13, color: 'var(--th-text-strong)', minWidth: 0,
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
-                            {home.name}
-                          </span>
-                        </TeamLink>
-                        <span style={{
-                          fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700,
-                          fontSize: 15, color: 'var(--th-text-strong)', flexShrink: 0,
-                          padding: '2px 10px', background: 'var(--th-line-6)',
-                          borderRadius: 6, letterSpacing: '0.05em',
+                  {recent.map((m, i) => {
+                    const home   = m.neu ? { name: team27(m.homeTeamId)?.name ?? m.homeTeamId } : getExtendedTeam(m.homeTeamId);
+                    const away   = m.neu ? { name: team27(m.awayTeamId)?.name ?? m.awayTeamId } : getExtendedTeam(m.awayTeamId);
+                    return (
+                      <div
+                        key={i}
+                        className="mdu-match-card"
+                        style={{
+                          padding: '14px 20px', borderRadius: 12,
+                          background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)',
+                        }}
+                      >
+                        <div style={{
+                          fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11,
+                          letterSpacing: '0.16em', color: 'var(--th-text-muted)', textTransform: 'uppercase',
+                          marginBottom: 10,
                         }}>
-                          {m.bericht
-                            ? <Link href={m.bericht} title="Spielbericht ansehen" style={{ color: 'inherit', textDecoration: 'none' }}>{m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</Link>
-                            : <>{m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</>}
-                        </span>
-                        <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
-                          <span className="mdu-link-name" style={{
-                            fontFamily: 'var(--font-manrope)', fontWeight: 700,
-                            fontSize: 13, color: 'var(--th-text-body)', textAlign: 'right', minWidth: 0,
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          {m.leagueName}
+                          {m.date && (
+                            <span style={{ color: 'var(--th-text-faint)' }}> · {formatMatchDate(m.date)}</span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <TeamLink teamId={m.homeTeamId} teamName={home.name} style={{ flex: 1, minWidth: 0 }}>
+                            <span className="mdu-link-name" style={{
+                              fontFamily: 'var(--font-manrope)', fontWeight: 700,
+                              fontSize: 13, color: 'var(--th-text-strong)', minWidth: 0,
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {home.name}
+                            </span>
+                          </TeamLink>
+                          <span style={{
+                            fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700,
+                            fontSize: 15, color: 'var(--th-text-strong)', flexShrink: 0,
+                            padding: '2px 10px', background: 'var(--th-line-6)',
+                            borderRadius: 6, letterSpacing: '0.05em',
                           }}>
-                            {away.name}
+                            {m.bericht
+                              ? <Link href={m.bericht} title="Spielbericht ansehen" style={{ color: 'inherit', textDecoration: 'none' }}>{m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</Link>
+                              : <>{m.result?.home ?? '—'}&thinsp;:&thinsp;{m.result?.away ?? '—'}{m.offen && <span title="Vom Gegner noch nicht bestätigt" style={{ color: '#9A6B00' }}>*</span>}</>}
                           </span>
-                        </TeamLink>
+                          <TeamLink teamId={m.awayTeamId} teamName={away.name} style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+                            <span className="mdu-link-name" style={{
+                              fontFamily: 'var(--font-manrope)', fontWeight: 700,
+                              fontSize: 13, color: 'var(--th-text-body)', textAlign: 'right', minWidth: 0,
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {away.name}
+                            </span>
+                          </TeamLink>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -319,3 +350,8 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
     </div>
   );
 }
+
+const ergebnisStil: React.CSSProperties = {
+  fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, fontSize: 15, color: 'var(--th-text-strong)',
+  padding: '2px 10px', background: 'var(--th-line-6)', borderRadius: 6, letterSpacing: '0.05em', whiteSpace: 'nowrap',
+};
