@@ -142,7 +142,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       { icon: 'user',   label: 'Kontakte',               description: 'Telefonnummern der Team-Kapitäne.', href: '/admin/kontakte', ready: true },
       { icon: 'users',  label: 'Spieler',                description: 'Alle Spieler alphabetisch – Namen korrigieren, löschen, Dubletten finden.', href: '/admin/spieler', ready: true },
       { icon: 'calendar', label: 'Spielplan / TC-Pläne',  description: 'Plan jeder Mannschaft, Liga oder jedes Spielorts drucken.', href: '/admin/spielplan-vorschlag', ready: true },
-      { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true },
+      { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true, badgeKey: 'matchReports' },
       { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
       { icon: 'bar',    label: 'Statistik',               description: 'Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
@@ -315,6 +315,20 @@ export default function MeinBereichPage() {
                   {captainMode ? 'In den Admin-Modus wechseln' : 'In den Kapitäns-Modus wechseln'}
                 </button>
               </div>
+            )}
+
+            {/* Offene Proteste (Migration 0057) — Ligaleitung muss handeln */}
+            {canManageLeague(user) && !captainMode && counts.matchReports > 0 && (
+              <Link href="/admin/spielberichte?status=problem" style={{
+                display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', marginBottom: 18,
+                background: 'rgba(226,75,74,0.08)', border: '1.5px solid var(--th-loss)', borderRadius: 12, padding: '12px 16px',
+              }}>
+                <span aria-hidden style={{ fontSize: 20 }}>⚠️</span>
+                <span style={{ flex: 1, fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-strong)', lineHeight: 1.5 }}>
+                  <b>{counts.matchReports === 1 ? '1 Spielbericht mit Protest' : `${counts.matchReports} Spielberichte mit Protest`}</b> – bitte prüfen und danach als erledigt markieren.
+                </span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: 'var(--th-loss)', whiteSpace: 'nowrap' }}>Ansehen →</span>
+              </Link>
             )}
 
             {/* Hinweise: erkanntes Spielerprofil / Teamkapitän-Wunsch */}

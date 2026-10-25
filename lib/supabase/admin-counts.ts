@@ -11,7 +11,7 @@
 // Counts:
 //   registrations — Mannschaftsanmeldungen, die auf Prüfung warten
 //   users         — neue/ungeprüfte Benutzerprofile
-//   matchReports  — Platzhalter (noch keine Spielbericht-Tabelle)
+//   matchReports  — offene Proteste in Spielberichten (Migration 0057)
 // ============================================================
 
 import { useCallback, useEffect, useState } from 'react';
@@ -26,7 +26,7 @@ export interface AdminNotificationCounts {
   registrations: number;
   /** neue / ungeprüfte Benutzer (match_status = pending) */
   users: number;
-  /** noch keine Datenquelle — bleibt 0 */
+  /** Spielberichte mit Protest, den die Ligaleitung noch nicht erledigt hat */
   matchReports: number;
   /** offene Spieler-Nachmeldungen (pending) */
   nominations: number;
@@ -91,16 +91,23 @@ async function getUnconfirmedUserIds(): Promise<Set<string>> {
   }
 }
 
+/** Spielberichte mit offenem Protest (eingereicht, noch nicht erledigt). Ohne Migration 0057 → 0. */
+export async function countOffeneProteste(): Promise<number> {
+  if (!supabase) return 0;
+  const { count, error } = await supabase.from('match_reports').select('id', { count: 'exact', head: true })
+    .eq('protest', true).neq('status', 'draft').is('protest_handled_at', null);
+  return error ? 0 : count ?? 0;
+}
+
 /** Alle Admin-Zähler in einem Rutsch (parallele Count-Queries). */
 export async function getAdminNotificationCounts(user: UserProfile | null): Promise<AdminNotificationCounts> {
   if (!canManageLeague(user)) return ZERO_COUNTS;
-  const [registrations, users, nominations] = await Promise.all([
+  const [registrations, users, nominations, matchReports] = await Promise.all([
     getPendingRegistrationCount(user),
     getNewUserCount(user),
     countPendingNominations(),
+    countOffeneProteste(),
   ]);
-  // Spielberichte werden nicht von der Ligaleitung freigegeben → keine Admin-Aufgabe.
-  const matchReports = 0;
   return { registrations, users, matchReports, nominations, total: registrations + users + matchReports + nominations };
 }
 

@@ -15,7 +15,7 @@ import { ladeErfassung, WEG, WEGE, type Erfassungsweg } from '@/lib/supabase/erf
 import { berichtPfad } from '@/lib/spieltag';
 import {
   listAllReports, deleteReport, notifyReportChange, setzeWertung,
-  REPORT_STATUS_LABELS, WERTUNG_LABELS, type MatchReport, type Wertung,
+  REPORT_STATUS_LABELS, WERTUNG_LABELS, protestErledigt, type MatchReport, type Wertung,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads, loescheSaisonFotos } from '@/lib/supabase/match-report-uploads';
 import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
@@ -62,11 +62,26 @@ export default function AdminSpielberichtePage() {
     const st: PStatus = !r || r.status === 'draft' ? (vorbei ? 'fehlt' : 'kommend')
       : r.forfeit ? 'wertung' : r.status === 'confirmed' ? 'bestaetigt' : 'eingereicht';
     const ueberfaellig = st === 'fehlt' && heute > fristFuer(datum);
-    const problem = ueberfaellig || st === 'wertung' || r?.status === 'changes_requested' || !!r?.protest;
+    const protestOffen = !!r?.protest && r.status !== 'draft' && !r.protest_handled_at;
+    const problem = ueberfaellig || st === 'wertung' || r?.status === 'changes_requested' || protestOffen;
     return { b, r, datum, st, ueberfaellig, problem, woche: wocheVon(datum), weg: erfassung.get(b.key) ?? null };
   }), [berichtJeBegegnung, erfassung, heute]);
 
   const [fStatus, setFStatus] = useState<StatusFilter>('alle');
+  // Direktlink aus Glocke/E-Mail/Hinweis: ?status=problem
+  useEffect(() => {
+    const st = new URLSearchParams(window.location.search).get('status');
+    if (st && STATUS_FILTER.some(f => f.key === st)) queueMicrotask(() => setFStatus(st as StatusFilter));
+  }, []);
+  async function onProtestErledigt(r: MatchReport) {
+    const notiz = prompt(`Protest ${r.home_team_name} – ${r.guest_team_name} als erledigt markieren.\n\nKurze Notiz (z. B. Entscheidung), optional:`);
+    if (notiz === null) return;
+    setBusy(r.id);
+    const { error } = await protestErledigt(r.id, notiz);
+    setBusy(null);
+    if (error) { alert(error); return; }
+    setRows(await listAllReports());
+  }
   const [fLiga, setFLiga] = useState<Liga27Code | 'alle'>('alle');
   const [fSpieltag, setFSpieltag] = useState<number | 0>(0);
   const [fWoche, setFWoche] = useState('');
@@ -193,12 +208,12 @@ export default function AdminSpielberichtePage() {
                   {g.list.length} {g.list.length === 1 ? 'Partie' : 'Partien'}{!g.begonnen && ' · kommt noch'}
                 </span>
               </div>
-              {g.list.map(x => <PartieZeile key={x.b.key} x={x} busy={busy} onDelete={onDelete} />)}
+              {g.list.map(x => <PartieZeile key={x.b.key} x={x} busy={busy} onDelete={onDelete} onProtestErledigt={onProtestErledigt} />)}
             </div>
           ))}
         </div>
         <p style={{ ...muted, fontSize: 11.5, margin: '12px 0 0' }}>
-          „Fehlt“ = Termin vorbei, kein eingereichter Bericht (auch wenn ein Entwurf existiert). „Problemfälle“ = überfällig (nach Dienstag 24 Uhr), Wertung, Änderung angefordert oder Protest.
+          „Fehlt“ = Termin vorbei, kein eingereichter Bericht (auch wenn ein Entwurf existiert). „Problemfälle“ = überfällig (nach Dienstag 24 Uhr), Wertung, Änderung angefordert oder offener Protest (bis „Protest erledigt“).
         </p>
       </div>
 
@@ -331,7 +346,7 @@ interface Partie {
   ueberfaellig: boolean; problem: boolean; woche: string; weg: Erfassungsweg | null;
 }
 
-function PartieZeile({ x, busy, onDelete }: { x: Partie; busy: string | null; onDelete: (r: MatchReport) => void }) {
+function PartieZeile({ x, busy, onDelete, onProtestErledigt }: { x: Partie; busy: string | null; onDelete: (r: MatchReport) => void; onProtestErledigt: (r: MatchReport) => void }) {
   const { b, r } = x;
   const t = b.termin;
   const etikett = x.st === 'kommend' ? { text: 'kommt noch', farbe: 'var(--th-text-faint)' }
@@ -347,13 +362,21 @@ function PartieZeile({ x, busy, onDelete }: { x: Partie; busy: string | null; on
       <span style={{ flexShrink: 0, minWidth: 54, padding: '2px 7px', borderRadius: 6, background: 'var(--th-line-6)', fontWeight: 800, fontSize: 11, textAlign: 'center', color: 'var(--th-text-body)' }}>{findLiga27(b.liga)?.name ?? b.liga}</span>
       <span style={{ flex: '1 1 240px', minWidth: 0, fontWeight: 700, color: 'var(--th-text-strong)' }}>{team27(b.home)?.name ?? b.home} – {team27(b.away)?.name ?? b.away}</span>
       <span style={{ flex: '0 0 auto', fontWeight: 700, color: etikett.farbe }}>
-        {etikett.text}{r?.protest && <span style={{ color: 'var(--th-loss)' }}> · Protest</span>}
+        {etikett.text}{r?.protest && <span style={{ color: r.protest_handled_at ? 'var(--th-text-muted)' : 'var(--th-loss)' }}> · Protest{r.protest_handled_at ? ' (erledigt)' : ''}</span>}
         {x.weg && <span title={WEG[x.weg].label} style={{ marginLeft: 6 }}>{WEG[x.weg].icon}</span>}
       </span>
+      {r?.protest && (
+        <span style={{ flexBasis: '100%', paddingLeft: 130, fontSize: 12, color: r.protest_handled_at ? 'var(--th-text-muted)' : 'var(--th-loss)' }}>
+          Protest: „{(r.protest_note ?? '').trim() || 'ohne Begründung'}“{r.protest_handled_at && r.protest_handled_note ? ` · Erledigt: ${r.protest_handled_note}` : ''}
+        </span>
+      )}
       <span style={{ display: 'flex', gap: 12, flex: '0 0 auto' }}>
         {r ? (
           <>
             {(x.st === 'eingereicht' || x.st === 'bestaetigt') && <Link href={berichtPfad(b.key)} style={link}>Ansehen</Link>}
+            {r.protest && r.status !== 'draft' && !r.protest_handled_at && (
+              <button onClick={() => onProtestErledigt(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, padding: 0 }}>Protest erledigt</button>
+            )}
             <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={link}>Bearbeiten</Link>
             <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>{busy === r.id ? '…' : 'Löschen'}</button>
           </>

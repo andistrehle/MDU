@@ -37,7 +37,8 @@ export type EmailType =
   | 'login_help_request'
   | 'draft_reminder'
   | 'draft_reminder_final'
-  | 'zusage_reminder';
+  | 'zusage_reminder'
+  | 'match_report_protest';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
@@ -209,6 +210,9 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `Wenn du Fragen hast, meld dich einfach kurz.` + link + SIGNATURE,
       };
     }
+    case 'match_report_protest':
+      // Wird über sendTextEmail mit eigenem Text verschickt, nicht über diese Vorlagen.
+      return { subject: 'Protest in einem Spielbericht', text: `Hallo ${name},\n\nin einem Spielbericht wurde Protest eingelegt.${SIGNATURE}` };
     case 'zusage_reminder':
       // Wird über sendTextEmail mit eigenem Text verschickt, nicht über diese Vorlagen.
       return { subject: 'Erinnerung: Zu- oder Absage offen', text: `Hallo ${name},\n\nfür einen Termin deines Teams hast du noch nicht zu- oder abgesagt.${SIGNATURE}` };

@@ -24,7 +24,7 @@ import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange, protokolliereSpeichern,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
-  submitGuestProposal, computePlayerRanking, adminBestaetigen,
+  submitGuestProposal, computePlayerRanking, adminBestaetigen, meldeProtest, PROTEST_MIN,
   HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
   type HighlightEntry, type HighlightType, highlightHinzufuegen,
@@ -577,7 +577,17 @@ function SpielberichteInner() {
     return id;
   }
 
+  /** Protest nie ohne Begründung (Betreiber, 25.10.2026). */
+  function protestFehler(): string | null {
+    if (!header.protest) return null;
+    return (header.protest_note ?? '').trim().length < PROTEST_MIN
+      ? `Protest nur mit Begründung: bitte mindestens ${PROTEST_MIN} Zeichen schreiben – oder den Haken bei „Protest eingelegt“ entfernen.`
+      : null;
+  }
+
   async function onSaveDraft() {
+    const pf = protestFehler();
+    if (pf) { setMsg({ kind: 'err', text: pf }); return; }
     setBusy(true); setMsg(null);
     const id = await persist();
     if (id && adminEditsForeign) await notifyReportChange(id, 'changed');
@@ -585,7 +595,7 @@ function SpielberichteInner() {
     if (id) { sicherungErledigt(); setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' }); }
   }
   async function onSubmit() {
-    const v = validate();
+    const v = protestFehler() ?? validate();
     if (v) { setMsg({ kind: 'err', text: v }); return; }
     setBusy(true); setMsg(null);
     const id = await persist();
@@ -597,6 +607,8 @@ function SpielberichteInner() {
     if (!error && adminEditsForeign && !adminDirekt && !bleibtBestaetigt) await notifyReportChange(id, 'changed');
     setBusy(false);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
+    // Protest: Ligaleitung (Glocke + E-Mail) und Gegner-TC sofort informieren — einmal je Protest.
+    if (header.protest) await meldeProtest(id);
     sicherungErledigt();
     router.push(adminEditsForeign || fromAdmin || adminDirekt ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht');
   }
@@ -974,9 +986,22 @@ function SpielberichteInner() {
 
             <Section title="Protest">
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
-                <input type="checkbox" checked={header.protest} onChange={e => setH('protest', e.target.checked)} /> Protest eingelegt
+                <input type="checkbox" checked={header.protest} onChange={e => {
+                  if (e.target.checked && !confirm('Wirklich Protest einlegen?\n\nDie Ligaleitung und der Gegner werden beim Absenden sofort informiert. Eine Begründung ist Pflicht.')) return;
+                  setH('protest', e.target.checked);
+                }} /> Protest eingelegt
               </label>
-              {header.protest && <textarea value={header.protest_note ?? ''} onChange={e => setH('protest_note', e.target.value)} rows={2} placeholder="Anmerkung zum Protest" style={{ ...input, marginTop: 8, resize: 'vertical' }} />}
+              {header.protest && (
+                <>
+                  <textarea value={header.protest_note ?? ''} onChange={e => setH('protest_note', e.target.value)} rows={3}
+                    placeholder="Begründung (Pflicht): Was ist passiert?" style={{ ...input, marginTop: 8, resize: 'vertical' }} />
+                  <div style={{ marginTop: 4, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: (header.protest_note ?? '').trim().length < PROTEST_MIN ? 'var(--th-loss)' : 'var(--th-text-faint)' }}>
+                    {(header.protest_note ?? '').trim().length < PROTEST_MIN
+                      ? `Begründung Pflicht – noch ${PROTEST_MIN - (header.protest_note ?? '').trim().length} Zeichen.`
+                      : 'Die Ligaleitung und der Gegner werden beim Absenden informiert.'}
+                  </div>
+                </>
+              )}
             </Section>
 
             </fieldset>

@@ -131,6 +131,10 @@ export interface MatchReport {
   points_guest: number | null;
   protest: boolean;
   protest_note: string | null;
+  /** Migration 0057 */
+  protest_notified_at?: string | null;
+  protest_handled_at?: string | null;
+  protest_handled_note?: string | null;
   highlights_home: string | null;
   highlights_guest: string | null;
   highlights: HighlightEntry[] | null;
@@ -422,6 +426,25 @@ export async function ergebnisSeitenNeuBauen(): Promise<void> {
     await fetch('/api/match-reports/published', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
   } catch { /* nicht kritisch */ }
 }
+
+/** Protest: Mindestlänge der Begründung (Betreiber, 25.10.2026 — nie aus Versehen). */
+export const PROTEST_MIN = 15;
+
+async function protestAufruf(body: Record<string, string>): Promise<{ error: string | null }> {
+  if (!supabase || typeof window === 'undefined') return { error: NOT_CONFIGURED };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { error: 'Nicht angemeldet.' };
+    const r = await fetch('/api/match-reports/protest', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({})) as { error?: string };
+    return { error: r.ok ? null : j.error ?? 'Fehlgeschlagen.' };
+  } catch { return { error: 'Keine Verbindung – bitte noch einmal versuchen.' }; }
+}
+/** Nach dem Einreichen eines Berichts mit Protest: Ligaleitung + Gegner-TC benachrichtigen (einmal je Protest, Server prüft). */
+export const meldeProtest = (id: string) => protestAufruf({ id, aktion: 'melden' });
+/** Ligaleitung: Protest als erledigt markieren. */
+export const protestErledigt = (id: string, notiz: string) => protestAufruf({ id, aktion: 'erledigt', notiz });
 
 export async function submitReport(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };

@@ -131,7 +131,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (begonnene zuerst, neuester oben), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle
   mit Anzahl), Liga, Spieltag, Wochenende (echter Termin), Erfassungsweg, Team-Suche. „Fehlt“ = Termin vorbei,
   nichts eingereicht (Entwurf zählt als fehlt); Problemfälle = überfällig (nach Di 24 Uhr), Wertung,
-  Änderung angefordert, Protest. Die alte Liste je Liga ist darunter als „Rohliste“ eingeklappt.
+  Änderung angefordert, offener Protest. Die alte Liste je Liga ist darunter als „Rohliste“ eingeklappt.
+  **Protest** (Migration 0057, Betreiber 25.10.2026): nur mit Begründung (≥ `PROTEST_MIN` = 15 Zeichen,
+  Rückfrage beim Anhaken). Beim Einreichen ruft das Formular `/api/match-reports/protest` (`melden`):
+  Ligaleitung Glocke + E-Mail, Gegner-TC Glocke — einmal je Protest (`protest_notified_at`). Offen bis
+  „Protest erledigt“ (Admin → Spielberichte, `protest_handled_*`); bis dahin roter Hinweis in Mein Bereich,
+  Zahl an der Kachel Spielberichte (`countOffeneProteste`) und im Filter Problemfälle.
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +

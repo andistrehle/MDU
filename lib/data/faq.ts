@@ -195,7 +195,7 @@ Klappt es technisch gar nicht, schick den Bericht ersatzweise per E-Mail oder Wh
         frage: 'Im Spielbericht des Gegners ist ein Fehler. Was tun?',
         antwort: `Statt zu bestätigen, wählst du „Änderung anfordern“. Du korrigierst die betroffenen Ergebnisse, schreibst kurz dazu, was nicht stimmt, und schickst den Vorschlag ab. Die Heimmannschaft kann ihn übernehmen und den Bericht neu einreichen, danach bestätigst du.
 
-Echte Proteste müssen zusätzlich auf dem Spielbericht stehen und binnen zwei Werktagen schriftlich bei der Ligaleitung sein.`,
+Echte Proteste müssen zusätzlich auf dem Spielbericht stehen und binnen zwei Werktagen schriftlich bei der Ligaleitung sein. Im Online-Spielbericht setzt du dafür den Haken „Protest eingelegt“ – nur mit Begründung (mindestens 15 Zeichen). Beim Absenden bekommen die Ligaleitung und der Gegner sofort eine Nachricht.`,
         stichworte: ['falsch', 'korrigieren', 'protest', 'einspruch'],
       },
       {
