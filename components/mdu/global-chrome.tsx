@@ -4,7 +4,9 @@
 // Globale MDU-Oberflächenelemente
 // ============================================================
 //
-// Bottom-Nav, Demo-Tour und Analytics gehören zur MDU-Seite. Unter `/mdc`
+// Bottom-Nav, Demo-Tour und Analytics gehören zur MDU-Seite. Die Demo-Tour
+// ist seit 25.10.2026 ausgeblendet (nur noch über „/?tour=1“, siehe
+// demo-tour.tsx); `DemoTourButton` (tour-restart-link.tsx) bleibt ungenutzt liegen. Unter `/mdc`
 // läuft die eigenständige Demo der Munich Dart Challenge mit eigener
 // Navigation und eigenem Erscheinungsbild — dort darf nichts davon
 // hineinragen. Deshalb liegt die Entscheidung an einer Stelle statt in jedem
@@ -15,7 +17,6 @@ import { usePathname } from 'next/navigation';
 import { isMdcPath } from '@/lib/mdc/site';
 import { BottomNav } from './bottom-nav';
 import { DemoTour } from './demo-tour';
-import { DemoTourButton } from './tour-restart-link';
 import { AnalyticsTracker } from './analytics-tracker';
 import { PushAbfrage } from './push-abfrage';
 
@@ -28,7 +29,6 @@ export function GlobalChrome() {
   return (
     <>
       <BottomNav />
-      <DemoTourButton />
       <DemoTour />
       <AnalyticsTracker />
       <PushAbfrage />

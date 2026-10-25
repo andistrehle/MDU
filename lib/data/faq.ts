@@ -401,7 +401,7 @@ Meldest du dich ab, bekommt das Gerät keine Benachrichtigungen mehr.`,
       {
         id: 'tour',
         frage: 'Wie starte ich die Einführungstour noch einmal?',
-        antwort: `Auf der Startseite und im Login-Bereich unten rechts über „Demo Tour erneut ansehen“, oder du öffnest [diesen Link](/?tour=1).`,
+        antwort: `Öffne [diesen Link](/?tour=1), dann startet die Tour über die Startseite.`,
         stichworte: ['tour', 'einführung', 'hilfe'],
       },
     ],

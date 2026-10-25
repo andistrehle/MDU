@@ -36,6 +36,11 @@ const KEYS: Record<TourId, { done: string; skips: string }> = {
   member: { done: 'mdu.tour.v1.member.done', skips: 'mdu.tour.v1.member.skips' },
 };
 const MAX_SKIPS = 3;
+// Betreiber, 25.10.2026: Tour ausgeblendet, Code bleibt. Kein automatischer
+// Start mehr (weder Startseite noch Mein Bereich), kein schwebender Knopf
+// (global-chrome.tsx). Von Hand weiter über „/?tour=1“. Wieder einschalten:
+// auf true setzen und `DemoTourButton` in global-chrome.tsx zurückholen.
+const AUTO_START = false;
 
 // ── Merker-Persistenz (localStorage + Cookie-Fallback) ──────────────
 // Auf manchen Mobil-Browsern (klassisch: iOS-Safari im Privatmodus) liefert
@@ -300,7 +305,7 @@ export function DemoTour() {
         return;
       }
       autoHandledRef.current = '/';
-      if (eligible('public')) autoTimerRef.current = setTimeout(() => startTour('public', PUBLIC_STEPS), 700);
+      if (AUTO_START && eligible('public')) autoTimerRef.current = setTimeout(() => startTour('public', PUBLIC_STEPS), 700);
       return;
     }
 
@@ -309,7 +314,7 @@ export function DemoTour() {
       if (loading || !user) return;              // noch nicht entscheidbar → später erneut
       if (!memberTourReady(user)) return;        // Freigabe steht aus → NICHT markieren, startet nach Zuweisung
       autoHandledRef.current = '/mein-bereich';
-      if (eligible('member')) autoTimerRef.current = setTimeout(() => startTour('member', buildMemberSteps()), 800);
+      if (AUTO_START && eligible('member')) autoTimerRef.current = setTimeout(() => startTour('member', buildMemberSteps()), 800);
       return;
     }
   }, [pathname, user, loading, visible, startTour]);

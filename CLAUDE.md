@@ -191,6 +191,9 @@ oder geänderten Funktionen die passende Antwort mitpflegen; nichts beschreiben,
 nicht kann, und nie von den Spielbedingungen abweichen. Die `id` ist der Direktlink (`/faq#id`) —
 nicht ändern.
 
+**Demo-Tour** (`components/mdu/demo-tour.tsx`): seit 25.10.2026 auf Wunsch des Betreibers AUSGEBLENDET, Code
+bleibt — `AUTO_START = false`, kein schwebender Knopf; von Hand nur über `/?tour=1`.
+
 ## Supabase = Produktivdatenbank (Vorsicht bei Schreibaktionen)
 Schreibende Skripte (`scripts/*.mjs`, Service-Role) treffen echte Daten. Demo-Daten fürs
 Einführungsvideo (Demo-Kapitän `demo.kapitaen@example.com`, Demo-Spieler `demo.spieler@example.com`,
