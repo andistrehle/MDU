@@ -18,7 +18,7 @@ import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { ladeEinzel27 } from '@/lib/server/ergebnisse-2027';
 import type { EinzelSpiel } from '@/lib/einzelrangliste-2027';
 import { spielSlug } from '@/lib/spieltag';
-import { team27, findLiga27, venue27, istArchivParam, datumText, NEUE_SAISON, ARCHIV_SAISON, SAISON_START } from '@/lib/data/saison-2027';
+import { team27, findLiga27, venue27, alleBegegnungen27, istArchivParam, datumText, NEUE_SAISON, ARCHIV_SAISON, SAISON_START } from '@/lib/data/saison-2027';
 
 export default async function PlayerProfilePage(
   props: { params: Promise<{ playerId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> },
@@ -200,7 +200,7 @@ export default async function PlayerProfilePage(
               { n: e27 ? String(e27.singles) : '—', l: 'Einzelspiele' },
               { n: e27 ? String(e27.wins) : '—', l: 'Gewonnen' },
               { n: e27 ? String(e27.losses) : '—', l: 'Verloren' },
-              { n: e27 ? formatWinRate(e27.singles ? e27.wins / e27.singles : null) : '—', l: 'Siegquote' },
+              { n: e27 ? formatWinRate(e27.singles ? (e27.wins / e27.singles) * 100 : null) : '—', l: 'Siegquote' },
               { n: e27 ? String(e27.points) : '—', l: 'Punkte' },
             ])            .map((s, i) => (
               <div key={i} style={{ background: 'var(--th-bg-card3)', padding: '18px 16px' }}>
@@ -285,6 +285,10 @@ export default async function PlayerProfilePage(
                   </div>
                   <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>
                     Die letzten {Math.min(5, e27.verlauf.length)} Einzel, ältestes links, neuestes rechts (S = gewonnen, N = verloren).
+                  </div>
+                  <div style={{ marginTop: 18 }}>
+                    <SubLabel>Siegquote je Spieltag</SubLabel>
+                    <SiegquoteKurve verlauf={e27.verlauf} farbe="var(--th-accent)" />
                   </div>
                   <div style={{ marginTop: 18 }}>
                     <SubLabel>Letzte Ergebnisse</SubLabel>
@@ -476,6 +480,58 @@ function SpecialTile({ label, value }: { label: string; value: number | null | u
         {label}
       </div>
     </div>
+  );
+}
+
+/** Siegquote der Saison nach jedem Spieltag (kumuliert, nur Einzel). Betreiber, 25.10.2026. */
+function SiegquoteKurve({ verlauf, farbe }: { verlauf: EinzelSpiel[]; farbe: string }) {
+  const stJe = new Map(alleBegegnungen27().map(b => [b.key, b.spieltag]));
+  const jeSt = new Map<number, { s: number; n: number }>();
+  for (const v of verlauf) {
+    const st = v.begegnung ? stJe.get(v.begegnung) : undefined;
+    if (st == null) continue;
+    const z = jeSt.get(st) ?? { s: 0, n: 0 };
+    z.n += 1; if (v.legs > v.legsGegner) z.s += 1;
+    jeSt.set(st, z);
+  }
+  let s = 0, n = 0;
+  const punkte = [...jeSt.entries()].sort(([a], [b]) => a - b).map(([st, z]) => {
+    s += z.s; n += z.n;
+    return { st, quote: Math.round((s / n) * 100), s, n };
+  });
+  if (!punkte.length) return null;
+  const W = 320, H = 150, L = 34, R = 14, T = 14, B = 26;
+  const maxSt = Math.max(...punkte.map(p => p.st)), minSt = Math.min(...punkte.map(p => p.st));
+  const x = (st: number) => maxSt === minSt ? L + (W - L - R) / 2 : L + ((st - minSt) / (maxSt - minSt)) * (W - L - R);
+  const y = (q: number) => T + (1 - q / 100) * (H - T - B);
+  const letzter = punkte[punkte.length - 1];
+  return (
+    <figure style={{ margin: 0 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Siegquote je Spieltag: ${punkte.map(p => `${p.st}. Spieltag ${p.quote} %`).join(', ')}`} style={{ display: 'block', fontFamily: 'var(--font-manrope)' }}>
+        {[0, 50, 100].map(q => (
+          <g key={q}>
+            <line x1={L} x2={W - R} y1={y(q)} y2={y(q)} stroke="var(--th-line-8)" strokeWidth={1} strokeDasharray={q === 0 ? undefined : '3 4'} />
+            <text x={L - 6} y={y(q) + 3.5} textAnchor="end" fontSize={10} fill="var(--th-text-faint)">{q} %</text>
+          </g>
+        ))}
+        {punkte.length > 1 && (
+          <polyline points={punkte.map(p => `${x(p.st)},${y(p.quote)}`).join(' ')} fill="none" stroke={farbe} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        )}
+        {punkte.map(p => (
+          <g key={p.st}>
+            <circle cx={x(p.st)} cy={y(p.quote)} r={4.5} fill={farbe} stroke="var(--th-bg-card)" strokeWidth={2}>
+              <title>{`${p.st}. Spieltag: ${p.quote} % (${p.s} von ${p.n} Einzeln gewonnen)`}</title>
+            </circle>
+            <circle cx={x(p.st)} cy={y(p.quote)} r={14} fill="transparent"><title>{`${p.st}. Spieltag: ${p.quote} % (${p.s} von ${p.n} Einzeln gewonnen)`}</title></circle>
+            <text x={x(p.st)} y={H - 8} textAnchor="middle" fontSize={10} fill="var(--th-text-faint)">{p.st}.</text>
+          </g>
+        ))}
+        <text x={Math.min(x(letzter.st), W - R - 2)} y={y(letzter.quote) + (letzter.quote > 85 ? 18 : -9)} textAnchor={punkte.length > 1 ? 'end' : 'middle'} fontSize={11} fontWeight={800} fill="var(--th-text-strong)">{letzter.quote} %</text>
+      </svg>
+      <figcaption style={{ marginTop: 4, fontSize: 11.5, color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)' }}>
+        Gewonnene Einzel der Saison bis einschließlich des jeweiligen Spieltags (x-Achse: Spieltag).
+      </figcaption>
+    </figure>
   );
 }
 
