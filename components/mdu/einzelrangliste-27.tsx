@@ -48,8 +48,8 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
     border: `1.5px solid ${an ? 'var(--th-accent)' : 'var(--th-line-10)'}`, background: an ? 'var(--th-accent)' : 'transparent', color: an ? '#fff' : 'var(--th-text-body)',
   });
 
-  const punkteCols = '34px minmax(0,1.6fr) minmax(0,1fr) 34px 50px 54px 38px 38px 64px 60px 40px';
-  const statCols = '34px minmax(0,1.6fr) minmax(0,1fr) 70px 90px 46px';
+  const punkteCols = '34px minmax(0,1.6fr) minmax(0,1fr) 50px 54px 38px 38px 64px 60px 40px';
+  const statCols = '34px minmax(0,1.6fr) minmax(0,1fr) 70px 90px 50px';
   const kopf: React.CSSProperties = { display: 'grid', gap: 6, padding: '8px 14px', borderBottom: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--th-text-muted)' };
   const rang = (z: EinzelZeile) => <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14, color: z.pos <= 3 ? 'var(--th-gold, #B8860B)' : 'var(--th-text-faint)' }}>{z.pos}.</span>;
   const nameEl = (z: EinzelZeile) => {
@@ -93,7 +93,6 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
               <>
                 <div style={{ ...kopf, gridTemplateColumns: punkteCols }}>
                   <span>#</span><span>Spieler</span><span>Team</span>
-                  <span style={{ textAlign: 'right' }} title="Einzel gespielt">E</span>
                   <span style={{ textAlign: 'right' }} title="Siege – Niederlagen">S-N</span>
                   <span style={{ textAlign: 'right' }}>Legs</span>
                   <span style={{ textAlign: 'right' }}>180</span>
@@ -105,7 +104,6 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                 {liste.map((z, i) => (
                   <div key={z.key} style={{ display: 'grid', gridTemplateColumns: punkteCols, gap: 6, alignItems: 'center', padding: '8px 14px', borderBottom: i < liste.length - 1 ? '1px solid var(--th-line-3)' : 'none' }}>
                     {rang(z)}{nameEl(z)}{team(z)}
-                    <span style={mono}>{z.singles}</span>
                     <span style={mono}>{z.wins}-{z.losses}</span>
                     <span style={mono}>{z.legsWon}:{z.legsLost}</span>
                     <span style={mono}>{z.b180 || ''}</span>
@@ -122,14 +120,14 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                   <span>#</span><span>Spieler</span><span>Team</span>
                   <span style={{ textAlign: 'right' }}>Anzahl</span>
                   <span style={{ textAlign: 'right' }}>{art === 'hf' ? 'Höchstes' : art === 'sl' ? 'Kürzestes' : ''}</span>
-                  <span style={{ textAlign: 'right' }} title="Einzel gespielt">E</span>
+                  <span style={{ textAlign: 'right' }} title="Siege – Niederlagen">S-N</span>
                 </div>
                 {liste.map((z, i) => (
                   <div key={z.key} style={{ display: 'grid', gridTemplateColumns: statCols, gap: 6, alignItems: 'center', padding: '8px 14px', borderBottom: i < liste.length - 1 ? '1px solid var(--th-line-3)' : 'none' }}>
                     {rang(z)}{nameEl(z)}{team(z)}
                     <span style={{ ...mono, fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>{anzahl(z, art)}</span>
                     <span style={mono}>{art === 'hf' ? z.highFinish ?? '' : art === 'sl' && z.shortLeg != null ? `${z.shortLeg} Darts` : ''}</span>
-                    <span style={mono}>{z.singles}</span>
+                    <span style={mono}>{z.wins}-{z.losses}</span>
                   </div>
                 ))}
               </>
@@ -147,7 +145,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                   {art === 'punkte' ? (
                     <>
                       <span style={{ color: 'var(--th-text-strong)', fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13 }}>{z.points} Pkt.</span>
-                      {punkt}{z.singles} E{punkt}{z.wins}-{z.losses}{punkt}{z.legsWon}:{z.legsLost} Legs
+                      {punkt}{z.wins}-{z.losses}{punkt}{z.legsWon}:{z.legsLost} Legs
                       {z.b180 > 0 && <>{punkt}180×{z.b180}</>}
                       {z.b171 > 0 && <>{punkt}171×{z.b171}</>}
                       {z.hfAnzahl > 0 && <>{punkt}HF {z.hfAnzahl} ({z.highFinish})</>}
@@ -158,7 +156,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                       <span style={{ color: 'var(--th-text-strong)', fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13 }}>{anzahl(z, art)}× {ARTEN.find(a => a.key === art)?.label}</span>
                       {art === 'hf' && z.highFinish != null && <>{punkt}höchstes {z.highFinish}</>}
                       {art === 'sl' && z.shortLeg != null && <>{punkt}kürzestes {z.shortLeg} Darts</>}
-                      {punkt}{z.singles} E
+                      {punkt}{z.wins}-{z.losses}
                       {gesamt && <>{punkt}{findLiga27(team27(z.teamId)?.league)?.name}</>}
                     </>
                   )}
