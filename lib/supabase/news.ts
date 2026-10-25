@@ -102,3 +102,24 @@ export async function deleteNews(id: string): Promise<{ error: string | null }> 
   const { error } = await supabase.from('news').delete().eq('id', id);
   return { error: error?.message ?? null };
 }
+
+// ── Spieltagsbericht (Migration 0058, /api/spieltag-bericht) ──
+// Kennung der automatisch erzeugten Berichte: „spieltag-<Freitag>“.
+export const istSpieltagsbericht = (id: string) => id.startsWith('spieltag-');
+
+async function spieltagPost(body: unknown): Promise<{ data: Record<string, unknown> | null; error: string | null }> {
+  if (!supabase) return { data: null, error: NOT_CONFIGURED };
+  const { data } = await supabase.auth.getSession();
+  const t = data.session?.access_token;
+  if (!t) return { data: null, error: 'Bitte neu einloggen.' };
+  try {
+    const r = await fetch('/api/spieltag-bericht', { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json() as Record<string, unknown> & { error?: string };
+    return r.ok ? { data: j, error: null } : { data: null, error: j.error ?? 'Hat nicht geklappt.' };
+  } catch { return { data: null, error: 'Keine Verbindung – bitte noch einmal versuchen.' }; }
+}
+
+/** Entwurf des letzten Spielwochenendes (neu) erzeugen. Dauert bis ~1 Min (Claude). */
+export const erzeugeSpieltagsbericht = () => spieltagPost({ aktion: 'erzeugen' });
+/** Nach dem Veröffentlichen: Push an alle Geräte (einmal je Bericht). */
+export const pusheSpieltagsbericht = (id: string) => spieltagPost({ aktion: 'push', id });

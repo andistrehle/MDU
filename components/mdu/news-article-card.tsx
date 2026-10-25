@@ -7,15 +7,25 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { hasMinRole } from '@/lib/auth/roles';
 import { ShareNews } from './share-news';
 
-/** Rendert einfache Markdown-Fettschrift (**…**) als <strong>. */
+/**
+ * Rendert die wenigen Auszeichnungen im Beitrag: **fett** und Links
+ * [Text](/pfad) (nur Pfade auf der eigenen Seite oder https). Zeilenumbrüche
+ * im Absatz bleiben stehen (Ergebnislisten im Spieltagsbericht).
+ */
 function renderRich(text: string): ReactNode[] {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
-    const m = /^\*\*([^*]+)\*\*$/.exec(part);
-    return m
-      ? <strong key={i} style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{m[1]}</strong>
-      : <span key={i}>{part}</span>;
+  return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)\s]+\))/g).map((part, i) => {
+    const fett = /^\*\*([^*]+)\*\*$/.exec(part);
+    if (fett) return <strong key={i} style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{fett[1]}</strong>;
+    const link = /^\[([^\]]+)\]\(([^)\s]+)\)$/.exec(part);
+    if (link && (link[2].startsWith('/') || link[2].startsWith('https://'))) {
+      return <a key={i} href={link[2]} style={{ color: 'var(--th-accent)', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2 }}>{link[1]}</a>;
+    }
+    return <span key={i}>{part}</span>;
   });
 }
+
+/** Zwischenüberschrift: ein Absatz „## Titel“. */
+const ueberschrift = (p: string) => /^##\s+(.+)$/.exec(p.trim())?.[1] ?? null;
 
 /**
  * Video im Beitrag: ein Absatz, der nur aus `[video:/pfad.mp4]` besteht
@@ -205,10 +215,17 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
                     style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 10, background: '#000', border: '1px solid var(--th-line-8)' }}
                   />
                 );
+                const h = ueberschrift(p);
+                if (h) return (
+                  <h3 key={i} style={{
+                    fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 18, textTransform: 'uppercase',
+                    letterSpacing: '0.02em', color: 'var(--th-text-strong)', margin: '8px 0 -4px',
+                  }}>{h}</h3>
+                );
                 return (
                 <p key={i} style={{
                   fontFamily: 'var(--font-manrope)', fontSize: 15, lineHeight: 1.65,
-                  color: 'var(--th-text-body)', margin: 0,
+                  color: 'var(--th-text-body)', margin: 0, whiteSpace: 'pre-line',
                 }}>
                   {renderRich(p)}
                 </p>

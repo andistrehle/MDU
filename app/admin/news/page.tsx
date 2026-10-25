@@ -5,8 +5,10 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
   listAllNews, saveNews, deleteNews, setNewsStatus,
+  istSpieltagsbericht, erzeugeSpieltagsbericht, pusheSpieltagsbericht,
   type NewsRecord, type NewsStatus,
 } from '@/lib/supabase/news';
+import { NewsArticleCard } from '@/components/mdu/news-article-card';
 
 interface FormState {
   id?: string;
@@ -63,16 +65,42 @@ export default function AdminNewsPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Rückmeldung direkt am betroffenen Beitrag bzw. am Knopf „Spieltagsbericht erzeugen“.
+  const [meldung, setMeldung] = useState<Record<string, { text: string; ok: boolean }>>({});
+  const [vorschau, setVorschau] = useState<string | null>(null);
+  const [erzeugt, setErzeugt] = useState<{ busy: boolean; text?: string; ok?: boolean }>({ busy: false });
+  const [markiert, setMarkiert] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
     const { data, error } = await listAllNews();
     setItems(data);
     setLoadError(error);
+    // Glocke „Spieltagsbericht bereit“ verlinkt /admin/news?id=… → Beitrag hervorheben.
+    setMarkiert(m => m ?? new URLSearchParams(window.location.search).get('id'));
     setLoading(false);
   }, []);
 
   useEffect(() => { void reload(); }, [reload]);
+
+  const melde = (id: string, text: string, ok: boolean) => setMeldung(m => ({ ...m, [id]: { text, ok } }));
+
+  const pushen = async (id: string) => {
+    melde(id, 'Push wird gesendet …', true);
+    const { data, error } = await pusheSpieltagsbericht(id);
+    if (error) { melde(id, `Push nicht gesendet: ${error}`, false); return; }
+    melde(id, data?.schonGesendet ? 'Push war schon gesendet – nicht noch einmal geschickt.' : `Push an ${data?.gesendet ?? 0} von ${data?.geraete ?? 0} Geräten gesendet.`, true);
+  };
+
+  const erzeugen = async () => {
+    setErzeugt({ busy: true, text: 'Wird erzeugt – das dauert bis zu einer Minute …' });
+    const { data, error } = await erzeugeSpieltagsbericht();
+    if (error) { setErzeugt({ busy: false, text: error, ok: false }); return; }
+    const offen = Number(data?.offen ?? 0);
+    setErzeugt({ busy: false, ok: true, text: `Entwurf erzeugt (${data?.begegnungen} Begegnungen${offen ? `, ${offen} noch offen` : ''}${data?.quelle === 'vorlage' ? ' – Text aus der Vorlage, Claude war nicht erreichbar' : ''}). Bitte unten prüfen.` });
+    setMarkiert(String(data?.newsId ?? ''));
+    await reload();
+  };
 
   const startNew = () => { setFormError(null); setForm({ ...EMPTY_FORM, display_date: todayDe() }); };
   const startEdit = (n: NewsRecord) => {
@@ -104,8 +132,9 @@ export default function AdminNewsPage() {
     setBusyId(n.id);
     const { error } = await setNewsStatus(n.id, status, user.id);
     setBusyId(null);
-    if (error) { setLoadError(error); return; }
+    if (error) { melde(n.id, error, false); return; }
     await reload();
+    if (status === 'published' && istSpieltagsbericht(n.id)) await pushen(n.id);
   };
 
   const remove = async (n: NewsRecord) => {
@@ -139,6 +168,24 @@ export default function AdminNewsPage() {
           {loadError}
         </div>
       )}
+
+      {/* ── Spieltagsbericht ───────────────────────────────── */}
+      <div style={{ maxWidth: 820, marginBottom: 18, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '14px 18px' }}>
+        <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Spieltagsbericht</div>
+        <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', margin: '4px 0 10px', lineHeight: 1.55 }}>
+          Entsteht jeden Spielsonntag am Abend (20 Uhr, in der Sommerzeit 21 Uhr) automatisch als Entwurf (Kategorie „Spieltag“), du bekommst eine Glocke.
+          Prüfen, ggf. bearbeiten, dann veröffentlichen – erst dann geht der Push an alle Geräte raus.
+          Später eingereichte Berichte: hier neu erzeugen (überschreibt den Entwurf).
+        </p>
+        <button type="button" onClick={erzeugen} disabled={erzeugt.busy} style={{ ...btn('transparent', 'var(--th-accent)', 'var(--th-accent)'), opacity: erzeugt.busy ? 0.6 : 1 }}>
+          {erzeugt.busy ? 'Erzeugt …' : 'Entwurf fürs letzte Wochenende erzeugen'}
+        </button>
+        {erzeugt.text && (
+          <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: erzeugt.ok === false ? 'var(--th-loss, #d64545)' : 'var(--th-text-strong)' }}>
+            {erzeugt.text}
+          </div>
+        )}
+      </div>
 
       {/* ── Editor ─────────────────────────────────────────── */}
       {form && (
@@ -183,7 +230,7 @@ export default function AdminNewsPage() {
             <label style={labelStyle}>Inhalt</label>
             <textarea style={{ ...inputStyle, minHeight: 180, resize: 'vertical', lineHeight: 1.6 }} value={form.contentText} onChange={e => field('contentText', e.target.value)} placeholder={'Absätze durch eine Leerzeile trennen.\n\nFür Fettschrift **so** schreiben.\n\nVideo als eigener Absatz: [video:/videos/datei.mp4|/videos/vorschau.jpg]'} />
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 6 }}>
-              Absätze durch eine Leerzeile trennen. <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>**fett**</code> wird unterstützt.
+              Absätze durch eine Leerzeile trennen. <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>**fett**</code>, Zwischenüberschrift als eigener Absatz <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>## Titel</code>, Link <code style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>[Text](/pfad)</code>.
             </div>
           </div>
 
@@ -212,7 +259,7 @@ export default function AdminNewsPage() {
           </div>
         )}
         {items.map((n, i) => (
-          <div key={n.id} style={{ padding: '14px 18px', borderBottom: i < items.length - 1 ? '1px solid var(--th-line-4)' : 'none' }}>
+          <div key={n.id} style={{ padding: '14px 18px', borderBottom: i < items.length - 1 ? '1px solid var(--th-line-4)' : 'none', ...(markiert === n.id ? { background: 'var(--th-accent-a10, rgba(212,0,0,0.06))', boxShadow: 'inset 3px 0 0 var(--th-accent)' } : {}) }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)' }}>{n.title}</div>
@@ -231,13 +278,31 @@ export default function AdminNewsPage() {
               {STATUS_ORDER.filter(s => s !== n.status).map(s => (
                 <button key={s} type="button" onClick={() => quickStatus(n, s)} disabled={busyId === n.id}
                   style={btn('transparent', s === 'published' ? 'var(--th-win)' : 'var(--th-text-muted)', 'var(--th-line-8)')}>
-                  → {STATUS_LABEL[s]}
+                  → {STATUS_LABEL[s]}{s === 'published' && istSpieltagsbericht(n.id) ? ' + Push an alle' : ''}
                 </button>
               ))}
+              {istSpieltagsbericht(n.id) && n.status === 'published' && (
+                <button type="button" onClick={() => pushen(n.id)} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
+                  Push senden
+                </button>
+              )}
+              <button type="button" onClick={() => setVorschau(v => (v === n.id ? null : n.id))} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
+                {vorschau === n.id ? 'Vorschau zu' : 'Vorschau'}
+              </button>
               <button type="button" onClick={() => remove(n)} disabled={busyId === n.id} style={btn('transparent', 'var(--th-loss, #d64545)', 'var(--th-line-8)')}>
                 Löschen
               </button>
             </div>
+            {meldung[n.id] && (
+              <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: meldung[n.id].ok ? 'var(--th-text-strong)' : 'var(--th-loss, #d64545)' }}>
+                {meldung[n.id].text}
+              </div>
+            )}
+            {vorschau === n.id && (
+              <div style={{ marginTop: 12 }}>
+                <NewsArticleCard article={{ id: `vorschau-${n.id}`, title: n.title, teaser: n.teaser, source: n.source ?? 'Münchner Dart Union', date: n.display_date, category: n.category, content: n.content }} />
+              </div>
+            )}
           </div>
         ))}
       </div>

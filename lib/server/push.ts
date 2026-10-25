@@ -38,20 +38,40 @@ export async function pushAn(userIds: string[], n: PushNachricht): Promise<{ sta
   const ids = [...new Set(userIds.filter(Boolean))];
   if (!ids.length) return { status: 'ok', gesendet: 0 };
   const { data } = await supabaseAdmin.from('push_subscriptions').select('id, endpoint, p256dh, auth').in('user_id', ids);
-  const abos = (data ?? []) as Abo[];
+  return { status: 'ok', gesendet: await senden((data ?? []) as Abo[], n) };
+}
+
+/** An ALLE Geräte mit eingeschaltetem Push (Spieltagsbericht, Betreiber 25.10.2026). */
+export async function pushAlle(n: PushNachricht): Promise<{ status: 'ok' | 'nicht_eingerichtet'; gesendet: number; geraete: number }> {
+  if (!pushBereit() || !supabaseAdmin) return { status: 'nicht_eingerichtet', gesendet: 0, geraete: 0 };
+  const abos: Abo[] = [];
+  for (let von = 0; ; von += 1000) {
+    const { data } = await supabaseAdmin.from('push_subscriptions').select('id, endpoint, p256dh, auth').range(von, von + 999);
+    abos.push(...((data ?? []) as Abo[]));
+    if (!data || data.length < 1000) break;
+  }
+  const gesendet = await senden(abos, n);
+  return { status: 'ok', gesendet, geraete: abos.length };
+}
+
+async function senden(abos: Abo[], n: PushNachricht): Promise<number> {
+  const db = supabaseAdmin!;
   const payload = JSON.stringify({ title: n.titel, body: n.text, url: n.url || '/', tag: n.tag });
   let gesendet = 0;
   const weg: string[] = [], ok: string[] = [];
-  await Promise.all(abos.map(async a => {
-    try {
-      await webpush.sendNotification({ endpoint: a.endpoint, keys: { p256dh: a.p256dh, auth: a.auth } }, payload, { TTL: 24 * 3600, urgency: 'normal' });
-      gesendet += 1; ok.push(a.id);
-    } catch (e) {
-      const code = (e as { statusCode?: number }).statusCode;
-      if (code === 404 || code === 410) weg.push(a.id);
-    }
-  }));
-  if (weg.length) await supabaseAdmin.from('push_subscriptions').delete().in('id', weg);
-  if (ok.length) await supabaseAdmin.from('push_subscriptions').update({ last_ok_at: new Date().toISOString() }).in('id', ok);
-  return { status: 'ok', gesendet };
+  // In Blöcken, damit bei vielen Geräten nicht hunderte Verbindungen gleichzeitig offen sind.
+  for (let i = 0; i < abos.length; i += 50) {
+    await Promise.all(abos.slice(i, i + 50).map(async a => {
+      try {
+        await webpush.sendNotification({ endpoint: a.endpoint, keys: { p256dh: a.p256dh, auth: a.auth } }, payload, { TTL: 24 * 3600, urgency: 'normal' });
+        gesendet += 1; ok.push(a.id);
+      } catch (e) {
+        const code = (e as { statusCode?: number }).statusCode;
+        if (code === 404 || code === 410) weg.push(a.id);
+      }
+    }));
+  }
+  if (weg.length) await db.from('push_subscriptions').delete().in('id', weg);
+  if (ok.length) await db.from('push_subscriptions').update({ last_ok_at: new Date().toISOString() }).in('id', ok);
+  return gesendet;
 }
