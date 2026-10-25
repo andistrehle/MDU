@@ -85,7 +85,14 @@ function SpielberichteInner() {
   const [games, setGames] = useState<ReportGame[]>(emptyGames());
   const [busy, setBusy] = useState(false);
   const [ocrAvail, setOcrAvail] = useState(false);
-  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  // Meldung — mit `ort` steht sie direkt an der Stelle, zu der sie gehört (Betreiber, 25.10.2026:
+  // „immer da, wo man es direkt sieht“), und die Seite scrollt dorthin; ohne `ort` oben.
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string; ort?: string } | null>(null);
+  useEffect(() => {
+    if (!msg?.ort) return;
+    document.getElementById(`hinweis-${msg.ort}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [msg]);
+  const hinweis = (ort: string) => msg?.ort === ort ? <Meldung id={`hinweis-${ort}`} kind={msg.kind} text={msg.text} /> : null;
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [loadedStatus, setLoadedStatus] = useState<string | null>(null);
   const [changeNote, setChangeNote] = useState<string | null>(null);
@@ -222,7 +229,7 @@ function SpielberichteInner() {
     };
     const h = fuelle(tmAufstellung.home, homeRoster, setHomePlayers);
     const g = fuelle(tmAufstellung.guest, guestRoster, setGuestPlayers);
-    setMsg({ kind: 'ok', text: `Aufstellung übernommen – Heim: ${h ? `${h} Spieler` : 'nichts hinterlegt'} · Gast: ${g ? `${g} Spieler` : 'nichts hinterlegt'}. Bitte kurz prüfen.` });
+    setMsg({ kind: 'ok', text: `Aufstellung übernommen – Heim: ${h ? `${h} Spieler` : 'nichts hinterlegt'} · Gast: ${g ? `${g} Spieler` : 'nichts hinterlegt'}. Bitte kurz prüfen.`, ort: 'aufstellung' });
   }
 
   // Wählbare Begegnungen: Kapitän nur die HEIMSPIELE des eigenen Teams — es
@@ -439,12 +446,12 @@ function SpielberichteInner() {
     ...guestPlayers.filter(p => p.name.trim()).map(p => ({ key: `guest:${p.slot}`, label: `G${p.slot} · ${p.name}` })),
   ];
   function addHighlight() {
-    if (!hlPick) { setMsg({ kind: 'err', text: 'Bitte einen Spieler für das Highlight wählen.' }); return; }
+    if (!hlPick) { setMsg({ kind: 'err', text: 'Bitte einen Spieler für das Highlight wählen.', ort: 'highlight' }); return; }
     const [side, slotStr] = hlPick.split(':');
     const cfg = HIGHLIGHT_VALUE_CONFIG[hlType];
     const value = Number(hlValue);
     if (!value || value < cfg.min || value > cfg.max) {
-      setMsg({ kind: 'err', text: `Bitte ${cfg.label} zwischen ${cfg.min} und ${cfg.max} angeben.` }); return;
+      setMsg({ kind: 'err', text: `Bitte ${cfg.label} zwischen ${cfg.min} und ${cfg.max} angeben.`, ort: 'highlight' }); return;
     }
     const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value };
     setHeader(h => ({ ...h, highlights: highlightHinzufuegen(h.highlights ?? [], entry) }));
@@ -528,32 +535,33 @@ function SpielberichteInner() {
     return arr.find(p => p.slot === slot)?.name.trim() || `${side === 'home' ? 'H' : 'G'}${slot}`;
   }
 
-  function validate(): string | null {
-    if (!header.home_team_id || !header.guest_team_id) return 'Bitte die Begegnung wählen.';
+  function validate(): { text: string; ort: string } | null {
+    if (!header.home_team_id || !header.guest_team_id) return { text: 'Bitte die Begegnung wählen.', ort: 'kopf' };
     if ((header.season_id ?? NEUE_SAISON.id) === NEUE_SAISON.id && !BEGEGNUNGEN.some(b => b.home === header.home_team_id && b.away === header.guest_team_id)) {
-      return 'Diese Begegnung steht nicht im Spielplan 2026/27. Bitte die Begegnung aus der Liste wählen.';
+      return { text: 'Diese Begegnung steht nicht im Spielplan 2026/27. Bitte die Begegnung aus der Liste wählen.', ort: 'kopf' };
     }
-    if (!header.match_date) return 'Bitte Datum angeben.';
+    if (!header.match_date) return { text: 'Bitte Datum angeben.', ort: 'kopf' };
     for (let i = 1; i <= 4; i++) {
-      if (!homePlayers.find(p => p.slot === i)?.name.trim()) return `Bitte Heimspieler H${i} angeben.`;
-      if (!guestPlayers.find(p => p.slot === i)?.name.trim()) return `Bitte Gastspieler G${i} angeben.`;
+      if (!homePlayers.find(p => p.slot === i)?.name.trim()) return { text: `Bitte Heimspieler H${i} angeben.`, ort: 'aufstellung' };
+      if (!guestPlayers.find(p => p.slot === i)?.name.trim()) return { text: `Bitte Gastspieler G${i} angeben.`, ort: 'aufstellung' };
     }
     // Jede Partie muss vollständig besetzt sein — sonst laufen die Einzelpunkte
     // ins Leere (Doppel Nr. 9/18 brauchen je zwei Spieler pro Seite).
     for (const g of games) {
       const isDouble = g.game_type === 'double';
       if (g.home_slot == null || g.guest_slot == null || (isDouble && (g.home_slot2 == null || g.guest_slot2 == null))) {
-        return `Spiel ${g.game_no}${isDouble ? ' (Doppel)' : ''}: Bitte für beide Seiten die Spieler zuordnen.`;
+        return { text: `Spiel ${g.game_no}${isDouble ? ' (Doppel)' : ''}: Bitte für beide Seiten die Spieler zuordnen.`, ort: `spiel-${g.game_no}` };
       }
       // Im Doppel müssen die beiden Partner je Seite verschieden sein (kann durch
       // OCR-Übernahme/nachträglich geänderte Aufstellung sonst durchrutschen).
       if (isDouble && (g.home_slot === g.home_slot2 || g.guest_slot === g.guest_slot2)) {
-        return `Spiel ${g.game_no} (Doppel): Pro Seite müssen zwei verschiedene Spieler stehen.`;
+        return { text: `Spiel ${g.game_no} (Doppel): Pro Seite müssen zwei verschiedene Spieler stehen.`, ort: `spiel-${g.game_no}` };
       }
     }
-    if (games.some(g => g.legs_home == null)) return 'Bitte alle 18 Spielergebnisse eintragen.';
+    const ohne = games.find(g => g.legs_home == null);
+    if (ohne) return { text: `Spiel ${ohne.game_no}: Ergebnis fehlt – bitte alle 18 Spielergebnisse eintragen.`, ort: `spiel-${ohne.game_no}` };
     const falsch = games.find(g => !(legOptionen as readonly string[]).includes(legToResult(g)));
-    if (falsch) return `Spiel ${falsch.game_no}: ${legToResult(falsch)} passt nicht zu Best of ${bestOf}${bestOf === 5 ? ' (La Liga)' : ''}. Bitte das Ergebnis neu wählen.`;
+    if (falsch) return { text: `Spiel ${falsch.game_no}: ${legToResult(falsch)} passt nicht zu Best of ${bestOf}${bestOf === 5 ? ' (La Liga)' : ''}. Bitte das Ergebnis neu wählen.`, ort: `spiel-${falsch.game_no}` };
     return null;
   }
 
@@ -566,12 +574,12 @@ function SpielberichteInner() {
     }
     if (regId) {
       const { error } = await updateReport(regId, payload, players, games);
-      if (error) { setMsg({ kind: 'err', text: error }); return null; }
+      if (error) { setMsg({ kind: 'err', text: error, ort: 'aktionen' }); return null; }
       void protokolliereSpeichern(regId, games, liveModus, erfassungLesen());
       return regId;
     }
     const { id, error } = await createReport(payload, players, games);
-    if (error || !id) { setMsg({ kind: 'err', text: error ?? 'Speichern fehlgeschlagen.' }); return null; }
+    if (error || !id) { setMsg({ kind: 'err', text: error ?? 'Speichern fehlgeschlagen.', ort: 'aktionen' }); return null; }
     void protokolliereSpeichern(id, games, liveModus, erfassungLesen());
     setRegId(id);
     return id;
@@ -587,16 +595,17 @@ function SpielberichteInner() {
 
   async function onSaveDraft() {
     const pf = protestFehler();
-    if (pf) { setMsg({ kind: 'err', text: pf }); return; }
+    if (pf) { setMsg({ kind: 'err', text: pf, ort: 'protest' }); return; }
     setBusy(true); setMsg(null);
     const id = await persist();
     if (id && adminEditsForeign) await notifyReportChange(id, 'changed');
     setBusy(false);
-    if (id) { sicherungErledigt(); setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.' }); }
+    if (id) { sicherungErledigt(); setMsg({ kind: 'ok', text: 'Als Entwurf gespeichert.', ort: 'aktionen' }); }
   }
   async function onSubmit() {
-    const v = protestFehler() ?? validate();
-    if (v) { setMsg({ kind: 'err', text: v }); return; }
+    const pf = protestFehler();
+    const v = pf ? { text: pf, ort: 'protest' } : validate();
+    if (v) { setMsg({ kind: 'err', ...v }); return; }
     setBusy(true); setMsg(null);
     const id = await persist();
     if (!id) { setBusy(false); return; }
@@ -606,7 +615,7 @@ function SpielberichteInner() {
     if (!error && bleibtBestaetigt) await notifyReportChange(id, 'changed');
     if (!error && adminEditsForeign && !adminDirekt && !bleibtBestaetigt) await notifyReportChange(id, 'changed');
     setBusy(false);
-    if (error) { setMsg({ kind: 'err', text: error }); return; }
+    if (error) { setMsg({ kind: 'err', text: error, ort: 'aktionen' }); return; }
     // Protest: Ligaleitung (Glocke + E-Mail) und Gegner-TC sofort informieren — einmal je Protest.
     if (header.protest) await meldeProtest(id);
     sicherungErledigt();
@@ -616,11 +625,11 @@ function SpielberichteInner() {
   /** Gast: Vorschlag (geänderte Ergebnisse) absenden. */
   async function onSubmitProposal() {
     if (!regId) return;
-    if (!proposalNote.trim()) { setMsg({ kind: 'err', text: 'Bitte beschreibe kurz deinen Änderungswunsch.' }); return; }
+    if (!proposalNote.trim()) { setMsg({ kind: 'err', text: 'Bitte beschreibe kurz deinen Änderungswunsch.', ort: 'vorschlag' }); return; }
     setBusy(true); setMsg(null);
     const { error } = await submitGuestProposal(regId, games, submitBase ?? games, proposalNote.trim());
     setBusy(false);
-    if (error) { setMsg({ kind: 'err', text: error }); return; }
+    if (error) { setMsg({ kind: 'err', text: error, ort: 'vorschlag' }); return; }
     router.push('/mein-bereich/spielberichte/uebersicht');
   }
 
@@ -629,7 +638,7 @@ function SpielberichteInner() {
     if (!proposedGames) return;
     setGames(proposedGames);
     setProposedGames(null);
-    setMsg({ kind: 'ok', text: 'Vorschlag übernommen — bitte prüfen und anschließend „Spielbericht absenden".' });
+    setMsg({ kind: 'ok', text: 'Vorschlag übernommen — bitte prüfen und anschließend „Spielbericht absenden".', ort: 'aktionen' });
   }
 
   const liveBearbeiten = {
@@ -721,7 +730,7 @@ function SpielberichteInner() {
                 </span>
               </div>
             )}
-            {msg && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}
+            {msg && !msg.ort && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>}
 
             {loadedStatus === 'changes_requested' && changeNote && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
@@ -773,6 +782,7 @@ function SpielberichteInner() {
             <fieldset disabled={readOnly && !proposing} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Kopf */}
             <Section title="Spielbericht – Kopfdaten">
+              {hinweis('kopf')}
               <Field label="Begegnung *">
                 {regId ? (
                   <input value={`${header.league_label ?? ''}${header.matchday ? ` · ${header.matchday}. Spieltag` : ''} · ${header.home_team_name} – ${header.guest_team_name}`} disabled style={{ ...input, opacity: 0.75 }} />
@@ -830,6 +840,7 @@ function SpielberichteInner() {
                   </button>
                 </div>
               )}
+              {hinweis('aufstellung')}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <Lineup label="Heim" players={homePlayers} setPlayers={setHomePlayers} prefix="H" options={homeRoster} teamChosen={!!header.home_team_id} />
                 <Lineup label="Gast" players={guestPlayers} setPlayers={setGuestPlayers} prefix="G" options={guestRoster} teamChosen={!!header.guest_team_id} />
@@ -890,6 +901,7 @@ function SpielberichteInner() {
                         </span>
                       )}
                     </div>
+                    {hinweis(`spiel-${s.no}`)}
                   </div>
                 );
               })}
@@ -963,12 +975,13 @@ function SpielberichteInner() {
                 <div style={{ width: 100 }}>
                   <Field label={HIGHLIGHT_VALUE_CONFIG[hlType].label}>
                     <input type="number" min={HIGHLIGHT_VALUE_CONFIG[hlType].min} max={HIGHLIGHT_VALUE_CONFIG[hlType].max}
-                      value={hlValue} onChange={e => setHlValue(e.target.value)}
+                      value={hlValue} onChange={e => { setHlValue(e.target.value); if (msg?.ort === 'highlight') setMsg(null); }}
                       placeholder={`${HIGHLIGHT_VALUE_CONFIG[hlType].min}–${HIGHLIGHT_VALUE_CONFIG[hlType].max}`} style={input} />
                   </Field>
                 </div>
                 <button type="button" onClick={addHighlight} style={{ ...ghost, padding: '9px 16px' }}>Hinzufügen</button>
               </div>
+              {hinweis('highlight')}
 
               {(header.highlights ?? []).length === 0 ? (
                 <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>Noch keine Highlights erfasst (180er, 171, High Finish, Short Leg).</p>
@@ -1002,6 +1015,7 @@ function SpielberichteInner() {
                   </div>
                 </>
               )}
+              {hinweis('protest')}
             </Section>
 
             </fieldset>
@@ -1026,6 +1040,7 @@ function SpielberichteInner() {
               proposing ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <textarea value={proposalNote} onChange={e => setProposalNote(e.target.value)} rows={2} placeholder="Was soll geändert werden? (Pflicht)" style={{ ...input, resize: 'vertical' }} />
+                  {hinweis('vorschlag')}
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <button type="button" onClick={onSubmitProposal} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Vorschlag absenden'}</button>
                     <button type="button" onClick={() => { setProposing(false); if (regId) loadExisting(regId); }} disabled={busy} style={ghost}>Abbrechen</button>
@@ -1062,6 +1077,7 @@ function SpielberichteInner() {
                     <span><strong>Als Ligaleitung direkt bestätigen</strong> — der Gegner muss nicht mehr bestätigen, beide Kapitäne werden benachrichtigt. Ohne Haken geht der Bericht wie üblich zur Bestätigung an den Gegner.</span>
                   </label>
                 )}
+                {hinweis('aktionen')}
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
                   <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : isAdminRole && loadedStatus === 'confirmed' ? 'Änderungen speichern (bleibt bestätigt)' : adminDirekt ? 'Speichern und bestätigen' : 'Spielbericht absenden'}</button>
@@ -1123,6 +1139,18 @@ function ResultBox({ label, h, g }: { label: string; h: number; g: number }) {
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)' }}>{label}</div>
       <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, color: 'var(--th-text-strong)' }}>{h}:{g}</div>
     </div>
+  );
+}
+
+/** Meldung an Ort und Stelle (unter dem Feld, um das es geht). */
+function Meldung({ id, kind, text }: { id: string; kind: 'ok' | 'err'; text: string }) {
+  return (
+    <div id={id} role={kind === 'err' ? 'alert' : 'status'} style={{
+      scrollMarginTop: 100, padding: '9px 12px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.45,
+      background: kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)',
+      border: `1px solid ${kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`,
+      color: kind === 'err' ? '#E24B4A' : 'var(--th-win)',
+    }}>{text}</div>
   );
 }
 
