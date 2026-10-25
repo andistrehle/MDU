@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================
-// Admin — Spielberichte: Übersicht (nach Liga), Bearbeiten & Löschen
+// Admin — Spielberichte: alle Partien nach Spieltag mit Filtern, Bearbeiten & Löschen
 // ============================================================
 
 import { useEffect, useMemo, useState } from 'react';
@@ -10,7 +10,9 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveMatchReports } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
-import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, begegnungKey, team27, findLiga27, wochenendeText, type Liga27Code } from '@/lib/data/saison-2027';
+import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, begegnungKey, team27, findLiga27, wochenendeText, type Liga27Code, type Begegnung27 } from '@/lib/data/saison-2027';
+import { ladeErfassung, WEG, WEGE, type Erfassungsweg } from '@/lib/supabase/erfassung';
+import { berichtPfad } from '@/lib/spieltag';
 import {
   listAllReports, deleteReport, notifyReportChange, setzeWertung,
   REPORT_STATUS_LABELS, WERTUNG_LABELS, type MatchReport, type Wertung,
@@ -38,24 +40,62 @@ export default function AdminSpielberichtePage() {
       .map(([league, list]) => [league, list.sort((x, y) => (y.matchday ?? -1) - (x.matchday ?? -1) || (y.match_date ?? '').localeCompare(x.match_date ?? ''))] as const);
   }, [rows]);
 
-  // ── Alle Partien 2026/27: je Liga jede Begegnung mit Stand und Aktionen ──
-  const [pLiga, setPLiga] = useState<Liga27Code>('la');
-  const [pFilter, setPFilter] = useState<'alle' | 'ohne' | 'offen' | 'bestaetigt'>('alle');
+  // ── Alle Partien 2026/27 (Betreiber, 25.10.2026) ──
+  // Alle Begegnungen auf einmal, nach Spieltag gruppiert (begonnene Spieltage
+  // zuerst, neuester oben; kommende darunter). Filter: Status (mit Anzahl),
+  // Liga, Spieltag, Wochenende des echten Termins, Team-Suche, Erfassungsweg.
   const berichtJeBegegnung = useMemo(() => {
     const m = new Map<string, MatchReport>();
     for (const r of rows ?? []) if (r.season_id === NEUE_SAISON.id && r.home_team_id && r.guest_team_id) m.set(begegnungKey(r.home_team_id, r.guest_team_id), r);
     return m;
   }, [rows]);
-  const partien = useMemo(() => {
-    return alleBegegnungen27().filter(b => b.liga === pLiga).filter(b => {
-      const r = berichtJeBegegnung.get(b.key);
-      if (pFilter === 'ohne') return !r;
-      if (pFilter === 'offen') return !!r && r.status !== 'confirmed';
-      if (pFilter === 'bestaetigt') return r?.status === 'confirmed';
-      return true;
-    });
-  }, [pLiga, pFilter, berichtJeBegegnung]);
-  const heute = new Date().toISOString().slice(0, 10);
+  const [erfassung, setErfassung] = useState<Map<string, Erfassungsweg>>(new Map());
+  useEffect(() => {
+    if (!canManage) return;
+    void ladeErfassung().then(r => setErfassung(new Map((r.data?.zeilen ?? []).map(z => [z.key, z.weg]))));
+  }, [canManage, rows]);
+  const heute = berlinHeute();
+  const alle = useMemo(() => alleBegegnungen27().map(b => {
+    const r = berichtJeBegegnung.get(b.key) ?? null;
+    const datum = b.termin?.datum ?? b.fri;
+    const vorbei = (b.termin?.datum ?? b.sun) < heute;
+    const st: PStatus = !r || r.status === 'draft' ? (vorbei ? 'fehlt' : 'kommend')
+      : r.forfeit ? 'wertung' : r.status === 'confirmed' ? 'bestaetigt' : 'eingereicht';
+    const ueberfaellig = st === 'fehlt' && heute > fristFuer(datum);
+    const problem = ueberfaellig || st === 'wertung' || r?.status === 'changes_requested' || !!r?.protest;
+    return { b, r, datum, st, ueberfaellig, problem, woche: wocheVon(datum), weg: erfassung.get(b.key) ?? null };
+  }), [berichtJeBegegnung, erfassung, heute]);
+
+  const [fStatus, setFStatus] = useState<StatusFilter>('alle');
+  const [fLiga, setFLiga] = useState<Liga27Code | 'alle'>('alle');
+  const [fSpieltag, setFSpieltag] = useState<number | 0>(0);
+  const [fWoche, setFWoche] = useState('');
+  const [fTeam, setFTeam] = useState('');
+  const [fWeg, setFWeg] = useState<Erfassungsweg | ''>('');
+  const wochen = useMemo(() => [...new Set(alle.map(x => x.woche))].sort(), [alle]);
+  const spieltage = useMemo(() => [...new Set(alle.map(x => x.b.spieltag))].sort((a, b) => a - b), [alle]);
+  // Alle Filter außer Status — die Status-Knöpfe zählen darauf.
+  const vorStatus = useMemo(() => {
+    const q = normal(fTeam);
+    return alle.filter(x => (fLiga === 'alle' || x.b.liga === fLiga)
+      && (!fSpieltag || x.b.spieltag === fSpieltag)
+      && (!fWoche || x.woche === fWoche)
+      && (!q || normal(team27(x.b.home)?.name ?? x.b.home).includes(q) || normal(team27(x.b.away)?.name ?? x.b.away).includes(q))
+      && (!fWeg || x.weg === fWeg));
+  }, [alle, fLiga, fSpieltag, fWoche, fTeam, fWeg]);
+  const passt = (x: (typeof alle)[number], f: StatusFilter) => f === 'alle' || (f === 'problem' ? x.problem : x.st === f);
+  const zahl = (f: StatusFilter) => vorStatus.filter(x => passt(x, f)).length;
+  const gruppen = useMemo(() => {
+    const m = new Map<number, typeof alle>();
+    for (const x of vorStatus.filter(x => passt(x, fStatus))) (m.get(x.b.spieltag) ?? m.set(x.b.spieltag, []).get(x.b.spieltag)!).push(x);
+    const ligaPos = (c: string) => LIGEN_2027.findIndex(l => l.code === c);
+    const begonnen = (st: number) => alle.some(x => x.b.spieltag === st && x.b.fri <= heute);
+    return [...m.entries()]
+      .sort(([a], [b]) => (begonnen(b) ? 1 : 0) - (begonnen(a) ? 1 : 0) || (begonnen(a) ? b - a : a - b))
+      .map(([st, list]) => ({ st, begonnen: begonnen(st), list: list.sort((x, y) => ligaPos(x.b.liga) - ligaPos(y.b.liga) || x.datum.localeCompare(y.datum) || (x.b.termin?.uhrzeit ?? '').localeCompare(y.b.termin?.uhrzeit ?? '')) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vorStatus, fStatus, alle, heute]);
+  const filterAktiv = fStatus !== 'alle' || fLiga !== 'alle' || !!fSpieltag || !!fWoche || !!fTeam || !!fWeg;
 
   // ── Wertung (Nichtantritt / kein Bericht) ──
   const begegnungen = useMemo(() => alleBegegnungen27(), []);
@@ -103,53 +143,63 @@ export default function AdminSpielberichtePage() {
   return (
     <AdminGuard title="Spielberichte" subtitle="Jede Partie prüfen, bearbeiten, löschen oder einen Bericht nachtragen.">
       {/* Alle Partien 2026/27 */}
-      <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', marginBottom: 22, maxWidth: 960 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+      <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', marginBottom: 22, maxWidth: 1040 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
           <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginRight: 'auto' }}>Alle Partien {NEUE_SAISON.kurz}</div>
-          <select value={pLiga} onChange={e => setPLiga(e.target.value as Liga27Code)} style={sel}>
-            {LIGEN_2027.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
-          </select>
-          <select value={pFilter} onChange={e => setPFilter(e.target.value as typeof pFilter)} style={sel}>
-            <option value="alle">alle Partien</option>
-            <option value="ohne">ohne Spielbericht</option>
-            <option value="offen">Entwurf / nicht bestätigt</option>
-            <option value="bestaetigt">bestätigt</option>
-          </select>
           <Link href="/mein-bereich/spielberichte?from=admin" style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5 }}>＋ Neuer Spielbericht</Link>
         </div>
-        {rows === null ? <p style={muted}>Lade …</p> : partien.length === 0 ? <p style={{ ...muted, fontSize: 13 }}>Keine Partien für diesen Filter.</p> : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {partien.map((b, i) => {
-              const r = berichtJeBegegnung.get(b.key);
-              const vorbei = (b.termin?.datum ?? b.sun) < heute;
-              const stand = !r ? (vorbei ? 'kein Bericht' : '—')
-                : r.forfeit ? WERTUNG_LABELS[r.forfeit]
-                : `${r.spiele_home}:${r.spiele_guest} · ${REPORT_STATUS_LABELS[r.status]}`;
-              const farbe = !r ? (vorbei ? 'var(--th-loss)' : 'var(--th-text-faint)')
-                : r.forfeit ? 'var(--th-loss)' : r.status === 'confirmed' ? 'var(--th-win)' : r.status === 'changes_requested' ? 'var(--th-gold)' : 'var(--th-text-muted)';
-              return (
-                <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 0', borderTop: i ? '1px solid var(--th-line-4)' : 'none', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
-                  <span style={{ width: 92, flexShrink: 0, color: 'var(--th-text-faint)' }}>{b.spieltag}. ST · {wochenendeText(b.fri, b.sun, false)}</span>
-                  <span style={{ flex: '1 1 260px', minWidth: 0, fontWeight: 700, color: 'var(--th-text-strong)' }}>{team27(b.home)?.name ?? b.home} – {team27(b.away)?.name ?? b.away}</span>
-                  <span style={{ flex: '0 0 auto', fontWeight: 700, color: farbe }}>{stand}</span>
-                  <span style={{ display: 'flex', gap: 12, flex: '0 0 auto' }}>
-                    {r ? (
-                      <>
-                        <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>Prüfen / Bearbeiten</Link>
-                        <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>{busy === r.id ? '…' : 'Löschen'}</button>
-                      </>
-                    ) : (
-                      <>
-                        <Link href={`/mein-bereich/spielberichte?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>＋ Bericht hinzufügen</Link>
-                        <Link href={`/mein-bereich/spielberichte/ocr?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={{ fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none' }}>📷 Foto/PDF</Link>
-                      </>
-                    )}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
+
+        {/* Status */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {STATUS_FILTER.map(f => (
+            <button key={f.key} type="button" onClick={() => setFStatus(f.key)} style={chip(fStatus === f.key, f.farbe)}>
+              {f.label} <span style={{ opacity: 0.75 }}>{rows === null ? '' : zahl(f.key)}</span>
+            </button>
+          ))}
+        </div>
+        {/* Liga */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {([{ code: 'alle', name: 'Alle Ligen' }, ...LIGEN_2027] as { code: Liga27Code | 'alle'; name: string }[]).map(l => (
+            <button key={l.code} type="button" onClick={() => setFLiga(l.code)} style={chip(fLiga === l.code)}>{l.name}</button>
+          ))}
+        </div>
+        {/* Spieltag, Wochenende, Erfassungsweg, Team */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+          <select value={fSpieltag} onChange={e => setFSpieltag(Number(e.target.value))} style={sel} aria-label="Spieltag">
+            <option value={0}>Alle Spieltage</option>
+            {spieltage.map(n => <option key={n} value={n}>{n}. Spieltag</option>)}
+          </select>
+          <select value={fWoche} onChange={e => setFWoche(e.target.value)} style={sel} aria-label="Wochenende">
+            <option value="">Alle Wochenenden</option>
+            {wochen.map(w => <option key={w} value={w}>{wocheText(w)}</option>)}
+          </select>
+          <select value={fWeg} onChange={e => setFWeg(e.target.value as Erfassungsweg | '')} style={sel} aria-label="Erfassungsweg">
+            <option value="">Jeder Erfassungsweg</option>
+            {WEGE.map(w => <option key={w} value={w}>{WEG[w].icon} {WEG[w].label}</option>)}
+          </select>
+          <input value={fTeam} onChange={e => setFTeam(e.target.value)} placeholder="Team suchen …" style={{ ...sel, flex: '1 1 180px' }} aria-label="Team suchen" />
+          {filterAktiv && (
+            <button type="button" onClick={() => { setFStatus('alle'); setFLiga('alle'); setFSpieltag(0); setFWoche(''); setFTeam(''); setFWeg(''); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5 }}>Filter zurücksetzen</button>
+          )}
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          {rows === null ? <p style={muted}>Lade …</p> : gruppen.length === 0 ? <p style={{ ...muted, fontSize: 13 }}>Keine Partien für diese Filter.</p> : gruppen.map(g => (
+            <div key={g.st} style={{ marginTop: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '6px 0', borderBottom: '2px solid var(--th-line-8)' }}>
+                <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 17, textTransform: 'uppercase', letterSpacing: '0.04em', color: g.begonnen ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{g.st}. Spieltag</span>
+                <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', fontWeight: 700 }}>
+                  {g.list.length} {g.list.length === 1 ? 'Partie' : 'Partien'}{!g.begonnen && ' · kommt noch'}
+                </span>
+              </div>
+              {g.list.map(x => <PartieZeile key={x.b.key} x={x} busy={busy} onDelete={onDelete} />)}
+            </div>
+          ))}
+        </div>
+        <p style={{ ...muted, fontSize: 11.5, margin: '12px 0 0' }}>
+          „Fehlt“ = Termin vorbei, kein eingereichter Bericht (auch wenn ein Entwurf existiert). „Problemfälle“ = überfällig (nach Dienstag 24 Uhr), Wertung, Änderung angefordert oder Protest.
+        </p>
       </div>
 
       <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px', marginBottom: 22, maxWidth: 960 }}>
@@ -192,7 +242,11 @@ export default function AdminSpielberichtePage() {
             Es wurden noch keine Spielberichte eingereicht.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 960 }}>
+          <details style={{ maxWidth: 960 }}>
+            <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 12 }}>
+              Rohliste aller gespeicherten Berichte ({rows.length}) – nach Liga, auch ältere Saisons und Berichte ohne Begegnung im Plan
+            </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
             {groups.map(([league, list]) => (
               <div key={league}>
                 <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: 'var(--th-accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
@@ -253,12 +307,85 @@ export default function AdminSpielberichtePage() {
               </div>
             ))}
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', margin: 0 }}>
-              Hinweis: Spielberichte gelten ohne Freigabe. Bei „Bearbeiten"/„Löschen" werden die betroffenen Kapitäne benachrichtigt.
+              Hinweis: Spielberichte gelten ohne Freigabe. Bei „Bearbeiten“/„Löschen“ werden die betroffenen Kapitäne benachrichtigt.
             </p>
           </div>
+          </details>
         )}
     </AdminGuard>
   );
+}
+
+type PStatus = 'kommend' | 'fehlt' | 'eingereicht' | 'bestaetigt' | 'wertung';
+type StatusFilter = 'alle' | 'fehlt' | 'eingereicht' | 'bestaetigt' | 'problem';
+const STATUS_FILTER: { key: StatusFilter; label: string; farbe?: string }[] = [
+  { key: 'alle', label: 'Alle' },
+  { key: 'fehlt', label: 'Fehlt', farbe: 'var(--th-loss)' },
+  { key: 'eingereicht', label: 'Eingereicht · unbestätigt', farbe: '#9A6B00' },
+  { key: 'bestaetigt', label: 'Bestätigt', farbe: 'var(--th-win)' },
+  { key: 'problem', label: 'Problemfälle', farbe: 'var(--th-loss)' },
+];
+
+interface Partie {
+  b: Begegnung27; r: MatchReport | null; datum: string; st: PStatus;
+  ueberfaellig: boolean; problem: boolean; woche: string; weg: Erfassungsweg | null;
+}
+
+function PartieZeile({ x, busy, onDelete }: { x: Partie; busy: string | null; onDelete: (r: MatchReport) => void }) {
+  const { b, r } = x;
+  const t = b.termin;
+  const etikett = x.st === 'kommend' ? { text: 'kommt noch', farbe: 'var(--th-text-faint)' }
+    : x.st === 'fehlt' ? { text: r ? 'Entwurf – nicht eingereicht' : x.ueberfaellig ? 'fehlt – überfällig' : 'fehlt', farbe: 'var(--th-loss)' }
+    : x.st === 'wertung' ? { text: WERTUNG_LABELS[r!.forfeit!], farbe: 'var(--th-loss)' }
+    : { text: `${r!.spiele_home}:${r!.spiele_guest} · ${REPORT_STATUS_LABELS[r!.status]}`, farbe: x.st === 'bestaetigt' ? 'var(--th-win)' : r!.status === 'changes_requested' ? 'var(--th-gold)' : '#9A6B00' };
+  const link: React.CSSProperties = { fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px 12px', flexWrap: 'wrap', padding: '9px 0', borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
+      <span style={{ width: 118, flexShrink: 0, color: 'var(--th-text-muted)' }}>
+        {t ? <>{tagKurz(t.datum)}{t.uhrzeit && ` ${t.uhrzeit}`}</> : wochenendeText(b.fri, b.sun, false)}
+      </span>
+      <span style={{ flexShrink: 0, minWidth: 54, padding: '2px 7px', borderRadius: 6, background: 'var(--th-line-6)', fontWeight: 800, fontSize: 11, textAlign: 'center', color: 'var(--th-text-body)' }}>{findLiga27(b.liga)?.name ?? b.liga}</span>
+      <span style={{ flex: '1 1 240px', minWidth: 0, fontWeight: 700, color: 'var(--th-text-strong)' }}>{team27(b.home)?.name ?? b.home} – {team27(b.away)?.name ?? b.away}</span>
+      <span style={{ flex: '0 0 auto', fontWeight: 700, color: etikett.farbe }}>
+        {etikett.text}{r?.protest && <span style={{ color: 'var(--th-loss)' }}> · Protest</span>}
+        {x.weg && <span title={WEG[x.weg].label} style={{ marginLeft: 6 }}>{WEG[x.weg].icon}</span>}
+      </span>
+      <span style={{ display: 'flex', gap: 12, flex: '0 0 auto' }}>
+        {r ? (
+          <>
+            {(x.st === 'eingereicht' || x.st === 'bestaetigt') && <Link href={berichtPfad(b.key)} style={link}>Ansehen</Link>}
+            <Link href={`/mein-bereich/spielberichte?id=${r.id}&from=admin`} style={link}>Bearbeiten</Link>
+            <button onClick={() => onDelete(r)} disabled={busy === r.id} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5, padding: 0 }}>{busy === r.id ? '…' : 'Löschen'}</button>
+          </>
+        ) : (
+          <>
+            <Link href={`/mein-bereich/spielberichte?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={link}>＋ Bericht</Link>
+            <Link href={`/mein-bereich/spielberichte/ocr?from=admin&begegnung=${encodeURIComponent(b.key)}`} style={link}>📷 Foto/PDF</Link>
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
+
+const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const utc = (iso: string) => new Date(iso + 'T12:00:00Z');
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const tagKurz = (s: string) => { const d = utc(s); return `${WT[d.getUTCDay()]} ${d.getUTCDate()}.${d.getUTCMonth() + 1}.`; };
+const berlinHeute = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+/** Montag der Woche (Kennung des Wochenendes). */
+function wocheVon(s: string): string { const d = utc(s); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return iso(d); }
+/** „Fr 23.10. – So 25.10.“ (Wochenende der Woche, die am Montag `mo` beginnt). */
+function wocheText(mo: string): string { const f = utc(mo); f.setUTCDate(f.getUTCDate() + 4); const so = utc(mo); so.setUTCDate(so.getUTCDate() + 6); return `${tagKurz(iso(f))} – ${tagKurz(iso(so))}`; }
+/** Frist: Dienstag nach dem Spielwochenende, 24 Uhr (Tag, an dem sie noch läuft). */
+function fristFuer(datum: string): string { const d = utc(wocheVon(datum)); d.setUTCDate(d.getUTCDate() + 8); return iso(d); }
+const normal = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+function chip(an: boolean, farbe?: string): React.CSSProperties {
+  return {
+    padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5,
+    border: `1.5px solid ${an ? (farbe ?? 'var(--th-accent)') : 'var(--th-line-10)'}`,
+    background: an ? (farbe ?? 'var(--th-accent)') : 'transparent', color: an ? '#fff' : (farbe ?? 'var(--th-text-body)'),
+  };
 }
 
 function shortName(teamId: string | null, name: string): string {

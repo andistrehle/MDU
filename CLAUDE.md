@@ -127,6 +127,11 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   speichern). `lib/server/erfassung.ts` ordnet je Begegnung zu: Foto (`source='ocr'`) / live (erstes
   Ergebnis vor Beginn + 3,5 h) / abgeschrieben; ohne Protokoll „geschätzt“ aus `created_at`.
   Admin → Erfassung + Kachel im Dashboard; lesen nur service_role.
+  **Admin → Spielberichte** (Betreiber, 25.10.2026): alle Begegnungen auf einmal, nach Spieltag gruppiert
+  (begonnene zuerst, neuester oben), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle
+  mit Anzahl), Liga, Spieltag, Wochenende (echter Termin), Erfassungsweg, Team-Suche. „Fehlt“ = Termin vorbei,
+  nichts eingereicht (Entwurf zählt als fehlt); Problemfälle = überfällig (nach Di 24 Uhr), Wertung,
+  Änderung angefordert, Protest. Die alte Liste je Liga ist darunter als „Rohliste“ eingeklappt.
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +
