@@ -134,35 +134,33 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
             )}
           </div>
 
-          {/* Handy: Name oben, Werte klein darunter */}
+          {/* Handy: Rang, Name, Team, Bilanz und Punkte (bzw. Anzahl) in einer Zeile — das bestimmt die
+              Reihenfolge; Legs und Highlights klein darunter. */}
           <div className="e27-m">
-            {liste.map((z, i) => (
-              <div key={z.key} style={{ padding: '9px 14px', borderBottom: i < liste.length - 1 ? '1px solid var(--th-line-3)' : 'none' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '26px minmax(0,1fr) auto', gap: 8, alignItems: 'center' }}>
-                  {rang(z)}{nameEl(z)}{team(z, true)}
-                </div>
-                <div style={{ paddingLeft: 34, marginTop: 3, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, color: 'var(--th-text-faint)', lineHeight: 1.6 }}>
-                  {art === 'punkte' ? (
-                    <>
-                      <span style={{ color: 'var(--th-text-strong)', fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13 }}>{z.points} Pkt.</span>
-                      {punkt}{z.wins}-{z.losses}{punkt}{z.legsWon}:{z.legsLost} Legs
-                      {z.b180 > 0 && <>{punkt}180×{z.b180}</>}
-                      {z.b171 > 0 && <>{punkt}171×{z.b171}</>}
-                      {z.hfAnzahl > 0 && <>{punkt}HF {z.hfAnzahl} ({z.highFinish})</>}
-                      {z.slAnzahl > 0 && <>{punkt}SL {z.slAnzahl} ({z.shortLeg})</>}
-                    </>
-                  ) : (
-                    <>
-                      <span style={{ color: 'var(--th-text-strong)', fontWeight: 700, fontFamily: 'var(--font-saira-condensed)', fontSize: 13 }}>{anzahl(z, art)}× {ARTEN.find(a => a.key === art)?.label}</span>
-                      {art === 'hf' && z.highFinish != null && <>{punkt}höchstes {z.highFinish}</>}
-                      {art === 'sl' && z.shortLeg != null && <>{punkt}kürzestes {z.shortLeg} Darts</>}
-                      {punkt}{z.wins}-{z.losses}
-                      {gesamt && <>{punkt}{findLiga27(team27(z.teamId)?.league)?.name}</>}
-                    </>
+            {liste.map((z, i) => {
+              const zweite = art === 'punkte'
+                ? [`${z.legsWon}:${z.legsLost} Legs`, z.b180 > 0 && `180×${z.b180}`, z.b171 > 0 && `171×${z.b171}`,
+                    z.hfAnzahl > 0 && `HF ${z.hfAnzahl} (${z.highFinish})`, z.slAnzahl > 0 && `SL ${z.slAnzahl} (${z.shortLeg})`]
+                : [art === 'hf' && z.highFinish != null && `höchstes ${z.highFinish}`, art === 'sl' && z.shortLeg != null && `kürzestes ${z.shortLeg} Darts`,
+                    gesamt && findLiga27(team27(z.teamId)?.league)?.name];
+              const teile = zweite.filter(Boolean) as string[];
+              return (
+                <div key={z.key} style={{ padding: '9px 14px', borderBottom: i < liste.length - 1 ? '1px solid var(--th-line-3)' : 'none' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '26px minmax(0,1fr) auto auto 40px', gap: 8, alignItems: 'center' }}>
+                    {rang(z)}{nameEl(z)}{team(z, true)}
+                    <span style={{ ...mono, fontSize: 12 }}>{z.wins}-{z.losses}</span>
+                    <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 16, color: 'var(--th-text-strong)', textAlign: 'right' }}>
+                      {art === 'punkte' ? z.points : `${anzahl(z, art)}×`}
+                    </span>
+                  </div>
+                  {teile.length > 0 && (
+                    <div style={{ paddingLeft: 34, marginTop: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, color: 'var(--th-text-faint)', lineHeight: 1.6 }}>
+                      {teile.map((t, k) => <span key={k}>{k > 0 && punkt}{t}</span>)}
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
