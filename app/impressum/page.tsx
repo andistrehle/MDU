@@ -11,7 +11,7 @@ export default function ImpressumPage() {
   return (
     <LegalPage
       title="Impressum"
-      updated="Juni 2026"
+      updated="Oktober 2026"
       notice={null}
     >
       <LegalSection title="Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)">
@@ -38,8 +38,7 @@ export default function ImpressumPage() {
       </LegalSection>
 
       <LegalSection title="Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV">
-        Anton Bauer<br />
-        (i. V. Andreas Strehle)<br />
+        Andreas Strehle<br />
         Anschrift wie oben
       </LegalSection>
 

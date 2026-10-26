@@ -50,8 +50,9 @@ export const MDC_LEGAL: MdcLegal = {
   // Leer lassen, solange keine Nummer öffentlich stehen soll — Pflicht ist sie
   // nicht, eine E-Mail-Adresse genügt.
   phone: '',
-  contentResponsible: 'Anton Bauer',
-  updated: 'September 2026',
+  // Betreiber, 26.10.2026: Er betreibt und pflegt die Seite praktisch allein.
+  contentResponsible: 'Andreas Strehle',
+  updated: 'Oktober 2026',
 };
 
 /** Stehen alle Pflichtangaben? Ohne sie darf die Seite nicht indexiert werden. */
