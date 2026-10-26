@@ -55,6 +55,10 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|420|JÄGER|ALEX|0|0||',
   '0|437|SCHUY|BENNY|0|0||',
   '0|438|AUBINGER|CHRISTUS|0|0||',
+  '0|442|BOAZN|HANSI|0|0||',
+  '0|443|BOAZN|ANGELOS|0|0||',
+  '0|444|KETTERER|OLI|0|0||',
+  '0|494|BOAZN|HELLI|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
@@ -63,4 +67,6 @@ export const PLAYERS_UPLOADED_WOMEN_RAW: string[] = [
   '0|316|PÖPPERL|KARIN|0|0||',
   '0|330|JOST|ILONA|0|0||',
   '0|406|GRIMM|NICOLE|0|0||',
+  '0|491|BOAZN|GITTI|0|0||',
+  '0|545|BOAZN|SILVI|0|0||',
 ];
