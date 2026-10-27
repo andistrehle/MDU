@@ -71,9 +71,14 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         maxWidth: 1280, margin: '0 auto', padding: '0 28px', height: 70,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24,
       }}>
-        <Link href="/" style={{ display: 'block', flexShrink: 0 }}>
-          <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={80} style={{ height: 36, width: 'auto' }} priority />
-        </Link>
+        {/* Zurück-Knopf der installierten App (app-zurueck.tsx) links vom Logo — eigener
+            Behälter, sonst verteilte space-between den Platz und schöbe das Logo zur Mitte. */}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <span id="mdu-zurueck-platz" style={{ display: 'contents' }} />
+          <Link href="/" style={{ display: 'block', flexShrink: 0 }}>
+            <Image src="/mdu-logo.webp" unoptimized alt="Münchner Dart Union" height={36} width={80} style={{ height: 36, width: 'auto' }} priority />
+          </Link>
+        </span>
 
         {/* Desktop nav — hidden on mobile via .mdu-header-nav */}
         <nav className="mdu-header-nav" data-tour="nav-menu" style={{ display: 'flex', alignItems: 'center', gap: 26, flex: 1, justifyContent: 'center' }}>

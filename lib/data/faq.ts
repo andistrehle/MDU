@@ -373,7 +373,7 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
 - **iPhone (Safari):** Teilen-Symbol → „Zum Home-Bildschirm“.
 - **Android (Chrome):** Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
 
-Angemeldet bleibst du dort genauso wie im Browser.`,
+Angemeldet bleibst du dort genauso wie im Browser. Weil die App ohne Browserleiste läuft, gibt es oben links einen eigenen Zurück-Pfeil ‹.`,
         stichworte: ['handy', 'home-bildschirm', 'iphone', 'android', 'installieren'],
       },
       {
