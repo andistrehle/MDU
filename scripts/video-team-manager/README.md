@@ -12,7 +12,7 @@ nach dem Skript des Betreibers (21.10.2026), 3:08, Stimme **Toby** (`eEmoQJhC4SA
 | `reel.js` | Reel (= ganzes Hochformat) und Story (Intro, Scheibe, Preis, Abspann) |
 | `screenshots.js`, `shots-liste.js` | Screenshots neu machen (Demo-Seite muss laufen, siehe unten) |
 | `standbilder.js` | Standbild jedes Schritts ohne Ton, zum Prüfen (`node standbilder.js <ordner> [hoch]`) |
-| `zz-demo/*.txt` | Die Demo-Seite (Kopien der Team-Manager-Seiten mit Demo-Daten statt Datenbank) |
+| `zz-demo/*.txt` | Die Demo-Seite (Kopien der Team-Manager-Seiten mit Demo-Daten statt Datenbank) — muss auf dem Stand von `main` gebaut werden (braucht `team-push.tsx`, `termin-ui.tsx`) |
 
 ## Vertonen
 
@@ -36,6 +36,14 @@ node reel.js
   „gegens den Teamschnitt“ auf (18.10.2026, mit Gedankenstrich behoben).
 - Schritte mit `weiter: true` wechseln nur das Bild und werden nicht gesprochen.
 - Ganzes Video ≈ 2.000 Zeichen; geänderte Szenen kosten nur sich selbst (Zwischenspeicher `ton/`).
+
+## Push-Szenen (27.10.2026)
+
+Sperrbildschirm, Push-Karten, Homescreen mit Zahl am Symbol und Safari-Teilen-Menü sind in
+`erklaer.html` **nachgebaut** (`sperr`, `push`, `home`, `safari`, `mehrHandys`). Die Texte sind
+wortgleich mit dem, was die Seite schickt (`app/api/team/nachricht/route.ts`, Migration 0047).
+Treffzeit und Aufstellung pushen NICHT — so auch nicht zeigen. Neue Shots: `spiel-erinnern`,
+`termin-neu`, `nachricht`, `push-frage` (`?push=1` zeigt die Abfrage immer, `push-abfrage-kopie`).
 
 ## Screenshots neu machen
 

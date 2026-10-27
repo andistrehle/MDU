@@ -68,4 +68,20 @@ module.exports = [
   // Szene 14/15: Angebot
   ['premium', 's=premium'],
   ['premium-preis', 's=premium', zu('Preis fürs ganze Team', 80)],
+  // Push (27.10.2026): Offene erinnern, Termin mit „Team benachrichtigen“, Nachricht ans Team, Push-Abfrage
+  ['spiel-erinnern', 's=spiel&n=7', zu('Spiel teilen', 300, 'button')],
+  ['termin-neu', 's=termine&neu=eintragen', async p => {
+    await p.locator('button[role="radio"]:has-text("Sonstiges")').first().click();
+    await p.locator('input[placeholder^="z. B. Training"]').first().fill('Training');
+    await p.locator('input[type="date"]').first().fill('2026-11-03');
+    await p.locator('input[type="time"]').first().fill('19:00');
+    await p.evaluate(() => document.activeElement?.blur?.());
+    await p.waitForTimeout(300);
+    await zu('Team benachrichtigen', 520, 'strong')(p);
+  }],
+  ['nachricht', 's=dash&n=9', async p => {
+    await p.locator('textarea[placeholder^="z. B. Heute Treffen"]').first().fill('Heute Treffen schon um 19 Uhr!');
+    await zu('Nachricht ans Team', 160, 'h2')(p);
+  }],
+  ['push-frage', 's=dash&n=9&push=1'],
 ];

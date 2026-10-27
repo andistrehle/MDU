@@ -16,6 +16,7 @@ import GegnerSeite from './gegner-kopie';
 import PremiumSeite from './premium-kopie';
 import { KalenderAbo } from './spielplan-kopie';
 import { NotificationBell } from './glocke-kopie';
+import { PushAbfrageDemo } from './push-abfrage-kopie';
 
 export default function Demo() {
   const [s, setS] = useState('');
@@ -41,7 +42,7 @@ export default function Demo() {
     }
     return null;
   })();
-  return <>{inhalt}<GlockeImKopf /></>;
+  return <>{inhalt}<GlockeImKopf />{D.q('push') === '1' && <PushAbfrageDemo />}</>;
 }
 
 /** Die echte Glocke im Kopf ausblenden und die Demo-Glocke an ihrer Stelle einhängen. */

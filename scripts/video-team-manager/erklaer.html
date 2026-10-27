@@ -156,6 +156,54 @@
   body.hoch .intro .logo { width:520px; }
   body.hoch .collage { grid-template-columns: repeat(3, 1fr); }
   body.hoch .frage span { font-size:120px; }
+
+  /* ── Push (27.10.2026): nachgebaut – Sperrbildschirm, Homescreen, Safari-Teilen ── */
+  .ebene { position:absolute; inset:0; opacity:0; transition: opacity .35s ease; z-index:3; }
+  .ebene.an { opacity:1; }
+  .sperr { background: radial-gradient(90% 60% at 30% 20%, #2E6B3F 0%, transparent 70%), radial-gradient(80% 60% at 80% 90%, #1E3A6B 0%, transparent 70%), #0B1410; color:#fff; text-align:center; padding-top:84px; }
+  .sperr .uhr { font-size:96px; font-weight:300; letter-spacing:-.02em; line-height:1; }
+  .sperr .tag { font-size:19px; font-weight:600; opacity:.85; margin-bottom:26px; }
+  .push { margin:10px 12px 0; padding:12px 14px; border-radius:20px; background:rgba(245,245,247,.86); color:#1A1D24; text-align:left; display:flex; gap:11px; box-shadow:0 8px 24px rgba(0,0,0,.25);
+          opacity:0; transform:translateY(-26px) scale(.96); transition: all .45s cubic-bezier(.2,1.4,.4,1); }
+  .push.an, .ebene.an .push.immer { opacity:1; transform:none; }
+  .push .ic { width:38px; height:38px; border-radius:9px; flex-shrink:0; background:#fff url(../../public/mdu-logo.webp) center/86% no-repeat; box-shadow:0 0 0 1px rgba(0,0,0,.08); }
+  .push .kopf { display:flex; justify-content:space-between; font-size:13px; color:#5C6470; font-weight:700; }
+  .push b { display:block; font-size:18px; margin-top:1px; }
+  .push span.t { display:block; font-size:16.5px; line-height:1.3; }
+  .home { background: linear-gradient(170deg,#3B6FB6 0%,#5A3E9C 55%,#C0446B 100%); padding:90px 22px 0; display:grid; grid-template-columns:repeat(4,1fr); gap:24px 14px; align-content:start; }
+  .home .app { display:flex; flex-direction:column; align-items:center; gap:6px; color:#fff; font-size:12px; font-weight:600; position:relative; }
+  .home .app i { width:62px; height:62px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-style:normal; font-size:32px; box-shadow:0 4px 12px rgba(0,0,0,.2); }
+  .home .app.mdu i { background:#fff url(../../public/mdu-logo.webp) center/88% no-repeat; transform:scale(0); transition: transform .45s cubic-bezier(.2,1.7,.4,1); }
+  .home .app.mdu.an i { transform:scale(1); }
+  .badge { position:absolute; top:-7px; right:2px; min-width:26px; height:26px; padding:0 7px; border-radius:13px; background:#FF3B30; color:#fff; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; transform:scale(0); transition: transform .35s cubic-bezier(.2,1.8,.4,1); box-shadow:0 0 0 2px rgba(255,255,255,.9); }
+  .badge.an { transform:scale(1); }
+  .safari { background:#F2F2F7; }
+  .safari .seite { position:absolute; left:0; right:0; top:0; height:60%; background-size:cover; background-position:top; filter:brightness(.55); }
+  .safari .blatt { position:absolute; left:0; right:0; bottom:0; height:52%; background:#F2F2F7; border-radius:16px 16px 0 0; padding:18px 14px; box-shadow:0 -6px 24px rgba(0,0,0,.25); }
+  .safari .blatt .z { display:flex; justify-content:space-between; align-items:center; padding:13px 16px; background:#fff; font-size:17px; border-bottom:1px solid #E5E5EA; }
+  .safari .blatt .z:first-of-type { border-radius:12px 12px 0 0; } .safari .blatt .z:last-of-type { border-radius:0 0 12px 12px; border:none; }
+  .safari .blatt .z.hl { background:#E7F3E5; font-weight:800; color:#1E5A31; outline:3px solid var(--gruen); outline-offset:-3px; }
+  .safari .blatt .kopf { display:flex; gap:12px; align-items:center; margin-bottom:14px; font-size:15px; font-weight:700; }
+  .safari .blatt .kopf i { width:44px; height:44px; border-radius:10px; background:#fff url(../../public/mdu-logo.webp) center/86% no-repeat; }
+  .safari .leiste { position:absolute; left:0; right:0; bottom:0; height:64px; background:rgba(249,249,249,.95); display:flex; justify-content:space-around; align-items:center; font-size:24px; color:#007AFF; }
+  .safari .leiste .teilen { outline:3px solid var(--gold); border-radius:8px; padding:0 6px; }
+  .mehr-handys { position:absolute; inset:120px 0 0 0; z-index:9; background: radial-gradient(60% 70% at 50% 40%, rgba(62,156,51,.18), transparent 70%), #F2F4F7; opacity:0; transition:opacity .4s; }
+  .mehr-handys.an { opacity:1; }
+  .mehr-handys .handy { top:20px; }
+  .weg-text { position:absolute; display:flex; flex-direction:column; gap:14px; font-size:30px; font-weight:800; }
+  .weg-text .zeile { display:flex; align-items:center; gap:12px; flex-wrap:wrap; opacity:0; transform:translateX(-20px); transition: all .35s; }
+  .weg-text .zeile.an { opacity:1; transform:none; }
+  .weg-text span { padding:8px 16px; border-radius:12px; background:#fff; border:2px solid #D8DDE5; }
+  .weg-text i { font-style:normal; color:var(--gruen); }
+  .weg-text .os { font-family:'Saira Condensed'; font-weight:900; font-size:40px; text-transform:uppercase; min-width:150px; }
+  body.hoch .sperr { padding-top:130px; } body.hoch .sperr .uhr { font-size:150px; } body.hoch .sperr .tag { font-size:30px; }
+  body.hoch .push { margin:16px 20px 0; padding:18px 20px; border-radius:30px; gap:16px; } body.hoch .push .ic { width:58px; height:58px; border-radius:13px; }
+  body.hoch .push .kopf { font-size:20px; } body.hoch .push b { font-size:25px; } body.hoch .push span.t { font-size:23px; }
+  body.hoch .home { padding:140px 34px 0; gap:38px 22px; } body.hoch .home .app { font-size:18px; } body.hoch .home .app i { width:96px; height:96px; border-radius:23px; font-size:50px; }
+  body.hoch .badge { min-width:40px; height:40px; border-radius:20px; font-size:23px; }
+  body.hoch .safari .blatt .z { font-size:26px; padding:20px 24px; } body.hoch .safari .blatt .kopf { font-size:23px; } body.hoch .safari .blatt .kopf i { width:66px; height:66px; }
+  body.hoch .safari .leiste { height:96px; font-size:36px; }
+  body.hoch .weg-text { display:none; }
 </style></head>
 <body><div id="stage"></div>
 <script>
@@ -169,9 +217,9 @@ const W = 1920, H = HOCH ? 1920 : 1080;
 const titel = (t) => `<div class="titel"><img src="${LOGO}"><div class="t">${t}</div></div>`;
 const beispiel = `<div class="beispiel">Beispieldaten</div>`;
 // Bilder: Liste von Shot-Namen; je Satz wählt `b` das gezeigte Bild, `z` zoomt im Laptop ([x%, y%, Faktor]).
-const geraete = (namen) => `
+const geraete = (namen, handyExtra = '') => `
   <div class="laptop"><div class="rand"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}web-${n}.jpg">`).join('')}</div></div><div class="fuss"></div></div>
-  <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}</div></div>`;
+  <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}${handyExtra}</div></div>`;
 const stempel = (k, text, x, y, art = '', xh, yh, bis) => `<div class="stempel ${art}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${HOCH ? xh ?? x : x}px;top:${HOCH ? yh ?? y : y}px">${text}</div>`;
 
 // Neueste Nachricht unten, ältere wandern nach oben (wie im echten Chat); unsichtbare nehmen keinen Platz.
@@ -181,6 +229,22 @@ const teilen = `<div class="wa"><div class="kopf">👥 <span>DC Demo München<sm
   <div class="vorschau" data-k="1"><div class="bild"><img src="${LOGO}"><span class="tc" style="font-size:${HOCH ? 54 : 32}px">DC Demo München<br><span style="color:#E8B84A">vs. Bullseye Buam</span></span></div>
   <div class="txt"><b>Fr 23.10. 20:00 · DC Demo München – Bullseye Buam</b><small>DC Demo München: Wer ist dabei? Zu- und Absagen für dieses Spiel.</small><br><span style="color:#075E54">mdudarts.de</span></div></div>
   <div class="m an" data-k="2" style="align-self:flex-start"><b>Tim</b>Bin dabei! ✅</div><div class="m an" data-k="2" style="align-self:flex-start"><b>Lena</b>Zugesagt 💪</div></div>`;
+
+
+// ── Push (nachgebaut, Texte wie die Seite sie schickt: app/api/team/nachricht/route.ts, Migration 0047) ──
+const SPIEL_TXT = 'Fr 23.10. · 20:00 · DC Demo München – Bullseye Buam';
+const push = (k, titel, text, bis, immer) => `<div class="push${immer ? ' immer' : ''}"${k !== undefined ? ` data-k="${k}"` : ''}${bis ? ` data-bis="${bis}"` : ''}><div class="ic"></div><div style="flex:1;min-width:0"><div class="kopf"><span>MDU</span><span>jetzt</span></div><b>${titel}</b><span class="t">${text}</span></div></div>`;
+const sperr = (k, bis, pushes, uhr = '18:42', tag = 'Dienstag, 27. Oktober') => `<div class="ebene sperr" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''}><div class="tag">${tag}</div><div class="uhr">${uhr}</div><div style="height:22px"></div>${pushes}</div>`;
+const APPS = [['📷', '#fff', 'Kamera'], ['💬', '#34C759', 'Nachrichten'], ['🗓️', '#fff', 'Kalender'], ['🌤️', '#4A90E2', 'Wetter'], ['🎵', '#FA2D48', 'Musik'], ['🧭', '#fff', 'Safari'], ['📞', '#34C759', 'Telefon'], ['⚙️', '#8E8E93', 'Einstellungen']];
+const home = (k, bis, kApp, kBadge) => `<div class="ebene home" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''}>${APPS.map(([e, bg, n]) => `<div class="app"><i style="background:${bg}">${e}</i>${n}</div>`).join('')}
+  <div class="app mdu" data-k="${kApp}"><i></i>MDU<div class="badge" data-k="${kBadge}">1</div></div></div>`;
+const safari = (k, bis) => `<div class="ebene safari" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''}><div class="seite" style="background-image:url(${S}handy-dash-n9.jpg)"></div>
+  <div class="blatt"><div class="kopf"><i></i><span>Münchner Dart Union<br><small style="font-weight:500;color:#5C6470">mdudarts.de</small></span></div>
+  <div class="z">Kopieren <span>⧉</span></div><div class="z">Zur Leseliste hinzufügen <span>👓</span></div><div class="z hl">Zum Home-Bildschirm <span>⊞</span></div><div class="z">Lesezeichen hinzufügen <span>📖</span></div></div></div>`;
+// Drei weitere Handys mit derselben Nachricht (Szene „Nachricht ans Team“)
+const mehrHandys = (k, txt) => `<div class="mehr-handys" data-k="${k}">${[[150, '18:42'], [720, '18:42'], [1290, '18:42']].map(([x, u], i) =>
+  `<div class="handy" style="left:${HOCH ? 40 + i * 340 : x}px;${HOCH ? 'top:330px;width:330px;border-radius:46px;padding:10px' : ''}"><div class="schirm" style="${HOCH ? 'width:310px;height:670px;border-radius:38px' : ''}"><div class="ebene sperr an" style="${HOCH ? 'padding-top:70px' : ''}"><div class="tag">Dienstag, 27. Oktober</div><div class="uhr" style="${HOCH ? 'font-size:80px' : ''}">${u}</div><div style="height:22px"></div>
+   ${push(k, 'Nachricht vom Teamcaptain', txt)}</div></div></div>`).join('')}</div>`;
 
 // Jede Szene: Titel, HTML, Schritte (Untertitel = Sprechertext; k = sichtbare Einblendungen; b = Bild; z = Zoom)
 const Z = { voll: null, inhalt: [44, 0, 1.38] };
@@ -229,17 +293,28 @@ const SZENEN = [
       { s: 4.5, u: 'Am meisten bringt’s, wenn jeder sein eigenes MDU-Konto hat – dann sagt jeder selbst zu.', b: 0, z: Z.inhalt },
       { s: 3.5, u: 'Geht aber auch ohne: Dann trägt halt der Teamcaptain für ihn ein.', b: 1, z: [44, 0, 1.6], k: 1 } ] },
 
-  { titel: 'Zusagen mit <i>einem Tipp</i>', html: beispiel + geraete(['dash-ja', 'dash-grund', 'spiel-offen', 'glocke'])
-      + stempel(0, '✓ Dabei!', 860, 600, '', 160, 1150, 1) + stempel(1, 'Mit Begründung', 830, 690, 'rot', 560, 1150, 2) + stempel(2, '🔔 Erinnerung', 980, 170, 'gold', 560, 1150, 3) + stempel(3, 'Captain weiß Bescheid ✓', 900, 170, '', 140, 1150),
+  { titel: 'Zusagen mit <i>einem Tipp</i>', html: beispiel + geraete(['dash-ja', 'dash-grund', 'spiel-offen', 'glocke'],
+        `<div style="position:absolute;left:0;right:0;top:${HOCH ? 70 : 46}px;z-index:5">${push(3, 'Bitte zu- oder absagen', SPIEL_TXT + ' – du hast noch nicht geantwortet.', 4)}</div>`)
+      + stempel(0, '✓ Dabei!', 860, 600, '', 160, 1150, 1) + stempel(1, 'Mit Begründung', 830, 690, 'rot', 560, 1150, 2) + stempel(2, '🔔 Erinnerung', 980, 170, 'gold', 560, 1150, 3) + stempel(3, '📲 Push aufs Handy', 940, 300, '', 140, 1150, 4) + stempel(4, 'Captain weiß Bescheid ✓', 900, 170, '', 140, 1150),
     schritte: [
       { s: 2, u: 'Zusagen? Ein Tipp.', b: 0, z: [40, 22, 1.7], k: 1 },
       { s: 3, u: 'Absagen? Ein Tipp und kurz der Grund dazu.', b: 1, z: [40, 28, 1.7], k: 2 },
       { s: 2.5, u: 'Wer noch fehlt, siehst du sofort.', b: 2, z: [52, 4, 1.75] },
       { s: 3.5, u: 'Wer nicht zu- oder absagt, wird von der Glocke erinnert –', b: 3, z: [82, 0, 1.4], k: 3 },
-      { s: 3, u: 'und wenn der Captain will, sogar per Mail.', b: 3, z: [82, 0, 1.4], k: 3 },
-      { s: 3.5, u: 'und du als Captain kriegst jede Zu- und Absage direkt in die Glocke.', b: 3, z: [82, 0, 1.4], k: 4 } ] },
+      { s: 3.5, u: 'und mit der MDU-App sogar direkt per Push aufs Handy!', b: 3, z: [82, 0, 1.4], k: 4 },
+      { s: 3, u: 'Und wenn der Captain will, auch per Mail.', b: 3, z: [82, 0, 1.4], k: 4 },
+      { s: 3.5, u: 'Und du als Captain kriegst jede Zu- und Absage direkt in die Glocke.', b: 3, z: [82, 0, 1.4], k: 5 } ] },
 
-  { titel: 'Aufstellung <i>&amp; Aufgaben</i>', html: beispiel + geraete(['spiel-aufstellung', 'bericht-voll', 'bericht-voll', 'spiel-notiz', 'glocke-tim'])
+  { titel: 'Offene <i>erinnern</i>', html: beispiel + geraete(['spiel-erinnern'],
+        sperr(1, 3, push(2, 'Bitte zu- oder absagen', SPIEL_TXT + ' – du hast noch nicht geantwortet.')) + home(3, 0, 3, 3))
+      + stempel(0, 'Offene erinnern (3) 🔔', 700, 560, 'gold', 160, 1150, 1) + stempel(3, 'Nur die drei! 🎯', 820, 520, '', 300, 1150),
+    schritte: [
+      { s: 3, u: 'Drei haben noch nicht geantwortet? Ein Tipp –', b: 0, z: [44, 44, 1.7], k: 1 },
+      { s: 3, u: 'und genau die drei kriegen’s aufs Handy.', b: 0, z: [44, 44, 1.7], k: 3 },
+      { s: 1.6, u: 'Nur die!', b: 0, z: [44, 44, 1.7], k: 4 } ] },
+
+  { titel: 'Aufstellung <i>&amp; Aufgaben</i>', html: beispiel + geraete(['spiel-aufstellung', 'bericht-voll', 'bericht-voll', 'spiel-notiz', 'glocke-tim'],
+        sperr(3, 0, push(3, 'Aufgabe für dich', 'Neue Aufgabe: Spielbericht drucken · ' + SPIEL_TXT), '18:05', 'Freitag, 23. Oktober'))
       + stempel(0, 'Ein Klick! ⚡', 850, 300, 'gold', 560, 1150, 1) + stempel(1, 'Auch fürs Gegner-Team 🤝', 760, 560, '', 140, 1150, 2) + stempel(2, 'Tim weiß Bescheid 🔔', 860, 170, '', 140, 1150),
     schritte: [
       { s: 3.5, u: 'Als Teamcaptain machst du die Aufstellung jetzt direkt im Team Manager –', b: 0, z: [44, 0, 1.6] },
@@ -247,7 +322,8 @@ const SZENEN = [
       { s: 4, u: 'Das klappt sogar fürs gegnerische Team, wenn die ihre Aufstellung auch eingestellt haben.', b: 2, z: [44, 8, 1.35], k: 2 },
       { s: 2.5, u: 'Vorm Spiel habt ihr also deutlich weniger zu tun.', b: 2, z: [44, 8, 1.35], k: 2 },
       { s: 3, u: 'Treffzeit, Notizen, Aufgaben – alles am Spiel dran,', b: 3, z: [44, 0, 1.55] },
-      { s: 2.5, u: 'und wer eine Aufgabe kriegt, wird benachrichtigt.', b: 4, z: [82, 0, 1.4], k: 3 } ] },
+      { s: 2.5, u: 'und wer eine Aufgabe kriegt, wird benachrichtigt.', b: 4, z: [82, 0, 1.4], k: 3 },
+      { s: 1.5, b: 4, z: [82, 0, 1.4], k: 4, weiter: true } ] },
 
   { titel: 'Die <i>Teamkasse</i>', html: beispiel + geraete(['kasse-katalog', 'kasse-strafe', 'kasse-beitraege', 'kasse-buch', 'kasse-offen', 'kasse-wart', 'kasse-spieler'])
       + stempel(0, 'Captain beleidigt · 5,00 € 😂', 760, 610, 'rot', 120, 1150, 2) + stempel(1, 'Abgehakt! ✓', 880, 640, '', 560, 1150, 3),
@@ -260,15 +336,26 @@ const SZENEN = [
       { s: 2.5, u: 'Einen Kassenwart kannst du auch bestimmen.', b: 5, z: [44, 60, 1.5] },
       { s: 2.2, u: 'Schluss mit der Zettelwirtschaft!', b: 6, z: [44, 8, 1.5] } ] },
 
-  { titel: '<i>Fremd</i>termine', html: beispiel + geraete(['termine', 'termine-import', 'kalender'])
-      + stempel(0, 'Pokal · Training · andere Liga', 640, 240, 'gold', 120, 1150, 2) + stempel(1, 'Aus Excel – mit Vorlage 📋', 760, 560, 'gold', 300, 1150, 3)
-      + stempel(2, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150, 4) + stempel(3, '📱 Kalender-Abo', 820, 300, '', 140, 1150),
+  { titel: '<i>Fremd</i>termine', html: beispiel + geraete(['termine', 'termine-import', 'kalender', 'termin-neu'],
+        sperr(3, 4, push(3, 'Neuer Termin', 'Training · Di 3.11. 19:00 Uhr – bitte zu- oder absagen.')))
+      + stempel(0, 'Pokal · Training · andere Liga', 640, 240, 'gold', 120, 1150, 2) + stempel(3, 'Ganzes Team weiß Bescheid 📲', 640, 560, '', 140, 1150, 4)
+      + stempel(4, 'Aus Excel – mit Vorlage 📋', 760, 560, 'gold', 300, 1150, 5)
+      + stempel(5, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150, 6) + stempel(6, '📱 Kalender-Abo', 820, 300, '', 140, 1150),
     schritte: [
       { s: 4, u: 'Ich weiß ja, dass viele von euch auch mal fremdgehen – in anderen Ligen. Wollen wir mal nicht so sein!', b: 0, z: [44, 40, 1.5], k: 1 },
       { s: 4.5, u: 'Damit ihr nicht in zig Apps rumspringen müsst, tragt ihr eure Fremdtermine einfach hier ein und managt sie genauso.', b: 0, z: [44, 40, 1.5], k: 2 },
-      { s: 3.5, u: 'Ganze Terminlisten importiert ihr sogar aus Excel – eine Vorlage gibt’s auch.', b: 1, z: [44, 40, 1.5], k: 3 },
-      { s: 4, u: 'Aufstellung und Spielbericht gibt’s da natürlich nicht – wir sind ja die MDU und nicht der BSDABBV.', b: 0, z: [44, 40, 1.5], k: 4 },
-      { s: 3.5, u: 'Und wenn du willst, landet alles über die Kalenderfunktion auch in deinem Handykalender.', b: 2, z: [44, 6, 1.5], k: 5 } ] },
+      { s: 2.4, u: 'Und sobald du einen neuen Termin einträgst,', b: 3, z: [44, 60, 1.6], k: 3 },
+      { s: 2.4, u: 'weiß es das ganze Team. Sofort.', b: 3, z: [44, 60, 1.6], k: 4 },
+      { s: 3.5, u: 'Ganze Terminlisten importiert ihr sogar aus Excel – eine Vorlage gibt’s auch.', b: 1, z: [44, 40, 1.5], k: 5 },
+      { s: 4, u: 'Aufstellung und Spielbericht gibt’s da natürlich nicht – wir sind ja die MDU und nicht der BSDABBV.', b: 0, z: [44, 40, 1.5], k: 6 },
+      { s: 3.5, u: 'Und wenn du willst, landet alles über die Kalenderfunktion auch in deinem Handykalender.', b: 2, z: [44, 6, 1.5], k: 7 } ] },
+
+  { titel: 'Nachricht <i>ans Team</i>', html: beispiel + geraete(['nachricht']) + mehrHandys(1, 'Heute Treffen schon um 19 Uhr!')
+      + stempel(2, 'Ganz ohne WhatsApp-Gruppe 👋', 640, 870, 'gold', 140, 1150),
+    schritte: [
+      { s: 3.2, u: 'Kurze Ansage ans ganze Team? Tippen, abschicken –', b: 0, z: [44, 72, 1.8] },
+      { s: 2.4, u: 'zack, bei allen auf dem Handy.', b: 0, z: [44, 72, 1.8], k: 2 },
+      { s: 2.4, u: 'Ganz ohne WhatsApp-Gruppe!', b: 0, z: [44, 72, 1.8], k: 3 } ] },
 
   { titel: '<i>Gegner</i>analyse', html: beispiel + geraete(['gegner', 'gegner-top']),
     schritte: [
@@ -281,6 +368,26 @@ const SZENEN = [
       { s: 2, u: 'Und dann gibt’s noch die Statistik:', b: 0, z: [44, 30, 1.55] },
       { s: 3, u: 'Wer wie oft zugesagt – und wer wirklich gespielt hat.', b: 1, z: [44, 30, 1.55] },
       { s: 2.5, u: 'Deine Quote – gegen den Team-Schnitt!', b: 0, z: [36, 38, 1.9], k: 1 } ] },
+
+  { titel: 'Die MDU <i>als App</i>', html: `
+      <div class="handy" style="${HOCH ? '' : 'left:260px;top:120px'}"><div class="schirm">
+        ${safari(0, 1)}${home(1, 2, 1, 99)}
+        <div class="ebene" data-k="2" data-bis="3" style="background:#fff url(${S}handy-push-frage.jpg) top/100% auto no-repeat"></div>
+        ${sperr(3, 4, push(3, 'Neuer Termin', 'Training · Di 3.11. 19:00 Uhr – bitte zu- oder absagen.'))}${home(4, 0, 4, 4)}
+      </div></div>
+      <div class="weg-text" style="left:820px;top:250px">
+        <div class="zeile" data-k="0"><b class="os">iPhone</b><span>Safari</span><i>→</i><span>Teilen □↑</span><i>→</i><span>„Zum Home-Bildschirm“</span></div>
+        <div class="zeile" data-k="1"><b class="os">Android</b><span>Chrome</span><i>→</i><span>⋮</span><i>→</i><span>„App installieren“</span></div>
+        <div class="zeile" data-k="2"><b class="os">Dann</b><span>einloggen</span><i>→</i><span>🔔 „Ja, einschalten“</span></div>
+        <div class="zeile" data-k="0" style="font-size:20px;font-weight:600;color:#5C6470;margin-top:10px">Kein App Store nötig · iPhone ab iOS 16.4, Push nur über das Symbol auf dem Home-Bildschirm</div>
+      </div>
+      ${stempel(0, 'Kein App Store! 🚀', 1300, 130, 'gold', 560, 180, 2)}`,
+    schritte: [
+      { s: 4, u: 'Und jetzt der Turbo: Holt euch die MDU als App aufs Handy – ganz ohne App Store.', k: 1 },
+      { s: 1.6, k: 2, weiter: true },
+      { s: 2.4, u: 'Dann kommt alles als Push –', k: 3 },
+      { s: 1.4, k: 4, weiter: true },
+      { s: 3.2, u: 'und an der App siehst du sofort, ob was Neues da ist.', k: 5 } ] },
 
   { titel: '', html: `<div class="collage" id="collage"></div><div class="frage" data-k="1"><span class="tc">Und was kostet<br>der Spaß?</span></div>`,
     schritte: [
@@ -313,7 +420,7 @@ const SZENEN = [
       <div class="laptop" style="transform:scale(.62);transform-origin:0 0;left:80px;top:300px"><div class="rand"><div class="schirm"><img class="an" src="${S}web-premium.jpg" style="transform:scale(1.4);transform-origin:44% 0"></div></div><div class="fuss"></div></div>
       <div class="handy" style="${HOCH ? 'display:none' : 'left:1440px;top:260px;transform:scale(.85);transform-origin:0 0'}"><div class="schirm"><img class="an" src="${S}handy-premium.jpg"></div></div>
       <img src="${LOGO}" style="position:absolute;${HOCH ? 'left:290px;top:260px;width:500px' : 'display:none'}"><div class="gratis tc" data-k="0" style="${HOCH ? 'left:90px;top:720px' : 'left:700px;top:80px'}">14 Tage gratis testen</div>
-      <div class="weg-zu" data-k="1" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:330px;flex-direction:column;align-items:flex-start'}"><span>mdudarts.de</span><i>→</i><span>Mein Bereich</span><i>→</i><span>Team Manager</span></div>
+      <div class="weg-zu" data-k="1" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:330px;flex-direction:column;align-items:flex-start'}"><span>mdudarts.de</span><i>→</i><span>📲 aufs Handy holen</span><i>→</i><span>Mein Bereich · Team Manager</span></div>
     </div>`,
     schritte: [
       { s: 2.5, u: 'Und die ersten vierzehn Tage sind gratis.', k: 1 },
@@ -326,7 +433,7 @@ stage.innerHTML = SZENEN.map((sz, i) => `<div class="szene" id="sz${i}">${sz.tit
   + `<div class="unter" id="unter"></div><div class="fortschritt" id="fort" style="width:0"></div>`;
 // Collage aus allen Shots (Szene „Und was kostet der Spaß?“)
 const COLLAGE = ['dash-n9', 'dash-grund', 'spiel-kader-tc', 'spiel-offen', 'glocke', 'spiel-aufstellung', 'bericht-voll', 'spiel-notiz', 'kasse-strafe', 'kasse-offen',
-  'kasse-buch', 'gegner', 'gegner-top', 'termine', 'termine-import', 'kalender', 'stat', 'stat-gespielt', 'spiel-teilen', 'glocke-tim'];
+  'spiel-erinnern', 'gegner', 'nachricht', 'termine', 'termin-neu', 'kalender', 'stat', 'stat-gespielt', 'spiel-teilen', 'glocke-tim'];
 document.getElementById('collage').innerHTML = COLLAGE.slice(0, HOCH ? 12 : 20).map((n, i) => `<div data-c="${i}" style="background-image:url(${S}${HOCH ? 'handy' : 'web'}-${n}.jpg)"></div>`).join('');
 
 const warte = ms => new Promise(r => setTimeout(r, ms));
