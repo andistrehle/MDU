@@ -151,6 +151,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Bereich. Abmelden löscht das Abo des Geräts; bewusst ausgeschaltet bleibt aus (`mdu-push-aus`).
   iPhone: nur als installierte Web-App (iOS 16.4+). Datenschutz-Absatz dazu: nur auf Anweisung.
   Live seit 25.10.2026 (VAPID-Schlüssel per Vercel-API gesetzt, nur in Vercel gespeichert — neue nur als Paar).
+  Geheimnis NICHT von Hand kopieren (ging am 26.10. zweimal schief → nur 401): neu setzen über
+  `push_geheimnis_setzen(neu)` (Migration 0059, nur service_role) + denselben Wert per Vercel-API, dann Redeploy.
+  Prüfen: `push_subscriptions.last_ok_at` bzw. `net._http_response` (SQL-Editor).
   **Spieltagsbericht** (Migration 0058, Betreiber 25.10.2026): Cron `/api/cron/spieltag-bericht` (So 19:00 UTC)
   legt je PLAN-WOCHENENDE (Spieltag-Nummern sind je Liga verschieden!) einen News-ENTWURF `spieltag-<Freitag>`
   an (Kategorie „Spieltag“) + Glocke an die Ligaleitung; Veröffentlichen unter Admin → News schickt den Push
