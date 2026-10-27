@@ -80,6 +80,7 @@ export default async function SpielberichtPage({ params }: Params) {
             <div className="sb-saison">Saison {NEUE_SAISON.name.replace(/^Saison\s*/, '')}</div>
           </div>
           {!e.bestaetigt && <span className="sb-offen">* vom Gegner noch nicht bestätigt</span>}
+          {r.korrekturAngefragt && <span className="sb-offen">Korrektur angefragt – bis zur Bestätigung gilt dieser Stand</span>}
         </div>
         <div className="sb-meta">
           <Feld label="Liga" wert={liga?.name ?? b.liga} />

@@ -10,6 +10,7 @@
 
 import { supabase } from './client';
 import { pointsForLegs, bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
+import type { Korrektur } from '@/lib/spielbericht-korrektur';
 
 export type ReportStatus = 'draft' | 'submitted' | 'confirmed' | 'changes_requested';
 
@@ -312,6 +313,10 @@ export const HISTORY_ACTION_LABELS: Record<string, string> = {
   changes_requested: 'Änderung angefordert',
   admin_changed: 'Von der Ligaleitung geändert',
   escalated: 'An Ligaleitung eskaliert',
+  korrektur_angefragt: 'Korrektur angefragt',
+  korrektur_bestaetigt: 'Korrektur bestätigt und übernommen',
+  korrektur_abgelehnt: 'Korrektur abgelehnt',
+  korrektur_zurueckgezogen: 'Korrektur zurückgezogen',
 };
 
 export async function getReportHistory(reportId: string): Promise<ReportHistoryEntry[]> {
@@ -441,6 +446,38 @@ async function protestAufruf(body: Record<string, string>): Promise<{ error: str
     return { error: r.ok ? null : j.error ?? 'Fehlgeschlagen.' };
   } catch { return { error: 'Keine Verbindung – bitte noch einmal versuchen.' }; }
 }
+// ── Korrektur eines bestätigten Berichts (Migration 0061, /api/match-reports/korrektur) ──
+
+/** Offene Korrektur-Anfrage zum Bericht (null = keine) und letzter Tag der Frist. */
+export async function ladeKorrektur(id: string): Promise<{ korrektur: Korrektur | null; frist: string | null; error: string | null }> {
+  if (!supabase || typeof window === 'undefined') return { korrektur: null, frist: null, error: NOT_CONFIGURED };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { korrektur: null, frist: null, error: 'Nicht angemeldet.' };
+    const r = await fetch(`/api/match-reports/korrektur?id=${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` } });
+    const j = await r.json().catch(() => ({})) as { korrektur?: Korrektur | null; frist?: string | null; error?: string };
+    return { korrektur: j.korrektur ?? null, frist: j.frist ?? null, error: r.ok ? null : j.error ?? 'Fehlgeschlagen.' };
+  } catch { return { korrektur: null, frist: null, error: 'Keine Verbindung.' }; }
+}
+async function korrekturAufruf(body: Record<string, unknown>): Promise<{ error: string | null }> {
+  if (!supabase || typeof window === 'undefined') return { error: NOT_CONFIGURED };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { error: 'Nicht angemeldet.' };
+    const r = await fetch('/api/match-reports/korrektur', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({})) as { error?: string };
+    return { error: r.ok ? null : j.error ?? 'Fehlgeschlagen.' };
+  } catch { return { error: 'Keine Verbindung – bitte noch einmal versuchen.' }; }
+}
+/** TC fragt eine Korrektur an (Stand = kompletter neuer Bericht). */
+export const frageKorrekturAn = (id: string, grund: string, stand: { players: Omit<ReportPlayer, 'points'>[]; games: ReportGame[]; highlights: HighlightEntry[] }) =>
+  korrekturAufruf({ id, aktion: 'anfragen', grund, stand });
+/** Anderer TC / Ligaleitung entscheidet, Antragsteller zieht zurück. */
+export const entscheideKorrektur = (korrekturId: string, aktion: 'bestaetigen' | 'ablehnen' | 'zurueckziehen', notiz?: string) =>
+  korrekturAufruf({ korrekturId, aktion, notiz });
+
 /** Nach dem Einreichen eines Berichts mit Protest: Ligaleitung + Gegner-TC benachrichtigen (einmal je Protest, Server prüft). */
 export const meldeProtest = (id: string) => protestAufruf({ id, aktion: 'melden' });
 /** Ligaleitung: Protest als erledigt markieren. */

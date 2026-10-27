@@ -140,6 +140,16 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Ligaleitung Glocke + E-Mail, Gegner-TC Glocke — einmal je Protest (`protest_notified_at`). Offen bis
   „Protest erledigt“ (Admin → Spielberichte, `protest_handled_*`); bis dahin roter Hinweis in Mein Bereich,
   Zahl an der Kachel Spielberichte (`countOffeneProteste`) und im Filter Problemfälle.
+  **Korrektur bestätigter Spielberichte** (Migration 0061, `match_report_corrections`, Betreiber 27.10.2026):
+  TC von Heim ODER Gast fragt im Formular „Korrektur anfragen“ an (nur `confirmed`, keine Wertung, bis
+  `KORREKTUR_TAGE` = 7 Tage nach `match_date`, Begründung ≥ 15 Zeichen). Korrigierbar: Aufstellung, Spieler je
+  Spiel, Ergebnisse, Highlights (Kopf/Protest gesperrt). Der andere TC bestätigt/lehnt ab, Ligaleitung bekommt
+  Glocke und entscheidet, wenn niemand antwortet (kein Ablauf, bleibt offen); Ligaleitung behält daneben das
+  direkte Bearbeiten im Admin-Modus. Bestätigen schreibt nur, wenn der Bericht noch dem Stand beim Anfragen
+  (`base`) entspricht, rechnet Summen/Einzelpunkte neu und markiert die Seiten wie `/published`. Bis dahin
+  „Korrektur angefragt“ auf `/spielbericht/…` (`korrekturAngefragt` in `ladeBericht27`). Logik: rein in
+  `lib/spielbericht-korrektur.ts` (prüfen, Frist, Unterschiede in Worten), Server `/api/match-reports/korrektur`
+  (service_role, Tabelle ohne Policy), jeder Schritt in `match_report_history` (`korrektur_*`).
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →

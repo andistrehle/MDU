@@ -130,16 +130,20 @@ export interface Bericht27 {
   spieler: { side: 'home' | 'guest'; slot: number; name: string; playerId: string | null }[];
   spiele: { nr: number; doppel: boolean; heim: number[]; gast: number[]; legsHeim: number | null; legsGast: number | null }[];
   highlights: EinzelBericht['highlights'];
+  /** Offene Korrektur-Anfrage (Migration 0061) — bis zur Bestätigung gilt der alte Stand. */
+  korrekturAngefragt: boolean;
 }
 
 export const ladeBericht27 = cache(async (key: string): Promise<Bericht27 | null> => {
   if (!supabaseAdmin) return null;
   const e = (await ladeErgebnisse27()).byKey[key];
   if (!e || e.wertung) return null;
-  const [rep, pl, gm] = await Promise.all([
+  const [rep, pl, gm, ko] = await Promise.all([
     supabaseAdmin.from('match_reports').select('highlights').eq('id', e.reportId).maybeSingle(),
     supabaseAdmin.from('match_report_players').select('side, slot, name, player_id').eq('report_id', e.reportId),
     supabaseAdmin.from('match_report_games').select('game_no, game_type, home_slot, guest_slot, home_slot2, guest_slot2, legs_home, legs_guest').eq('report_id', e.reportId).order('game_no'),
+    // Fehlt Migration 0061, kommt ein Fehler zurück → kein Hinweis.
+    supabaseAdmin.from('match_report_corrections').select('id').eq('report_id', e.reportId).eq('status', 'offen').limit(1),
   ]);
   type G = { game_no: number; game_type: string; home_slot: number | null; guest_slot: number | null; home_slot2: number | null; guest_slot2: number | null; legs_home: number | null; legs_guest: number | null };
   const slots = (...s: (number | null)[]) => s.filter((x): x is number => x != null);
@@ -155,5 +159,6 @@ export const ladeBericht27 = cache(async (key: string): Promise<Bericht27 | null
       legsHeim: g.legs_home, legsGast: g.legs_guest,
     })),
     highlights: ((rep.data as { highlights: EinzelBericht['highlights'] | null } | null)?.highlights ?? []),
+    korrekturAngefragt: !ko.error && (ko.data ?? []).length > 0,
   };
 });

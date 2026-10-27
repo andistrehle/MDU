@@ -199,6 +199,16 @@ Echte Proteste müssen zusätzlich auf dem Spielbericht stehen und binnen zwei W
         stichworte: ['falsch', 'korrigieren', 'protest', 'einspruch'],
       },
       {
+        id: 'korrektur-bestaetigt',
+        frage: 'Der Spielbericht ist schon bestätigt, aber falsch. Geht das noch zu ändern?',
+        antwort: `Ja, bis 7 Tage nach dem Spiel. Öffne den Bericht und tippe auf „Korrektur anfragen“. Das können die TCs beider Teams. Du änderst, was nicht stimmt: Aufstellung, Spieler je Spiel, Ergebnisse oder Highlights. Dazu schreibst du eine Begründung (mindestens 15 Zeichen) und schickst die Anfrage ab.
+
+Der TC des anderen Teams bekommt eine Nachricht und sieht genau, was sich ändern soll. Er bestätigt oder lehnt ab. Die Ligaleitung ist informiert und entscheidet, wenn niemand antwortet. Erst mit der Bestätigung gilt die Korrektur, dann rechnen Tabelle und Ranglisten neu. Bis dahin bleibt der bisherige Stand öffentlich, mit dem Hinweis „Korrektur angefragt“. Im Verlauf des Berichts steht, wer wann was angefragt und bestätigt hat.
+
+Nach den 7 Tagen wendest du dich an die Ligaleitung.`,
+        stichworte: ['korrektur', 'bestätigt', 'nachträglich', 'ändern', 'fehler'],
+      },
+      {
         id: 'sternchen',
         frage: 'Was bedeutet das Sternchen (*) in der Tabelle?',
         antwort: `Ein Ergebnis zählt in der Tabelle schon ab dem Einreichen durch die Heimmannschaft. Bis das Gastteam bestätigt hat, ist es mit * markiert.`,

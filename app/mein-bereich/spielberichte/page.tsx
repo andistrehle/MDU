@@ -20,11 +20,13 @@ import { zusagenFuerTeam } from '@/lib/features';
 import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
+import { KORREKTUR_MIN, KORREKTUR_TAGE, unterschiede, gleicherStand, datumDe, heuteBerlin, type Korrektur, type KorrekturStand } from '@/lib/spielbericht-korrektur';
 import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
   createReport, updateReport, submitReport, notifyReportChange, protokolliereSpeichern,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking, adminBestaetigen, meldeProtest, PROTEST_MIN,
+  ladeKorrektur, frageKorrekturAn, entscheideKorrektur,
   HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
   type HighlightEntry, type HighlightType, highlightHinzufuegen,
@@ -102,6 +104,14 @@ function SpielberichteInner() {
   const [proposedGames, setProposedGames] = useState<ReportGame[] | null>(null); // Vorschlag des Gegners (für Heim sichtbar)
   const [baseGames, setBaseGames] = useState<ReportGame[] | null>(null);         // Ausgangswerte zum Vorschlag (Vergleich)
   const [submitBase, setSubmitBase] = useState<ReportGame[] | null>(null);       // Momentaufnahme beim Start des Vorschlags
+  // Korrektur eines BESTÄTIGTEN Berichts (Migration 0061): TC fragt an, der andere TC bestätigt.
+  const [wertung, setWertung] = useState<string | null>(null);
+  const [korrektur, setKorrektur] = useState<Korrektur | null>(null);   // offene Anfrage
+  const [korrFrist, setKorrFrist] = useState<string | null>(null);      // letzter Tag zum Anfragen
+  const [korrigieren, setKorrigieren] = useState(false);                // Korrekturmodus (Formular offen)
+  const [korrBasis, setKorrBasis] = useState<KorrekturStand | null>(null);
+  const [korrGrund, setKorrGrund] = useState('');
+  const [korrNotiz, setKorrNotiz] = useState('');
   // Original-Fotos des Papierbogens (nur bei Foto-Upload): Kapitäne beider Teams + Ligaleitung.
   const [hatFotos, setHatFotos] = useState(false);
   const [fotos, setFotos] = useState<{ id: string; url: string }[] | null>(null);
@@ -125,6 +135,14 @@ function SpielberichteInner() {
   const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
   // Nur-Lese-Ansicht: Gegner-Kapitän ODER bereits bestätigter Bericht (außer Admin).
   const readOnly = !isAdminRole && ((!!ownerId && ownerId !== user?.id) || loadedStatus === 'confirmed');
+
+  // Korrektur (Migration 0061): TC von Heim ODER Gast, bestätigter Bericht, bis 7 Tage nach dem Spiel.
+  const meinTeamDabei = !!user?.teamId && (user.teamId === header.home_team_id || user.teamId === header.guest_team_id);
+  // korrFrist kommt nur, wenn der Server antwortet (fehlt Migration 0061, bleibt die Karte weg).
+  const kannKorrekturAnfragen = !!regId && loadedStatus === 'confirmed' && !isAdminRole && meinTeamDabei && !wertung && !korrektur && !!korrFrist;
+  const fristOffen = !!korrFrist && heuteBerlin() <= korrFrist;
+  const teamVon = (id: string | null) => (id === header.home_team_id ? header.home_team_name : id === header.guest_team_id ? header.guest_team_name : 'Team');
+  const jetztStand = (): KorrekturStand => ({ players: [...homePlayers, ...guestPlayers], games, highlights: header.highlights ?? [] });
 
   const totals = useMemo(() => computeTotals(games), [games]);
   // Foto-Upload bleibt bei der hier gewählten Begegnung (Ligaleitung lädt auch
@@ -378,6 +396,7 @@ function SpielberichteInner() {
         setHistory([]);
         setProposedGames(null); setProposing(false); setProposalNote('');
         setBaseGames(null); setSubmitBase(null);
+        setWertung(null); setKorrektur(null); setKorrFrist(null); setKorrigieren(false); setKorrBasis(null); setKorrGrund(''); setKorrNotiz('');
         setSeasonId(NEUE_SAISON.id);
         setHeader({
           season_id: NEUE_SAISON.id, league_label: '', matchday: null, match_date: null, venue: '',
@@ -418,6 +437,10 @@ function SpielberichteInner() {
     setSeasonId(r.season_id ?? '');
     setHatFotos(!!(r as { ocr_upload_id?: string | null }).ocr_upload_id); setFotos(null); setFotoMsg(null);
     getReportHistory(id).then(setHistory);
+    setWertung(r.forfeit ?? null);
+    setKorrigieren(false); setKorrBasis(null); setKorrGrund(''); setKorrNotiz('');
+    if (r.status === 'confirmed') ladeKorrektur(id).then(k => { setKorrektur(k.korrektur); setKorrFrist(k.frist); });
+    else { setKorrektur(null); setKorrFrist(null); }
     setHeader({
       season_id: r.season_id, league_label: r.league_label ?? '', matchday: r.matchday, match_date: r.match_date,
       venue: r.venue ?? '', home_team_id: r.home_team_id, guest_team_id: r.guest_team_id,
@@ -633,6 +656,41 @@ function SpielberichteInner() {
     router.push('/mein-bereich/spielberichte/uebersicht');
   }
 
+  /** Korrekturmodus öffnen: aktueller Stand ist die Vergleichsbasis. */
+  function korrekturStarten() {
+    setKorrBasis(jetztStand()); setKorrigieren(true); setKorrGrund(''); setMsg(null);
+  }
+  function korrekturAbbrechen() {
+    setKorrigieren(false); setMsg(null);
+    if (regId) void loadExisting(regId);
+  }
+  /** TC: Korrektur mit Begründung anfragen — der Bericht selbst bleibt, bis der andere TC bestätigt. */
+  async function onKorrekturAnfragen() {
+    if (!regId) return;
+    if (korrBasis && gleicherStand(korrBasis, jetztStand())) { setMsg({ kind: 'err', text: 'Du hast noch nichts geändert.', ort: 'korrektur' }); return; }
+    const v = validate();
+    if (v) { setMsg({ kind: 'err', ...v }); return; }
+    if (korrGrund.trim().length < KORREKTUR_MIN) { setMsg({ kind: 'err', text: `Bitte begründe die Korrektur (mindestens ${KORREKTUR_MIN} Zeichen) – der Gegner und die Ligaleitung sehen den Grund.`, ort: 'korrektur' }); return; }
+    setBusy(true); setMsg(null);
+    const { error } = await frageKorrekturAn(regId, korrGrund.trim(), jetztStand());
+    setBusy(false);
+    if (error) { setMsg({ kind: 'err', text: error, ort: 'korrektur' }); return; }
+    await loadExisting(regId);
+    setMsg({ kind: 'ok', text: 'Korrektur angefragt. Der Gegner und die Ligaleitung sind benachrichtigt – bis zur Bestätigung gilt der bisherige Stand.', ort: 'korrektur-status' });
+  }
+  /** Anderer TC / Ligaleitung entscheidet, Antragsteller zieht zurück. */
+  async function onKorrekturEntscheiden(aktion: 'bestaetigen' | 'ablehnen' | 'zurueckziehen') {
+    if (!korrektur || !regId) return;
+    if (aktion === 'bestaetigen' && !confirm('Korrektur übernehmen?\n\nDer Spielbericht wird geändert, Tabellen und Ranglisten rechnen neu.')) return;
+    if (aktion === 'zurueckziehen' && !confirm('Korrektur-Anfrage zurückziehen?')) return;
+    setBusy(true); setMsg(null);
+    const { error } = await entscheideKorrektur(korrektur.id, aktion, korrNotiz.trim());
+    setBusy(false);
+    if (error) { setMsg({ kind: 'err', text: error, ort: 'korrektur-status' }); return; }
+    await loadExisting(regId);
+    setMsg({ kind: 'ok', ort: 'korrektur-status', text: aktion === 'bestaetigen' ? 'Korrektur übernommen – der Bericht ist geändert, Tabellen und Ranglisten rechnen neu.' : aktion === 'ablehnen' ? 'Korrektur abgelehnt – der Bericht bleibt, wie er ist.' : 'Anfrage zurückgezogen.' });
+  }
+
   /** Heim: Vorschlag des Gegners in den Bogen übernehmen (noch nicht gespeichert). */
   function applyProposal() {
     if (!proposedGames) return;
@@ -738,10 +796,22 @@ function SpielberichteInner() {
               </div>
             )}
 
-            {readOnly && !proposing && (
+            {readOnly && !proposing && loadedStatus !== 'confirmed' && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                 Nur-Lese-Ansicht — den Bericht hat der Gegner eingetragen. Du kannst ihn bestätigen oder unten einen Änderungsvorschlag eintragen.
               </div>
+            )}
+            {korrigieren && (
+              <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.5 }}>
+                <strong style={{ color: 'var(--th-gold)' }}>Korrekturmodus:</strong> Ändere Aufstellung, Spieler je Spiel, Ergebnisse und Highlights so, wie es richtig ist. Kopfdaten und Protest bleiben. Unten die Begründung eintragen und absenden – der Gegner bestätigt, erst dann gilt die Korrektur.
+              </div>
+            )}
+            {(korrektur || (kannKorrekturAnfragen && !korrigieren) || msg?.ort === 'korrektur-status') && (
+              <KorrekturKarte
+                korrektur={korrektur} teamVon={teamVon} busy={busy} notiz={korrNotiz} setNotiz={setKorrNotiz}
+                anfragen={kannKorrekturAnfragen && !korrigieren ? { frist: korrFrist, offen: fristOffen, los: korrekturStarten } : null}
+                entscheiden={onKorrekturEntscheiden} hinweis={hinweis('korrektur-status')}
+              />
             )}
             {proposing && (
               <div style={{ padding: '11px 15px', borderRadius: 10, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.4)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
@@ -779,8 +849,9 @@ function SpielberichteInner() {
               </div>
             )}
 
-            <fieldset disabled={readOnly && !proposing} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Kopf */}
+            <fieldset disabled={readOnly && !proposing && !korrigieren} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Kopf — im Korrekturmodus gesperrt: korrigiert werden nur Aufstellung, Spiele, Highlights. */}
+            <fieldset disabled={korrigieren} style={unsichtbar}>
             <Section title="Spielbericht – Kopfdaten">
               {hinweis('kopf')}
               <Field label="Begegnung *">
@@ -826,6 +897,7 @@ function SpielberichteInner() {
                 </Field>
               </Row2>
             </Section>
+            </fieldset>
 
             {/* Aufstellung */}
             <Section title="Aufstellung (H1–H8 / G1–G8 · Position 1–4 startet, 5–8 Wechsel)">
@@ -997,6 +1069,7 @@ function SpielberichteInner() {
               )}
             </Section>
 
+            <fieldset disabled={korrigieren} style={unsichtbar}>
             <Section title="Protest">
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                 <input type="checkbox" checked={header.protest} onChange={e => {
@@ -1017,6 +1090,7 @@ function SpielberichteInner() {
               )}
               {hinweis('protest')}
             </Section>
+            </fieldset>
 
             </fieldset>
 
@@ -1036,7 +1110,31 @@ function SpielberichteInner() {
               </Section>
             )}
 
-            {readOnly ? (
+            {korrigieren ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(() => {
+                  const liste = korrBasis ? unterschiede(korrBasis, jetztStand()) : [];
+                  return (
+                    <div style={{ padding: '11px 15px', borderRadius: 10, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+                      <strong style={{ color: 'var(--th-text-strong)' }}>Deine Änderungen ({liste.length})</strong>
+                      {liste.length ? <ul style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.5 }}>{liste.map((t, i) => <li key={i}>{t}</li>)}</ul>
+                        : <div style={{ marginTop: 4, color: 'var(--th-text-muted)' }}>Noch nichts geändert.</div>}
+                    </div>
+                  );
+                })()}
+                <label htmlFor="korrektur-grund" style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, color: 'var(--th-text-body)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Begründung *</label>
+                <textarea id="korrektur-grund" value={korrGrund} onChange={e => setKorrGrund(e.target.value.slice(0, 500))} rows={3}
+                  placeholder="z. B. Spiel 15 und 16: Gastspieler vertauscht – auf dem Papierbogen stehen G6 und G2." style={{ ...input, resize: 'vertical' }} />
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: korrGrund.trim().length >= KORREKTUR_MIN ? 'var(--th-text-faint)' : 'var(--th-gold)' }}>
+                  Pflicht, mindestens {KORREKTUR_MIN} Zeichen ({korrGrund.trim().length}/{KORREKTUR_MIN}) – der Gegner und die Ligaleitung sehen den Grund.
+                </div>
+                {hinweis('korrektur')}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => void onKorrekturAnfragen()} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : 'Korrektur anfragen'}</button>
+                  <button type="button" onClick={korrekturAbbrechen} disabled={busy} style={ghost}>Abbrechen</button>
+                </div>
+              </div>
+            ) : readOnly ? (
               proposing ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <textarea value={proposalNote} onChange={e => setProposalNote(e.target.value)} rows={2} placeholder="Was soll geändert werden? (Pflicht)" style={{ ...input, resize: 'vertical' }} />
@@ -1093,6 +1191,64 @@ function SpielberichteInner() {
 }
 
 // ── kleine Bausteine ───────────────────────────────────────────
+
+/**
+ * Korrektur eines bestätigten Berichts (Migration 0061): offene Anfrage mit
+ * Grund und Änderungen — Bestätigen/Ablehnen für den anderen TC und die
+ * Ligaleitung, Zurückziehen für den Antragsteller. Ohne Anfrage: Einstieg
+ * „Korrektur anfragen“ mit Frist (7 Tage nach dem Spiel).
+ */
+function KorrekturKarte({ korrektur: k, teamVon, busy, notiz, setNotiz, anfragen, entscheiden, hinweis }: {
+  korrektur: Korrektur | null; teamVon: (id: string | null) => string; busy: boolean;
+  notiz: string; setNotiz: (s: string) => void;
+  anfragen: { frist: string | null; offen: boolean; los: () => void } | null;
+  entscheiden: (a: 'bestaetigen' | 'ablehnen' | 'zurueckziehen') => void;
+  hinweis: React.ReactNode;
+}) {
+  const box: React.CSSProperties = { padding: '12px 15px', borderRadius: 10, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', lineHeight: 1.5, display: 'flex', flexDirection: 'column', gap: 8 };
+  if (!k) {
+    return (
+      <div style={{ ...box, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)' }}>
+        {anfragen && (anfragen.offen ? (
+          <>
+            <span><strong style={{ color: 'var(--th-text-strong)' }}>Fehler im bestätigten Bericht?</strong> Bis {anfragen.frist ? datumDe(anfragen.frist) : '–'} ({KORREKTUR_TAGE} Tage nach dem Spiel) kannst du eine Korrektur anfragen. Der Gegner bestätigt, die Ligaleitung ist informiert – bis dahin bleibt der bisherige Stand.</span>
+            <button type="button" onClick={anfragen.los} disabled={busy} style={{ ...ghost, alignSelf: 'flex-start', color: 'var(--th-gold)', borderColor: 'var(--th-gold)' }}>Korrektur anfragen</button>
+          </>
+        ) : (
+          <span style={{ color: 'var(--th-text-muted)' }}>Korrektur anfragen ging bis {anfragen.frist ? datumDe(anfragen.frist) : '–'} ({KORREKTUR_TAGE} Tage nach dem Spiel). Ist noch etwas falsch, wende dich bitte an die Ligaleitung.</span>
+        ))}
+        {hinweis}
+      </div>
+    );
+  }
+  const liste = unterschiede(k.base, k.changes);
+  return (
+    <div style={{ ...box, background: 'rgba(232,184,74,0.10)', border: '1px solid rgba(232,184,74,0.45)' }}>
+      <span><strong style={{ color: 'var(--th-gold)' }}>Korrektur angefragt</strong> von {teamVon(k.requested_team_id)} am {new Date(k.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr. Bis zur Bestätigung gilt der bisherige Stand (unten zu sehen).</span>
+      <span><strong style={{ color: 'var(--th-text-strong)' }}>Grund:</strong> „{k.reason}“</span>
+      <div>
+        <strong style={{ color: 'var(--th-text-strong)' }}>Änderungen ({liste.length}):</strong>
+        <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>{liste.map((t, i) => <li key={i}>{t}</li>)}</ul>
+      </div>
+      {k.darfEntscheiden && (
+        <>
+          <input value={notiz} onChange={e => setNotiz(e.target.value.slice(0, 300))} placeholder="Anmerkung (optional, z. B. Grund für die Ablehnung)" style={input} />
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button type="button" disabled={busy} onClick={() => entscheiden('bestaetigen')} style={primary}>{busy ? 'Bitte warten …' : 'Bestätigen und übernehmen'}</button>
+            <button type="button" disabled={busy} onClick={() => entscheiden('ablehnen')} style={{ ...ghost, color: 'var(--th-loss)', borderColor: 'var(--th-loss)' }}>Ablehnen</button>
+          </div>
+        </>
+      )}
+      {!k.darfEntscheiden && (
+        <span style={{ color: 'var(--th-text-muted)' }}>Wartet auf {teamVon(k.confirm_team_id)}. Antwortet dort niemand, entscheidet die Ligaleitung.</span>
+      )}
+      {k.darfZurueckziehen && !k.darfEntscheiden && (
+        <button type="button" disabled={busy} onClick={() => entscheiden('zurueckziehen')} style={{ ...ghost, alignSelf: 'flex-start' }}>Anfrage zurückziehen</button>
+      )}
+      {hinweis}
+    </div>
+  );
+}
 
 function Lineup({ label, players, setPlayers, prefix, options, teamChosen }: {
   label: string; players: ReportPlayer[];
@@ -1178,6 +1334,7 @@ const input: React.CSSProperties = {
   width: '100%', padding: '9px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)',
   borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none',
 };
+const unsichtbar: React.CSSProperties = { border: 0, padding: 0, margin: 0, minWidth: 0 };
 const ghost: React.CSSProperties = { padding: '12px 22px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13 };
 const primary: React.CSSProperties = { padding: '12px 28px', borderRadius: 8, cursor: 'pointer', background: 'var(--th-accent)', color: '#fff', border: '1px solid var(--th-accent-hover)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
 
