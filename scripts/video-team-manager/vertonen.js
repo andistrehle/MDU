@@ -39,7 +39,7 @@ const AUSSPRACHE = [
   [/\bMDU\b/g, 'Em De U'],
   [/\bTC\b/g, 'Teamcaptain'],
   [/BSDABBV/g, 'Be-Es-De-A-Be-Be-Vau'],
-  [/7,99\s*€/g, 'sieben neunundneunzig'],
+  [/8,99\s*€/g, 'acht neunundneunzig'],
   [/49\s*€/g, 'neunundvierzig Euro'],
   // Auslassungspunkte: am Stück gesprochen stünden sonst „… …“ hintereinander,
   // daran verschluckt sich die Stimme (Szene 6, 14.10.2026).

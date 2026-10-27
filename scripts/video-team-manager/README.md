@@ -30,7 +30,7 @@ node reel.js
 - **Gleichlauf prüfen:** Speech-to-Text mit Wort-Zeitstempeln gegen `ausgabe/szenen.json` — 21.10.2026: größte Abweichung 0,16 s.
 - **Aussprache** (`AUSSPRACHE`, nur gesprochen): „mdudarts.de“ → „Em-De-U-Darts Punkt De-E“
   (mit Bindestrichen trennt die Stimme die Buchstaben; „Em De U Darts Punkt De“ verstand die
-  Spracherkennung als „MDI Darts Punkte“), „TC“ → „Teamcaptain“, „7,99 €“ → „sieben
+  Spracherkennung als „MDI Darts Punkte“), „TC“ → „Teamcaptain“, „8,99 €“ → „acht
   neunundneunzig“, „49 €“ → „neunundvierzig Euro“.
 - **Prüfen:** Tonspur mit ElevenLabs Speech-to-Text (`scribe_v1`) mitschreiben lassen — so fiel
   „gegens den Teamschnitt“ auf (18.10.2026, mit Gedankenstrich behoben).
