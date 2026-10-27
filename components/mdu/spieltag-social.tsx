@@ -17,7 +17,13 @@ import { ladeSpieltagSocial } from '@/lib/supabase/news';
 import type { SocialDaten } from '@/lib/spieltag-social';
 
 const W = 1080, H = 1920, PAD = 90;
-const ROT = '#E24B4A', WEISS = '#F5F6FA', GRAU = '#AEB6C2', DUNKEL = '#8892A0';
+// Old-School-Design der Seite (globals.css, html[data-theme="light"]): heller Grund,
+// blaues Kopfband wie der Seitenkopf, Grün als Akzent, dunkle Schrift (Betreiber, 27.10.2026).
+const ROT = '#3E9C33', WEISS = '#1A1D24', GRAU = '#5C6470', DUNKEL = '#818793';
+const BAND = 330, BLAU1 = '#6B95CE', BLAU2 = '#4E7DBD';
+/** Dartscheibe für das Kopfband (wie im Seitenbanner); lädt die Komponente. */
+let scheibe: HTMLImageElement | null = null;
+export function setzeScheibe(img: HTMLImageElement | null) { scheibe = img; }
 
 type Ctx = CanvasRenderingContext2D;
 interface Schrift { titel: string; text: string }
@@ -48,21 +54,26 @@ function umbrechen(ctx: Ctx, text: string, maxW: number, maxZeilen: number): str
   return out;
 }
 
-function hintergrund(ctx: Ctx) {
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#151A22'); g.addColorStop(1, '#0A0D12');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  const r = ctx.createRadialGradient(W / 2, H * 0.28, 0, W / 2, H * 0.28, W * 0.9);
-  r.addColorStop(0, 'rgba(212,0,0,0.22)'); r.addColorStop(1, 'rgba(212,0,0,0)');
-  ctx.fillStyle = r; ctx.fillRect(0, 0, W, H);
+function hintergrund(ctx: Ctx, band = true) {
+  ctx.fillStyle = '#F2F4F7'; ctx.fillRect(0, 0, W, H);
+  if (!band) return;
+  const g = ctx.createLinearGradient(0, 0, W, BAND);
+  g.addColorStop(0, BLAU1); g.addColorStop(1, BLAU2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, BAND);
+  if (scheibe) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, BAND); ctx.clip();
+    ctx.globalAlpha = 0.28; const d = 560; ctx.drawImage(scheibe, W - d * 0.72, BAND / 2 - d / 2, d, d);
+    ctx.restore();
+  }
+  ctx.fillStyle = ROT; ctx.fillRect(0, BAND, W, 8);
 }
 
 function kopf(ctx: Ctx, s: Schrift, logo: HTMLImageElement | null, d: SocialDaten, label: string) {
-  if (logo) { const lw = 300; ctx.drawImage(logo, PAD, 110, lw, lw * (logo.height / logo.width)); }
-  ctx.textAlign = 'right'; ctx.fillStyle = ROT; ctx.font = font(800, 40, s.titel);
-  ctx.fillText(label.toUpperCase(), W - PAD, 170);
-  ctx.fillStyle = GRAU; ctx.font = font(600, 34, s.text);
-  ctx.fillText(d.wochenende, W - PAD, 220);
+  if (logo) { const lw = 300, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, PAD, (BAND - lh) / 2, lw, lh); }
+  ctx.textAlign = 'right'; ctx.fillStyle = '#FFFFFF'; ctx.font = font(900, 50, s.titel);
+  ctx.fillText(label.toUpperCase(), W - PAD, BAND / 2 - 4);
+  ctx.fillStyle = '#DCF5C8'; ctx.font = font(700, 36, s.text);
+  ctx.fillText(d.wochenende, W - PAD, BAND / 2 + 46);
   ctx.textAlign = 'left';
 }
 
@@ -126,7 +137,7 @@ function ligaGestapelt(ctx: Ctx, s: Schrift, l: SocialDaten['ligen'][number], si
     ctx.fillStyle = GRAU; ctx.font = mk(g.px); ctx.fillText(g.text, PAD, y + px * 2.25);
     ctx.fillStyle = ROT; ctx.font = font(900, px * 2, s.titel); ctx.textAlign = 'right';
     ctx.fillText(e.erg + (e.bestaetigt ? '' : '*'), W - PAD, y + px * 2.05); ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(PAD, y + zeile - 18, W - PAD * 2, 2);
+    ctx.fillStyle = 'rgba(15,23,42,0.10)'; ctx.fillRect(PAD, y + zeile - 18, W - PAD * 2, 2);
     y += zeile;
   });
   ctx.globalAlpha = 1;
@@ -201,7 +212,7 @@ export function szenen(s: Schrift, logo: HTMLImageElement | null, d: SocialDaten
     dauer: 2.8, male: (ctx, _p, t) => {
       hintergrund(ctx);
       ctx.globalAlpha = ein(t);
-      if (logo) { const lw = 620, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, (W - lw) / 2, 380 - (1 - ein(t)) * 40, lw, lh); }
+      if (logo) { const lw = 620, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, (W - lw) / 2, 470 - (1 - ein(t)) * 40, lw, lh); }
       ctx.globalAlpha = ein(t, 0.4); ctx.textAlign = 'center';
       ctx.fillStyle = ROT; ctx.font = font(900, 120, s.titel); ctx.fillText('SPIELTAG', W / 2, 960);
       ctx.fillStyle = WEISS; ctx.font = font(800, 64, s.titel); ctx.fillText(d.wochenende, W / 2, 1050);
@@ -251,7 +262,7 @@ export function szenen(s: Schrift, logo: HTMLImageElement | null, d: SocialDaten
     dauer: 3.2, male: (ctx, _p, t) => {
       hintergrund(ctx);
       ctx.globalAlpha = ein(t); ctx.textAlign = 'center';
-      if (logo) { const lw = 520, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, (W - lw) / 2, 480, lw, lh); }
+      if (logo) { const lw = 520, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, (W - lw) / 2, 520, lw, lh); }
       ctx.fillStyle = WEISS; ctx.font = font(900, 84, s.titel);
       ['ALLE ERGEBNISSE,', 'HIGHLIGHTS & TABELLEN'].forEach((z, i) => ctx.fillText(z, W / 2, 1000 + i * 96));
       ctx.globalAlpha = ein(t, 0.6); ctx.fillStyle = ROT; ctx.font = font(900, 96, s.titel); ctx.fillText('mdudarts.de', W / 2, 1300);
@@ -325,6 +336,9 @@ export function SpieltagSocial({ newsId, veroeffentlicht }: { newsId: string; ve
     const img = new Image();
     img.onload = () => { logoRef.current = img; void document.fonts.ready.then(zeichneStory); };
     img.onerror = () => { void document.fonts.ready.then(zeichneStory); };
+    const sc = new Image();
+    sc.onload = () => { setzeScheibe(sc); void document.fonts.ready.then(zeichneStory); };
+    sc.src = '/mdu-hero-dartboard-2.webp';
     img.src = '/mdu-logo.webp';
   }, [daten, zeichneStory]);
 
@@ -368,7 +382,7 @@ export function SpieltagSocial({ newsId, veroeffentlicht }: { newsId: string; ve
         sz[i].male(ctx, Math.min(1, rest / sz[i].dauer), Math.min(rest, sz[i].dauer));
         // Weiche Blende in den letzten 0,3 s einer Szene.
         const aus = sz[i].dauer - rest;
-        if (aus < 0.3 && i < sz.length - 1) { ctx.fillStyle = `rgba(10,13,18,${(0.3 - aus) / 0.3})`; ctx.fillRect(0, 0, W, H); }
+        if (aus < 0.3 && i < sz.length - 1) { ctx.fillStyle = `rgba(242,244,247,${(0.3 - aus) / 0.3})`; ctx.fillRect(0, 0, W, H); }
         setReel(r => ({ ...r, fortschritt: Math.min(1, t / gesamt) }));
         if (t < gesamt) requestAnimationFrame(bild); else ok();
       };
