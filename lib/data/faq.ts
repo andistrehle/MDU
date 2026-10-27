@@ -356,6 +356,12 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
         stichworte: ['erinnerung', 'e-mail', 'mail', 'glocke', 'zusage'],
       },
       {
+        id: 'nachrichten-vom-tc',
+        frage: 'Kann der TC dem ganzen Team Bescheid geben?',
+        antwort: `Ja, mit Team Manager. Trägt der TC einen eigenen Termin ein, ändert oder löscht ihn, bekommt das ganze Team einen Hinweis in die Glocke (er kann das beim Speichern abwählen). Auf der Seite eines Spiels oder Termins kann er mit **„Offene erinnern“** alle anstupsen, die noch nicht zu- oder abgesagt haben, und im Team Manager mit **„Nachricht ans Team“** eine kurze Nachricht an alle schicken. Wer [Benachrichtigungen aufs Handy](/faq#push) eingeschaltet hat, bekommt das auch als Push. Spieler ohne Konto auf der Seite erreicht das nicht.`,
+        stichworte: ['nachricht', 'push', 'team', 'erinnern', 'tc', 'kapitän'],
+      },
+      {
         id: 'team-manager-freischalten',
         frage: 'Wie bekommt unser Team den Team Manager?',
         antwort: `Der Team Manager läuft gerade im Test bei einzelnen Teams. Später wird er allen Teams als kostenpflichtige Zusatzfunktion angeboten. Bei Interesse meldet euch gern über das [Kontaktformular](/kontakt).`,

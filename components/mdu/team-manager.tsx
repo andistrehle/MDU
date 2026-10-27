@@ -29,6 +29,8 @@ import {
 import { SpielKachel } from '@/components/mdu/spiel-kachel';
 import { TerminKachel, TerminFormular, EXTERN_FARBE, terminLabel } from '@/components/mdu/termin-ui';
 import { TerminImport } from '@/components/mdu/termin-import';
+import { sendeTeamNachricht, empfaengerText } from '@/lib/supabase/team-nachricht';
+import { NachrichtAnsTeam } from '@/components/mdu/team-push';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
@@ -125,21 +127,31 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
     ];
   }, [teamId, termine]);
 
-  async function terminNeu(e: Parameters<typeof speichereTermin>[1]) {
+  async function terminNeu(e: Parameters<typeof speichereTermin>[1], team: boolean) {
     if (!user || !teamId) return false;
     const { data, error } = await speichereTermin(teamId, e, user.id);
     if (error || !data) { setMsg({ kind: 'err', text: error ?? 'Konnte nicht speichern.' }); return false; }
     setTermine(l => [...l, data]); setNeu(null);
-    setMsg({ kind: 'ok', text: 'Termin eingetragen – dein Team kann jetzt zu- oder absagen.' });
+    const basis = 'Termin eingetragen – dein Team kann jetzt zu- oder absagen.';
+    setMsg({ kind: 'ok', text: basis });
+    if (team) {
+      const r = await sendeTeamNachricht(teamId, { art: 'termin_neu', terminId: data.id });
+      setMsg(r.error ? { kind: 'err', text: `${basis} Benachrichtigung hat nicht geklappt: ${r.error}` } : { kind: 'ok', text: `${basis} ${empfaengerText(r.empfaenger)}` });
+    }
     return true;
   }
 
-  async function termineImport(liste: TerminEingabe[]) {
+  async function termineImport(liste: TerminEingabe[], team: boolean) {
     if (!user || !teamId) return false;
     const { data, error } = await importiereTermine(teamId, liste, user.id);
     if (error) { setMsg({ kind: 'err', text: error }); return false; }
     setTermine(l => [...l, ...data]); setNeu(null);
-    setMsg({ kind: 'ok', text: `${data.length} ${data.length === 1 ? 'Termin' : 'Termine'} importiert – dein Team kann jetzt zu- oder absagen.` });
+    const basis = `${data.length} ${data.length === 1 ? 'Termin' : 'Termine'} importiert – dein Team kann jetzt zu- oder absagen.`;
+    setMsg({ kind: 'ok', text: basis });
+    if (team && data.length) {
+      const r = await sendeTeamNachricht(teamId, { art: 'termine_neu', anzahl: data.length });
+      setMsg(r.error ? { kind: 'err', text: `${basis} Benachrichtigung hat nicht geklappt: ${r.error}` } : { kind: 'ok', text: `${basis} ${empfaengerText(r.empfaenger)}` });
+    }
     return true;
   }
 
@@ -185,7 +197,9 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} vergangen={vergangen}
               zusagen={zusagen} personen={personen ?? []} ichId={user.playerId ?? null} ichName={user.displayName ?? ''}
               aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} onAntwort={antworte} />
-            ) : (<>
+            ) : null}
+            {dash && istKapitaen && <NachrichtAnsTeam teamId={teamId} />}
+            {dash ? null : (<>
             <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
 
             {istKapitaen && (

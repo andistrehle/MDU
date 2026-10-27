@@ -176,6 +176,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (1080×1920, ohne Ton) per MediaRecorder im Browser auf — MP4 nur in Safari/aktuellem Chrome, sonst WebM mit
   Hinweis; Link-Sticker/Musik setzt man in Instagram. Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,
   `[Text](/pfad)` und Zeilenumbrüche im Absatz.
+  **TC → Team per Glocke/Push** (Betreiber, 27.10.2026, `/api/team/nachricht`, `lib/supabase/team-nachricht.ts`,
+  `components/mdu/team-push.tsx`): eigener Termin neu/importiert/geändert/gelöscht mit Häkchen „Team
+  benachrichtigen“ (vorausgewählt, `TeamBenachrichtigen` in termin-ui), „Offene erinnern (n)“ auf Spiel- und
+  Terminseite (nur Kontoinhaber ohne Zeile in `match_availability`), „Nachricht ans Team“ (Freitext ≤ 200) im
+  Dashboard. Server prüft TC des Teams/Ligaleitung, schreibt Glocken per service_role (Push via 0056), Absender
+  ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +

@@ -23,6 +23,7 @@ import {
 } from '@/lib/supabase/zusagen';
 import { spielSlug, treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
+import { OffeneErinnern } from './team-push';
 import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, springeZuGruppe, type StandGruppe, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 
 type Stand = { yes: number; maybe: number; no: number; meetTime: string | null; meetMinutes: number | null };
@@ -173,6 +174,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
         <Icon name="share" size={18} stroke={2.2} /> Spiel teilen
         <span style={{ fontWeight: 600, opacity: 0.85, fontSize: 12.5 }}>· z. B. WhatsApp-Gruppe</span>
       </button>
+      {istKapitaen && offen != null && <OffeneErinnern teamId={teamId} matchKey={b.key} text={label} pfad={pfad} offen={offen} />}
 
       {msg && (
         <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>

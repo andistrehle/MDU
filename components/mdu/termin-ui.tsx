@@ -122,11 +122,22 @@ export function TerminKachel({ t, teamId, zusagen, kaderAnzahl, ichId, treffenMi
 const LEER: TerminEingabe = { kind: 'spiel', title: null, league: null, opponent: null, is_home: true, event_date: '', start_time: null, end_time: null, venue: null, address: null, color: null };
 
 /** Formular „Termin eintragen“ / „Termin ändern“ (nur TC). */
+/** Häkchen „Team benachrichtigen“ (Glocke + Push ans Team, /api/team/nachricht) — vorausgewählt. */
+export function TeamBenachrichtigen({ an, setAn, was }: { an: boolean; setAn: (v: boolean) => void; was: string }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
+      <input type="checkbox" checked={an} onChange={x => setAn(x.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: 'var(--th-accent)' }} />
+      <span><strong style={{ color: 'var(--th-text-strong)' }}>Team benachrichtigen</strong> – {was}</span>
+    </label>
+  );
+}
+
 export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoeschen }: {
   start?: TeamTermin | null; titel: string;
-  onSpeichern: (e: TerminEingabe) => Promise<boolean>; onAbbrechen: () => void; onLoeschen?: () => void;
+  onSpeichern: (e: TerminEingabe, team: boolean) => Promise<boolean>; onAbbrechen: () => void; onLoeschen?: (team: boolean) => void;
 }) {
   const [e, setE] = useState<TerminEingabe>(start ? { ...start } : LEER);
+  const [team, setTeam] = useState(true);
   const [laeuft, setLaeuft] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const set = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => setE(x => ({ ...x, [k]: v }));
@@ -137,7 +148,7 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
     const { fehler: f } = pruefeTermin(e);
     if (f) { setFehler(f); return; }
     setFehler(null); setLaeuft(true);
-    const ok = await onSpeichern(e);
+    const ok = await onSpeichern(e, team);
     setLaeuft(false);
     if (!ok) setFehler(null);
   }
@@ -193,11 +204,12 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
       <Feld label="Ort"><input value={e.venue ?? ''} onChange={x => set('venue', x.target.value)} maxLength={80} placeholder="z. B. Gaststätte zum Pfeil" style={eingabe} /></Feld>
       <Feld label="Adresse"><input value={e.address ?? ''} onChange={x => set('address', x.target.value)} maxLength={120} placeholder="Straße, Ort (für die Route)" style={eingabe} /></Feld>
 
+      <TeamBenachrichtigen an={team} setAn={setTeam} was={start ? 'alle im Team bekommen die Änderung (bzw. die Absage beim Löschen) in die Glocke und aufs Handy.' : 'alle im Team bekommen den neuen Termin in die Glocke und aufs Handy.'} />
       {fehler && <div role="alert" style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-loss)' }}>{fehler}</div>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" disabled={laeuft} onClick={() => void senden()} style={{ ...knopf(true, farbe), opacity: laeuft ? 0.6 : 1 }}>{laeuft ? 'Speichere …' : start ? 'Änderungen speichern' : 'Termin eintragen'}</button>
         <button type="button" onClick={onAbbrechen} style={knopf(false, 'var(--th-text-muted)')}>Abbrechen</button>
-        {onLoeschen && <button type="button" onClick={onLoeschen} style={{ ...knopf(false, 'var(--th-loss)'), marginLeft: 'auto' }}>Termin löschen</button>}
+        {onLoeschen && <button type="button" onClick={() => onLoeschen(team)} style={{ ...knopf(false, 'var(--th-loss)'), marginLeft: 'auto' }}>Termin löschen</button>}
       </div>
       <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)', lineHeight: 1.5 }}>
         Der Termin steht bei allen im Team, alle können zu- oder absagen. Er erscheint auch im Kalender-Abo, mit „Extern“ im Titel.

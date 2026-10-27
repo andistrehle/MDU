@@ -12,7 +12,7 @@
 import { useMemo, useState } from 'react';
 import { Icon } from './icon';
 import { karte, knopf, h2, chip } from './zusagen-ui';
-import { terminGrund } from './termin-ui';
+import { terminGrund, TeamBenachrichtigen } from './termin-ui';
 import { werteAus, vorlageCsv, IMPORT_MAX } from '@/lib/termin-import';
 import { TERMIN_FARBEN, terminFarbe, terminTitel, type TeamTermin, type TerminArt, type TerminEingabe } from '@/lib/supabase/termine';
 import { wochentag, tagMonat } from '@/lib/spieltag';
@@ -21,13 +21,14 @@ const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berl
 
 export function TerminImport({ teamName, vorhanden, onImport, onAbbrechen }: {
   teamName: string; vorhanden: TeamTermin[];
-  onImport: (liste: TerminEingabe[]) => Promise<boolean>; onAbbrechen: () => void;
+  onImport: (liste: TerminEingabe[], team: boolean) => Promise<boolean>; onAbbrechen: () => void;
 }) {
   const [text, setText] = useState('');
   const [art, setArt] = useState<TerminArt>('spiel');
   const [liga, setLiga] = useState('');
   const [farbe, setFarbe] = useState<string>(TERMIN_FARBEN[0].hex);
   const [laeuft, setLaeuft] = useState(false);
+  const [team, setTeam] = useState(true);
 
   const { zeilen, mitKopf } = useMemo(() => werteAus(text, { art, liga, farbe, teamName, heute: heuteIso() }, vorhanden), [text, art, liga, farbe, teamName, vorhanden]);
   const neu = zeilen.filter(z => z.eingabe && !z.doppelt);
@@ -46,7 +47,7 @@ export function TerminImport({ teamName, vorhanden, onImport, onAbbrechen }: {
   }
   async function uebernehmen() {
     setLaeuft(true);
-    await onImport(neu.map(z => z.eingabe!));
+    await onImport(neu.map(z => z.eingabe!), team);
     setLaeuft(false);
   }
 
@@ -136,6 +137,7 @@ export function TerminImport({ teamName, vorhanden, onImport, onAbbrechen }: {
         </div>
       )}
 
+      <TeamBenachrichtigen an={team} setAn={setTeam} was="alle im Team bekommen eine Nachricht, dass neue Termine da sind (eine für alle, nicht je Termin)." />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" disabled={!neu.length || laeuft} onClick={() => void uebernehmen()} style={{ ...knopf(true, farbe), opacity: !neu.length || laeuft ? 0.5 : 1, cursor: !neu.length || laeuft ? 'not-allowed' : 'pointer' }}>
           {laeuft ? 'Übernehme …' : neu.length ? `${neu.length} ${neu.length === 1 ? 'Termin' : 'Termine'} übernehmen` : 'Termine übernehmen'}

@@ -22,8 +22,10 @@ import {
   type Zusage, type ZusageStatus, type SpielDetails, type Aufgabe,
 } from '@/lib/supabase/zusagen';
 import { ladeTermin, speichereTermin, loescheTermin, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
+import { sendeTeamNachricht, empfaengerText } from '@/lib/supabase/team-nachricht';
 import { treffZeit } from '@/lib/spieltag';
 import { Icon } from './icon';
+import { OffeneErinnern } from './team-push';
 import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, springeZuGruppe, type StandGruppe, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 import { NotizUndAufgaben, TreffzeitFeld } from './spieltag-ansicht';
 import { TerminKopf, TerminFormular, terminLabel, terminGrund } from './termin-ui';
@@ -117,17 +119,23 @@ export function TerminAnsicht({ id }: { id: string }) {
     if (error) { setAufgaben(vorher); setMsg({ kind: 'err', text: error }); }
   }
 
-  async function aendern(e: TerminEingabe) {
+  async function aendern(e: TerminEingabe, team: boolean) {
     if (!user || !t) return false;
     const { data, error } = await speichereTermin(t.team_id, e, user.id, t.id);
     if (error || !data) { setMsg({ kind: 'err', text: error ?? 'Konnte nicht speichern.' }); return false; }
     setT(data); setBearbeiten(false); setMsg({ kind: 'ok', text: 'Termin geändert.' });
+    if (team) {
+      const r = await sendeTeamNachricht(t.team_id, { art: 'termin_geaendert', terminId: t.id });
+      setMsg(r.error ? { kind: 'err', text: `Termin geändert. Benachrichtigung hat nicht geklappt: ${r.error}` } : { kind: 'ok', text: `Termin geändert. ${empfaengerText(r.empfaenger)}` });
+    }
     return true;
   }
-  async function loeschen() {
-    if (!t || !window.confirm('Termin wirklich löschen? Zu- und Absagen, Notiz und Aufgaben dazu werden mit gelöscht.')) return;
+  async function loeschen(team: boolean) {
+    if (!t || !window.confirm(`Termin wirklich löschen? Zu- und Absagen, Notiz und Aufgaben dazu werden mit gelöscht.${team ? ' Dein Team bekommt eine Absage.' : ''}`)) return;
+    const beschreibung = terminLabel(t).replace(/ \(Extern\)$/, '');
     const { error } = await loescheTermin(t);
     if (error) { setMsg({ kind: 'err', text: error }); return; }
+    if (team) await sendeTeamNachricht(t.team_id, { art: 'termin_abgesagt', text: beschreibung });
     router.push('/mein-team/termine');
   }
 
@@ -172,7 +180,7 @@ export function TerminAnsicht({ id }: { id: string }) {
       <Link href="/mein-team/termine" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Termine</Link>
 
       {bearbeiten ? (
-        <TerminFormular start={t} titel="Termin ändern" onSpeichern={aendern} onAbbrechen={() => setBearbeiten(false)} onLoeschen={() => void loeschen()} />
+        <TerminFormular start={t} titel="Termin ändern" onSpeichern={aendern} onAbbrechen={() => setBearbeiten(false)} onLoeschen={team => void loeschen(team)} />
       ) : (
         <div style={{ borderRadius: 18, overflow: 'hidden', background: terminGrund(farbe), border: `1.5px solid ${farbe}`, boxShadow: '0 4px 20px var(--th-shadow)' }}>
           <TerminKopf t={t} teamId={teamId} gross />
@@ -206,6 +214,9 @@ export function TerminAnsicht({ id }: { id: string }) {
             </button>
           )}
         </div>
+      )}
+      {!bearbeiten && istKapitaen && mitglied && kader && (
+        <OffeneErinnern teamId={teamId} matchKey={key} text={label} pfad={`/termin/${t.id}`} offen={Math.max(0, personen.length - zusagen.length)} />
       )}
 
       {msg && (
