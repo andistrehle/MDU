@@ -124,36 +124,115 @@ async function szenenLesen() {
   return sz;
 }
 
-// Eine Aufnahme der Szenen (erklaer.html, Format per #hash) mit dem Ton an den protokollierten Stellen.
+// Soundeffekte (ElevenLabs Sound Effects, einmal erzeugt, dann aus ton/fx-<art>.mp3). erklaer.html meldet,
+// wann was neu ins Bild kommt (window.EFFEKTE); OHNE_FX=1 lässt sie weg, TROCKEN=1 auch.
+const FX = {
+  whoosh: ['quick soft whoosh swoosh transition', 0.8],
+  plopp: ['short soft cartoon pop, bubble pop', 0.5],
+  ding: ['smartphone push notification chime, short bright ding', 1],
+  kratz: ['fast marker pen scribble, crossing out on paper', 0.8],
+  trommel: ['snare drum roll building up, ending with cymbal crash', 3],
+  klirr: ['two shot glasses clinking, cheers', 1],
+  kasse: ['cash register ka-ching', 1.2],
+  tada: ['short cheerful fanfare, ta-da', 1.5],
+};
+const FX_LAUT = { whoosh: 0.35, plopp: 0.4, ding: 0.5, kratz: 0.45, trommel: 0.4, klirr: 0.5, kasse: 0.5, tada: 0.45 };
+async function effektDatei(typ) {
+  const datei = path.join(DIR, 'ton', `fx-${typ}.mp3`);
+  if (fs.existsSync(datei)) return datei;
+  const [text, dauer] = FX[typ];
+  const r = await api('/v1/sound-generation', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, duration_seconds: dauer, prompt_influence: 0.5 }) });
+  fs.mkdirSync(path.dirname(datei), { recursive: true });
+  fs.writeFileSync(datei, Buffer.from(await r.arrayBuffer()));
+  console.log(`Effekt „${typ}“ erzeugt`);
+  return datei;
+}
+
+// Wann schaltet der Taktstreifen um? (Sekunden im Video). Er liegt in den 12 px unter dem Bild.
+function taktImVideo(webm, hoehe) {
+  const roh = execFileSync(FFMPEG, ['-loglevel', 'error', '-i', webm, '-vf', `crop=iw:8:0:${hoehe + 2},scale=1:1,format=gray,fps=100`, '-f', 'rawvideo', '-'], { maxBuffer: 1 << 26 });
+  // Erst ab der schwarzen Wartephase vor dem Start (≥ 1 s) zählen — davor lädt die Seite hell.
+  let n = 0, lauf = 0;
+  for (; n < roh.length && lauf < 100; n++) lauf = roh[n] < 128 ? lauf + 1 : 0;
+  // Entprellt: ein Wechsel zählt erst, wenn der neue Zustand 0,15 s hält (einzelne Bilder flackern beim Umschalten).
+  const t = []; let weiss = false;
+  for (; n < roh.length; n++) {
+    const w = roh[n] > 128;
+    if (w === weiss) continue;
+    let haelt = true;
+    for (let m = n; m < Math.min(roh.length, n + 15); m++) if ((roh[m] > 128) !== w) { haelt = false; break; }
+    if (haelt) { t.push(n / 100); weiss = w; }
+  }
+  return t;
+}
+
+// Eine Aufnahme der Szenen (erklaer.html, Format per #hash) mit dem Ton an den Stellen, an denen
+// die Sätze IM VIDEO beginnen. Die Browseraufnahme läuft langsamer als die Uhr (27.10.2026: 8 s
+// auf 4 Minuten, der Ton lief am Ende voraus) — deshalb zählt der Taktstreifen, nicht die Uhr.
 async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
   const ordner = path.join(AUFNAHME, hash ? 'hoch' : 'quer');
   fs.mkdirSync(ordner, { recursive: true });
+  const groesse = { width: vp.width, height: vp.height + 12 };
   const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });
-  const ctx = await b.newContext({ viewport: vp, recordVideo: { dir: ordner, size: vp } });
-  const aufnahmeStart = Date.now();
+  const ctx = await b.newContext({ viewport: groesse, recordVideo: { dir: ordner, size: groesse } });
   const p = await ctx.newPage();
   await p.goto('file://' + path.join(DIR, 'erklaer.html') + hash); await p.waitForTimeout(2500);
   await p.evaluate(z => { window.ZEITEN = z; window.VORLAUF = 0.45; window.SPIEL(); }, zeiten);
   await p.waitForFunction(() => window.FERTIG === true, null, { timeout: 900000, polling: 500 });
   await p.waitForTimeout(1500);
-  const { marken, start, dauer } = await p.evaluate(() => ({ marken: window.MARKEN, start: window.START_EPOCH, dauer: window.DAUER }));
+  const { marken, effekte, takt, dauer } = await p.evaluate(() => ({ marken: window.MARKEN, effekte: window.EFFEKTE, takt: window.TAKT, dauer: window.DAUER }));
   await ctx.close(); await b.close();
-  const webm = fs.readdirSync(ordner).find(f => f.endsWith('.webm'));
-  const versatz = (start - aufnahmeStart) / 1000;
-  console.log(`Aufnahme ${hash || 'quer'}: ${dauer.toFixed(1)} s, Vorlauf ${versatz.toFixed(2)} s`);
-  const eingaben = ['-ss', versatz.toFixed(3), '-i', path.join(ordner, webm)];
-  const filter = [];
+  const webm = path.join(ordner, fs.readdirSync(ordner).find(f => f.endsWith('.webm')));
+
+  // Uhrzeit (ms ab Start) → Sekunde im Video, stückweise linear zwischen den Taktwechseln
+  const vt = taktImVideo(webm, vp.height);
+  if (vt.length !== takt.length) throw new Error(`Taktstreifen: ${vt.length} Wechsel im Video, ${takt.length} erwartet — Aufnahme verworfen.`);
+  const imVideo = (ms) => {
+    let k = 0; while (k < takt.length - 2 && takt[k + 1] <= ms) k++;
+    const a = takt[k], b2 = takt[k + 1];
+    return vt[k] + (ms - a) / (b2 - a) * (vt[k + 1] - vt[k]);
+  };
+  const t0 = vt[0], ende = vt[vt.length - 1] - t0;
+  console.log(`Aufnahme ${hash || 'quer'}: ${ende.toFixed(1)} s im Video (Uhr: ${(takt[takt.length - 1] / 1000).toFixed(1)} s)`);
+
+  // Effektspur einzeln mischen (eine Datei je Art, per asplit vervielfacht)
+  let fxSpur = null;
+  if (process.env.TROCKEN !== '1' && process.env.OHNE_FX !== '1' && effekte.length) {
+    const arten = [...new Set(effekte.map(e => e.typ))];
+    const ein = [], filter = [], teile = [];
+    for (const [n, typ] of arten.entries()) {
+      ein.push('-i', await effektDatei(typ));
+      const liste = effekte.filter(e => e.typ === typ);
+      filter.push(`[${n}:a]aformat=sample_rates=44100:channel_layouts=mono,volume=${FX_LAUT[typ]},asplit=${liste.length}${liste.map((_, m) => `[s${n}_${m}]`).join('')}`);
+      liste.forEach((e, m) => { const d = Math.max(0, Math.round((imVideo(e.ms) - t0) * 1000)); filter.push(`[s${n}_${m}]adelay=${d}|${d}[f${n}_${m}]`); teile.push(`[f${n}_${m}]`); });
+    }
+    filter.push(`${teile.join('')}amix=inputs=${teile.length}:normalize=0:duration=longest[fx]`);
+    fxSpur = path.join(ordner, 'fx.wav');
+    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', ...ein, '-filter_complex', filter.join(';'), '-map', '[fx]', fxSpur], { stdio: 'inherit' });
+    console.log(`Effekte: ${effekte.length} (${arten.join(', ')})`);
+  }
+
+  const eingaben = ['-ss', t0.toFixed(3), '-i', webm];
+  const filter = [`[0:v]crop=${vp.width}:${vp.height}:0:0[bild]`];
   clips.forEach((c, n) => {
     const m = marken.find(x => x.i === c.i && x.j === c.j);
-    eingaben.push('-i', c.datei);
-    filter.push(`[${n + 1}:a]adelay=${m.ms}|${m.ms}[a${n}]`);
+    const d = Math.max(0, Math.round((imVideo(m.ms) - t0) * 1000));
+    eingaben.push('-ss', c.von.toFixed(3), ...(c.bis != null ? ['-t', (c.bis - c.von).toFixed(3)] : []), '-i', c.datei);
+    filter.push(`[${n + 1}:a]adelay=${d}|${d}[a${n}]`);
   });
-  filter.push(`${clips.map((_, n) => `[a${n}]`).join('')}amix=inputs=${clips.length}:normalize=0,loudnorm=I=-16:TP=-1.5[ton]`);
+  const stimmen = clips.map((_, n) => `[a${n}]`).join('');
+  if (fxSpur) {
+    eingaben.push('-i', fxSpur);
+    filter.push(`${stimmen}amix=inputs=${clips.length}:normalize=0[stimme]`);
+    filter.push(`[stimme][${clips.length + 1}:a]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5[ton]`);
+  } else filter.push(`${stimmen}amix=inputs=${clips.length}:normalize=0,loudnorm=I=-16:TP=-1.5[ton]`);
   execFileSync(FFMPEG, ['-y', '-loglevel', 'error', ...eingaben, '-filter_complex', filter.join(';'),
-    '-map', '0:v', '-map', '[ton]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
-    '-c:a', 'aac', '-b:a', '160k', '-t', (dauer + 1).toFixed(2), '-movflags', '+faststart', ziel], { stdio: 'inherit' });
+    '-map', '[bild]', '-map', '[ton]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
+    '-c:a', 'aac', '-b:a', '160k', '-t', (ende + 1).toFixed(2), '-movflags', '+faststart', ziel], { stdio: 'inherit' });
   console.log('Fertig:', ziel);
-  return { marken, dauer };
+  // Marken in Videozeit (für szenen.json und die Gleichlauf-Prüfung)
+  return { marken: marken.map(m => ({ ...m, ms: Math.round((imVideo(m.ms) - t0) * 1000) })), dauer: ende };
 }
 
 async function main() {
@@ -210,7 +289,9 @@ async function main() {
     // Satz j läuft bis zum Anfang von Satz j+1; der letzte bis Sprechende + Luft.
     zeiten[i] = t.starts.map((s, j) => +(j + 1 < t.starts.length ? t.starts[j + 1] - s : t.ende - s + PAUSE).toFixed(3));
     zeiten[i][0] = +(zeiten[i][0] + t.starts[0]).toFixed(3);
-    clips.push({ i, j: 0, datei: t.datei });
+    // Jeder Satz einzeln (ab seinem Anfang in der Szenen-Tonspur), damit er genau an seiner Stelle im Bild liegt —
+    // als ein Stück je Szene liefe der Ton in langen Szenen dem Bild davon (Bildaufnahme langsamer als die Uhr).
+    t.starts.forEach((s, j) => clips.push({ i, j, datei: t.datei, von: s, bis: j + 1 < t.starts.length ? t.starts[j + 1] : null }));
   }
   console.log(`\nTon fertig (${zeichen} Zeichen neu abgerufen).`);
 

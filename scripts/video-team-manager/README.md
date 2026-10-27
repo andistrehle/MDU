@@ -27,6 +27,13 @@ node reel.js
 - **Klang:** stability 0.2, style 0.9, speed 1.15 (ENV `STABILITY`/`STYLE`/`SPEED`). Benjamin war dem Betreiber zu müde.
 - **Vorschau ohne Ton:** `TROCKEN=1 OHNE_HOCH=1 ELEVENLABS_VOICE_ID=x node vertonen.js` → Stille, Satzlänge geschätzt (14 Zeichen/s), kostet nichts.
 - **Versprecher:** `NEU=2,4` spricht nur diese Szenen neu (Toby verhaspelte sich in Szene 2, lachte grundlos in 4).
+- **Gleichlauf (27.10.2026):** Die Browseraufnahme läuft langsamer als die Uhr (8–9 s auf 4 Min., der Ton
+  lief am Ende voraus). Deshalb nimmt `vertonen.js` 12 px mehr auf: Dort schaltet ein Taktstreifen bei
+  jedem Satz schwarz/weiß, `taktImVideo` liest die Wechsel aus dem Video (entprellt, Zahl wird streng
+  geprüft), und jeder Satz wird EINZELN an seine Stelle im Bild gelegt. Der Streifen wird abgeschnitten.
+- **Soundeffekte:** `erklaer.html` meldet, was neu ins Bild kommt (`window.EFFEKTE`: whoosh, plopp, ding,
+  kratz, trommel, klirr, kasse, tada); die Klänge kommen einmalig aus ElevenLabs Sound Effects
+  (`ton/fx-*.mp3`), Lautstärke je Art in `FX_LAUT`. `OHNE_FX=1` lässt sie weg.
 - **Gleichlauf prüfen:** Speech-to-Text mit Wort-Zeitstempeln gegen `ausgabe/szenen.json` — 21.10.2026: größte Abweichung 0,16 s.
 - **Aussprache** (`AUSSPRACHE`, nur gesprochen): „mdudarts.de“ → „Em-De-U-Darts Punkt De-E“
   (mit Bindestrichen trennt die Stimme die Buchstaben; „Em De U Darts Punkt De“ verstand die

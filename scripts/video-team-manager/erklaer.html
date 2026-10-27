@@ -244,7 +244,7 @@ const safari = (k, bis) => `<div class="ebene safari" data-k="${k}"${bis ? ` dat
 // Drei weitere Handys mit derselben Nachricht (Szene „Nachricht ans Team“)
 const mehrHandys = (k, txt) => `<div class="mehr-handys" data-k="${k}">${[[150, '18:42'], [720, '18:42'], [1290, '18:42']].map(([x, u], i) =>
   `<div class="handy" style="left:${HOCH ? 40 + i * 340 : x}px;${HOCH ? 'top:330px;width:330px;border-radius:46px;padding:10px' : ''}"><div class="schirm" style="${HOCH ? 'width:310px;height:670px;border-radius:38px' : ''}"><div class="ebene sperr an" style="${HOCH ? 'padding-top:70px' : ''}"><div class="tag">Dienstag, 27. Oktober</div><div class="uhr" style="${HOCH ? 'font-size:80px' : ''}">${u}</div><div style="height:22px"></div>
-   ${push(k, 'Nachricht vom Teamcaptain', txt)}</div></div></div>`).join('')}</div>`;
+   ${push(k, 'Nachricht vom Teamcaptain', txt).replace('class="push"', `class="push" style="transition-delay:${i * 0.22}s"`)}</div></div></div>`).join('')}</div>`;
 
 // Jede Szene: Titel, HTML, Schritte (Untertitel = Sprechertext; k = sichtbare Einblendungen; b = Bild; z = Zoom)
 const Z = { voll: null, inhalt: [44, 0, 1.38] };
@@ -444,12 +444,35 @@ const COLLAGE = ['dash-n9', 'dash-grund', 'spiel-kader-tc', 'spiel-offen', 'gloc
 document.getElementById('collage').innerHTML = COLLAGE.slice(0, HOCH ? 12 : 20).map((n, i) => `<div data-c="${i}" style="background-image:url(${S}${HOCH ? 'handy' : 'web'}-${n}.jpg)"></div>`).join('');
 
 const warte = ms => new Promise(r => setTimeout(r, ms));
+// Taktstreifen UNTER dem Bild (vertonen.js nimmt 12 px mehr auf und schneidet sie ab): schaltet bei
+// jedem Satz schwarz/weiß. So liest vertonen.js aus dem Video, wann ein Satz WIRKLICH im Bild beginnt —
+// die Aufnahme des Browsers läuft langsamer als die Uhr (2026-10-27: 8 s auf 4 Minuten).
+const takt = document.createElement('div');
+takt.style.cssText = `position:fixed;left:0;width:100%;top:${H}px;height:12px;background:#000;z-index:99`;
+document.documentElement.appendChild(takt);
+window.TAKT = [];
+const taktSchalten = () => { takt.style.background = window.TAKT.length % 2 ? '#000' : '#fff'; window.TAKT.push(Date.now() - (window.START_EPOCH ?? Date.now())); };
+// Soundeffekte: was neu sichtbar wird, meldet sich mit Art und Zeit (vertonen.js legt den Klang darunter)
+window.EFFEKTE = [];
+// Dasselbe Ereignis in Laptop UND Handy klingt einmal; mehrere Pushes zugleich (drei Handys) gestaffelt.
+const fx = (typ) => {
+  if (!window.START_EPOCH) return;
+  const ms = Date.now() - window.START_EPOCH, gleich = window.EFFEKTE.filter(e => e.typ === typ && ms - e.roh < 80);
+  if (gleich.length && typ !== 'ding') return;
+  window.EFFEKTE.push({ typ, roh: ms, ms: ms + gleich.length * 220 });
+};
+const fxArt = (e) => e.matches('.push') ? 'ding' : e.matches('.strich') ? 'kratz' : e.matches('.vgl') && e.querySelector('.em')?.textContent.includes('🥃') ? 'klirr'
+  : e.matches('.preisgross') ? 'kasse' : e.matches('.gratis') ? 'tada' : e.matches('.m, .stempel, .vorschau, .app, .vgl, .oder, .frage') ? 'plopp' : null;
 // Untertitel: der Satz, der gesprochen wird; „weiter“-Schritte wechseln nur das Bild.
 SZENEN.forEach(sz => { let letzter = ''; sz.schritte.forEach(x => { if (x.weiter) x.u = x.u ?? letzter; letzter = x.u; }); });
 
 function zeige(el, x) {
   const k = x.k ?? 0;
-  el.querySelectorAll('[data-k]').forEach(e => e.classList.toggle('an', Number(e.dataset.k) < k && (e.dataset.bis === undefined || k <= Number(e.dataset.bis))));
+  el.querySelectorAll('[data-k]').forEach(e => {
+    const an = Number(e.dataset.k) < k && (e.dataset.bis === undefined || k <= Number(e.dataset.bis));
+    if (an && !e.classList.contains('an')) { const t = fxArt(e); if (t) fx(t); }
+    e.classList.toggle('an', an);
+  });
   el.querySelectorAll('.tausch').forEach(e => { e.style.opacity = e.classList.contains('an') ? 1 : 0; });
   if (x.b !== undefined) el.querySelectorAll('img[data-b]').forEach(img => {
     const an = Number(img.dataset.b) === x.b;
@@ -475,27 +498,31 @@ window.SPIEL = async () => {
     });
   });
   const summe = SZENEN.reduce((a, s) => a + s.schritte.reduce((b, x) => b + x.s, 0) + vor, 0);
-  window.DAUER = summe; window.MARKEN = []; window.START_EPOCH = Date.now();
+  window.DAUER = summe; window.MARKEN = []; window.EFFEKTE = []; window.TAKT = []; window.START_EPOCH = Date.now(); taktSchalten();
   let vergangen = 0;
   for (let i = 0; i < SZENEN.length; i++) {
     const el = document.getElementById('sz' + i);
     document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
     el.classList.add('an');
+    if (i > 0) fx('whoosh');
     zeige(el, { ...SZENEN[i].schritte[0], k: 0 });
     await warte(vor * 1000); vergangen += vor;
     let satz = -1;
     for (let j = 0; j < SZENEN[i].schritte.length; j++) {
       const sch = SZENEN[i].schritte[j];
-      if (!sch.weiter) { satz++; window.MARKEN.push({ i, j: satz, ms: Date.now() - window.START_EPOCH }); }
+      if (!sch.weiter) { satz++; window.MARKEN.push({ i, j: satz, ms: Date.now() - window.START_EPOCH }); taktSchalten(); }
       document.getElementById('unter').textContent = sch.u ?? '';
       zeige(el, sch);
       if (sch.collage) el.querySelectorAll('[data-c]').forEach((c, n) => setTimeout(() => c.classList.add('an'), n * 70));
       el.querySelector('.frage span')?.classList.toggle('trommel', !!sch.trommel);
+      if (sch.trommel) fx('trommel');
+      if (sch.intro === 'titel') fx('whoosh');
       document.getElementById('fort').style.width = (vergangen / summe * 100) + '%';
       await warte(sch.s * 1000); vergangen += sch.s;
     }
   }
   document.getElementById('fort').style.width = '100%';
+  taktSchalten();
   window.FERTIG = true;
 };
 </script></body></html>
