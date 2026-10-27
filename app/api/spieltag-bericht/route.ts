@@ -5,6 +5,7 @@
 // POST /api/spieltag-bericht  (Authorization: Bearer <access token>)
 //   { aktion: 'erzeugen', fri? }  — Entwurf (neu) erzeugen, Standard: letztes
 //       begonnene Spielwochenende. Nur solange er Entwurf ist.
+//   { aktion: 'social', id }      — Facebook-Text + Daten für Reel/Story (Migration 0060).
 //   { aktion: 'push', id }        — nach dem Veröffentlichen unter Admin → News:
 //       Push an ALLE Geräte (Betreiber, 25.10.2026), je Bericht nur einmal.
 //       Markiert /news und die Startseite zum Neubau, damit der Beitrag beim
@@ -35,6 +36,14 @@ export async function POST(request: Request) {
     if (!fri) return NextResponse.json({ error: 'Noch kein Spielwochenende begonnen.' }, { status: 400 });
     const r = await erzeugen(fri);
     return r.ok ? NextResponse.json(r) : NextResponse.json({ error: r.grund }, { status: 400 });
+  }
+
+  if (body.aktion === 'social') {
+    if (!body.id) return NextResponse.json({ error: 'Beitrag fehlt.' }, { status: 400 });
+    const { data, error } = await db.from('spieltag_berichte').select('facebook, social').eq('news_id', body.id).maybeSingle();
+    if (error) return NextResponse.json({ error: /facebook|social/.test(error.message) ? 'Migration 0060 fehlt noch.' : error.message }, { status: 500 });
+    if (!data?.social) return NextResponse.json({ error: 'Noch keine Social-Media-Daten – bitte den Entwurf einmal neu erzeugen.' }, { status: 404 });
+    return NextResponse.json({ ok: true, facebook: data.facebook, social: data.social });
   }
 
   if (body.aktion === 'push') {

@@ -169,7 +169,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Punkte/Formel sind INTERN — nie in Beitrag oder FAQ. Anmerkungen zu offenen Begegnungen („nicht
   stattgefunden …“) in `lib/data/spieltag-hinweise-2027.ts`. Claude (`claude-opus-5-5`, OCR-Schlüssel) formuliert NUR aus dem
   Fakten-JSON; Ergebnisliste und offene Spiele setzt der Code selbst; ohne Claude Text aus der Vorlage
-  (`quelle`). Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,
+  (`quelle`). **Facebook & Instagram** (Migration 0060, 27.10.2026): Claude schreibt beim Erzeugen auch einen
+  FB-Teaser; `facebookText` hängt „vollständiger Bericht“ + Direktlink `/news#<id>` + Hashtags an, `socialDaten`
+  legt Ergebnisse/Spieler/Finish/Tabellenspitze ab (`spieltag_berichte.facebook/social`). Admin → News →
+  „Facebook & Instagram“ (`components/mdu/spieltag-social.tsx`) zeichnet 3 Story-Bilder und nimmt ein Reel
+  (1080×1920, ohne Ton) per MediaRecorder im Browser auf — MP4 nur in Safari/aktuellem Chrome, sonst WebM mit
+  Hinweis; Link-Sticker/Musik setzt man in Instagram. Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,
   `[Text](/pfad)` und Zeilenumbrüche im Absatz.
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler

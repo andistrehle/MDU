@@ -123,3 +123,5 @@ async function spieltagPost(body: unknown): Promise<{ data: Record<string, unkno
 export const erzeugeSpieltagsbericht = () => spieltagPost({ aktion: 'erzeugen' });
 /** Nach dem Veröffentlichen: Push an alle Geräte (einmal je Bericht). */
 export const pusheSpieltagsbericht = (id: string) => spieltagPost({ aktion: 'push', id });
+/** Facebook-Text + Daten für Instagram-Reel/Story (Migration 0060). */
+export const ladeSpieltagSocial = (id: string) => spieltagPost({ aktion: 'social', id });

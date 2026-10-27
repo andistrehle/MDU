@@ -9,6 +9,7 @@ import {
   type NewsRecord, type NewsStatus,
 } from '@/lib/supabase/news';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
+import { SpieltagSocial } from '@/components/mdu/spieltag-social';
 
 interface FormState {
   id?: string;
@@ -68,6 +69,7 @@ export default function AdminNewsPage() {
   // Rückmeldung direkt am betroffenen Beitrag bzw. am Knopf „Spieltagsbericht erzeugen“.
   const [meldung, setMeldung] = useState<Record<string, { text: string; ok: boolean }>>({});
   const [vorschau, setVorschau] = useState<string | null>(null);
+  const [social, setSocial] = useState<string | null>(null);
   const [erzeugt, setErzeugt] = useState<{ busy: boolean; text?: string; ok?: boolean }>({ busy: false });
   const [markiert, setMarkiert] = useState<string | null>(null);
 
@@ -304,6 +306,11 @@ export default function AdminNewsPage() {
               <button type="button" onClick={() => setVorschau(v => (v === n.id ? null : n.id))} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
                 {vorschau === n.id ? 'Vorschau zu' : 'Vorschau'}
               </button>
+              {istSpieltagsbericht(n.id) && (
+                <button type="button" onClick={() => setSocial(v => (v === n.id ? null : n.id))} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
+                  {social === n.id ? 'Facebook & Instagram zu' : 'Facebook & Instagram'}
+                </button>
+              )}
               <button type="button" onClick={() => remove(n)} disabled={busyId === n.id} style={btn('transparent', 'var(--th-loss, #d64545)', 'var(--th-line-8)')}>
                 Löschen
               </button>
@@ -313,6 +320,7 @@ export default function AdminNewsPage() {
                 {meldung[n.id].text}
               </div>
             )}
+            {social === n.id && <SpieltagSocial newsId={n.id} veroeffentlicht={n.status === 'published'} />}
             {vorschau === n.id && (
               <div style={{ marginTop: 12 }}>
                 <NewsArticleCard article={{ id: `vorschau-${n.id}`, title: n.title, teaser: n.teaser, source: n.source ?? 'Münchner Dart Union', date: n.display_date, category: n.category, content: n.content }} />

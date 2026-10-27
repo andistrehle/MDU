@@ -25,6 +25,7 @@ import { berechneTabelle, type Ergebnis27 } from '@/lib/tabelle-2027';
 import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
 import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
+import { berichtLink, type SocialDaten } from '@/lib/spieltag-social';
 import {
   fenster, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
   type BegegnungDaten, type SpielerWertung,
@@ -185,6 +186,7 @@ const TextSchema = z.object({
   deutliche: z.array(z.string()),
   spieler: z.array(z.string()),
   tabelle: z.array(z.string()),
+  facebook: z.string().describe('Kurzer Facebook-Teaser, 3–5 Sätze, ein paar passende Emojis, ohne Link und ohne Hashtags'),
 });
 export type BerichtText = z.infer<typeof TextSchema>;
 
@@ -201,6 +203,7 @@ Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste
 - deutliche: Begegnungen mit deutlich=true.
 - spieler: zuerst der Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) — gewählt nach der Einzelbilanz (die meisten Siege ohne Niederlage), bei Gleichstand nach Highlights; nenne seine Bilanz und seine Highlights. Danach eigens, wer die meisten Highlights hatte (meisteHighlights, mit Anzahl und welche) — auch wenn es dieselbe Person ist. Gern die nächsten aus der bestenliste kurz erwähnen. Nenne KEINE Punkte, keine Formel und keine Gewichtung.
 - tabelle: Auswirkungen auf die Tabellen je Liga (Tabellenführung, Sprünge nach oben/unten über platzVorher → platz; platzVorher null = erstes Spiel).
+- facebook: EIN kurzer Teaser für die Facebook-Gruppe der MDU, 3–5 Sätze, locker, Du/Ihr-Ansprache erlaubt, ein paar passende Emojis (🎯 🔥 💯 …, nicht übertreiben). Das Spannendste des Wochenendes (Krimi, deutlichster Sieg, Spieler des Spieltages, höchstes Finish) — macht Lust auf den ganzen Bericht. KEIN Link, KEINE Hashtags, kein „Link in Bio“ — das fügt das System an. Kein Markdown, kein **fett**.
 
 Die vollständige Ergebnisliste und offene Spiele fügt das System selbst an — wiederhole nicht jedes Ergebnis. Fettdruck mit **…** sparsam erlaubt, sonst kein Markdown, keine Überschriften.`;
 
@@ -253,6 +256,7 @@ export function vorlage(f: Fakten): BerichtText {
   ];
   const paar = (x: Eintrag) => `${name(x.e.home)} – ${name(x.e.away)} ${ergText(x.e)}`;
   return {
+    facebook: `🎯 Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: ${gespielt.length} Begegnungen, alle Ergebnisse, Highlights und Tabellen im Überblick.`,
     titel: `Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: alle Ergebnisse`,
     teaser: `${gespielt.length} Begegnungen am Wochenende ${wochenendeText(f.fri, f.sun, false)} — Ergebnisse, Highlights und Tabellen.`,
     einleitung: [`Am Wochenende ${wochenendeText(f.fri, f.sun)} wurden ${gespielt.length} Begegnungen gespielt${f.offen.length ? `, ${f.offen.length} stehen noch aus` : ''}.`],
@@ -320,6 +324,37 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
 
 // ── Entwurf anlegen ──────────────────────────────────────────
 
+// ── Social Media (Migration 0060) ────────────────────────────
+
+const HASHTAGS = '#münchnerdartunion #mdu #darts #steeldarts #dartsliga #münchen';
+
+/** Fertiger Facebook-Text: Claudes Teaser + Hinweis + Direktlink + Hashtags. */
+export const facebookText = (teaser: string, newsId: string) =>
+  `${teaser.trim()}\n\nDen vollständigen Bericht mit allen Ergebnissen und Tabellen gibt's auf mdudarts.de:\n👉 ${berichtLink(newsId)}\n\n${HASHTAGS}`;
+
+export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDaten {
+  const spieler = (z: SpielerWertung) => ({ name: z.name, team: name(z.teamId), text: [`Einzel ${z.einzelSiege}:${z.einzelNiederlagen}`, hlText(z)].filter(Boolean).join(' · ') });
+  const top = hoechstesFinish(f);
+  return {
+    newsId, titel, wochenende: wochenendeText(f.fri, f.sun),
+    ligen: LIGEN_2027.map(l => {
+      const xs = f.eintraege.filter(x => x.b.liga === l.code);
+      const st = [...new Set(xs.filter(x => x.art === 'gespielt').map(x => x.b.spieltag))];
+      return {
+        name: l.name, farbe: l.color, spieltag: st.length ? `${st.join('/')}. Spieltag` : 'Nachholspiele',
+        ergebnisse: xs.map(x => ({ heim: name(x.e.home), gast: name(x.e.away), erg: ergText(x.e), bestaetigt: x.e.bestaetigt })),
+      };
+    }).filter(l => l.ergebnisse.length),
+    sieger: f.sieger.map(spieler),
+    meiste: f.meiste.filter(z => !f.sieger.includes(z)).map(spieler),
+    finish: top ? { wert: top.wert, spieler: top.spieler.map(s => `${s.name} (${s.team})`) } : null,
+    fuehrer: LIGEN_2027.filter(l => f.tabellen[l.code]).map(l => {
+      const erste = f.tabellen[l.code]!.filter(t => t.nachher === 1);
+      return { liga: l.name, farbe: l.color, teams: erste.map(t => name(t.teamId)), punkte: erste[0]?.punkte ?? 0 };
+    }),
+  };
+}
+
 export type ErzeugenErgebnis =
   | { ok: true; newsId: string; quelle: 'claude' | 'vorlage'; begegnungen: number; offen: number }
   | { ok: false; grund: string };
@@ -347,9 +382,12 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean } 
     ? await db.from('news').update(zeile).eq('id', id)
     : await db.from('news').insert({ ...zeile, id });
   if (error) return { ok: false, grund: error.message };
-  const { error: le } = await db.from('spieltag_berichte').upsert({
-    wochenende: fri, news_id: id, keys: f.eintraege.map(x => x.b.key), quelle: claude ? 'claude' : 'vorlage', erstellt_at: new Date().toISOString(),
+  const basis = { wochenende: fri, news_id: id, keys: f.eintraege.map(x => x.b.key), quelle: claude ? 'claude' : 'vorlage', erstellt_at: new Date().toISOString() };
+  let { error: le } = await db.from('spieltag_berichte').upsert({
+    ...basis, facebook: facebookText(t.facebook || t.teaser, id), social: socialDaten(f, id, zeile.title),
   });
+  // Ohne Migration 0060 (Spalten facebook/social) trotzdem den Bericht ablegen.
+  if (le && /facebook|social/.test(le.message)) ({ error: le } = await db.from('spieltag_berichte').upsert(basis));
   if (le) return { ok: false, grund: /spieltag_berichte/.test(le.message) ? 'Migration 0058 fehlt noch.' : le.message };
 
   if (opts.benachrichtigen) {
