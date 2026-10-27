@@ -13,11 +13,19 @@ import { pushAn } from '@/lib/server/push';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function geheimStimmt(wert: string | null): boolean {
-  const soll = process.env.PUSH_WEBHOOK_SECRET;
+// Beim Kopieren aus dem Supabase-Ergebnis kommen leicht Leerzeichen, ein
+// Zeilenumbruch oder Anführungszeichen mit (26.10.2026: deshalb nur 401, kein Push kam an).
+// Das Geheimnis ist reines Hex — alles andere drumherum wird ignoriert.
+const sauber = (s: string | null | undefined) => (s ?? '').trim().replace(/^["'`]+|["'`]+$/g, '').trim();
+
+function geheimStimmt(roh: string | null): boolean {
+  const soll = sauber(process.env.PUSH_WEBHOOK_SECRET), wert = sauber(roh);
   if (!soll || !wert) return false;
   const a = Buffer.from(wert), b = Buffer.from(soll);
-  return a.length === b.length && timingSafeEqual(a, b);
+  const ok = a.length === b.length && timingSafeEqual(a, b);
+  // Nur die Längen ins Server-Protokoll (Vercel), nie die Werte.
+  if (!ok) console.warn(`push/senden: Geheimnis passt nicht (Anfrage ${a.length} Zeichen, Vercel ${b.length} Zeichen)`);
+  return ok;
 }
 
 export async function POST(request: Request) {
