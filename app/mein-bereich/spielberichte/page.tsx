@@ -1242,7 +1242,7 @@ function KorrekturKarte({ korrektur: k, teamVon, busy, notiz, setNotiz, anfragen
       {!k.darfEntscheiden && (
         <span style={{ color: 'var(--th-text-muted)' }}>Wartet auf {teamVon(k.confirm_team_id)}. Antwortet dort niemand, entscheidet die Ligaleitung.</span>
       )}
-      {k.darfZurueckziehen && !k.darfEntscheiden && (
+      {k.darfZurueckziehen && (
         <button type="button" disabled={busy} onClick={() => entscheiden('zurueckziehen')} style={{ ...ghost, alignSelf: 'flex-start' }}>Anfrage zurückziehen</button>
       )}
       {hinweis}

@@ -127,7 +127,8 @@ function fuerAufrufer(k: Zeile, u: ServerUser): Korrektur {
   return {
     id: k.id, status: k.status, reason: k.reason, requested_team_id: k.requested_team_id, confirm_team_id: k.confirm_team_id,
     changes: k.changes, base: k.base, decision_note: k.decision_note, created_at: k.created_at, decided_at: k.decided_at,
-    darfEntscheiden: offen && (isAdminUser(u) || (tcVon(u, k.confirm_team_id) && k.requested_by !== u.id)),
+    // Über die eigene Anfrage entscheidet niemand selbst — auch nicht eine Ligaleitung mit eigenem Team.
+    darfEntscheiden: offen && k.requested_by !== u.id && (isAdminUser(u) || tcVon(u, k.confirm_team_id)),
     darfZurueckziehen: offen && (k.requested_by === u.id || tcVon(u, k.requested_team_id) || isAdminUser(u)),
   };
 }
