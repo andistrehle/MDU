@@ -59,6 +59,7 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|443|BOAZN|ANGELOS|0|0||',
   '0|444|KETTERER|OLI|0|0||',
   '0|494|BOAZN|HELLI|0|0||',
+  '0|546||STEFFEN|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
