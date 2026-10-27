@@ -24,6 +24,7 @@ import { LIGEN_2027, alleBegegnungen27, team27, wochenendeText, datumKurz27, typ
 import { berechneTabelle, type Ergebnis27 } from '@/lib/tabelle-2027';
 import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
 import { berichtPfad } from '@/lib/spieltag';
+import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
 import {
   FORMEL_TEXT, fenster, spielverlauf, spielerWertung, spielerDesSpieltages, tabellenAenderung,
   type BegegnungDaten, type SpielerWertung,
@@ -83,7 +84,7 @@ export async function sammeln(fri: string): Promise<Fakten | null> {
       if (datum >= f.von && datum <= f.bis) eintraege.push({ b, e, datum, art: 'gespielt' });
       else if (datum < f.von && !schonDrin.has(b.key)) eintraege.push({ b, e, datum, art: 'nachgereicht' });
     } else if (b.fri === fri || (datum >= f.von && datum <= f.bis)) {
-      offen.push({ b, grund: datum > w.sun ? `verlegt auf ${datumKurz27(datum)}` : 'Bericht steht noch aus' });
+      offen.push({ b, grund: datum > w.sun ? `verlegt auf ${datumKurz27(datum)}` : SPIELTAG_HINWEISE_2027[b.key] ?? 'Bericht steht noch aus' });
     }
   }
 
