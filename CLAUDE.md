@@ -16,6 +16,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
 - Vor jedem Push: `npx tsc --noEmit` und `npm run build` müssen grün sein.
 - Vor dem Push `git pull --rebase origin main` (eine GitHub-Action pusht ebenfalls auf main).
 - Commit-Footer: `Co-Authored-By: Claude <noreply@anthropic.com>` (Modellname einsetzen).
+- SQL (Migrationen) dem Betreiber immer direkt im Chat geben, MIT Link zum SQL-Editor:
+  https://supabase.com/dashboard/project/jbppgreathybxrakvhsh/sql/new — er führt es selbst aus.
 - UI-Texte auf Deutsch, Du-Form; Ton freundlich, kein Marketing-Sprech.
 - **Ehrlichkeitsprinzip:** nie Erfolg vortäuschen (E-Mail-Versand meldet ehrlich
   `skipped_no_provider`/`failed`; OCR übernimmt nie ungeprüft; keine erfundenen Daten/Features).
