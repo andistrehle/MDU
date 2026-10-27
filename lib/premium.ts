@@ -6,7 +6,8 @@
 //   • Verkäufer: der Betreiber privat/gewerblich (NICHT die MDU) → vor dem
 //     Start Impressum-Angabe, Abo-Bedingungen + Widerruf, Datenschutz-Absatz
 //     (Rechtstexte nur auf Anweisung, anwaltlich prüfen).
-//   • Preis je Team: Saisonpass 49 € ODER 7,99 € im Monat (monatlich einzeln).
+//   • Preis je Team: Saisonpass 49 € ODER 8,99 € im Monat (monatlich einzeln;
+//     bis 27.10.2026 waren es 7,99 €).
 //   • 14 Tage gratis testen, je Team einmal, startet beim ersten Klick.
 //   • Bezahlen zunächst MANUELL (PayPal / Überweisung, mehrere Wege), der
 //     Betreiber schaltet unter Admin → Premium frei. Stripe folgt später und
@@ -29,7 +30,7 @@ export const TESTTAGE = 14;
 
 export const PREISE = {
   saison: { cents: 4900, name: 'Saisonpass', zeile: 'einmal pro Saison', hinweis: 'gilt bis Saisonende' },
-  monat: { cents: 799, name: 'Monatlich', zeile: 'pro Monat', hinweis: 'jeden Monat neu, jederzeit beendbar' },
+  monat: { cents: 899, name: 'Monatlich', zeile: 'pro Monat', hinweis: 'jeden Monat neu, jederzeit beendbar' },
 } as const;
 export type PremiumModell = keyof typeof PREISE;
 

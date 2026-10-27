@@ -5,7 +5,7 @@
 // ============================================================
 //
 // So sieht ein TC ohne Premium später das Angebot: was drin ist, 14 Tage
-// testen, Saisonpass 49 € oder 7,99 €/Monat, dann Zahlungsweg mit
+// testen, Saisonpass 49 € oder 8,99 €/Monat, dann Zahlungsweg mit
 // Verwendungszweck. Solange PREMIUM_OEFFENTLICH = false (lib/premium.ts),
 // sieht die Seite nur der Super-Admin und die Knöpfe tun nichts.
 // ============================================================
