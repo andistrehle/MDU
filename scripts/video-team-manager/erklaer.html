@@ -133,7 +133,7 @@
   .weg-zu { position:absolute; display:flex; align-items:center; gap:18px; font-size:44px; font-weight:800; opacity:0; transition: opacity .3s; }
   .weg-zu.an { opacity:1; }
   .weg-zu span { padding:12px 22px; border-radius:14px; background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.35); }
-  .weg-zu i { font-style:normal; color:var(--gold); font-size:50px; }
+  .weg-zu i { font-style:normal; color:var(--gold); font-size:40px; line-height:1; }
 
   /* ── Hochformat (nur Handy) ── */
   body.hoch .laptop { display:none; }
@@ -420,11 +420,18 @@ const SZENEN = [
       <div class="laptop" style="transform:scale(.62);transform-origin:0 0;left:80px;top:300px"><div class="rand"><div class="schirm"><img class="an" src="${S}web-premium.jpg" style="transform:scale(1.4);transform-origin:44% 0"></div></div><div class="fuss"></div></div>
       <div class="handy" style="${HOCH ? 'display:none' : 'left:1440px;top:260px;transform:scale(.85);transform-origin:0 0'}"><div class="schirm"><img class="an" src="${S}handy-premium.jpg"></div></div>
       <img src="${LOGO}" style="position:absolute;${HOCH ? 'left:290px;top:260px;width:500px' : 'display:none'}"><div class="gratis tc" data-k="0" style="${HOCH ? 'left:90px;top:720px' : 'left:700px;top:80px'}">14 Tage gratis testen</div>
-      <div class="weg-zu" data-k="1" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:330px;flex-direction:column;align-items:flex-start'}"><span>mdudarts.de</span><i>→</i><span>📲 aufs Handy holen</span><i>→</i><span>Mein Bereich · Team Manager</span></div>
+      <div class="weg-zu" data-k="1" data-bis="2" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:290px;flex-direction:column;align-items:flex-start;gap:4px;font-size:38px'}"><span>mdudarts.de</span><i>→</i><span>📲 aufs Handy holen</span><i>→</i><span>Mein Bereich</span><i>→</i><span>Team Manager</span></div>
+      <div class="oder tc" data-k="2" style="${HOCH ? 'left:70px;right:70px;top:1000px;text-align:center;background:rgba(10,26,16,.96)' : 'left:700px;right:540px;top:330px;text-align:center;background:rgba(10,26,16,.96)'}">Keine Pflicht<br><span style="font-size:${HOCH ? 34 : 30}px;font-family:Manrope;font-weight:700">Spielbetrieb geht ganz normal auch ohne – der Team Manager ist ein zusätzliches Angebot</span></div>
+      ${stempel(3, 'Mit Team Manager macht’s mehr Spaß! 🎯', 640, 720, 'gold', 120, 1380)}
     </div>`,
     schritte: [
       { s: 2.5, u: 'Und die ersten vierzehn Tage sind gratis.', k: 1 },
-      { s: 4.5, u: 'Also los: mdudarts.de, Mein Bereich, Team Manager. Packt’s an!', k: 2 } ] },
+      { s: 4, u: 'Also los: mdudarts.de, Mein Bereich, Team Manager.', k: 2 },
+      { s: 2.6, u: 'Auf geht’s – holt euch den Team Manager jetzt!', k: 2 },
+      { s: 3.4, u: 'Und noch ein kleiner Zusatz: Das ist natürlich keine Pflicht.', k: 3 },
+      { s: 3.6, u: 'Jedes Team kann auch ohne Team Manager ganz normal am Spielbetrieb teilnehmen.', k: 3 },
+      { s: 3.4, u: 'Das ist ein zusätzliches Angebot an euch – gezwungen wird hier keiner.', k: 3 },
+      { s: 2.6, u: 'Aber mit Team Manager macht’s halt doch mehr Spaß!', k: 4 } ] },
 ];
 
 // ── Ablauf ────────────────────────────────────────────────
