@@ -26,7 +26,7 @@ import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
 import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
 import {
-  fenster, spielverlauf, spielerWertung, spielerDesSpieltages, tabellenAenderung,
+  fenster, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
   type BegegnungDaten, type SpielerWertung,
 } from '@/lib/spieltag-bericht';
 
@@ -62,6 +62,8 @@ export interface Fakten {
   daten: Map<string, BegegnungDaten>;
   wertung: SpielerWertung[];
   sieger: SpielerWertung[];
+  /** die meisten Highlights (eigene Erwähnung) */
+  meiste: SpielerWertung[];
   tabellen: Partial<Record<Liga27Code, ReturnType<typeof tabellenAenderung>>>;
 }
 
@@ -106,7 +108,7 @@ export async function sammeln(fri: string): Promise<Fakten | null> {
     );
   }
   const wertung = spielerWertung([...daten.values()]);
-  return { fri, sun: w.sun, eintraege, offen, daten, wertung, sieger: spielerDesSpieltages(wertung), tabellen };
+  return { fri, sun: w.sun, eintraege, offen, daten, wertung, sieger: spielerDesSpieltages(wertung), meiste: meisteHighlights(wertung), tabellen };
 }
 
 // ── Für Claude: nur Zahlen, als JSON ─────────────────────────
@@ -117,7 +119,7 @@ const WERTUNG_TEXT: Record<string, string> = { home_no_show: 'Nichtantritt Heim'
 export function faktenJson(f: Fakten) {
   const spieler = (z: SpielerWertung) => ({
     name: z.name, team: name(z.teamId), liga: ligaName(team27(z.teamId)?.league ?? ''),
-    einzel: `${z.einzelSiege}:${z.einzelNiederlagen}`,
+    einzel: `${z.einzelSiege}:${z.einzelNiederlagen}`, legs: `${z.legsFor}:${z.legsAgainst}`, highlights: z.highlightAnzahl,
     '180er': z.b180, '171er': z.b171, highFinishes: z.hf, shortLegsDarts: z.sl,
   });
   return {
@@ -146,9 +148,11 @@ export function faktenJson(f: Fakten) {
       offen: f.offen.filter(x => x.b.liga === l.code).map(x => ({ heim: name(x.b.home), gast: name(x.b.away), grund: x.grund })),
     })),
     hoechstesFinish: hoechstesFinish(f),
+    besondereHighlights: besondere(f),
     spielerDesSpieltages: f.sieger.map(spieler),
-    bestenliste: f.wertung.slice(0, 8).map(spieler),
-    alleHighlights: f.wertung.filter(z => z.highlightPunkte > 0).map(spieler),
+    bestenliste: f.wertung.slice(0, 6).map(spieler),
+    meisteHighlights: f.meiste.map(spieler),
+    alleHighlights: f.wertung.filter(z => z.highlightAnzahl > 0).map(spieler),
   };
 }
 
@@ -159,6 +163,17 @@ function hoechstesFinish(f: Fakten): { wert: number; spieler: { name: string; te
   const wert = Math.max(...hf.map(x => x.wert));
   const spieler = hf.filter(x => x.wert === wert).map(({ z }) => ({ name: z.name, team: name(z.teamId), liga: ligaName(team27(z.teamId)?.league ?? '') }));
   return { wert, spieler: spieler.filter((s, i) => spieler.findIndex(t => t.name === s.name && t.team === s.team) === i) };
+}
+
+/** Eigens zu erwähnen (Betreiber, 27.10.2026): Finishes ab 140, Short Legs bis 15 Darts, 180er/171er ab zwei. */
+function besondere(f: Fakten) {
+  const wer = (z: SpielerWertung) => ({ name: z.name, team: name(z.teamId) });
+  return {
+    finishesAb140: f.wertung.flatMap(z => z.hf.filter(v => v >= 140).map(wert => ({ ...wer(z), wert }))).sort((a, b) => b.wert - a.wert),
+    shortLegsBis15: f.wertung.flatMap(z => z.sl.filter(v => v <= 15).map(darts => ({ ...wer(z), darts }))).sort((a, b) => a.darts - b.darts),
+    mehrfach180: f.wertung.filter(z => z.b180 >= 2).map(z => ({ ...wer(z), anzahl: z.b180 })),
+    mehrfach171: f.wertung.filter(z => z.b171 >= 2).map(z => ({ ...wer(z), anzahl: z.b171 })),
+  };
 }
 
 const TextSchema = z.object({
@@ -181,10 +196,10 @@ Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielsz
 
 Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste, wenn es dazu nichts gibt):
 - einleitung: kurzer Überblick über das Wochenende.
-- highlights: 180er, 171er, High Finishes (Wert = Checkout), Short Legs (Wert = Darts) — wer, für welches Team. Das höchste Finish des Wochenendes (hoechstesFinish) eigens hervorheben.
+- highlights: 180er, 171er, High Finishes (Wert = Checkout), Short Legs (Wert = Darts) — wer, für welches Team. Eigens hervorheben: das höchste Finish (hoechstesFinish) und alles aus besondereHighlights (Finishes ab 140, Short Legs bis 15 Darts, wer zwei oder mehr 180er bzw. 171er hatte). Kleinere Highlights gern zusammengefasst.
 - knappe: Begegnungen mit knapp=true; beschreibe den Spielverlauf anhand der Zwischenstände (nach jedem Spiel Heim:Gast), Führungswechsel, Rückstand, wann es entschieden war.
 - deutliche: Begegnungen mit deutlich=true.
-- spieler: Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) — was er gezeigt hat (Einzelbilanz, Highlights); gern die nächsten aus der bestenliste kurz erwähnen. Die Auswahl beruht auf einer internen Wertung: nenne KEINE Punkte, keine Formel und keine Gewichtung.
+- spieler: zuerst der Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) — gewählt nach der Einzelbilanz (die meisten Siege ohne Niederlage), bei Gleichstand nach Highlights; nenne seine Bilanz und seine Highlights. Danach eigens, wer die meisten Highlights hatte (meisteHighlights, mit Anzahl und welche) — auch wenn es dieselbe Person ist. Gern die nächsten aus der bestenliste kurz erwähnen. Nenne KEINE Punkte, keine Formel und keine Gewichtung.
 - tabelle: Auswirkungen auf die Tabellen je Liga (Tabellenführung, Sprünge nach oben/unten über platzVorher → platz; platzVorher null = erstes Spiel).
 
 Die vollständige Ergebnisliste und offene Spiele fügt das System selbst an — wiederhole nicht jedes Ergebnis. Fettdruck mit **…** sparsam erlaubt, sonst kein Markdown, keine Überschriften.`;
@@ -228,8 +243,14 @@ export function vorlage(f: Fakten): BerichtText {
   const gespielt = f.eintraege.filter(x => x.art === 'gespielt');
   const knapp = f.eintraege.filter(x => !x.e.wertung && Math.abs(x.e.spieleHome - x.e.spieleAway) <= KNAPP);
   const deutlich = f.eintraege.filter(x => !x.e.wertung && Math.abs(x.e.spieleHome - x.e.spieleAway) >= DEUTLICH);
-  const hl = f.wertung.filter(z => z.highlightPunkte > 0);
-  const top = hoechstesFinish(f);
+  const hl = f.wertung.filter(z => z.highlightAnzahl > 0);
+  const top = hoechstesFinish(f), bes = besondere(f);
+  const besText = [
+    ...bes.finishesAb140.filter(x => x.wert !== top?.wert).map(x => `Finish ${x.wert} von ${x.name} (${x.team})`),
+    ...bes.shortLegsBis15.map(x => `Short Leg mit ${x.darts} Darts von ${x.name} (${x.team})`),
+    ...bes.mehrfach180.map(x => `${x.anzahl}× 180 von ${x.name} (${x.team})`),
+    ...bes.mehrfach171.map(x => `${x.anzahl}× 171 von ${x.name} (${x.team})`),
+  ];
   const paar = (x: Eintrag) => `${name(x.e.home)} – ${name(x.e.away)} ${ergText(x.e)}`;
   return {
     titel: `Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: alle Ergebnisse`,
@@ -237,6 +258,7 @@ export function vorlage(f: Fakten): BerichtText {
     einleitung: [`Am Wochenende ${wochenendeText(f.fri, f.sun)} wurden ${gespielt.length} Begegnungen gespielt${f.offen.length ? `, ${f.offen.length} stehen noch aus` : ''}.`],
     highlights: [
       ...(top ? [`Höchstes Finish des Wochenendes: **${top.wert}** von ${liste(top.spieler.map(s => `${s.name} (${s.team})`))}.`] : []),
+      ...(besText.length ? [`Außerdem: ${liste(besText)}.`] : []),
       ...(hl.length ? [hl.map(z => `**${z.name}** (${name(z.teamId)}): ${hlText(z)}`).join('\n')] : []),
     ],
     knappe: knapp.map(x => {
@@ -250,7 +272,10 @@ export function vorlage(f: Fakten): BerichtText {
       return `${paar(x)}${teile.length ? ` — ${teile.join(', ')}` : ''}.`;
     }),
     deutliche: deutlich.length ? [liste(deutlich.map(paar)) + '.'] : [],
-    spieler: f.sieger.length ? [`${liste(f.sieger.map(z => `**${z.name}** (${name(z.teamId)})`))}: Einzel ${f.sieger[0].einzelSiege}:${f.sieger[0].einzelNiederlagen}${hlText(f.sieger[0]) ? `, ${hlText(f.sieger[0])}` : ''}.`] : [],
+    spieler: [
+      ...(f.sieger.length ? [`${liste(f.sieger.map(z => `**${z.name}** (${name(z.teamId)})`))}: Einzel ${f.sieger[0].einzelSiege}:${f.sieger[0].einzelNiederlagen}${hlText(f.sieger[0]) ? `, dazu ${hlText(f.sieger[0])}` : ''}.`] : []),
+      ...(f.meiste.length ? [`Die meisten Highlights: ${liste(f.meiste.map(z => `**${z.name}** (${name(z.teamId)})`))} mit ${f.meiste[0].highlightAnzahl} (${hlText(f.meiste[0])}).`] : []),
+    ],
     tabelle: LIGEN_2027.filter(l => f.tabellen[l.code]).map(l => {
       const erster = f.tabellen[l.code]!.filter(t => t.nachher === 1);
       return `${l.name}: an der Spitze ${liste(erster.map(t => name(t.teamId)))} mit ${erster[0]?.punkte ?? 0} Punkten.`;

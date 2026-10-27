@@ -162,10 +162,11 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   an (Kategorie „Spieltag“) + Glocke an die Ligaleitung; Veröffentlichen unter Admin → News schickt den Push
   an ALLE Geräte (`pushAlle`, einmal je Bericht über `spieltag_berichte.push_at`). Rechnung rein in
   `lib/spieltag-bericht.ts` (Fenster Mo nach dem vorigen Wochenende bis So, nachgereicht = früher gespielt, in
-  keinem Bericht; knapp ≤ 2 Spiele mit Spielverlauf, deutlich ≥ 8; Spieler des Spieltages: 180/171 = 3, HF
-  100–129/130–159/160+ = 2/3/4, SL 15/13–14/≤12 = 1/2/3, Einzelsieg 2:0 = 3/2:1 = 2 bzw. La Liga 3:0/3:1/3:2 =
-  3/2,5/2, La-Liga-Highlights × ⅔ (mehr Legs) — Formel ist INTERN, steht weder im Beitrag noch in der FAQ;
-  höchstes Finish des Wochenendes wird eigens erwähnt). Anmerkungen zu offenen Begegnungen („nicht
+  keinem Bericht; knapp ≤ 2 Spiele mit Spielverlauf, deutlich ≥ 8). Spieler des Spieltages (Betreiber
+  27.10.2026) = Einzelbilanz zuerst (Siege ↓, Niederlagen ↑), Gleichstand → Highlight-Punkte (180/171 = 3, HF
+  100–129/130–159/160+ = 2/3/4, SL ≤12/13–15/16–20 = 3/2/1, La Liga × ⅔), dann Legdifferenz. Eigens: „die
+  meisten Highlights“ (Anzahl) und besondere (höchstes Finish, HF ≥ 140, SL ≤ 15, 180er/171er ab zwei).
+  Punkte/Formel sind INTERN — nie in Beitrag oder FAQ. Anmerkungen zu offenen Begegnungen („nicht
   stattgefunden …“) in `lib/data/spieltag-hinweise-2027.ts`. Claude (`claude-opus-5-5`, OCR-Schlüssel) formuliert NUR aus dem
   Fakten-JSON; Ergebnisliste und offene Spiele setzt der Code selbst; ohne Claude Text aus der Vorlage
   (`quelle`). Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,

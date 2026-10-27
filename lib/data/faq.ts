@@ -265,7 +265,7 @@ Bei Punktgleichheit entscheidet die Legdifferenz, danach die Zahl der Siege; ist
         frage: 'Gibt es einen Bericht zum Spielwochenende?',
         antwort: `Ja. Nach jedem Spielwochenende erscheint unter [News](/news) ein Spieltagsbericht: Highlights, knappe Begegnungen mit Spielverlauf, deutliche Siege, der Spieler des Spieltages über alle Ligen, alle Ergebnisse und was sich in den Tabellen getan hat. Der Text wird aus den eingereichten Spielberichten erstellt und von der Ligaleitung vor dem Veröffentlichen geprüft. Wer Benachrichtigungen aufs Handy eingeschaltet hat, bekommt dann einen Hinweis.
 
-**Spieler des Spieltages** ist, wer über alle Ligen hinweg mit Einzelsiegen und Highlights (180er, 171er, High Finishes, Short Legs) am meisten gezeigt hat.
+**Spieler des Spieltages** ist, wer über alle Ligen hinweg im Einzel am meisten gewonnen hat – bei Gleichstand entscheiden die Highlights. Dazu nennt der Bericht, wer die meisten Highlights hatte, und hebt besondere hervor (höchstes Finish, Finishes ab 140, Short Legs bis 15 Darts, mehrere 180er oder 171er).
 
 Spiele, deren Bericht am Sonntagabend noch fehlt oder die verlegt sind, stehen als „offen“ im Bericht und kommen im nächsten als nachgereicht dazu.`,
         stichworte: ['spieltagsbericht', 'news', 'spieler des spieltages', 'bericht', 'wochenende'],
