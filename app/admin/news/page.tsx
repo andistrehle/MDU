@@ -94,8 +94,23 @@ export default function AdminNewsPage() {
 
   const erzeugen = async () => {
     setErzeugt({ busy: true, text: 'Wird erzeugt – das dauert bis zu einer Minute …' });
+    const start = Date.now();
     const { data, error } = await erzeugeSpieltagsbericht();
-    if (error) { setErzeugt({ busy: false, text: error, ok: false }); return; }
+    if (error) {
+      // Claude braucht rund eine Minute — am Handy reißt dabei manchmal die
+      // Verbindung ab, obwohl der Server fertig wird. Dann nachsehen, ob der
+      // Entwurf in dieser Zeit aktualisiert wurde, statt einen Fehler zu melden.
+      const { data: liste } = await listAllNews();
+      const neu = liste.find(n => istSpieltagsbericht(n.id) && n.status === 'draft' && Date.parse(n.updated_at) >= start - 5000);
+      if (neu) {
+        setErzeugt({ busy: false, ok: true, text: 'Entwurf erzeugt – die Verbindung war zwischendurch weg, der Server ist aber fertig geworden. Bitte unten prüfen.' });
+        setMarkiert(neu.id);
+        await reload();
+        return;
+      }
+      setErzeugt({ busy: false, text: `${error} Falls es länger gedauert hat: Seite neu laden – der Entwurf kann trotzdem erzeugt worden sein.`, ok: false });
+      return;
+    }
     const offen = Number(data?.offen ?? 0);
     setErzeugt({ busy: false, ok: true, text: `Entwurf erzeugt (${data?.begegnungen} Begegnungen${offen ? `, ${offen} noch offen` : ''}${data?.quelle === 'vorlage' ? ' – Text aus der Vorlage, Claude war nicht erreichbar' : ''}). Bitte unten prüfen.` });
     setMarkiert(String(data?.newsId ?? ''));
