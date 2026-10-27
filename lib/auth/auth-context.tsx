@@ -358,6 +358,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     if (supabase) await supabase.auth.signOut();
     writeAuthCookie(false);
+    // Zahl am App-Symbol gehört zum abgemeldeten Konto.
+    try { await (navigator as Navigator & { clearAppBadge?: () => Promise<void> }).clearAppBadge?.(); } catch { /* nicht unterstützt */ }
     setUser(null);
   }, []);
 

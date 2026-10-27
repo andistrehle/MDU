@@ -13,14 +13,19 @@ self.addEventListener('push', (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch { d = { body: event.data ? event.data.text() : '' }; }
   const title = d.title || 'Münchner Dart Union';
-  event.waitUntil(self.registration.showNotification(title, {
+  // Zahl am App-Symbol (iPhone-Web-App ab iOS 16.4, Chrome/Edge am Computer).
+  // Nur wenn der Server sie mitschickt — der Spieltagsbericht lässt sie stehen.
+  const zahl = typeof d.anzahl === 'number' && 'setAppBadge' in self.navigator
+    ? (d.anzahl > 0 ? self.navigator.setAppBadge(d.anzahl) : self.navigator.clearAppBadge()).catch(() => {})
+    : Promise.resolve();
+  event.waitUntil(Promise.all([zahl, self.registration.showNotification(title, {
     body: d.body || '',
     icon: '/app/icon-192.png',
     badge: '/app/icon-192.png',
     tag: d.tag || undefined,
     data: { url: d.url || '/' },
     lang: 'de',
-  }));
+  })]));
 });
 
 self.addEventListener('notificationclick', (event) => {

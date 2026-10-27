@@ -34,6 +34,14 @@ export function NotificationBell() {
     return () => { weg = true; };
   }, [user?.teamId, pathname]);
   const anzahl = unread + offen.length;
+  // Zahl am App-Symbol (installierte Web-App) = Zahl an der Glocke. Erst nach
+  // dem ersten Laden, sonst stünde kurz 0 da und die Zahl vom Push wäre weg.
+  useEffect(() => {
+    if (loading) return;
+    const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+    if (!nav.setAppBadge) return;
+    void (anzahl > 0 ? nav.setAppBadge(anzahl) : nav.clearAppBadge?.())?.catch(() => {});
+  }, [anzahl, loading]);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);

@@ -154,6 +154,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Geheimnis NICHT von Hand kopieren (ging am 26.10. zweimal schief → nur 401): neu setzen über
   `push_geheimnis_setzen(neu)` (Migration 0059, nur service_role) + denselben Wert per Vercel-API, dann Redeploy.
   Prüfen: `push_subscriptions.last_ok_at` bzw. `net._http_response` (SQL-Editor).
+  Zahl am App-Symbol (Badging API, 27.10.2026): Push trägt `anzahl` = ungelesene Glocken-Zeilen des Empfängers
+  (`PushNachricht.anzahl`, Zusagen-Push + offene Termine), `sw.js` setzt sie; offen hält `NotificationBell` sie
+  gleich der Glocke (inkl. offener Zusagen), Abmelden löscht sie. Spieltagsbericht-Push lässt sie unverändert.
   **Spieltagsbericht** (Migration 0058, Betreiber 25.10.2026): Cron `/api/cron/spieltag-bericht` (So 19:00 UTC)
   legt je PLAN-WOCHENENDE (Spieltag-Nummern sind je Liga verschieden!) einen News-ENTWURF `spieltag-<Freitag>`
   an (Kategorie „Spieltag“) + Glocke an die Ligaleitung; Veröffentlichen unter Admin → News schickt den Push

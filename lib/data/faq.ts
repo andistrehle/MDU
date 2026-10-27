@@ -381,6 +381,7 @@ Angemeldet bleibst du dort genauso wie im Browser.`,
         frage: 'Bekomme ich Benachrichtigungen aufs Handy?',
         antwort: `Ja, wenn du sie einschaltest. Nach dem Login fragt die Seite einmal nach, danach geht es jederzeit unter [Mein Bereich](/mein-bereich) → „Benachrichtigungen aufs Handy“ (ein- und ausschalten). Du bekommst dann alles, was in deiner Glocke landet, zum Beispiel einen Spielbericht zum Bestätigen, eine Spielverlegung oder, mit Team Manager, die Erinnerung zum Zu-/Absagen.
 - **iPhone:** Benachrichtigungen gibt es nur, wenn die MDU als App auf dem Home-Bildschirm liegt und du sie darüber öffnest (iOS 16.4 oder neuer).
+- **Zahl am App-Symbol:** Auf dem iPhone (MDU als App) und am Computer zeigt das Symbol, wie viele Benachrichtigungen ungelesen sind – wie an der Glocke. Sie geht weg, sobald du sie in der Glocke gelesen hast. Auf Android zeigt das Handy je nach Hersteller einen Punkt statt einer Zahl.
 - **Aus Versehen abgelehnt?** Dann darf die Seite nicht noch einmal fragen. Erlauben kannst du es in den Einstellungen: iPhone → Einstellungen → Mitteilungen → MDU; im Browser über das Schloss-Symbol neben der Adresse → Benachrichtigungen.
 
 Meldest du dich ab, bekommt das Gerät keine Benachrichtigungen mehr.`,

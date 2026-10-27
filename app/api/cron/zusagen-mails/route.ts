@@ -121,6 +121,7 @@ async function zusagenPush(teamId: string, termine: Termin[], profile: Profil[],
       titel: offen.length === 1 ? 'Sag kurz zu oder ab' : `${offen.length} Termine: zu- oder absagen`,
       text: offen.length === 1 ? offen[0].text : offen.map(t => t.text).join(' · '),
       url: offen.length === 1 ? offen[0].pfad : '/mein-team/termine', tag: `zusage-${teamId}`,
+      anzahl: { plus: offen.length },
     });
     // Nur merken, wenn ein Gerät erreicht wurde — wer Push erst später einschaltet, bekommt ihn dann.
     if (r.gesendet > 0) { n += 1; await db.from('zusage_push_log').upsert(offen.map(t => ({ user_id: p.id, match_key: t.key }))); }

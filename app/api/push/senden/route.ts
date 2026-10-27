@@ -43,6 +43,6 @@ export async function POST(request: Request) {
     const { data } = await supabaseAdmin.from('profiles').select('id').eq('role', n.target_role);
     empfaenger = ((data ?? []) as { id: string }[]).map(p => p.id);
   }
-  const r = await pushAn(empfaenger, { titel: n.title, text: n.short_text, url: n.action_url, tag: n.id });
+  const r = await pushAn(empfaenger, { titel: n.title, text: n.short_text, url: n.action_url, tag: n.id, anzahl: {} });
   return NextResponse.json(r);
 }
