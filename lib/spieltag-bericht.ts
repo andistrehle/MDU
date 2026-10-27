@@ -24,6 +24,11 @@
 //   Short Leg 15 Darts = 1 / 13–14 = 2 / ≤ 12 = 3 · gewonnenes Einzel ohne
 //   Legverlust = 3, mit Legverlust = 2. Gleichstand → Einzelbilanz (Siege −
 //   Niederlagen), dann Highlight-Punkte; sonst teilen sie sich den Titel.
+//   La Liga (Best of 5): Highlights zählen mit ⅔ (Betreiber, 27.10.2026) — dort
+//   fallen je Spiel rund anderthalbmal so viele Legs, also mehr Gelegenheiten
+//   für 180er & Co. Einzelsiege: abgegebene Legs gemessen am Höchstmöglichen —
+//   La Liga 3:0 = 3, 3:1 = 2,5, 3:2 = 2 (NICHT die 5er-Skala der Einzelrangliste).
+//   Die Formel ist intern — sie steht weder im Beitrag noch in der FAQ.
 // ============================================================
 
 import type { Ergebnis27, TabellenZeile } from './tabelle-2027';
@@ -45,9 +50,11 @@ export interface BegegnungDaten {
 
 export const HF_PUNKTE = (v: number) => (v >= 160 ? 4 : v >= 130 ? 3 : v >= 100 ? 2 : 0);
 export const SL_PUNKTE = (darts: number) => (darts <= 12 ? 3 : darts <= 14 ? 2 : darts === 15 ? 1 : 0);
-export const EINZEL_PUNKTE = (f: number, a: number) => (f > a ? (a === 0 ? 3 : 2) : 0);
-export const FORMEL_TEXT =
-  'So wird gezählt: 180er und 171er je 3 Punkte · High Finish 100–129 = 2, 130–159 = 3, ab 160 = 4 · Short Leg mit 15 Darts = 1, 13–14 = 2, bis 12 = 3 · gewonnenes Einzel ohne Legverlust = 3, mit Legverlust = 2. Bei Gleichstand entscheidet die Einzelbilanz.';
+/** Gewonnenes Einzel: ohne Legverlust 3, knappster möglicher Sieg 2, dazwischen anteilig
+ *  (Best of 3: 2:0 = 3, 2:1 = 2 · La Liga Best of 5: 3:0 = 3, 3:1 = 2,5, 3:2 = 2). */
+export const EINZEL_PUNKTE = (f: number, a: number) => (f > a ? 3 - a / Math.max(1, f - 1) : 0);
+/** Gewicht der Highlights je Liga: La Liga spielt Best of 5 (3 Gewinn-Legs statt 2). */
+export const HIGHLIGHT_GEWICHT = (liga: string) => (liga === 'la' ? 2 / 3 : 1);
 
 // ── Spielverlauf ─────────────────────────────────────────────
 
@@ -135,6 +142,7 @@ export function spielerWertung(begegnungen: BegegnungDaten[]): SpielerWertung[] 
       else if (h.type === '171') { z.b171 += h.value; p = 3 * h.value; }
       else if (h.type === 'high_finish') { z.hf.push(h.value); p = HF_PUNKTE(h.value); }
       else if (h.type === 'short_leg') { z.sl.push(h.value); p = SL_PUNKTE(h.value); }
+      p *= HIGHLIGHT_GEWICHT(b.liga);
       z.highlightPunkte += p; z.punkte += p;
     }
   }

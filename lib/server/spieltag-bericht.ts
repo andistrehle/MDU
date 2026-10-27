@@ -26,7 +26,7 @@ import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
 import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
 import {
-  FORMEL_TEXT, fenster, spielverlauf, spielerWertung, spielerDesSpieltages, tabellenAenderung,
+  fenster, spielverlauf, spielerWertung, spielerDesSpieltages, tabellenAenderung,
   type BegegnungDaten, type SpielerWertung,
 } from '@/lib/spieltag-bericht';
 
@@ -116,8 +116,8 @@ const WERTUNG_TEXT: Record<string, string> = { home_no_show: 'Nichtantritt Heim'
 
 export function faktenJson(f: Fakten) {
   const spieler = (z: SpielerWertung) => ({
-    name: z.name, team: name(z.teamId), liga: ligaName(team27(z.teamId)?.league ?? ''), punkte: z.punkte,
-    highlightPunkte: z.highlightPunkte, einzel: `${z.einzelSiege}:${z.einzelNiederlagen}`,
+    name: z.name, team: name(z.teamId), liga: ligaName(team27(z.teamId)?.league ?? ''),
+    einzel: `${z.einzelSiege}:${z.einzelNiederlagen}`,
     '180er': z.b180, '171er': z.b171, highFinishes: z.hf, shortLegsDarts: z.sl,
   });
   return {
@@ -145,10 +145,20 @@ export function faktenJson(f: Fakten) {
       tabelle: (f.tabellen[l.code] ?? []).map(t => ({ platz: t.nachher, platzVorher: t.vorher || null, team: name(t.teamId), punkte: t.punkte, spiele: t.spiele })),
       offen: f.offen.filter(x => x.b.liga === l.code).map(x => ({ heim: name(x.b.home), gast: name(x.b.away), grund: x.grund })),
     })),
+    hoechstesFinish: hoechstesFinish(f),
     spielerDesSpieltages: f.sieger.map(spieler),
     bestenliste: f.wertung.slice(0, 8).map(spieler),
     alleHighlights: f.wertung.filter(z => z.highlightPunkte > 0).map(spieler),
   };
+}
+
+/** Höchstes High Finish des Wochenendes (bei Gleichstand alle mit dem Wert). */
+function hoechstesFinish(f: Fakten): { wert: number; spieler: { name: string; team: string; liga: string }[] } | null {
+  const hf = f.wertung.flatMap(z => z.hf.map(wert => ({ wert, z })));
+  if (!hf.length) return null;
+  const wert = Math.max(...hf.map(x => x.wert));
+  const spieler = hf.filter(x => x.wert === wert).map(({ z }) => ({ name: z.name, team: name(z.teamId), liga: ligaName(team27(z.teamId)?.league ?? '') }));
+  return { wert, spieler: spieler.filter((s, i) => spieler.findIndex(t => t.name === s.name && t.team === s.team) === i) };
 }
 
 const TextSchema = z.object({
@@ -171,10 +181,10 @@ Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielsz
 
 Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste, wenn es dazu nichts gibt):
 - einleitung: kurzer Überblick über das Wochenende.
-- highlights: 180er, 171er, High Finishes (Wert = Checkout), Short Legs (Wert = Darts) — wer, für welches Team.
+- highlights: 180er, 171er, High Finishes (Wert = Checkout), Short Legs (Wert = Darts) — wer, für welches Team. Das höchste Finish des Wochenendes (hoechstesFinish) eigens hervorheben.
 - knappe: Begegnungen mit knapp=true; beschreibe den Spielverlauf anhand der Zwischenstände (nach jedem Spiel Heim:Gast), Führungswechsel, Rückstand, wann es entschieden war.
 - deutliche: Begegnungen mit deutlich=true.
-- spieler: Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) mit seinen Punkten und wie sie zustande kamen; gern die nächsten aus der bestenliste kurz erwähnen.
+- spieler: Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) — was er gezeigt hat (Einzelbilanz, Highlights); gern die nächsten aus der bestenliste kurz erwähnen. Die Auswahl beruht auf einer internen Wertung: nenne KEINE Punkte, keine Formel und keine Gewichtung.
 - tabelle: Auswirkungen auf die Tabellen je Liga (Tabellenführung, Sprünge nach oben/unten über platzVorher → platz; platzVorher null = erstes Spiel).
 
 Die vollständige Ergebnisliste und offene Spiele fügt das System selbst an — wiederhole nicht jedes Ergebnis. Fettdruck mit **…** sparsam erlaubt, sonst kein Markdown, keine Überschriften.`;
@@ -219,12 +229,16 @@ export function vorlage(f: Fakten): BerichtText {
   const knapp = f.eintraege.filter(x => !x.e.wertung && Math.abs(x.e.spieleHome - x.e.spieleAway) <= KNAPP);
   const deutlich = f.eintraege.filter(x => !x.e.wertung && Math.abs(x.e.spieleHome - x.e.spieleAway) >= DEUTLICH);
   const hl = f.wertung.filter(z => z.highlightPunkte > 0);
+  const top = hoechstesFinish(f);
   const paar = (x: Eintrag) => `${name(x.e.home)} – ${name(x.e.away)} ${ergText(x.e)}`;
   return {
     titel: `Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: alle Ergebnisse`,
     teaser: `${gespielt.length} Begegnungen am Wochenende ${wochenendeText(f.fri, f.sun, false)} — Ergebnisse, Highlights und Tabellen.`,
     einleitung: [`Am Wochenende ${wochenendeText(f.fri, f.sun)} wurden ${gespielt.length} Begegnungen gespielt${f.offen.length ? `, ${f.offen.length} stehen noch aus` : ''}.`],
-    highlights: hl.length ? [hl.map(z => `**${z.name}** (${name(z.teamId)}): ${hlText(z)}`).join('\n')] : [],
+    highlights: [
+      ...(top ? [`Höchstes Finish des Wochenendes: **${top.wert}** von ${liste(top.spieler.map(s => `${s.name} (${s.team})`))}.`] : []),
+      ...(hl.length ? [hl.map(z => `**${z.name}** (${name(z.teamId)}): ${hlText(z)}`).join('\n')] : []),
+    ],
     knappe: knapp.map(x => {
       const v = spielverlauf(f.daten.get(x.b.key)?.spiele ?? []);
       const remis = x.e.spieleHome === x.e.spieleAway;
@@ -236,7 +250,7 @@ export function vorlage(f: Fakten): BerichtText {
       return `${paar(x)}${teile.length ? ` — ${teile.join(', ')}` : ''}.`;
     }),
     deutliche: deutlich.length ? [liste(deutlich.map(paar)) + '.'] : [],
-    spieler: f.sieger.length ? [`${liste(f.sieger.map(z => `**${z.name}** (${name(z.teamId)})`))} mit ${f.sieger[0].punkte} Punkten (Einzel ${f.sieger[0].einzelSiege}:${f.sieger[0].einzelNiederlagen}${hlText(f.sieger[0]) ? `, ${hlText(f.sieger[0])}` : ''}).`] : [],
+    spieler: f.sieger.length ? [`${liste(f.sieger.map(z => `**${z.name}** (${name(z.teamId)})`))}: Einzel ${f.sieger[0].einzelSiege}:${f.sieger[0].einzelNiederlagen}${hlText(f.sieger[0]) ? `, ${hlText(f.sieger[0])}` : ''}.`] : [],
     tabelle: LIGEN_2027.filter(l => f.tabellen[l.code]).map(l => {
       const erster = f.tabellen[l.code]!.filter(t => t.nachher === 1);
       return `${l.name}: an der Spitze ${liste(erster.map(t => name(t.teamId)))} mit ${erster[0]?.punkte ?? 0} Punkten.`;
@@ -260,7 +274,7 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
   abschnitt('Highlights', t.highlights);
   abschnitt('Knappe Kisten', t.knappe);
   abschnitt('Deutliche Siege', t.deutliche);
-  if (t.spieler.length) abschnitt('Spieler des Spieltages', [...t.spieler, FORMEL_TEXT]);
+  abschnitt('Spieler des Spieltages', t.spieler);
 
   out.push('## Alle Ergebnisse');
   for (const l of LIGEN_2027) {
