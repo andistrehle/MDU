@@ -20,6 +20,7 @@ import { DemoTour } from './demo-tour';
 import { AnalyticsTracker } from './analytics-tracker';
 import { PushAbfrage } from './push-abfrage';
 import { AppZurueck } from './app-zurueck';
+import { AppZaehler } from './app-zaehler';
 
 export function GlobalChrome() {
   const pathname = usePathname();
@@ -34,6 +35,7 @@ export function GlobalChrome() {
       <AnalyticsTracker />
       <PushAbfrage />
       <AppZurueck />
+      <AppZaehler />
     </>
   );
 }

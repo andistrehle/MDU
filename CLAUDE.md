@@ -206,6 +206,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Zahl am App-Symbol (Badging API, 27.10.2026): Push trägt `anzahl` = ungelesene Glocken-Zeilen des Empfängers
   (`PushNachricht.anzahl`, Zusagen-Push + offene Termine), `sw.js` setzt sie; offen hält `NotificationBell` sie
   gleich der Glocke (inkl. offener Zusagen), Abmelden löscht sie. Spieltagsbericht-Push lässt sie unverändert.
+  **Web-App-Installationen zählen** (Migration 0064, Betreiber 29.10.2026): `components/mdu/app-zaehler.tsx` meldet NUR
+  im Standalone-Modus höchstens 1×/Tag zufällige Geräte-ID (localStorage `mdu-app-id`) + Plattform an
+  `/api/app-installation` (`app_installationen`, keine Konto-/IP-Daten). Auswertung Admin → Statistik → Web-App
+  (`/admin/web-app`, nur Super-Admin, mit Push-Geräten). Datenschutz-Absatz dazu: nur auf Anweisung.
   **Spieltagsbericht** (Migration 0058, Betreiber 25.10.2026): Cron `/api/cron/spieltag-bericht` (So 19:00 UTC)
   legt je PLAN-WOCHENENDE (Spieltag-Nummern sind je Liga verschieden!) einen News-ENTWURF `spieltag-<Freitag>`
   an (Kategorie „Spieltag“) + Glocke an die Ligaleitung; Veröffentlichen unter Admin → News schickt den Push
