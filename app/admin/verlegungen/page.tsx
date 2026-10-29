@@ -83,7 +83,8 @@ export default function AdminVerlegungenPage() {
                     <div style={{ ...txt, fontWeight: 800, color: 'var(--th-text-strong)' }}>{name(v.home_team_id)} – {name(v.away_team_id)}</div>
                     {planText(v) && <div style={{ ...txt, fontSize: 12, color: 'var(--th-text-faint)' }}>{planText(v)}</div>}
                     <div style={txt}>{v.kind === 'heimrecht' ? <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen (Hin- und Rückspiel, Termine bleiben)</b> : <><>vorher <s>{alterTermin(v)}</s></> → neu <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>} · angefragt von {name(v.requested_team)}{v.reason ? ` · „${v.reason}“` : ''}</div>
-                    {v.note && <div style={{ ...txt, fontSize: 12, color: v.status === 'bestaetigt' ? 'var(--th-loss)' : 'var(--th-text-faint)' }}>{v.note}</div>}
+                    {/* Ein alter Fehlerhinweis („Noch nicht übernommen …“) gilt nicht mehr, sobald übernommen ist. */}
+                    {v.note && !(v.status === 'uebernommen' && v.note.startsWith('Noch nicht übernommen')) && <div style={{ ...txt, fontSize: 12, color: v.status === 'bestaetigt' ? 'var(--th-loss)' : 'var(--th-text-faint)' }}>{v.note}</div>}
                   </div>
                   <span style={{ ...txt, fontWeight: 800, color: STATUS[v.status][1] }}>{STATUS[v.status][0]}</span>
                   {v.status === 'freigabe' && (

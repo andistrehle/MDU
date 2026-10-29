@@ -206,7 +206,7 @@ async function uebernehmeHeimrecht(v: Verlegung, wer: string): Promise<Verlegung
       `Heimrecht getauscht: ${paarung(v)} (Hin- und Rückspiel, Termine bleiben)\n\nBestätigt über die Seite (${wer}), Anfrage ${v.id}.`);
     // (3) Zusagen & Co. umhängen
     await kennungenTauschen(hin.key, rueck.key, [a, b]);
-    return await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha }, ['bestaetigt']);
+    return await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha, note: null }, ['bestaetigt']);
   } catch (e) {
     return await setze(v.id, { note: `Noch nicht übernommen: ${(e as Error).message}` }, ['bestaetigt']);
   }
@@ -230,7 +230,7 @@ async function uebernehmen(v: Verlegung, wer: string): Promise<Verlegung> {
     const sha = await aendereJsonDatei<Record<string, unknown>>(DATEI, alt => ({
       ...alt, [v.match_key]: { datum: v.new_date, ...(v.new_time ? { uhrzeit: v.new_time } : {}), am: heute() },
     }), `Spiel verlegt: ${paarung(v)} auf ${termin(v.new_date, v.new_time)}\n\nBestätigt über die Seite (${wer}), Anfrage ${v.id}.`);
-    return await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha }, ['bestaetigt']);
+    return await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha, note: null }, ['bestaetigt']);
   } catch (e) {
     return await setze(v.id, { note: `Noch nicht übernommen: ${(e as Error).message}` }, ['bestaetigt']);
   }
