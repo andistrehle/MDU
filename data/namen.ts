@@ -72,6 +72,13 @@ export const NAMEN: Namenskorrektur[] = [
     "note": "Saison 2025/26 „Pogremino“, Sommer-Ranking „Pogremno“ — richtig ist ohne i, vom Betreiber bestätigt."
   },
   {
+    "passNr": 210,
+    "lastName": "JUCHEM",
+    "firstName": "FRANKY",
+    "alteId": "fraenky-juchem",
+    "note": null
+  },
+  {
     "passNr": 297,
     "lastName": "SEDLMEIER",
     "firstName": "DAVID",
