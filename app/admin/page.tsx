@@ -23,7 +23,7 @@ interface AdminCard {
 }
 
 const CARDS: AdminCard[] = [
-  { icon: 'star',     label: 'Premium (Vorschau)', desc: 'Team Manager: freischalten, Anfragen, Abläufe.', href: '/admin/premium', super: true },
+  { icon: 'star',     label: 'Premium (Team Manager)', desc: 'Zahlungen, Überweisungen freischalten, Abläufe, PayPal.', href: '/admin/premium', super: true },
   { icon: 'users',    label: 'Benutzerverwaltung', desc: 'Konten, Rollen & Verknüpfungen.', href: '/admin/users', badgeKey: 'users' },
   { icon: 'edit',     label: 'Rollenverwaltung',   desc: 'Rollen & Rechte im Überblick.',   href: '/admin/roles' },
   { icon: 'trophy',   label: 'Saison-Teams',       desc: 'Mannschaften je Saison, Liga & Kader.', href: '/admin/season-teams' },

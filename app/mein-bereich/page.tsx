@@ -168,6 +168,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
   if (canManageUsers(user) && !inCaptainMode) {
     tiles.push(
       { icon: 'edit',     label: 'Rollenverwaltung',    description: 'Rollen vergeben (in der Benutzerverwaltung).', href: '/admin/users', ready: true },
+      { icon: 'star',     label: 'Premium (Team Manager)', description: 'Zahlungen, gemeldete Überweisungen freischalten, Abläufe, PayPal.', href: '/admin/premium', ready: true },
       { icon: 'settings', label: 'Systemeinstellungen', description: 'Plattform-Einstellungen (folgt).', ready: false },
     );
   }
