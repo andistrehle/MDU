@@ -58,6 +58,7 @@ export const LEISTUNGEN: { titel: string; text: string }[] = [
   { titel: 'Zu- und Absagen', text: 'Jeder sagt mit einem Tipp zu, mit Begründung bei Absage. Du siehst sofort, wer kommt.' },
   { titel: 'Aufstellung', text: 'Aus den Zusagen H1–H8 aufstellen und in den Spielbericht übernehmen.' },
   { titel: 'Eigene Termine', text: 'Pokal, andere Ligen, Training – eintragen oder aus Excel importieren.' },
+  { titel: 'Team benachrichtigen', text: 'Nachricht ans ganze Team, Offene zum Zu- oder Absagen erinnern, neue und geänderte Termine – per Glocke und Push aufs Handy.' },
   { titel: 'Teamkasse', text: 'Strafenkatalog, Beiträge, Kassenbuch und wer was offen hat.' },
   { titel: 'Gegneranalyse', text: 'Tabelle, Form, direkter Vergleich und die besten Spieler des nächsten Gegners.' },
   { titel: 'Statistik', text: 'Wer wie oft zugesagt und gespielt hat – deine Quote im Vergleich zum Team.' },
