@@ -46,8 +46,11 @@ export const SEASONS: Season[] = [
     label: '2026/27',
     startDate: '2026-08-31',
     endDate: '2027-07-25',
-    // Stand der Wertung — steht in der Kopfzeile der Arbeitsmappe und wird
-    // beim Import mitgeliefert.
+    // NUR NOCH RÜCKFALL (seit 24.10.2026). Der Wert kam aus der Kopfzeile der
+    // alten Arbeitsmappe; die ist Geschichte, also zog ihn niemand mehr nach.
+    // Angezeigt wird heute `RUNNING_ASOF` (`data/tournament-results.ts`): das
+    // Datum des jüngsten gewerteten Turniers. Diese Zahl hier greift nur,
+    // solange noch gar kein Turnier gewertet ist.
     asOf: '2026-09-06',
     current: true,
   },

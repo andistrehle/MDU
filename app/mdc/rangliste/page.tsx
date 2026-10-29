@@ -17,7 +17,7 @@ import { PageHero, EmptyRanking } from '@/components/mdc/ui';
 import { DivisionSwitch } from '@/components/mdc/division-switch';
 import { toRankingRows, withPayout } from '@/lib/mdc/rows';
 import { runningRankingOf, RUNNING_HAS_RESULTS } from '@/data/ranking';
-import { RUNNING_STATS } from '@/data/tournament-results';
+import { RUNNING_ASOF, RUNNING_STATS } from '@/data/tournament-results';
 import { FINAL_SEASON, RUNNING_SEASON } from '@/data/season';
 import { formatDate } from '@/lib/mdc/format';
 import { mdcPath } from '@/lib/mdc/site';
@@ -62,7 +62,7 @@ export default function RanglistePage() {
               <DivisionSwitch
                 men={withPayout(toRankingRows(runningRankingOf('men')), jackpot.men.ezrAmount)}
                 women={withPayout(toRankingRows(runningRankingOf('women')), jackpot.women.ezrAmount)}
-                asOf={RUNNING_SEASON.asOf}
+                asOf={RUNNING_ASOF}
                 payouts={{ men: jackpot.men, women: jackpot.women }}
                 teilnahmen={jackpot.teilnahmen}
                 dabei={jackpot.dabei}

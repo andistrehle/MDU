@@ -585,6 +585,17 @@ Kalendereintrag daran hängt; Lokale der Übersicht gehören dort heraus.
 Oktober 2026 — das Plakat nannte sie nicht), bleibt das Feld leer, die Seite
 sagt „noch nicht bekannt" und die Gesamtsumme zählt das Lokal nicht mit.
 Geraten wird nichts.
+**Der STAND der laufenden Wertung wird gerechnet, nicht gepflegt (seit
+24.10.2026):** `RUNNING_ASOF` in `data/tournament-results.ts` ist das Datum des
+jüngsten gewerteten Turniers. `RUNNING_SEASON.asOf` in `data/season.ts` kam aus
+der Kopfzeile der alten Arbeitsmappe und blieb nach deren Ende auf dem
+06.09.2026 stehen — die Rangliste zeigte „Zwischenstand vom 06.09.2026 · 193 in
+der Wertung", während sie Turniere bis Ende Oktober enthielt: Die Zahl wuchs,
+das Datum nicht. Angezeigt wird `RUNNING_ASOF` auf `/rangliste`, im
+Spielerprofil, in der Fußzeile, im PDF-Skript und im Facebook-Beitrag (dort
+stand vorher `todayInMunich()` — „Stand heute" verspricht Abende, die vielleicht
+noch nicht hochgeladen sind). `asOf` bleibt nur als Rückfall für den
+Saisonstart, solange kein Turnier gewertet ist.
 **Jackpot:** `lib/mdc/jackpot.ts` rechnet den Topf der laufenden Saison aus den
 Teilnahmen (3 € je Teilnahme, Blatt „Einzelergebnisse" J5) plus Übertrag aus der
 Vorsaison (Männer 200 €, Frauen 220 €); 2 % des Männer-Topfs gehen an die Frauen,

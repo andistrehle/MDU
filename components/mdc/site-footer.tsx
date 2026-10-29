@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 import { MdcMark } from './logo';
 import { getCurrentSeason } from '@/data/season';
+import { RUNNING_ASOF } from '@/data/tournament-results';
 import { VENUES } from '@/data/venues';
 import { formatDate } from '@/lib/mdc/format';
 
@@ -100,7 +101,10 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
               <ExternalLink size={13} />
             </a>
             <p style={{ marginTop: 14, fontSize: '0.78rem', color: '#8FA3C4' }}>
-              Stand: {formatDate(season.asOf)}
+              {/* Stand der WERTUNG, nicht der Saisonkopf: Das Datum kommt
+                  aus dem jüngsten gewerteten Turnier und zieht mit jedem
+                  freigegebenen Zettel nach. */}
+              Stand: {formatDate(RUNNING_ASOF)}
             </p>
           </div>
 

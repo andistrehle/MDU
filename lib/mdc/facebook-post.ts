@@ -20,8 +20,8 @@
 import type { Division, RankingEntry } from '@/data/types';
 import { getPlayer, playerName } from '@/data/players';
 import { runningRankingOf, RUNNING_HAS_RESULTS } from '@/data/ranking';
-import { RUNNING_SEASON, todayInMunich } from '@/data/season';
-import { RUNNING_STATS } from '@/data/tournament-results';
+import { RUNNING_SEASON } from '@/data/season';
+import { RUNNING_ASOF, RUNNING_STATS } from '@/data/tournament-results';
 import { jackpotStand, MINDEST_TEILNAHMEN } from './jackpot';
 import { MDC_ORIGIN } from './site';
 
@@ -192,7 +192,11 @@ export function aktuellerFacebookPost():
 
   const daten: PostDaten = {
     saison: RUNNING_SEASON.label,
-    stand: todayInMunich(),
+    // Der Stand der WERTUNG, nicht der Tag des Postens: Wer montags liest
+    // „Stand 24.10.", erwartet die Abende bis Freitag drin — gewertet ist
+    // aber, was hochgeladen wurde. Das Datum kommt deshalb aus dem jüngsten
+    // gewerteten Turnier.
+    stand: RUNNING_ASOF,
     turniere: RUNNING_STATS.tournaments,
     men: kuerze(runningRankingOf('men'), name, PLAETZE.men),
     women: kuerze(runningRankingOf('women'), name, PLAETZE.women),

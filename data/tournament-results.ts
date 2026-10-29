@@ -440,3 +440,21 @@ export function seasonStats(seasonId: string): SeasonStats {
 /** Kennzahlen der beiden Saisons — vorgerechnet, weil oft gebraucht. */
 export const ARCHIVE_STATS = seasonStats(FINAL_SEASON.id);
 export const RUNNING_STATS = seasonStats(RUNNING_SEASON.id);
+
+/**
+ * Stand der laufenden Wertung: das Datum des JÜNGSTEN gewerteten Turniers.
+ *
+ * WARUM NICHT `RUNNING_SEASON.asOf`: Der Wert dort stammt aus der Kopfzeile
+ * der alten Arbeitsmappe und wurde beim Import mitgeliefert. Seit die Mappe
+ * Geschichte ist (26.09.2026) rührt ihn niemand mehr an — er stand bis heute
+ * auf dem 06.09.2026, während die Rangliste längst Turniere bis Mitte Oktober
+ * enthielt. Die Zahl der Gewerteten wuchs also, das Datum daneben blieb
+ * stehen: „Zwischenstand vom 06.09.2026 · 193 in der Wertung" war schlicht
+ * falsch.
+ *
+ * Gerechnet statt gepflegt heißt: Mit jedem freigegebenen Zettel zieht das
+ * Datum von allein nach, und es kann nie mehr behaupten, die Wertung sei
+ * jünger oder älter, als sie ist. `RUNNING_SEASON.asOf` bleibt als Rückfall
+ * für den Fall, dass noch kein einziges Turnier gewertet ist (Saisonstart).
+ */
+export const RUNNING_ASOF: string = RUNNING_STATS.lastDate || RUNNING_SEASON.asOf;

@@ -10,7 +10,7 @@ import { neueAdresseFuer } from '@/data/namen';
 import { PLAYERS, getPlayer, playerName } from '@/data/players';
 import { getFinalEntry, DIVISION_LABEL } from '@/data/ranking-final';
 import { getSummerEntry, runningRankingOf } from '@/data/ranking';
-import { appearancesOf } from '@/data/tournament-results';
+import { appearancesOf, RUNNING_ASOF } from '@/data/tournament-results';
 import { getVenue, venueName } from '@/data/venues';
 import { formatAverage, formatDate, formatNumber } from '@/lib/mdc/format';
 import { FINAL_SEASON, RUNNING_SEASON, SUMMER_SEASON, getSeason } from '@/data/season';
@@ -169,7 +169,7 @@ export default async function SpielerProfilPage(
                 Saison {RUNNING_SEASON.label} · laufend
               </h2>
               <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
-                Stand vom {formatDate(RUNNING_SEASON.asOf)} ·{' '}
+                Stand vom {formatDate(RUNNING_ASOF)} ·{' '}
                 {DIVISION_LABEL[player.division]}wertung
               </p>
 

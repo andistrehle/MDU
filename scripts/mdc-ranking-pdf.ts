@@ -27,6 +27,7 @@ import { getPlayer, playerName } from '../data/players';
 import { RESULT_SHEETS } from '../data/results-2026-27';
 import { getVenue } from '../data/venues';
 import { RUNNING_SEASON } from '../data/season';
+import { RUNNING_ASOF } from '../data/tournament-results';
 import { unsureRows, rowsWithoutPass } from '../data/results-2026-27';
 
 const de = (n: number) => n.toLocaleString('de-DE');
@@ -116,7 +117,7 @@ const html = `<!doctype html><html lang="de"><head><meta charset="utf-8">
   ${logo ? `<img src="${logo}" alt="">` : ''}
   <div>
     <h1>MDC Ranking — Saison ${RUNNING_SEASON.label}</h1>
-    <div class="stand">Einzelrangliste, Zwischenstand vom ${datum(RUNNING_SEASON.asOf)}
+    <div class="stand">Einzelrangliste, Zwischenstand vom ${datum(RUNNING_ASOF)}
       · Männer und Frauen spielen dieselben Turniere und werden getrennt gewertet</div>
   </div>
 </header>
@@ -132,7 +133,7 @@ ${tabelle('women')}
 
 mkdirSync('out', { recursive: true });
 const htmlPfad = 'out/mdc-ranking.html';
-const pdfPfad = `out/MDC-Ranking-${RUNNING_SEASON.id}_Stand-${RUNNING_SEASON.asOf}.pdf`;
+const pdfPfad = `out/MDC-Ranking-${RUNNING_SEASON.id}_Stand-${RUNNING_ASOF}.pdf`;
 writeFileSync(htmlPfad, html);
 
 // PDF nur, wenn Playwright zur Hand ist.
