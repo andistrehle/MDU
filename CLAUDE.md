@@ -183,7 +183,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (gültig bis = Zahlungstag + 1 Monat) und Abo-Status. Überweisung: TC meldet (`/api/premium` 'ueberwiesen') →
   Glocke an Super-Admin → Admin → Premium „freischalten“. 14 Tage Test je Team einmal. Täglicher Cron zusagen-mails
   ruft `abgleich()` (Abgelaufenes sperren, 3 Tage vorher erinnern, nicht bei laufendem Abo). ENV: NEXT_PUBLIC_PAYPAL_
-  CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_WEBHOOK_ID, PAYPAL_PLAN_MONAT, PAYPAL_ENV — fehlen sie, nur Überweisung.
+  CLIENT_ID + PAYPAL_CLIENT_SECRET (seit 29.10.2026 in Vercel, Geschäftskonto des Betreibers), optional PAYPAL_ENV —
+  fehlen sie, nur Überweisung. Produkt, Monatsplan und Webhook legt der Knopf „PayPal einrichten“ (Admin → Premium,
+  `/api/premium/paypal/einrichten`) an; ihre IDs schlägt `findeEinrichtung()` bei PayPal nach (ENV PAYPAL_PLAN_MONAT/
+  PAYPAL_WEBHOOK_ID nur optional).
   Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts); bis dahin nur Super-Admin. IBAN/Kontoinhaber in
   `ZAHLUNG` noch Platzhalter. Verkäufer = Betreiber (Rechtstexte/Steuer: nur auf Anweisung). FAQ erst zum Start.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`

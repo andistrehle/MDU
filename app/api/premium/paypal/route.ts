@@ -15,7 +15,7 @@ import { NextResponse } from 'next/server';
 import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
 import { PREMIUM_OEFFENTLICH, PREISE, verwendungszweck } from '@/lib/premium';
 import { freischalten, heute, plusMonat } from '@/lib/server/premium';
-import { bestellungAnlegen, bestellungAbschliessen, aboLesen, paypalEingerichtet, zuCent } from '@/lib/server/paypal';
+import { bestellungAnlegen, bestellungAbschliessen, aboLesen, paypalEingerichtet, planMonat, zuCent } from '@/lib/server/paypal';
 import { team27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
 export const runtime = 'nodejs';
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     if (b.aktion === 'abo') {
       const a = await aboLesen(b.subscriptionId ?? '');
       if (a.custom_id !== team) return fehler('Das Abo gehört zu einem anderen Team.');
-      if (a.plan_id !== process.env.PAYPAL_PLAN_MONAT) return fehler('Unbekannter PayPal-Plan.');
+      if (!a.plan_id || a.plan_id !== (await planMonat())) return fehler('Unbekannter PayPal-Plan.');
       if (a.status !== 'ACTIVE') return fehler(`Das Abo ist bei PayPal noch nicht aktiv (${a.status}). Bitte in ein paar Minuten neu laden.`);
       const r = await freischalten(team, { art: 'monat', weg: 'paypal', durch: u.id, bis: plusMonat(heute()), ohneZahlung: true, aboId: a.id, aboStatus: a.status });
       return NextResponse.json({ ok: true, bis: r.bis });

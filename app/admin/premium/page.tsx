@@ -70,6 +70,8 @@ export default function AdminPremiumPage() {
         )}
         {fehler && <div role="alert" style={{ ...txt, color: 'var(--th-loss)', fontWeight: 700 }}>{fehler}</div>}
 
+        <PayPalEinrichtung />
+
         <TeamFreischalten onFertig={laden} />
 
         <section>
@@ -144,6 +146,62 @@ export default function AdminPremiumPage() {
         </section>
       </div>
     </AdminGuard>
+  );
+}
+
+// ── PayPal einrichten (Produkt, Monatsplan, Webhook) ─────────
+
+interface Einrichtung { produktId: string | null; planId: string | null; webhookId: string | null; webhookUrl: string; live: boolean; angelegt?: string[] }
+
+function PayPalEinrichtung() {
+  const [e, setE] = useState<Einrichtung | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [laeuft, setLaeuft] = useState(false);
+  const holen = useCallback(async (post: boolean) => {
+    const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+    const r = await fetch('/api/premium/paypal/einrichten', { method: post ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token ?? ''}` } }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) as Einrichtung & { error?: string } : { error: 'Keine Verbindung.' } as Einrichtung & { error?: string };
+    if (r?.ok) { setE(j); setFehler(null); } else setFehler(j.error ?? 'Fehlgeschlagen.');
+  }, []);
+  useEffect(() => {
+    let ab = false;
+    (async () => {
+      const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+      const r = await fetch('/api/premium/paypal/einrichten', { headers: { Authorization: `Bearer ${token ?? ''}` } }).catch(() => null);
+      const j = r ? await r.json().catch(() => ({})) as Einrichtung & { error?: string } : { error: 'Keine Verbindung.' } as Einrichtung & { error?: string };
+      if (ab) return;
+      if (r?.ok) setE(j); else setFehler(j.error ?? 'Fehlgeschlagen.');
+    })();
+    return () => { ab = true; };
+  }, []);
+  const fertig = !!e?.produktId && !!e.planId && !!e.webhookId;
+  const punkt = (ok: boolean, text: string) => <div style={{ ...txt, fontSize: 13 }}><b style={{ color: ok ? 'var(--th-win)' : 'var(--th-gold)' }}>{ok ? '✓' : '○'}</b> {text}</div>;
+  return (
+    <section style={{ padding: '14px 16px', borderRadius: 14, background: 'var(--th-bg-card)', border: `1.5px solid ${fertig ? 'var(--th-win)' : 'var(--th-gold)'}` }}>
+      <h2 style={h2}>PayPal {e && !e.live && <span style={zaehler}>Sandbox</span>}</h2>
+      {fehler && <div role="alert" style={{ ...txt, color: 'var(--th-loss)', fontWeight: 700 }}>{fehler}</div>}
+      {!e && !fehler && <div style={txt}>Prüfe bei PayPal …</div>}
+      {e && (
+        <>
+          {punkt(!!e.produktId, 'Produkt „MDU Team Manager“')}
+          {punkt(!!e.planId, `Monatsplan ${euroText(PREISE.monat.cents)} (für das Abo)`)}
+          {punkt(!!e.webhookId, `Webhook → ${e.webhookUrl}`)}
+          {e.angelegt?.length ? <div role="status" style={{ ...txt, fontSize: 12.5, fontWeight: 700, color: 'var(--th-win)', marginTop: 6 }}>Angelegt: {e.angelegt.join(', ')}.</div> : null}
+          {!fertig && (
+            <>
+              <div style={{ ...txt, fontSize: 12.5, color: 'var(--th-text-muted)', margin: '8px 0' }}>
+                Legt bei PayPal an, was fehlt – mit deinem Geschäftskonto, nichts doppelt. Danach geht Saisonpass und Monatsabo per PayPal/Karte. Prüf, dass die Webhook-Adresse auf die echte Seite zeigt.
+              </div>
+              <button type="button" disabled={laeuft} onClick={async () => {
+                if (!confirm(`Bei PayPal anlegen: ${[!e.produktId && 'Produkt', !e.planId && `Monatsplan ${euroText(PREISE.monat.cents)}`, !e.webhookId && `Webhook auf ${e.webhookUrl}`].filter(Boolean).join(', ')}?`)) return;
+                setLaeuft(true); await holen(true); setLaeuft(false);
+              }} style={{ ...knopf, cursor: 'pointer', opacity: 1, background: 'var(--th-win)', color: '#fff', border: 'none' }}>{laeuft ? 'Richte ein …' : 'PayPal einrichten'}</button>
+            </>
+          )}
+          {fertig && <div style={{ ...txt, fontSize: 12.5, color: 'var(--th-win)', marginTop: 6, fontWeight: 700 }}>PayPal ist startklar.</div>}
+        </>
+      )}
+    </section>
   );
 }
 

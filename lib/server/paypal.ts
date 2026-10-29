@@ -6,7 +6,8 @@
 // (Orders v2, capture), Monat = PayPal-Abo (Subscriptions v1, Plan in
 // PAYPAL_PLAN_MONAT). Kreditkarte läuft über denselben PayPal-Knopf.
 // ENV (Werte nur in Vercel): NEXT_PUBLIC_PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET,
-// PAYPAL_WEBHOOK_ID, PAYPAL_PLAN_MONAT, PAYPAL_ENV ('live' | 'sandbox').
+// PAYPAL_ENV ('live' | 'sandbox'); optional PAYPAL_WEBHOOK_ID, PAYPAL_PLAN_MONAT —
+// sonst schlägt findeEinrichtung() sie bei PayPal nach.
 // Fehlt etwas, ist PayPal „nicht eingerichtet“ und die Seite zeigt nur die
 // Überweisung — nichts wird vorgetäuscht.
 // ============================================================
@@ -17,7 +18,72 @@ const live = () => (process.env.PAYPAL_ENV ?? 'live') === 'live';
 const BASIS = () => (live() ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com');
 
 export const paypalEingerichtet = () => !!(process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET);
-export const paypalAboEingerichtet = () => paypalEingerichtet() && !!process.env.PAYPAL_PLAN_MONAT;
+
+// ── Einrichtung (Produkt, Monatsplan, Webhook) ───────────────
+// Angelegt per Knopf unter Admin → Premium (einrichten()). Die IDs müssen
+// NICHT in Vercel stehen: Fehlen PAYPAL_PLAN_MONAT / PAYPAL_WEBHOOK_ID, werden
+// sie bei PayPal nachgeschlagen (Produktname, Planname, Webhook-Adresse).
+export const PRODUKT_NAME = 'MDU Team Manager';
+export const PLAN_NAME = 'Team Manager monatlich';
+export const WEBHOOK_PFAD = '/api/premium/paypal/webhook';
+const WEBHOOK_EREIGNISSE = [
+  'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.SALE.COMPLETED', 'BILLING.SUBSCRIPTION.ACTIVATED', 'BILLING.SUBSCRIPTION.CANCELLED',
+  'BILLING.SUBSCRIPTION.SUSPENDED', 'BILLING.SUBSCRIPTION.EXPIRED', 'BILLING.SUBSCRIPTION.PAYMENT.FAILED',
+];
+const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mdudarts.de').replace(/\/$/, '');
+
+export interface Einrichtung { produktId: string | null; planId: string | null; webhookId: string | null; webhookUrl: string; live: boolean }
+let gefunden: { wert: Einrichtung; bis: number } | null = null;
+
+export async function findeEinrichtung(neu = false): Promise<Einrichtung> {
+  if (!neu && gefunden && gefunden.bis > Date.now()) return gefunden.wert;
+  const webhookUrl = `${SITE()}${WEBHOOK_PFAD}`;
+  const e: Einrichtung = { produktId: null, planId: process.env.PAYPAL_PLAN_MONAT || null, webhookId: process.env.PAYPAL_WEBHOOK_ID || null, webhookUrl, live: live() };
+  if (!paypalEingerichtet()) return e;
+  const pr = await api<{ products?: { id: string; name: string }[] }>('/v1/catalogs/products?page_size=20');
+  e.produktId = pr.products?.find(p => p.name === PRODUKT_NAME)?.id ?? null;
+  if (!e.planId && e.produktId) {
+    const pl = await api<{ plans?: { id: string; name: string; status: string }[] }>(`/v1/billing/plans?product_id=${e.produktId}&page_size=20`);
+    e.planId = pl.plans?.find(p => p.name === PLAN_NAME && p.status === 'ACTIVE')?.id ?? null;
+  }
+  if (!e.webhookId) {
+    const wh = await api<{ webhooks?: { id: string; url: string }[] }>('/v1/notifications/webhooks');
+    e.webhookId = wh.webhooks?.find(w => w.url === webhookUrl)?.id ?? null;
+  }
+  gefunden = { wert: e, bis: Date.now() + 10 * 60_000 };
+  return e;
+}
+
+/** Legt an, was fehlt (Produkt, Plan 8,99 €/Monat, Webhook). Mehrfach aufrufbar. */
+export async function einrichten(monatCents: number): Promise<Einrichtung & { angelegt: string[] }> {
+  const e = await findeEinrichtung(true);
+  const angelegt: string[] = [];
+  if (!e.produktId) {
+    const p = await api<{ id: string }>('/v1/catalogs/products', { method: 'POST', idem: `prod-${Date.now()}`, body: { name: PRODUKT_NAME, description: 'Team Manager für Mannschaften der Münchner Dart Union', type: 'SERVICE', category: 'SOFTWARE' } });
+    e.produktId = p.id; angelegt.push('Produkt');
+  }
+  if (!e.planId) {
+    const p = await api<{ id: string }>('/v1/billing/plans', {
+      method: 'POST', idem: `plan-${Date.now()}`,
+      body: {
+        product_id: e.produktId, name: PLAN_NAME, status: 'ACTIVE', description: 'Team Manager, monatlich kündbar',
+        billing_cycles: [{ frequency: { interval_unit: 'MONTH', interval_count: 1 }, tenure_type: 'REGULAR', sequence: 1, total_cycles: 0,
+          pricing_scheme: { fixed_price: { value: (monatCents / 100).toFixed(2), currency_code: 'EUR' } } }],
+        payment_preferences: { auto_bill_outstanding: true, setup_fee_failure_action: 'CANCEL', payment_failure_threshold: 1 },
+      },
+    });
+    e.planId = p.id; angelegt.push('Monatsplan');
+  }
+  if (!e.webhookId) {
+    const w = await api<{ id: string }>('/v1/notifications/webhooks', { method: 'POST', body: { url: e.webhookUrl, event_types: WEBHOOK_EREIGNISSE.map(name => ({ name })) } });
+    e.webhookId = w.id; angelegt.push('Webhook');
+  }
+  gefunden = { wert: e, bis: Date.now() + 10 * 60_000 };
+  return { ...e, angelegt };
+}
+
+/** Plan-ID fürs Monatsabo (ENV oder bei PayPal nachgeschlagen), null = noch nicht eingerichtet. */
+export const planMonat = async () => (paypalEingerichtet() ? (await findeEinrichtung().catch(() => null))?.planId ?? null : null);
 
 let token: { wert: string; bis: number } | null = null;
 async function zugang(): Promise<string> {
@@ -77,8 +143,9 @@ export const aboKuendigen = (id: string, grund: string) =>
 // ── Webhook prüfen ──────────────────────────────────────────
 
 export async function webhookEcht(headers: Headers, body: unknown): Promise<boolean> {
-  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-  if (!webhookId || !paypalEingerichtet()) return false;
+  if (!paypalEingerichtet()) return false;
+  const webhookId = (await findeEinrichtung().catch(() => null))?.webhookId;
+  if (!webhookId) return false;
   const h = (n: string) => headers.get(n) ?? '';
   const r = await api<{ verification_status?: string }>('/v1/notifications/verify-webhook-signature', {
     method: 'POST',

@@ -15,7 +15,7 @@ import { NextResponse } from 'next/server';
 import { authenticateRequest, hatTcRechtServer, type ServerUser } from '@/lib/server/auth';
 import { PREMIUM_OEFFENTLICH, PREISE, euroText, type PremiumModell } from '@/lib/premium';
 import { ladePremium, teamManagerAktiv, freischalten, betreiber, heute } from '@/lib/server/premium';
-import { paypalEingerichtet, paypalAboEingerichtet, aboKuendigen } from '@/lib/server/paypal';
+import { paypalEingerichtet, planMonat, aboKuendigen } from '@/lib/server/paypal';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { team27 } from '@/lib/data/saison-2027';
 
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json({
       premium: await ladePremium(team), aktiv: await teamManagerAktiv(team), darf: darf(auth.user, team),
-      paypal: { clientId: paypalEingerichtet() ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID : null, abo: paypalAboEingerichtet(), planMonat: process.env.PAYPAL_PLAN_MONAT ?? null },
+      paypal: await (async () => { const plan = await planMonat(); return { clientId: paypalEingerichtet() ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID : null, abo: !!plan, planMonat: plan }; })(),
     });
   } catch (e) {
     return fehler(e instanceof Error ? e.message : 'Fehler.', 500);
