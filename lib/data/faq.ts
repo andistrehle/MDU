@@ -153,6 +153,14 @@ Für die letzten zwei Spieltage ist keine Nachmeldung mehr möglich. Alle Regeln
         antwort: `Bei jedem Team steht der Name des TCs. Die Telefonnummer mit „Anrufen“ und „WhatsApp-Nachricht“ siehst du, wenn du als Teamkapitän angemeldet bist und der andere TC seine Nummer freigegeben hat.`,
         stichworte: ['kontakt', 'telefon', 'kapitän'],
       },
+      {
+        id: 'kapitaen-wechseln',
+        frage: 'Unser Teamcaptain wechselt. Wie wird das umgestellt?',
+        antwort: `Den Teamcaptain stellt die Ligaleitung um, der TC kann das nicht selbst. Schreib der Ligaleitung, wer es werden soll. Der neue Kapitän braucht dafür ein Konto auf der Seite, das mit seinem Spielerprofil verknüpft ist.
+
+Danach hat er alle Kapitänsrechte, zum Beispiel Spielberichte eintragen und das Team verwalten. Der bisherige Kapitän wird normaler Spieler, außer er soll die Rechte behalten, etwa als Stellvertreter. Beide und das ganze Team bekommen eine Nachricht.`,
+        stichworte: ['kapitän', 'tc', 'wechseln', 'ändern', 'captain'],
+      },
     ],
   },
   {

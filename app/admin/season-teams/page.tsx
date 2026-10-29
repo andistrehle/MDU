@@ -19,6 +19,7 @@ import { computeTeamFee, feeBreakdown, openAmount } from '@/lib/startgeld';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
+import { KapitaenWechseln } from '@/components/mdu/kapitaen-wechseln';
 import { canManageUsers } from '@/lib/auth/roles';
 import {
   MAIN_LEAGUE_LABELS, mainLeagueForSubCode, getPredeterminedLeagueForTeam,
@@ -408,6 +409,12 @@ export default function AdminSeasonTeamsPage() {
                     style={{ padding: '3px 8px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', fontSize: 12 }}>✎</button>
                 </span>
               )}
+              <span style={{ color: 'var(--th-text-muted)' }}>Teamcaptain</span>
+              <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span>{captain ? `${captain.first_name ?? ''} ${captain.last_name ?? ''}`.trim() : <span style={{ color: 'var(--th-text-faint2)' }}>keiner im Kader markiert</span>}</span>
+                <KapitaenWechseln seasonId={seasonId} teamId={t.team_id} teamName={t.teams?.name ?? t.team_id} kader={r}
+                  onFertig={async () => { setRoster(await listSeasonRoster(seasonId)); setTeams(await listSeasonTeams(seasonId)); }} />
+              </span>
               <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                 <span>{feeBreakdown(fee).replace(/ = \d+ €$/, '')} = <strong>{fee.total} €</strong>

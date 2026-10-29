@@ -152,6 +152,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   „Korrektur angefragt“ auf `/spielbericht/…` (`korrekturAngefragt` in `ladeBericht27`). Logik: rein in
   `lib/spielbericht-korrektur.ts` (prüfen, Frist, Unterschiede in Worten), Server `/api/match-reports/korrektur`
   (service_role, Tabelle ohne Policy), jeder Schritt in `match_report_history` (`korrektur_*`).
+  **Teamcaptain wechseln** (Betreiber, 29.10.2026, NUR Ligaleitung, Admin → Saison-Teams → Team aufklappen,
+  `components/mdu/kapitaen-wechseln.tsx` → `/api/admin/kapitaen`): wählbar nur Kaderspieler mit verknüpftem Konto
+  (`profiles.player_id`); jedes Mal Häkchen „Bisheriger behält die Rechte“ (ohne → `role = 'player'`, bleibt im
+  Kader). Stellt ALLE Stellen um: `is_captain` in `player_assignments` + `season_roster_assignments`,
+  `season_team_assignments.captain_player_id/captain_user_id` (daran hängt die TC-Telefonnummer), Ansprechpartner
+  der Anmeldung (`team_registrations.contact_*`) und `profiles.role/team_id`; Ligaleitungs-Konten behalten ihre Rolle.
+  Glocke/Push an neuen + bisherigen TC + ganzes Team.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →
