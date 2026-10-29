@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/server/auth';
-import { zusagenFuerTeam } from '@/lib/features';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON } from '@/lib/data/saison-2027';
 import { termineImFenster, heuteBerlin } from '@/lib/server/zusagen-fenster';
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   if (!auth.ok) return NextResponse.json({ offen: [] }, { status: auth.status });
   const teamId = auth.user.teamId;
   // Vorerst nur freigeschaltete Teams (lib/features.ts).
-  if (!supabaseAdmin || !teamId || !zusagenFuerTeam(teamId)) return NextResponse.json({ offen: [] });
+  if (!supabaseAdmin || !teamId || !(await teamManagerAktiv(teamId))) return NextResponse.json({ offen: [] });
 
   const [{ data: profil }, { data: einst, error: einstErr }] = await Promise.all([
     supabaseAdmin.from('profiles').select('player_id').eq('id', auth.user.id).maybeSingle(),

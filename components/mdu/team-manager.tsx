@@ -21,6 +21,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
 import { KapitaensTeam } from '@/components/mdu/kapitaens-team';
 import { zusagenFreigeschaltet } from '@/lib/features';
+import { PREMIUM_OEFFENTLICH, TESTTAGE } from '@/lib/premium';
 import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
@@ -182,7 +183,11 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
         : !zusagenFreigeschaltet(user) ? (
-          <Notice title="Noch nicht freigeschaltet">Der Team Manager wird gerade erprobt und ist für dein Team noch nicht verfügbar. Er soll später als Premium-Funktion angeboten werden.</Notice>
+          <Notice title="Noch nicht freigeschaltet">
+            {PREMIUM_OEFFENTLICH
+              ? <>Dein Team hat den Team Manager noch nicht.{' '}<Link href="/mein-team/premium" style={{ color: 'var(--th-accent)', fontWeight: 800 }}>{TESTTAGE} Tage gratis testen oder buchen →</Link></>
+              : 'Der Team Manager wird gerade erprobt und ist für dein Team noch nicht verfügbar. Er soll später als Premium-Funktion angeboten werden.'}
+          </Notice>
         ) : !teamId || !t ? (
           <Notice title="Kein Team verknüpft">
             Deinem Konto ist noch kein Team der {NEUE_SAISON.name} zugeordnet. Bei Fragen melde dich bei der Ligaleitung.

@@ -14,7 +14,7 @@
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest, isAdminUser, canUploadForTeam } from '@/lib/server/auth';
-import { zusagenFuerTeam } from '@/lib/features';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { alleBegegnungen27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   const auth = await authenticateRequest(request);
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
-  if (!zusagenFuerTeam(auth.user.teamId)) return NextResponse.json({ error: 'Nur mit Team Manager.' }, { status: 403 });
+  if (!(await teamManagerAktiv(auth.user.teamId))) return NextResponse.json({ error: 'Nur mit Team Manager.' }, { status: 403 });
   const key = new URL(request.url).searchParams.get('spiel') ?? '';
   const b = alleBegegnungen27().find(x => x.key === key);
   if (!b) return NextResponse.json({ error: 'Unbekannte Begegnung.' }, { status: 400 });

@@ -20,9 +20,10 @@ export const ZUSAGEN_TEAMS: readonly string[] = ['freibad-bazis'];
 
 export const zusagenFuerTeam = (teamId: string | null | undefined) => !!teamId && ZUSAGEN_TEAMS.includes(teamId);
 
-export function zusagenFreigeschaltet(user: Pick<UserProfile, 'role' | 'teamId'> | null | undefined): boolean {
+/** Team Manager für den Nutzer offen? Feste Teams, bezahlte Teams (`teamManager`, Migration 0063) und Ligaleitung. */
+export function zusagenFreigeschaltet(user: Pick<UserProfile, 'role' | 'teamId' | 'teamManager'> | null | undefined): boolean {
   if (!user) return false;
-  return zusagenFuerTeam(user.teamId) || hasMinRole(user as UserProfile, 'league_admin');
+  return zusagenFuerTeam(user.teamId) || !!(user as UserProfile).teamManager || hasMinRole(user as UserProfile, 'league_admin');
 }
 
 /**

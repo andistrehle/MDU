@@ -172,6 +172,20 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `darf_eintragen()` — `is_captain_of()` heißt jetzt „Recht team_manager“, `kasse_darf()` nutzt 'kasse'. Bearbeiten
   eines Berichts darf jetzt die ganze eintragende Seite (nicht nur, wer angelegt hat). Zusagen-Glocken aus
   0044/0047/0048 gehen weiter nur an den Kapitän.
+  **Team Manager bezahlen (Premium)** (Migration 0063 ersetzt den nie ausgeführten Entwurf 0052, Betreiber 29.10.2026,
+  OHNE Stripe): Freigeschaltet ist ein Team, solange es in `availability_enabled_teams` steht (+ feste `ZUSAGEN_TEAMS`)
+  — Server `teamManagerAktiv()`/`aktiveTeams()` (lib/server/premium.ts), Browser `user.teamManager` (auth-context);
+  NIE mehr nur `zusagenFuerTeam()` prüfen. Alles Frei-/Zuschalten läuft über `freischalten()`/`sperren()`
+  (team_premium + team_premium_payments + availability_enabled_teams + Glocke + Neubau). Wege: PayPal/Kreditkarte
+  über den PayPal-Knopf (`components/mdu/paypal-knopf.tsx`; Saisonpass = Orders v2, Monat = Subscriptions mit
+  `PAYPAL_PLAN_MONAT`, custom_id = Team) → `/api/premium/paypal` prüft IMMER bei PayPal und schaltet sofort frei;
+  Webhook `/api/premium/paypal/webhook` (Signatur-Prüfung, idempotent über `external_id`) bucht Monatsabbuchungen
+  (gültig bis = Zahlungstag + 1 Monat) und Abo-Status. Überweisung: TC meldet (`/api/premium` 'ueberwiesen') →
+  Glocke an Super-Admin → Admin → Premium „freischalten“. 14 Tage Test je Team einmal. Täglicher Cron zusagen-mails
+  ruft `abgleich()` (Abgelaufenes sperren, 3 Tage vorher erinnern, nicht bei laufendem Abo). ENV: NEXT_PUBLIC_PAYPAL_
+  CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_WEBHOOK_ID, PAYPAL_PLAN_MONAT, PAYPAL_ENV — fehlen sie, nur Überweisung.
+  Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts); bis dahin nur Super-Admin. IBAN/Kontoinhaber in
+  `ZAHLUNG` noch Platzhalter. Verkäufer = Betreiber (Rechtstexte/Steuer: nur auf Anweisung). FAQ erst zum Start.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →

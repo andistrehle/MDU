@@ -2,7 +2,8 @@
 -- 0052 — Team Manager als Premium (manuell, später Stripe)
 -- ============================================================
 --
--- NOCH NICHT AUSFÜHREN — nur vorbereitet (Betreiber, 17.10.2026).
+-- NICHT AUSFÜHREN — ersetzt durch 0063_team_premium.sql (gleiche Tabellen + PayPal).
+-- Ursprünglich vorbereitet am 17.10.2026.
 -- Je Team eine Zeile: Test (14 Tage, einmal), Saisonpass oder Monat,
 -- „gültig bis“. Premium gilt, solange valid_until in der Zukunft liegt.
 -- Anfragen der TCs (Upgrade-Seite) landen als status 'angefragt'; der

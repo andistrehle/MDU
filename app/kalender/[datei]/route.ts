@@ -4,12 +4,12 @@
 // nach jeder Änderung markiert /api/termine/geaendert genau diese Datei.
 import { alleTeams27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { teamKalender } from '@/lib/kalender-ics';
-import { zusagenFuerTeam } from '@/lib/features';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { TeamTermin } from '@/lib/supabase/termine';
 
 async function eigeneTermine(teamId: string): Promise<TeamTermin[]> {
-  if (!supabaseAdmin || !zusagenFuerTeam(teamId)) return [];
+  if (!supabaseAdmin || !(await teamManagerAktiv(teamId))) return [];
   const { data, error } = await supabaseAdmin.from('team_events')
     .select('id, team_id, kind, title, league, opponent, is_home, event_date, start_time, end_time, venue, address')
     .eq('season_id', NEUE_SAISON.id).eq('team_id', teamId);

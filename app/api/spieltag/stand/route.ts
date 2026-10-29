@@ -5,7 +5,7 @@
 // (die lesen direkt über RLS). Nur für freigeschaltete Teams (lib/features.ts).
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { zusagenFuerTeam } from '@/lib/features';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { alleBegegnungen27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { passtSlug } from '@/lib/spieltag';
 
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   const team = u.searchParams.get('team') ?? '';
   const slug = u.searchParams.get('spiel') ?? '';
   const b = alleBegegnungen27().find(x => passtSlug(x.key, slug));
-  if (!zusagenFuerTeam(team) || !b || (b.home !== team && b.away !== team)) {
+  if (!(await teamManagerAktiv(team)) || !b || (b.home !== team && b.away !== team)) {
     return NextResponse.json({ error: 'Unbekanntes Spiel' }, { status: 404 });
   }
   const key = b.key;

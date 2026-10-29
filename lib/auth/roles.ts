@@ -33,6 +33,8 @@ export interface UserProfile {
   coRechte?: TcRecht[];
   /** Laufende Spielbericht-Vertretungen (Begegnungs-Kennungen Heim|Gast) im eigenen Team. */
   vertretungen?: string[];
+  /** Eigenes Team hat den Team Manager (availability_enabled_teams, Migration 0043/0063). */
+  teamManager?: boolean;
   // ── Registrierungs-/Erkennungsdaten (Vorschlag, nie Rechtevergabe) ──
   firstName?: string;
   lastName?: string;

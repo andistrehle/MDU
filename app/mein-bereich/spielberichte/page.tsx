@@ -234,11 +234,11 @@ function SpielberichteInner() {
   useEffect(() => {
     const key = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
     // Nur mit Team Manager (Premium) im EIGENEN Team.
-    if (!key || !zusagenFuerTeam(user?.teamId) || !BEGEGNUNGEN.some(b => b.key === key)) { queueMicrotask(() => setTmAufstellung(null)); return; }
+    if (!key || !(zusagenFuerTeam(user?.teamId) || user?.teamManager) || !BEGEGNUNGEN.some(b => b.key === key)) { queueMicrotask(() => setTmAufstellung(null)); return; }
     let weg = false;
     void ladeAufstellungen(key).then(a => { if (!weg) setTmAufstellung({ key, ...a }); });
     return () => { weg = true; };
-  }, [header.home_team_id, header.guest_team_id, user?.teamId]);
+  }, [header.home_team_id, header.guest_team_id, user?.teamId, user?.teamManager]);
 
   function aufstellungUebernehmen() {
     if (!tmAufstellung) return;

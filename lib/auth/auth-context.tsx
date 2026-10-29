@@ -163,14 +163,15 @@ async function loadProfile(userId: string, email: string, displayNameFallback: s
 async function mitTcRechten(p: UserProfile): Promise<UserProfile> {
   if (!supabase || !p.teamId) return p;
   try {
-    const [co, ve] = await Promise.all([
+    const [co, ve, tm] = await Promise.all([
       supabase.from('team_co_captains').select('rechte').eq('team_id', p.teamId).eq('user_id', p.id).maybeSingle(),
       supabase.from('spielbericht_vertretungen').select('match_key').eq('team_id', p.teamId).eq('user_id', p.id)
         .is('ended_at', null).gt('gueltig_bis', new Date().toISOString()),
+      supabase.from('availability_enabled_teams').select('team_id').eq('team_id', p.teamId).maybeSingle(),
     ]);
     const rechte = ((co.data as { rechte: string[] } | null)?.rechte ?? []).filter((r): r is TcRecht => (TC_RECHTE as readonly string[]).includes(r));
     const vertretungen = ((ve.data ?? []) as { match_key: string }[]).map(v => v.match_key);
-    return { ...p, coRechte: rechte.length ? rechte : undefined, vertretungen: vertretungen.length ? vertretungen : undefined };
+    return { ...p, coRechte: rechte.length ? rechte : undefined, vertretungen: vertretungen.length ? vertretungen : undefined, teamManager: !!tm.data };
   } catch { return p; }
 }
 

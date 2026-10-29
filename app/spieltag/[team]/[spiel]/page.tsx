@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { SpieltagAnsicht } from '@/components/mdu/spieltag-ansicht';
 import { ZUSAGEN_TEAMS } from '@/lib/features';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { alleBegegnungen27, team27, venue27, findLiga27 } from '@/lib/data/saison-2027';
 import { passtSlug, spielSlug, wochentag, tagMonat } from '@/lib/spieltag';
 
@@ -14,7 +15,8 @@ import { passtSlug, spielSlug, wochentag, tagMonat } from '@/lib/spieltag';
 // /api/spieltag/stand). Dadurch kein Neurendern pro Zu-/Absage (ISR-Kontingent).
 // ============================================================
 
-export const dynamicParams = false;
+// Vorgebaut für die festen Teams; bezahlte Teams (Migration 0063) entstehen beim ersten Aufruf.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return ZUSAGEN_TEAMS.flatMap(team => alleBegegnungen27()
@@ -24,15 +26,15 @@ export function generateStaticParams() {
 
 type Params = { params: Promise<{ team: string; spiel: string }> };
 
-function finde(team: string, spiel: string) {
+async function finde(team: string, spiel: string) {
   const b = alleBegegnungen27().find(x => passtSlug(x.key, spiel));
-  if (!ZUSAGEN_TEAMS.includes(team) || !b || (b.home !== team && b.away !== team)) return null;
+  if (!b || (b.home !== team && b.away !== team) || !(await teamManagerAktiv(team))) return null;
   return b;
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { team, spiel } = await params;
-  const b = finde(team, spiel);
+  const b = await finde(team, spiel);
   if (!b) return {};
   const t = b.termin;
   const titel = `${t ? `${wochentag(t.datum)} ${tagMonat(t.datum)}${t.uhrzeit ? ` ${t.uhrzeit}` : ''} · ` : ''}${team27(b.home)?.name ?? b.home} – ${team27(b.away)?.name ?? b.away}`;
@@ -47,7 +49,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function SpieltagPage({ params }: Params) {
   const { team, spiel } = await params;
-  const b = finde(team, spiel);
+  const b = await finde(team, spiel);
   if (!b) notFound();
   const heim = b.home === team;
   const ort = venue27(team27(b.home)?.venueId);

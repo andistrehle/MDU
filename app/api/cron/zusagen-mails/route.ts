@@ -18,7 +18,7 @@
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { ZUSAGEN_TEAMS } from '@/lib/features';
+import { aktiveTeams, abgleich } from '@/lib/server/premium';
 import { NEUE_SAISON, team27 } from '@/lib/data/saison-2027';
 import { termineImFenster } from '@/lib/server/zusagen-fenster';
 import { sendTextEmail } from '@/lib/server/email/send-email';
@@ -41,7 +41,10 @@ export async function GET(request: Request) {
   const db = supabaseAdmin;
 
   const bericht: Record<string, unknown>[] = [];
-  for (const teamId of ZUSAGEN_TEAMS) {
+  // Team Manager (Migration 0063): Abgelaufenes sperren, kurz vor Ablauf erinnern.
+  const premium = await abgleich().catch(e => ({ fehler: e instanceof Error ? e.message : String(e) }));
+  bericht.push({ premium });
+  for (const teamId of await aktiveTeams()) {
     const { data: einst, error: einstErr } = await db.from('team_availability_settings')
       .select('reminder_days, email_reminder').eq('team_id', teamId).maybeSingle();
     // Migration 0054 fehlt → Spalte unbekannt → nichts verschicken.

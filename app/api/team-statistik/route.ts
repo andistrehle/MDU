@@ -13,7 +13,7 @@
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
-import { zusagenFuerTeam } from '@/lib/features';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
 
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const auth = await authenticateRequest(request);
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
   const team = new URL(request.url).searchParams.get('team') ?? '';
-  if (!zusagenFuerTeam(team)) return NextResponse.json({ error: 'Nur mit Team Manager.' }, { status: 403 });
+  if (!(await teamManagerAktiv(team))) return NextResponse.json({ error: 'Nur mit Team Manager.' }, { status: 403 });
   if (auth.user.teamId !== team && !isAdminUser(auth.user)) return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   if (!supabaseAdmin) return NextResponse.json({ berichte: 0, gespielt: {} });
 

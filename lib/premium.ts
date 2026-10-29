@@ -9,9 +9,10 @@
 //   • Preis je Team: Saisonpass 49 € ODER 8,99 € im Monat (monatlich einzeln;
 //     bis 27.10.2026 waren es 7,99 €).
 //   • 14 Tage gratis testen, je Team einmal, startet beim ersten Klick.
-//   • Bezahlen zunächst MANUELL (PayPal / Überweisung, mehrere Wege), der
-//     Betreiber schaltet unter Admin → Premium frei. Stripe folgt später und
-//     schreibt dann dieselbe Tabelle (Migration 0052, team_premium).
+//   • Bezahlen (Betreiber, 29.10.2026, OHNE Stripe): PayPal / Kreditkarte über
+//     den PayPal-Knopf → sofort frei (lib/server/paypal.ts, Webhook);
+//     Überweisung → TC meldet, Betreiber schaltet unter Admin → Premium frei.
+//     Alles in lib/server/premium.ts, Tabellen aus Migration 0063.
 //   • NOCH NICHT ÖFFENTLICH: Upgrade-Seite und Admin-Ansicht sieht nur der
 //     Super-Admin als Vorschau (PREMIUM_OEFFENTLICH = false). Knöpfe tun dort
 //     nichts. Bis zum Start bleibt die Freischaltung in lib/features.ts.
@@ -19,7 +20,7 @@
 
 import { hasRole, type UserProfile } from '@/lib/auth/roles';
 
-/** Erst auf true, wenn Zahlungsdaten, Rechtstexte und Migration 0052 stehen. */
+/** Erst auf true, wenn Zahlungsdaten (IBAN, PayPal), Rechtstexte und Migration 0063 stehen. */
 export const PREMIUM_OEFFENTLICH = false;
 
 /** Vorschau sehen: bis zum Start nur der Super-Admin. */

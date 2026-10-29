@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
-import { premiumVorschau } from '@/lib/premium';
+import { premiumVorschau, PREMIUM_OEFFENTLICH, TESTTAGE } from '@/lib/premium';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Icon } from '@/components/mdu/icon';
 import { PushEinstellung } from '@/components/mdu/push-abfrage';
 import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers, canEditTeam } from '@/lib/auth/roles';
+import { ROLE_LABELS, hasMinRole, hasRole, canManageLeague, canManageUsers, canEditTeam, hatTcRecht } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/auth/roles';
 import { useCaptainMode } from '@/lib/auth/use-captain-mode';
 import { getCurrentSeason, getCurrentCompetitionForTeam, findTeam } from '@/lib/data';
@@ -93,8 +93,14 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       // „Team Manager“ (Zu-/Absagen, Spieltag-Seite, Aufstellung, Aufgaben) —
       // geplante Premium-Funktion, vorerst nur freigeschaltete Teams (lib/features.ts)
       // Vorschau der Upgrade-Seite — bis zum Start nur für den Super-Admin (lib/premium.ts)
-      if (premiumVorschau(user)) tiles.push(
+      if (premiumVorschau(user) && !PREMIUM_OEFFENTLICH) tiles.push(
         { icon: 'star', label: 'Team Manager holen (Vorschau)', description: 'So sieht ein Teamcaptain später das Angebot: testen, Saisonpass oder monatlich.',
+          href: '/mein-team/premium', ready: true },
+      );
+      // Nach dem Start: Kapitän/Co-Captain eines Teams ohne Team Manager — oder um zu verlängern.
+      if (PREMIUM_OEFFENTLICH && hatTcRecht(user, user.teamId, 'team_manager') && !hasMinRole(user, 'league_admin')) tiles.push(
+        { icon: 'star', label: zusagenFreigeschaltet(user) ? 'Team Manager verlängern' : 'Team Manager holen',
+          description: zusagenFreigeschaltet(user) ? 'Stand, Abo und Verlängerung.' : `${TESTTAGE} Tage gratis testen, dann Saisonpass oder monatlich.`,
           href: '/mein-team/premium', ready: true },
       );
       if (zusagenFreigeschaltet(user)) tiles.push(
