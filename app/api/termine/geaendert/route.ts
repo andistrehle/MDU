@@ -10,7 +10,7 @@
 
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
+import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
 import { zusagenFuerTeam } from '@/lib/features';
 
 export const runtime = 'nodejs';
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
   const { team } = (await request.json().catch(() => ({}))) as { team?: string };
   if (!team || !zusagenFuerTeam(team)) return NextResponse.json({ error: 'Team nicht freigeschaltet.' }, { status: 400 });
-  const darf = isAdminUser(auth.user) || (auth.user.role === 'team_captain' && auth.user.teamId === team);
+  const darf = hatTcRechtServer(auth.user, team, 'team_manager');
   if (!darf) return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   revalidatePath(`/kalender/${team}.ics`);
   return NextResponse.json({ ok: true });

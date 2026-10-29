@@ -18,7 +18,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
+import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON, datumKurz27 } from '@/lib/data/saison-2027';
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   const b = await request.json().catch(() => ({})) as { teamId?: string; art?: string; terminId?: string; anzahl?: number; text?: string; matchKey?: string; pfad?: string };
   const teamId = b.teamId ?? '';
   if (!teamId) return NextResponse.json({ error: 'Team fehlt.' }, { status: 400 });
-  if (!isAdminUser(u) && !(u.role === 'team_captain' && u.teamId === teamId)) return NextResponse.json({ error: 'Nur für den Teamcaptain.' }, { status: 403 });
+  if (!hatTcRechtServer(u, teamId, 'team_manager')) return NextResponse.json({ error: 'Nur für den Teamcaptain.' }, { status: 403 });
 
   let titel = '', text = '', url = '/mein-team/termine', typ = 'team_termin';
   let nurOffenFuer: string | null = null;

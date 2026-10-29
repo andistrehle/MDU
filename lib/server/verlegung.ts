@@ -29,7 +29,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { alleBegegnungen27, team27, NEUE_SAISON, SAISON_START, SAISON_ENDE, VERLEGUNGEN_2027, type Begegnung27 } from '@/lib/data/saison-2027';
 import { aendereJsonDatei } from './github-mdu';
 import type { ServerUser } from './auth';
-import { isAdminUser } from './auth';
+import { isAdminUser, hatTcRechtServer } from './auth';
+import { tcEmpfaenger } from './tc-empfaenger';
 
 export type VerlegungStatus = 'offen' | 'freigabe' | 'bestaetigt' | 'uebernommen' | 'abgelehnt' | 'zurueckgezogen';
 export type AnfrageArt = 'verlegung' | 'heimrecht';
@@ -43,7 +44,6 @@ export interface Verlegung {
 const SPALTEN = 'id, kind, match_key, home_team_id, away_team_id, old_date, old_time, new_date, new_time, reason, requested_team, status, needs_admin, note, created_at, decided_at, applied_at';
 const DATEI = 'lib/data/verlegungen-2027.json';
 const DATEI_HR = 'lib/data/heimrecht-2027.json';
-const TC_ROLLEN = ['team_captain', 'league_admin', 'super_admin'];
 
 const heute = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
@@ -62,10 +62,8 @@ function db() {
   return supabaseAdmin;
 }
 
-async function tcsVon(teamId: string): Promise<string[]> {
-  const { data } = await db().from('profiles').select('id').eq('team_id', teamId).in('role', TC_ROLLEN);
-  return ((data ?? []) as { id: string }[]).map(p => p.id);
-}
+// Kapitän + Co-Captain mit Recht 'verlegung' (Migration 0062).
+const tcsVon = (teamId: string) => tcEmpfaenger(teamId, 'verlegung');
 async function ligaleitung(): Promise<string[]> {
   const { data } = await db().from('profiles').select('id').in('role', ['league_admin', 'super_admin']);
   return ((data ?? []) as { id: string }[]).map(p => p.id);
@@ -80,7 +78,9 @@ async function melde(an: string[], ohne: string, n: { titel: string; text: strin
 }
 
 const darfFuerTeam = (u: ServerUser, b: Begegnung27) =>
-  isAdminUser(u) || (u.role === 'team_captain' && (u.teamId === b.home || u.teamId === b.away));
+  hatTcRechtServer(u, b.home, 'verlegung') || hatTcRechtServer(u, b.away, 'verlegung');
+/** Kapitän/Co-Captain (Verlegung) GENAU dieses Teams — ohne Ligaleitungs-Sonderrecht. */
+const tcDes = (u: ServerUser, teamId: string) => u.teamId === teamId && (u.role === 'team_captain' || u.coRechte.includes('verlegung'));
 
 export async function ladeVerlegungen(u: ServerUser): Promise<Verlegung[]> {
   let q = db().from('match_reschedules').select(SPALTEN).eq('season_id', NEUE_SAISON.id).order('created_at', { ascending: false }).limit(200);
@@ -239,8 +239,8 @@ async function uebernehmen(v: Verlegung, wer: string): Promise<Verlegung> {
 export async function beantworteVerlegung(u: ServerUser, id: string, aktion: 'bestaetigen' | 'ablehnen' | 'zurueckziehen', grund?: string | null): Promise<Verlegung> {
   const v = await lade(id);
   const gegner = v.requested_team === v.home_team_id ? v.away_team_id : v.home_team_id;
-  const istAntragsteller = u.role === 'team_captain' && u.teamId === v.requested_team;
-  const istGegner = u.role === 'team_captain' && u.teamId === gegner;
+  const istAntragsteller = tcDes(u, v.requested_team);
+  const istGegner = tcDes(u, gegner);
   const admin = isAdminUser(u);
   const jetzt = new Date().toISOString();
 

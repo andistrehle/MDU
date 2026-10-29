@@ -36,7 +36,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ reportId: 
   // Eigentümer-/Rollenprüfung: nur der erfassende Kapitän, ein Kapitän der
   // beteiligten Teams oder Admin/Ligaleitung darf die Originale löschen (REV-014).
   const owns = report.home_captain_user_id === auth.user.id
-    || (report.home_team_id ? canUploadForTeam(auth.user, report.home_team_id) : false)
+    || (report.home_team_id ? canUploadForTeam(auth.user, report.home_team_id, `${report.home_team_id}|${report.guest_team_id}`) : false)
     || (report.guest_team_id ? canUploadForTeam(auth.user, report.guest_team_id) : false)
     || isAdminUser(auth.user);
   if (!owns) return NextResponse.json({ error: 'Keine Berechtigung für diesen Spielbericht.' }, { status: 403 });

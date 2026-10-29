@@ -25,7 +25,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { getRegistrationMatchSuggestion } from './player-match';
-import type { UserProfile, UserRole } from './roles';
+import { TC_RECHTE, type TcRecht, type UserProfile, type UserRole } from './roles';
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_AUTH_MOCK === 'true';
 const MOCK_SESSION_KEY = 'mdu-auth-session';
@@ -139,7 +139,7 @@ async function loadProfile(userId: string, email: string, displayNameFallback: s
     console.error('[MDU Auth] Profil konnte nicht geladen werden:', error.message);
     return null;
   }
-  if (data) return toUserProfile(data as ProfileRow);
+  if (data) return mitTcRechten(toUserProfile(data as ProfileRow));
 
   // Profil fehlt → Fallback-Anlage (Rolle: player)
   const { data: created, error: insertError } = await supabase
@@ -153,6 +153,25 @@ async function loadProfile(userId: string, email: string, displayNameFallback: s
     return null;
   }
   return toUserProfile(created as ProfileRow);
+}
+
+/**
+ * Co-Captain-Rechte und laufende Spielbericht-Vertretungen (Migration 0062)
+ * dazuladen. Fehlt die Migration oder schlägt etwas fehl, bleibt es bei den
+ * Rechten der Rolle — nie mehr.
+ */
+async function mitTcRechten(p: UserProfile): Promise<UserProfile> {
+  if (!supabase || !p.teamId) return p;
+  try {
+    const [co, ve] = await Promise.all([
+      supabase.from('team_co_captains').select('rechte').eq('team_id', p.teamId).eq('user_id', p.id).maybeSingle(),
+      supabase.from('spielbericht_vertretungen').select('match_key').eq('team_id', p.teamId).eq('user_id', p.id)
+        .is('ended_at', null).gt('gueltig_bis', new Date().toISOString()),
+    ]);
+    const rechte = ((co.data as { rechte: string[] } | null)?.rechte ?? []).filter((r): r is TcRecht => (TC_RECHTE as readonly string[]).includes(r));
+    const vertretungen = ((ve.data ?? []) as { match_key: string }[]).map(v => v.match_key);
+    return { ...p, coRechte: rechte.length ? rechte : undefined, vertretungen: vertretungen.length ? vertretungen : undefined };
+  } catch { return p; }
 }
 
 // ── Dev-Mock (nur bei NEXT_PUBLIC_USE_AUTH_MOCK=true) ─────────

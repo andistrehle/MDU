@@ -18,7 +18,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canEditTeam } from '@/lib/auth/roles';
+import { hatTcRecht } from '@/lib/auth/roles';
+import { KapitaensTeam } from '@/components/mdu/kapitaens-team';
 import { zusagenFreigeschaltet } from '@/lib/features';
 import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
@@ -49,7 +50,8 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
   const { user, loading } = useAuth();
   const teamId = user?.teamId ?? null;
   const t = teamId ? team27(teamId) : undefined;
-  const istKapitaen = !!teamId && canEditTeam(user, teamId);
+  // Kapitän oder Co-Captain mit Recht „Team Manager“ (Migration 0062).
+  const istKapitaen = !!teamId && hatTcRecht(user, teamId, 'team_manager');
 
   const [kader, setKader] = useState<KaderOption[] | null>(null);
   const [zusagen, setZusagen] = useState<Zusage[]>([]);
@@ -199,6 +201,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
               aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} onAntwort={antworte} />
             ) : null}
             {dash && istKapitaen && <NachrichtAnsTeam teamId={teamId} />}
+            {dash && <KapitaensTeam teamId={teamId} />}
             {dash ? null : (<>
             <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
 

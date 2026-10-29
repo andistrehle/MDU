@@ -29,6 +29,10 @@ export interface UserProfile {
   playerId?: string;
   /** Optionale Verknüpfung mit einem Team (relevant für team_captain) */
   teamId?: string;
+  /** Co-Captain-Rechte im eigenen Team (Migration 0062), vom Kapitän vergeben. */
+  coRechte?: TcRecht[];
+  /** Laufende Spielbericht-Vertretungen (Begegnungs-Kennungen Heim|Gast) im eigenen Team. */
+  vertretungen?: string[];
   // ── Registrierungs-/Erkennungsdaten (Vorschlag, nie Rechtevergabe) ──
   firstName?: string;
   lastName?: string;
@@ -45,6 +49,19 @@ export interface UserProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * Kapitänsrechte, die ein Co-Captain einzeln bekommen kann (Betreiber,
+ * 29.10.2026, Migration 0062 — dieselben Schlüssel stehen in der DB).
+ */
+export const TC_RECHTE = ['spielberichte', 'team_manager', 'kasse', 'verlegung'] as const;
+export type TcRecht = typeof TC_RECHTE[number];
+export const TC_RECHT_TEXT: Record<TcRecht, { label: string; text: string }> = {
+  spielberichte: { label: 'Spielberichte', text: 'eintragen, bestätigen, Korrektur anfragen, Live-Modus, Foto-Upload, Vertreter ernennen' },
+  team_manager:  { label: 'Team Manager', text: 'Termine, Aufstellung, Treffzeit, Aufgaben, Erinnerungen, Nachricht ans Team' },
+  kasse:         { label: 'Teamkasse', text: 'Strafen, Beiträge und Kassenbuch buchen' },
+  verlegung:     { label: 'Verlegung & Heimrecht', text: 'Spielverlegung und Heimrechttausch anfragen und bestätigen' },
+};
 
 /** Anzeige-Labels für die Rollen (UI). */
 export const ROLE_LABELS: Record<UserRole, string> = {
@@ -109,10 +126,26 @@ export function canRegisterTeam(user: UserProfile | null, teamId: string): boole
   return canEditTeam(user, teamId);
 }
 
+/**
+ * Kapitänsrecht im Team: Ligaleitung immer, Kapitän des Teams immer,
+ * Co-Captain nur mit diesem Recht (Migration 0062).
+ */
+export function hatTcRecht(user: UserProfile | null, teamId: string | null | undefined, recht: TcRecht): boolean {
+  if (hasMinRole(user, 'league_admin')) return true;
+  if (!user || !teamId || user.teamId !== teamId) return false;
+  return hasRole(user, 'team_captain') || !!user.coRechte?.includes(recht);
+}
+
+/** Co-Captain (mit irgendeinem Recht) dieses Teams? */
+export const istCoCaptain = (user: UserProfile | null, teamId: string | null | undefined) =>
+  !!user && !!teamId && user.teamId === teamId && !hasRole(user, 'team_captain') && !!user.coRechte?.length;
+
+/** Vertreter für den Spielbericht genau dieser Begegnung (Heim|Gast)? */
+export const istVertreter = (user: UserProfile | null, key: string) => !!user?.vertretungen?.includes(key);
+
 /** Spielbericht für ein Team hochladen/erfassen. */
 export function canUploadMatchReport(user: UserProfile | null, teamId: string): boolean {
-  if (hasMinRole(user, 'league_admin')) return true;
-  return hasRole(user, 'team_captain') && user?.teamId === teamId;
+  return hatTcRecht(user, teamId, 'spielberichte');
 }
 
 /** Spielberichte freigeben (Ligaleitung aufwärts). */

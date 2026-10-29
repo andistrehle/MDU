@@ -15,7 +15,8 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
+import { authenticateRequest, isAdminUser, hatTcRechtServer } from '@/lib/server/auth';
+import { tcEmpfaenger } from '@/lib/server/tc-empfaenger';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendTextEmail } from '@/lib/server/email/send-email';
 
@@ -23,7 +24,6 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mdudarts.de';
-const TC_ROLLEN = ['team_captain', 'league_admin', 'super_admin'];
 const PROTEST_MIN = 15;
 
 interface Bericht {
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   const r = data as Bericht | null;
   if (!r) return NextResponse.json({ error: 'Bericht nicht gefunden.' }, { status: 404 });
   const admin = isAdminUser(u);
-  const beteiligt = u.role === 'team_captain' && !!u.teamId && (u.teamId === r.home_team_id || u.teamId === r.guest_team_id);
+  const beteiligt = !admin && (hatTcRechtServer(u, r.home_team_id, 'spielberichte') || hatTcRechtServer(u, r.guest_team_id, 'spielberichte'));
 
   if (body.aktion === 'erledigt') {
     if (!admin) return NextResponse.json({ error: 'Nur für die Ligaleitung.' }, { status: 403 });
@@ -77,10 +77,10 @@ export async function POST(request: Request) {
 
   const { data: ll } = await db.from('profiles').select('id, email').in('role', ['league_admin', 'super_admin']);
   const liga = (ll ?? []) as { id: string; email: string | null }[];
-  const { data: tc } = gegner ? await db.from('profiles').select('id').eq('team_id', gegner).in('role', TC_ROLLEN) : { data: [] };
+  const tc = (await tcEmpfaenger(gegner, 'spielberichte')).map(id => ({ id }));
   const zeilen = [
     ...liga.map(p => ({ id: p.id, url: '/admin/spielberichte?status=problem' })),
-    ...((tc ?? []) as { id: string }[]).map(p => ({ id: p.id, url: `/mein-bereich/spielberichte?id=${r.id}` })),
+    ...tc.map(p => ({ id: p.id, url: `/mein-bereich/spielberichte?id=${r.id}` })),
   ].filter((z, i, a) => z.id !== u.id && a.findIndex(x => x.id === z.id) === i);
   if (zeilen.length) {
     await db.from('notifications').insert(zeilen.map(z => ({

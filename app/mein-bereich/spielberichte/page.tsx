@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canUploadMatchReport } from '@/lib/auth/roles';
+import { canUploadMatchReport, hatTcRecht, istVertreter } from '@/lib/auth/roles';
 import {
   NEUE_SAISON, LIGEN_2027, alleBegegnungen27, begegnungKey, team27, venue27, findLiga27, wochenendeText,
   type Begegnung27,
@@ -26,7 +26,7 @@ import {
   createReport, updateReport, submitReport, notifyReportChange, protokolliereSpeichern,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking, adminBestaetigen, meldeProtest, PROTEST_MIN,
-  ladeKorrektur, frageKorrekturAn, entscheideKorrektur,
+  ladeKorrektur, frageKorrekturAn, entscheideKorrektur, findeBerichtZurBegegnung,
   HIGHLIGHT_TYPES, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_VALUE_CONFIG,
   type ReportPlayer, type ReportGame, type ReportHeaderDraft, type LegResult, type ReportHistoryEntry,
   type HighlightEntry, type HighlightType, highlightHinzufuegen,
@@ -73,7 +73,10 @@ export default function SpielberichtePage() {
 function SpielberichteInner() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const allowed = canUploadMatchReport(user, user?.teamId ?? '') || (user?.role === 'team_captain') || (user ? user.role === 'league_admin' || user.role === 'super_admin' : false);
+  // Kapitän, Co-Captain (Spielberichte), Vertreter für ein Heimspiel (Migration 0062), Ligaleitung.
+  const allowed = canUploadMatchReport(user, user?.teamId ?? '') || !!user?.vertretungen?.length || (user ? user.role === 'league_admin' || user.role === 'super_admin' : false);
+  // Vertreter ohne eigenes Spielbericht-Recht: nur die Begegnungen, für die er ernannt ist.
+  const nurVertretung = !hatTcRecht(user, user?.teamId, 'spielberichte');
 
   const [regId, setRegId] = useState<string | null>(null);
   const [seasonId, setSeasonId] = useState<string>('');
@@ -96,6 +99,7 @@ function SpielberichteInner() {
   }, [msg]);
   const hinweis = (ort: string) => msg?.ort === ort ? <Meldung id={`hinweis-${ort}`} kind={msg.kind} text={msg.text} /> : null;
   const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [confirmTeam, setConfirmTeam] = useState<string | null>(null);
   const [loadedStatus, setLoadedStatus] = useState<string | null>(null);
   const [changeNote, setChangeNote] = useState<string | null>(null);
   const [history, setHistory] = useState<ReportHistoryEntry[]>([]);
@@ -133,11 +137,16 @@ function SpielberichteInner() {
   const isAdminRole = adminKonto && (fromAdmin || !user?.teamId);
   // Admin bearbeitet fremden Bericht → Kapitäne benachrichtigen.
   const adminEditsForeign = isAdminRole && !!ownerId && ownerId !== user?.id;
-  // Nur-Lese-Ansicht: Gegner-Kapitän ODER bereits bestätigter Bericht (außer Admin).
-  const readOnly = !isAdminRole && ((!!ownerId && ownerId !== user?.id) || loadedStatus === 'confirmed');
+  // Eintragende Seite = das Team, das NICHT bestätigt. Bearbeiten darf, wer dort
+  // Spielbericht-Rechte hat (Kapitän, Co-Captain) oder für genau dieses Spiel Vertreter ist.
+  const eintragTeam = (confirmTeam ?? header.guest_team_id) === header.guest_team_id ? header.home_team_id : header.guest_team_id;
+  const darfEintragen = !header.home_team_id ? ownerId === user?.id
+    : hatTcRecht(user, eintragTeam, 'spielberichte') || istVertreter(user, `${header.home_team_id}|${header.guest_team_id}`);
+  // Nur-Lese-Ansicht: Gegenseite ODER bereits bestätigter Bericht (außer Admin).
+  const readOnly = !isAdminRole && ((!!ownerId && !darfEintragen) || loadedStatus === 'confirmed');
 
   // Korrektur (Migration 0061): TC von Heim ODER Gast, bestätigter Bericht, bis 7 Tage nach dem Spiel.
-  const meinTeamDabei = !!user?.teamId && (user.teamId === header.home_team_id || user.teamId === header.guest_team_id);
+  const meinTeamDabei = !!user?.teamId && (user.teamId === header.home_team_id || user.teamId === header.guest_team_id) && hatTcRecht(user, user.teamId, 'spielberichte');
   // korrFrist kommt nur, wenn der Server antwortet (fehlt Migration 0061, bleibt die Karte weg).
   const kannKorrekturAnfragen = !!regId && loadedStatus === 'confirmed' && !isAdminRole && meinTeamDabei && !wertung && !korrektur && !!korrFrist;
   const fristOffen = !!korrFrist && heuteBerlin() <= korrFrist;
@@ -255,8 +264,8 @@ function SpielberichteInner() {
   // festgelegt, 13.10.2026). Ligaleitung im Admin-Modus: alle.
   const begegnungen = useMemo(() => {
     const own = isAdminRole ? null : user?.teamId ?? null;
-    return BEGEGNUNGEN.filter(b => !own || b.home === own);
-  }, [isAdminRole, user?.teamId]);
+    return BEGEGNUNGEN.filter(b => !own || (b.home === own && (!nurVertretung || istVertreter(user, b.key))));
+  }, [isAdminRole, user, nurVertretung]);
   const gewaehlt = header.home_team_id && header.guest_team_id ? begegnungKey(header.home_team_id, header.guest_team_id) : '';
 
   function onBegegnung(key: string) {
@@ -390,7 +399,7 @@ function SpielberichteInner() {
       } else {
         if (cancelled) return;
         setRegId(null);
-        setOwnerId(null);
+        setOwnerId(null); setConfirmTeam(null);
         setLoadedStatus(null);
         setChangeNote(null);
         setHistory([]);
@@ -406,7 +415,14 @@ function SpielberichteInner() {
         setHomePlayers(emptyPlayers('home'));
         setGuestPlayers(emptyPlayers('guest'));
         setGames(emptyGames());
-        if (begegnungParam && BEGEGNUNGEN.some(b => b.key === begegnungParam)) onBegegnung(begegnungParam);
+        if (begegnungParam && BEGEGNUNGEN.some(b => b.key === begegnungParam)) {
+          // Gibt es schon einen Bericht (z. B. vom Kapitän begonnen), dort weitermachen statt neu anlegen.
+          const b = BEGEGNUNGEN.find(x => x.key === begegnungParam)!;
+          const vorhanden = await findeBerichtZurBegegnung(NEUE_SAISON.id, b.home, b.away);
+          if (cancelled) return;
+          if (vorhanden) { router.replace(`/mein-bereich/spielberichte?id=${vorhanden}${fromAdmin ? '&from=admin' : ''}`); return; }
+          onBegegnung(begegnungParam);
+        }
       }
       if (!cancelled) setGeladenFuer(idParam ?? 'neu');
     })();
@@ -419,10 +435,13 @@ function SpielberichteInner() {
     if (!r) return;
     setRegId(r.id);
     setOwnerId(r.home_captain_user_id);
+    setConfirmTeam(r.confirm_team_id ?? null);
     setLoadedStatus(r.status);
     setChangeNote(r.guest_change_note ?? null);
     // Vorschlagsmodus automatisch, wenn per ?propose=1 geöffnet und man Gast-Kapitän ist.
-    const guestViewer = r.home_captain_user_id !== user?.id && !isAdminRole;
+    // Gegenseite = Kapitän/Co-Captain des bestätigenden Teams (nicht, wer eintragen darf).
+    const bestaetigt = r.confirm_team_id ?? r.guest_team_id;
+    const guestViewer = !isAdminRole && hatTcRecht(user, bestaetigt, 'spielberichte') && user?.teamId === bestaetigt;
     setProposing(proposeParam === '1' && guestViewer);
     setProposalNote('');
     setProposedGames(r.proposed_changes && r.proposed_changes.length

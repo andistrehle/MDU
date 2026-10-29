@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canUploadMatchReport } from '@/lib/auth/roles';
+import { canUploadMatchReport, hatTcRecht } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
 import { team27 } from '@/lib/data/saison-2027';
 import {
@@ -21,8 +21,10 @@ import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 
 export default function SpielberichteUebersichtPage() {
   const { user, loading } = useAuth();
-  const allowed = canUploadMatchReport(user, user?.teamId ?? '')
-    || user?.role === 'team_captain' || user?.role === 'league_admin' || user?.role === 'super_admin';
+  // Kapitän, Co-Captain (Spielberichte), Vertreter für ein Spiel, Ligaleitung.
+  const allowed = canUploadMatchReport(user, user?.teamId ?? '') || !!user?.vertretungen?.length
+    || user?.role === 'league_admin' || user?.role === 'super_admin';
+  const darfBestaetigen = hatTcRecht(user, user?.teamId, 'spielberichte');
 
   const [alleRows, setRows] = useState<MatchReport[] | null>(null);
   // Kapitänsmodus: auch Ligaleitungs-Konten mit eigenem Team sehen hier nur die
@@ -42,7 +44,7 @@ export default function SpielberichteUebersichtPage() {
     .filter(r => r.home_captain_user_id === myId || (myTeamId && (r.guest_team_id === myTeamId || r.home_team_id === myTeamId)))
     .sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.match_date ?? '').localeCompare(a.match_date ?? ''));
   const toReview = (rows ?? [])
-    .filter(r => bestaetigendesTeam(r) === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted')
+    .filter(r => darfBestaetigen && bestaetigendesTeam(r) === myTeamId && r.home_captain_user_id !== myId && r.status === 'submitted')
     .sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.match_date ?? '').localeCompare(a.match_date ?? ''));
   const isOwner = (r: MatchReport) => r.home_captain_user_id === myId;
 

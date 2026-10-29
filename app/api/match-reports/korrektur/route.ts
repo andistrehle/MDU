@@ -29,6 +29,7 @@ import {
 } from '@/lib/spielbericht-korrektur';
 import { team27, begegnungKey } from '@/lib/data/saison-2027';
 import { berichtPfad } from '@/lib/spieltag';
+import { tcEmpfaenger } from '@/lib/server/tc-empfaenger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -53,7 +54,8 @@ const migrationFehlt = (m: string) => /match_report_corrections/.test(m) ? 'Die 
 const teamName = (r: Bericht, id: string | null) => (id === r.home_team_id ? r.home_team_name : id === r.guest_team_id ? r.guest_team_name : team27(id ?? '')?.name ?? 'Team');
 const paarung = (r: Bericht) => `${r.home_team_name} – ${r.guest_team_name}`;
 /** TC eines der beiden Teams (auch eine Ligaleitung mit eigenem Team im Kapitänsmodus). */
-const tcVon = (u: ServerUser, teamId: string | null) => !!teamId && u.teamId === teamId && TC_ROLLEN.includes(u.role);
+const tcVon = (u: ServerUser, teamId: string | null) =>
+  !!teamId && u.teamId === teamId && (TC_ROLLEN.includes(u.role) || u.coRechte.includes('spielberichte'));
 
 async function ladeBericht(id: string): Promise<Bericht | null> {
   const { data } = await db().from('match_reports')
@@ -83,11 +85,7 @@ async function wer(u: ServerUser, r: Bericht): Promise<string> {
   return name ? `${name} (${rolle})` : rolle;
 }
 
-async function tcsVon(teamId: string | null): Promise<string[]> {
-  if (!teamId) return [];
-  const { data } = await db().from('profiles').select('id').eq('team_id', teamId).in('role', TC_ROLLEN);
-  return ((data ?? []) as { id: string }[]).map(p => p.id);
-}
+const tcsVon = (teamId: string | null) => tcEmpfaenger(teamId, 'spielberichte');
 async function ligaleitung(): Promise<string[]> {
   const { data } = await db().from('profiles').select('id').in('role', ['league_admin', 'super_admin']);
   return ((data ?? []) as { id: string }[]).map(p => p.id);

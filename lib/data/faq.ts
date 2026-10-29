@@ -161,6 +161,14 @@ Für die letzten zwei Spieltage ist keine Nachmeldung mehr möglich. Alle Regeln
 Danach hat er alle Kapitänsrechte, zum Beispiel Spielberichte eintragen und das Team verwalten. Der bisherige Kapitän wird normaler Spieler, außer er soll die Rechte behalten, etwa als Stellvertreter. Beide und das ganze Team bekommen eine Nachricht.`,
         stichworte: ['kapitän', 'tc', 'wechseln', 'ändern', 'captain'],
       },
+      {
+        id: 'co-captain',
+        frage: 'Kann ich einen Co-Captain bestimmen?',
+        antwort: `Ja, einen. Als Kapitän gehst du auf „Mein Team“ → „Co-Captain bestimmen“, wählst jemanden aus dem Team (mit Konto auf der Seite) und hakst an, welche Rechte er bekommt: Spielberichte, Team Manager, Teamkasse und Verlegung & Heimrecht. Du kannst die Rechte jederzeit ändern oder ihn wieder entfernen. Er bekommt jedes Mal eine Nachricht.
+
+Den Teamcaptain selbst wechselt nur die Ligaleitung.`,
+        stichworte: ['co-captain', 'stellvertreter', 'rechte', 'kapitän'],
+      },
     ],
   },
   {
@@ -172,6 +180,14 @@ Danach hat er alle Kapitänsrechte, zum Beispiel Spielberichte eintragen und das
         frage: 'Wer trägt den Spielbericht ein?',
         antwort: `**Immer die Heimmannschaft.** Der TC des Gastteams bestätigt den Bericht anschließend online. Ein von beiden Seiten bestätigter Bericht ist gültig, einen nachträglichen Protest gibt es dann nicht mehr.`,
         stichworte: ['heim', 'gast', 'eintragen'],
+      },
+      {
+        id: 'spielbericht-vertretung',
+        frage: 'Der Kapitän ist beim Heimspiel nicht da. Wer trägt dann den Spielbericht ein?',
+        antwort: `Der Kapitän oder der Co-Captain teilt vorher jemanden aus dem Team ein: unter „Mein Team“ bei „Spielbericht – Vertretung“ (mit Team Manager auch direkt auf der Seite des Spiels). Eingeteilt werden kann jeder aus dem Team, der ein Konto auf der Seite hat. Er bekommt eine Nachricht und darf für genau dieses Spiel den Spielbericht anlegen, im Live-Modus führen und absenden.
+
+Die Vertretung endet mit dem Absenden, spätestens Dienstag 24 Uhr nach dem Spiel. Bestätigen beim Auswärtsspiel darf ein Vertreter nicht – das machen Kapitän oder Co-Captain.`,
+        stichworte: ['vertretung', 'vertreter', 'kapitän nicht da', 'live', 'eintragen'],
       },
       {
         id: 'wege-spielbericht',

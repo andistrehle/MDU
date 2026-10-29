@@ -16,7 +16,7 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27, LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canEditTeam } from '@/lib/auth/roles';
+import { canEditTeam, hatTcRecht } from '@/lib/auth/roles';
 import { SpielVerlegen } from '@/components/mdu/spiel-verlegen';
 import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
 import { team27, findLiga27, venue27, spielplanDaten27, NEUE_SAISON } from '@/lib/data/saison-2027';
@@ -64,7 +64,7 @@ export default function MeinSpielplanPage() {
           <KalenderAbo teamId={t.id} teamName={t.name} />
 
           {/* Spiel verlegen — TC/Ligaleitung (Migration 0050) */}
-          {darfDrucken && <SpielVerlegen teamId={t.id} />}
+          {hatTcRecht(user, t.id, 'verlegung') && <SpielVerlegen teamId={t.id} />}
 
           {/* Druck für die TC-Sitzung — nur TC/Ligaleitung, außerhalb der Sitzungszeit aus (lib/features.ts) */}
           {TC_SITZUNG_DRUCK && darfDrucken && (

@@ -159,6 +159,19 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `season_team_assignments.captain_player_id/captain_user_id` (daran hängt die TC-Telefonnummer), Ansprechpartner
   der Anmeldung (`team_registrations.contact_*`) und `profiles.role/team_id`; Ligaleitungs-Konten behalten ihre Rolle.
   Glocke/Push an neuen + bisherigen TC + ganzes Team.
+  **Co-Captain + Spielbericht-Vertretung** (Migration 0062, Betreiber 29.10.2026, für ALLE Teams, Karten in
+  `components/mdu/kapitaens-team.tsx` auf „Mein Team“ + Team-Manager-Dashboard + Spieltag-Seite, Server
+  `/api/team/kapitaene`): höchstens EIN Co-Captain je Team (`team_co_captains`, nur der echte Kapitän/Ligaleitung
+  bestimmt ihn) mit einzeln vergebenen Rechten `TC_RECHTE` = spielberichte · team_manager · kasse · verlegung
+  (jederzeit änder-/entziehbar). Vertretung (`spielbericht_vertretungen`): Kapitän/Co-Captain (spielberichte) teilt
+  für EIN Heimspiel jemanden aus dem Team ein → anlegen, live führen, absenden; endet per Trigger beim Absenden,
+  spätestens `gueltig_bis` = Dienstag 23:59 nach dem Spiel; Bestätigen darf er nicht. RECHTE NIE MEHR über
+  `role === 'team_captain'` prüfen: Browser `hatTcRecht(user, team, recht)` / `istVertreter` (lib/auth/roles.ts,
+  `user.coRechte`/`user.vertretungen` lädt auth-context), Server `hatTcRechtServer` / `canUploadForTeam(u, team, key)`
+  (`ServerUser.coRechte/vertretungen`), Glocken an `tcEmpfaenger(team, recht)`; DB: `tc_recht()`, `ist_vertreter()`,
+  `darf_eintragen()` — `is_captain_of()` heißt jetzt „Recht team_manager“, `kasse_darf()` nutzt 'kasse'. Bearbeiten
+  eines Berichts darf jetzt die ganze eintragende Seite (nicht nur, wer angelegt hat). Zusagen-Glocken aus
+  0044/0047/0048 gehen weiter nur an den Kapitän.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →

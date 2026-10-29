@@ -26,7 +26,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ reportId: s
     .select('id, home_team_id, guest_team_id').eq('id', reportId).maybeSingle();
   if (!report) return NextResponse.json({ error: 'Spielbericht nicht gefunden.' }, { status: 404 });
   const darf = isAdminUser(auth.user)
-    || (report.home_team_id ? canUploadForTeam(auth.user, report.home_team_id) : false)
+    || (report.home_team_id ? canUploadForTeam(auth.user, report.home_team_id, `${report.home_team_id}|${report.guest_team_id}`) : false)
     || (report.guest_team_id ? canUploadForTeam(auth.user, report.guest_team_id) : false);
   if (!darf) return NextResponse.json({ error: 'Keine Berechtigung.' }, { status: 403 });
 

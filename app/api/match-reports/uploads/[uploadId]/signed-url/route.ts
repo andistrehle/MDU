@@ -29,7 +29,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ uploadId: s
 
   const match = upload.match_id ? findMatch(upload.match_id) : null;
   const owns = upload.uploaded_by === auth.user.id
-    || (match && (canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId)));
+    || (match && (canUploadForTeam(auth.user, match.homeTeamId, `${match.homeTeamId}|${match.awayTeamId}`) || canUploadForTeam(auth.user, match.awayTeamId)));
   if (!owns) return NextResponse.json({ error: 'Keine Berechtigung.' }, { status: 403 });
 
   // 15 Min: lang genug für eine gründliche Prüfung, aber weiterhin kurzlebig (REV-057).

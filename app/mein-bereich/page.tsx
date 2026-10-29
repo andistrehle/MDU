@@ -70,6 +70,8 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
     const myTeam = t27 ? { name: t27.name, short: t27.short, color: t27.color } : staticTeam;
     // Kapitäne/Admins → Verwaltungs-Untermenü; reine Spieler → direkt zum öffentlichen Profil.
     const teamEditable = canEditTeam(user, user.teamId);
+    // Co-Captain oder Vertreter landen auch in „Mein Team“ (Co-Captain/Vertretung, Migration 0062).
+    const kapitaensteam = teamEditable || !!user.coRechte?.length || !!user.vertretungen?.length;
     tiles.push({
       icon: 'users',
       teamBadge: myTeam ? { text: myTeam.short, color: myTeam.color } : undefined,
@@ -77,7 +79,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       description: teamEditable
         ? 'Team verwalten: bearbeiten und Kader.'
         : 'Direkt zum öffentlichen Teamprofil.',
-      href: teamEditable ? '/mein-team' : `/teams/${user.teamId}`,
+      href: kapitaensteam ? '/mein-team' : `/teams/${user.teamId}`,
       ready: true, notifKey: 'team', tourKey: 'm-team',
     });
     // Spielplan 2026/27 (vorläufig) — für alle mit Team; Drucken dort nur für TCs.
@@ -131,6 +133,12 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       { icon: 'file',     label: 'Meine Anmeldungen',   description: 'Status deiner Anmeldungen.', href: '/mein-bereich/anmeldungen', ready: true, notifKey: 'anmeldungen', tourKey: 'm-registrations' },
       { icon: 'edit',     label: 'Spielbericht erfassen', description: 'Neuen Spielberichtsbogen online ausfüllen.', href: '/mein-bereich/spielberichte', ready: true, tourKey: 'm-report' },
       { icon: 'file',     label: 'Spielberichte ansehen/bearbeiten', description: 'Übersicht eigener Spielberichte.', href: '/mein-bereich/spielberichte/uebersicht', ready: true, notifKey: 'spielberichte' },
+    );
+  } else if (user.coRechte?.includes('spielberichte') || user.vertretungen?.length) {
+    // Co-Captain (Spielberichte) oder Vertreter für ein Heimspiel: nur die Spielbericht-Kacheln.
+    tiles.push(
+      { icon: 'edit', label: 'Spielbericht erfassen', description: user.coRechte?.includes('spielberichte') ? 'Als Co-Captain: Spielbericht online ausfüllen.' : 'Du bist für ein Heimspiel eingeteilt, den Spielbericht einzutragen.', href: '/mein-bereich/spielberichte', ready: true },
+      { icon: 'file', label: 'Spielberichte ansehen/bearbeiten', description: 'Übersicht der Spielberichte deines Teams.', href: '/mein-bereich/spielberichte/uebersicht', ready: true, notifKey: 'spielberichte' },
     );
   }
 

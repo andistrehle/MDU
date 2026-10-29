@@ -13,7 +13,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
+import { authenticateRequest, isAdminUser, canUploadForTeam } from '@/lib/server/auth';
 import { zusagenFuerTeam } from '@/lib/features';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { alleBegegnungen27, NEUE_SAISON } from '@/lib/data/saison-2027';
@@ -27,7 +27,8 @@ export async function GET(request: Request) {
   const key = new URL(request.url).searchParams.get('spiel') ?? '';
   const b = alleBegegnungen27().find(x => x.key === key);
   if (!b) return NextResponse.json({ error: 'Unbekannte Begegnung.' }, { status: 400 });
-  const beteiligt = auth.user.role === 'team_captain' && (auth.user.teamId === b.home || auth.user.teamId === b.away);
+  // Kapitän/Co-Captain (Spielberichte) eines der beiden Teams oder Vertreter für genau dieses Spiel.
+  const beteiligt = canUploadForTeam(auth.user, b.home, b.key) || canUploadForTeam(auth.user, b.away);
   if (!isAdminUser(auth.user) && !beteiligt) return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   if (!supabaseAdmin) return NextResponse.json({ home: null, guest: null });
 

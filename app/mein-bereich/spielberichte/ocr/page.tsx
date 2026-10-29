@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { hasMinRole } from '@/lib/auth/roles';
+import { hasMinRole, hatTcRecht, istVertreter } from '@/lib/auth/roles';
 import type { GameMatch } from '@/lib/data';
 import { spiele27AlsMatch, findLiga27, MATCH_ID_PREFIX_27 } from '@/lib/data/saison-2027';
 
@@ -46,7 +46,8 @@ function OcrUploadInner() {
   // Kapitänsmodus (Mein Bereich) vs. Admin-Modus (aus Admin → Spielberichte,
   // ?from=admin) — wie im Online-Formular. Ligaleitung ohne eigenes Team: Admin.
   const adminKonto = hasMinRole(user, 'league_admin');
-  const allowed = adminKonto || user?.role === 'team_captain';
+  // Kapitän, Co-Captain (Spielberichte), Vertreter für ein Heimspiel, Ligaleitung.
+  const allowed = adminKonto || hatTcRecht(user, user?.teamId, 'spielberichte') || !!user?.vertretungen?.length;
   // Vorbelegte Begegnung (Heim|Gast) — z. B. Ligaleitung lädt aus Admin →
   // Spielberichte oder aus dem Formular den Bogen eines anderen Teams hoch.
   const searchParams = useSearchParams();
@@ -91,9 +92,9 @@ function OcrUploadInner() {
     // Kapitäne sowie Admins im „Meine Mannschaft"-Modus: nur eigene Begegnungen.
     const list = adminAll
       ? [...MATCHES]
-      : (user?.teamId ? getMatchesForTeam(user.teamId) : (isAdmin ? [...MATCHES] : []));
+      : (user?.teamId ? getMatchesForTeam(user.teamId).filter(m => hatTcRecht(user, user.teamId, 'spielberichte') || istVertreter(user, `${m.homeTeamId}|${m.awayTeamId}`)) : (isAdmin ? [...MATCHES] : []));
     return [...list].sort((a, b) => (b.matchday ?? -1) - (a.matchday ?? -1) || (b.date ?? '').localeCompare(a.date ?? ''));
-  }, [adminAll, isAdmin, user?.teamId]);
+  }, [adminAll, isAdmin, user]);
 
   // Ligen, die in der Liste tatsächlich vorkommen — für das Admin-Filter-Dropdown.
   const leagueOptions = useMemo(() => {

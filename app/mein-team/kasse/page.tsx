@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canEditTeam } from '@/lib/auth/roles';
+import { hatTcRecht } from '@/lib/auth/roles';
 import { zusagenFreigeschaltet } from '@/lib/features';
 import { team27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
@@ -49,7 +49,8 @@ export default function KassePage() {
   const { user, loading } = useAuth();
   const teamId = user?.teamId ?? null;
   const t = teamId ? team27(teamId) : undefined;
-  const istKapitaen = !!teamId && canEditTeam(user, teamId);
+  // Kapitän oder Co-Captain mit Recht „Teamkasse“ (Migration 0062).
+  const istKapitaen = !!teamId && hatTcRecht(user, teamId, 'kasse');
 
   const [kader, setKader] = useState<KaderOption[]>([]);
   const [buchungen, setBuchungen] = useState<Buchung[]>([]);

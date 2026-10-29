@@ -44,7 +44,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
   const match = findMatch(matchId);
   if (!match) return NextResponse.json({ error: 'Begegnung nicht gefunden.' }, { status: 400 });
 
-  const allowed = canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId);
+  const allowed = canUploadForTeam(auth.user, match.homeTeamId, `${match.homeTeamId}|${match.awayTeamId}`) || canUploadForTeam(auth.user, match.awayTeamId);
   if (!allowed) return NextResponse.json({ error: 'Du darfst nur Spiele der eigenen Mannschaft zuordnen.' }, { status: 403 });
 
   const { data: result } = await supabaseAdmin.from('match_report_ocr_results')

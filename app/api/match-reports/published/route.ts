@@ -24,7 +24,8 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   const auth = await authenticateRequest(request);
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
-  if (!isAdminUser(auth.user) && auth.user.role !== 'team_captain') {
+  const u = auth.user;
+  if (!isAdminUser(u) && u.role !== 'team_captain' && !u.coRechte.includes('spielberichte') && !u.vertretungen.length) {
     return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   }
   revalidatePath('/');

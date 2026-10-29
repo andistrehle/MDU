@@ -54,7 +54,7 @@ export async function POST(request: Request) {
   if (matchId) {
     match = findMatch(matchId);
     if (!match) return NextResponse.json({ error: 'Begegnung nicht gefunden.' }, { status: 400 });
-    const allowed = canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId);
+    const allowed = canUploadForTeam(auth.user, match.homeTeamId, `${match.homeTeamId}|${match.awayTeamId}`) || canUploadForTeam(auth.user, match.awayTeamId);
     if (!allowed) {
       return NextResponse.json({ error: 'Du darfst nur Spiele der eigenen Mannschaft hochladen.' }, { status: 403 });
     }

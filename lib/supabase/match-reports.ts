@@ -286,6 +286,13 @@ export async function getReport(id: string): Promise<MatchReport | null> {
   return (data as MatchReport) ?? null;
 }
 
+/** Bestehender Bericht zu einer Begegnung (für Vertreter/Co-Captain: weiter am selben Bericht arbeiten). */
+export async function findeBerichtZurBegegnung(seasonId: string, home: string, guest: string): Promise<string | null> {
+  if (!supabase) return null;
+  const { data } = await supabase.from('match_reports').select('id').eq('season_id', seasonId).eq('home_team_id', home).eq('guest_team_id', guest).maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
+}
+
 export async function getReportPlayers(reportId: string): Promise<ReportPlayer[]> {
   if (!supabase) return [];
   const { data } = await supabase.from('match_report_players').select('*').eq('report_id', reportId).order('side').order('slot');

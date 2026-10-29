@@ -11,6 +11,7 @@ import { getCaptainTeamView } from '@/lib/supabase/season-teams';
 import { supabase } from '@/lib/supabase/client';
 import type { TeamFee } from '@/lib/startgeld';
 import { StartgeldPay } from '@/components/mdu/startgeld-pay';
+import { KapitaensTeam } from '@/components/mdu/kapitaens-team';
 import { team27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
 export default function MeinTeamPage() {
@@ -171,6 +172,12 @@ export default function MeinTeamPage() {
             )}
             <Muted>Du bist diesem Team zugeordnet. Bearbeiten kann nur der Teamkapitän bzw. die Ligaleitung. Den vollständigen Kader und alle Statistiken findest du auf dem öffentlichen Teamprofil.</Muted>
             </>
+          )}
+          {/* Co-Captain + Vertretung für den Spielbericht — für alle Teams (Migration 0062). */}
+          {t27 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+              <KapitaensTeam teamId={teamId} />
+            </div>
           )}
         </>
       )}

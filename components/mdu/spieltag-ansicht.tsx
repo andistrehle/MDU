@@ -13,7 +13,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canEditTeam, hasMinRole } from '@/lib/auth/roles';
+import { hatTcRecht, hasMinRole } from '@/lib/auth/roles';
+import { VertretungFuerSpiel } from '@/components/mdu/kapitaens-team';
 import { NEUE_SAISON, findLiga27, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
@@ -35,7 +36,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
   const { user, loading } = useAuth();
   const pfad = usePathname();
   const mitglied = !!user && (user.teamId === teamId || hasMinRole(user, 'league_admin'));
-  const istKapitaen = mitglied && canEditTeam(user, teamId);
+  const istKapitaen = mitglied && hatTcRecht(user, teamId, 'team_manager');
   const heim = b.home === teamId;
   const t = b.termin;
   const label = `${t ? terminKurz(t) : wochenendeText(b.fri, b.sun, false)} · ${heim ? teamName : gegner} – ${heim ? gegner : teamName}`;
@@ -175,6 +176,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
         <span style={{ fontWeight: 600, opacity: 0.85, fontSize: 12.5 }}>· z. B. WhatsApp-Gruppe</span>
       </button>
       {istKapitaen && offen != null && <OffeneErinnern teamId={teamId} matchKey={b.key} text={label} pfad={pfad} offen={offen} />}
+      {mitglied && b.home === teamId && <VertretungFuerSpiel teamId={teamId} matchKey={b.key} />}
 
       {msg && (
         <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : 'var(--th-win)' }}>{msg.text}</div>

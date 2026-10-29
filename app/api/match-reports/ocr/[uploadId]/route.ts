@@ -52,7 +52,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
   // Basis-Berechtigung: eigener Upload, oder (falls Begegnung vorgewählt) eigenes Team / Admin.
   const preMatch: GameMatch | null = upload.match_id ? findMatch(upload.match_id) : null;
   const ownsUpload = upload.uploaded_by === auth.user.id
-    || (preMatch && (canUploadForTeam(auth.user, preMatch.homeTeamId) || canUploadForTeam(auth.user, preMatch.awayTeamId)));
+    || (preMatch && (canUploadForTeam(auth.user, preMatch.homeTeamId, `${preMatch.homeTeamId}|${preMatch.awayTeamId}`) || canUploadForTeam(auth.user, preMatch.awayTeamId)));
   if (!ownsUpload) return NextResponse.json({ error: 'Keine Berechtigung für diesen Upload.' }, { status: 403 });
 
   // Idempotenz: laufend/abgeschlossen nicht erneut (kostenpflichtig) ausführen.
@@ -183,7 +183,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ uploadId: 
     }
 
     // Nur automatisch übernehmen, wenn die Begegnung dem Nutzer gehört (Kapitän) bzw. Admin.
-    const ownsMatch = !!match && (canUploadForTeam(auth.user, match.homeTeamId) || canUploadForTeam(auth.user, match.awayTeamId));
+    const ownsMatch = !!match && (canUploadForTeam(auth.user, match.homeTeamId, `${match.homeTeamId}|${match.awayTeamId}`) || canUploadForTeam(auth.user, match.awayTeamId));
     if (match && ownsMatch) {
       const fin = await finalizeDraftFromStructured({ uploadId, ocrResultId, uploaderId: upload.uploaded_by, match, structured });
       if (fin.error) throw new Error(fin.error);

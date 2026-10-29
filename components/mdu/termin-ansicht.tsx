@@ -13,7 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canEditTeam, hasMinRole } from '@/lib/auth/roles';
+import { hatTcRecht, hasMinRole } from '@/lib/auth/roles';
 import { NEUE_SAISON } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
@@ -47,7 +47,7 @@ export function TerminAnsicht({ id }: { id: string }) {
   const key = terminKey(id);
   const teamId = t?.team_id ?? '';
   const mitglied = !!user && !!t && (user.teamId === t.team_id || hasMinRole(user, 'league_admin'));
-  const istKapitaen = mitglied && canEditTeam(user, teamId);
+  const istKapitaen = mitglied && hatTcRecht(user, teamId, 'team_manager');
   const label = t ? terminLabel(t) : '';
 
   const laden = useCallback(async () => {
