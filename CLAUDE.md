@@ -181,7 +181,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `PAYPAL_PLAN_MONAT`, custom_id = Team) → `/api/premium/paypal` prüft IMMER bei PayPal und schaltet sofort frei;
   Webhook `/api/premium/paypal/webhook` (Signatur-Prüfung, idempotent über `external_id`) bucht Monatsabbuchungen
   (gültig bis = Zahlungstag + 1 Monat) und Abo-Status. Überweisung: TC meldet (`/api/premium` 'ueberwiesen') →
-  Glocke an Super-Admin → Admin → Premium „freischalten“. 14 Tage Test je Team einmal. Täglicher Cron zusagen-mails
+  Glocke an Super-Admin → Admin → Premium „freischalten“. 14 Tage Test je Team einmal; Saisonpass gilt bis `SAISONPASS_BIS` (31.05.2027). Täglicher Cron zusagen-mails
   ruft `abgleich()` (Abgelaufenes sperren, 3 Tage vorher erinnern, nicht bei laufendem Abo). ENV: NEXT_PUBLIC_PAYPAL_
   CLIENT_ID + PAYPAL_CLIENT_SECRET (seit 29.10.2026 in Vercel, Geschäftskonto des Betreibers), optional PAYPAL_ENV —
   fehlen sie, nur Überweisung. Produkt, Monatsplan und Webhook legt der Knopf „PayPal einrichten“ (Admin → Premium,

@@ -162,7 +162,7 @@ export default function PremiumSeite() {
                 paypalMoeglich && lage?.darf ? (
                   <>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', marginBottom: 10, lineHeight: 1.5 }}>
-                      {modell === 'saison' ? `Einmal ${euroText(preis.cents)}, gilt bis Saisonende.` : `${euroText(preis.cents)} im Monat, bucht PayPal jeden Monat ab – jederzeit hier kündbar.`} Mit PayPal-Konto oder per Debit-/Kreditkarte. <b>Nach dem Bezahlen ist der Team Manager sofort freigeschaltet.</b>
+                      {modell === 'saison' ? `Einmal ${euroText(preis.cents)}, gilt bis 31.05.2027.` : `${euroText(preis.cents)} im Monat, bucht PayPal jeden Monat ab – jederzeit hier kündbar.`} Mit PayPal-Konto oder per Debit-/Kreditkarte. <b>Nach dem Bezahlen ist der Team Manager sofort freigeschaltet.</b>
                     </div>
                     <PayPalKnopf key={modell} clientId={pp!.clientId!} planMonat={pp!.planMonat} team={team} art={modell}
                       onFertig={bis => { setHinweis({ ok: true, text: `Danke! Der Team Manager ist freigeschaltet${bis ? ` bis ${datumDe(bis)}` : ''}. Lade die Seite neu, dann ist alles da.` }); void neuLaden(); }}
@@ -196,7 +196,7 @@ export default function PremiumSeite() {
                     }}>{preis.name} für {euroText(preis.cents)} – ich habe überwiesen</button>
                   )}
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 8, lineHeight: 1.5 }}>
-                    Nach Zahlungseingang schalten wir den Team Manager für dein ganzes Team frei. {modell === 'monat' ? 'Kurz vor Ablauf jedes Monats bekommst du eine Erinnerung.' : 'Er gilt bis zum Ende der Saison.'}
+                    Nach Zahlungseingang schalten wir den Team Manager für dein ganzes Team frei. {modell === 'monat' ? 'Kurz vor Ablauf jedes Monats bekommst du eine Erinnerung.' : 'Er gilt bis 31.05.2027.'}
                   </div>
                 </>
               )}

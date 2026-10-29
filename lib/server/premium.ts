@@ -18,8 +18,8 @@ import { cache } from 'react';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { ZUSAGEN_TEAMS } from '@/lib/features';
-import { SAISON_ENDE, team27 } from '@/lib/data/saison-2027';
-import { PREISE, TESTTAGE, euroText, type PremiumModell } from '@/lib/premium';
+import { team27 } from '@/lib/data/saison-2027';
+import { PREISE, TESTTAGE, SAISONPASS_BIS, euroText, type PremiumModell } from '@/lib/premium';
 import { tcEmpfaenger } from './tc-empfaenger';
 
 export type Zahlweg = 'paypal' | 'ueberweisung' | 'bar' | 'kostenlos';
@@ -80,7 +80,7 @@ export async function betreiber(): Promise<string[]> {
 export function neuesEnde(art: Art, bisher: string | null): string | null {
   const h = heute();
   if (art === 'dauerhaft') return null;
-  if (art === 'saison') return SAISON_ENDE;
+  if (art === 'saison') return SAISONPASS_BIS;
   if (art === 'test') return plusTage(h, TESTTAGE);
   return plusMonat(bisher && bisher > h ? bisher : h);
 }
@@ -104,7 +104,7 @@ export async function freischalten(teamId: string, o: {
   if ((o.art === 'saison' || o.art === 'monat') && o.weg !== 'kostenlos' && !o.ohneZahlung) {
     const { error } = await db().from('team_premium_payments').insert({
       team_id: teamId, modell: o.art, amount_cents: o.cents ?? PREISE[o.art].cents, method: o.weg,
-      valid_from: h, valid_until: bis ?? SAISON_ENDE, external_id: o.externalId ?? null, booked_by: o.durch, note: o.notiz ?? null,
+      valid_from: h, valid_until: bis ?? SAISONPASS_BIS, external_id: o.externalId ?? null, booked_by: o.durch, note: o.notiz ?? null,
     });
     if (error) {
       if (/duplicate key|external_id/.test(error.message)) return { bis: alt?.valid_until ?? bis, neu: false };

@@ -13,8 +13,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { AdminGuard } from '@/components/mdu/admin-guard';
-import { LIGEN_2027, SAISON_ENDE, team27 } from '@/lib/data/saison-2027';
-import { PREISE, euroText, PREMIUM_OEFFENTLICH, TESTTAGE } from '@/lib/premium';
+import { LIGEN_2027, team27 } from '@/lib/data/saison-2027';
+import { PREISE, euroText, PREMIUM_OEFFENTLICH, TESTTAGE, SAISONPASS_BIS } from '@/lib/premium';
 
 interface Zeile { team_id: string; modell: string | null; status: string; valid_until: string | null; requested_model: 'saison' | 'monat' | null; requested_at: string | null; payment_method: string | null; note: string | null; paypal_subscription_id: string | null; abo_status: string | null; activated_at: string | null }
 interface Zahlung { id: string; team_id: string; modell: 'saison' | 'monat'; amount_cents: number; method: string; valid_until: string; external_id: string | null; created_at: string }
@@ -217,7 +217,7 @@ const ARTEN: { k: Art; name: string }[] = [
 const heute = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 function plusTage(iso: string, n: number) { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
 function plusMonat(iso: string) { const d = new Date(iso + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() + 1); return d.toISOString().slice(0, 10); }
-const vorgabeBis = (a: Art) => (a === 'saison' ? SAISON_ENDE : a === 'monat' ? plusMonat(heute()) : a === 'test' ? plusTage(heute(), TESTTAGE) : '');
+const vorgabeBis = (a: Art) => (a === 'saison' ? SAISONPASS_BIS : a === 'monat' ? plusMonat(heute()) : a === 'test' ? plusTage(heute(), TESTTAGE) : '');
 
 function TeamFreischalten({ onFertig }: { onFertig: () => Promise<void> }) {
   const teams = useMemo(() => LIGEN_2027.flatMap(l => l.teams.map(id => ({ id, name: team27(id)?.name ?? id, liga: l.name })))

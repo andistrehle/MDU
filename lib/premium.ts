@@ -29,8 +29,11 @@ export const premiumVorschau = (user: Pick<UserProfile, 'role'> | null | undefin
 
 export const TESTTAGE = 14;
 
+/** Saisonpass gilt bis (Betreiber, 29.10.2026: bis Ende Mai, nicht bis zum letzten Spielwochenende). */
+export const SAISONPASS_BIS = '2027-05-31';
+
 export const PREISE = {
-  saison: { cents: 4900, name: 'Saisonpass', zeile: 'einmal pro Saison', hinweis: 'gilt bis Saisonende' },
+  saison: { cents: 4900, name: 'Saisonpass', zeile: 'einmal pro Saison', hinweis: 'gilt bis 31.05.2027' },
   monat: { cents: 899, name: 'Monatlich', zeile: 'pro Monat', hinweis: 'jeden Monat neu, jederzeit beendbar' },
 } as const;
 export type PremiumModell = keyof typeof PREISE;
