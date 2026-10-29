@@ -17,6 +17,12 @@ const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berl
 const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 const tag = (iso: string) => { const d = new Date(iso + 'T12:00:00Z'); return `${WT[d.getUTCDay()]} ${d.getUTCDate()}.${d.getUTCMonth() + 1}.`; };
 const termin = (d: string | null, t: string | null) => (d ? `${tag(d)}${t ? ` ${t}` : ''}` : 'Spielwochenende');
+/** Alter Termin: fester Termin, sonst das Plan-Wochenende (statt nur „Spielwochenende“). */
+const alterTermin = (v: Verlegung) => {
+  if (v.old_date) return termin(v.old_date, v.old_time);
+  const b = alleBegegnungen27().find(x => x.key === v.match_key) ?? alleBegegnungen27().find(x => x.home === v.away_team_id && x.away === v.home_team_id);
+  return b ? `Spielwochenende ${wochenendeText(b.fri, b.sun, false)}` : 'Spielwochenende';
+};
 const name = (id: string) => team27(id)?.name ?? id;
 const STATUS_TEXT: Record<Verlegung['status'], string> = {
   offen: 'wartet auf den Gegner', freigabe: 'wartet auf die Ligaleitung', bestaetigt: 'bestätigt – wird übernommen',
@@ -118,7 +124,7 @@ export function SpielVerlegen({ teamId }: { teamId: string }) {
               <div style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{name(v.home_team_id)} – {name(v.away_team_id)}</div>
               <div style={klein}>{v.kind === 'heimrecht'
                 ? <>{name(v.requested_team)} möchte das <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen</b>: Hin- und Rückspiel wechseln Heim und Gast, Termine bleiben.</>
-                : <>{name(v.requested_team)} möchte verlegen: <s>{termin(v.old_date, v.old_time)}</s> → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>}{v.reason ? ` · „${v.reason}“` : ''}</div>
+                : <>{name(v.requested_team)} möchte verlegen: <s>{alterTermin(v)}</s> → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>}{v.reason ? ` · „${v.reason}“` : ''}</div>
               {v.needs_admin && <div style={{ ...klein, color: 'var(--th-gold)' }}>Außerhalb der Saison – nach deiner Bestätigung gibt noch die Ligaleitung frei.</div>}
               {ablehnenId === v.id ? (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
@@ -143,7 +149,7 @@ export function SpielVerlegen({ teamId }: { teamId: string }) {
           {meine.map(v => (
             <div key={v.id} style={zeile}>
               <div style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{name(v.home_team_id)} – {name(v.away_team_id)}</div>
-              <div style={klein}>{v.kind === 'heimrecht' ? <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen</b> : <>{termin(v.old_date, v.old_time)} → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>} · {STATUS_TEXT[v.status]}</div>
+              <div style={klein}>{v.kind === 'heimrecht' ? <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen</b> : <>{alterTermin(v)} → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>} · {STATUS_TEXT[v.status]}</div>
               {v.status === 'offen' && v.requested_team === teamId && <button type="button" onClick={() => void aktion(v, 'zurueckziehen')} style={{ ...knopf(false, 'var(--th-text-muted)'), alignSelf: 'flex-start', marginTop: 6 }}>Zurückziehen</button>}
             </div>
           ))}

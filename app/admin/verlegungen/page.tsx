@@ -12,13 +12,28 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
-import { team27 } from '@/lib/data/saison-2027';
+import { team27, alleBegegnungen27, findLiga27, wochenendeText } from '@/lib/data/saison-2027';
 import { ladeVerlegungen, verlegungAktion, type Verlegung } from '@/lib/supabase/verlegung';
 
 const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 const tag = (iso: string) => { const d = new Date(iso + 'T12:00:00Z'); return `${WT[d.getUTCDay()]} ${d.getUTCDate()}.${d.getUTCMonth() + 1}.${d.getUTCFullYear()}`; };
 const termin = (d: string | null, t: string | null) => (d ? `${tag(d)}${t ? ` ${t}` : ''}` : 'Spielwochenende');
 const name = (id: string) => team27(id)?.name ?? id;
+// Begegnung im Plan (auch nach einem Heimrechttausch, dann mit vertauschter Kennung).
+const planVon = (v: Verlegung) => {
+  const alle = alleBegegnungen27();
+  return alle.find(b => b.key === v.match_key) ?? alle.find(b => b.home === v.away_team_id && b.away === v.home_team_id) ?? null;
+};
+/** Alter Termin: fester Termin, sonst das Plan-Wochenende (statt nur „Spielwochenende“). */
+const alterTermin = (v: Verlegung) => {
+  if (v.old_date) return termin(v.old_date, v.old_time);
+  const b = planVon(v);
+  return b ? `Spielwochenende ${wochenendeText(b.fri, b.sun)}` : 'Spielwochenende';
+};
+const planText = (v: Verlegung) => {
+  const b = planVon(v);
+  return b ? `${findLiga27(b.liga)?.name ?? b.liga} · ${b.spieltag}. Spieltag` : null;
+};
 const STATUS: Record<Verlegung['status'], [string, string]> = {
   offen: ['wartet auf Gegner', 'var(--th-text-muted)'], freigabe: ['Freigabe nötig', 'var(--th-gold)'],
   bestaetigt: ['bestätigt – nicht übernommen', 'var(--th-loss)'], uebernommen: ['erledigt', 'var(--th-win)'],
@@ -66,7 +81,8 @@ export default function AdminVerlegungenPage() {
                 <div key={v.id} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                   <div style={{ flex: '1 1 280px', minWidth: 0 }}>
                     <div style={{ ...txt, fontWeight: 800, color: 'var(--th-text-strong)' }}>{name(v.home_team_id)} – {name(v.away_team_id)}</div>
-                    <div style={txt}>{v.kind === 'heimrecht' ? <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen (Hin- und Rückspiel, Termine bleiben)</b> : <><s>{termin(v.old_date, v.old_time)}</s> → <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>} · angefragt von {name(v.requested_team)}{v.reason ? ` · „${v.reason}“` : ''}</div>
+                    {planText(v) && <div style={{ ...txt, fontSize: 12, color: 'var(--th-text-faint)' }}>{planText(v)}</div>}
+                    <div style={txt}>{v.kind === 'heimrecht' ? <b style={{ color: 'var(--th-text-strong)' }}>Heimrecht tauschen (Hin- und Rückspiel, Termine bleiben)</b> : <><>vorher <s>{alterTermin(v)}</s></> → neu <b style={{ color: 'var(--th-text-strong)' }}>{termin(v.new_date, v.new_time)}</b></>} · angefragt von {name(v.requested_team)}{v.reason ? ` · „${v.reason}“` : ''}</div>
                     {v.note && <div style={{ ...txt, fontSize: 12, color: v.status === 'bestaetigt' ? 'var(--th-loss)' : 'var(--th-text-faint)' }}>{v.note}</div>}
                   </div>
                   <span style={{ ...txt, fontWeight: 800, color: STATUS[v.status][1] }}>{STATUS[v.status][0]}</span>
