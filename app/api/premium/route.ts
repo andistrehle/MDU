@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     if (b.aktion === 'test') {
       if (p?.trial_used) return fehler('Den Test hat dein Team schon genutzt.');
       if (await teamManagerAktiv(team)) return fehler('Dein Team hat den Team Manager schon.');
-      const r = await freischalten(team, { art: 'test', weg: 'kostenlos', durch: u.id });
+      const r = await freischalten(team, { art: 'test', weg: 'kostenlos', durch: u.id, ohneGlocke: u.role === 'super_admin' && u.teamId !== team });
       return NextResponse.json({ ok: true, bis: r.bis });
     }
 

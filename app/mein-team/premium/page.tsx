@@ -18,7 +18,7 @@ import { PayPalKnopf } from '@/components/mdu/paypal-knopf';
 import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { team27, NEUE_SAISON } from '@/lib/data/saison-2027';
+import { team27, NEUE_SAISON, LIGEN_2027 } from '@/lib/data/saison-2027';
 import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
 import { Icon } from '@/components/mdu/icon';
 
@@ -31,7 +31,11 @@ export default function PremiumSeite() {
   const [hinweis, setHinweis] = useState<{ ok: boolean; text: string } | null>(null);
   const [lage, setLage] = useState<Lage | null>(null);
   const [laeuft, setLaeuft] = useState(false);
-  const team = user?.teamId ?? '';
+  // Testkauf (Betreiber, 29.10.2026): Der Super-Admin kann für ein ANDERES Team kaufen/testen,
+  // um den ganzen Weg mit echtem Geld zu prüfen (danach erstatten + unter Admin → Premium beenden).
+  const [testTeam, setTestTeam] = useState('');
+  const istBetreiber = user?.role === 'super_admin';
+  const team = (istBetreiber && testTeam) || user?.teamId || '';
   const neuLaden = useCallback(async () => {
     if (!team) return;
     const r = await aufruf(`/api/premium?team=${encodeURIComponent(team)}`);
@@ -56,7 +60,7 @@ export default function PremiumSeite() {
   const p = lage?.premium ?? null;
   const pp = lage?.paypal;
   const paypalMoeglich = !!pp?.clientId && (modell === 'saison' || pp.abo);
-  const teamName = (user?.teamId && team27(user.teamId)?.name) || 'Dein Team';
+  const teamName = (team && team27(team)?.name) || 'Dein Team';
   const vorschau = !PREMIUM_OEFFENTLICH;
   const preis = PREISE[modell];
   const zweck = verwendungszweck(teamName, modell, NEUE_SAISON.name);
@@ -71,6 +75,18 @@ export default function PremiumSeite() {
             {vorschau && (
               <div style={{ padding: '10px 14px', borderRadius: 12, background: 'rgba(232,184,74,0.15)', border: `1.5px dashed ${GOLD}`, fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)' }}>
                 <b>Vorschau – nur für dich sichtbar.</b> Die Knöpfe funktionieren echt (Test, Überweisung melden, PayPal sobald eingerichtet) – aber nur du kannst sie benutzen. {ZAHLUNG.ueberweisung.iban.startsWith('folgt') && 'Kontoinhaber und IBAN sind noch Platzhalter.'}
+              </div>
+            )}
+
+            {istBetreiber && (
+              <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1.5px dashed var(--th-line-10)', fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <b>Testkauf für ein anderes Team (nur du)</b>
+                <select value={testTeam} onChange={e => { setTestTeam(e.target.value); setLage(null); setHinweis(null); }} style={{ padding: '8px 10px', borderRadius: 9, border: '1px solid var(--th-line-8)', background: 'var(--th-bg-card3)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14 }}>
+                  <option value="">– eigenes Team –</option>
+                  {LIGEN_2027.flatMap(l => l.teams.map(id => ({ id, name: team27(id)?.name ?? id, liga: l.name }))).sort((a, b) => a.name.localeCompare(b.name, 'de'))
+                    .map(t => <option key={t.id} value={t.id}>{t.name} · {t.liga}</option>)}
+                </select>
+                <span style={{ fontSize: 12, color: 'var(--th-text-muted)' }}>Das Team bekommt dabei KEINE Nachricht. Nach dem Test: Zahlung im PayPal-Geschäftskonto erstatten und das Team unter Admin → Premium „Beenden“.</span>
               </div>
             )}
 

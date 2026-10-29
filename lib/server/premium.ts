@@ -94,6 +94,8 @@ export async function freischalten(teamId: string, o: {
   notiz?: string | null; aboId?: string | null; aboStatus?: string | null;
   /** Kein Zahlungsnachweis (PayPal-Abo beim Abschluss — die Zahlung meldet der Webhook). */
   ohneZahlung?: boolean;
+  /** Keine Glocke ans Team (Testkauf des Betreibers für ein fremdes Team). */
+  ohneGlocke?: boolean;
 }): Promise<{ bis: string | null; neu: boolean }> {
   const alt = await ladePremium(teamId);
   const bis = o.bis !== undefined ? o.bis : neuesEnde(o.art, alt?.valid_until ?? null);
@@ -123,7 +125,7 @@ export async function freischalten(teamId: string, o: {
   const war = !!alt && (alt.status === 'aktiv' || alt.status === 'test') && (!alt.valid_until || alt.valid_until >= h);
   const art = o.art === 'test' ? `${TESTTAGE} Tage Test` : o.art === 'dauerhaft' ? 'dauerhaft' : PREISE[o.art].name;
   // Ändert sich nichts (z. B. erste Abo-Zahlung direkt nach dem Abschluss), keine zweite Glocke.
-  if (!war || bis !== alt?.valid_until) await glocke(await tcEmpfaenger(teamId, 'team_manager', false), war ? 'Team Manager verlängert' : 'Team Manager ist freigeschaltet',
+  if (!o.ohneGlocke && (!war || bis !== alt?.valid_until)) await glocke(await tcEmpfaenger(teamId, 'team_manager', false), war ? 'Team Manager verlängert' : 'Team Manager ist freigeschaltet',
     `${teamName(teamId)}: ${art}${bis ? `, gültig bis ${datumDe(bis)}` : ''}. Viel Spaß!`, '/mein-team/zusagen');
   seitenNeuBauen(teamId);
   return { bis, neu: !war };
