@@ -90,6 +90,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "19:00",
     "note": null
+  },
+  {
+    "id": "2026-11-01-ambasador-zusatz",
+    "date": "2026-11-01",
+    "venueId": "ambasador",
+    "art": "zusatz",
+    "time": "15:00",
+    "note": null
   }
 ];
 
