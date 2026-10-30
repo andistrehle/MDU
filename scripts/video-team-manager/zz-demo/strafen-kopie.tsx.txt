@@ -17,16 +17,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht, hasMinRole } from '@/lib/auth/roles';
-import { NEUE_SAISON } from '@/lib/data/saison-2027';
 import type { KaderOption } from '@/lib/supabase/season-teams';
 import { centAus, euro, type Strafart } from '@/lib/supabase/kasse';
 import { darfZaehlen, type StrafenAbend, type Strich } from '@/lib/supabase/strafen-tracker';
 import * as D from './demo-daten';
-// NUR fürs Promo-Video: Kopie von components/mdu/strafen-tracker.tsx, Daten aus demo-daten statt DB.
+// NUR fürs Promo-Video: Kopie von components/mdu/strafen-tracker.tsx (Stand 30.10.2026), Daten aus demo-daten statt DB.
 const ABEND: StrafenAbend = { id: 'demo', team_id: D.TEAM, match_key: null, titel: 'Fr 23.10. · DC Demo München – Bullseye Buam', datum: '2026-10-23',
   ersatz_player_id: 'p1', ersatz_name: 'Tim Treffer', gueltig_bis: '2026-10-27T22:59:00Z', status: 'offen', abgeschlossen_at: null };
-// Beispiel-Strafarten nur für den Tracker (Betreiber, 30.10.2026)
-const ARTEN: Strafart[] = [{ id: 'u26', title: 'U26 geworfen', amount_cents: 20, sort: 0 }, { id: 'schwarz', title: 'Schwarz geworfen', amount_cents: 50, sort: 1 }];
+// Beispiel-Strafarten wie beim Betreiber (30.10.2026); ?viele=1 zum Prüfen des Umbruchs
+const ARTEN: Strafart[] = [{ id: 'u26', title: 'U26', amount_cents: 20, sort: 0 }, { id: 'schwarz', title: 'Schwarzer', amount_cents: 50, sort: 1 },
+  ...(D.q('viele') === '1' ? [{ id: 'spaet', title: 'Zu spät', amount_cents: 100, sort: 2 }, { id: 'handy', title: 'Handy am Board', amount_cents: 100, sort: 3 }] : [])];
 const st = (i: number, a: number, anzahl: number): Strich => ({ player_key: 'p' + i, player_name: D.NAMEN[i], art_key: ARTEN[a].id, title: ARTEN[a].title, amount_cents: ARTEN[a].amount_cents, anzahl });
 const STRICHE = [st(1, 1, 2), st(7, 0, 1), st(2, 0, 3), st(4, 1, 1), st(3, 0, 1), st(9, 0, 2)];
 const ladeAbend = async (_id: string) => ({ abend: ABEND, striche: STRICHE, error: null as string | null });
@@ -37,7 +37,7 @@ const abschliessen = async (_id: string) => ({ gebucht: 0, error: null as string
 const ersatzSetzen = async (_i: string, _e: unknown) => ({ error: null as string | null });
 const ersatzBenachrichtigen = async (_i: string) => {};
 const abendLoeschen = async (_i: string) => ({ error: null as string | null });
-void NEUE_SAISON;
+const NEUE_SAISON = { id: '' };
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { karte, h2 } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
@@ -47,8 +47,8 @@ const datumText = (iso: string) => {
   return `${['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][d.getUTCDay()]} ${d.getUTCDate()}.${d.getUTCMonth() + 1}.`;
 };
 const mitKonto = (k: KaderOption[]) => k.filter(x => !x.id.startsWith('name:'));
-// ── Die Tracker-Seite ──────────────────────────────────────
 
+/** Spiele des Teams rund um heute (7 Tage zurück, 3 Wochen voraus) mit echtem Termin. */
 type Art = { key: string; title: string; cents: number };
 const sKey = (spieler: string, art: string) => `${spieler}|${art}`;
 
@@ -108,6 +108,10 @@ export function StrafenTracker({ id }: { id: string }) {
     for (const s of striche.values()) if (!m.has(s.player_key)) m.set(s.player_key, s.player_name);
     return [...m].map(([key, name]) => ({ key, name }));
   }, [kader, striche]);
+
+  // Strafarten im Raster aus gleich breiten Spalten (so breit, wie die längste Bezeichnung braucht):
+  // −/0/+ stehen bündig untereinander, egal ob nebeneinander oder umgebrochen (Betreiber, 30.10.2026).
+  const spalte = Math.min(18, Math.max(3, ...arten.map(a => a.title.length))) * 7 + 95;
 
   const summe = [...striche.values()].reduce((x, s) => ({ n: x.n + s.anzahl, c: x.c + s.anzahl * s.amount_cents }), { n: 0, c: 0 });
 
@@ -215,10 +219,10 @@ export function StrafenTracker({ id }: { id: string }) {
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: cent ? 'var(--th-accent)' : 'var(--th-text-faint)' }}>{euro(cent)}</span>
                     </div>
                     {darf ? (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${spalte}px), 1fr))`, gap: '8px 10px' }}>
                         {meine.map(({ a, n }) => (
-                          <span key={a.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: n ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{a.title}</span>
+                          <span key={a.key} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: n ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{a.title}</span>
                             <button type="button" onClick={() => void tippen(p, a, -1)} disabled={!n} aria-label={`${a.title} bei ${p.name} weniger`} style={{ ...zaehlKnopf(false), opacity: n ? 1 : 0.35 }}>−</button>
                             <span style={{ minWidth: 18, textAlign: 'center', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: n ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>{n}</span>
                             <button type="button" onClick={() => void tippen(p, a, 1)} aria-label={`${a.title} bei ${p.name} mehr`} style={zaehlKnopf(true)}>+</button>
