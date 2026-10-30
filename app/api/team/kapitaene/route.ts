@@ -23,6 +23,7 @@ import { authenticateRequest, isAdminUser, hatTcRechtServer, type ServerUser } f
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { TC_RECHTE, TC_RECHT_TEXT, type TcRecht } from '@/lib/auth/roles';
 import { alleBegegnungen27, team27, NEUE_SAISON, datumKurz27 } from '@/lib/data/saison-2027';
+import { dienstagsEnde } from '@/lib/dienstags-ende';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,18 +41,6 @@ function db() {
 const istKapitaen = (u: ServerUser, team: string) => isAdminUser(u) || (u.role === 'team_captain' && u.teamId === team);
 
 /** Ende der Vertretung: Dienstag 23:59 (Berlin) nach dem Spieltag — Meldefrist. */
-function dienstagsEnde(datum: string): string {
-  const d = new Date(`${datum}T12:00:00Z`);
-  const bis = (2 - d.getUTCDay() + 7) % 7 || 7;
-  d.setUTCDate(d.getUTCDate() + bis);
-  const tag = d.toISOString().slice(0, 10);
-  // Offset von Berlin an diesem Tag (Winter +01:00, Sommer +02:00).
-  const off = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Berlin', timeZoneName: 'shortOffset' })
-    .formatToParts(new Date(`${tag}T12:00:00Z`)).find(p => p.type === 'timeZoneName')?.value ?? 'GMT+1';
-  const h = Number(off.replace('GMT', '')) || 1;
-  return new Date(`${tag}T23:59:59+0${h}:00`).toISOString();
-}
-
 const heimspieleVon = (team: string) => alleBegegnungen27().filter(b => b.home === team);
 const spielText = (key: string) => {
   const b = alleBegegnungen27().find(x => x.key === key);

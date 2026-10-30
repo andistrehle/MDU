@@ -29,6 +29,7 @@ import {
 } from '@/lib/supabase/kasse';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
+import { StrafenAbende } from '@/components/mdu/strafen-tracker';
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const datumKurz = (iso: string) => { const [y, m, d] = iso.split('-'); return `${d}.${m}.${y.slice(2)}`; };
@@ -157,6 +158,9 @@ export default function KassePage() {
                 {!darfBuchen && ' · Du kannst die Kasse ansehen, buchen dürfen Kapitän und Kassenwart.'}
               </div>
             </div>
+
+            {/* Strafen-Tracker am Spielabend (Migration 0066) */}
+            {user && <StrafenAbende teamId={teamId} userId={user.id} playerId={user.playerId ?? null} kasseDarf={darfBuchen} kader={kader} />}
 
             {/* Buchen */}
             {darfBuchen && (formular === 'strafe' ? (

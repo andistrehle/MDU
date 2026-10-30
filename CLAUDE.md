@@ -250,6 +250,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Strafen mit Anzahl (Betreiber, 30.10.2026): „Strafe eintragen“ = `StrafenFormular` — mehrere Strafarten auf einmal
   (Katalog-Chips + „Andere Strafe“), je Spieler und Strafart ein − / + Zähler; gespeichert je Spieler und Strafart
   EIN Posten „U26 × 3“ mit Betrag × Anzahl (`bucheStrafen`).
+  **Strafen-Tracker** (Migration 0066, Betreiber 30.10.2026): Karte in der Teamkasse → `/mein-team/strafen/<id>`
+  (`components/mdu/strafen-tracker.tsx`, `lib/supabase/strafen-tracker.ts`). Abend an einem Spiel (`match_key`, je
+  Spiel einer) oder frei mit Datum; LIVE in der DB gezählt über `strafe_zaehlen()` (atomar, zwei Handys gleichzeitig,
+  Seite holt alle 5 s), ganzes Team sieht mit; „Abschließen“ = `strafen_abschliessen()` bucht „U26 × 3“ in die Kasse.
+  Ersatz-Kassenwart je Abend (vom Kapitän/Kassenwart, `ersatz_player_id`): NUR zählen + abschließen, bis Abschluss,
+  spätestens Di 23:59 (`dienstagsEnde`, lib/dienstags-ende.ts). Keine Glocke an den Ersatz.
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie
