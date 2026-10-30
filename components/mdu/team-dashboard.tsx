@@ -376,22 +376,19 @@ function StatZeile({ platz, z, ich, erster }: { platz: number; z: { name: string
 }
 
 /** Quote als Doppelring der Scheibe: 20 Felder, gefüllte rot/grün im Wechsel. */
-/** Quote als Dart-Ring (Betreiber, 30.10.2026): feiner Fortschrittsring aus 20 Feldern wie die Scheibe, nur Grün. */
+/** Quote als feiner Fortschrittsring (Betreiber, 30.10.2026: Entwurf 1 — ein grüner Bogen mit runden Enden). */
 function QuotenScheibe({ quote }: { quote: number }) {
-  const n = 20, r = 36, sw = 6, luecke = 2.2;
-  const umfang = 2 * Math.PI * r, feld = umfang / n;
-  const voll = Math.round(Math.max(0, Math.min(1, quote)) * n);
+  const r = 36, umfang = 2 * Math.PI * r;
+  const anteil = Math.max(0, Math.min(1, quote));
   const zahl = Math.round(quote * 100);
   return (
     <svg viewBox="0 0 96 96" width="88" height="88" style={{ flexShrink: 0 }} aria-hidden>
-      <g transform={`rotate(${-90 - 180 / n} 48 48)`}>
-        {Array.from({ length: n }, (_, i) => (
-          <circle key={i} cx={48} cy={48} r={r} fill="none" stroke={i < voll ? GRUEN : 'var(--th-line-8)'} strokeWidth={sw}
-            strokeDasharray={`${feld - luecke} ${umfang}`} strokeDashoffset={-i * feld} />
-        ))}
-      </g>
-      <circle cx={48} cy={48} r={r - 7} fill="none" stroke="var(--th-line-6)" strokeWidth={1} />
-      <text x={48} y={54.5} textAnchor="middle" fontSize={zahl >= 100 ? 17 : 19} fontWeight={800} fontFamily="var(--font-manrope)" fill="var(--th-text-strong)">{zahl}%</text>
+      <circle cx={48} cy={48} r={r} fill="none" stroke="var(--th-line-8)" strokeWidth={5} />
+      {anteil > 0 && (
+        <circle cx={48} cy={48} r={r} fill="none" stroke={GRUEN} strokeWidth={5} strokeLinecap="round"
+          strokeDasharray={`${umfang * anteil} ${umfang}`} transform="rotate(-90 48 48)" />
+      )}
+      <text x={48} y={55} textAnchor="middle" fontSize={zahl >= 100 ? 18 : 20} fontWeight={700} fontFamily="var(--font-manrope)" fill="var(--th-text-strong)">{zahl}%</text>
     </svg>
   );
 }
