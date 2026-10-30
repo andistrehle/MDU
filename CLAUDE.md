@@ -247,6 +247,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Einnahmen − Ausgaben + BEZAHLTE Strafen/Beiträge. Buchen: TC, Kassenwart (`treasurer_player_id`,
   vom TC gewählt), Ligaleitung (`kasse_darf`); lesen: ganzes Team, alles sichtbar. Bewusst KEINE
   Glocken-Erinnerung. Beträge in Cent.
+  Strafen mit Anzahl (Betreiber, 30.10.2026): „Strafe eintragen“ = `StrafenFormular` — mehrere Strafarten auf einmal
+  (Katalog-Chips + „Andere Strafe“), je Spieler und Strafart ein − / + Zähler; gespeichert je Spieler und Strafart
+  EIN Posten „U26 × 3“ mit Betrag × Anzahl (`bucheStrafen`).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

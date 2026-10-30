@@ -72,6 +72,19 @@ export async function bucheMehrere(p: {
   return { data: (data ?? []) as Buchung[], error: fehlerText(error) };
 }
 
+/** Strafen mit Anzahl: je Spieler und Strafart ein Posten („U26 × 3“, Betrag × Anzahl). */
+export async function bucheStrafen(p: {
+  teamId: string; userId: string; datum: string;
+  zeilen: { key: string; name: string; title: string; cents: number }[];
+}): Promise<{ data: Buchung[]; error: string | null }> {
+  if (!supabase) return { data: [], error: 'Keine Verbindung.' };
+  const { data, error } = await supabase.from('team_cash_entries').insert(p.zeilen.map(z => ({
+    team_id: p.teamId, kind: 'strafe', title: z.title.trim(), amount_cents: z.cents, entry_date: p.datum,
+    created_by: p.userId, player_key: z.key, player_name: z.name,
+  }))).select(SPALTEN);
+  return { data: (data ?? []) as Buchung[], error: fehlerText(error) };
+}
+
 export async function setzeBezahlt(ids: string[], bezahlt: boolean, userId: string): Promise<{ error: string | null }> {
   if (!supabase || ids.length === 0) return { error: null };
   const { error } = await supabase.from('team_cash_entries')

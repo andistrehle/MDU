@@ -23,7 +23,7 @@ import { zusagenFreigeschaltet } from '@/lib/features';
 import { team27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import {
-  ladeKasse, bucheMehrere, setzeBezahlt, loescheBuchung, speichereStrafart, loescheStrafart,
+  ladeKasse, bucheMehrere, bucheStrafen, setzeBezahlt, loescheBuchung, speichereStrafart, loescheStrafart,
   speichereKassenEinstellung, kassenstand, offenSumme, istForderung, centAus, euro,
   type Buchung, type BuchungsArt, type Strafart, type KassenEinstellung,
 } from '@/lib/supabase/kasse';
@@ -102,6 +102,16 @@ export default function KassePage() {
     return true;
   }
 
+  async function strafenBuchen(datum: string, zeilen: { key: string; name: string; title: string; cents: number }[]) {
+    if (!user || !teamId) return false;
+    const { data, error } = await bucheStrafen({ teamId, userId: user.id, datum, zeilen });
+    if (error) { melde({ kind: 'err', text: error }); return false; }
+    setBuchungen(l => [...data, ...l]); setFormular(null); setVorwahl(null);
+    const leute = new Set(data.map(b => b.player_key)).size;
+    melde({ kind: 'ok', text: `${data.length} ${data.length === 1 ? 'Strafe' : 'Strafen'} für ${leute} Spieler eingetragen.` });
+    return true;
+  }
+
   async function bezahlt(ids: string[], ja: boolean) {
     if (!user) return;
     const vorher = buchungen;
@@ -149,7 +159,10 @@ export default function KassePage() {
             </div>
 
             {/* Buchen */}
-            {darfBuchen && (formular ? (
+            {darfBuchen && (formular === 'strafe' ? (
+              <StrafenFormular kader={kader} strafarten={strafarten} vorwahl={vorwahl}
+                onBuchen={strafenBuchen} onAbbrechen={() => { setFormular(null); setVorwahl(null); }} />
+            ) : formular ? (
               <BuchFormular art={formular} kader={kader} strafarten={strafarten} vorwahl={vorwahl}
                 onBuchen={buchen} onAbbrechen={() => { setFormular(null); setVorwahl(null); }} />
             ) : (
@@ -302,6 +315,121 @@ function BuchFormular({ art, kader, strafarten, vorwahl, onBuchen, onAbbrechen }
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {kader.map(k => <button key={k.id} type="button" onClick={() => umschalten(k.id)} style={chipKnopf(wahl.has(k.id))}>{k.name}</button>)}
+          </div>
+        </div>
+      )}
+
+      {fehler && <div role="alert" style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A' }}>{fehler}</div>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="button" disabled={laeuft} onClick={() => void senden()} style={{ ...hauptKnopf, opacity: laeuft ? 0.6 : 1 }}>{laeuft ? 'Speichert …' : 'Speichern'}</button>
+        <button type="button" onClick={onAbbrechen} style={nebenKnopf}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Strafen mit Anzahl (Betreiber, 30.10.2026) ─────────────
+// Mehrere Strafarten auf einmal; je Spieler und Strafart ein Zähler (− / +).
+// Gespeichert wird je Spieler und Strafart EIN Posten: „U26 × 3“, Betrag × Anzahl.
+type StrafSpalte = { id: string; title: string; cents: number; eigen?: boolean; betragText?: string };
+
+function StrafenFormular({ kader, strafarten, vorwahl, onBuchen, onAbbrechen }: {
+  kader: KaderOption[]; strafarten: Strafart[]; vorwahl: string[] | null;
+  onBuchen: (datum: string, zeilen: { key: string; name: string; title: string; cents: number }[]) => Promise<boolean>;
+  onAbbrechen: () => void;
+}) {
+  const [spalten, setSpalten] = useState<StrafSpalte[]>(() => strafarten.length === 1
+    ? [{ id: strafarten[0].id, title: strafarten[0].title, cents: strafarten[0].amount_cents }] : []);
+  const [anzahl, setAnzahl] = useState<Record<string, number>>({});
+  const [datum, setDatum] = useState(heuteIso());
+  const [laeuft, setLaeuft] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
+  // Vom Spieler aus geöffnet: diesen zuerst zeigen.
+  const leute = vorwahl?.length ? [...kader.filter(k => vorwahl.includes(k.id)), ...kader.filter(k => !vorwahl.includes(k.id))] : kader;
+
+  const k = (spieler: string, spalte: string) => `${spieler}|${spalte}`;
+  const umschalten = (s: Strafart) => setSpalten(l => l.some(x => x.id === s.id)
+    ? l.filter(x => x.id !== s.id) : [...l, { id: s.id, title: s.title, cents: s.amount_cents }]);
+  const eigeneDazu = () => setSpalten(l => [...l, { id: `eigen-${Date.now()}`, title: '', cents: 0, eigen: true, betragText: '' }]);
+  const eigeneAendern = (id: string, w: Partial<StrafSpalte>) => setSpalten(l => l.map(x => x.id === id ? { ...x, ...w } : x));
+  const zaehlen = (spieler: string, spalte: string, d: number) => setAnzahl(a => ({ ...a, [k(spieler, spalte)]: Math.max(0, Math.min(99, (a[k(spieler, spalte)] ?? 0) + d)) }));
+
+  const centsVon = (s: StrafSpalte) => (s.eigen ? centAus(s.betragText ?? '') ?? 0 : s.cents);
+  const posten = leute.flatMap(p => spalten.map(s => ({ p, s, n: anzahl[k(p.id, s.id)] ?? 0 }))).filter(x => x.n > 0);
+  const summe = posten.reduce((x, { s, n }) => x + centsVon(s) * n, 0);
+
+  async function senden() {
+    if (!spalten.length) return setFehler('Bitte mindestens eine Strafe auswählen.');
+    const kaputt = posten.find(({ s }) => s.eigen && (!s.title.trim() || !centsVon(s)));
+    if (kaputt) return setFehler('Bitte bei der eigenen Strafe Bezeichnung und Betrag eintragen, z. B. 0,50.');
+    if (!posten.length) return setFehler('Bitte bei mindestens einem Spieler eine Anzahl eintragen.');
+    setFehler(null); setLaeuft(true);
+    await onBuchen(datum, posten.map(({ p, s, n }) => ({
+      key: p.id, name: p.name, title: n > 1 ? `${s.title.trim()} × ${n}` : s.title.trim(), cents: centsVon(s) * n,
+    })));
+    setLaeuft(false);
+  }
+
+  return (
+    <div style={{ ...karte, gap: 12 }}>
+      <h2 style={h2Karte}>Strafen eintragen</h2>
+
+      <div>
+        <div style={label}>Strafen (mehrere möglich)</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {strafarten.map(s => (
+            <button key={s.id} type="button" onClick={() => umschalten(s)} aria-pressed={spalten.some(x => x.id === s.id)} style={chipKnopf(spalten.some(x => x.id === s.id))}>
+              {s.title} · {euro(s.amount_cents)}
+            </button>
+          ))}
+          <button type="button" onClick={eigeneDazu} style={{ ...chipKnopf(false), borderStyle: 'dashed', color: 'var(--th-accent)' }}>+ Andere Strafe</button>
+        </div>
+        {strafarten.length === 0 && <div style={{ ...label, fontWeight: 600, marginTop: 6 }}>Tipp: Häufige Strafen legst du unter „Strafen“ im Katalog an, dann reicht hier ein Tipp.</div>}
+      </div>
+
+      {spalten.filter(s => s.eigen).map(s => (
+        <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1fr 110px auto', gap: 8, alignItems: 'end' }}>
+          <label><span style={label}>Bezeichnung</span>
+            <input value={s.title} onChange={e => eigeneAendern(s.id, { title: e.target.value })} maxLength={70} placeholder="z. B. Zu spät" style={feld} />
+          </label>
+          <label><span style={label}>Betrag (€)</span>
+            <input value={s.betragText ?? ''} onChange={e => eigeneAendern(s.id, { betragText: e.target.value })} inputMode="decimal" placeholder="0,50" style={feld} />
+          </label>
+          <button type="button" onClick={() => setSpalten(l => l.filter(x => x.id !== s.id))} aria-label="Eigene Strafe entfernen" style={{ ...nebenKnopf, padding: '9px 12px' }}>
+            <Icon name="close" size={14} stroke={2.4} />
+          </button>
+        </div>
+      ))}
+
+      <label style={{ maxWidth: 200 }}><span style={label}>Datum</span>
+        <input type="date" value={datum} onChange={e => setDatum(e.target.value || heuteIso())} style={feld} />
+      </label>
+
+      {spalten.length > 0 && (
+        <div>
+          <div style={label}>Anzahl je Spieler</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {leute.map(p => (
+              <div key={p.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 14px', padding: '9px 0', borderTop: '1px solid var(--th-line-4)' }}>
+                <span style={{ flex: '1 1 140px', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)' }}>{p.name}</span>
+                <span style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px' }}>
+                  {spalten.map(s => {
+                    const n = anzahl[k(p.id, s.id)] ?? 0;
+                    return (
+                      <span key={s.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: n ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{s.title.trim() || 'Andere'}</span>
+                        <button type="button" onClick={() => zaehlen(p.id, s.id, -1)} disabled={!n} aria-label={`${s.title || 'Strafe'} bei ${p.name} weniger`} style={{ ...kleinKnopf(false), width: 28, height: 28, opacity: n ? 1 : 0.4 }}>−</button>
+                        <span style={{ minWidth: 18, textAlign: 'center', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: n ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>{n}</span>
+                        <button type="button" onClick={() => zaehlen(p.id, s.id, 1)} aria-label={`${s.title || 'Strafe'} bei ${p.name} mehr`} style={{ ...kleinKnopf(n > 0), width: 28, height: 28 }}>+</button>
+                      </span>
+                    );
+                  })}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-text-strong)' }}>
+            {posten.length ? `${posten.reduce((x, y) => x + y.n, 0)} Strafen · ${euro(summe)}` : 'Noch nichts gezählt.'}
           </div>
         </div>
       )}
