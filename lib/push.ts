@@ -22,6 +22,11 @@ const AUS_KEY = 'mdu-push-aus';
 const merke = (aus: boolean) => { try { if (aus) localStorage.setItem(AUS_KEY, '1'); else localStorage.removeItem(AUS_KEY); } catch { /* egal */ } };
 const bewusstAus = () => { try { return localStorage.getItem(AUS_KEY) === '1'; } catch { return false; } };
 
+/** Handy/Tablet (oder installierte Web-App)? Am Desktop blenden wir Push-Frage und -Karte aus (Betreiber, 30.10.2026). */
+export const istHandy = () => typeof navigator !== 'undefined' && (
+  /iPad|iPhone|iPod|Android|Mobile/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  || (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches));
 export const istIos = () => typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 export const istInstalliert = () => typeof window !== 'undefined'
   && (window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true);

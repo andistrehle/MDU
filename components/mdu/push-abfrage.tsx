@@ -12,12 +12,13 @@
 // hinzuzufügen. Abmelden löscht das Abo des Geräts.
 //
 // PushEinstellung (Mein Bereich): Zustand + Ein/Aus, bei „blockiert“ die
-// Anleitung, wie man es in den Einstellungen wieder erlaubt.
+// Anleitung, wie man es in den Einstellungen wieder erlaubt. Frage und Karte
+// nur auf Handy/Tablet (`istHandy`), am Desktop ausgeblendet (Betreiber, 30.10.2026).
 // ============================================================
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { pushZustand, pushEinschalten, pushAusschalten, pushAboAuffrischen, istIos, type PushZustand } from '@/lib/push';
+import { pushZustand, pushEinschalten, pushAusschalten, pushAboAuffrischen, istIos, istHandy, type PushZustand } from '@/lib/push';
 
 const SPAETER_KEY = 'mdu-push-spaeter';
 const IOS_KEY = 'mdu-push-ios-hinweis';
@@ -44,7 +45,7 @@ export function PushAbfrage() {
     void (async () => {
       await pushAboAuffrischen();
       const z = await pushZustand();
-      if (weg) return;
+      if (weg || !istHandy()) return; // am Desktop nicht fragen
       if (z === 'frage' && Date.now() - lies(SPAETER_KEY) > 7 * TAG) setZeige('frage');
       else if (z === 'ios_installieren' && Date.now() - lies(IOS_KEY) > 30 * TAG) setZeige('ios');
     })();
@@ -87,7 +88,8 @@ export function PushEinstellung() {
   const [z, setZ] = useState<PushZustand | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
-  useEffect(() => { void pushZustand().then(setZ); }, []);
+  // Nur auf Handy/Tablet bzw. in der installierten App — am Desktop braucht es die Karte nicht.
+  useEffect(() => { if (istHandy()) void pushZustand().then(setZ); }, []);
   if (!z || z === 'nicht_moeglich') return null;
 
   const beschreibung: Record<PushZustand, string> = {

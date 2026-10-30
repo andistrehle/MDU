@@ -197,7 +197,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   nicht als Zeile gespeichert) pusht der tägliche Cron `zusagen-mails` einmal je Spieler+Termin
   (`zusage_push_log`), unabhängig von der E-Mail-Einstellung. Abfrage direkt nach dem Login
   (`components/mdu/push-abfrage.tsx`, „Später“ = 7 Tage), Ein/Aus + Anleitung bei Blockade unter Mein
-  Bereich. Abmelden löscht das Abo des Geräts; bewusst ausgeschaltet bleibt aus (`mdu-push-aus`).
+  Bereich — beides NUR auf Handy/Tablet/installierter App (`istHandy`, am Desktop ausgeblendet, Betreiber 30.10.2026). Abmelden löscht das Abo des Geräts; bewusst ausgeschaltet bleibt aus (`mdu-push-aus`).
   iPhone: nur als installierte Web-App (iOS 16.4+). Datenschutz-Absatz dazu: nur auf Anweisung.
   Live seit 25.10.2026 (VAPID-Schlüssel per Vercel-API gesetzt, nur in Vercel gespeichert — neue nur als Paar).
   Geheimnis NICHT von Hand kopieren (ging am 26.10. zweimal schief → nur 401): neu setzen über
