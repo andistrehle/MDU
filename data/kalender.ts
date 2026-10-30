@@ -98,6 +98,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "15:00",
     "note": null
+  },
+  {
+    "id": "2026-11-01-aubinger-boazn-zusatz",
+    "date": "2026-11-01",
+    "venueId": "aubinger-boazn",
+    "art": "zusatz",
+    "time": "20:00",
+    "note": null
   }
 ];
 
