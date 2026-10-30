@@ -63,12 +63,21 @@ export async function getPublishedNews(): Promise<NewsArticle[]> {
   }
 }
 
-const MONTH_MS = 31 * 24 * 60 * 60 * 1000;
+const ZWEI_WOCHEN_MS = 14 * 24 * 60 * 60 * 1000;
 
 /**
- * News für die Startseite: die Meldungen des letzten Monats, aber immer
- * mindestens die 3 neuesten (damit die „Aktuelles"-Spalte nie zu leer wirkt).
- * Statischer Fallback (die 3 neuesten) bei fehlender/nicht migrierter Tabelle.
+ * Startseite (Betreiber, 30.10.2026): höchstens 4 Meldungen — die 4. nur, wenn
+ * sie nicht älter als zwei Wochen ist, sonst die 3 neuesten.
+ */
+function startseitenAuswahl<T extends { sort_ts: string }>(rows: T[]): T[] {
+  const vierte = rows[3] ? Date.parse(rows[3].sort_ts) : NaN;
+  return rows.slice(0, !Number.isNaN(vierte) && vierte >= Date.now() - ZWEI_WOCHEN_MS ? 4 : 3);
+}
+
+/**
+ * News für die Startseite: die 3 neuesten, die 4. nur, wenn sie höchstens zwei
+ * Wochen alt ist. Statischer Fallback (die 3 neuesten) bei fehlender/nicht
+ * migrierter Tabelle.
  */
 export async function getHomepageNews(): Promise<NewsArticle[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -85,16 +94,7 @@ export async function getHomepageNews(): Promise<NewsArticle[]> {
 
     if (error) return NEWS_ARTICLES.slice(0, 3);
     const rows = (data ?? []) as (NewsRow & { sort_ts: string })[];
-    const cutoff = Date.now() - MONTH_MS;
-    const withinMonth = rows.filter(r => {
-      const t = Date.parse(r.sort_ts);
-      return !Number.isNaN(t) && t >= cutoff;
-    });
-    // „Letzter Monat" wenn das mindestens 3 sind, sonst die 3 neuesten —
-    // nach oben auf 6 gedeckelt, damit ein Publishing-Schub die Startseite
-    // nicht mit beliebig vielen Karten flutet.
-    const base = withinMonth.length >= 3 ? withinMonth : rows.slice(0, 3);
-    return base.slice(0, 6).map(rowToArticle);
+    return startseitenAuswahl(rows).map(rowToArticle);
   } catch {
     return NEWS_ARTICLES.slice(0, 3);
   }
