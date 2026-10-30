@@ -376,18 +376,22 @@ function StatZeile({ platz, z, ich, erster }: { platz: number; z: { name: string
 }
 
 /** Quote als Doppelring der Scheibe: 20 Felder, gefüllte rot/grün im Wechsel. */
+/** Quote als Dart-Ring (Betreiber, 30.10.2026): feiner Fortschrittsring aus 20 Feldern wie die Scheibe, nur Grün. */
 function QuotenScheibe({ quote }: { quote: number }) {
-  const voll = Math.round(quote * 20);
-  const c = 44, r1 = 32, r2 = 42;
-  const pt = (r: number, w: number) => [c + r * Math.sin(w), c - r * Math.cos(w)];
+  const n = 20, r = 36, sw = 6, luecke = 2.2;
+  const umfang = 2 * Math.PI * r, feld = umfang / n;
+  const voll = Math.round(Math.max(0, Math.min(1, quote)) * n);
+  const zahl = Math.round(quote * 100);
   return (
-    <svg viewBox="0 0 88 88" width="88" height="88" style={{ flexShrink: 0 }} aria-hidden>
-      {Array.from({ length: 20 }, (_, i) => {
-        const a = (i * Math.PI) / 10 + 0.03, b = ((i + 1) * Math.PI) / 10 - 0.03;
-        const [x1, y1] = pt(r2, a), [x2, y2] = pt(r2, b), [x3, y3] = pt(r1, b), [x4, y4] = pt(r1, a);
-        return <path key={i} d={`M${x1} ${y1}A${r2} ${r2} 0 0 1 ${x2} ${y2}L${x3} ${y3}A${r1} ${r1} 0 0 0 ${x4} ${y4}Z`} fill={i < voll ? (i % 2 ? GRUEN : ROT) : 'var(--th-line-8)'} />;
-      })}
-      <text x={c} y={c + 6} textAnchor="middle" fontSize="19" fontWeight="900" fontFamily="var(--font-saira-condensed)" fill="var(--th-text-strong)">{Math.round(quote * 100)}%</text>
+    <svg viewBox="0 0 96 96" width="88" height="88" style={{ flexShrink: 0 }} aria-hidden>
+      <g transform={`rotate(${-90 - 180 / n} 48 48)`}>
+        {Array.from({ length: n }, (_, i) => (
+          <circle key={i} cx={48} cy={48} r={r} fill="none" stroke={i < voll ? GRUEN : 'var(--th-line-8)'} strokeWidth={sw}
+            strokeDasharray={`${feld - luecke} ${umfang}`} strokeDashoffset={-i * feld} />
+        ))}
+      </g>
+      <circle cx={48} cy={48} r={r - 7} fill="none" stroke="var(--th-line-6)" strokeWidth={1} />
+      <text x={48} y={54.5} textAnchor="middle" fontSize={zahl >= 100 ? 17 : 19} fontWeight={800} fontFamily="var(--font-manrope)" fill="var(--th-text-strong)">{zahl}%</text>
     </svg>
   );
 }
