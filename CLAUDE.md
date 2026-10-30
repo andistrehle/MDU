@@ -255,7 +255,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Spiel einer) oder frei mit Datum; LIVE in der DB gezählt über `strafe_zaehlen()` (atomar, zwei Handys gleichzeitig,
   Seite holt alle 5 s), ganzes Team sieht mit; „Abschließen“ = `strafen_abschliessen()` bucht „U26 × 3“ in die Kasse.
   Ersatz-Kassenwart je Abend (vom Kapitän/Kassenwart, `ersatz_player_id`): NUR zählen + abschließen, bis Abschluss,
-  spätestens Di 23:59 (`dienstagsEnde`, lib/dienstags-ende.ts). Keine Glocke an den Ersatz.
+  spätestens Di 23:59 (`dienstagsEnde`, lib/dienstags-ende.ts). Glocke + Push an den Ersatz über
+  `/api/team/strafen-ersatz` (service_role, je Abend und Person einmal, `type = 'strafen_ersatz'`).
   **Spielbericht-Fotos** bleiben bis Saisonende (`FOTOS_AUFBEWAHREN` in `lib/ocr/aufbewahrung.ts`,
   passend zu Datenschutz Ziffer 7/8/13 und Nutzungsbedingungen Ziffer 4 — nur gemeinsam ändern),
   sichtbar für die Kapitäne beider Teams + Ligaleitung; am Saisonende löscht die Ligaleitung sie

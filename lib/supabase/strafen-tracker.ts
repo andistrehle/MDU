@@ -87,3 +87,12 @@ export async function abschliessen(id: string): Promise<{ gebucht: number; error
 /** Darf dieser Nutzer am Abend zählen? (Die DB prüft es ohnehin — hier nur für die Oberfläche.) */
 export const darfZaehlen = (a: StrafenAbend, kasseDarf: boolean, playerId: string | null | undefined) =>
   a.status === 'offen' && (kasseDarf || (!!playerId && a.ersatz_player_id === playerId && Date.now() <= new Date(a.gueltig_bis).getTime()));
+
+/** Glocke + Push an den Ersatz-Kassenwart (Server, je Abend und Person einmal). Fehler stören das Zählen nicht. */
+export async function ersatzBenachrichtigen(abendId: string): Promise<void> {
+  try {
+    const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+    if (!token) return;
+    await fetch('/api/team/strafen-ersatz', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ abendId }) });
+  } catch { /* egal */ }
+}

@@ -21,7 +21,7 @@ import { NEUE_SAISON, spieleFuerTeam27, team27, termin27 } from '@/lib/data/sais
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import { ladeKasse, centAus, euro, type Strafart } from '@/lib/supabase/kasse';
 import {
-  ladeAbende, ladeAbend, abendAnlegen, ersatzSetzen, abendLoeschen, zaehlen, abschliessen, darfZaehlen,
+  ladeAbende, ladeAbend, abendAnlegen, ersatzSetzen, ersatzBenachrichtigen, abendLoeschen, zaehlen, abschliessen, darfZaehlen,
   type StrafenAbend, type Strich,
 } from '@/lib/supabase/strafen-tracker';
 import { MemberShell, Notice, Muted, LoginLink } from './member-area';
@@ -121,7 +121,9 @@ function NeuerAbend({ teamId, userId, kader, vorhanden, onFertig }: {
       datum: spiel?.datum ?? datum, ersatz: e ? { key: e.id, name: e.name } : null,
     });
     setLaeuft(false);
-    if (r.error) setFehler(r.error); else onFertig(r.data);
+    if (r.error) return setFehler(r.error);
+    if (r.data && e) await ersatzBenachrichtigen(r.data.id);
+    onFertig(r.data);
   }
 
   return (
@@ -144,7 +146,7 @@ function NeuerAbend({ teamId, userId, kader, vorhanden, onFertig }: {
           {mitKonto(kader).map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
         </select>
       </label>
-      <div style={klein}>Der Ersatz darf nur an diesem Abend Strafen zählen und abschließen, bis spätestens Dienstag 24 Uhr danach. Er braucht ein Konto auf der Seite.</div>
+      <div style={klein}>Der Ersatz darf nur an diesem Abend Strafen zählen und abschließen, bis spätestens Dienstag 24 Uhr danach, und bekommt eine Nachricht in die Glocke und aufs Handy. Er braucht ein Konto auf der Seite.</div>
       {fehler && <div role="alert" style={fehlerStil}>{fehler}</div>}
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="button" disabled={laeuft} onClick={() => void anlegen()} style={{ ...hauptKnopf, opacity: laeuft ? 0.6 : 1 }}>{laeuft ? 'Legt an …' : 'Anlegen und zählen'}</button>
@@ -255,7 +257,9 @@ export function StrafenTracker({ id }: { id: string }) {
     if (!abend) return;
     const e = mitKonto(kader).find(k => k.id === key);
     const r = await ersatzSetzen(abend.id, e ? { key: e.id, name: e.name } : null);
-    if (r.error) setFehler(r.error); else void holen();
+    if (r.error) return setFehler(r.error);
+    if (e) void ersatzBenachrichtigen(abend.id);
+    void holen();
   }
 
   async function loeschen() {
