@@ -6,8 +6,9 @@
 //   foto          — Bericht über den Foto-Upload angelegt (match_reports.source = 'ocr')
 //   live          — erstes Spielergebnis VOR Spielende eingetippt
 //   abgeschrieben — erstes Spielergebnis erst NACH Spielende (Zettel abgetippt)
-// Spielende = Beginn + 3,5 h wie im Team Manager; ohne Uhrzeit gilt 20:00,
-// ohne festen Termin der Freitag des Spielwochenendes.
+// Spielende = Beginn + 3,5 h wie im Team Manager; Tag = Spieldatum im Bericht
+// (sonst Plan-Termin, sonst Freitag des Wochenendes), ohne Uhrzeit gilt 20:00.
+// Der Live-Modus (Großanzeige) entscheidet NICHT — nur die erste Ergebnis-Eingabe.
 //
 // „Erstes Ergebnis“ kommt aus match_report_saves (Migration 0055): bevorzugt
 // die auf dem Gerät gemerkte erste Eingabe, sonst die erste Speicherung mit
@@ -78,7 +79,9 @@ export async function ladeErfassung(): Promise<Erfassung> {
   for (const r of berichte) {
     const b = plan.get(`${r.home_team_id}|${r.guest_team_id}`);
     if (!b) continue;
-    const beginn = berlin(b.termin?.datum ?? r.match_date ?? b.fri, b.termin?.uhrzeit ?? '20:00');
+    // Maßgeblich ist der Tag, der im Bericht steht: Nachgeholte Spiele (ohne Verlegung im Plan)
+    // wurden sonst am Plan-Datum gemessen und landeten als „abgeschrieben“ (Betreiber, 31.10.2026).
+    const beginn = berlin(r.match_date ?? b.termin?.datum ?? b.fri, b.termin?.uhrzeit ?? '20:00');
     const saves = jeBericht.get(r.id) ?? [];
     const min = (l: (string | null)[]) => l.filter((x): x is string => !!x).sort()[0] ?? null;
     const max = (l: (string | null)[]) => l.filter((x): x is string => !!x).sort().at(-1) ?? null;
