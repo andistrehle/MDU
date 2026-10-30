@@ -218,6 +218,10 @@ export function StrafenTracker({ id }: { id: string }) {
     return [...m].map(([key, name]) => ({ key, name }));
   }, [kader, striche]);
 
+  // Strafarten im Raster aus gleich breiten Spalten (so breit, wie die längste Bezeichnung braucht):
+  // −/0/+ stehen bündig untereinander, egal ob nebeneinander oder umgebrochen (Betreiber, 30.10.2026).
+  const spalte = Math.min(18, Math.max(3, ...arten.map(a => a.title.length))) * 7 + 95;
+
   const summe = [...striche.values()].reduce((x, s) => ({ n: x.n + s.anzahl, c: x.c + s.anzahl * s.amount_cents }), { n: 0, c: 0 });
 
   async function tippen(p: { key: string; name: string }, a: Art, delta: 1 | -1) {
@@ -324,10 +328,10 @@ export function StrafenTracker({ id }: { id: string }) {
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, color: cent ? 'var(--th-accent)' : 'var(--th-text-faint)' }}>{euro(cent)}</span>
                     </div>
                     {darf ? (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${spalte}px), 1fr))`, gap: '8px 10px' }}>
                         {meine.map(({ a, n }) => (
-                          <span key={a.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: n ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{a.title}</span>
+                          <span key={a.key} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: n ? 'var(--th-accent)' : 'var(--th-text-muted)' }}>{a.title}</span>
                             <button type="button" onClick={() => void tippen(p, a, -1)} disabled={!n} aria-label={`${a.title} bei ${p.name} weniger`} style={{ ...zaehlKnopf(false), opacity: n ? 1 : 0.35 }}>−</button>
                             <span style={{ minWidth: 18, textAlign: 'center', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: n ? 'var(--th-text-strong)' : 'var(--th-text-faint)' }}>{n}</span>
                             <button type="button" onClick={() => void tippen(p, a, 1)} aria-label={`${a.title} bei ${p.name} mehr`} style={zaehlKnopf(true)}>+</button>
