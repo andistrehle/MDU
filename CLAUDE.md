@@ -243,9 +243,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
   **Statistiken** (Betreiber, 30.10.2026, Vorbild SpielerPlus, ganzes Team sieht alles): `/mein-team/statistik`
   (`components/mdu/team-statistiken.tsx`, Link unter der Statistik-Karte im Dashboard). Reiter Teilnahme (Spieler ×
-  vergangene Termine; Zusage als Grundlage, laut Spielbericht gespielt → „zugesagt und gespielt“ bzw. „ohne Zusage
-  gekommen“; Teilnahme = zugesagt + gekommen; schlichte SVG-Formen `TeilnahmeSymbol` — Punkt voll/Ring/Raute/Strich/halber Kreis/kleiner Punkt, KEINE
-  Emojis, nichts Comicartiges, keine SpielerPlus-Icons),
+  vergangene Termine; Zusage als Grundlage, laut Spielbericht gespielt → „zugesagt und gespielt“, auch ohne Zusage —
+  „ohne Zusage gekommen“ gibt es bewusst NICHT; Teilnahme = zugesagt oder gespielt; Symbole `TeilnahmeSymbol` = feine
+  Linien-Daumen hoch/runter, gefüllt + Punkt = gespielt, ? im Kreis, leerer Kreis = keine Antwort — vom Betreiber aus
+  mehreren Entwürfen gewählt, KEINE Emojis/Comic),
   Spielberichte (Einsätze, Einzel/Doppel S:N, Legs aus Einzeln, 180/171/HF/SL aus `/api/team-statistik/detail`,
   Typen in `lib/team-statistik.ts`), Aufgaben (erledigte `match_tasks` je Bezeichnung, Pokale). Filter: Terminart
   (MDU-Spiel · andere Spiele · Training · Event · Sonstiges), Zeitraum (Saison/Hin-/Rückrunde/30 Tage), Heim/Auswärts.

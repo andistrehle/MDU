@@ -6,7 +6,7 @@
 // Drei Reiter, alle für das ganze Team sichtbar:
 //   • Teilnahme — Spieler × vergangene Termine. Grundlage ist die Zu-/Absage;
 //     steht jemand im Spielbericht, wird unterschieden: zugesagt UND gespielt
-//     oder ohne Zusage einfach gekommen. Teilnahme = zugesagt + gekommen.
+//     zählt er als gespielt (auch ohne Zusage). Teilnahme = zugesagt oder gespielt.
 //   • Spielberichte — je Spieler aus den Berichten (/api/team-statistik/detail):
 //     Einsätze, Einzel, Doppel, Legs, 180er, 171er, High Finishes, Short Legs.
 //   • Aufgaben — erledigte Aufgaben je Bezeichnung, wer sie wie oft übernommen hat.
@@ -50,24 +50,27 @@ const prozent = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 // ── Teilnahme-Symbole ──────────────────────────────────────
 
-type Stand = 'dabei' | 'zugesagt' | 'gekommen' | 'abgesagt' | 'unsicher' | 'offen';
-const GRUEN = '#1E9E57', ROT = '#C8463F', GOLD = '#B98516';
+type Stand = 'dabei' | 'zugesagt' | 'abgesagt' | 'unsicher' | 'offen';
+const GRUEN = '#16A34A', ROT = '#DC2626', GOLD = '#D97706';
 const STAND_TEXT: Record<Stand, string> = {
-  dabei: 'Zugesagt und gespielt', zugesagt: 'Zugesagt', gekommen: 'Ohne Zusage gekommen',
+  dabei: 'Zugesagt und gespielt', zugesagt: 'Zugesagt',
   abgesagt: 'Abgesagt', unsicher: 'Unsicher', offen: 'Keine Antwort',
 };
 
-/** Schlichte Formen statt Bildchen (Betreiber: „nicht so comicartig“). */
-export function TeilnahmeSymbol({ s, size = 22 }: { s: Stand; size?: number }) {
+// Feine Linien-Daumen (Betreiber, 30.10.2026: Stil „J“ — lean, keine Emojis/Comic).
+const DAUMEN_HOCH = <><path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" /></>;
+const DAUMEN_RUNTER = <><path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z" /></>;
+
+export function TeilnahmeSymbol({ s, size = 20 }: { s: Stand; size?: number }) {
+  const linie = (farbe: string, fuellung = 'none') => ({ fill: fuellung, stroke: farbe, strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const });
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={STAND_TEXT[s]}>
       <title>{STAND_TEXT[s]}</title>
-      {s === 'dabei' && <circle cx={12} cy={12} r={6} fill={GRUEN} />}
-      {s === 'zugesagt' && <circle cx={12} cy={12} r={5.25} fill="none" stroke={GRUEN} strokeWidth={1.5} />}
-      {s === 'gekommen' && <rect x={7.2} y={7.2} width={9.6} height={9.6} rx={1.2} transform="rotate(45 12 12)" fill={GRUEN} />}
-      {s === 'abgesagt' && <path d="M7.5 12h9" stroke={ROT} strokeWidth={2} strokeLinecap="round" />}
-      {s === 'unsicher' && <><circle cx={12} cy={12} r={5.25} fill="none" stroke={GOLD} strokeWidth={1.5} /><path d="M12 6.75a5.25 5.25 0 0 1 0 10.5z" fill={GOLD} /></>}
-      {s === 'offen' && <circle cx={12} cy={12} r={2} fill="var(--th-text-faint)" />}
+      {s === 'dabei' && <><g {...linie(GRUEN, `${GRUEN}33`)}>{DAUMEN_HOCH}</g><circle cx={20} cy={4} r={3} fill={GRUEN} /></>}
+      {s === 'zugesagt' && <g {...linie(GRUEN)}>{DAUMEN_HOCH}</g>}
+      {s === 'abgesagt' && <g {...linie(ROT)}>{DAUMEN_RUNTER}</g>}
+      {s === 'unsicher' && <g {...linie(GOLD)}><circle cx={12} cy={12} r={8} /><path d="M10 10a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.3" /><path d="M12 15.8h.01" /></g>}
+      {s === 'offen' && <circle cx={12} cy={12} r={8} fill="none" stroke="var(--th-text-faint)" strokeWidth={1.5} />}
     </svg>
   );
 }
@@ -206,13 +209,13 @@ function Teilnahme({ termine, personen, zusagen, berichte, ichId }: {
   const stand = (t: Termin, p: string): Stand => {
     const s = z.get(`${t.key}|${p}`);
     const gespielt = !!berichte[t.key]?.spieler[p];
-    if (gespielt) return s === 'yes' ? 'dabei' : 'gekommen';
+    if (gespielt) return 'dabei';
     return s === 'yes' ? 'zugesagt' : s === 'no' ? 'abgesagt' : s === 'maybe' ? 'unsicher' : 'offen';
   };
   const zeilen = personen.map(p => {
     const st = termine.map(t => stand(t, p.id));
-    const n = st.filter(s => s === 'dabei' || s === 'zugesagt' || s === 'gekommen').length;
-    return { ...p, st, n, spontan: st.filter(s => s === 'gekommen').length };
+    const n = st.filter(s => s === 'dabei' || s === 'zugesagt').length;
+    return { ...p, st, n };
   }).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name, 'de'));
 
   if (!termine.length) return <div style={{ ...karte, ...klein }}>Für diese Auswahl gibt es noch keine vergangenen Termine.</div>;
@@ -240,7 +243,6 @@ function Teilnahme({ termine, personen, zusagen, berichte, ichId }: {
                 <td style={{ ...zelle, ...links, left: 0, fontWeight: p.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: 128, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</td>
                 <td style={{ ...zelle, ...links, left: 128, borderRight: '1px solid var(--th-line-8)', whiteSpace: 'nowrap' }}>
                   <b style={{ color: 'var(--th-text-strong)' }}>{p.n}</b> <span style={{ color: 'var(--th-text-muted)' }}>({prozent(p.n, termine.length)} %)</span>
-                  {p.spontan > 0 && <div style={{ fontSize: 10.5, color: GRUEN, fontWeight: 700 }}>davon {p.spontan} ohne Zusage</div>}
                 </td>
                 {p.st.map((s, i) => <td key={termine[i].key} style={{ ...zelle, textAlign: 'center' }}><TeilnahmeSymbol s={s} /></td>)}
               </tr>
