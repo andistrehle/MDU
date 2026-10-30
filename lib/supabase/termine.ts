@@ -12,7 +12,12 @@
 import { supabase } from './client';
 import { NEUE_SAISON } from '@/lib/data/saison-2027';
 
-export type TerminArt = 'spiel' | 'sonstiges';
+export type TerminArt = 'spiel' | 'training' | 'event' | 'sonstiges';
+/** Arten zur Auswahl (Migration 0067: training/event). Alles außer „spiel“ braucht einen Titel. */
+export const TERMIN_ARTEN: { art: TerminArt; name: string }[] = [
+  { art: 'spiel', name: 'Spiel (andere Liga/Pokal)' }, { art: 'training', name: 'Training' },
+  { art: 'event', name: 'Event' }, { art: 'sonstiges', name: 'Sonstiges' },
+];
 
 export interface TeamTermin {
   id: string;
@@ -57,7 +62,7 @@ const ohneFarbe = (e: { message?: string } | null) => !!e && /color/.test(e.mess
 
 /** Überschrift eines Termins: „Training“ bzw. „gegen DC Beispiel“ / „bei DC Beispiel“. */
 export function terminTitel(t: Pick<TeamTermin, 'kind' | 'title' | 'opponent' | 'is_home'>): string {
-  if (t.kind === 'sonstiges') return t.title ?? 'Termin';
+  if (t.kind !== 'spiel') return t.title ?? (t.kind === 'training' ? 'Training' : 'Termin');
   return `${t.is_home === false ? 'bei' : 'gegen'} ${t.opponent ?? '?'}`;
 }
 
@@ -99,7 +104,7 @@ export function pruefeTermin(e: TerminEingabe): { werte: TerminEingabe | null; f
   };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(werte.event_date)) return { werte: null, fehler: 'Bitte ein Datum wählen.' };
   if (werte.kind === 'spiel' && !werte.opponent) return { werte: null, fehler: 'Bitte den Gegner eintragen.' };
-  if (werte.kind === 'sonstiges' && !werte.title) return { werte: null, fehler: 'Bitte einen Titel eintragen (z. B. Training).' };
+  if (werte.kind !== 'spiel' && !werte.title) return { werte: null, fehler: 'Bitte einen Titel eintragen (z. B. Training).' };
   if (werte.start_time && werte.end_time && werte.end_time <= werte.start_time) return { werte: null, fehler: 'Das Ende muss nach dem Beginn liegen.' };
   return { werte, fehler: null };
 }

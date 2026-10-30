@@ -359,6 +359,7 @@ function Statistik({ vergangen, zusagen, personen, ichId, gespielt }: {
           </div>
         </>
       )}
+      <Link href="/mein-team/statistik" style={{ ...linkKlein, display: 'inline-block', marginTop: 10 }}>Alle Statistiken: Teilnahme, Spielberichte, Aufgaben →</Link>
     </div>
   );
 }

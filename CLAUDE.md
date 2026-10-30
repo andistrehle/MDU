@@ -241,6 +241,14 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Terminseite (nur Kontoinhaber ohne Zeile in `match_availability`), „Nachricht ans Team“ (Freitext ≤ 200) im
   Dashboard. Server prüft TC des Teams/Ligaleitung, schreibt Glocken per service_role (Push via 0056), Absender
   ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
+  **Statistiken** (Betreiber, 30.10.2026, Vorbild SpielerPlus, ganzes Team sieht alles): `/mein-team/statistik`
+  (`components/mdu/team-statistiken.tsx`, Link unter der Statistik-Karte im Dashboard). Reiter Teilnahme (Spieler ×
+  vergangene Termine; Zusage als Grundlage, laut Spielbericht gespielt → „zugesagt und gespielt“ bzw. „ohne Zusage
+  gekommen“; Teilnahme = zugesagt + gekommen; eigene SVG-Symbole `TeilnahmeSymbol`, KEINE Emojis/SpielerPlus-Icons),
+  Spielberichte (Einsätze, Einzel/Doppel S:N, Legs aus Einzeln, 180/171/HF/SL aus `/api/team-statistik/detail`,
+  Typen in `lib/team-statistik.ts`), Aufgaben (erledigte `match_tasks` je Bezeichnung, Pokale). Filter: Terminart
+  (MDU-Spiel · andere Spiele · Training · Event · Sonstiges), Zeitraum (Saison/Hin-/Rückrunde/30 Tage), Heim/Auswärts.
+  Eigene Termine kennen dafür seit Migration 0067 `kind` = spiel · training · event · sonstiges (`TERMIN_ARTEN`).
   **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +

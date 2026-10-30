@@ -17,7 +17,7 @@ import { Zeitleiste, StandLeiste, KachelFuss, chip, karte, knopf, h2, namenJeGru
 import { NotizAufgabenHinweis } from './spiel-kachel';
 import { team27 } from '@/lib/data/saison-2027';
 import { wochentag, tagMonat } from '@/lib/spieltag';
-import { terminPfad, terminTitel, pruefeTermin, terminFarbe, TERMIN_FARBEN, type TeamTermin, type TerminEingabe, type TerminArt } from '@/lib/supabase/termine';
+import { terminPfad, terminTitel, pruefeTermin, terminFarbe, TERMIN_FARBEN, TERMIN_ARTEN, type TeamTermin, type TerminEingabe, type TerminArt } from '@/lib/supabase/termine';
 import type { Zusage, ZusageStatus, Aufgabe } from '@/lib/supabase/zusagen';
 
 export const EXTERN_FARBE = TERMIN_FARBEN[0].hex;
@@ -142,7 +142,7 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
   const [fehler, setFehler] = useState<string | null>(null);
   const set = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => setE(x => ({ ...x, [k]: v }));
   const farbe = terminFarbe(e);
-  const art = (k: TerminArt) => setE(x => ({ ...x, kind: k, is_home: k === 'spiel' ? x.is_home ?? true : null }));
+  const art = (k: TerminArt) => setE(x => ({ ...x, kind: k, is_home: k === 'spiel' ? x.is_home ?? true : null, title: k === 'training' && !x.title ? 'Training' : x.title }));
 
   async function senden() {
     const { fehler: f } = pruefeTermin(e);
@@ -160,7 +160,7 @@ export function TerminFormular({ start, titel, onSpeichern, onAbbrechen, onLoesc
         <h2 style={h2}>{titel}</h2>
       </div>
       <div role="radiogroup" aria-label="Art des Termins" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: 4, borderRadius: 12, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)' }}>
-        {([['spiel', 'Spiel (andere Liga/Pokal)'], ['sonstiges', 'Sonstiges (z. B. Training)']] as [TerminArt, string][]).map(([k, l]) => (
+        {TERMIN_ARTEN.map(({ art: k, name: l }) => (
           <button key={k} type="button" role="radio" aria-checked={e.kind === k} onClick={() => art(k)} style={{ padding: '10px 8px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, background: e.kind === k ? farbe : 'transparent', color: e.kind === k ? '#fff' : 'var(--th-text-body)' }}>{l}</button>
         ))}
       </div>

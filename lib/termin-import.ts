@@ -181,14 +181,17 @@ export function werteAus(text: string, v: ImportVorgaben, vorhanden: TeamTermin[
 
     // Art: Spalte „Art“ (Spiel/Sonstiges/Training …) schlägt die Vorgabe.
     let art: TerminArt = v.art;
-    if (w.art) art = /^(spiel|match|liga|pokal)/.test(norm(w.art)) ? 'spiel' : 'sonstiges';
+    if (w.art) {
+      const a = norm(w.art);
+      art = /^(spiel|match|liga|pokal)/.test(a) ? 'spiel' : /^train/.test(a) ? 'training' : /^(event|feier|fest|turnier|ausflug|team ?abend)/.test(a) ? 'event' : 'sonstiges';
+    } else if (art !== 'spiel' && w.titel && /training/i.test(w.titel)) art = 'training';
     const paarung = w.paarung ? lesePaarung(w.paarung, v.teamName) : null;
     const heim = paarung ? paarung.heim : w.heim ? leseHeim(w.heim) : null;
     if (w.heim && heim === null && !paarung) return fehler(`„${w.heim}“ – bitte H (Heim) oder A (Auswärts).`);
 
     const eingabe: TerminEingabe = {
       kind: art,
-      title: art === 'sonstiges' ? w.titel ?? (w.art && !/^sonst/.test(norm(w.art)) ? w.art : null) ?? null : null,
+      title: art !== 'spiel' ? w.titel ?? (w.art && !/^sonst/.test(norm(w.art)) ? w.art : null) ?? (art === 'training' ? 'Training' : null) : null,
       league: art === 'spiel' ? w.liga || v.liga || null : null,
       opponent: art === 'spiel' ? paarung?.gegner ?? w.gegner ?? null : null,
       is_home: art === 'spiel' ? heim ?? true : null,
