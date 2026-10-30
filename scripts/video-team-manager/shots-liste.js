@@ -84,4 +84,7 @@ module.exports = [
     await zu('Nachricht ans Team', 160, 'h2')(p);
   }],
   ['push-frage', 's=dash&n=9&push=1'],
+  // Strafen-Tracker (30.10.2026): live mitzählen, Summe + „Abschließen & in die Kasse“
+  ['strafen', 's=strafen', async p => { await p.locator('button[aria-label="Schwarz geworfen bei Tim Treffer mehr"]').first().click(); await p.waitForTimeout(400); await zu('Max Mustermann', 200, 'b')(p); }],
+  ['strafen-summe', 's=strafen', zu('Abschließen', 520, 'button')],
 ];

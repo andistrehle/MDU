@@ -325,11 +325,13 @@ const SZENEN = [
       { s: 2.5, u: 'und wer eine Aufgabe kriegt, wird benachrichtigt.', b: 4, z: [82, 0, 1.4], k: 3 },
       { s: 1.5, b: 4, z: [82, 0, 1.4], k: 4, weiter: true } ] },
 
-  { titel: 'Die <i>Teamkasse</i>', html: beispiel + geraete(['kasse-katalog', 'kasse-strafe', 'kasse-beitraege', 'kasse-buch', 'kasse-offen', 'kasse-wart', 'kasse-spieler'])
-      + stempel(0, 'Captain beleidigt · 5,00 € 😂', 760, 610, 'rot', 120, 1150, 2) + stempel(1, 'Abgehakt! ✓', 880, 640, '', 560, 1150, 3),
+  { titel: 'Die <i>Teamkasse</i>', html: beispiel + geraete(['kasse-katalog', 'kasse-strafe', 'kasse-beitraege', 'kasse-buch', 'kasse-offen', 'kasse-wart', 'kasse-spieler', 'strafen', 'strafen-summe'])
+      + stempel(0, 'Captain beleidigt · 5,00 € 😂', 760, 610, 'rot', 120, 1150, 2) + stempel(1, 'Abgehakt! ✓', 880, 640, '', 560, 1150, 3) + stempel(4, 'Strafen-Tracker ✍️', 860, 210, 'gold', 560, 1150, 5),
     schritte: [
       { s: 2.5, u: 'Und die Kasse? Strafenkatalog anlegen –', b: 0, z: [44, 30, 1.5] },
       { s: 3.5, u: 'und wer den Captain einen Oarsch nennt, kriegt gleich einen Fünfer aufgedrückt!', b: 1, z: [44, 30, 1.5], k: 1 },
+      { s: 2.6, u: 'Am Spielabend zählt ihr die Strafen live mit –', b: 7, z: [57, 22, 1.45], k: 5 },
+      { s: 2.8, u: 'und am Ende landet alles mit einem Tipp in der Kasse.', b: 8, z: [57, 66, 1.45], k: 5 },
       { s: 1.4, u: 'Beiträge, Kassenbuch –', b: 2, z: [44, 0, 1.5] },
       { s: 1.2, b: 3, z: [44, 30, 1.5], weiter: true },
       { s: 2.5, u: 'und wer was offen hat, siehst du auf einen Blick.', b: 4, z: [44, 62, 1.5], k: 2 },
