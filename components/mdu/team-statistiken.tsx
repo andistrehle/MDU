@@ -41,7 +41,23 @@ type Zeitraum = 'saison' | 'hin' | 'rueck' | '30';
 type Ort = 'alle' | 'heim' | 'aus';
 type Reiter = 'teilnahme' | 'berichte' | 'aufgaben';
 
-interface Termin { key: string; datum: string; typ: Typ; heim: boolean | null; titel: string }
+export interface Termin { key: string; datum: string; typ: Typ; heim: boolean | null; titel: string; half: 'hin' | 'rueck' }
+
+/** Alle VERGANGENEN Termine eines Teams (MDU + eigene, heute eingeschlossen), neueste zuerst. */
+export function baueTermine(teamId: string, termine: TeamTermin[]): Termin[] {
+  const h = heuteIso();
+  const eigene = alleBegegnungen27().filter(b => b.home === teamId || b.away === teamId);
+  const rueckStart = eigene.filter(b => b.half === 'rueck').map(b => b.fri).sort()[0] ?? '9999';
+  const mdu: Termin[] = eigene.map(b => {
+    const heim = b.home === teamId, gegner = heim ? b.away : b.home;
+    return { key: b.key, datum: b.termin?.datum ?? b.fri, typ: 'mdu', heim, titel: `${heim ? 'gegen' : 'bei'} ${team27(gegner)?.name ?? gegner}`, half: b.half };
+  });
+  const ext: Termin[] = termine.map(t => ({
+    key: terminKey(t.id), datum: t.event_date, typ: (t.kind === 'spiel' ? 'spiel' : t.kind) as Typ,
+    heim: t.kind === 'spiel' ? t.is_home : null, titel: terminTitel(t), half: t.event_date >= rueckStart ? 'rueck' : 'hin',
+  }));
+  return [...mdu, ...ext].filter(t => t.datum <= h).sort((a, b) => b.datum.localeCompare(a.datum));
+}
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const tagMonat = (iso: string) => `${iso.slice(8, 10)}.${iso.slice(5, 7)}`;
@@ -106,22 +122,7 @@ export function TeamStatistiken() {
     return () => { weg = true; };
   }, [teamId]);
 
-  // Alle VERGANGENEN Termine (heute eingeschlossen), neueste zuerst.
-  const alleTermine = useMemo<(Termin & { half: 'hin' | 'rueck' })[]>(() => {
-    if (!teamId) return [];
-    const h = heuteIso();
-    const eigene = alleBegegnungen27().filter(b => b.home === teamId || b.away === teamId);
-    const rueckStart = eigene.filter(b => b.half === 'rueck').map(b => b.fri).sort()[0] ?? '9999';
-    const mdu = eigene.map(b => {
-      const heim = b.home === teamId, gegner = heim ? b.away : b.home;
-      return { key: b.key, datum: b.termin?.datum ?? b.fri, typ: 'mdu' as Typ, heim, titel: `${heim ? 'gegen' : 'bei'} ${team27(gegner)?.name ?? gegner}`, half: b.half };
-    });
-    const ext = termine.map(t => ({
-      key: terminKey(t.id), datum: t.event_date, typ: (t.kind === 'spiel' ? 'spiel' : t.kind) as Typ,
-      heim: t.kind === 'spiel' ? t.is_home : null, titel: terminTitel(t), half: (t.event_date >= rueckStart ? 'rueck' : 'hin') as 'hin' | 'rueck',
-    }));
-    return [...mdu, ...ext].filter(t => t.datum <= h).sort((a, b) => b.datum.localeCompare(a.datum));
-  }, [teamId, termine]);
+  const alleTermine = useMemo(() => (teamId ? baueTermine(teamId, termine) : []), [teamId, termine]);
 
   const gefiltert = useMemo(() => {
     const ab = minusTage(heuteIso(), 30);
@@ -191,7 +192,7 @@ export function TeamStatistiken() {
               ))}
             </div>
 
-            {reiter === 'teilnahme' && <Teilnahme termine={gefiltert} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={user.playerId ?? null} />}
+            {reiter === 'teilnahme' && <TeilnahmeTabelle termine={gefiltert} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={user.playerId ?? null} />}
             {reiter === 'berichte' && (berichte === null ? <Muted>Lade Spielberichte …</Muted> : <Spielberichte termine={gefiltert} berichte={berichte} ichId={user.playerId ?? null} />)}
             {reiter === 'aufgaben' && <Aufgaben termine={gefiltert} aufgaben={aufgaben} />}
           </div>
@@ -202,31 +203,38 @@ export function TeamStatistiken() {
 
 // ── Teilnahme ──────────────────────────────────────────────
 
-function Teilnahme({ termine, personen, zusagen, berichte, ichId }: {
-  termine: Termin[]; personen: { id: string; name: string }[]; zusagen: Zusage[]; berichte: Record<string, SpielStat>; ichId: string | null;
-}) {
-  const z = useMemo(() => new Map(zusagen.map(x => [`${x.match_key}|${x.player_id}`, x.status])), [zusagen]);
+export type TeilnahmeZeile = { id: string; name: string; st: Stand[]; n: number };
+
+/** Teilnahme je Person: Stand je Termin und Zahl (zugesagt oder laut Spielbericht gespielt), beste zuerst. */
+export function teilnahmeZeilen(termine: Termin[], personen: { id: string; name: string }[], zusagen: Zusage[], berichte: Record<string, SpielStat>): TeilnahmeZeile[] {
+  const z = new Map(zusagen.map(x => [`${x.match_key}|${x.player_id}`, x.status]));
   const stand = (t: Termin, p: string): Stand => {
+    if (berichte[t.key]?.spieler[p]) return 'dabei';
     const s = z.get(`${t.key}|${p}`);
-    const gespielt = !!berichte[t.key]?.spieler[p];
-    if (gespielt) return 'dabei';
     return s === 'yes' ? 'zugesagt' : s === 'no' ? 'abgesagt' : s === 'maybe' ? 'unsicher' : 'offen';
   };
-  const zeilen = personen.map(p => {
+  return personen.map(p => {
     const st = termine.map(t => stand(t, p.id));
-    const n = st.filter(s => s === 'dabei' || s === 'zugesagt').length;
-    return { ...p, st, n };
+    return { ...p, st, n: st.filter(s => s === 'dabei' || s === 'zugesagt').length };
   }).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name, 'de'));
+}
 
-  if (!termine.length) return <div style={{ ...karte, ...klein }}>Für diese Auswahl gibt es noch keine vergangenen Termine.</div>;
+/** Teilnahme-Tabelle. `kompakt` (Dashboard): ohne Kartenrahmen, kurze Legende. */
+export function TeilnahmeTabelle({ termine, personen, zusagen, berichte, ichId, kompakt = false }: {
+  termine: Termin[]; personen: { id: string; name: string }[]; zusagen: Zusage[]; berichte: Record<string, SpielStat>; ichId: string | null; kompakt?: boolean;
+}) {
+  const zeilen = useMemo(() => teilnahmeZeilen(termine, personen, zusagen, berichte), [termine, personen, zusagen, berichte]);
+  const name = kompakt ? 112 : 128;
+
+  if (!termine.length) return <div style={{ ...(kompakt ? {} : karte), ...klein }}>Für diese Auswahl gibt es noch keine vergangenen Termine.</div>;
   return (
-    <div style={{ ...karte, padding: 0, overflow: 'hidden' }}>
+    <div style={kompakt ? { margin: '0 -4px' } : { ...karte, padding: 0, overflow: 'hidden' }}>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontFamily: 'var(--font-manrope)', fontSize: 13, minWidth: '100%' }}>
           <thead>
             <tr>
-              <th style={{ ...kopf, ...links, left: 0, minWidth: 128 }}>Spieler</th>
-              <th style={{ ...kopf, ...links, left: 128, minWidth: 92, borderRight: '1px solid var(--th-line-8)' }}>Teilnahme</th>
+              <th style={{ ...kopf, ...links, left: 0, minWidth: name }}>Spieler</th>
+              <th style={{ ...kopf, ...links, left: name, minWidth: 92, borderRight: '1px solid var(--th-line-8)' }}>Teilnahme</th>
               {termine.map(t => (
                 <th key={t.key} title={`${t.titel} · ${TYPEN.find(x => x.typ === t.typ)?.name}`} style={{ ...kopf, textAlign: 'center', minWidth: 54 }}>
                   <div style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{tagMonat(t.datum)}</div>
@@ -240,8 +248,8 @@ function Teilnahme({ termine, personen, zusagen, berichte, ichId }: {
           <tbody>
             {zeilen.map(p => (
               <tr key={p.id}>
-                <td style={{ ...zelle, ...links, left: 0, fontWeight: p.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: 128, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</td>
-                <td style={{ ...zelle, ...links, left: 128, borderRight: '1px solid var(--th-line-8)', whiteSpace: 'nowrap' }}>
+                <td style={{ ...zelle, ...links, left: 0, fontWeight: p.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: name, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</td>
+                <td style={{ ...zelle, ...links, left: name, borderRight: '1px solid var(--th-line-8)', whiteSpace: 'nowrap' }}>
                   <b style={{ color: 'var(--th-text-strong)' }}>{p.n}</b> <span style={{ color: 'var(--th-text-muted)' }}>({prozent(p.n, termine.length)} %)</span>
                 </td>
                 {p.st.map((s, i) => <td key={termine[i].key} style={{ ...zelle, textAlign: 'center' }}><TeilnahmeSymbol s={s} /></td>)}
@@ -250,11 +258,11 @@ function Teilnahme({ termine, personen, zusagen, berichte, ichId }: {
           </tbody>
         </table>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', padding: '12px 14px', borderTop: '1px solid var(--th-line-6)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', padding: kompakt ? '10px 4px 0' : '12px 14px', borderTop: kompakt ? 'none' : '1px solid var(--th-line-6)' }}>
         {(Object.keys(STAND_TEXT) as Stand[]).map(s => (
           <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...klein }}><TeilnahmeSymbol s={s} size={18} /> {STAND_TEXT[s]}</span>
         ))}
-        <span style={{ ...klein, flexBasis: '100%' }}>Teilnahme = zugesagt oder laut Spielbericht gespielt. „Gespielt“ gibt es nur bei MDU-Spielen mit Spielbericht.</span>
+        {!kompakt && <span style={{ ...klein, flexBasis: '100%' }}>Teilnahme = zugesagt oder laut Spielbericht gespielt. „Gespielt“ gibt es nur bei MDU-Spielen mit Spielbericht.</span>}
       </div>
     </div>
   );

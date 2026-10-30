@@ -8,9 +8,9 @@
 //   • Kopf: nächstes Spiel. Die Scheibe zeigt das TEAM — ein Segment je Spieler,
 //     gefärbt nach seiner Antwort; im Bull der Countdown.
 //   • Darunter: was du noch zusagen musst, Teamkasse, Aufgaben, die nächsten Termine.
-//   • Statistik: deine Quote zuerst, daneben der Team-Schnitt; Anwesenheit aller,
-//     umschaltbar „zugesagt“ (Zusagen vergangener Termine) / „gespielt“ (in
-//     Spielberichten aufgestellt, /api/team-statistik).
+//   • Statistik: deine Quote zuerst (Ring), daneben der Team-Schnitt; darunter die
+//     Teilnahme-Tabelle der letzten Termine wie unter /mein-team/statistik
+//     (zugesagt oder laut Spielbericht gespielt, /api/team-statistik/detail).
 // Zeigt nur, was wirklich in den Daten steht; ohne vergangene Termine sagt sie das.
 // ============================================================
 
@@ -25,10 +25,11 @@ import { spieltagPfad, wochentag, tagMonat } from '@/lib/spieltag';
 import { TeamBadge } from './team-badge';
 import { Icon } from './icon';
 import { STATUS, REIHE, StatusIcon, GrundEingabe } from './zusagen-ui';
+import { TeilnahmeTabelle, teilnahmeZeilen, type Termin } from './team-statistiken';
+import type { SpielStat } from '@/lib/team-statistik';
 
 export type DashEintrag = { key: string; datum: string; zeit: string } & ({ art: 'mdu'; b: Begegnung27 } | { art: 'ext'; t: TeamTermin });
 export interface DashKasse { stand: number; offen: number; meinOffen: number | null }
-export interface DashGespielt { berichte: number; gespielt: Record<string, number> }
 
 // Farben der Scheibe
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A', CREME = '#EFE6CF', SCHWARZ = '#141414';
@@ -45,14 +46,14 @@ function titelVon(e: DashEintrag, teamId: string) {
 }
 const pfadVon = (e: DashEintrag, teamId: string) => (e.art === 'mdu' ? spieltagPfad(teamId, e.key) : terminPfad(e.t.id));
 
-export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusagen, personen, ichId, ichName, aufgaben, kasse, gespielt, onAntwort }: {
+export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusagen, personen, ichId, ichName, aufgaben, kasse, berichte, onAntwort }: {
   teamId: string; teamName: string; liga: string;
   /** anstehende Termine (MDU + eigene), nach Datum */
   spiele: DashEintrag[];
-  /** Kennungen der VERGANGENEN Termine der Saison (für die Zusage-Quote) */
-  vergangen: string[];
+  /** VERGANGENE Termine der Saison, neueste zuerst (Teilnahme, wie /mein-team/statistik) */
+  vergangen: Termin[];
   zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; ichName: string;
-  aufgaben: Aufgabe[]; kasse: DashKasse | null; gespielt: DashGespielt | null;
+  aufgaben: Aufgabe[]; kasse: DashKasse | null; berichte: Record<string, SpielStat> | null;
   /** Eigene Zu-/Absage für einen Termin setzen; liefert eine Fehlermeldung oder null. */
   onAntwort?: (key: string, status: ZusageStatus, note: string | null) => Promise<string | null>;
 }) {
@@ -121,7 +122,7 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
         </div>
       )}
 
-      <Statistik vergangen={vergangen} zusagen={zusagen} personen={personen} ichId={ichId} gespielt={gespielt} />
+      <Statistik termine={vergangen} zusagen={zusagen} personen={personen} ichId={ichId} berichte={berichte} />
 
       <style>{'.mdu-dash-hover{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-dash-hover:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--th-shadow)}.mdu-dash-zeile:hover{background:var(--th-bg-card3)}.mdu-dash-kacheln{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media (max-width:640px){.mdu-dash-kacheln{grid-template-columns:1fr 1fr}.mdu-dash-breit{grid-column:1/-1}}'}</style>
     </section>
@@ -277,85 +278,52 @@ function Scheibe({ personen, zusagen, ichId, tage }: { personen: { id: string; n
 
 // ── Statistik ───────────────────────────────────────────────
 
-function Statistik({ vergangen, zusagen, personen, ichId, gespielt }: {
-  vergangen: string[]; zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; gespielt: DashGespielt | null;
+function Statistik({ termine, zusagen, personen, ichId, berichte }: {
+  termine: Termin[]; zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; berichte: Record<string, SpielStat> | null;
 }) {
-  const [art, setArt] = useState<'zugesagt' | 'gespielt'>('zugesagt');
-  const [alle, setAlle] = useState(false);
-
-  const zeilen = useMemo(() => {
-    const vg = new Set(vergangen);
-    const basis = art === 'zugesagt' ? vergangen.length : gespielt?.berichte ?? 0;
-    return personen.map(p => {
-      const wert = art === 'zugesagt'
-        ? zusagen.filter(z => vg.has(z.match_key) && z.player_id === p.id && z.status === 'yes').length
-        : gespielt?.gespielt[p.id] ?? 0;
-      return { ...p, wert, basis, quote: basis ? wert / basis : 0 };
-    }).sort((a, b) => b.wert - a.wert || a.name.localeCompare(b.name, 'de'));
-  }, [art, vergangen, zusagen, personen, gespielt]);
-
-  const basis = zeilen[0]?.basis ?? 0;
+  // Gleiche Rechnung wie /mein-team/statistik: Teilnahme = zugesagt oder laut Spielbericht gespielt.
+  const zeilen = useMemo(() => teilnahmeZeilen(termine, personen, zusagen, berichte ?? {}), [termine, personen, zusagen, berichte]);
+  const basis = termine.length;
+  const quote = (n: number) => (basis ? n / basis : 0);
   const ich = ichId ? zeilen.find(z => z.id === ichId) : undefined;
-  const schnitt = zeilen.length ? zeilen.reduce((s, z) => s + z.quote, 0) / zeilen.length : 0;
-  const platz = ich ? zeilen.filter(z => z.wert > ich.wert).length + 1 : null;
-  const sichtbar = alle ? zeilen : zeilen.slice(0, 5);
-  const ichSichtbar = !ich || sichtbar.some(z => z.id === ich.id);
+  const schnitt = zeilen.length ? zeilen.reduce((s, z) => s + quote(z.n), 0) / zeilen.length : 0;
+  const platz = ich ? zeilen.filter(z => z.n > ich.n).length + 1 : null;
 
   return (
     <div style={karte}>
-      <KartenKopf titel="Statistik" rechts={
-        <div role="tablist" style={{ display: 'flex', gap: 2, padding: 3, borderRadius: 999, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)' }}>
-          {(['zugesagt', 'gespielt'] as const).map(a => (
-            <button key={a} role="tab" aria-selected={art === a} type="button" onClick={() => setArt(a)} style={{
-              padding: '5px 11px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12,
-              background: art === a ? 'var(--th-text-strong)' : 'transparent', color: art === a ? 'var(--th-bg-card)' : 'var(--th-text-muted)',
-            }}>{a === 'zugesagt' ? 'Zugesagt' : 'Gespielt'}</button>
-          ))}
-        </div>
-      } />
+      <KartenKopf titel="Statistik" />
 
       {basis === 0 ? (
         <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)', lineHeight: 1.55, padding: '6px 0 2px' }}>
-          {art === 'zugesagt'
-            ? 'Die Statistik startet nach dem ersten Termin – dann siehst du hier, wie oft du dabei warst, und wo du im Team stehst.'
-            : 'Sobald der erste Spielbericht da ist, zählt hier, wer wie oft gespielt hat.'}
+          Die Statistik startet nach dem ersten Termin – dann siehst du hier, wie oft du dabei warst, und wo du im Team stehst.
         </div>
       ) : (
         <>
           {/* Deine Quote zuerst */}
           {ich && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0 12px' }}>
-              <QuotenScheibe quote={ich.quote} />
+              <QuotenScheibe quote={quote(ich.n)} />
               <div style={{ flex: 1, fontFamily: 'var(--font-manrope)' }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-muted)' }}>Deine Saison</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--th-text-strong)', marginTop: 2 }}>{ich.wert} von {basis} {art === 'zugesagt' ? 'Terminen zugesagt' : 'Spielen gespielt'}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--th-text-strong)', marginTop: 2 }}>{ich.n} von {basis} {basis === 1 ? 'Termin' : 'Terminen'} dabei</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                   <span style={{ width: 52, fontSize: 11.5, fontWeight: 800, color: 'var(--th-text-strong)' }}>Du</span>
-                  <Balken anteil={ich.quote} farbe={GRUEN} />
-                  <b style={{ width: 38, textAlign: 'right', fontSize: 12.5 }}>{Math.round(ich.quote * 100)}%</b>
+                  <Balken anteil={quote(ich.n)} farbe={GRUEN} />
+                  <b style={{ width: 38, textAlign: 'right', fontSize: 12.5 }}>{Math.round(quote(ich.n) * 100)}%</b>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                   <span style={{ width: 52, fontSize: 11.5, fontWeight: 800, color: 'var(--th-text-muted)', whiteSpace: 'nowrap' }}>Team Ø</span>
                   <Balken anteil={schnitt} farbe="var(--th-text-faint)" />
                   <b style={{ width: 38, textAlign: 'right', fontSize: 12.5, color: 'var(--th-text-muted)' }}>{Math.round(schnitt * 100)}%</b>
                 </div>
-                {platz && <div style={{ fontSize: 12.5, color: 'var(--th-text-muted)', marginTop: 8 }}>{platz === 1 ? '🏆' : '🎯'} Platz {platz} von {zeilen.length} im Team</div>}
+                {platz && <div style={{ fontSize: 12.5, color: 'var(--th-text-muted)', marginTop: 8 }}>Platz {platz} von {zeilen.length} im Team</div>}
               </div>
             </div>
           )}
 
-          {/* Rangliste des Teams */}
-          <div style={{ borderTop: '1px solid var(--th-line-5)', paddingTop: 8 }}>
-            {sichtbar.map((z, i) => <StatZeile key={z.id} platz={zeilen.filter(x => x.wert > z.wert).length + 1} z={z} ich={z.id === ichId} erster={i === 0} />)}
-            {!ichSichtbar && ich && <><div style={{ textAlign: 'center', color: 'var(--th-text-faint)', fontSize: 12, lineHeight: 1 }}>⋯</div><StatZeile platz={platz ?? 0} z={ich} ich erster={false} /></>}
-            {zeilen.length > 5 && (
-              <button type="button" onClick={() => setAlle(a => !a)} style={{ ...linkKlein, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0' }}>
-                {alle ? 'Weniger anzeigen' : `Alle ${zeilen.length} anzeigen`}
-              </button>
-            )}
-          </div>
-          <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', marginTop: 8 }}>
-            {art === 'zugesagt' ? `Zusagen zu ${basis} vergangenen Terminen (MDU und eigene).` : `Aufstellung laut ${basis} ${basis === 1 ? 'Spielbericht' : 'Spielberichten'}.`}
+          {/* Teilnahme wie unter Statistiken: die letzten Termine */}
+          <div style={{ borderTop: '1px solid var(--th-line-5)', paddingTop: 6 }}>
+            <TeilnahmeTabelle kompakt termine={termine.slice(0, 5)} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={ichId} />
           </div>
         </>
       )}
@@ -364,18 +332,6 @@ function Statistik({ vergangen, zusagen, personen, ichId, gespielt }: {
   );
 }
 
-function StatZeile({ platz, z, ich, erster }: { platz: number; z: { name: string; wert: number; basis: number; quote: number }; ich: boolean; erster: boolean }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', borderRadius: 10, background: ich ? 'rgba(210,53,43,0.08)' : 'transparent', fontFamily: 'var(--font-manrope)' }}>
-      <span style={{ width: 22, textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 16, color: erster ? GOLD : 'var(--th-text-faint)' }}>{platz}</span>
-      <span style={{ width: 112, flexShrink: 0, fontSize: 13, fontWeight: ich ? 900 : 700, color: ich ? ROT : 'var(--th-text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ich ? 'Du' : z.name}</span>
-      <Balken anteil={z.quote} farbe={ich ? ROT : GRUEN} />
-      <span style={{ width: 40, textAlign: 'right', fontSize: 12.5, fontWeight: 800, color: 'var(--th-text-strong)' }}>{z.wert}/{z.basis}</span>
-    </div>
-  );
-}
-
-/** Quote als Doppelring der Scheibe: 20 Felder, gefüllte rot/grün im Wechsel. */
 /** Quote als feiner Fortschrittsring (Betreiber, 30.10.2026: Entwurf 1 — ein grüner Bogen mit runden Enden). */
 function QuotenScheibe({ quote }: { quote: number }) {
   const r = 36, umfang = 2 * Math.PI * r;

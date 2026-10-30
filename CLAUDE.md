@@ -242,7 +242,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Dashboard. Server prüft TC des Teams/Ligaleitung, schreibt Glocken per service_role (Push via 0056), Absender
   ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
   **Statistiken** (Betreiber, 30.10.2026, Vorbild SpielerPlus, ganzes Team sieht alles): `/mein-team/statistik`
-  (`components/mdu/team-statistiken.tsx`, Link unter der Statistik-Karte im Dashboard). Reiter Teilnahme (Spieler ×
+  (`components/mdu/team-statistiken.tsx`, Link unter der Statistik-Karte im Dashboard). Die Dashboard-Karte zeigt
+  dieselbe Rechnung: Ring „Deine Saison“ (feiner Fortschrittsring) + `TeilnahmeTabelle kompakt` der letzten 5 Termine
+  (`baueTermine`/`teilnahmeZeilen`, Daten aus `/api/team-statistik/detail`; die alte Zugesagt/Gespielt-Rangliste ist weg). Reiter Teilnahme (Spieler ×
   vergangene Termine; Zusage als Grundlage, laut Spielbericht gespielt → „zugesagt und gespielt“, auch ohne Zusage —
   „ohne Zusage gekommen“ gibt es bewusst NICHT; Teilnahme = zugesagt oder gespielt; Symbole `TeilnahmeSymbol` = feine
   Linien-Daumen hoch/runter, gefüllt + Punkt = gespielt, ? im Kreis, leerer Kreis = keine Antwort — vom Betreiber aus

@@ -36,7 +36,9 @@ import { NachrichtAnsTeam } from '@/components/mdu/team-push';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
-import { TeamDashboard, type DashKasse, type DashGespielt } from '@/components/mdu/team-dashboard';
+import { TeamDashboard, type DashKasse } from '@/components/mdu/team-dashboard';
+import { baueTermine } from '@/components/mdu/team-statistiken';
+import type { SpielStat } from '@/lib/team-statistik';
 import { mitAnmeldung } from '@/lib/auth/mit-anmeldung';
 import { ladeKasse, kassenstand, offenSumme, istForderung } from '@/lib/supabase/kasse';
 
@@ -66,7 +68,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
   const [termineBereit, setTermineBereit] = useState(false);
   const [neu, setNeu] = useState<null | 'eintragen' | 'import'>(null);
   const [kasse, setKasse] = useState<DashKasse | null>(null);
-  const [gespielt, setGespielt] = useState<DashGespielt | null>(null);
+  const [berichte, setBerichte] = useState<Record<string, SpielStat> | null>(null);
 
   const laden = useCallback(async () => {
     if (!teamId) return;
@@ -74,9 +76,9 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
     setKader(k); setAufgaben(a); setZusagen(z.rows); setBereit(z.bereit); setEinst(e); setDetails(d); setTermine(tr.rows); setTermineBereit(tr.bereit);
     if (z.error) setMsg({ kind: 'err', text: z.error });
     if (!dash) return;
-    // „Gespielt“-Statistik aus den Spielberichten (Server, nur Zählungen).
-    mitAnmeldung(`/api/team-statistik?team=${encodeURIComponent(teamId)}`)
-      .then(r => (r.ok ? r.json() : null)).then(j => { if (j && typeof j.berichte === 'number') setGespielt(j as DashGespielt); }).catch(() => {});
+    // Wer laut Spielbericht gespielt hat (Server) — für die Teilnahme-Statistik.
+    mitAnmeldung(`/api/team-statistik/detail?team=${encodeURIComponent(teamId)}`)
+      .then(r => (r.ok ? r.json() : null)).then(j => setBerichte((j?.spiele as Record<string, SpielStat>) ?? {})).catch(() => setBerichte({}));
     // Teamkasse fürs Dashboard (fehlt die Migration, bleibt die Kachel weg).
     const ka = await ladeKasse(teamId);
     if (ka.bereit && !ka.error) {
@@ -120,15 +122,8 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
     return error;
   }
 
-  // Vergangene Termine der Saison (für die Zusage-Quote im Dashboard).
-  const vergangen = useMemo<string[]>(() => {
-    if (!teamId) return [];
-    const heute = heuteIso();
-    return [
-      ...alleBegegnungen27().filter(b => (b.home === teamId || b.away === teamId) && datumVon(b) < heute).map(b => b.key),
-      ...termine.filter(t => t.event_date < heute).map(t => terminKey(t.id)),
-    ];
-  }, [teamId, termine]);
+  // Vergangene Termine der Saison (Teilnahme-Statistik im Dashboard), neueste zuerst.
+  const vergangen = useMemo(() => (teamId ? baueTermine(teamId, termine) : []), [teamId, termine]);
 
   async function terminNeu(e: Parameters<typeof speichereTermin>[1], team: boolean) {
     if (!user || !teamId) return false;
@@ -203,7 +198,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             {dash ? (
             <TeamDashboard teamId={teamId} teamName={t.name} liga={findLiga27(t.league)?.name ?? ''} spiele={spiele} vergangen={vergangen}
               zusagen={zusagen} personen={personen ?? []} ichId={user.playerId ?? null} ichName={user.displayName ?? ''}
-              aufgaben={aufgaben} kasse={kasse} gespielt={gespielt} onAntwort={antworte} />
+              aufgaben={aufgaben} kasse={kasse} berichte={berichte} onAntwort={antworte} />
             ) : null}
             {dash && istKapitaen && <NachrichtAnsTeam teamId={teamId} />}
             {dash && <KapitaensTeam teamId={teamId} />}
