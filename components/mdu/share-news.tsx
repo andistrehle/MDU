@@ -23,7 +23,7 @@ export function ShareNews({ article }: { article: NewsArticle }) {
 
   // Direkt-Link auf genau diesen Artikel (öffnet ihn beim Aufruf automatisch).
   const articleUrl = `${SITE}#${article.id}`;
-  const caption = `${article.title}\n\n${article.teaser}\n\n👉 ${articleUrl}\n\n#münchnerdartunion #mdu #darts #münchen #dartsliga #steeldarts`;
+  const caption = `${article.title}\n\n${article.teaser}\n\n👉 ${articleUrl}\n\n#münchnerdartunion #mdu #darts #münchen #dartsliga #edarts`;
 
   const draw = useCallback(() => {
     const c = canvasRef.current;

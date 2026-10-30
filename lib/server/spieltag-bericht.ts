@@ -326,7 +326,7 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
 
 // ── Social Media (Migration 0060) ────────────────────────────
 
-const HASHTAGS = '#münchnerdartunion #mdu #darts #steeldarts #dartsliga #münchen';
+const HASHTAGS = '#münchnerdartunion #mdu #darts #edarts #dartsliga #münchen';
 
 /** Fertiger Facebook-Text: Claudes Teaser + Hinweis + Direktlink + Hashtags. */
 export const facebookText = (teaser: string, newsId: string) =>
