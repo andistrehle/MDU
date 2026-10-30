@@ -210,6 +210,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   im Standalone-Modus höchstens 1×/Tag zufällige Geräte-ID (localStorage `mdu-app-id`) + Plattform an
   `/api/app-installation` (`app_installationen`, keine Konto-/IP-Daten). Auswertung Admin → Statistik → Web-App
   (`/admin/web-app`, nur Super-Admin, mit Push-Geräten). Datenschutz-Absatz dazu: nur auf Anweisung.
+  **News: Auge + Gefällt mir** (Migration 0065, Betreiber 30.10.2026): unter jeder News-Karte klein Auge = gelesen
+  (Beitrag geöffnet, je Gerät einmal) und Daumen = Gefällt mir (ohne Konto, je Gerät einmal, nochmal tippen nimmt
+  zurück), für alle sichtbar, auch je Beitrag unter Admin → News. `components/mdu/news-reaktionen.tsx` (Geräte-Kennung
+  `mdu-news-geraet` im localStorage, Zahlen aller Karten in EINER Anfrage), `/api/news/reaktion` (service_role,
+  `news_reaktionen`, `news_zahlen()`). Vorschau-Karten zählen nicht. Startseite: 3 neueste News, eine 4. nur, wenn
+  höchstens 2 Wochen alt (`getHomepageNews`). Datenschutz-Absatz dazu: nur auf Anweisung.
   **Spieltagsbericht** (Migration 0058, Betreiber 25.10.2026): Cron `/api/cron/spieltag-bericht` (So 19:00 UTC)
   legt je PLAN-WOCHENENDE (Spieltag-Nummern sind je Liga verschieden!) einen News-ENTWURF `spieltag-<Freitag>`
   an (Kategorie „Spieltag“) + Glocke an die Ligaleitung; Veröffentlichen unter Admin → News schickt den Push

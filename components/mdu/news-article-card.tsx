@@ -6,6 +6,7 @@ import type { NewsArticle } from '@/lib/data/news';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hasMinRole } from '@/lib/auth/roles';
 import { ShareNews } from './share-news';
+import { NewsZahlenKlein, NewsReaktionen, alsGelesenMelden } from './news-reaktionen';
 
 /**
  * Rendert die wenigen Auszeichnungen im Beitrag: **fett** und Links
@@ -53,6 +54,9 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const { user } = useAuth();
   const isAdmin = hasMinRole(user, 'league_admin');
+
+  // Geöffnet = gelesen (je Gerät einmal, Migration 0065).
+  useEffect(() => { if (open) alsGelesenMelden(article.id); }, [open, article.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -134,11 +138,14 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
           }}>
             {article.title}
           </div>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10,
-            fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)',
-          }}>
-            {hatVideo ? 'Video ansehen' : 'Mehr lesen'} <Icon name="arrow-right" size={13} stroke={2.5} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 10 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, color: 'var(--th-accent)',
+            }}>
+              {hatVideo ? 'Video ansehen' : 'Mehr lesen'} <Icon name="arrow-right" size={13} stroke={2.5} />
+            </span>
+            <NewsZahlenKlein id={article.id} />
           </div>
         </div>
       </button>
@@ -238,11 +245,14 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
               fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)',
             }}>
-              <span>
-                Quelle:{' '}
-                <span style={{ color: 'var(--th-text-muted)' }}>
-                  {article.source}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <span>
+                  Quelle:{' '}
+                  <span style={{ color: 'var(--th-text-muted)' }}>
+                    {article.source}
+                  </span>
                 </span>
+                <NewsReaktionen id={article.id} />
               </span>
               <button
                 type="button"

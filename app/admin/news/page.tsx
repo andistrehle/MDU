@@ -9,6 +9,7 @@ import {
   type NewsRecord, type NewsStatus,
 } from '@/lib/supabase/news';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
+import { NewsZahlenKlein } from '@/components/mdu/news-reaktionen';
 import { SpieltagSocial } from '@/components/mdu/spieltag-social';
 
 interface FormState {
@@ -283,6 +284,7 @@ export default function AdminNewsPage() {
                 <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 2 }}>
                   {n.display_date} · {n.category}
                 </div>
+                {n.status === 'published' && <div style={{ marginTop: 4 }}><NewsZahlenKlein id={n.id} /></div>}
               </div>
               <span style={{ flexShrink: 0, fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: STATUS_COLOR[n.status] }}>
                 {STATUS_LABEL[n.status]}

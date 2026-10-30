@@ -63,6 +63,9 @@ export function Icon({ name, size = 18, stroke = 1.75, className, style }: IconP
     case 'clock':       return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
     case 'share':       return <svg {...common}><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>;
     case 'meet':        return <svg {...common}><circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M4 20v-3a4 4 0 0 1 8 0v3M12 20v-3a4 4 0 0 1 8 0v3"/></svg>;
+    case 'eye':         return <svg {...common}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>;
+    case 'thumb':       return <svg {...common}><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3z"/><path d="M7 10l4-7a2.5 2.5 0 0 1 2.4 3.1L12.8 10h5.8a2 2 0 0 1 2 2.4l-1.4 7a2 2 0 0 1-2 1.6H7"/></svg>;
+    case 'thumb-fill':  return <svg {...common} fill="currentColor"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3z"/><path d="M7 10l4-7a2.5 2.5 0 0 1 2.4 3.1L12.8 10h5.8a2 2 0 0 1 2 2.4l-1.4 7a2 2 0 0 1-2 1.6H7"/></svg>;
     case 'flag-end':    return <svg {...common}><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg>;
     default:            return <svg {...common}><circle cx="12" cy="12" r="9"/></svg>;
   }
