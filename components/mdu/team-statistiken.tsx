@@ -51,24 +51,23 @@ const prozent = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 // ── Teilnahme-Symbole ──────────────────────────────────────
 
 type Stand = 'dabei' | 'zugesagt' | 'gekommen' | 'abgesagt' | 'unsicher' | 'offen';
-const GRUEN = '#1E9E57', ROT = '#D9534F', GOLD = '#C9921A';
+const GRUEN = '#1E9E57', ROT = '#C8463F', GOLD = '#B98516';
 const STAND_TEXT: Record<Stand, string> = {
   dabei: 'Zugesagt und gespielt', zugesagt: 'Zugesagt', gekommen: 'Ohne Zusage gekommen',
   abgesagt: 'Abgesagt', unsicher: 'Unsicher', offen: 'Keine Antwort',
 };
 
+/** Schlichte Formen statt Bildchen (Betreiber: „nicht so comicartig“). */
 export function TeilnahmeSymbol({ s, size = 22 }: { s: Stand; size?: number }) {
-  const r = 10, c = 12;
-  const scheibe = (farbe: string) => (<><circle cx={c} cy={c} r={5.2} fill="none" stroke={farbe} strokeWidth={1.8} /><circle cx={c} cy={c} r={1.9} fill={farbe} /></>);
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={STAND_TEXT[s]}>
       <title>{STAND_TEXT[s]}</title>
-      {s === 'dabei' && <><circle cx={c} cy={c} r={r} fill={GRUEN} />{scheibe('#fff')}</>}
-      {s === 'zugesagt' && <><circle cx={c} cy={c} r={r} fill={`${GRUEN}26`} stroke={GRUEN} strokeWidth={1.4} /><path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke={GRUEN} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></>}
-      {s === 'gekommen' && <><circle cx={c} cy={c} r={r - 0.7} fill="none" stroke={GRUEN} strokeWidth={1.6} strokeDasharray="3.2 2.2" />{scheibe(GRUEN)}</>}
-      {s === 'abgesagt' && <><circle cx={c} cy={c} r={r} fill={`${ROT}1F`} /><path d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8" stroke={ROT} strokeWidth={2.2} strokeLinecap="round" /></>}
-      {s === 'unsicher' && <><circle cx={c} cy={c} r={r} fill={`${GOLD}26`} /><path d="M9.4 9.6a2.7 2.7 0 1 1 3.9 2.4c-.8.4-1.3 1-1.3 1.9v.4" fill="none" stroke={GOLD} strokeWidth={2} strokeLinecap="round" /><circle cx={c} cy={17.2} r={1.2} fill={GOLD} /></>}
-      {s === 'offen' && <circle cx={c} cy={c} r={r - 2} fill="none" stroke="var(--th-text-faint)" strokeWidth={1.4} strokeDasharray="2 2.4" />}
+      {s === 'dabei' && <circle cx={12} cy={12} r={6} fill={GRUEN} />}
+      {s === 'zugesagt' && <circle cx={12} cy={12} r={5.25} fill="none" stroke={GRUEN} strokeWidth={1.5} />}
+      {s === 'gekommen' && <rect x={7.2} y={7.2} width={9.6} height={9.6} rx={1.2} transform="rotate(45 12 12)" fill={GRUEN} />}
+      {s === 'abgesagt' && <path d="M7.5 12h9" stroke={ROT} strokeWidth={2} strokeLinecap="round" />}
+      {s === 'unsicher' && <><circle cx={12} cy={12} r={5.25} fill="none" stroke={GOLD} strokeWidth={1.5} /><path d="M12 6.75a5.25 5.25 0 0 1 0 10.5z" fill={GOLD} /></>}
+      {s === 'offen' && <circle cx={12} cy={12} r={2} fill="var(--th-text-faint)" />}
     </svg>
   );
 }

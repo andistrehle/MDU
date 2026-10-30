@@ -244,7 +244,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   **Statistiken** (Betreiber, 30.10.2026, Vorbild SpielerPlus, ganzes Team sieht alles): `/mein-team/statistik`
   (`components/mdu/team-statistiken.tsx`, Link unter der Statistik-Karte im Dashboard). Reiter Teilnahme (Spieler ×
   vergangene Termine; Zusage als Grundlage, laut Spielbericht gespielt → „zugesagt und gespielt“ bzw. „ohne Zusage
-  gekommen“; Teilnahme = zugesagt + gekommen; eigene SVG-Symbole `TeilnahmeSymbol`, KEINE Emojis/SpielerPlus-Icons),
+  gekommen“; Teilnahme = zugesagt + gekommen; schlichte SVG-Formen `TeilnahmeSymbol` — Punkt voll/Ring/Raute/Strich/halber Kreis/kleiner Punkt, KEINE
+  Emojis, nichts Comicartiges, keine SpielerPlus-Icons),
   Spielberichte (Einsätze, Einzel/Doppel S:N, Legs aus Einzeln, 180/171/HF/SL aus `/api/team-statistik/detail`,
   Typen in `lib/team-statistik.ts`), Aufgaben (erledigte `match_tasks` je Bezeichnung, Pokale). Filter: Terminart
   (MDU-Spiel · andere Spiele · Training · Event · Sonstiges), Zeitraum (Saison/Hin-/Rückrunde/30 Tage), Heim/Auswärts.
