@@ -15,7 +15,7 @@ import { ladeErfassung, WEG, WEGE, type Erfassungsweg } from '@/lib/supabase/erf
 import { berichtPfad } from '@/lib/spieltag';
 import {
   listAllReports, deleteReport, notifyReportChange, setzeWertung,
-  REPORT_STATUS_LABELS, WERTUNG_LABELS, protestErledigt, type MatchReport, type Wertung,
+  REPORT_STATUS_LABELS, WERTUNG_LABELS, protestErledigt, ladeEinreichzeiten, type MatchReport, type Wertung,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads, loescheSaisonFotos } from '@/lib/supabase/match-report-uploads';
 import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
@@ -54,6 +54,9 @@ export default function AdminSpielberichtePage() {
     if (!canManage) return;
     void ladeErfassung().then(r => setErfassung(new Map((r.data?.zeilen ?? []).map(z => [z.key, z.weg]))));
   }, [canManage, rows]);
+  // Wann wurde eingereicht? (Verlauf; ältere Berichte ohne Eintrag → Anlagezeit)
+  const [eingereichtAm, setEingereichtAm] = useState<Map<string, string>>(new Map());
+  useEffect(() => { if (canManage) void ladeEinreichzeiten().then(setEingereichtAm); }, [canManage, rows]);
   const heute = berlinHeute();
   const alle = useMemo(() => alleBegegnungen27().map(b => {
     const r = berichtJeBegegnung.get(b.key) ?? null;
@@ -105,11 +108,18 @@ export default function AdminSpielberichtePage() {
     for (const x of vorStatus.filter(x => passt(x, fStatus))) (m.get(x.b.spieltag) ?? m.set(x.b.spieltag, []).get(x.b.spieltag)!).push(x);
     const ligaPos = (c: string) => LIGEN_2027.findIndex(l => l.code === c);
     const begonnen = (st: number) => alle.some(x => x.b.spieltag === st && x.b.fri <= heute);
+    const eingereicht = (x: (typeof alle)[number]) => (x.r && x.r.status !== 'draft' ? eingereichtAm.get(x.r.id) ?? x.r.created_at : null);
     return [...m.entries()]
       .sort(([a], [b]) => (begonnen(b) ? 1 : 0) - (begonnen(a) ? 1 : 0) || (begonnen(a) ? b - a : a - b))
-      .map(([st, list]) => ({ st, begonnen: begonnen(st), list: list.sort((x, y) => ligaPos(x.b.liga) - ligaPos(y.b.liga) || x.datum.localeCompare(y.datum) || (x.b.termin?.uhrzeit ?? '').localeCompare(y.b.termin?.uhrzeit ?? '')) }));
+      .map(([st, list]) => ({ st, begonnen: begonnen(st), list: list.sort((x, y) => {
+        // Betreiber, 31.10.2026: eingereichte zuerst, neueste Einreichung oben; ausstehende danach.
+        const ex = eingereicht(x), ey = eingereicht(y);
+        if (ex && ey) return ey.localeCompare(ex);
+        if (ex || ey) return ex ? -1 : 1;
+        return ligaPos(x.b.liga) - ligaPos(y.b.liga) || x.datum.localeCompare(y.datum) || (x.b.termin?.uhrzeit ?? '').localeCompare(y.b.termin?.uhrzeit ?? '');
+      }) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vorStatus, fStatus, alle, heute]);
+  }, [vorStatus, fStatus, alle, heute, eingereichtAm]);
   const filterAktiv = fStatus !== 'alle' || fLiga !== 'alle' || !!fSpieltag || !!fWoche || !!fTeam || !!fWeg;
 
   // ── Wertung (Nichtantritt / kein Bericht) ──

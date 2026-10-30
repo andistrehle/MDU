@@ -336,6 +336,16 @@ export async function getReportHistory(reportId: string): Promise<ReportHistoryE
   return (data ?? []) as ReportHistoryEntry[];
 }
 
+/** Erstes Einreichen je Bericht (Verlauf, Aktion „submitted“) — für „neueste eingereichte oben“ im Admin. */
+export async function ladeEinreichzeiten(): Promise<Map<string, string>> {
+  const m = new Map<string, string>();
+  if (!supabase) return m;
+  const { data } = await supabase.from('match_report_history').select('report_id, created_at')
+    .eq('action', 'submitted').order('created_at', { ascending: true });
+  for (const r of (data ?? []) as { report_id: string; created_at: string }[]) if (!m.has(r.report_id)) m.set(r.report_id, r.created_at);
+  return m;
+}
+
 // ── Schreiben ──────────────────────────────────────────────────
 
 /** Legt einen Bericht (Entwurf) an inkl. Aufstellung + Spiele. */

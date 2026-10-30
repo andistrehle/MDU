@@ -133,7 +133,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Ergebnis vor Beginn + 3,5 h) / abgeschrieben; ohne Protokoll „geschätzt“ aus `created_at`.
   Admin → Erfassung + Kachel im Dashboard; lesen nur service_role.
   **Admin → Spielberichte** (Betreiber, 25.10.2026): alle Begegnungen auf einmal, nach Spieltag gruppiert
-  (begonnene zuerst, neuester oben), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle
+  (begonnene zuerst, neuester oben; innerhalb des Spieltags eingereichte zuerst, neueste Einreichung oben —
+  Zeit aus `match_report_history` „submitted“, sonst `created_at`, `ladeEinreichzeiten` —, ausstehende danach), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle
   mit Anzahl), Liga, Spieltag, Wochenende (echter Termin), Erfassungsweg, Team-Suche. „Fehlt“ = Termin vorbei,
   nichts eingereicht (Entwurf zählt als fehlt); Problemfälle = überfällig (nach Di 24 Uhr), Wertung,
   Änderung angefordert, offener Protest. Die alte Liste je Liga ist darunter als „Rohliste“ eingeklappt.
