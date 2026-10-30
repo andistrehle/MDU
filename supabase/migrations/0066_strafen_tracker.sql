@@ -100,6 +100,8 @@ declare a public.team_strafen_abende; n integer;
 begin
   if not public.strafen_darf(p_abend) then raise exception 'Keine Berechtigung oder Abend abgeschlossen.'; end if;
   select * into a from public.team_strafen_abende where id = p_abend for update;
+  -- Zwei Handys tippen gleichzeitig „Abschließen“: der zweite wartet auf die Sperre und bucht nicht doppelt.
+  if a.status <> 'offen' then raise exception 'Der Abend ist schon abgeschlossen.'; end if;
   insert into public.team_cash_entries (team_id, kind, player_key, player_name, title, amount_cents, entry_date, created_by)
   select a.team_id, 'strafe', s.player_key, s.player_name,
          case when s.anzahl > 1 then s.title || ' × ' || s.anzahl else s.title end,
