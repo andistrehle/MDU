@@ -364,12 +364,13 @@ const SZENEN = [
       { s: 3.5, u: 'Ihr seid kurz vorm Spiel und wollt wissen: Wer ist eigentlich unser Gegner?', b: 0, z: [44, 10, 1.5] },
       { s: 4.5, u: 'Die Gegneranalyse zeigt Tabelle, Form und die besten Spieler – und wie die letzten Partien ausgegangen sind.', b: 1, z: [44, 30, 1.5] } ] },
 
-  { titel: 'Die <i>Statistik</i>', html: beispiel + geraete(['stat', 'stat-gespielt'])
-      + stempel(0, '92 % 🏆', 900, 380, 'gold', 560, 1150),
+  { titel: 'Die <i>Statistik</i>', html: beispiel + geraete(['stat', 'stat-teilnahme', 'stat-berichte'])
+      + stempel(0, '92 % 🏆', 900, 600, 'gold', 560, 1150),
     schritte: [
       { s: 2, u: 'Und dann gibt’s noch die Statistik:', b: 0, z: [44, 30, 1.55] },
-      { s: 3, u: 'Wer wie oft zugesagt – und wer wirklich gespielt hat.', b: 1, z: [44, 30, 1.55] },
-      { s: 2.5, u: 'Deine Quote – gegen den Team-Schnitt!', b: 0, z: [36, 38, 1.9], k: 1 } ] },
+      { s: 1.8, u: 'Wer wie oft zugesagt – und wer wirklich gespielt hat.', b: 1, z: [50, 30, 1.4] },
+      { s: 1.4, b: 2, z: [50, 40, 1.4], weiter: true },
+      { s: 2.5, u: 'Deine Quote – gegen den Team-Schnitt!', b: 0, z: [24, 16, 1.9], k: 1 } ] },
 
   { titel: 'Die MDU <i>als App</i>', html: `
       <div class="handy" style="${HOCH ? '' : 'left:260px;top:120px'}"><div class="schirm">
@@ -442,7 +443,7 @@ stage.innerHTML = SZENEN.map((sz, i) => `<div class="szene" id="sz${i}">${sz.tit
   + `<div class="unter" id="unter"></div><div class="fortschritt" id="fort" style="width:0"></div>`;
 // Collage aus allen Shots (Szene „Und was kostet der Spaß?“)
 const COLLAGE = ['dash-n9', 'dash-grund', 'spiel-kader-tc', 'spiel-offen', 'glocke', 'spiel-aufstellung', 'bericht-voll', 'spiel-notiz', 'kasse-strafe', 'kasse-offen',
-  'spiel-erinnern', 'gegner', 'nachricht', 'termine', 'termin-neu', 'kalender', 'stat', 'stat-gespielt', 'spiel-teilen', 'glocke-tim'];
+  'spiel-erinnern', 'gegner', 'nachricht', 'termine', 'termin-neu', 'kalender', 'stat', 'stat-teilnahme', 'spiel-teilen', 'glocke-tim'];
 document.getElementById('collage').innerHTML = COLLAGE.slice(0, HOCH ? 12 : 20).map((n, i) => `<div data-c="${i}" style="background-image:url(${S}${HOCH ? 'handy' : 'web'}-${n}.jpg)"></div>`).join('');
 
 const warte = ms => new Promise(r => setTimeout(r, ms));

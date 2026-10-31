@@ -18,6 +18,7 @@ import { KalenderAbo } from './spielplan-kopie';
 import { NotificationBell } from './glocke-kopie';
 import { PushAbfrageDemo } from './push-abfrage-kopie';
 import { StrafenTracker } from './strafen-kopie';
+import { TeamStatistiken } from './statistiken-kopie';
 
 export default function Demo() {
   const [s, setS] = useState('');
@@ -28,6 +29,7 @@ export default function Demo() {
     if (s === 'termine') return <TeamManager ansicht="termine" />;
     if (s === 'kasse') return <KassePage />;
     if (s === 'strafen') return <StrafenTracker id="demo" />;
+    if (s === 'statistik') return <TeamStatistiken />;
     if (s === 'gegner') return <GegnerSeite />;
     if (s === 'premium') return <PremiumSeite />;
     if (s === 'kalender') return <MemberShell title="Mein Spielplan"><div style={{ maxWidth: 640 }}><KalenderAbo teamId={D.TEAM} teamName={team27(D.TEAM)!.name} /></div></MemberShell>;

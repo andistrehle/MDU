@@ -23,6 +23,9 @@ const SHOTS = require('./shots-liste.js');
     const p = await ctx.newPage();
     for (const [name, params, aktion] of SHOTS) {
       if (NUR.length && !NUR.includes(name)) continue;
+      // Feste Uhr (seit 31.10.2026): die Demo-Daten hängen am Datum — „nächstes Spiel Fr 23.10.“.
+      // Statistik-Bilder (nach=1) spielen nach drei MDU-Spielen.
+      await p.clock.setFixedTime(new Date(params.includes('nach=1') ? '2026-11-25T18:00:00+01:00' : '2026-10-20T18:00:00+02:00'));
       await p.mouse.move(1, 1);
       await p.goto(`${BASIS}/zz-demo?${params}`); await p.waitForTimeout(2200);
       await p.evaluate(() => document.querySelectorAll('nextjs-portal').forEach(e => e.remove()));

@@ -71,6 +71,11 @@ rm -rf app/zz-demo   # danach wieder löschen
 - Premium-Seite: PayPal-Empfänger ist im Bild durch „paypal.me/…“ ersetzt (sonst echter Name).
 - Die Glocke im Kopf wird durch eine Demo-Glocke ersetzt (es gibt ZWEI im Kopf: breit und schmal).
 - Der Browser braucht `--lang=de-DE` + `LANG`, sonst zeigt das Treffen-Feld „07:30 PM“.
+- **Feste Uhr** (`screenshots.js`, seit 31.10.2026): Die Demo-Daten hängen am Datum (nächstes Spiel
+  Fr 23.10.), deshalb läuft der Browser auf dem 20.10.2026. Statistik-Bilder (`nach=1`) laufen am
+  25.11.2026, nach drei MDU-Spielen mit Spielberichten (`BERICHTE` in `demo-daten.ts`).
+- Die Kopien in `zz-demo/` stammen vom Stand `main` am 31.10.2026 (Teamkasse mit Anzahl, Statistiken,
+  Strafen-Tracker, Terminarten Training/Event). Ändert sich eine Seite, die Kopie neu ziehen.
 
 ## Veröffentlichen
 

@@ -42,7 +42,7 @@ module.exports = [
   ['glocke-tim', 's=spiel&n=10&tim=1', async p => { await p.evaluate(() => [...document.querySelectorAll('.demo-glocke button')].find(b => b.offsetParent !== null).click()); await p.waitForTimeout(800); }],
   // Szene 8: Teamkasse
   ['kasse-spieler', 's=kasse'],
-  ['kasse-strafe', 's=kasse&formular=strafe&vorwahl=p7', klick('button:has-text("Captain beleidigt")')],
+  ['kasse-strafe', 's=kasse&formular=strafe&vorwahl=p7', folge(klick('button[aria-pressed]:has-text("Captain beleidigt")'), klick('button[aria-label="Captain beleidigt bei Ali Bullseye mehr"]'), zu('Anzahl je Spieler', 260, 'div'))],
   ['kasse-beitraege', 's=kasse&reiter=beitraege', zu('Mein Bereich', 0)],
   ['kasse-offen', 's=kasse&reiter=offen&wahl=b11,b12,b13,b14'],
   ['kasse-buch', 's=kasse&reiter=buch'],
@@ -62,7 +62,10 @@ module.exports = [
   ['kalender', 's=kalender'],
   // Szene 11: Statistik
   ['stat', 's=dash&n=9', zu('Statistik', 80, 'h2,h3,div,span')],
-  ['stat-gespielt', 's=dash&n=9', folge(zu('Statistik', 80, 'h2,h3,div,span'), klick('button:text-is("Gespielt")'))],
+  // Statistiken (seit 30.10.2026): Teilnahme-Tabelle, Spielberichte, Aufgaben — nach drei MDU-Spielen
+  ['stat-teilnahme', 's=statistik&nach=1'],
+  ['stat-berichte', 's=statistik&nach=1&reiter=berichte'],
+  ['stat-aufgaben', 's=statistik&nach=1&reiter=aufgaben'],
   // Szene 12: Spiel teilen
   ['spiel-teilen', 's=spiel&n=10', zu('Spiel teilen', 360, 'button')],
   // Szene 14/15: Angebot
@@ -71,7 +74,7 @@ module.exports = [
   // Push (27.10.2026): Offene erinnern, Termin mit „Team benachrichtigen“, Nachricht ans Team, Push-Abfrage
   ['spiel-erinnern', 's=spiel&n=7', zu('Spiel teilen', 300, 'button')],
   ['termin-neu', 's=termine&neu=eintragen', async p => {
-    await p.locator('button[role="radio"]:has-text("Sonstiges")').first().click();
+    await p.locator('button[role="radio"]:has-text("Training")').first().click();
     await p.locator('input[placeholder^="z. B. Training"]').first().fill('Training');
     await p.locator('input[type="date"]').first().fill('2026-11-03');
     await p.locator('input[type="time"]').first().fill('19:00');

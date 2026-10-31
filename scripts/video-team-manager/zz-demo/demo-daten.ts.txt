@@ -6,6 +6,7 @@ import type { KaderOption } from '@/lib/supabase/season-teams';
 import type { Zusage, ZusageStatus, Aufgabe, SpielDetails } from '@/lib/supabase/zusagen';
 import type { TeamTermin } from '@/lib/supabase/termine';
 import type { Buchung, Strafart, KassenEinstellung } from '@/lib/supabase/kasse';
+import type { SpielStat, SpielerImSpiel } from '@/lib/team-statistik';
 import type { UserProfile } from '@/lib/auth/roles';
 
 type RawT = { teams: Record<string, { name: string; short: string; logoUrl: string | null; color: string }>; venues: Record<string, { name: string; address?: string }> };
@@ -57,24 +58,24 @@ const NAECHSTES: [number, ZusageStatus, string | null][] = [
 export const naechsteZusagen = (n: number) => NAECHSTES.slice(0, n).map(([i, s, note], k) => zs(SPIEL, i, s, note, k));
 
 // Vergangene eigene Termine (für die Statistik) + anstehende
-const t = (id: string, datum: string, zeit: string | null, kind: 'spiel' | 'sonstiges', extra: Partial<TeamTermin>): TeamTermin => ({
+const t = (id: string, datum: string, zeit: string | null, kind: TeamTermin['kind'], extra: Partial<TeamTermin>): TeamTermin => ({
   id, team_id: TEAM, kind, title: null, league: null, opponent: null, is_home: null, event_date: datum, start_time: zeit, end_time: null,
   venue: null, address: null, color: null, ...extra,
 });
 export const VERGANGEN_TERMINE: TeamTermin[] = [
   '2026-09-03', '2026-09-10', '2026-09-17', '2026-09-24', '2026-10-01', '2026-10-08', '2026-10-15',
-].map((d, i) => t('tr' + i, d, '19:30', 'sonstiges', { title: 'Training', venue: 'Zum Goldenen Pfeil', color: '#0F9A9A' }))
+].map((d, i) => t('tr' + i, d, '19:30', 'training', { title: 'Training', venue: 'Zum Goldenen Pfeil', color: '#0F9A9A' }))
   .concat([
     t('pk1', '2026-09-12', '19:00', 'spiel', { league: 'Pokal', opponent: 'Dartfreunde Nord', is_home: true, color: '#E07A1F' }),
     t('pk2', '2026-09-26', '19:00', 'spiel', { league: 'Pokal', opponent: 'Steel City', is_home: false, color: '#E07A1F' }),
     t('ts1', '2026-10-03', '18:00', 'spiel', { league: 'Testspiel', opponent: 'Flight Club', is_home: true, color: '#7C5CD6' }),
     t('ts2', '2026-10-10', '18:00', 'spiel', { league: 'Testspiel', opponent: 'Checkout Crew', is_home: false, color: '#7C5CD6' }),
-    t('fe1', '2026-10-11', '18:00', 'sonstiges', { title: 'Saisonauftakt-Grillen', color: '#D6457E' }),
+    t('fe1', '2026-10-11', '18:00', 'event', { title: 'Saisonauftakt-Grillen', color: '#D6457E' }),
   ]);
 export const ANSTEHEND_TERMINE: TeamTermin[] = [
   t('pk3', '2026-10-30', '19:30', 'spiel', { league: 'Pokal', opponent: 'Dartfreunde Nord', is_home: false, venue: 'Sportheim Nord', color: '#E07A1F' }),
-  t('tr9', '2026-11-05', '19:30', 'sonstiges', { title: 'Training', venue: 'Zum Goldenen Pfeil', color: '#0F9A9A' }),
-  t('wf1', '2026-12-12', '18:00', 'sonstiges', { title: 'Weihnachtsfeier', venue: 'Wirtshaus am Bull', color: '#D6457E' }),
+  t('tr9', '2026-11-05', '19:30', 'training', { title: 'Training', venue: 'Zum Goldenen Pfeil', color: '#0F9A9A' }),
+  t('wf1', '2026-12-12', '18:00', 'event', { title: 'Weihnachtsfeier', venue: 'Wirtshaus am Bull', color: '#D6457E' }),
 ];
 export const TERMINE: TeamTermin[] = [...VERGANGEN_TERMINE, ...ANSTEHEND_TERMINE];
 
@@ -83,18 +84,40 @@ const QUOTE = [11, 11, 10, 9, 12, 8, 7, 10, 6, 5]; // „yes“ je Spieler von 1
 const VERGANGEN_ZUSAGEN: Zusage[] = KADER.flatMap((k, i) => VERGANGEN_TERMINE.map((tt, j) =>
   zs('ext:' + tt.id, i, j < QUOTE[i] ? 'yes' : (j % 2 ? 'no' : 'maybe'), j < QUOTE[i] ? null : 'keine Zeit', j)));
 
+// MDU-Spiele, die bei der Statistik-Aufnahme (Uhr 25.11.2026) schon gespielt sind
+export const MDU_GESPIELT = ['freibad-bazis|fiaker-deife', 'freibad-bazis|dc-animals-ii', 'team-illuminati--28d702|freibad-bazis'];
+const AUFSTELLUNG = [[0, 1, 2, 5, 7, 6], [0, 1, 3, 2, 4], [1, 0, 2, 5, 7, 8]];
+// Nur für die Statistik-Aufnahme (?nach=1); sonst ist das erste Spiel noch das anstehende.
+const NACH = q('nach') === '1';
+const MDU_ZUSAGEN: Zusage[] = !NACH ? [] : MDU_GESPIELT.flatMap((key, s) => KADER.map((k, i) => zs(key, i,
+  AUFSTELLUNG[s].includes(i) ? 'yes' : i === 9 ? 'maybe' : 'no', null, i)));
 export const zusagenAlle = (n: number): Zusage[] => [
-  ...naechsteZusagen(n),
+  ...MDU_ZUSAGEN,
+  ...(NACH ? [] : naechsteZusagen(n)),
   ...[1, 2, 3, 5, 7].map((i, k) => zs(SPIEL2, i, 'yes', null, k)),
   ...[0, 1, 2, 6].map((i, k) => zs('ext:pk3', i, 'yes', null, k)),
   ...[0, 1, 2, 3, 4, 5, 6, 7].map((i, k) => zs('ext:wf1', i, 'yes', null, k)),
   ...VERGANGEN_ZUSAGEN,
 ];
 
+// Spielberichte der gespielten MDU-Spiele (Demo-Werte), Form wie /api/team-statistik/detail
+const sp = (i: number, eS: number, eN: number, dS: number, dN: number, lp: number, lm: number, b180 = 0, b171 = 0, hf: number[] = [], sl: number[] = []): [string, SpielerImSpiel] =>
+  ['p' + i, { name: NAMEN[i], eS, eN, dS, dN, lp, lm, b180, b171, hf, sl }];
+export const BERICHTE: Record<string, SpielStat> = {
+  'freibad-bazis|fiaker-deife': { datum: '2026-10-23', heim: true, bestaetigt: true, spieler: Object.fromEntries([
+    sp(0, 2, 0, 1, 1, 4, 1, 2, 0, [121]), sp(1, 1, 1, 1, 0, 3, 3, 1), sp(2, 2, 0, 1, 1, 4, 0, 0, 1, [], [15]), sp(5, 0, 2, 0, 1, 1, 4), sp(7, 1, 0, 1, 0, 2, 1), sp(6, 0, 1, 0, 1, 1, 2)]) },
+  'freibad-bazis|dc-animals-ii': { datum: '2026-11-13', heim: true, bestaetigt: true, spieler: Object.fromEntries([
+    sp(0, 1, 1, 2, 0, 3, 2, 1, 1), sp(1, 2, 0, 1, 0, 4, 1, 3, 0, [104]), sp(3, 1, 1, 0, 1, 2, 2), sp(2, 1, 1, 1, 1, 3, 3, 0, 0, [], [17]), sp(4, 0, 1, 1, 0, 1, 2)]) },
+  'team-illuminati--28d702|freibad-bazis': { datum: '2026-11-21', heim: false, bestaetigt: false, spieler: Object.fromEntries([
+    sp(1, 2, 0, 1, 1, 4, 1, 1, 0, [132]), sp(0, 1, 1, 1, 0, 3, 2), sp(2, 1, 0, 0, 1, 2, 1, 1), sp(5, 1, 1, 1, 0, 2, 3), sp(7, 0, 1, 0, 1, 0, 2), sp(8, 1, 0, 0, 0, 2, 0)]) },
+};
 export const DETAILS: Record<string, SpielDetails> = {
   [SPIEL]: { match_key: SPIEL, meet_time: null, lineup: ['p1', 'p0', 'p2', 'p5', 'p7', 'p6', '', ''], note: 'Bitte Trikots mitbringen! 👕' },
 };
+const af = (id: string, key: string, title: string, i: number): Aufgabe => ({ id, match_key: key, title, assignee_id: 'p' + i, assignee_name: NAMEN[i], done: true, done_at: '2026-11-01T19:00:00Z', created_at: '2026-10-20T18:00:00Z' });
 export const AUFGABEN: Aufgabe[] = [
+  ...(!NACH ? [] : [af('v1', MDU_GESPIELT[0], 'Schriftführer', 2), af('v2', MDU_GESPIELT[0], 'Fahrer', 5), af('v3', MDU_GESPIELT[1], 'Schriftführer', 2),
+  af('v4', MDU_GESPIELT[1], 'Fahrer', 0), af('v5', MDU_GESPIELT[2], 'Schriftführer', 1), af('v6', MDU_GESPIELT[2], 'Fahrer', 5), af('v7', 'ext:pk2', 'Fahrer', 7)]),
   { id: 'a1', match_key: SPIEL, title: 'Spielbericht drucken', assignee_id: 'p1', assignee_name: 'Tim Treffer', done: false, done_at: null, created_at: '2026-10-17T18:00:00Z' },
   { id: 'a2', match_key: SPIEL, title: 'Tisch beim Wirt reservieren', assignee_id: 'p0', assignee_name: 'Max Mustermann', done: true, done_at: '2026-10-17T19:00:00Z', created_at: '2026-10-17T18:00:00Z' },
   { id: 'a3', match_key: SPIEL, title: 'Neue Flights für Lena besorgen', assignee_id: 'p5', assignee_name: 'Flo Wurfmann', done: false, done_at: null, created_at: '2026-10-17T18:00:00Z' },
