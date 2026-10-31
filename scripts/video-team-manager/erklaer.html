@@ -416,15 +416,18 @@ const SZENEN = [
   { titel: '', html: `<div class="preis">
       <div class="laptop" style="transform:scale(.62);transform-origin:0 0;left:80px;top:300px"><div class="rand"><div class="schirm"><img class="an" src="${S}web-premium.jpg" style="transform:scale(1.4);transform-origin:44% 0"></div></div><div class="fuss"></div></div>
       <div class="handy" style="${HOCH ? 'display:none' : 'left:1440px;top:260px;transform:scale(.85);transform-origin:0 0'}"><div class="schirm"><img class="an" src="${S}handy-premium.jpg"></div></div>
-      <img src="${LOGO}" style="position:absolute;${HOCH ? 'left:290px;top:260px;width:500px' : 'display:none'}"><div class="gratis tc" data-k="0" style="${HOCH ? 'left:90px;top:720px' : 'left:700px;top:80px'}">14 Tage gratis testen</div>
-      <div class="weg-zu" data-k="1" data-bis="2" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:290px;flex-direction:column;align-items:flex-start;gap:4px;font-size:38px'}"><span>mdudarts.de</span><i>→</i><span>📲 aufs Handy holen</span><i>→</i><span>Mein Bereich</span><i>→</i><span>Team Manager</span></div>
-      <div class="oder tc" data-k="2" style="${HOCH ? 'left:70px;right:70px;top:1000px;text-align:center;background:rgba(10,26,16,.96)' : 'left:700px;right:540px;top:330px;text-align:center;background:rgba(10,26,16,.96)'}">Keine Pflicht<br><span style="font-size:${HOCH ? 34 : 30}px;font-family:Manrope;font-weight:700">Alles läuft auch ohne – wie bisher</span></div>
-      ${stempel(3, 'Euer Team im Griff! 🎯', 700, 720, 'gold', 120, 1380)}
+      <img src="${LOGO}" style="position:absolute;${HOCH ? 'left:290px;top:260px;width:500px' : 'display:none'}">
+      <div class="oder tc" data-k="0" data-bis="2" style="${HOCH ? 'left:70px;right:70px;top:1000px;text-align:center;background:rgba(10,26,16,.96)' : 'left:700px;right:540px;top:330px;text-align:center;background:rgba(10,26,16,.96)'}">Keine Pflicht<br><span style="font-size:${HOCH ? 34 : 30}px;font-family:Manrope;font-weight:700">Alles läuft auch ohne – wie bisher</span></div>
+      ${stempel(1, 'Euer Team im Griff! 🎯', 700, 720, 'gold', 120, 1380, 2)}
+      <div class="gratis tc" data-k="2" style="${HOCH ? 'left:90px;top:720px' : 'left:700px;top:80px'}">14 Tage gratis testen</div>
+      <div class="weg-zu" data-k="2" style="${HOCH ? 'left:60px;right:60px;top:1000px;flex-direction:column;align-items:center' : 'left:840px;top:330px;flex-direction:column;align-items:flex-start;gap:4px;font-size:38px'}"><span>mdudarts.de</span><i>→</i><span>Mein Bereich</span><i>→</i><span>Team Manager</span></div>
+      ${stempel(3, 'Merci & bis bald! 👋', 760, 800, 'gold', 260, 1500)}
     </div>`,
     schritte: [
-      { s: 4.2, u: '[excited] Probiert es jetzt einfach mal 14 Tage kostenlos aus und überzeugt euch selbst!', k: 2 },
-      { s: 3.6, u: 'Und nochmal: Es ist keine Pflicht – alles läuft auch ohne, wie bisher!', k: 3 },
-      { s: 4.4, u: 'Aber mit Team Manager habt ihr euer Team im Griff, und jeder weiß immer Bescheid, was gerade läuft.', k: 4 } ] },
+      { s: 3.6, u: 'Und nochmal: Es ist keine Pflicht – alles läuft auch ohne, wie bisher!', k: 1 },
+      { s: 4.4, u: 'Aber mit Team Manager habt ihr euer Team im Griff, und jeder weiß immer Bescheid, was gerade läuft.', k: 2 },
+      { s: 5.6, u: 'Egal wie ihr euch am Ende entscheidet: Geht jetzt auf Mein Bereich, Team Manager, und probiert es unverbindlich 14 Tage kostenlos aus!', k: 3 },
+      { s: 3.2, u: '[excited] Auf geht’s – und merci euch fürs Zuhören. Bis bald!', k: 4 } ] },
 ];
 
 // ── Ablauf ────────────────────────────────────────────────
