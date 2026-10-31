@@ -21,7 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { execFileSync, spawnSync } = require('child_process');
+const { execFileSync, spawnSync, spawn } = require('child_process');
 const { chromium } = require('playwright');
 
 const DIR = __dirname;
@@ -217,31 +217,47 @@ function taktImVideo(webm, hoehe) {
 // Eine Aufnahme der Szenen (erklaer.html, Format per #hash) mit dem Ton an den Stellen, an denen
 // die Sätze IM VIDEO beginnen. Die Browseraufnahme läuft langsamer als die Uhr (27.10.2026: 8 s
 // auf 4 Minuten, der Ton lief am Ende voraus) — deshalb zählt der Taktstreifen, nicht die Uhr.
+// Bild für Bild mit angehaltener Uhr (seit 31.10.2026): Die Echtzeit-Aufnahme des Browsers ließ
+// Bilder aus — es ruckelte an jedem Übergang, und der Ton musste Satz für Satz nachgeschoben werden
+// (klang abgehackt). Jetzt läuft die Seite auf einer Spieluhr (page.clock), jede CSS-Animation wird pro
+// Bild auf ihre Zeit gestellt (document.getAnimations), und jedes Bild wird einzeln fotografiert.
+// Damit stimmen Bild und Zeitplan exakt, und der Ton jeder Szene läuft am Stück.
+const FPS = +(process.env.FPS || 25);
 async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
   const ordner = path.join(AUFNAHME, hash ? 'hoch' : 'quer');
   fs.mkdirSync(ordner, { recursive: true });
-  const groesse = { width: vp.width, height: vp.height + 12 };
   const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });
-  const ctx = await b.newContext({ viewport: groesse, recordVideo: { dir: ordner, size: groesse } });
-  const p = await ctx.newPage();
-  await p.goto('file://' + path.join(DIR, 'erklaer.html') + hash); await p.waitForTimeout(2500);
+  const p = await b.newPage({ viewport: vp });
+  await p.clock.install({ time: new Date('2026-10-20T18:00:00+02:00') });
+  await p.goto('file://' + path.join(DIR, 'erklaer.html') + hash);
+  await p.waitForTimeout(2500); // Bilder und Schriften laden (echte Zeit)
+  await p.evaluate(() => document.fonts.ready);
+  const stelle = () => p.evaluate(() => {
+    const jetzt = Date.now();
+    for (const a of document.getAnimations()) { if (a.__start === undefined) a.__start = jetzt; a.pause(); a.currentTime = jetzt - a.__start; }
+  });
   await p.evaluate(z => { window.ZEITEN = z; window.VORLAUF = 0.45; window.SPIEL(); }, zeiten);
-  await p.waitForFunction(() => window.FERTIG === true, null, { timeout: 900000, polling: 500 });
-  await p.waitForTimeout(1500);
-  const { marken, effekte, takt, dauer } = await p.evaluate(() => ({ marken: window.MARKEN, effekte: window.EFFEKTE, takt: window.TAKT, dauer: window.DAUER }));
-  await ctx.close(); await b.close();
-  const webm = path.join(ordner, fs.readdirSync(ordner).find(f => f.endsWith('.webm')));
-
-  // Uhrzeit (ms ab Start) → Sekunde im Video, stückweise linear zwischen den Taktwechseln
-  const vt = taktImVideo(webm, vp.height);
-  if (vt.length !== takt.length) throw new Error(`Taktstreifen: ${vt.length} Wechsel im Video, ${takt.length} erwartet — Aufnahme verworfen.`);
-  const imVideo = (ms) => {
-    let k = 0; while (k < takt.length - 2 && takt[k + 1] <= ms) k++;
-    const a = takt[k], b2 = takt[k + 1];
-    return vt[k] + (ms - a) / (b2 - a) * (vt[k + 1] - vt[k]);
-  };
-  const t0 = vt[0], ende = vt[vt.length - 1] - t0;
-  console.log(`Aufnahme ${hash || 'quer'}: ${ende.toFixed(1)} s im Video (Uhr: ${(takt[takt.length - 1] / 1000).toFixed(1)} s)`);
+  const roh = path.join(ordner, 'bild.mp4');
+  const enc = spawn(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', roh], { stdio: ['pipe', 'inherit', 'inherit'] });
+  const schreib = (buf) => new Promise(r => (enc.stdin.write(buf) ? r() : enc.stdin.once('drain', r)));
+  let bild = 0, nachlauf = null;
+  for (;;) {
+    await stelle();
+    await schreib(await p.screenshot({ type: 'jpeg', quality: 92 }));
+    bild++;
+    if (bild % (FPS * 10) === 0) process.stdout.write(`\r  ${(bild / FPS).toFixed(0)} s aufgenommen`);
+    if (nachlauf === null && await p.evaluate(() => window.FERTIG === true)) nachlauf = FPS; // 1 s Nachlauf
+    if (nachlauf !== null && --nachlauf <= 0) break;
+    await p.clock.runFor(1000 / FPS);
+  }
+  enc.stdin.end(); await new Promise(r => enc.on('close', r));
+  const { marken, effekte, dauer } = await p.evaluate(() => ({ marken: window.MARKEN, effekte: window.EFFEKTE, dauer: window.DAUER }));
+  await b.close();
+  const ende = bild / FPS;
+  console.log(`\rAufnahme ${hash || 'quer'}: ${ende.toFixed(1)} s, ${bild} Bilder`);
+  const imVideo = (ms) => ms / 1000, t0 = 0;
+  void dauer;
 
   // Effektspur einzeln mischen (eine Datei je Art, per asplit vervielfacht)
   let fxSpur = null;
@@ -260,8 +276,8 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
     console.log(`Effekte: ${effekte.length} (${arten.join(', ')})`);
   }
 
-  const eingaben = ['-ss', t0.toFixed(3), '-i', webm];
-  const filter = [`[0:v]crop=${vp.width}:${vp.height}:0:0[bild]`];
+  const eingaben = ['-i', roh];
+  const filter = ['[0:v]null[bild]'];
   const pieps = []; // { d: ms im Video, dauer: s }
   clips.forEach((c, n) => {
     const m = marken.find(x => x.i === c.i && x.j === c.j);
@@ -349,7 +365,8 @@ async function main() {
     zeiten[i][0] = +(zeiten[i][0] + t.starts[0]).toFixed(3);
     // Jeder Satz einzeln (ab seinem Anfang in der Szenen-Tonspur), damit er genau an seiner Stelle im Bild liegt —
     // als ein Stück je Szene liefe der Ton in langen Szenen dem Bild davon (Bildaufnahme langsamer als die Uhr).
-    t.starts.forEach((s, j) => clips.push({ i, j, datei: t.datei, von: s, bis: j + 1 < t.starts.length ? t.starts[j + 1] : null, piep: t.piep || [] }));
+    // Ton je Szene AM STÜCK (Bild läuft seit der Einzelbild-Aufnahme exakt im Takt, kein Nachschieben nötig)
+    clips.push({ i, j: 0, datei: t.datei, von: 0, bis: null, piep: t.piep || [] });
   }
   console.log(`\nTon fertig (${zeichen} Zeichen neu abgerufen).`);
 

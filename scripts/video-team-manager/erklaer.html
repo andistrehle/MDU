@@ -483,9 +483,13 @@ function zeige(el, x) {
   });
   el.querySelectorAll('.tausch').forEach(e => { e.style.opacity = e.classList.contains('an') ? 1 : 0; });
   if (x.b !== undefined) el.querySelectorAll('img[data-b]').forEach(img => {
-    const an = Number(img.dataset.b) === x.b;
-    img.classList.toggle('an', an);
+    const an = Number(img.dataset.b) === x.b, neu = an && !img.classList.contains('an');
+    // Ein neu eingeblendetes Bild steht SOFORT im richtigen Ausschnitt (sonst zoomt es vom alten aus los —
+    // „Bildaussetzer“, Betreiber 31.10.2026); nur das schon sichtbare Bild zoomt weich weiter.
+    if (neu) img.style.transition = 'opacity .35s ease';
     if (img.closest('.laptop')) img.style.transform = x.z ? `scale(${x.z[2]})` : 'none', img.style.transformOrigin = x.z ? `${x.z[0]}% ${x.z[1]}%` : '50% 0';
+    if (neu) { void img.offsetWidth; img.classList.add('an'); requestAnimationFrame(() => requestAnimationFrame(() => { img.style.transition = ''; })); }
+    else img.classList.toggle('an', an);
   });
   if (x.intro === 'titel') el.querySelector('.intro')?.classList.add('titel-da');
   if (x.intro === 'weg') el.querySelector('.intro')?.classList.add('weg');
