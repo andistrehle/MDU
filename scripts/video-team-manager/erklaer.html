@@ -297,6 +297,7 @@ const SZENEN = [
       + stempel(3, '💶 Kasse', 175, 735, 'gold', 120, 1150) + stempel(4, '📅 Termine', 375, 735, 'gold', 560, 1150) + stempel(5, '✅ Aufgaben', 575, 735, 'gold', 120, 1300) + stempel(6, '⚔️ Gegner', 800, 735, 'gold', 560, 1300),
     schritte: [
       { s: 1.6, u: 'Was ist der Team Manager?', b: 0, z: [44, 0, 1.38] },
+      { s: 4, u: 'Im Prinzip dein Dashboard, wo du alles Wichtige auf einen Blick hast – ganz vorne der nächste Termin.', b: 0, z: [40, 22, 1.65] },
       { s: 2.4, u: '[excited] Zusagen und Absagen mit einem Tipp –', b: 1, z: [40, 22, 1.7], k: 1 },
       { s: 0.9, b: 2, z: [40, 28, 1.7], k: 2, weiter: true },
       { s: 4.5, u: 'und auf deinem persönlichen Dashboard siehst du sofort, wer dabei ist, wer noch überlegt und wer nicht.', b: 3, z: [40, 22, 1.65], k: 3 },
@@ -345,13 +346,12 @@ const SZENEN = [
 
   // 9 – Termine
   { titel: 'Alle <i>Termine</i>', html: beispiel + geraete(['termine', 'termin-neu', 'kalender'])
-      + stempel(0, 'Liga · Pokal · Training · Event', 640, 240, 'gold', 120, 1150, 2) + stempel(1, '📱 Kalender-Abo', 820, 300, '', 140, 1150, 3)
-      + stempel(2, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150),
+      + stempel(0, 'Liga · Pokal · Training · Event', 640, 240, 'gold', 120, 1150, 1)
+      + stempel(1, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150),
     schritte: [
       { s: 2.8, u: '[whispers] Ihr geht auch mal fremd, in anderen Ligen?', b: 0, z: [44, 40, 1.5] },
       { s: 3.6, u: '[excited] Kein Problem: fremdes Ligaspiel, Training, Weihnachtsfeier – egal!', b: 1, z: [44, 30, 1.5], k: 1 },
-      { s: 3, u: 'Alles an einem Ort, sogar im Handykalender.', b: 2, z: [44, 6, 1.5], k: 2 },
-      { s: 4.2, u: '[laughs] Nur einen Spielbericht gibt’s da nicht – wir sind ja die MDU und nicht der BSDABBV!', b: 0, z: [44, 40, 1.5], k: 3 } ] },
+      { s: 4.2, u: '[laughs] Nur einen Spielbericht gibt’s da nicht – wir sind ja die MDU und nicht der BSDABBV!', b: 0, z: [44, 40, 1.5], k: 2 } ] },
 
   // 10 – Nachricht ans Team
   { titel: 'Nachricht <i>ans Team</i>', html: beispiel + geraete(['nachricht']) + mehrHandys(1, 'Heute Treffen schon um 19 Uhr!')
