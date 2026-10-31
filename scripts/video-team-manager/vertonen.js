@@ -30,7 +30,12 @@ const AUFNAHME = path.join(DIR, 'aufnahme');
 const ZIEL = path.join(DIR, 'ausgabe', process.env.TROCKEN === '1' ? 'MDU-team-manager-ohne-ton.mp4' : 'MDU-team-manager.mp4');
 const ZIEL_HOCH = path.join(DIR, 'ausgabe', 'MDU-team-manager-hoch.mp4'); // nur Handy, für reel.js
 const KEY = process.env.ELEVENLABS_API_KEY;
-const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
+// Seit 31.10.2026 das neue Modell v3: versteht Regieanweisungen im Text ([excited], [laughs], [whispers],
+// [shouting], [shocked]) — Toby klingt damit deutlich lebendiger (Betreiber: „wie so ne Trantüte“).
+const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_v3';
+const V3 = MODELL === 'eleven_v3';
+// v3 spricht langsamer; die fertige Szene wird mit atempo schneller abgespielt (Tonhöhe bleibt).
+const TEMPO = +(process.env.TEMPO || (V3 ? 1.12 : 1));
 const PAUSE = +(process.env.PAUSE || 0.35); // Sekunden Luft am Ende jeder Szene
 // Aussprache: gilt NUR für den gesprochenen Text, der Untertitel bleibt wie in erklaer.html.
 // Ohne das liest die Stimme „mdudarts“ als ein Wort („Mdu-darts“).
@@ -64,13 +69,15 @@ async function api(pfad, init = {}) {
 }
 
 // Klang: noch euphorischer als „Was ist neu“ (Betreiber, 18.10.2026). Über ENV anpassbar.
-const STIMME = {
-  stability: +(process.env.STABILITY || 0.2),
-  similarity_boost: 0.75,
-  style: +(process.env.STYLE || 0.9),
-  use_speaker_boost: true,
-  speed: +(process.env.SPEED || 1.15),
-};
+const STIMME = V3
+  ? { stability: +(process.env.STABILITY || 0.5) } // v3: 0 = kreativ, 0.5 = natürlich (Betreiber-Wahl), 1 = robust
+  : {
+    stability: +(process.env.STABILITY || 0.2),
+    similarity_boost: 0.75,
+    style: +(process.env.STYLE || 0.9),
+    use_speaker_boost: true,
+    speed: +(process.env.SPEED || 1.15),
+  };
 
 function trockenTon(text, datei) {
   // Stille in der ungefähren Sprechlänge (14 Zeichen/s) — Vorschau ohne Ton, kostet nichts
@@ -93,11 +100,21 @@ async function sprichSzene(saetze, voice, basis) {
   const teile = saetze.map(sprechtext);
   const text = teile.join(' ');
   const datei = basis + '.mp3', meta = basis + '.json';
-  if (fs.existsSync(datei) && fs.existsSync(meta)) return { datei, ...JSON.parse(fs.readFileSync(meta, 'utf8')), neu: 0 };
-  let starts, ende;
+  if (fs.existsSync(datei) && fs.existsSync(meta)) return { datei, piep: [], ...JSON.parse(fs.readFileSync(meta, 'utf8')), neu: 0 };
+  let starts, ende, piep = [];
   if (process.env.TROCKEN === '1') {
     trockenTon(text, datei);
     let pos = 0; starts = teile.map(t => { const s = pos / ZPS; pos += ohneRegie(t).length + 1; return s; }); ende = ohneRegie(text).length / ZPS;
+  } else if (V3) {
+    const r = await api(`/v1/text-to-speech/${voice}?output_format=mp3_44100_128`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, model_id: MODELL, language_code: 'de', voice_settings: STIMME }),
+    });
+    const roh = basis + '.roh.mp3';
+    fs.writeFileSync(roh, Buffer.from(await r.arrayBuffer()));
+    execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', roh, '-af', `atempo=${TEMPO}`, '-b:a', '160k', datei]);
+    fs.rmSync(roh, { force: true });
+    ({ starts, ende, piep } = await zeitmarkenAusSprache(datei, teile));
   } else {
     const r = await api(`/v1/text-to-speech/${voice}/with-timestamps?output_format=mp3_44100_128`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -109,8 +126,33 @@ async function sprichSzene(saetze, voice, basis) {
     let pos = 0; starts = teile.map(t => { const s = t0[Math.min(pos, t0.length - 1)]; pos += t.length + 1; return s; });
     ende = a.character_end_times_seconds[a.character_end_times_seconds.length - 1];
   }
-  fs.writeFileSync(meta, JSON.stringify({ starts, ende }));
-  return { datei, starts, ende, neu: text.length };
+  fs.writeFileSync(meta, JSON.stringify({ starts, ende, piep }));
+  return { datei, starts, ende, piep, neu: text.length };
+}
+
+// Wörter mit Zeit aus der Spracherkennung (scribe_v1). Satzanfang = erstes Wort des Satzes, der Reihe
+// nach gesucht; Piep = jedes Wort aus PIEP_WOERTER (gesprochen ganz, im Video überpiept).
+const PIEP_WOERTER = ['sack'];
+const norm = (w) => w.toLowerCase().replace(/[^a-zäöüß0-9]/g, '');
+async function zeitmarkenAusSprache(datei, teile) {
+  const fd = new FormData();
+  fd.append('model_id', 'scribe_v1'); fd.append('language_code', 'de'); fd.append('timestamps_granularity', 'word');
+  fd.append('file', new Blob([fs.readFileSync(datei)], { type: 'audio/mpeg' }), path.basename(datei));
+  const j = await (await api('/v1/speech-to-text', { method: 'POST', body: fd })).json();
+  const w = (j.words || []).filter(x => x.type === 'word');
+  const ende = w.length ? w[w.length - 1].end : laenge(datei);
+  const gesamt = teile.reduce((a, t) => a + ohneRegie(t).length + 1, 0);
+  let zeiger = 0, pos = 0;
+  const starts = teile.map((t, n) => {
+    const erstes = norm(ohneRegie(t).split(/\s+/).find(x => norm(x)) || '');
+    const schaetz = pos / gesamt * ende; pos += ohneRegie(t).length + 1;
+    if (n === 0) { const k = w.findIndex(x => norm(x.text) === erstes); if (k >= 0) zeiger = k + 1; return w[0]?.start ?? 0; }
+    for (let k = zeiger; k < w.length; k++) if (norm(w[k].text) === erstes && Math.abs(w[k].start - schaetz) < 6) { zeiger = k + 1; return w[k].start; }
+    console.warn(`  Satzanfang „${erstes}“ nicht erkannt – geschätzt`);
+    return schaetz;
+  });
+  const piep = w.filter(x => PIEP_WOERTER.includes(norm(x.text))).map(x => ({ s: Math.max(0, x.start - 0.04), e: x.end + 0.06 }));
+  return { starts, ende, piep };
 }
 
 function laenge(datei) {
@@ -220,18 +262,29 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
 
   const eingaben = ['-ss', t0.toFixed(3), '-i', webm];
   const filter = [`[0:v]crop=${vp.width}:${vp.height}:0:0[bild]`];
+  const pieps = []; // { d: ms im Video, dauer: s }
   clips.forEach((c, n) => {
     const m = marken.find(x => x.i === c.i && x.j === c.j);
     const d = Math.max(0, Math.round((imVideo(m.ms) - t0) * 1000));
     eingaben.push('-ss', c.von.toFixed(3), ...(c.bis != null ? ['-t', (c.bis - c.von).toFixed(3)] : []), '-i', c.datei);
-    filter.push(`[${n + 1}:a]adelay=${d}|${d}[a${n}]`);
+    // Piep: Stimme an der Stelle stumm, darüber ein Sinuston (Betreiber, 31.10.2026: „Geh mir nicht auf den S***“)
+    const hier = c.piep.filter(p => p.s >= c.von && (c.bis == null || p.s < c.bis));
+    const stumm = hier.map(p => `volume=enable='between(t,${(p.s - c.von).toFixed(3)},${(p.e - c.von).toFixed(3)})':volume=0`).join(',');
+    for (const p of hier) pieps.push({ d: d + Math.round((p.s - c.von) * 1000), dauer: p.e - p.s });
+    filter.push(`[${n + 1}:a]${stumm ? stumm + ',' : ''}adelay=${d}|${d}[a${n}]`);
   });
-  const stimmen = clips.map((_, n) => `[a${n}]`).join('');
+  pieps.forEach((p, k) => {
+    const n = clips.length + 1 + k;
+    eingaben.push('-f', 'lavfi', '-t', p.dauer.toFixed(3), '-i', 'sine=frequency=1000:sample_rate=44100');
+    filter.push(`[${n}:a]volume=0.3,adelay=${p.d}|${p.d}[p${k}]`);
+  });
+  const stimmen = clips.map((_, n) => `[a${n}]`).join('') + pieps.map((_, k) => `[p${k}]`).join('');
+  const anzahl = clips.length + pieps.length;
   if (fxSpur) {
     eingaben.push('-i', fxSpur);
-    filter.push(`${stimmen}amix=inputs=${clips.length}:normalize=0[stimme]`);
-    filter.push(`[stimme][${clips.length + 1}:a]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5[ton]`);
-  } else filter.push(`${stimmen}amix=inputs=${clips.length}:normalize=0,loudnorm=I=-16:TP=-1.5[ton]`);
+    filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0[stimme]`);
+    filter.push(`[stimme][${anzahl + 1}:a]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5[ton]`);
+  } else filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0,loudnorm=I=-16:TP=-1.5[ton]`);
   execFileSync(FFMPEG, ['-y', '-loglevel', 'error', ...eingaben, '-filter_complex', filter.join(';'),
     '-map', '[bild]', '-map', '[ton]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '160k', '-t', (ende + 1).toFixed(2), '-movflags', '+faststart', ziel], { stdio: 'inherit' });
@@ -265,7 +318,7 @@ async function main() {
     const szenen = await szenenLesen();
     for (const nr of process.argv[3].split(',').map(Number)) {
       const sz = szenen[nr - 1];
-      const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+      const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, TEMPO, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
       // NEU=2,4 → diese Szenen (Nummer ab 1) neu sprechen lassen, z. B. nach einem Versprecher
     if ((process.env.NEU || '').split(',').map(Number).includes(i + 1)) for (const e of ['.mp3', '.json']) fs.rmSync(path.join(TON, 'szene-' + hash + e), { force: true });
     const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
@@ -286,7 +339,7 @@ async function main() {
   const clips = []; const zeiten = [];
   let zeichen = 0;
   for (const [i, sz] of szenen.entries()) {
-    const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+    const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, TEMPO, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
     // NEU=2,4 → diese Szenen (Nummer ab 1) neu sprechen lassen, z. B. nach einem Versprecher
     if ((process.env.NEU || '').split(',').map(Number).includes(i + 1)) for (const e of ['.mp3', '.json']) fs.rmSync(path.join(TON, 'szene-' + hash + e), { force: true });
     const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
@@ -296,7 +349,7 @@ async function main() {
     zeiten[i][0] = +(zeiten[i][0] + t.starts[0]).toFixed(3);
     // Jeder Satz einzeln (ab seinem Anfang in der Szenen-Tonspur), damit er genau an seiner Stelle im Bild liegt —
     // als ein Stück je Szene liefe der Ton in langen Szenen dem Bild davon (Bildaufnahme langsamer als die Uhr).
-    t.starts.forEach((s, j) => clips.push({ i, j, datei: t.datei, von: s, bis: j + 1 < t.starts.length ? t.starts[j + 1] : null }));
+    t.starts.forEach((s, j) => clips.push({ i, j, datei: t.datei, von: s, bis: j + 1 < t.starts.length ? t.starts[j + 1] : null, piep: t.piep || [] }));
   }
   console.log(`\nTon fertig (${zeichen} Zeichen neu abgerufen).`);
 

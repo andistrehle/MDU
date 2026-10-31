@@ -24,7 +24,13 @@ OHNE_HOCH=1 ELEVENLABS_VOICE_ID=eEmoQJhC4SAEQpCINUov node vertonen.js           
 node reel.js
 ```
 
-- **Klang:** stability 0.2, style 0.9, speed 1.15 (ENV `STABILITY`/`STYLE`/`SPEED`). Benjamin war dem Betreiber zu müde.
+- **Klang (seit 31.10.2026):** Modell `eleven_v3` mit Regieanweisungen im Skript (`[excited]`, `[laughs]`,
+  `[whispers]`, `[shouting]`, `[shocked]` — nur gesprochen, nie im Untertitel), stability 0.5 („natürlich“,
+  Betreiber-Wahl nach Hörprobe), danach `atempo` 1.12 (ENV `TEMPO`). v3 liefert keine Zeitmarken je Zeichen:
+  Satzanfänge und Piep-Stelle kommen aus der Spracherkennung (`zeitmarkenAusSprache`).
+- **Piep:** `{S***|Sack}` im Skript — Untertitel zeigt S***, gesprochen wird das Wort, im Video ist die
+  Stimme dort stumm und ein 1-kHz-Ton liegt darüber (`PIEP_WOERTER`).
+- Altes Modell: `ELEVENLABS_MODEL=eleven_multilingual_v2` (stability 0.2, style 0.9, speed 1.15).
 - **Vorschau ohne Ton:** `TROCKEN=1 OHNE_HOCH=1 ELEVENLABS_VOICE_ID=x node vertonen.js` → Stille, Satzlänge geschätzt (14 Zeichen/s), kostet nichts.
 - **Versprecher:** `NEU=2,4` spricht nur diese Szenen neu (Toby verhaspelte sich in Szene 2, lachte grundlos in 4).
 - **Gleichlauf (27.10.2026):** Die Browseraufnahme läuft langsamer als die Uhr (8–9 s auf 4 Min., der Ton
