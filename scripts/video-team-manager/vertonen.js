@@ -45,7 +45,12 @@ const AUSSPRACHE = [
   // daran verschluckt sich die Stimme (Szene 6, 14.10.2026).
   [/^\s*…\s*/, ''], [/\s*…\s*$/, ','], [/\s*…\s*/g, ', '],
 ];
-const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers), t);
+// {S***|Sack}: Untertitel zeigt S***, gesprochen wird „Sack“ (mit Piep darüber, siehe PIEP).
+const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers), t.replace(/\{[^|}]*\|([^}]*)\}/g, '$1'));
+// Ohne Regieanweisungen ([excited] …) — für Länge und Abgleich mit der Spracherkennung.
+const ohneRegie = (t) => t.replace(/\[[^\]]*\]\s*/g, '');
+// Vorschau ohne Ton: Zeichen pro Sekunde (Toby/v3 „natürlich“ ≈ 12,5, gemessen 31.10.2026)
+const ZPS = +(process.env.ZPS || 12.5);
 const FFMPEG = (() => { try { return require(path.join(DIR, 'node_modules/ffmpeg-static')); } catch { return 'ffmpeg'; } })();
 
 function brauchtKey() {
@@ -69,7 +74,7 @@ const STIMME = {
 
 function trockenTon(text, datei) {
   // Stille in der ungefähren Sprechlänge (14 Zeichen/s) — Vorschau ohne Ton, kostet nichts
-  execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `anullsrc=r=44100:cl=mono`, '-t', (text.length / 14).toFixed(2), '-q:a', '6', datei]);
+  execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `anullsrc=r=44100:cl=mono`, '-t', (ohneRegie(text).length / ZPS).toFixed(2), '-q:a', '6', datei]);
 }
 
 async function sprich(text, voice, datei) {
@@ -92,7 +97,7 @@ async function sprichSzene(saetze, voice, basis) {
   let starts, ende;
   if (process.env.TROCKEN === '1') {
     trockenTon(text, datei);
-    let pos = 0; starts = teile.map(t => { const s = pos / 14; pos += t.length + 1; return s; }); ende = text.length / 14;
+    let pos = 0; starts = teile.map(t => { const s = pos / ZPS; pos += ohneRegie(t).length + 1; return s; }); ende = ohneRegie(text).length / ZPS;
   } else {
     const r = await api(`/v1/text-to-speech/${voice}/with-timestamps?output_format=mp3_44100_128`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
