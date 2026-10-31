@@ -10,7 +10,7 @@ const { chromium } = require('playwright'); const path = require('path');
     await p.evaluate(([i, j]) => {
       document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
       const el = document.getElementById('sz' + i); el.classList.add('an');
-      for (let q = 0; q <= j; q++) { const sch = SZENEN[i].schritte[q]; zeige(el, sch); document.getElementById('unter').textContent = sch.u ?? '';
+      for (let q = 0; q <= j; q++) { const sch = SZENEN[i].schritte[q]; zeige(el, sch); document.getElementById('unter').textContent = ohneRegie(sch.u ?? '');
         if (sch.collage) el.querySelectorAll('[data-c]').forEach(c => c.classList.add('an')); }
     }, [i, j]);
     await p.waitForTimeout(1100);
