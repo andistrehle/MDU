@@ -50,7 +50,7 @@ const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers)
 // Ohne Regieanweisungen ([excited] …) — für Länge und Abgleich mit der Spracherkennung.
 const ohneRegie = (t) => t.replace(/\[[^\]]*\]\s*/g, '');
 // Vorschau ohne Ton: Zeichen pro Sekunde (Toby/v3 „natürlich“ ≈ 12,5, gemessen 31.10.2026)
-const ZPS = +(process.env.ZPS || 12.5);
+const ZPS = +(process.env.ZPS || 14); // 12,5 × 1,12 (Toby wird 12 % schneller abgespielt)
 const FFMPEG = (() => { try { return require(path.join(DIR, 'node_modules/ffmpeg-static')); } catch { return 'ffmpeg'; } })();
 
 function brauchtKey() {
