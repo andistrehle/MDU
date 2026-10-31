@@ -236,7 +236,10 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
     const jetzt = Date.now();
     for (const a of document.getAnimations()) { if (a.__start === undefined) a.__start = jetzt; a.pause(); a.currentTime = jetzt - a.__start; }
   });
-  await p.evaluate(z => { window.ZEITEN = z; window.VORLAUF = 0.45; window.SPIEL(); }, zeiten);
+  p.on('pageerror', e => console.error('Fehler in erklaer.html:', e.message));
+  // Uhr ANHALTEN: nach install läuft sie sonst in Echtzeit weiter, und der Ablauf eilt den Bildern davon.
+  await p.clock.pauseAt(new Date('2026-10-20T18:05:00+02:00'));
+  await p.evaluate(z => { window.FERTIG = false; window.ZEITEN = z; window.VORLAUF = 0.45; window.SPIEL().catch(e => { console.error(e); window.FEHLER = String(e); }); }, zeiten);
   const roh = path.join(ordner, 'bild.mp4');
   const enc = spawn(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', roh], { stdio: ['pipe', 'inherit', 'inherit'] });
@@ -247,7 +250,12 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
     await schreib(await p.screenshot({ type: 'jpeg', quality: 92 }));
     bild++;
     if (bild % (FPS * 10) === 0) process.stdout.write(`\r  ${(bild / FPS).toFixed(0)} s aufgenommen`);
-    if (nachlauf === null && await p.evaluate(() => window.FERTIG === true)) nachlauf = FPS; // 1 s Nachlauf
+    if (nachlauf === null && await p.evaluate(() => window.FERTIG === true)) {
+      nachlauf = FPS; // 1 s Nachlauf
+      const m = await p.evaluate(() => window.MARKEN.length);
+      console.log(`\n  fertig nach ${(bild / FPS).toFixed(1)} s, ${m} Sätze`);
+    }
+    if (bild > FPS * 900) throw new Error('Aufnahme läuft über 15 Minuten – abgebrochen.');
     if (nachlauf !== null && --nachlauf <= 0) break;
     await p.clock.runFor(1000 / FPS);
   }

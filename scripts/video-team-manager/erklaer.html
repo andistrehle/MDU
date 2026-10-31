@@ -33,7 +33,7 @@
   .handy { position:absolute; left:1340px; top:120px; width:410px; border-radius:58px; padding:14px; background:#1A1D24; box-shadow: 0 40px 80px rgba(15,23,42,.38), inset 0 0 0 2px #3a3f4a; }
   .handy .schirm { position:relative; width:382px; height:827px; overflow:hidden; border-radius:46px; background:#fff; }
   .handy .schirm::after { content:''; position:absolute; top:12px; left:50%; width:110px; height:30px; margin-left:-55px; border-radius:20px; background:#1A1D24; z-index:4; }
-  .schirm img { position:absolute; left:0; top:0; width:100%; opacity:0; transition: opacity .35s ease, transform .9s cubic-bezier(.3,.8,.3,1); transform-origin: 50% 0; }
+  .schirm img { position:absolute; left:0; top:0; width:100%; opacity:0; transition: opacity .35s ease, transform .9s cubic-bezier(.3,.8,.3,1), transform-origin .9s cubic-bezier(.3,.8,.3,1); transform-origin: 50% 0; }
   .schirm img.an { opacity:1; }
 
   /* Untertitel */
@@ -486,10 +486,9 @@ function zeige(el, x) {
     const an = Number(img.dataset.b) === x.b, neu = an && !img.classList.contains('an');
     // Ein neu eingeblendetes Bild steht SOFORT im richtigen Ausschnitt (sonst zoomt es vom alten aus los —
     // „Bildaussetzer“, Betreiber 31.10.2026); nur das schon sichtbare Bild zoomt weich weiter.
-    if (neu) img.style.transition = 'opacity .35s ease';
     if (img.closest('.laptop')) img.style.transform = x.z ? `scale(${x.z[2]})` : 'none', img.style.transformOrigin = x.z ? `${x.z[0]}% ${x.z[1]}%` : '50% 0';
-    if (neu) { void img.offsetWidth; img.classList.add('an'); requestAnimationFrame(() => requestAnimationFrame(() => { img.style.transition = ''; })); }
-    else img.classList.toggle('an', an);
+    if (neu) img.getAnimations().forEach(a => a.finish()); // Zoomfahrt des unsichtbaren Bildes sofort fertig
+    img.classList.toggle('an', an);
   });
   if (x.intro === 'titel') el.querySelector('.intro')?.classList.add('titel-da');
   if (x.intro === 'weg') el.querySelector('.intro')?.classList.add('weg');
