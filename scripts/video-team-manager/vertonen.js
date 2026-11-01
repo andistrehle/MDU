@@ -189,7 +189,7 @@ async function effektDatei(typ) {
   if (fs.existsSync(datei)) return datei;
   const [text, dauer] = FX[typ];
   const r = await api('/v1/sound-generation', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, duration_seconds: dauer, prompt_influence: 0.5 }) });
+    body: JSON.stringify({ text, duration_seconds: dauer, prompt_influence: 0.5, model_id: 'eleven_text_to_sound_v3' }) }); // v2 wird am 01.02.2027 abgeschaltet
   fs.mkdirSync(path.dirname(datei), { recursive: true });
   fs.writeFileSync(datei, Buffer.from(await r.arrayBuffer()));
   console.log(`Effekt „${typ}“ erzeugt`);
