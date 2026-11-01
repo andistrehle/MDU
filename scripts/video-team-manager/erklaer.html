@@ -252,7 +252,7 @@ const intro = (gross) => `<div class="intro"><div class="scheibe"></div><div cla
   <div class="gross tc">${gross}</div></div>`;
 const CHAOS = [['Max', 'Wer kommt denn jetzt alles am Freitag? 🎯', 0], ['Tim', 'Keine Ahnung 🤷', 0], ['Lena', 'Doch nicht, sorry 🙈', 0],
   ['Vroni', 'Was ist eigentlich noch in der Kasse? 💶', 1], ['Ali', 'Geh mir nicht auf den S***, Captain! 😂', 2],
-  ['Max', 'What?! 😱', 3], ['Max', '5 € für die Mannschaftskasse! 💶', 3]];
+  ['Max', 'What?! 😱', 3]];
 const kachel = (k, em, text, x, y, xh, yh) => `<div class="vgl tc" data-k="${k}" style="left:${HOCH ? xh : x}px;top:${HOCH ? yh : y}px;flex-direction:column;gap:10px;width:${HOCH ? 440 : 400}px;text-align:center">${em}<span>${text}</span></div>`;
 
 const SZENEN = [
@@ -275,10 +275,10 @@ const SZENEN = [
       <div class="laptop"><div class="rand"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="4"></div></div></div><div class="fuss"></div></div>
       <div class="handy"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="4"></div></div></div>`,
     schritte: [
-      { s: 3.2, u: 'Kennt ihr das? „Wer kommt denn jetzt alles am Freitag?“', k: 1 },
+      { s: 3.2, u: 'Kennt ihr das? „{Wer kommt denn jetzt alles am Freitag?|Wer kommt denn jetzt alles? Am Freitag!}“', k: 1 },
       { s: 2, u: '„Was ist noch in der Kasse?“', k: 2 },
       { s: 2.2, u: '[shouting] „Geh mir nicht auf den {S***|Sack}, Captain!“', k: 3 },
-      { s: 2.6, u: '[shocked] „What?! Fünf Euro für die Mannschaftskasse!“', k: 4 },
+      { s: 1.4, u: '[shocked] „What?!“', k: 4 },
       { s: 0.8, k: 5, weiter: true } ] },
 
   // 3 – Titel
@@ -334,16 +334,16 @@ const SZENEN = [
       { s: 3, u: 'Und du als Captain kriegst jede Zu- und Absage sofort mit.', b: 0, z: [82, 0, 1.4], k: 5 } ] },
 
   // 7 – Termine (direkt hinter den Zusagen, damit der Termin-Teil zusammenhängt)
-  { titel: 'Alle <i>Termine</i>', html: beispiel + geraete(['termine', 'termin-neu'],
+  { titel: 'Alle <i>Termine</i>', html: beispiel + geraete(['termine', 'termin-neu', 'kalender'],
         sperr(1, 2, push(1, 'Neuer Termin', 'Training · Di 3.11. 19:00 Uhr – bitte zu- oder absagen.')))
       + stempel(0, 'Liga · Pokal · Training · Event', 640, 240, 'gold', 120, 1150, 1)
       + stempel(1, 'Ganzes Team weiß Bescheid 📲', 640, 560, '', 140, 1150, 2)
-      + stempel(2, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150),
+      + stempel(2, '📅 Ab in den Kalender', 820, 300, '', 140, 1150),
     schritte: [
       { s: 2.8, u: '[whispers] Ihr geht auch mal fremd, in anderen Ligen?', b: 0, z: [44, 40, 1.5] },
       { s: 3.6, u: '[excited] Kein Problem: fremdes Ligaspiel, Training, Weihnachtsfeier – egal!', b: 0, z: [44, 40, 1.5], k: 1 },
-      { s: 4.4, u: 'Einmal eingetragen, und das ganze Team kriegt Bescheid – zu- und absagen genauso wie bei der MDU.', b: 1, z: [44, 60, 1.6], k: 2 },
-      { s: 4.2, u: '[laughs] Nur einen Spielbericht gibt’s da nicht – wir sind ja die MDU und nicht der BSDABBV!', b: 0, z: [44, 40, 1.5], k: 3 } ] },
+      { s: 3.4, u: 'Einmal eingetragen, und das ganze Team kriegt Bescheid –', b: 1, z: [44, 60, 1.6], k: 2 },
+      { s: 4, u: 'mit den gleichen Funktionen fürs Zu- und Absagen, und in den Kalender übertragbar.', b: 2, z: [44, 6, 1.5], k: 3 } ] },
 
   // 7 – Aufstellung
   { titel: 'Die <i>Aufstellung</i>', html: beispiel + geraete(['spiel-aufstellung', 'bericht-voll'])
@@ -370,10 +370,10 @@ const SZENEN = [
 
   // 11 – Gegneranalyse (ein Satz)
   { titel: 'Den Gegner <i>im Blick</i>', html: beispiel + geraete(['gegner', 'gegner-top'])
-      + stempel(0, '🎯 180er!', 880, 560, 'gold', 560, 1150),
+      + stempel(0, '🎯 Top 5 mit 180ern', 820, 560, 'gold', 560, 1150),
     schritte: [
-      { s: 2.4, u: 'Vor dem Spiel: Wie ist der Gegner drauf,', b: 0, z: [44, 10, 1.5] },
-      { s: 2.2, u: 'wer wirft bei ihm die meisten 180er?', b: 1, z: [44, 30, 1.5], k: 1 } ] },
+      { s: 3.2, u: 'Wie ist der Gegner drauf und wer sind seine Top-Spieler?', b: 0, z: [44, 10, 1.5] },
+      { s: 2, u: 'Alles in der Gegneranalyse.', b: 1, z: [44, 30, 1.5], k: 1 } ] },
 
   // 11b – Statistik (ein Satz)
   { titel: 'Euer Team <i>im Blick</i>', html: beispiel + geraete(['stat-teilnahme', 'stat'])
@@ -397,7 +397,7 @@ const SZENEN = [
       </div>
       ${stempel(0, 'Kein App Store! 🚀', 1300, 130, 'gold', 560, 180, 2)}`,
     schritte: [
-      { s: 2.4, u: '[excited] Und das Beste: Holt euch die MDU als App aufs Handy – ganz ohne App Store!', k: 1 },
+      { s: 2.4, u: '[excited] Holt euch am besten die MDU als App aufs Handy – als Web-App, ganz ohne App Store!', k: 1 },
       { s: 1.1, k: 2, weiter: true },
       { s: 1.1, k: 3, weiter: true },
       { s: 1.1, k: 4, weiter: true },
@@ -407,6 +407,7 @@ const SZENEN = [
   { titel: '', html: `<div class="collage" id="collage"></div><div class="frage" data-k="1"><span class="tc">Und was kostet<br>der Spaß?</span></div>`,
     schritte: [
       { s: 2.2, u: '[excited] Und was kostet der Spaß?', k: 2, collage: true },
+      { s: 3, u: 'Ganz kostenlos ist dieser Service leider nicht – aber so gut wie!', k: 2, collage: true },
       { s: 1.8, u: '[whispers] Haltet euch fest …', k: 2, collage: true, trommel: true } ] },
 
   { titel: '', html: `<div class="preis">
