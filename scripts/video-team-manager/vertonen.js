@@ -35,7 +35,7 @@ const KEY = process.env.ELEVENLABS_API_KEY;
 const MODELL = process.env.ELEVENLABS_MODEL || 'eleven_v3';
 const V3 = MODELL === 'eleven_v3';
 // v3 spricht langsamer; die fertige Szene wird mit atempo schneller abgespielt (Tonhöhe bleibt).
-const TEMPO = +(process.env.TEMPO || (V3 ? 1.12 : 1));
+const TEMPO = +(process.env.TEMPO || (V3 ? 1.18 : 1)); // 01.11.2026: 1.18 (vorher 1.12)
 const PAUSE = +(process.env.PAUSE || 0.35); // Sekunden Luft am Ende jeder Szene
 // Aussprache: gilt NUR für den gesprochenen Text, der Untertitel bleibt wie in erklaer.html.
 // Ohne das liest die Stimme „mdudarts“ als ein Wort („Mdu-darts“).
@@ -55,7 +55,7 @@ const sprechtext = (t) => AUSSPRACHE.reduce((s, [re, ers]) => s.replace(re, ers)
 // Ohne Regieanweisungen ([excited] …) — für Länge und Abgleich mit der Spracherkennung.
 const ohneRegie = (t) => t.replace(/\[[^\]]*\]\s*/g, '');
 // Vorschau ohne Ton: Zeichen pro Sekunde (Toby/v3 „natürlich“ ≈ 12,5, gemessen 31.10.2026)
-const ZPS = +(process.env.ZPS || 14); // 12,5 × 1,12 (Toby wird 12 % schneller abgespielt)
+const ZPS = +(process.env.ZPS || 14.75); // 12,5 × 1,18 (Toby wird 18 % schneller abgespielt)
 const FFMPEG = (() => { try { return require(path.join(DIR, 'node_modules/ffmpeg-static')); } catch { return 'ffmpeg'; } })();
 
 function brauchtKey() {
@@ -96,10 +96,26 @@ async function sprich(text, voice, datei) {
 // Eine ganze Szene AM STÜCK sprechen (sonst klingt es abgehackt) und aus den
 // Zeitmarken je Zeichen ablesen, wann welcher Satz beginnt.
 // Ergebnis: { datei, starts: [s je Satz], ende: s }
-async function sprichSzene(saetze, voice, basis) {
+async function sprichSzene(saetze, voice, basis, altBasis) {
   const teile = saetze.map(sprechtext);
   const text = teile.join(' ');
+  // v3: Rohaufnahme (ohne Tempo) bleibt liegen; je Tempo eine eigene, daraus erzeugte Fassung.
+  // So kostet ein anderes Tempo keine Zeichen (Betreiber, 01.11.2026).
+  if (V3 && process.env.TROCKEN !== '1') basis = `${basis}-t${TEMPO}`;
   const datei = basis + '.mp3', meta = basis + '.json';
+  if (V3 && process.env.TROCKEN !== '1' && !fs.existsSync(datei)) {
+    const roh = basis.replace(/-t[\d.]+$/, '') + '.roh.mp3';
+    let quelle = null, faktor = TEMPO;
+    if (fs.existsSync(roh)) quelle = roh;
+    else if (altBasis && fs.existsSync(altBasis.datei)) { quelle = altBasis.datei; faktor = TEMPO / altBasis.tempo; }
+    if (quelle) {
+      execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', quelle, '-af', `atempo=${faktor.toFixed(4)}`, '-b:a', '160k', datei]);
+      const zm = await zeitmarkenAusSprache(datei, teile);
+      fs.writeFileSync(meta, JSON.stringify(zm));
+      console.log(`  Tempo ${TEMPO} aus vorhandener Aufnahme (${path.basename(quelle)}) – keine Zeichen`);
+      return { datei, ...zm, neu: 0 };
+    }
+  }
   if (fs.existsSync(datei) && fs.existsSync(meta)) return { datei, piep: [], ...JSON.parse(fs.readFileSync(meta, 'utf8')), neu: 0 };
   let starts, ende, piep = [];
   if (process.env.TROCKEN === '1') {
@@ -110,10 +126,9 @@ async function sprichSzene(saetze, voice, basis) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, model_id: MODELL, language_code: 'de', voice_settings: STIMME }),
     });
-    const roh = basis + '.roh.mp3';
+    const roh = basis.replace(/-t[\d.]+$/, '') + '.roh.mp3';
     fs.writeFileSync(roh, Buffer.from(await r.arrayBuffer()));
     execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', roh, '-af', `atempo=${TEMPO}`, '-b:a', '160k', datei]);
-    fs.rmSync(roh, { force: true });
     ({ starts, ende, piep } = await zeitmarkenAusSprache(datei, teile));
   } else {
     const r = await api(`/v1/text-to-speech/${voice}/with-timestamps?output_format=mp3_44100_128`, {
@@ -251,7 +266,7 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
     bild++;
     if (bild % (FPS * 10) === 0) process.stdout.write(`\r  ${(bild / FPS).toFixed(0)} s aufgenommen`);
     if (nachlauf === null && await p.evaluate(() => window.FERTIG === true)) {
-      nachlauf = FPS; // 1 s Nachlauf
+      nachlauf = Math.round(FPS * 1.6); // Nachlauf zum Ausblenden
       const m = await p.evaluate(() => window.MARKEN.length);
       console.log(`\n  fertig nach ${(bild / FPS).toFixed(1)} s, ${m} Sätze`);
     }
@@ -285,7 +300,9 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
   }
 
   const eingaben = ['-i', roh];
-  const filter = ['[0:v]null[bild]'];
+  // Ende weich ausblenden (Betreiber, 01.11.2026: „keine Ruckler am Ende“)
+  const aus = Math.max(0, ende - 0.9);
+  const filter = [`[0:v]fade=t=out:st=${aus.toFixed(2)}:d=0.9[bild]`];
   const pieps = []; // { d: ms im Video, dauer: s }
   clips.forEach((c, n) => {
     const m = marken.find(x => x.i === c.i && x.j === c.j);
@@ -307,8 +324,8 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
   if (fxSpur) {
     eingaben.push('-i', fxSpur);
     filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0[stimme]`);
-    filter.push(`[stimme][${anzahl + 1}:a]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5[ton]`);
-  } else filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0,loudnorm=I=-16:TP=-1.5[ton]`);
+    filter.push(`[stimme][${anzahl + 1}:a]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5,afade=t=out:st=${aus.toFixed(2)}:d=0.9[ton]`);
+  } else filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0,loudnorm=I=-16:TP=-1.5,afade=t=out:st=${aus.toFixed(2)}:d=0.9[ton]`);
   execFileSync(FFMPEG, ['-y', '-loglevel', 'error', ...eingaben, '-filter_complex', filter.join(';'),
     '-map', '[bild]', '-map', '[ton]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '160k', '-t', (ende + 1).toFixed(2), '-movflags', '+faststart', ziel], { stdio: 'inherit' });
@@ -363,10 +380,13 @@ async function main() {
   const clips = []; const zeiten = [];
   let zeichen = 0;
   for (const [i, sz] of szenen.entries()) {
-    const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, TEMPO, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+    const hash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
+    // Aufnahmen vom 31.10.2026 (Tempo 1.12 im Hash, ohne Rohfassung) weiterverwenden
+    const altHash = crypto.createHash('sha1').update(JSON.stringify([voice, MODELL, STIMME, 1.12, sz.saetze.map(sprechtext)])).digest('hex').slice(0, 16);
     // NEU=2,4 → diese Szenen (Nummer ab 1) neu sprechen lassen, z. B. nach einem Versprecher
-    if ((process.env.NEU || '').split(',').map(Number).includes(i + 1)) for (const e of ['.mp3', '.json']) fs.rmSync(path.join(TON, 'szene-' + hash + e), { force: true });
-    const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash));
+    const neuSprechen = (process.env.NEU === 'alle') || (process.env.NEU || '').split(',').map(Number).includes(i + 1);
+    if (neuSprechen) for (const f of fs.readdirSync(TON)) if (f.startsWith('szene-' + hash) || f.startsWith('szene-' + altHash)) fs.rmSync(path.join(TON, f), { force: true });
+    const t = await sprichSzene(sz.saetze, voice, path.join(TON, 'szene-' + hash), { datei: path.join(TON, 'szene-' + altHash + '.mp3'), tempo: 1.12 });
     zeichen += t.neu; if (t.neu) process.stdout.write('.');
     // Satz j läuft bis zum Anfang von Satz j+1; der letzte bis Sprechende + Luft.
     zeiten[i] = t.starts.map((s, j) => +(j + 1 < t.starts.length ? t.starts[j + 1] - s : t.ende - s + PAUSE).toFixed(3));

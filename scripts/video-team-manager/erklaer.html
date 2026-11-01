@@ -251,8 +251,8 @@ const Z = { voll: null, inhalt: [44, 0, 1.38] };
 const intro = (gross) => `<div class="intro"><div class="scheibe"></div><div class="scheibe links"></div><img class="logo" src="${LOGO}">
   <div class="gross tc">${gross}</div></div>`;
 const CHAOS = [['Max', 'Wer kommt denn jetzt alles am Freitag? 🎯', 0], ['Tim', 'Keine Ahnung 🤷', 0], ['Lena', 'Doch nicht, sorry 🙈', 0],
-  ['Vroni', 'Was ist eigentlich noch in der Kasse? 💶', 1], ['Max', 'Wie schaut’s denn jetzt aus?? Brauch 4 Leute!', 2],
-  ['Ali', 'Geh mir nicht auf den S***, Captain! 😂', 3], ['Max', 'What?! 😱', 4], ['Max', '5 € für die Mannschaftskasse! 💶', 4], ['Sepp', 'Und wer schreibt das auf? 🤔', 5]];
+  ['Vroni', 'Was ist eigentlich noch in der Kasse? 💶', 1], ['Ali', 'Geh mir nicht auf den S***, Captain! 😂', 2],
+  ['Max', 'What?! 😱', 3], ['Max', '5 € für die Mannschaftskasse! 💶', 3]];
 const kachel = (k, em, text, x, y, xh, yh) => `<div class="vgl tc" data-k="${k}" style="left:${HOCH ? xh : x}px;top:${HOCH ? yh : y}px;flex-direction:column;gap:10px;width:${HOCH ? 440 : 400}px;text-align:center">${em}<span>${text}</span></div>`;
 
 const SZENEN = [
@@ -270,18 +270,16 @@ const SZENEN = [
       { s: 1.8, u: '[excited] Hey, liebe MDU-Gemeinde!' },
       { s: 2.8, u: 'Heute hab ich ein richtiges Schmankerl für euch!', intro: 'titel' } ] },
 
-  // 2 – Chaos
+  // 2 – Chaos (kürzer, Betreiber 01.11.2026)
   { titel: 'Kennt ihr <i>das?</i>', html: `
-      <div class="laptop"><div class="rand"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="6"></div></div></div><div class="fuss"></div></div>
-      <div class="handy"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="6"></div></div></div>`,
+      <div class="laptop"><div class="rand"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="4"></div></div></div><div class="fuss"></div></div>
+      <div class="handy"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="4"></div></div></div>`,
     schritte: [
       { s: 3.2, u: 'Kennt ihr das? „Wer kommt denn jetzt alles am Freitag?“', k: 1 },
       { s: 2, u: '„Was ist noch in der Kasse?“', k: 2 },
-      { s: 1.8, u: '„Wie schaut’s denn jetzt aus?“', k: 3 },
-      { s: 2.2, u: '[shouting] „Geh mir nicht auf den {S***|Sack}, Captain!“', k: 4 },
-      { s: 2.6, u: '[shocked] „What?! Fünf Euro für die Mannschaftskasse!“', k: 5 },
-      { s: 2, u: '[laughs] Und wer schreibt das auf?', k: 6 },
-      { s: 0.8, k: 7, weiter: true } ] },
+      { s: 2.2, u: '[shouting] „Geh mir nicht auf den {S***|Sack}, Captain!“', k: 3 },
+      { s: 2.6, u: '[shocked] „What?! Fünf Euro für die Mannschaftskasse!“', k: 4 },
+      { s: 0.8, k: 5, weiter: true } ] },
 
   // 3 – Titel
   { titel: 'Der <i>Team Manager</i>', html: geraete(['dash-n9']) + intro('Der MDU<br><b>Team Manager</b>'),
@@ -308,6 +306,13 @@ const SZENEN = [
       { s: 0.5, b: 3, z: [44, 62, 1.6], k: 6, weiter: true },
       { s: 0.9, b: 3, z: [44, 62, 1.6], k: 7, weiter: true } ] },
 
+  // 4b – Jeder Termin hat seine Seite (Schwerpunkt Termine/Zusagen, Betreiber 01.11.2026)
+  { titel: 'Jeder Termin, <i>seine Seite</i>', html: beispiel + geraete(['spiel-kopf', 'spiel-offen'])
+      + stempel(0, 'Wer fehlt noch? 👀', 760, 250, 'gold', 300, 1150),
+    schritte: [
+      { s: 4.2, u: 'Jeder Termin hat seine eigene Seite: Treffzeit, Ort, wer kommt und wer nicht.', b: 0, z: Z.inhalt },
+      { s: 2.6, u: '[excited] Und wer noch fehlt, siehst du mit einem Tipp!', b: 1, z: [52, 4, 1.75], k: 1 } ] },
+
   // 5 – Konto
   { titel: 'Jeder <i>sein eigenes</i> Konto', html: beispiel + geraete(['spiel-kader', 'spiel-kader-tc'])
       + stempel(0, 'Ohne Konto? Macht der Captain! 👍', 560, 210, 'gold', 120, 1150),
@@ -315,16 +320,30 @@ const SZENEN = [
       { s: 4.5, u: 'Am meisten Sinn macht es, wenn jedes Team-Mitglied sein eigenes Konto auf der MDU-Seite hat.', b: 0, z: Z.inhalt },
       { s: 2.6, u: 'Für alle anderen kann aber auch der Captain eintragen.', b: 1, z: [44, 0, 1.6], k: 1 } ] },
 
-  // 6 – Push + Offene erinnern
+  // 6 – Push + Offene erinnern + Captain weiß Bescheid
   { titel: 'Direkt <i>aufs Handy</i>', html: beispiel + geraete(['glocke', 'spiel-erinnern'],
         `<div style="position:absolute;left:0;right:0;top:${HOCH ? 70 : 46}px;z-index:5">${push(0, 'Bitte zu- oder absagen', SPIEL_TXT + ' – du hast noch nicht geantwortet.', 1)}</div>`
-        + sperr(2, 3, push(2, 'Bitte zu- oder absagen', SPIEL_TXT + ' – du hast noch nicht geantwortet.')) + home(3, 0, 3, 3))
-      + stempel(0, '📲 Push aufs Handy', 940, 300, '', 140, 1150, 1) + stempel(1, 'Offene erinnern (3) 🔔', 700, 560, 'gold', 160, 1150, 2) + stempel(3, 'Nur die! 🎯', 820, 520, '', 300, 1150),
+        + sperr(2, 3, push(2, 'Bitte zu- oder absagen', SPIEL_TXT + ' – du hast noch nicht geantwortet.')) + home(3, 4, 3, 3))
+      + stempel(0, '📲 Push aufs Handy', 940, 300, '', 140, 1150, 1) + stempel(1, 'Offene erinnern (3) 🔔', 700, 560, 'gold', 160, 1150, 2) + stempel(3, 'Nur die! 🎯', 820, 520, '', 300, 1150, 4)
+      + stempel(4, 'Captain weiß Bescheid ✓', 900, 170, '', 140, 1150),
     schritte: [
       { s: 3.2, u: 'Wer trödelt, kriegt die Erinnerung direkt aufs Handy.', b: 0, z: [82, 0, 1.4], k: 1 },
       { s: 2.4, u: '[excited] Und mit einem Tipp erinnerst du genau die, die noch fehlen!', b: 1, z: [44, 44, 1.7], k: 2 },
       { s: 1.4, b: 1, z: [44, 44, 1.7], k: 3, weiter: true },
-      { s: 1, b: 1, z: [44, 44, 1.7], k: 4, weiter: true } ] },
+      { s: 1, b: 1, z: [44, 44, 1.7], k: 4, weiter: true },
+      { s: 3, u: 'Und du als Captain kriegst jede Zu- und Absage sofort mit.', b: 0, z: [82, 0, 1.4], k: 5 } ] },
+
+  // 7 – Termine (direkt hinter den Zusagen, damit der Termin-Teil zusammenhängt)
+  { titel: 'Alle <i>Termine</i>', html: beispiel + geraete(['termine', 'termin-neu'],
+        sperr(1, 2, push(1, 'Neuer Termin', 'Training · Di 3.11. 19:00 Uhr – bitte zu- oder absagen.')))
+      + stempel(0, 'Liga · Pokal · Training · Event', 640, 240, 'gold', 120, 1150, 1)
+      + stempel(1, 'Ganzes Team weiß Bescheid 📲', 640, 560, '', 140, 1150, 2)
+      + stempel(2, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150),
+    schritte: [
+      { s: 2.8, u: '[whispers] Ihr geht auch mal fremd, in anderen Ligen?', b: 0, z: [44, 40, 1.5] },
+      { s: 3.6, u: '[excited] Kein Problem: fremdes Ligaspiel, Training, Weihnachtsfeier – egal!', b: 0, z: [44, 40, 1.5], k: 1 },
+      { s: 4.4, u: 'Einmal eingetragen, und das ganze Team kriegt Bescheid – zu- und absagen genauso wie bei der MDU.', b: 1, z: [44, 60, 1.6], k: 2 },
+      { s: 4.2, u: '[laughs] Nur einen Spielbericht gibt’s da nicht – wir sind ja die MDU und nicht der BSDABBV!', b: 0, z: [44, 40, 1.5], k: 3 } ] },
 
   // 7 – Aufstellung
   { titel: 'Die <i>Aufstellung</i>', html: beispiel + geraete(['spiel-aufstellung', 'bericht-voll'])
@@ -333,25 +352,13 @@ const SZENEN = [
       { s: 3.6, u: 'Du kannst vor dem Spiel die Aufstellung aus den Zusagen zusammenbauen –', b: 0, z: [44, 0, 1.6] },
       { s: 3.8, u: '[excited] und mit einem Klick landet sie am Ende im Spielbericht – wenn du willst!', b: 1, z: [44, 8, 1.35], k: 1 } ] },
 
-  // 8 – Teamkasse
-  { titel: 'Die <i>Teamkasse</i>', html: beispiel + geraete(['kasse-katalog', 'kasse-beitraege', 'kasse-wart', 'strafen', 'strafen-summe', 'kasse-strafe'])
+  // 9 – Teamkasse (kurz, Betreiber 01.11.2026)
+  { titel: 'Die <i>Teamkasse</i>', html: beispiel + geraete(['strafen', 'strafen-summe', 'kasse-strafe'])
       + stempel(0, 'Strafen-Tracker ✍️', 860, 210, 'gold', 560, 1150, 1) + stempel(1, 'Captain beleidigt · 5,00 € 😂', 760, 610, 'rot', 120, 1150),
     schritte: [
-      { s: 2.4, u: 'Die Teamkasse ist an Bord: Strafenkatalog, Beiträge, sogar einen Kassenwart kannst du bestimmen!', b: 0, z: [44, 30, 1.5] },
-      { s: 1.3, b: 1, z: [44, 0, 1.5], weiter: true },
-      { s: 1.3, b: 2, z: [44, 60, 1.5], weiter: true },
-      { s: 3, u: '[excited] Strafen zählt ihr am Spielabend live mit –', b: 3, z: [57, 22, 1.45], k: 1 },
-      { s: 2.6, u: 'U26, Schwarze, zack, ab in die Kasse!', b: 4, z: [57, 66, 1.45], k: 1 },
-      { s: 3.4, u: '[laughs] Und wer den Captain beleidigt, kriegt gleich einen Fünfer aufgedrückt!', b: 5, z: [44, 30, 1.5], k: 2 } ] },
-
-  // 9 – Termine
-  { titel: 'Alle <i>Termine</i>', html: beispiel + geraete(['termine', 'termin-neu', 'kalender'])
-      + stempel(0, 'Liga · Pokal · Training · Event', 640, 240, 'gold', 120, 1150, 1)
-      + stempel(1, 'BSDABBV = fiktiver Name 😉', 560, 470, 'rot', 140, 1150),
-    schritte: [
-      { s: 2.8, u: '[whispers] Ihr geht auch mal fremd, in anderen Ligen?', b: 0, z: [44, 40, 1.5] },
-      { s: 3.6, u: '[excited] Kein Problem: fremdes Ligaspiel, Training, Weihnachtsfeier – egal!', b: 1, z: [44, 30, 1.5], k: 1 },
-      { s: 4.2, u: '[laughs] Nur einen Spielbericht gibt’s da nicht – wir sind ja die MDU und nicht der BSDABBV!', b: 0, z: [44, 40, 1.5], k: 2 } ] },
+      { s: 3.2, u: '[excited] Die Teamkasse ist auch an Bord: Strafen zählt ihr am Spielabend live mit –', b: 0, z: [57, 22, 1.45], k: 1 },
+      { s: 2, u: 'U26, Schwarze, ab in die Kasse!', b: 1, z: [57, 66, 1.45], k: 1 },
+      { s: 3.4, u: '[laughs] Und wer den Captain beleidigt, kriegt gleich einen Fünfer aufgedrückt!', b: 2, z: [44, 30, 1.5], k: 2 } ] },
 
   // 10 – Nachricht ans Team
   { titel: 'Nachricht <i>ans Team</i>', html: beispiel + geraete(['nachricht']) + mehrHandys(1, 'Heute Treffen schon um 19 Uhr!')
@@ -361,22 +368,19 @@ const SZENEN = [
       { s: 2.6, u: '[excited] Zack, bei allen auf dem Handy – ganz ohne WhatsApp-Gruppe!', b: 0, z: [44, 72, 1.8], k: 2 },
       { s: 1, b: 0, z: [44, 72, 1.8], k: 3, weiter: true } ] },
 
-  // 11 – Gegneranalyse: der GEGNER (Betreiber, 31.10.2026: klar von der eigenen Statistik abgrenzen)
+  // 11 – Gegneranalyse (ein Satz)
   { titel: 'Den Gegner <i>im Blick</i>', html: beispiel + geraete(['gegner', 'gegner-top'])
       + stempel(0, '🎯 180er!', 880, 560, 'gold', 560, 1150),
     schritte: [
-      { s: 2.4, u: 'Vor dem Spiel schaust du dir den Gegner an:', b: 0, z: [44, 10, 1.5] },
-      { s: 1.8, u: 'Wie ist er gerade drauf?', b: 0, z: [44, 10, 1.5] },
-      { s: 1.8, u: 'Wer sind seine Top 5?', b: 1, z: [44, 30, 1.5] },
-      { s: 2.2, u: '[excited] Und wer hat wie viel 180er geschmissen?', b: 1, z: [44, 30, 1.5], k: 1 } ] },
+      { s: 2.4, u: 'Vor dem Spiel: Wie ist der Gegner drauf,', b: 0, z: [44, 10, 1.5] },
+      { s: 2.2, u: 'wer wirft bei ihm die meisten 180er?', b: 1, z: [44, 30, 1.5], k: 1 } ] },
 
-  // 11b – Statistik: IHR SELBST
+  // 11b – Statistik (ein Satz)
   { titel: 'Euer Team <i>im Blick</i>', html: beispiel + geraete(['stat-teilnahme', 'stat'])
       + stempel(0, '92 % 🏆', 700, 190, 'gold', 560, 1150),
     schritte: [
-      { s: 2.4, u: 'Und dann ihr selbst – in deiner Statistik:', b: 0, z: [30, 30, 1.5] },
-      { s: 3.4, u: 'Wie oft hast du zugesagt, wie oft warst du wirklich dabei?', b: 0, z: [72, 30, 1.5] },
-      { s: 2.6, u: 'Und wie stehst du im Vergleich zum Team?', b: 1, z: [24, 16, 1.9], k: 1 } ] },
+      { s: 2.2, u: 'Und bei euch: Wer war wie oft dabei –', b: 0, z: [30, 30, 1.5] },
+      { s: 2, u: 'und wie stehst du im Team?', b: 1, z: [24, 16, 1.9], k: 1 } ] },
 
   // 12 – App
   { titel: 'Die MDU <i>als App</i>', html: `
