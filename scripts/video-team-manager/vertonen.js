@@ -198,7 +198,8 @@ const FX = {
   kasse: ['cash register ka-ching', 1.2],
   tada: ['short cheerful fanfare, ta-da', 1.5],
 };
-const FX_LAUT = { whoosh: 0.35, plopp: 0.4, ding: 0.5, kratz: 0.45, trommel: 0.4, klirr: 0.5, kasse: 0.5, tada: 0.45 };
+// leiser seit 01.11.2026 (Betreiber: „bissl viel Soundeffekte“), Whoosh nur noch bei den Titeln
+const FX_LAUT = { whoosh: 0.25, plopp: 0.22, ding: 0.32, kratz: 0.3, trommel: 0.32, klirr: 0.35, kasse: 0.35, tada: 0.3 };
 async function effektDatei(typ) {
   const datei = path.join(DIR, 'ton', `fx-${typ}.mp3`);
   if (fs.existsSync(datei)) return datei;

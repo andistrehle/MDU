@@ -204,6 +204,18 @@
   body.hoch .safari .blatt .z { font-size:26px; padding:20px 24px; } body.hoch .safari .blatt .kopf { font-size:23px; } body.hoch .safari .blatt .kopf i { width:66px; height:66px; }
   body.hoch .safari .leiste { height:96px; font-size:36px; }
   body.hoch .weg-text { display:none; }
+
+  /* Knopf hervorheben statt Bildwechsel (Betreiber, 01.11.2026: „springt hin und her“) */
+  .ring { position:absolute; width:74px; height:74px; margin:-37px 0 0 -37px; border-radius:50%; border:5px solid var(--gold); z-index:14; pointer-events:none;
+          opacity:0; transform:scale(.4); transition: opacity .25s, transform .35s cubic-bezier(.2,1.6,.4,1); box-shadow:0 0 0 6px rgba(232,184,74,.35), 0 8px 24px rgba(0,0,0,.35); }
+  .ring.an { opacity:1; transform:scale(1); animation: puls 1.1s ease-in-out .35s infinite; }
+  .ring.klein { width:44px; height:44px; margin:-22px 0 0 -22px; border-width:4px; }
+  .ring span { position:absolute; left:50%; top:calc(100% + 10px); transform:translateX(-50%) rotate(-3deg); white-space:nowrap; padding:6px 14px; border-radius:10px; background:var(--gold); color:#1A1D24;
+               font-family:'Saira Condensed'; font-weight:900; font-size:26px; text-transform:uppercase; box-shadow:0 8px 20px rgba(0,0,0,.3); }
+  .ring.klein span { font-size:18px; padding:4px 10px; top:calc(100% + 6px); }
+  .ring.rot { border-color:var(--rot); box-shadow:0 0 0 6px rgba(210,53,43,.3), 0 8px 24px rgba(0,0,0,.35); }
+  .ring.rot span { background:var(--rot); color:#fff; }
+  @keyframes puls { 50% { box-shadow:0 0 0 16px rgba(232,184,74,0); } }
 </style></head>
 <body><div id="stage"></div>
 <script>
@@ -220,6 +232,8 @@ const beispiel = `<div class="beispiel">Beispieldaten</div>`;
 const geraete = (namen, handyExtra = '') => `
   <div class="laptop"><div class="rand"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}web-${n}.jpg">`).join('')}</div></div><div class="fuss"></div></div>
   <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}${handyExtra}</div></div>`;
+// Pulsierender Ring über einem Knopf (Laptop-Koordinaten x,y; im Hochformat xh,yh), mit Hinweis darunter
+const ring = (k, text, x, y, art = '', bis, klein = false) => `<div class="ring ${art}${klein ? ' klein' : ''}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${x}px;top:${y}px"><span>${text}</span></div>`;
 const stempel = (k, text, x, y, art = '', xh, yh, bis) => `<div class="stempel ${art}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${HOCH ? xh ?? x : x}px;top:${HOCH ? yh ?? y : y}px">${text}</div>`;
 
 // Neueste Nachricht unten, ältere wandern nach oben (wie im echten Chat); unsichtbare nehmen keinen Platz.
@@ -288,23 +302,26 @@ const SZENEN = [
       { s: 3.4, u: 'ab sofort und exklusiv nur für euch: der MDU Team Manager!', b: 0, z: Z.inhalt, intro: 'titel' },
       { s: 1.2, b: 0, z: Z.inhalt, intro: 'weg', weiter: true } ] },
 
-  // 4 – Dashboard
-  { titel: 'Alles auf <i>einen Blick</i>', html: beispiel + geraete(['dash-n2', 'dash-ja', 'dash-grund', 'dash-n9'])
-      + stempel(0, '✓ Dabei!', 860, 600, '', 160, 1150, 1) + stempel(1, 'Mit Begründung', 830, 690, 'rot', 560, 1150, 2) + stempel(2, 'Wer ist dabei? 🎯', 120, 480, '', 560, 1150, 3)
-      // je Stempel unter seiner Kachel (Laptop-Zoom [44, 62, 1.6] auf dash-n9)
+  // 4 – Dashboard: EIN Bild (dash-n9), die Knöpfe werden mit Ringen gezeigt (vorher sprang das Bild zwischen vier Screenshots)
+  { titel: 'Alles auf <i>einen Blick</i>', html: beispiel + geraete(['dash-n9'])
+      // Ringe: Laptop-Zoom [40, 22, 1.65] und Handy (Koordinaten aus dem Standbild gemessen)
+      + (HOCH ? '' : ring(0, 'Zusage', 450, 618, '', 1) + ring(1, 'Absage', 596, 618, 'rot', 2))
+      + ring(0, 'Zusage', HOCH ? 0 : 1550, HOCH ? 0 : 606, '', 1, true) + ring(1, 'Absage', HOCH ? 0 : 1668, HOCH ? 0 : 606, 'rot', 2, true)
+      + stempel(2, 'Wer ist dabei? 🎯', 760, 540, '', 560, 1150, 3)
+      // je Stempel unter seiner Kachel (Laptop-Zoom [44, 62, 1.6])
       + stempel(3, '💶 Kasse', 175, 735, 'gold', 120, 1150) + stempel(4, '📅 Termine', 375, 735, 'gold', 560, 1150) + stempel(5, '✅ Aufgaben', 575, 735, 'gold', 120, 1300) + stempel(6, '⚔️ Gegner', 800, 735, 'gold', 560, 1300),
     schritte: [
       { s: 1.6, u: 'Was ist der Team Manager?', b: 0, z: [44, 0, 1.38] },
       { s: 4, u: 'Im Prinzip dein Dashboard, wo du alles Wichtige auf einen Blick hast – ganz vorne der nächste Termin.', b: 0, z: [40, 22, 1.65] },
-      { s: 2.4, u: '[excited] Zusagen und Absagen mit einem Tipp –', b: 1, z: [40, 22, 1.7], k: 1 },
-      { s: 0.9, b: 2, z: [40, 28, 1.7], k: 2, weiter: true },
-      { s: 4.5, u: 'und auf deinem persönlichen Dashboard siehst du sofort, wer dabei ist, wer noch überlegt und wer nicht.', b: 3, z: [40, 22, 1.65], k: 3 },
-      // „zack, zack“ wird nicht gesprochen: die vier Stempel ploppen mit den Wörtern auf (Effekt „plopp“)
-      { s: 1.3, u: '[excited] Außerdem auf dem Dashboard: Kasse, Termine, Aufgaben, nächster Gegner!', b: 3, z: [44, 62, 1.6] },
-      { s: 0.5, b: 3, z: [44, 62, 1.6], k: 4, weiter: true },
-      { s: 0.5, b: 3, z: [44, 62, 1.6], k: 5, weiter: true },
-      { s: 0.5, b: 3, z: [44, 62, 1.6], k: 6, weiter: true },
-      { s: 0.9, b: 3, z: [44, 62, 1.6], k: 7, weiter: true } ] },
+      { s: 1.3, u: '[excited] Zusagen und Absagen mit einem Tipp –', b: 0, z: [40, 22, 1.65], k: 1 },
+      { s: 1.1, b: 0, z: [40, 22, 1.65], k: 2, weiter: true },
+      { s: 4.5, u: 'und auf deinem persönlichen Dashboard siehst du sofort, wer dabei ist, wer noch überlegt und wer nicht.', b: 0, z: [40, 22, 1.65], k: 3 },
+      // „zack, zack“ wird nicht gesprochen: die vier Stempel ploppen mit den Wörtern auf
+      { s: 1.3, u: '[excited] Außerdem auf dem Dashboard: Kasse, Termine, Aufgaben, nächster Gegner!', b: 0, z: [44, 62, 1.6] },
+      { s: 0.5, b: 0, z: [44, 62, 1.6], k: 4, weiter: true },
+      { s: 0.5, b: 0, z: [44, 62, 1.6], k: 5, weiter: true },
+      { s: 0.5, b: 0, z: [44, 62, 1.6], k: 6, weiter: true },
+      { s: 0.9, b: 0, z: [44, 62, 1.6], k: 7, weiter: true } ] },
 
   // 4b – Jeder Termin hat seine Seite (Schwerpunkt Termine/Zusagen, Betreiber 01.11.2026)
   { titel: 'Jeder Termin, <i>seine Seite</i>', html: beispiel + geraete(['spiel-kopf', 'spiel-offen'])
@@ -475,7 +492,7 @@ const fx = (typ) => {
   window.EFFEKTE.push({ typ, roh: ms, ms: ms + gleich.length * 220 });
 };
 const fxArt = (e) => e.matches('.push') ? 'ding' : e.matches('.strich') ? 'kratz' : e.matches('.vgl') && e.querySelector('.em')?.textContent.includes('🥃') ? 'klirr'
-  : e.matches('.preisgross') ? 'kasse' : e.matches('.gratis') ? 'tada' : e.matches('.m, .stempel, .vorschau, .app, .vgl, .oder, .frage') ? 'plopp' : null;
+  : e.matches('.preisgross') ? 'kasse' : e.matches('.gratis') ? 'tada' : e.matches('.m, .stempel, .vorschau, .app, .vgl, .oder, .frage, .ring') ? 'plopp' : null;
 // Untertitel: der Satz, der gesprochen wird; „weiter“-Schritte wechseln nur das Bild.
 SZENEN.forEach(sz => { let letzter = ''; sz.schritte.forEach(x => { if (x.weiter) x.u = x.u ?? letzter; letzter = x.u; }); });
 
@@ -520,7 +537,6 @@ window.SPIEL = async () => {
     const el = document.getElementById('sz' + i);
     document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
     el.classList.add('an');
-    if (i > 0) fx('whoosh');
     zeige(el, { ...SZENEN[i].schritte[0], k: 0 });
     await warte(vor * 1000); vergangen += vor;
     let satz = -1;
