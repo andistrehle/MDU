@@ -1,30 +1,36 @@
 import type { Metadata, Viewport } from 'next';
-import { Saira_Condensed, Manrope, JetBrains_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { GlobalChrome } from '@/components/mdu/global-chrome';
 import { AppProviders } from '@/components/mdu/app-providers';
 import { SITE_INDEXABLE } from '@/lib/site-config';
 
-const sairaCondensed = Saira_Condensed({
+// Schriften liegen im Projekt (app/fonts, Zeichensatz latin wie zuvor bei Google) — der Build holt
+// nichts mehr von fonts.googleapis.com. Vorher scheiterten Vercel-Builds immer wieder, wenn Google
+// beim Bauen kurz nicht antwortete („next/font/google queries have exactly one entry“).
+const sairaCondensed = localFont({
   variable: '--font-saira-condensed',
-  subsets: ['latin'],
-  weight: ['400', '700', '800', '900'],
   display: 'swap',
+  src: [
+    { path: './fonts/saira-condensed-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/saira-condensed-700.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/saira-condensed-800.woff2', weight: '800', style: 'normal' },
+    { path: './fonts/saira-condensed-900.woff2', weight: '900', style: 'normal' },
+  ],
 });
 
-const manrope = Manrope({
+// Manrope und JetBrains Mono als variable Schrift (eine Datei für alle Stärken).
+const manrope = localFont({
   variable: '--font-manrope',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
+  src: [{ path: './fonts/manrope-latin.woff2', weight: '400 800', style: 'normal' }],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
   variable: '--font-jetbrains-mono',
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
   display: 'swap',
+  src: [{ path: './fonts/jetbrains-mono-latin.woff2', weight: '400 700', style: 'normal' }],
 });
 
 // Basis-URL für Canonical/OG (Fallback = Live-Domain), überschreibbar per ENV.

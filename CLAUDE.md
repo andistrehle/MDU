@@ -798,6 +798,10 @@ frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
   `sec-purpose`, `x-middleware-prefetch`), aber `next-router-prefetch` sieht er NICHT:
   Next entfernt den Kopf absichtlich (`next/dist/docs/…/proxy.md`, „RSC requests and
   rewrites"). Das `<a>` ist deshalb die eigentliche Vorsorge.
+- **Schriften liegen im Projekt** (`app/fonts/*.woff2`, `next/font/local` in `app/layout.tsx`, seit 01.11.2026):
+  `next/font/google` holte sie bei JEDEM Build von Google, und wenn Google kurz hakte, brach der Vercel-Build ab
+  („next/font/google queries have exactly one entry“). Nicht auf `next/font/google` zurückstellen; neue Stärken
+  als woff2 (Zeichensatz latin) dazulegen.
 - Resend: bounct eine Adresse (z. B. Postfach existierte noch nicht), landet sie auf der
   **Suppression-Liste** und bekommt nichts mehr → im Resend-Dashboard entfernen.
 - JSX verschluckt Leerzeichen nach `</strong>` am Zeilenende → `{' '}` verwenden.
