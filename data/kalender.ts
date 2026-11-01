@@ -106,6 +106,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "20:00",
     "note": null
+  },
+  {
+    "id": "2026-11-01-machete-1-zusatz",
+    "date": "2026-11-01",
+    "venueId": "machete-1",
+    "art": "zusatz",
+    "time": "07:00",
+    "note": null
   }
 ];
 
