@@ -49,7 +49,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
   });
 
   const punkteCols = '34px minmax(0,1.6fr) minmax(0,1fr) 50px 54px 38px 38px 64px 60px 40px';
-  const statCols = '34px minmax(0,1.6fr) minmax(0,1fr) 70px 90px 50px';
+  const statCols = '34px minmax(0,1.6fr) minmax(0,1fr) 70px 90px';
   const kopf: React.CSSProperties = { display: 'grid', gap: 6, padding: '8px 14px', borderBottom: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--th-text-muted)' };
   const rang = (z: EinzelZeile) => <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14, color: z.pos <= 3 ? 'var(--th-gold, #B8860B)' : 'var(--th-text-faint)' }}>{z.pos}.</span>;
   const nameEl = (z: EinzelZeile) => {
@@ -120,14 +120,12 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                   <span>#</span><span>Spieler</span><span>Team</span>
                   <span style={{ textAlign: 'right' }}>Anzahl</span>
                   <span style={{ textAlign: 'right' }}>{art === 'hf' ? 'Höchstes' : art === 'sl' ? 'Kürzestes' : ''}</span>
-                  <span style={{ textAlign: 'right' }} title="Siege – Niederlagen">S-N</span>
                 </div>
                 {liste.map((z, i) => (
                   <div key={z.key} style={{ display: 'grid', gridTemplateColumns: statCols, gap: 6, alignItems: 'center', padding: '8px 14px', borderBottom: i < liste.length - 1 ? '1px solid var(--th-line-3)' : 'none' }}>
                     {rang(z)}{nameEl(z)}{team(z)}
                     <span style={{ ...mono, fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>{anzahl(z, art)}</span>
                     <span style={mono}>{art === 'hf' ? z.highFinish ?? '' : art === 'sl' && z.shortLeg != null ? `${z.shortLeg} Darts` : ''}</span>
-                    <span style={mono}>{z.wins}-{z.losses}</span>
                   </div>
                 ))}
               </>
@@ -146,9 +144,10 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
               const teile = zweite.filter(Boolean) as string[];
               return (
                 <div key={z.key} style={{ padding: '9px 14px', borderBottom: i < liste.length - 1 ? '1px solid var(--th-line-3)' : 'none' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '26px minmax(0,1fr) auto auto 40px', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: art === 'punkte' ? '26px minmax(0,1fr) auto auto 40px' : '26px minmax(0,1fr) auto 40px', gap: 8, alignItems: 'center' }}>
                     {rang(z)}{nameEl(z)}{team(z, true)}
-                    <span style={{ ...mono, fontSize: 12 }}>{z.wins}-{z.losses}</span>
+                    {/* Bilanz nur bei „Punkte“ (Betreiber, 01.11.2026) — in den Highlight-Listen war unklar, was sie bedeutet. */}
+                    {art === 'punkte' && <span style={{ ...mono, fontSize: 12 }}>{z.wins}-{z.losses}</span>}
                     <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 16, color: 'var(--th-text-strong)', textAlign: 'right' }}>
                       {art === 'punkte' ? z.points : `${anzahl(z, art)}×`}
                     </span>
