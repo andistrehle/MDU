@@ -26,7 +26,9 @@ node reel.js
 
 - **Klang (seit 31.10.2026):** Modell `eleven_v3` mit Regieanweisungen im Skript (`[excited]`, `[laughs]`,
   `[whispers]`, `[shouting]`, `[shocked]` — nur gesprochen, nie im Untertitel), stability 0.5 („natürlich“,
-  Betreiber-Wahl nach Hörprobe), danach `atempo` 1.12 (ENV `TEMPO`). v3 liefert keine Zeitmarken je Zeichen:
+  Betreiber-Wahl nach Hörprobe), danach `atempo` 1.18 (ENV `TEMPO`, seit 01.11.2026; vorher 1.12).
+  Die Rohaufnahme bleibt als `*.roh.mp3` liegen — ein anderes Tempo kostet keine Zeichen.
+  `{Untertitel|Gesprochen}` im Skript: verschiedener Text für Untertitel und Stimme (z. B. Betonung „ALLES“). v3 liefert keine Zeitmarken je Zeichen:
   Satzanfänge und Piep-Stelle kommen aus der Spracherkennung (`zeitmarkenAusSprache`).
 - **Piep:** `{S***|Sack}` im Skript — Untertitel zeigt S***, gesprochen wird das Wort, im Video ist die
   Stimme dort stumm und ein 1-kHz-Ton liegt darüber (`PIEP_WOERTER`).
