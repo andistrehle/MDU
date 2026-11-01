@@ -290,6 +290,21 @@ async function teilen(dateien: File[], text?: string): Promise<'geteilt' | 'gesp
   return 'gespeichert';
 }
 
+/** In die Zwischenablage: clipboard → execCommand (markiertes Feld) → false. */
+async function kopiere(text: string, feld: HTMLTextAreaElement | null): Promise<boolean> {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* weiter */ }
+  if (feld) { feld.focus(); feld.select(); try { if (document.execCommand('copy')) return true; } catch { /* weiter */ } }
+  return false;
+}
+
+/** Instagram-Bildunterschrift aus dem Facebook-Text: Teaser + Adresse als Text + Hashtags. */
+function instaText(facebook: string, d: SocialDaten): string {
+  const teile = facebook.split('\n\n');
+  const teaser = teile[0]?.trim() || d.titel;
+  const tags = teile.find(t => t.trim().startsWith('#'))?.trim() ?? '#münchnerdartunion #mdu #darts #edarts #dartsliga #münchen';
+  return `${teaser}\n\nAlle Ergebnisse, Tabellen und der ganze Bericht: mdudarts.de/news\n\n${tags}`;
+}
+
 const leinwandDatei = (c: HTMLCanvasElement, name: string) =>
   new Promise<File>((ok, nein) => c.toBlob(b => (b ? ok(new File([b], name, { type: 'image/png' })) : nein(new Error('Bild'))), 'image/png'));
 
@@ -307,6 +322,10 @@ export function SpieltagSocial({ newsId, veroeffentlicht }: { newsId: string; ve
   const [fehler, setFehler] = useState<string | null>(null);
   const [fb, setFb] = useState('');
   const [fbMeldung, setFbMeldung] = useState<{ text: string; ok: boolean } | null>(null);
+  // Bildunterschrift fürs Reel (Betreiber, 01.11.2026): kurz, Link nur als Text (in Instagram nicht klickbar).
+  const [ig, setIg] = useState('');
+  const [igMeldung, setIgMeldung] = useState<{ text: string; ok: boolean } | null>(null);
+  const igRef = useRef<HTMLTextAreaElement>(null);
   const [storyMeldung, setStoryMeldung] = useState<{ text: string; ok: boolean } | null>(null);
   const [reel, setReel] = useState<{ laeuft: boolean; fortschritt: number; datei?: File; url?: string; meldung?: { text: string; ok: boolean } }>({ laeuft: false, fortschritt: 0 });
   const storyRefs = useRef<(HTMLCanvasElement | null)[]>([]);
@@ -321,6 +340,7 @@ export function SpieltagSocial({ newsId, veroeffentlicht }: { newsId: string; ve
       if (error || !data) { setFehler(error ?? 'Keine Daten.'); return; }
       const d = data as unknown as { facebook: string; social: SocialDaten };
       setDaten(d); setFb(d.facebook ?? '');
+      setIg(instaText(d.facebook ?? '', d.social));
     });
     return () => { weg = true; };
   }, [newsId]);
@@ -343,10 +363,19 @@ export function SpieltagSocial({ newsId, veroeffentlicht }: { newsId: string; ve
   }, [daten, zeichneStory]);
 
   async function fbKopieren() {
-    try { await navigator.clipboard.writeText(fb); setFbMeldung({ text: 'Text kopiert – jetzt in Facebook einfügen.', ok: true }); return; } catch { /* weiter */ }
-    const t = fbRef.current;
-    if (t) { t.focus(); t.select(); try { if (document.execCommand('copy')) { setFbMeldung({ text: 'Text kopiert – jetzt in Facebook einfügen.', ok: true }); return; } } catch { /* weiter */ } }
-    setFbMeldung({ text: 'Kopieren ist hier gesperrt – der Text ist markiert, bitte von Hand kopieren.', ok: false });
+    const ok = await kopiere(fb, fbRef.current);
+    setFbMeldung(ok ? { text: 'Text kopiert – jetzt in Facebook einfügen.', ok: true } : { text: 'Kopieren ist hier gesperrt – der Text ist markiert, bitte von Hand kopieren.', ok: false });
+  }
+  async function igKopieren() {
+    const ok = await kopiere(ig, igRef.current);
+    setIgMeldung(ok ? { text: 'Bildunterschrift kopiert – in Instagram einfügen.', ok: true } : { text: 'Kopieren ist hier gesperrt – der Text ist markiert, bitte von Hand kopieren.', ok: false });
+  }
+  // Reel teilen: Bildunterschrift vorher in die Zwischenablage (Instagram übernimmt geteilten Text meist nicht).
+  async function reelTeilen() {
+    if (!reel.datei) return;
+    const kopiert = await kopiere(ig, null);
+    const r = await teilen([reel.datei], ig);
+    if (r !== 'abgebrochen') setIgMeldung({ text: `${r === 'geteilt' ? 'Geteilt' : 'Video gespeichert'}.${kopiert ? ' Die Bildunterschrift ist kopiert – in Instagram einfach einfügen.' : ' Bildunterschrift bitte oben kopieren.'}`, ok: true });
   }
 
   async function storyTeilen() {
@@ -426,8 +455,13 @@ export function SpieltagSocial({ newsId, veroeffentlicht }: { newsId: string; ve
         <button type="button" onClick={reelErzeugen} disabled={reel.laeuft} style={{ ...knopf, opacity: reel.laeuft ? 0.6 : 1 }}>
           {reel.laeuft ? `Wird aufgenommen … ${Math.round(reel.fortschritt * 100)} %` : reel.url ? 'Neu aufnehmen' : 'Reel erzeugen'}
         </button>
-        {reel.datei && <button type="button" onClick={() => void teilen([reel.datei!])} style={knopf}>Reel teilen / speichern</button>}
+        {reel.datei && <button type="button" onClick={() => void reelTeilen()} style={knopf}>Reel teilen / speichern</button>}
       </div>
+      <div style={{ ...titelStil, fontSize: 12.5 }}>Bildunterschrift fürs Reel</div>
+      <textarea ref={igRef} value={ig} onChange={e => setIg(e.target.value)}
+        style={{ width: '100%', boxSizing: 'border-box', minHeight: 130, padding: '9px 11px', borderRadius: 8, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13, lineHeight: 1.5, resize: 'vertical' }} />
+      <button type="button" onClick={() => void igKopieren()} style={{ ...knopf, marginTop: 6 }}>Bildunterschrift kopieren</button>
+      {igMeldung && <div style={hinweisStil(igMeldung.ok)}>{igMeldung.text}</div>}
       {reel.laeuft && <div style={hinweisStil()}>Bitte Bildschirm anlassen und auf dieser Seite bleiben, bis 100 % erreicht sind.</div>}
       {reel.meldung && <div style={hinweisStil(reel.meldung.ok)}>{reel.meldung.text}</div>}
     </div>

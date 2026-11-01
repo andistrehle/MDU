@@ -239,7 +239,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   legt Ergebnisse/Spieler/Finish/Tabellenspitze ab (`spieltag_berichte.facebook/social`). Admin → News →
   „Facebook & Instagram“ (`components/mdu/spieltag-social.tsx`) zeichnet 3 Story-Bilder und nimmt ein Reel
   (1080×1920, ohne Ton) per MediaRecorder im Browser auf — MP4 nur in Safari/aktuellem Chrome, sonst WebM mit
-  Hinweis; Link-Sticker/Musik setzt man in Instagram. Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,
+  Hinweis; Link-Sticker/Musik setzt man in Instagram. Bildunterschrift fürs Reel (`instaText`: Teaser + „mdudarts.de/news“
+  als Text + Hashtags, editierbar, „kopieren“); „Reel teilen“ kopiert sie vorher in die Zwischenablage (01.11.2026). Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,
   `[Text](/pfad)` und Zeilenumbrüche im Absatz.
   **TC → Team per Glocke/Push** (Betreiber, 27.10.2026, `/api/team/nachricht`, `lib/supabase/team-nachricht.ts`,
   `components/mdu/team-push.tsx`): eigener Termin neu/importiert/geändert/gelöscht mit Häkchen „Team
