@@ -47,6 +47,8 @@ export interface EinzelZeile {
   slAnzahl: number;
   /** kürzestes Leg (Darts) */
   shortLeg: number | null;
+  /** Highlight-Punkte (`highlightPunkte`), ungewichtet — Reiter „Highlights“ */
+  hlPunkte: number;
   /** Davon aus noch nicht bestätigten Berichten */
   offen: number;
   pos: number;
@@ -70,6 +72,21 @@ export interface EinzelSpiel {
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 
+/**
+ * Highlight-Rangliste (Betreiber, 01.11.2026): 180er/171er je 3 · High Finish
+ * 100–129 = 2, 130–159 = 3, 160+ = 4 · Short Leg bis 12 Darts = 4, 13–15 = 3,
+ * 16–20 = 2. Bei „Alle Ligen“ zählt La Liga × ⅔ (Best of 5, mehr Legs).
+ * Steht so auch unter der Liste. Bewusst getrennt von der internen Wertung des
+ * Spieltagsberichts (lib/spieltag-bericht.ts).
+ */
+export function highlightPunkte(typ: string, wert: number): number {
+  if (typ === '180' || typ === '171') return 3 * wert;
+  if (typ === 'high_finish') return wert >= 160 ? 4 : wert >= 130 ? 3 : wert >= 100 ? 2 : 0;
+  if (typ === 'short_leg') return wert <= 12 ? 4 : wert <= 15 ? 3 : wert <= 20 ? 2 : 0;
+  return 0;
+}
+export const LA_LIGA_GEWICHT = 2 / 3;
+
 export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZeile> {
   const out = new Map<string, EinzelZeile>();
   // ältere Berichte zuerst, damit „Team des letzten Einsatzes" stimmt
@@ -85,7 +102,7 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
     const ensure = (k: NonNullable<ReturnType<typeof keyOf>>) => {
       let z = out.get(k.key);
       if (!z) {
-        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, hfAnzahl: 0, shortLeg: null, slAnzahl: 0, offen: 0, pos: 0, verlauf: [] };
+        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, hfAnzahl: 0, shortLeg: null, slAnzahl: 0, hlPunkte: 0, offen: 0, pos: 0, verlauf: [] };
         out.set(k.key, z);
       }
       z.teamId = k.team; z.name = k.p.name.trim();
@@ -112,6 +129,7 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
       const k = keyOf(h.side, h.slot);
       if (!k || h.value == null) continue;
       const z = ensure(k);
+      z.hlPunkte += highlightPunkte(h.type, h.value);
       if (h.type === '180') z.b180 += h.value;
       else if (h.type === '171') z.b171 += h.value;
       else if (h.type === 'high_finish') { z.highFinish = Math.max(z.highFinish ?? 0, h.value); z.hfAnzahl += 1; }
