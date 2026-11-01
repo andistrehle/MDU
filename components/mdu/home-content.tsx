@@ -196,9 +196,16 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
           <div style={{ marginBottom: 18 }}>
             <h2 className="section-heading" style={{ margin: 0 }}>Aktuelles</h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {newsArticles.map(a => <NewsArticleCard key={a.id} article={a} />)}
-          </div>
+          {/* Drei Reiter, die alle 5 s wechseln (Betreiber, 01.11.2026) — derselbe
+              Umschalter wie bei „Nächste Spiele“. */}
+          <NaechsteSpieleRotator label="Aktuelles wählen" gruppen={([
+            ['spieltag', 'Spieltagsberichte', newsArticles.spieltag],
+            ['news', 'News', newsArticles.news],
+            ['features', 'Features', newsArticles.features],
+          ] as const).filter(([, , l]) => l.length > 0).map(([code, name, l]) => ({
+            code, name, color: 'var(--th-accent)',
+            inhalt: l.map(a => <NewsArticleCard key={a.id} article={a} />),
+          }))} />
           <Link href="/news" style={{
             marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 6,
             fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)', textDecoration: 'none',

@@ -66,7 +66,7 @@ export async function getPublishedNews(): Promise<NewsArticle[]> {
 const ZWEI_WOCHEN_MS = 14 * 24 * 60 * 60 * 1000;
 
 /**
- * Startseite (Betreiber, 30.10.2026): höchstens 4 Meldungen — die 4. nur, wenn
+ * Startseite (Betreiber, 30.10.2026, seit 01.11.2026 je Reiter): höchstens 4 Meldungen — die 4. nur, wenn
  * sie nicht älter als zwei Wochen ist, sonst die 3 neuesten.
  */
 function startseitenAuswahl<T extends { sort_ts: string }>(rows: T[]): T[] {
@@ -74,15 +74,40 @@ function startseitenAuswahl<T extends { sort_ts: string }>(rows: T[]): T[] {
   return rows.slice(0, !Number.isNaN(vierte) && vierte >= Date.now() - ZWEI_WOCHEN_MS ? 4 : 3);
 }
 
+/** Die drei Reiter unter „Aktuelles“ (Betreiber, 01.11.2026). */
+export interface StartseitenNews {
+  spieltag: NewsArticle[];
+  news: NewsArticle[];
+  features: NewsArticle[];
+}
+
+/** Reiter einer Meldung: Kategorie „Spieltag“ (bzw. Kennung spieltag-…), „Neueste Features“, sonst News. */
+function reiterVon(r: { id: string; category: string }): keyof StartseitenNews {
+  if (r.category === 'Spieltag' || r.id.startsWith('spieltag-')) return 'spieltag';
+  if (r.category === 'Neueste Features') return 'features';
+  return 'news';
+}
+
+function aufteilen<T extends { id: string; category: string }>(rows: T[]): Record<keyof StartseitenNews, T[]> {
+  const g: Record<keyof StartseitenNews, T[]> = { spieltag: [], news: [], features: [] };
+  for (const r of rows) g[reiterVon(r)].push(r);
+  return g;
+}
+
+const statisch = (): StartseitenNews => {
+  const g = aufteilen(NEWS_ARTICLES);
+  return { spieltag: g.spieltag.slice(0, 3), news: g.news.slice(0, 3), features: g.features.slice(0, 3) };
+};
+
 /**
- * News für die Startseite: die 3 neuesten, die 4. nur, wenn sie höchstens zwei
- * Wochen alt ist. Statischer Fallback (die 3 neuesten) bei fehlender/nicht
- * migrierter Tabelle.
+ * News für die Startseite, aufgeteilt in die Reiter Spieltagsberichte · News ·
+ * Features. Je Reiter die 3 neuesten, die 4. nur, wenn sie höchstens zwei
+ * Wochen alt ist. Statischer Fallback (je 3) bei fehlender/nicht migrierter Tabelle.
  */
-export async function getHomepageNews(): Promise<NewsArticle[]> {
+export async function getHomepageNews(): Promise<StartseitenNews> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return NEWS_ARTICLES.slice(0, 3);
+  if (!url || !anon) return statisch();
 
   try {
     const client = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -92,10 +117,14 @@ export async function getHomepageNews(): Promise<NewsArticle[]> {
       .eq('status', 'published')
       .order('sort_ts', { ascending: false });
 
-    if (error) return NEWS_ARTICLES.slice(0, 3);
-    const rows = (data ?? []) as (NewsRow & { sort_ts: string })[];
-    return startseitenAuswahl(rows).map(rowToArticle);
+    if (error) return statisch();
+    const g = aufteilen((data ?? []) as (NewsRow & { sort_ts: string })[]);
+    return {
+      spieltag: startseitenAuswahl(g.spieltag).map(rowToArticle),
+      news: startseitenAuswahl(g.news).map(rowToArticle),
+      features: startseitenAuswahl(g.features).map(rowToArticle),
+    };
   } catch {
-    return NEWS_ARTICLES.slice(0, 3);
+    return statisch();
   }
 }

@@ -9,7 +9,7 @@
 // sich nach der längsten, beim Wechsel springt die Seite darunter nicht.
 // Die Automatik läuft immer weiter — auch mit der Maus darüber (am Desktop
 // liegt der Zeiger dort oft einfach herum, dann wechselte nie etwas). Sie
-// endet erst, wenn jemand selbst eine Liga antippt, und pausiert, solange per
+// endet erst, wenn jemand selbst eine Liga (oder eine Karte) antippt, und pausiert, solange per
 // Tastatur ein Reiter im Fokus ist. Gewechselt wird alle 5 Sekunden mit einer
 // sanften Überblendung (nur Deckkraft, keine Bewegung — deshalb auch bei
 // „weniger Bewegung"); dort entfällt nur der Laufbalken im Reiter.
@@ -20,7 +20,8 @@ export interface LigaGruppe {
   code: string;
   name: string;
   color: string;
-  anzahl: number;
+  /** Zahl im Reiter (weglassen = keine Zahl). */
+  anzahl?: number;
   inhalt: React.ReactNode;
 }
 
@@ -33,7 +34,7 @@ function abonniereRuhig(cb: () => void) {
   return () => mq.removeEventListener('change', cb);
 }
 
-export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
+export function NaechsteSpieleRotator({ gruppen, label = 'Liga wählen' }: { gruppen: LigaGruppe[]; label?: string }) {
   const [aktiv, setAktivRoh] = useState(0);
   // Vorige Liga (blendet aus) und Zähler der Wechsel: Der Name der Animation
   // wechselt mit jedem Wechsel (…-a / …-b), damit sie sicher neu startet.
@@ -64,7 +65,7 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
       onBlurCapture={() => setFokus(false)}
     >
       {/* Liga-Auswahl: zeigt, wo man ist, und lässt direkt springen */}
-      <div role="tablist" aria-label="Liga wählen" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+      <div role="tablist" aria-label={label} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {gruppen.map((g, i) => {
           const an = i === aktiv;
           return (
@@ -78,7 +79,7 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
                 background: an ? g.color : 'transparent', color: an ? '#fff' : 'var(--th-text-muted)',
               }}
             >
-              {g.name} <span style={{ opacity: 0.75, fontWeight: 700 }}>{g.anzahl}</span>
+              {g.name}{g.anzahl != null && <> <span style={{ opacity: 0.75, fontWeight: 700 }}>{g.anzahl}</span></>}
               {/* Fortschritt bis zum nächsten Wechsel */}
               {an && !pause && !ruhig && gruppen.length > 1 && (
                 <span key={aktiv} aria-hidden style={{ position: 'absolute', left: 0, bottom: 0, height: 2, background: 'rgba(255,255,255,0.75)', animation: `mdu-rotator-lauf ${TAKT_MS}ms linear forwards` }} />
@@ -88,7 +89,9 @@ export function NaechsteSpieleRotator({ gruppen }: { gruppen: LigaGruppe[] }) {
         })}
       </div>
 
-      <div style={{ display: 'grid' }}>
+      {/* Wer in eine Karte tippt, hält die Automatik an — sonst blendete ein
+          geöffneter Beitrag (News-Fenster liegt in der Karte) mitten im Lesen aus. */}
+      <div style={{ display: 'grid' }} onPointerDownCapture={() => setGewaehlt(true)} onKeyDownCapture={() => setGewaehlt(true)}>
         {gruppen.map((g, i) => {
           const an = i === aktiv, raus = i === vorher && !an;
           const ab = wechsel % 2 ? 'a' : 'b';
