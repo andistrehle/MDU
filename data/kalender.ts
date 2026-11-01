@@ -113,7 +113,7 @@ export const KALENDER: Terminaenderung[] = [
     "venueId": "machete-1",
     "art": "zusatz",
     "time": "19:00",
-    "note": null
+    "note": "Heimeranplatz 1, 80339 München"
   }
 ];
 
