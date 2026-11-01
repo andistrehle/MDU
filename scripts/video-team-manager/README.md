@@ -43,7 +43,7 @@ node reel.js
   lief am Ende voraus). Deshalb nimmt `vertonen.js` 12 px mehr auf: Dort schaltet ein Taktstreifen bei
   jedem Satz schwarz/weiß, `taktImVideo` liest die Wechsel aus dem Video (entprellt, Zahl wird streng
   geprüft), und jeder Satz wird EINZELN an seine Stelle im Bild gelegt. Der Streifen wird abgeschnitten.
-- **Musik (seit 01.11.2026):** `ton/musik.mp3` (ElevenLabs Music `music_v1`, Prompt „spannend, heroisch,
+- **Musik (seit 01.11.2026):** `ton/musik.mp3` = die vom Betreiber gewählte 30-s-Hörprobe 2 (`ton/musik-probe2.mp3`), 8× mit 2-s-Überblendung aneinandergehängt. Ein ganzes Stück neu erzeugen klingt jedes Mal anders (`ton/musik-voll-v1.mp3` gefiel nicht). Erzeugt mit ElevenLabs Music `music_v1`, Prompt „spannend, heroisch,
   Sport-Trailer, ohne Gesang“, 3:10; kostete rund 3.000 Zeichen inkl. zwei 30-s-Proben). Liegt leise darunter
   (`MUSIK_LAUT`, 0.32), duckt sich per `sidechaincompress` unter Toby, wird höchstens 10 % gestreckt, damit
   der Schluss aufs Video-Ende fällt. `OHNE_MUSIK=1` lässt sie weg.
