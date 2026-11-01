@@ -264,7 +264,7 @@ const mehrHandys = (k, txt) => `<div class="mehr-handys" data-k="${k}">${[[150, 
 const Z = { voll: null, inhalt: [44, 0, 1.38] };
 const intro = (gross) => `<div class="intro"><div class="scheibe"></div><div class="scheibe links"></div><img class="logo" src="${LOGO}">
   <div class="gross tc">${gross}</div></div>`;
-const CHAOS = [['Max', 'Wer kommt denn jetzt alles am Freitag? 🎯', 0], ['Tim', 'Keine Ahnung 🤷', 0], ['Lena', 'Doch nicht, sorry 🙈', 0],
+const CHAOS = [['Max', 'Wer ist am Freitag alles dabei? 🎯', 0], ['Tim', 'Keine Ahnung 🤷', 0], ['Lena', 'Doch nicht, sorry 🙈', 0],
   ['Vroni', 'Was ist eigentlich noch in der Kasse? 💶', 1], ['Ali', 'Geh mir nicht auf den S***, Captain! 😂', 2],
   ['Max', 'What?! 😱', 3]];
 const kachel = (k, em, text, x, y, xh, yh) => `<div class="vgl tc" data-k="${k}" style="left:${HOCH ? xh : x}px;top:${HOCH ? yh : y}px;flex-direction:column;gap:10px;width:${HOCH ? 440 : 400}px;text-align:center">${em}<span>${text}</span></div>`;
@@ -289,7 +289,7 @@ const SZENEN = [
       <div class="laptop"><div class="rand"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="4"></div></div></div><div class="fuss"></div></div>
       <div class="handy"><div class="schirm">${chat(CHAOS)}<div class="strich" data-k="4"></div></div></div>`,
     schritte: [
-      { s: 3.2, u: 'Kennt ihr das? „{Wer kommt denn jetzt alles am Freitag?|Wer kommt denn jetzt ALLES am Freitag?}“', k: 1 },
+      { s: 3.2, u: 'Kennt ihr das? „{Wer ist am Freitag alles dabei?|Wer ist denn am Freitag alles DABEI?}“', k: 1 },
       { s: 2, u: '„Was ist noch in der Kasse?“', k: 2 },
       { s: 2.2, u: '[shouting] „Geh mir nicht auf den {S***|Sack}, Captain!“', k: 3 },
       { s: 1.4, u: '[shocked] „What?!“', k: 4 },
