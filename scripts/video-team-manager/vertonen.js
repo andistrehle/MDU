@@ -322,11 +322,23 @@ async function aufnehmenUndVertonen(zeiten, clips, hash, vp, ziel) {
   });
   const stimmen = clips.map((_, n) => `[a${n}]`).join('') + pieps.map((_, k) => `[p${k}]`).join('');
   const anzahl = clips.length + pieps.length;
-  if (fxSpur) {
-    eingaben.push('-i', fxSpur);
-    filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0[stimme]`);
-    filter.push(`[stimme][${anzahl + 1}:a]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5,afade=t=out:st=${aus.toFixed(2)}:d=0.9[ton]`);
-  } else filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0,loudnorm=I=-16:TP=-1.5,afade=t=out:st=${aus.toFixed(2)}:d=0.9[ton]`);
+  filter.push(`${stimmen}amix=inputs=${anzahl}:normalize=0[stimme]`);
+  const teile = ['[sauber]'];
+  let naechster = anzahl + 1;
+  if (fxSpur) { eingaben.push('-i', fxSpur); teile.push(`[${naechster++}:a]`); }
+  // Musik darunter (ton/musik.mp3, ElevenLabs Music, Betreiber 01.11.2026: „spannender und heroischer“):
+  // leise, ein- und ausgeblendet, und sie duckt sich automatisch, sobald Toby spricht.
+  const musik = path.join(DIR, 'ton', 'musik.mp3');
+  if (process.env.TROCKEN !== '1' && process.env.OHNE_MUSIK !== '1' && fs.existsSync(musik)) {
+    // Ist das Stück etwas kürzer als das Video, wird es unmerklich gestreckt (höchstens 10 %), damit sein Schluss aufs Ende fällt.
+    const dehnen = Math.max(0.9, Math.min(1, laenge(musik) / ende));
+    eingaben.push('-i', musik);
+    filter.push(`[stimme]asplit[sauber][seite]`);
+    filter.push(`[${naechster++}:a]atempo=${dehnen.toFixed(4)},aformat=sample_rates=44100:channel_layouts=stereo,volume=${process.env.MUSIK_LAUT || 0.32},afade=t=in:d=1.5,afade=t=out:st=${Math.max(0, ende - 2.5).toFixed(2)}:d=2.5[mus]`);
+    filter.push(`[mus][seite]sidechaincompress=threshold=0.02:ratio=6:attack=30:release=500[musik]`);
+    teile.push('[musik]');
+  } else filter.push('[stimme]anull[sauber]');
+  filter.push(`${teile.join('')}amix=inputs=${teile.length}:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5,afade=t=out:st=${aus.toFixed(2)}:d=0.9[ton]`);
   execFileSync(FFMPEG, ['-y', '-loglevel', 'error', ...eingaben, '-filter_complex', filter.join(';'),
     '-map', '[bild]', '-map', '[ton]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '160k', '-t', (ende + 1).toFixed(2), '-movflags', '+faststart', ziel], { stdio: 'inherit' });
