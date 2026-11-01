@@ -197,12 +197,10 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
             <h2 className="section-heading" style={{ margin: 0 }}>Aktuelles</h2>
           </div>
           {/* Drei Reiter, die alle 5 s wechseln (Betreiber, 01.11.2026) — derselbe
-              Umschalter wie bei „Nächste Spiele“. */}
-          <NaechsteSpieleRotator label="Aktuelles wählen" gruppen={([
-            ['spieltag', 'Spieltagsberichte', newsArticles.spieltag],
-            ['news', 'News', newsArticles.news],
-            ['features', 'Features', newsArticles.features],
-          ] as const).filter(([, , l]) => l.length > 0).map(([code, name, l]) => ({
+              Umschalter wie bei „Nächste Spiele“. Reihenfolge nach Aktualität. */}
+          <NaechsteSpieleRotator label="Aktuelles wählen" gruppen={newsArticles.reihenfolge
+            .map(code => [code, ({ spieltag: 'Spieltagsberichte', news: 'News', features: 'Features' })[code], newsArticles[code]] as const)
+            .filter(([, , l]) => l.length > 0).map(([code, name, l]) => ({
             code, name, color: 'var(--th-accent)',
             inhalt: l.map(a => <NewsArticleCard key={a.id} article={a} />),
           }))} />

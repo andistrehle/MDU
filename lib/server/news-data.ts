@@ -79,24 +79,33 @@ export interface StartseitenNews {
   spieltag: NewsArticle[];
   news: NewsArticle[];
   features: NewsArticle[];
+  /** Reiter nach Aktualität: der mit der neuesten Meldung zuerst (Betreiber, 01.11.2026). */
+  reihenfolge: (keyof Omit<StartseitenNews, 'reihenfolge'>)[];
 }
+type Reiter = keyof Omit<StartseitenNews, 'reihenfolge'>;
+const REITER: Reiter[] = ['spieltag', 'news', 'features'];
 
 /** Reiter einer Meldung: Kategorie „Spieltag“ (bzw. Kennung spieltag-…), „Neueste Features“, sonst News. */
-function reiterVon(r: { id: string; category: string }): keyof StartseitenNews {
+function reiterVon(r: { id: string; category: string }): Reiter {
   if (r.category === 'Spieltag' || r.id.startsWith('spieltag-')) return 'spieltag';
   if (r.category === 'Neueste Features') return 'features';
   return 'news';
 }
 
-function aufteilen<T extends { id: string; category: string }>(rows: T[]): Record<keyof StartseitenNews, T[]> {
-  const g: Record<keyof StartseitenNews, T[]> = { spieltag: [], news: [], features: [] };
+function aufteilen<T extends { id: string; category: string }>(rows: T[]): Record<Reiter, T[]> {
+  const g: Record<Reiter, T[]> = { spieltag: [], news: [], features: [] };
   for (const r of rows) g[reiterVon(r)].push(r);
   return g;
 }
 
 const statisch = (): StartseitenNews => {
   const g = aufteilen(NEWS_ARTICLES);
-  return { spieltag: g.spieltag.slice(0, 3), news: g.news.slice(0, 3), features: g.features.slice(0, 3) };
+  // Statischer Bestand ist schon neueste zuerst — Reiter nach Position der ersten Meldung.
+  const pos = (r: Reiter) => { const a = g[r][0]; return a ? NEWS_ARTICLES.indexOf(a) : Infinity; };
+  return {
+    spieltag: g.spieltag.slice(0, 3), news: g.news.slice(0, 3), features: g.features.slice(0, 3),
+    reihenfolge: [...REITER].sort((a, b) => pos(a) - pos(b)),
+  };
 };
 
 /**
@@ -123,6 +132,9 @@ export async function getHomepageNews(): Promise<StartseitenNews> {
       spieltag: startseitenAuswahl(g.spieltag).map(rowToArticle),
       news: startseitenAuswahl(g.news).map(rowToArticle),
       features: startseitenAuswahl(g.features).map(rowToArticle),
+      // Neueste Meldung je Reiter entscheidet; leere Reiter ans Ende (fallen in der Anzeige weg).
+      reihenfolge: [...REITER].sort((a, b) =>
+        (g[b][0] ? Date.parse(g[b][0].sort_ts) : 0) - (g[a][0] ? Date.parse(g[a][0].sort_ts) : 0)),
     };
   } catch {
     return statisch();
