@@ -20,6 +20,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import * as z from 'zod/v4';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { PREMIUM_OEFFENTLICH, TESTTAGE } from '@/lib/premium';
 import { LIGEN_2027, alleBegegnungen27, team27, wochenendeText, datumKurz27, type Begegnung27, type Liga27Code } from '@/lib/data/saison-2027';
 import { berechneTabelle, type Ergebnis27 } from '@/lib/tabelle-2027';
 import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
@@ -27,7 +28,7 @@ import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
 import { berichtLink, type SocialDaten } from '@/lib/spieltag-social';
 import {
-  fenster, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
+  fenster, tagDanach, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
   type BegegnungDaten, type SpielerWertung,
 } from '@/lib/spieltag-bericht';
 
@@ -58,6 +59,9 @@ interface Offen { b: Begegnung27; grund: string }
 
 export interface Fakten {
   fri: string; sun: string;
+  /** Nachtrag (Betreiber, 01.11.2026): der Wochenend-Bericht ist schon veröffentlicht, neu dazugekommene
+   *  Spiele (z. B. Rest des 1. Spieltags) bekommen einen eigenen Bericht bis `bis` (heute). */
+  nachtrag?: { von: string; bis: string };
   eintraege: Eintrag[];
   offen: Offen[];
   daten: Map<string, BegegnungDaten>;
@@ -70,13 +74,20 @@ export interface Fakten {
 
 const spieldatum = (b: Begegnung27, e?: Ergebnis27) => (e?.datum ?? b.termin?.datum ?? b.fri).slice(0, 10);
 
-export async function sammeln(fri: string): Promise<Fakten | null> {
+/** Zeitraum in Worten: „23.–25.10.2026“ bzw. beim Nachtrag „Nachholspiele bis 01.11.“. */
+export const zeitraumText = (f: Pick<Fakten, 'fri' | 'sun' | 'nachtrag'>, mitJahr = true) =>
+  f.nachtrag ? `Nachholspiele bis ${datumKurz27(f.nachtrag.bis)}` : wochenendeText(f.fri, f.sun, mitJahr);
+
+export async function sammeln(fri: string, nachtragBis?: string): Promise<Fakten | null> {
   const db = supabaseAdmin;
   const w = planWochenenden().find(x => x.fri === fri);
-  const f = fenster(planWochenenden(), fri);
-  if (!db || !w || !f) return null;
+  const plan = fenster(planWochenenden(), fri);
+  if (!db || !w || !plan) return null;
+  // Nachtrag: alles nach dem Wochenende bis heute, was noch in keinem Bericht stand.
+  const f = nachtragBis ? { von: tagDanach(w.sun), bis: nachtragBis } : plan;
+  const heute = heuteMuenchen();
   const { byKey } = await ladeErgebnisse27();
-  const { data: frueher } = await db.from('spieltag_berichte').select('wochenende, keys').neq('wochenende', fri);
+  const { data: frueher } = await db.from('spieltag_berichte').select('wochenende, keys').neq('wochenende', nachtragBis ?? fri);
   const schonDrin = new Set(((frueher ?? []) as { keys: string[] }[]).flatMap(r => r.keys));
 
   const eintraege: Eintrag[] = [], offen: Offen[] = [];
@@ -84,10 +95,13 @@ export async function sammeln(fri: string): Promise<Fakten | null> {
     const e = byKey[b.key];
     const datum = spieldatum(b, e);
     if (e) {
-      if (datum >= f.von && datum <= f.bis) eintraege.push({ b, e, datum, art: 'gespielt' });
-      else if (datum < f.von && !schonDrin.has(b.key)) eintraege.push({ b, e, datum, art: 'nachgereicht' });
+      // Was schon in einem anderen Bericht stand (z. B. Nachtrag), kommt nicht noch einmal.
+      if (schonDrin.has(b.key)) continue;
+      if (datum >= f.von && datum <= f.bis) eintraege.push({ b, e, datum, art: nachtragBis && b.fri === fri ? 'nachgereicht' : 'gespielt' });
+      else if (datum < f.von) eintraege.push({ b, e, datum, art: 'nachgereicht' });
     } else if (b.fri === fri || (datum >= f.von && datum <= f.bis)) {
-      offen.push({ b, grund: datum > w.sun ? `verlegt auf ${datumKurz27(datum)}` : SPIELTAG_HINWEISE_2027[b.key] ?? 'Bericht steht noch aus' });
+      // Teil des Wochenendes schon gespielt, Rest folgt noch (Bericht mitten im Wochenende erzeugt).
+      offen.push({ b, grund: datum > heute ? `spielt ${datumKurz27(datum)}` : datum > w.sun ? `verlegt auf ${datumKurz27(datum)}` : SPIELTAG_HINWEISE_2027[b.key] ?? 'Bericht steht noch aus' });
     }
   }
 
@@ -109,7 +123,7 @@ export async function sammeln(fri: string): Promise<Fakten | null> {
     );
   }
   const wertung = spielerWertung([...daten.values()]);
-  return { fri, sun: w.sun, eintraege, offen, daten, wertung, sieger: spielerDesSpieltages(wertung), meiste: meisteHighlights(wertung), tabellen };
+  return { fri, sun: w.sun, nachtrag: nachtragBis ? { von: f.von, bis: f.bis } : undefined, eintraege, offen, daten, wertung, sieger: spielerDesSpieltages(wertung), meiste: meisteHighlights(wertung), tabellen };
 }
 
 // ── Für Claude: nur Zahlen, als JSON ─────────────────────────
@@ -124,7 +138,8 @@ export function faktenJson(f: Fakten) {
     '180er': z.b180, '171er': z.b171, highFinishes: z.hf, shortLegsDarts: z.sl,
   });
   return {
-    wochenende: wochenendeText(f.fri, f.sun),
+    wochenende: zeitraumText(f),
+    art: f.nachtrag ? 'nachtrag' : 'wochenende',
     ligen: LIGEN_2027.filter(l => f.eintraege.some(x => x.b.liga === l.code) || f.offen.some(x => x.b.liga === l.code)).map(l => ({
       liga: l.name,
       spieltage: [...new Set(f.eintraege.concat().filter(x => x.b.liga === l.code && x.art === 'gespielt').map(x => x.b.spieltag))],
@@ -190,11 +205,11 @@ const TextSchema = z.object({
 });
 export type BerichtText = z.infer<typeof TextSchema>;
 
-const SYSTEM = `Du schreibst für die News-Seite der Münchner Dart Union (MDU, Steeldart-Ligabetrieb in München) den Bericht zu einem Spielwochenende.
+const SYSTEM = `Du schreibst für die News-Seite der Münchner Dart Union (MDU, E-Dart-Ligabetrieb in München) den Bericht zu einem Spielwochenende.
 
 Ton: freundlich, sachlich, lebendig wie eine Lokalsport-Redaktion — kein Marketing-Sprech, keine leeren Superlative. Deutsch.
 
-Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher, der Bericht kam erst jetzt. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
+Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher (oder wurde nachgeholt), der Bericht kam erst jetzt. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden erst noch statt. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
 
 Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste, wenn es dazu nichts gibt):
 - einleitung: kurzer Überblick über das Wochenende.
@@ -256,10 +271,16 @@ export function vorlage(f: Fakten): BerichtText {
   ];
   const paar = (x: Eintrag) => `${name(x.e.home)} – ${name(x.e.away)} ${ergText(x.e)}`;
   return {
-    facebook: `🎯 Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: ${gespielt.length} Begegnungen, alle Ergebnisse, Highlights und Tabellen im Überblick.`,
-    titel: `Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: alle Ergebnisse`,
-    teaser: `${gespielt.length} Begegnungen am Wochenende ${wochenendeText(f.fri, f.sun, false)} — Ergebnisse, Highlights und Tabellen.`,
-    einleitung: [`Am Wochenende ${wochenendeText(f.fri, f.sun)} wurden ${gespielt.length} Begegnungen gespielt${f.offen.length ? `, ${f.offen.length} stehen noch aus` : ''}.`],
+    facebook: f.nachtrag
+      ? `🎯 ${zeitraumText(f, false)}: ${f.eintraege.length} Begegnungen nachgeholt – Ergebnisse, Highlights und Tabellen im Überblick.`
+      : `🎯 Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: ${gespielt.length} Begegnungen, alle Ergebnisse, Highlights und Tabellen im Überblick.`,
+    titel: f.nachtrag ? `${zeitraumText(f, false)}: alle Ergebnisse` : `Spielwochenende ${wochenendeText(f.fri, f.sun, false)}: alle Ergebnisse`,
+    teaser: f.nachtrag
+      ? `${f.eintraege.length} nachgeholte Begegnungen — Ergebnisse, Highlights und Tabellen.`
+      : `${gespielt.length} Begegnungen am Wochenende ${wochenendeText(f.fri, f.sun, false)} — Ergebnisse, Highlights und Tabellen.`,
+    einleitung: [f.nachtrag
+      ? `Nachgeholt bzw. nachgereicht: ${f.eintraege.length} Begegnungen${f.offen.length ? `, ${f.offen.length} stehen noch aus` : ''}.`
+      : `Am Wochenende ${wochenendeText(f.fri, f.sun)} wurden ${gespielt.length} Begegnungen gespielt${f.offen.length ? `, ${f.offen.length} stehen noch aus` : ''}.`],
     highlights: [
       ...(top ? [`Höchstes Finish des Wochenendes: **${top.wert}** von ${liste(top.spieler.map(s => `${s.name} (${s.team})`))}.`] : []),
       ...(besText.length ? [`Außerdem: ${liste(besText)}.`] : []),
@@ -319,10 +340,20 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
   }
   if (f.eintraege.some(x => !x.e.bestaetigt)) out.push('* = vom Gegner noch nicht bestätigt');
   abschnitt('Tabellen', [...t.tabelle, '[Zu allen Tabellen](/tabellen)']);
+  // Team Manager am Ende jedes Berichts (Betreiber, 01.11.2026): bis zum Start „Coming soon“,
+  // danach mit Test-Link — umgeschaltet über PREMIUM_OEFFENTLICH (lib/premium.ts).
+  out.push(...TEAM_MANAGER_ABSATZ());
   return out;
 }
 
 // ── Entwurf anlegen ──────────────────────────────────────────
+
+export const TEAM_MANAGER_ABSATZ = (): string[] => (PREMIUM_OEFFENTLICH
+  ? ['## Habt ihr schon den Team Manager?',
+     'Zu- und Absagen, Aufstellung, Termine, Teamkasse mit Strafen-Tracker und die Statistik eures Teams – alles an einem Ort statt in fünf WhatsApp-Gruppen.',
+     `[Jetzt ${TESTTAGE} Tage kostenlos testen](/mein-team/premium)`]
+  : ['## Coming soon: der Team Manager',
+     'Zu- und Absagen, Aufstellung, Termine, Teamkasse und Statistik – bald gibt’s ein eigenes Werkzeug, um euren Spieltag zu organisieren. Mehr dazu demnächst.']);
 
 // ── Social Media (Migration 0060) ────────────────────────────
 
@@ -336,7 +367,7 @@ export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDat
   const spieler = (z: SpielerWertung) => ({ name: z.name, team: name(z.teamId), text: [`Einzel ${z.einzelSiege}:${z.einzelNiederlagen}`, hlText(z)].filter(Boolean).join(' · ') });
   const top = hoechstesFinish(f);
   return {
-    newsId, titel, wochenende: wochenendeText(f.fri, f.sun),
+    newsId, titel, wochenende: zeitraumText(f),
     ligen: LIGEN_2027.map(l => {
       const xs = f.eintraege.filter(x => x.b.liga === l.code);
       const st = [...new Set(xs.filter(x => x.art === 'gespielt').map(x => x.b.spieltag))];
@@ -359,17 +390,19 @@ export type ErzeugenErgebnis =
   | { ok: true; newsId: string; quelle: 'claude' | 'vorlage'; begegnungen: number; offen: number }
   | { ok: false; grund: string };
 
-export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean } = {}): Promise<ErzeugenErgebnis> {
+export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean; nachtragBis?: string } = {}): Promise<ErzeugenErgebnis> {
   const db = supabaseAdmin;
   if (!db) return { ok: false, grund: 'Server-Datenbank ist nicht konfiguriert.' };
-  const id = newsIdFuer(fri);
+  // Nachtrag: eigener Beitrag/Schlüssel mit dem heutigen Datum, das Wochenende bleibt Bezug.
+  const schluessel = opts.nachtragBis ?? fri;
+  const id = newsIdFuer(schluessel);
   const { data: vorhanden, error: ve } = await db.from('news').select('status').eq('id', id).maybeSingle();
   if (ve) return { ok: false, grund: ve.message };
   if (vorhanden && vorhanden.status !== 'draft') return { ok: false, grund: 'Der Bericht ist schon veröffentlicht oder archiviert — zum Neuerzeugen erst wieder auf Entwurf stellen.' };
 
-  const f = await sammeln(fri);
+  const f = await sammeln(fri, opts.nachtragBis);
   if (!f) return { ok: false, grund: 'Kein Spielwochenende an diesem Datum.' };
-  if (!f.eintraege.length) return { ok: false, grund: 'Noch kein Ergebnis für dieses Wochenende eingereicht.' };
+  if (!f.eintraege.length) return { ok: false, grund: opts.nachtragBis ? 'Seit dem letzten Bericht ist kein neues Ergebnis dazugekommen.' : 'Noch kein Ergebnis für dieses Wochenende eingereicht.' };
 
   const claude = await mitClaude(f);
   const t = claude ?? vorlage(f);
@@ -382,7 +415,7 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean } 
     ? await db.from('news').update(zeile).eq('id', id)
     : await db.from('news').insert({ ...zeile, id });
   if (error) return { ok: false, grund: error.message };
-  const basis = { wochenende: fri, news_id: id, keys: f.eintraege.map(x => x.b.key), quelle: claude ? 'claude' : 'vorlage', erstellt_at: new Date().toISOString() };
+  const basis = { wochenende: schluessel, news_id: id, keys: f.eintraege.map(x => x.b.key), quelle: claude ? 'claude' : 'vorlage', erstellt_at: new Date().toISOString() };
   let { error: le } = await db.from('spieltag_berichte').upsert({
     ...basis, facebook: facebookText(t.facebook || t.teaser, id), social: socialDaten(f, id, zeile.title),
   });
@@ -392,7 +425,7 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean } 
 
   if (opts.benachrichtigen) {
     const { data: ll } = await db.from('profiles').select('id').in('role', ['league_admin', 'super_admin']);
-    const text = `Der Spieltagsbericht ${wochenendeText(fri, f.sun, false)} liegt als Entwurf bereit (${f.eintraege.length} Begegnungen${f.offen.length ? `, ${f.offen.length} offen` : ''}). Bitte prüfen und veröffentlichen.`;
+    const text = `Der Spieltagsbericht ${zeitraumText(f, false)} liegt als Entwurf bereit (${f.eintraege.length} Begegnungen${f.offen.length ? `, ${f.offen.length} offen` : ''}). Bitte prüfen und veröffentlichen.`;
     const ids = ((ll ?? []) as { id: string }[]).map(p => p.id);
     if (ids.length) await db.from('notifications').insert(ids.map(rid => ({
       recipient_user_id: rid, type: 'spieltag_bericht', title: 'Spieltagsbericht bereit', message: text, short_text: text,

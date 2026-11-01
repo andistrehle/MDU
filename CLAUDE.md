@@ -226,6 +226,11 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   27.10.2026) = Einzelbilanz zuerst (Siege ↓, Niederlagen ↑), Gleichstand → Highlight-Punkte (180/171 = 3, HF
   100–129/130–159/160+ = 2/3/4, SL ≤12/13–15/16–20 = 3/2/1, La Liga × ⅔), dann Legdifferenz. Eigens: „die
   meisten Highlights“ (Anzahl) und besondere (höchstes Finish, HF ≥ 140, SL ≤ 15, 180er/171er ab zwei).
+  Von Hand „Bericht jetzt erzeugen“ (Admin → News) jederzeit, auch mitten im Wochenende (noch nicht Gespieltes steht als
+  „spielt …“ unter offen); ist der Bericht des letzten Plan-Wochenendes schon veröffentlicht, entsteht ein NACHTRAG
+  `spieltag-<heute>` (Betreiber 01.11.2026) mit allem, was in keinem Bericht stand (`sammeln(fri, nachtragBis)`,
+  `zeitraumText`); Spiele aus einem anderen Bericht kommen nie doppelt. Am Ende jedes Berichts setzt der Code den
+  Team-Manager-Absatz (`TEAM_MANAGER_ABSATZ`: „Coming soon“, ab `PREMIUM_OEFFENTLICH` „Habt ihr schon …? Jetzt testen“).
   Punkte/Formel sind INTERN — nie in Beitrag oder FAQ. Anmerkungen zu offenen Begegnungen („nicht
   stattgefunden …“) in `lib/data/spieltag-hinweise-2027.ts`. Claude (`claude-opus-5-5`, OCR-Schlüssel) formuliert NUR aus dem
   Fakten-JSON; Ergebnisliste und offene Spiele setzt der Code selbst; ohne Claude Text aus der Vorlage

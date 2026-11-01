@@ -184,7 +184,7 @@ export function tabellenAenderung(vorher: TabellenZeile[], nachher: TabellenZeil
 
 // ── Fenster je Plan-Wochenende ───────────────────────────────
 
-const tagDanach = (iso: string) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); };
+export const tagDanach = (iso: string) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); };
 
 /** Fenster (von–bis, inkl.) des Berichts für das Wochenende `fri` aus der Liste aller Plan-Wochenenden. */
 export function fenster(wochenenden: { fri: string; sun: string }[], fri: string): { von: string; bis: string } | null {

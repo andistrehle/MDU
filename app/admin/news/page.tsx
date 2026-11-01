@@ -193,10 +193,10 @@ export default function AdminNewsPage() {
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', margin: '4px 0 10px', lineHeight: 1.55 }}>
           Entsteht jeden Spielsonntag am Abend (20 Uhr, in der Sommerzeit 21 Uhr) automatisch als Entwurf (Kategorie „Spieltag“), du bekommst eine Glocke.
           Prüfen, ggf. bearbeiten, dann veröffentlichen – erst dann geht der Push an alle Geräte raus.
-          Später eingereichte Berichte: hier neu erzeugen (überschreibt den Entwurf).
+          Später eingereichte Berichte: hier neu erzeugen (überschreibt den Entwurf). Jederzeit von Hand möglich, auch mitten im Wochenende – was noch nicht gespielt ist, steht als „spielt …“ drin. Ist der Bericht des letzten Wochenendes schon veröffentlicht, entsteht ein Nachtrag mit allen seither dazugekommenen Spielen.
         </p>
         <button type="button" onClick={erzeugen} disabled={erzeugt.busy} style={{ ...btn('transparent', 'var(--th-accent)', 'var(--th-accent)'), opacity: erzeugt.busy ? 0.6 : 1 }}>
-          {erzeugt.busy ? 'Erzeugt …' : 'Entwurf fürs letzte Wochenende erzeugen'}
+          {erzeugt.busy ? 'Erzeugt …' : 'Bericht jetzt erzeugen'}
         </button>
         {erzeugt.text && (
           <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: erzeugt.ok === false ? 'var(--th-loss, #d64545)' : 'var(--th-text-strong)' }}>

@@ -4,7 +4,8 @@
 //
 // POST /api/spieltag-bericht  (Authorization: Bearer <access token>)
 //   { aktion: 'erzeugen', fri? }  — Entwurf (neu) erzeugen, Standard: letztes
-//       begonnene Spielwochenende. Nur solange er Entwurf ist.
+//       begonnene Spielwochenende. Nur solange er Entwurf ist; ist er schon
+//       veröffentlicht, entsteht ein Nachtrag (spieltag-<heute>) mit allem Neuen.
 //   { aktion: 'social', id }      — Facebook-Text + Daten für Reel/Story (Migration 0060).
 //   { aktion: 'push', id }        — nach dem Veröffentlichen unter Admin → News:
 //       Push an ALLE Geräte (Betreiber, 25.10.2026), je Bericht nur einmal.
@@ -16,7 +17,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { erzeugen, letztesWochenende } from '@/lib/server/spieltag-bericht';
+import { erzeugen, letztesWochenende, newsIdFuer } from '@/lib/server/spieltag-bericht';
 import { pushAlle } from '@/lib/server/push';
 
 export const runtime = 'nodejs';
@@ -34,7 +35,12 @@ export async function POST(request: Request) {
   if (body.aktion === 'erzeugen') {
     const fri = body.fri ?? letztesWochenende()?.fri;
     if (!fri) return NextResponse.json({ error: 'Noch kein Spielwochenende begonnen.' }, { status: 400 });
-    const r = await erzeugen(fri);
+    // Ist der Bericht zum letzten Wochenende schon veröffentlicht, entsteht ein NACHTRAG mit allem,
+    // was seither dazugekommen ist (Betreiber, 01.11.2026: z. B. Rest des 1. Spieltags), Stand heute.
+    const { data: alt } = await db.from('news').select('status').eq('id', newsIdFuer(fri)).maybeSingle();
+    const nachtragBis = !body.fri && alt && alt.status !== 'draft'
+      ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date()) : undefined;
+    const r = await erzeugen(fri, { nachtragBis });
     return r.ok ? NextResponse.json(r) : NextResponse.json({ error: r.grund }, { status: 400 });
   }
 
