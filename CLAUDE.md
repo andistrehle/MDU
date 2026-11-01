@@ -233,6 +233,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `spieltag-<heute>` (Betreiber 01.11.2026) mit allem, was in keinem Bericht stand (`sammeln(fri, nachtragBis)`,
   `zeitraumText`); Spiele aus einem anderen Bericht kommen nie doppelt. Am Ende jedes Berichts setzt der Code den
   Team-Manager-Absatz (`TEAM_MANAGER_ABSATZ`: „Coming soon“, ab `PREMIUM_OEFFENTLICH` „Habt ihr schon …? Jetzt testen“).
+  Laufband „Spieltag“ (Breaking-News-Stil, Betreiber 01.11.2026): nur Startseite unter der Kopfzeile, neuester
+  veröffentlichter Bericht bis 3 Tage nach `push_at`, Titel + Ergebnisse aus `social` (`lib/server/spieltag-banner.ts`,
+  `components/mdu/spieltag-banner.tsx`), × blendet ihn je Gerät bis zum nächsten Bericht aus (`mdu-banner-zu`).
   Punkte/Formel sind INTERN — nie in Beitrag oder FAQ. Anmerkungen zu offenen Begegnungen („nicht
   stattgefunden …“) in `lib/data/spieltag-hinweise-2027.ts`. Claude (`claude-opus-5-5`, OCR-Schlüssel) formuliert NUR aus dem
   Fakten-JSON; Ergebnisliste und offene Spiele setzt der Code selbst; ohne Claude Text aus der Vorlage

@@ -9,6 +9,8 @@ import { TeamLink } from '@/components/mdu/team-link';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
 import { HeroFullbleed } from '@/components/mdu/hero-fullbleed';
 import { getHomepageNews } from '@/lib/server/news-data';
+import { ladeSpieltagBanner } from '@/lib/server/spieltag-banner';
+import { SpieltagBanner } from '@/components/mdu/spieltag-banner';
 import {
   getRecentResults,
   findLeague,
@@ -69,7 +71,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
     : getRecentResults(undefined, 5).map(m => ({ homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId, leagueName: findLeague(m.leagueId)?.name ?? m.leagueId, date: m.date, result: m.result, offen: false, neu: false as const, bericht: null }));
   // Nächstes Spielwochenende der Saison 2026/27 (vorläufiger Plan), alle Ligen.
   const naechstes = naechstesWochenende27();
-  const newsArticles = await getHomepageNews();
+  const [newsArticles, banner] = await Promise.all([getHomepageNews(), ladeSpieltagBanner()]);
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -82,6 +84,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
       ) : (
         <>
           <DesktopHeader activeHref="/" />
+          {banner && <SpieltagBanner daten={banner} />}
 
           {/* Hero */}
           <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--th-bg-page)', borderBottom: '1px solid var(--th-line-4)' }}>
