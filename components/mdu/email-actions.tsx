@@ -2,9 +2,14 @@
 
 // E-Mail-Adresse in Admin-Listen (Betreiber, 02.11.2026): Adresse als
 // markierbarer Text, daneben „Kopieren“ (zum Einfügen z. B. bei Strato) und
-// „Schreiben“ (mailto: — öffnet das Mailprogramm des Geräts).
+// „Schreiben“ (mailto: — öffnet das Mailprogramm des Geräts) und „Strato“:
+// das Webmail des Betreibers ist OX App Suite, deren mailto-Anbindung
+// `#app=io.ox/mail/compose:compose&mailto=…` öffnet ein neues Mail an die
+// Adresse (Anmeldung im Browser vorausgesetzt).
 
 import { useState } from 'react';
+
+const STRATO = 'https://webmail.strato.de/appsuite/';
 
 const knopf: React.CSSProperties = {
   padding: '3px 9px', borderRadius: 999, cursor: 'pointer', background: 'transparent',
@@ -35,6 +40,8 @@ export function EmailActions({ email }: { email: string }) {
         {status === 'ok' ? 'Kopiert ✓' : status === 'fehler' ? 'Bitte markieren' : 'Kopieren'}
       </button>
       <a href={`mailto:${email}`} style={knopf}>Schreiben</a>
+      <a href={`${STRATO}#app=io.ox/mail/compose:compose&mailto=${encodeURIComponent(`mailto:${email}`)}`}
+        target="_blank" rel="noopener noreferrer" style={knopf}>Strato</a>
     </span>
   );
 }
