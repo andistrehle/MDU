@@ -5,7 +5,7 @@
 // „Schreiben“ (mailto: — öffnet das Mailprogramm des Geräts) und „Strato“:
 // das Webmail des Betreibers ist OX App Suite, deren mailto-Anbindung
 // `#app=io.ox/mail/compose:compose&mailto=…` öffnet ein neues Mail an die
-// Adresse (Anmeldung im Browser vorausgesetzt).
+// Adresse (Anmeldung im Browser vorausgesetzt; vom Betreiber am 02.11.2026 geprüft).
 
 import { useState } from 'react';
 
