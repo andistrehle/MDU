@@ -45,3 +45,10 @@ export function EmailActions({ email }: { email: string }) {
     </span>
   );
 }
+
+/** Hinweis direkt am Feld: Wert stammt nicht aus der Anmeldung, sondern vom Konto des Kapitäns
+ *  (`contact_*_quelle` aus listSeasonTeams). */
+export function AusKonto() {
+  return <span title="In der Anmeldung leer – ergänzt aus dem Konto bzw. den Kontaktdaten des Kapitäns"
+    style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>aus Konto</span>;
+}

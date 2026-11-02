@@ -19,7 +19,7 @@ import { computeTeamFee, feeBreakdown, openAmount } from '@/lib/startgeld';
 import { normalizePersonName, getRegistrationMatchSuggestion } from '@/lib/auth/player-match';
 import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
-import { EmailActions } from '@/components/mdu/email-actions';
+import { EmailActions, AusKonto } from '@/components/mdu/email-actions';
 import { KapitaenWechseln } from '@/components/mdu/kapitaen-wechseln';
 import { canManageUsers } from '@/lib/auth/roles';
 import {
@@ -402,8 +402,8 @@ export default function AdminSeasonTeamsPage() {
               ) : (
                 <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                   {t.contact_name ? <span>{t.contact_name}</span> : <span style={{ color: 'var(--th-text-faint2)' }}>–</span>}
-                  {t.contact_phone && <PhoneActions phone={t.contact_phone} />}
-                  {t.contact_email && <EmailActions email={t.contact_email} />}
+                  {t.contact_phone && <><PhoneActions phone={t.contact_phone} />{t.contact_phone_quelle && <AusKonto />}</>}
+                  {t.contact_email && <><EmailActions email={t.contact_email} />{t.contact_email_quelle && <AusKonto />}</>}
                   {!t.contact_phone && <span style={{ color: 'var(--th-text-faint2)', fontSize: 12 }}>(keine Telefonnummer angegeben)</span>}
                   <button type="button" title="Ansprechpartner ändern"
                     onClick={() => { setContactEditTeam(t.team_id); setContactName(t.contact_name ?? ''); setContactEmail(t.contact_email ?? ''); setContactPhone(t.contact_phone ?? ''); setClearCaptainUser(false); }}

@@ -16,13 +16,7 @@ import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
 import { listSeasonTeams, type SeasonTeamRow } from '@/lib/supabase/season-teams';
 import { PhoneActions } from '@/components/mdu/phone-actions';
-import { EmailActions } from '@/components/mdu/email-actions';
-
-/** Hinweis direkt am Feld: Wert stammt nicht aus der Anmeldung, sondern vom Konto des Kapitäns. */
-function AusKonto() {
-  return <span title="In der Anmeldung leer – ergänzt aus dem Konto bzw. den Kontaktdaten des Kapitäns"
-    style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', borderRadius: 999, padding: '1px 7px' }}>aus Konto</span>;
-}
+import { EmailActions, AusKonto } from '@/components/mdu/email-actions';
 
 export default function AdminKontaktePage() {
   const { user } = useAuth();
