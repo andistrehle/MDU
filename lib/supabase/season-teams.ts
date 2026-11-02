@@ -54,6 +54,9 @@ export interface SeasonTeamRow {
   contact_name: string | null;
   contact_phone: string | null;
   contact_email: string | null;
+  /** 'konto' = in der Anmeldung leer, ergänzt aus Konto/Spielerkontakt des Kapitäns (nur Anzeige). */
+  contact_email_quelle?: 'konto';
+  contact_phone_quelle?: 'konto';
 }
 
 export interface SeasonRosterRow {
@@ -71,6 +74,45 @@ export interface SeasonRosterRow {
   nominated_at?: string | null;
   /** True bei bestätigten Nachmeldungen (player_assignments, source 'nomination'). */
   is_nomination?: boolean;
+}
+
+/**
+ * Fehlt in der Anmeldung E-Mail oder Telefon (Betreiber, 02.11.2026), ergänzt die
+ * Anzeige sie vom Kapitän: E-Mail aus seinem Konto (`profiles.email`), Nummer
+ * aus den Spielerkontakten (`player_contacts`). Kapitän = captain_user_id, sonst
+ * das Konto zu captain_player_id, sonst der einzige team_captain des Teams.
+ * Schreibt nichts — die Anmeldung bleibt, wie sie ist. Lesen dürfen das nur
+ * Admins (RLS); für alle anderen bleibt es beim Stand der Anmeldung.
+ */
+async function kontakteErgaenzen(rows: SeasonTeamRow[]) {
+  for (const r of rows) {
+    // „mailto:“ vorn (kam so aus einer Anmeldung) ist kein Teil der Adresse.
+    if (r.contact_email) r.contact_email = r.contact_email.replace(/^mailto:/i, '').trim() || null;
+    if (r.contact_phone) r.contact_phone = r.contact_phone.trim() || null;
+  }
+  const offen = rows.filter(r => !r.contact_email || !r.contact_phone);
+  if (!supabase || !offen.length) return;
+  const teamIds = offen.map(r => r.team_id);
+  const { data: profs } = await supabase.from('profiles')
+    .select('id, email, player_id, role, team_id')
+    .or(`team_id.in.(${teamIds.map(t => `"${t}"`).join(',')}),id.in.(${offen.map(r => r.captain_user_id).filter(Boolean).join(',') || '00000000-0000-0000-0000-000000000000'})`);
+  const P = (profs ?? []) as { id: string; email: string | null; player_id: string | null; role: string; team_id: string | null }[];
+  const kapitaen = (r: SeasonTeamRow) =>
+    P.find(p => p.id === r.captain_user_id)
+    ?? (r.captain_player_id ? P.find(p => p.player_id === r.captain_player_id) : undefined)
+    ?? (() => { const tc = P.filter(p => p.team_id === r.team_id && p.role === 'team_captain'); return tc.length === 1 ? tc[0] : undefined; })();
+  const spieler = Array.from(new Set(offen.map(r => r.captain_player_id ?? kapitaen(r)?.player_id).filter(Boolean))) as string[];
+  const { data: pcs } = spieler.length
+    ? await supabase.from('player_contacts').select('player_id, phone').in('player_id', spieler)
+    : { data: [] };
+  const tel = new Map(((pcs ?? []) as { player_id: string; phone: string | null }[]).map(c => [c.player_id, c.phone?.trim() || null]));
+  for (const r of offen) {
+    const k = kapitaen(r);
+    if (!r.contact_email && k?.email) { r.contact_email = k.email; r.contact_email_quelle = 'konto'; }
+    const pid = r.captain_player_id ?? k?.player_id;
+    const t = pid ? tel.get(pid) : null;
+    if (!r.contact_phone && t) { r.contact_phone = t; r.contact_phone_quelle = 'konto'; }
+  }
 }
 
 /** Alle freigegebenen Teams einer Saison (mit Team-/Spielstättennamen). */
@@ -103,6 +145,7 @@ export async function listSeasonTeams(seasonId: string): Promise<SeasonTeamRow[]
   } else {
     for (const row of rows) setContact(row, undefined);
   }
+  await kontakteErgaenzen(rows);
   return rows;
 }
 

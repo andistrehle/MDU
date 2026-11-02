@@ -18,6 +18,12 @@ import { listSeasonTeams, type SeasonTeamRow } from '@/lib/supabase/season-teams
 import { PhoneActions } from '@/components/mdu/phone-actions';
 import { EmailActions } from '@/components/mdu/email-actions';
 
+/** Hinweis direkt am Feld: Wert stammt nicht aus der Anmeldung, sondern vom Konto des Kapitäns. */
+function AusKonto() {
+  return <span title="In der Anmeldung leer – ergänzt aus dem Konto bzw. den Kontaktdaten des Kapitäns"
+    style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 700, color: 'var(--th-text-faint)', border: '1px solid var(--th-line-10)', borderRadius: 999, padding: '1px 7px' }}>aus Konto</span>;
+}
+
 export default function AdminKontaktePage() {
   const { user } = useAuth();
   const canView = canApproveRegistrations(user);
@@ -102,9 +108,9 @@ export default function AdminKontaktePage() {
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', alignItems: 'center', fontFamily: 'var(--font-manrope)', fontSize: 13 }}>
                   {t.contact_phone
-                    ? <PhoneActions phone={t.contact_phone} />
+                    ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PhoneActions phone={t.contact_phone} />{t.contact_phone_quelle && <AusKonto />}</span>
                     : <span style={{ color: 'var(--th-text-faint2)' }}>📞 keine Nummer</span>}
-                  {t.contact_email && <EmailActions email={t.contact_email} />}
+                  {t.contact_email && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><EmailActions email={t.contact_email} />{t.contact_email_quelle && <AusKonto />}</span>}
                 </div>
               </div>
             ))}
