@@ -16,6 +16,7 @@ import { canApproveRegistrations } from '@/lib/auth/roles';
 import { listSeasons, getRegistrationSeason, SEASON_STATUS_LABELS, type DbSeason } from '@/lib/supabase/seasons';
 import { listSeasonTeams, type SeasonTeamRow } from '@/lib/supabase/season-teams';
 import { PhoneActions } from '@/components/mdu/phone-actions';
+import { EmailActions } from '@/components/mdu/email-actions';
 
 export default function AdminKontaktePage() {
   const { user } = useAuth();
@@ -103,7 +104,7 @@ export default function AdminKontaktePage() {
                   {t.contact_phone
                     ? <PhoneActions phone={t.contact_phone} />
                     : <span style={{ color: 'var(--th-text-faint2)' }}>📞 keine Nummer</span>}
-                  {t.contact_email && <a href={`mailto:${t.contact_email}`} style={{ color: 'var(--th-accent)', textDecoration: 'none' }}>✉ {t.contact_email}</a>}
+                  {t.contact_email && <EmailActions email={t.contact_email} />}
                 </div>
               </div>
             ))}
