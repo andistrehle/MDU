@@ -2,6 +2,7 @@
 
 // Laufband „Spieltag“ (Breaking-News-Stil) ganz oben auf der Startseite —
 // Titel + Ergebnisse des neuesten Spieltagsberichts, Tippen öffnet ihn.
+// Farben aus dem Theme: New Design dunkel mit Rot, Old School hell mit Grün.
 // × blendet es auf diesem Gerät aus, bis der nächste Bericht kommt
 // (localStorage `mdu-banner-zu` = Kennung des Berichts). Bei „weniger
 // Bewegung“ läuft nichts — dann lässt es sich seitlich schieben.
@@ -30,13 +31,13 @@ export function SpieltagBanner({ daten }: { daten: Daten }) {
 
   const teile = (
     <>
-      <span className="mdu-tk-teil" style={{ fontWeight: 800, color: '#fff' }}>{daten.titel}</span>
+      <span className="mdu-tk-teil" style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{daten.titel}</span>
       {daten.ligen.map(l => (
         <span key={l.name} className="mdu-tk-teil">
           <span style={{ fontWeight: 800, color: l.farbe }}>{l.name}</span>
           {l.ergebnisse.map((e, i) => (
             <span key={i} style={{ marginLeft: 14 }}>
-              {e.heim} <strong style={{ fontFamily: 'var(--font-jetbrains-mono)', color: '#fff' }}>{e.erg}</strong> {e.gast}
+              {e.heim} <strong style={{ fontFamily: 'var(--font-jetbrains-mono)', color: 'var(--th-text-strong)' }}>{e.erg}</strong> {e.gast}
             </span>
           ))}
         </span>
@@ -46,12 +47,12 @@ export function SpieltagBanner({ daten }: { daten: Daten }) {
 
   return (
     <div role="region" aria-label="Neuester Spieltagsbericht" style={{
-      display: 'flex', alignItems: 'stretch', background: '#141414', color: 'rgba(255,255,255,0.82)',
-      fontFamily: 'var(--font-manrope)', fontSize: 13, borderBottom: '2px solid #D40000', position: 'relative', zIndex: 1,
+      display: 'flex', alignItems: 'stretch', background: 'var(--th-bg-card)', color: 'var(--th-text-body)',
+      fontFamily: 'var(--font-manrope)', fontSize: 13, borderBottom: '2px solid var(--th-accent)', position: 'relative', zIndex: 1,
     }}>
       <Link href={`/news#${daten.id}`} style={{
         flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px',
-        background: '#D40000', color: '#fff', textDecoration: 'none',
+        background: 'var(--th-accent)', color: '#fff', textDecoration: 'none',
         fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase',
       }}>
         <span className="mdu-tk-punkt" aria-hidden /> Spieltag
@@ -64,7 +65,7 @@ export function SpieltagBanner({ daten }: { daten: Daten }) {
         </span>
       </Link>
       <button type="button" onClick={schliessen} aria-label="Laufband ausblenden" style={{
-        flexShrink: 0, background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: '0 12px',
+        flexShrink: 0, background: 'transparent', border: 'none', color: 'var(--th-text-muted)', cursor: 'pointer', padding: '0 12px',
         display: 'flex', alignItems: 'center',
       }}>
         <Icon name="close" size={16} />
@@ -74,7 +75,7 @@ export function SpieltagBanner({ daten }: { daten: Daten }) {
         .mdu-tk-fenster:hover .mdu-tk-band, .mdu-tk-fenster:focus-visible .mdu-tk-band { animation-play-state: paused; }
         .mdu-tk-runde { display: inline-flex; padding-right: 0; }
         .mdu-tk-teil { display: inline-flex; align-items: center; padding: 0 22px; }
-        .mdu-tk-teil::after { content: '+++'; margin-left: 44px; color: #D40000; font-weight: 800; }
+        .mdu-tk-teil::after { content: '+++'; margin-left: 44px; color: var(--th-accent); font-weight: 800; }
         .mdu-tk-punkt { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: mdu-tk-blink 1.4s ease-in-out infinite; }
         @keyframes mdu-tk-lauf { from { transform: translateX(0) } to { transform: translateX(-50%) } }
         @keyframes mdu-tk-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.25 } }
