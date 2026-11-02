@@ -164,7 +164,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   der Anmeldung (`team_registrations.contact_*`) und `profiles.role/team_id`; Ligaleitungs-Konten behalten ihre Rolle.
   Glocke/Push an neuen + bisherigen TC + ganzes Team.
   **Co-Captain + Spielbericht-Vertretung** (Migration 0062, Betreiber 29.10.2026, für ALLE Teams, Karten in
-  `components/mdu/kapitaens-team.tsx` auf „Mein Team“ + Team-Manager-Dashboard + Spieltag-Seite, Server
+  `components/mdu/kapitaens-team.tsx` auf „Mein Team“ + Team-Manager-Dashboard + Spieltag-Seite + Admin → Saison-Teams (Team aufklappen, 02.11.2026), Server
   `/api/team/kapitaene`): höchstens EIN Co-Captain je Team (`team_co_captains`, nur der echte Kapitän/Ligaleitung
   bestimmt ihn) mit einzeln vergebenen Rechten `TC_RECHTE` = spielberichte · team_manager · kasse · verlegung
   (jederzeit änder-/entziehbar). Vertretung (`spielbericht_vertretungen`): Kapitän/Co-Captain (spielberichte) teilt

@@ -21,6 +21,7 @@ import { playerLeagueHint, isNewPlayer } from '@/lib/data/roster-hints';
 import { PhoneActions } from '@/components/mdu/phone-actions';
 import { EmailActions, AusKonto } from '@/components/mdu/email-actions';
 import { KapitaenWechseln } from '@/components/mdu/kapitaen-wechseln';
+import { KapitaensTeam } from '@/components/mdu/kapitaens-team';
 import { canManageUsers } from '@/lib/auth/roles';
 import {
   MAIN_LEAGUE_LABELS, mainLeagueForSubCode, getPredeterminedLeagueForTeam,
@@ -416,6 +417,10 @@ export default function AdminSeasonTeamsPage() {
                 <KapitaenWechseln seasonId={seasonId} teamId={t.team_id} teamName={t.teams?.name ?? t.team_id} kader={r}
                   onFertig={async () => { setRoster(await listSeasonRoster(seasonId)); setTeams(await listSeasonTeams(seasonId)); }} />
               </span>
+              {/* Co-Captain + Spielbericht-Vertretung auch durch die Ligaleitung (Betreiber, 02.11.2026) —
+                  dieselben Karten wie unter „Mein Team“, der Server lässt Admins zu. */}
+              <span style={{ color: 'var(--th-text-muted)' }}>Co-Captain</span>
+              <span style={{ minWidth: 0 }}><KapitaensTeam teamId={t.team_id} /></span>
               <span style={{ color: 'var(--th-text-muted)' }}>Startgeld</span>
               <span style={{ color: 'var(--th-text-strong)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                 <span>{feeBreakdown(fee).replace(/ = \d+ €$/, '')} = <strong>{fee.total} €</strong>
