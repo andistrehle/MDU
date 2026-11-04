@@ -10,7 +10,8 @@ import type { TabellenZeile } from '@/lib/tabelle-2027';
 // darunter die Legende mit kurzer Erklärung (Plätze aus AUF_AB_2027).
 // Vor dem ersten Ergebnis: Platz „–", alphabetisch, alles 0, noch KEINE
 // Markierung — die alphabetische Reihenfolge sagt nichts über Plätze.
-// Auf schmalen Bildschirmen fallen S/U/N, Spiele und Legs weg.
+// Auf schmalen Bildschirmen fallen S/U/N, Spiele und Legs als Spalten weg und
+// stehen klein als zweite Zeile unter dem Teamnamen (`t27-m`).
 
 export const ZONE_FARBE: Record<Zone, string> = {
   auf: '#2E9E44',
@@ -30,7 +31,7 @@ export function Tabelle27({ liga, zeilen }: { liga: Liga27; zeilen: TabellenZeil
   const abzug = zeilen.some(z => z.abzug < 0);
   return (
     <div className="t27" style={{ padding: '12px 12px 4px 16px' }}>
-      <style>{`.t27 .t27-g{grid-template-columns:34px minmax(0,1fr) 34px 44px 28px 28px 28px 64px 72px 46px}@media (max-width:600px){.t27 .t27-g{grid-template-columns:24px minmax(0,1fr) 28px 36px 38px;gap:4px!important}.t27 .t27-x{display:none}}`}</style>
+      <style>{`.t27 .t27-m{display:none}.t27 .t27-g{grid-template-columns:34px minmax(0,1fr) 34px 44px 28px 28px 28px 64px 72px 46px}@media (max-width:600px){.t27 .t27-g{grid-template-columns:24px minmax(0,1fr) 28px 36px 38px;gap:4px!important}.t27 .t27-x{display:none}.t27 .t27-m{display:block}}`}</style>
       <div className="mdu-st-head t27-g" style={{ display: 'grid', gap: 6, alignItems: 'center', padding: '10px 8px', borderBottom: '1px solid var(--th-line-8)', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-muted)' }}>
         <span title="Platzierung">Pl.</span>
         <span>Team</span>
@@ -53,12 +54,19 @@ export function Tabelle27({ liga, zeilen }: { liga: Liga27; zeilen: TabellenZeil
             <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 16, color: gespielt && z.pos <= 3 ? 'var(--th-gold)' : 'var(--th-text-strong)' }}>
               {gespielt ? z.pos : '–'}
             </span>
-            <TeamLink teamId={z.team} teamName={t?.name ?? z.team} style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0, textDecoration: 'none' }}>
-              <TeamBadge initials={(t?.short ?? z.team).slice(0, 3)} color={t?.color} logoUrl={t?.logoUrl ?? undefined} size={26} />
-              <span className="mdu-link-name" style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {t?.name ?? z.team}{z.offen > 0 && <span title="Ergebnis noch nicht vom Gegner bestätigt" style={{ color: '#9A6B00', fontWeight: 800 }}> *</span>}
-              </span>
-            </TeamLink>
+            <div style={{ minWidth: 0 }}>
+              <TeamLink teamId={z.team} teamName={t?.name ?? z.team} style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0, textDecoration: 'none' }}>
+                <TeamBadge initials={(t?.short ?? z.team).slice(0, 3)} color={t?.color} logoUrl={t?.logoUrl ?? undefined} size={26} />
+                <span className="mdu-link-name" style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {t?.name ?? z.team}{z.offen > 0 && <span title="Ergebnis noch nicht vom Gegner bestätigt" style={{ color: '#9A6B00', fontWeight: 800 }}> *</span>}
+                </span>
+              </TeamLink>
+              {/* Handy (Betreiber, 04.11.2026): Bilanz als zweite Zeile, weil die Spalten S/U/N, Spiele, Legs dort wegfallen. */}
+              <div className="t27-m" style={{ marginTop: 3, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, color: 'var(--th-text-faint)', lineHeight: 1.5 }}>
+                <span style={{ whiteSpace: 'nowrap' }}><span style={{ color: 'var(--th-win)' }}>{z.s} S</span> · {z.u} U · <span style={{ color: 'var(--th-loss)' }}>{z.n} N</span></span>
+                {' · '}<span style={{ whiteSpace: 'nowrap' }}>Spiele {z.spieleFor}:{z.spieleAgainst}</span>{' · '}<span style={{ whiteSpace: 'nowrap' }}>Legs {z.legsFor}:{z.legsAgainst}</span>
+              </div>
+            </div>
             <span style={zahl}>{z.sp}</span>
             <span style={{ ...zahl, fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: 'var(--th-text-strong)' }}>
               {z.pts}{z.abzug < 0 && <sup style={{ color: '#C0392B', fontSize: 9, fontFamily: 'var(--font-manrope)' }}>({z.abzug})</sup>}
