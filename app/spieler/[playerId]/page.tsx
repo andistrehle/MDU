@@ -16,8 +16,9 @@ import { loadPublicPlayerProfile } from '@/lib/supabase/profiles';
 import { getDbPlayer, getRosterTeamForPlayer } from '@/lib/server/season-data';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { ladeEinzel27 } from '@/lib/server/ergebnisse-2027';
-import type { EinzelSpiel } from '@/lib/einzelrangliste-2027';
+import type { EinzelSpiel, HighlightsAbend } from '@/lib/einzelrangliste-2027';
 import { spielSlug } from '@/lib/spieltag';
+import { HighlightDiagramm, type DiagrammSpieltag } from '@/components/mdu/highlight-diagramm';
 import { team27, findLiga27, venue27, alleBegegnungen27, istArchivParam, datumText, NEUE_SAISON, ARCHIV_SAISON, SAISON_START } from '@/lib/data/saison-2027';
 
 export default async function PlayerProfilePage(
@@ -278,6 +279,12 @@ export default async function PlayerProfilePage(
           )}
 
           {!archiv && t27 && (
+            <Card accent={teamColor} title={`Highlights · ${NEUE_SAISON.name}`}>
+              <HighlightDiagramm spieltage={highlightSpieltage(t27.id, e27?.hlJeBegegnung ?? {})} />
+            </Card>
+          )}
+
+          {!archiv && t27 && (
             <Card accent={teamColor} title={`Formkurve · ${NEUE_SAISON.name}`}>
               {e27 && e27.verlauf.length > 0 ? (
                 <>
@@ -485,6 +492,22 @@ function SpecialTile({ label, value }: { label: string; value: number | null | u
 }
 
 /** Siegquote der Saison nach jedem Spieltag (kumuliert, nur Einzel). Betreiber, 25.10.2026. */
+/** Alle bisherigen Spieltage des Teams (Termin bis heute, oder schon mit Highlights) mit den Highlights des Spielers. */
+function highlightSpieltage(teamId: string, je: Record<string, HighlightsAbend>): DiagrammSpieltag[] {
+  const heute = new Date().toISOString().slice(0, 10);
+  return alleBegegnungen27()
+    .filter(b => b.home === teamId || b.away === teamId)
+    .map(b => ({ b, datum: b.termin?.datum ?? b.fri }))
+    .filter(({ b, datum }) => datum <= heute || je[b.key])
+    .sort((x, y) => x.datum.localeCompare(y.datum))
+    .map(({ b, datum }) => {
+      const heim = b.home === teamId;
+      const g = team27(heim ? b.away : b.home);
+      const h = je[b.key] ?? { b180: 0, b171: 0, hf: 0, sl: 0 };
+      return { nr: b.spieltag, datum, gegner: g?.short ?? g?.name ?? (heim ? b.away : b.home), heim, ...h };
+    });
+}
+
 function SiegquoteKurve({ verlauf, farbe }: { verlauf: EinzelSpiel[]; farbe: string }) {
   const stJe = new Map(alleBegegnungen27().map(b => [b.key, b.spieltag]));
   const jeSt = new Map<number, { s: number; n: number }>();

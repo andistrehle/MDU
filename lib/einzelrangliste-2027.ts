@@ -27,6 +27,9 @@ export interface EinzelBericht {
   highlights: { side: 'home' | 'guest'; slot: number; type: string; value: number | null }[];
 }
 
+/** Highlights eines Abends (gezählt wie in der Rangliste: 180/171 nach Anzahl, HF/SL je Eintrag einer). */
+export interface HighlightsAbend { b180: number; b171: number; hf: number; sl: number }
+
 export interface EinzelZeile {
   /** players.id, sonst „name:<Team>:<Name>" (Spieler ohne Profil) */
   key: string;
@@ -49,6 +52,8 @@ export interface EinzelZeile {
   shortLeg: number | null;
   /** Highlight-Punkte (`highlightPunkte`), ungewichtet — Reiter „Highlights“ */
   hlPunkte: number;
+  /** Highlights je Begegnung (Kennung Heim|Gast) — Diagramm im Spielerprofil (04.11.2026) */
+  hlJeBegegnung: Record<string, HighlightsAbend>;
   /** Davon aus noch nicht bestätigten Berichten */
   offen: number;
   pos: number;
@@ -102,7 +107,7 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
     const ensure = (k: NonNullable<ReturnType<typeof keyOf>>) => {
       let z = out.get(k.key);
       if (!z) {
-        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, hfAnzahl: 0, shortLeg: null, slAnzahl: 0, hlPunkte: 0, offen: 0, pos: 0, verlauf: [] };
+        z = { key: k.key, playerId: k.p.player_id, name: k.p.name.trim(), teamId: k.team, singles: 0, wins: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, einsaetze: 0, b180: 0, b171: 0, highFinish: null, hfAnzahl: 0, shortLeg: null, slAnzahl: 0, hlPunkte: 0, hlJeBegegnung: {}, offen: 0, pos: 0, verlauf: [] };
         out.set(k.key, z);
       }
       z.teamId = k.team; z.name = k.p.name.trim();
@@ -130,6 +135,13 @@ export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZei
       if (!k || h.value == null) continue;
       const z = ensure(k);
       z.hlPunkte += highlightPunkte(h.type, h.value);
+      if (r.begegnung) {
+        const a = (z.hlJeBegegnung[r.begegnung] ??= { b180: 0, b171: 0, hf: 0, sl: 0 });
+        if (h.type === '180') a.b180 += h.value;
+        else if (h.type === '171') a.b171 += h.value;
+        else if (h.type === 'high_finish') a.hf += 1;
+        else if (h.type === 'short_leg') a.sl += 1;
+      }
       if (h.type === '180') z.b180 += h.value;
       else if (h.type === '171') z.b171 += h.value;
       else if (h.type === 'high_finish') { z.highFinish = Math.max(z.highFinish ?? 0, h.value); z.hfAnzahl += 1; }

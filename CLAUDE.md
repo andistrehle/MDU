@@ -77,6 +77,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Gesamtergebnis, Highlights — NICHT Passnummern, TCs, Protest/Notizen, Unterschriften, Fotos. Erreichbar über jedes Ergebnis 2026/27 (Spielplan, Ergebnisse, Liga,
   Team, Startseite — `berichtPfad`, nicht bei Wertungen) und aus dem Spielerprofil (letzte 5 Einzel +
   „Alle anzeigen“, Sprung per `#spiel-<nr>`).
+  **Highlight-Diagramm im Spielerprofil** (Betreiber, 04.11.2026, Karte „Highlights · 2026/27“,
+  `components/mdu/highlight-diagramm.tsx`): X = alle bisherigen Spieltage des Teams (auch ohne Einsatz), je Spieltag
+  4 Balken HF · 180 · 171 · SL (Anzahl, `hlJeBegegnung` in `EinzelZeile`), Linie = alle Highlights aufsummiert, EINE
+  Achse; auch ohne Highlights sichtbar. Farben = Kategorie-Slots 1–4 (validiert), Tooltip + „Als Tabelle“.
   **Team Manager**: `/mein-team/zusagen` = Dashboard (`team-dashboard.tsx`: Team-Scheibe, Kacheln Kasse/Termine/
   Aufgaben, Statistik zugesagt/gespielt über `/api/team-statistik`), `/mein-team/termine` = Terminliste;
   beide über `components/mdu/team-manager.tsx` (`ansicht`).
