@@ -16,8 +16,9 @@ import { LA_LIGA_GEWICHT, type EinzelZeile } from '@/lib/einzelrangliste-2027';
 
 type Art = 'punkte' | '180' | '171' | 'hf' | 'sl' | 'highlights';
 const ARTEN: { key: Art; label: string }[] = [
-  { key: 'punkte', label: 'Punkte' }, { key: '180', label: '180er' }, { key: '171', label: '171er' },
-  { key: 'hf', label: 'High Finishes' }, { key: 'sl', label: 'Short Legs' }, { key: 'highlights', label: 'Highlights' },
+  { key: 'punkte', label: 'Punkte' }, { key: 'highlights', label: 'Highlights (alle)' },
+  { key: '180', label: '180er' }, { key: '171', label: '171er' },
+  { key: 'hf', label: 'High Finishes' }, { key: 'sl', label: 'Short Legs' },
 ];
 
 // Reiter „Highlights“ (Betreiber, 01.11.2026): Summe der Highlight-Punkte
@@ -26,7 +27,8 @@ const ARTEN: { key: Art; label: string }[] = [
 const hlAnzahl = (z: EinzelZeile) => z.b180 + z.b171 + z.hfAnzahl + z.slAnzahl;
 const hlWert = (z: EinzelZeile, gesamt: boolean) =>
   gesamt && team27(z.teamId)?.league === 'la' ? z.hlPunkte * LA_LIGA_GEWICHT : z.hlPunkte;
-const zahl = (n: number) => (Math.round(n * 10) / 10).toLocaleString('de-DE');
+// Angezeigt ganzzahlig (Betreiber, 04.11.2026); sortiert wird mit dem genauen Wert (hlListe).
+const zahl = (n: number) => String(Math.round(n));
 function hlListe(zeilen: EinzelZeile[], gesamt: boolean): EinzelZeile[] {
   const vgl = (x: EinzelZeile, y: EinzelZeile) => (Math.round((hlWert(y, gesamt) - hlWert(x, gesamt)) * 1000)) || (hlAnzahl(y) - hlAnzahl(x));
   const s = zeilen.filter(z => z.hlPunkte > 0).sort((x, y) => vgl(x, y) || x.name.localeCompare(y.name, 'de'));
@@ -208,7 +210,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
         {art === 'punkte'
           ? <>Nur Einzel: {bestOf === 5 ? '3:0 = 5 · 3:1 = 4 · 3:2 = 3 · 2:3 = 2 · 1:3 = 1 · 0:3 = 0' : '2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0'} Punkte. Reihenfolge: Punkte, dann Legdifferenz, dann Siege. HF = High Finishes (höchstes), SL = Short Legs (kürzestes, Darts).</>
           : art === 'highlights'
-            ? <>Punkte je Highlight: 180er und 171er je 3 · High Finish 100–129 = 2, 130–159 = 3, ab 160 = 4 · Short Leg bis 12 Darts = 4, 13–15 = 3, 16–20 = 2.{gesamt ? ' Bei „Alle Ligen“ zählen Highlights aus der La Liga zwei Drittel (Best of 5, also mehr Legs).' : ''} Bei Punktgleichheit entscheidet die Zahl der Highlights. HF/SL: Anzahl (höchstes Finish / kürzestes Leg).</>
+            ? <>Punkte je Highlight: 180er und 171er je 3 · High Finish 100–129 = 2, 130–159 = 3, ab 160 = 4 · Short Leg bis 12 Darts = 4, 13–15 = 3, 16–20 = 2.{gesamt ? ' Bei „Alle Ligen“ zählen Highlights aus der La Liga zwei Drittel (Best of 5, also mehr Legs); angezeigt gerundet, die Reihenfolge rechnet genau.' : ''} Bei Punktgleichheit entscheidet die Zahl der Highlights. HF/SL: Anzahl (höchstes Finish / kürzestes Leg).</>
           : art === 'hf' || art === 'sl'
             ? <>Sortiert nach Anzahl, bei Gleichstand nach dem {art === 'hf' ? 'höchsten Finish' : 'kürzesten Leg'}. Aus den Highlights der Spielberichte.</>
             : <>Sortiert nach Anzahl. Aus den Highlights der Spielberichte.</>}
