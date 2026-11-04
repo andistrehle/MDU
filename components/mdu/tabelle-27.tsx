@@ -62,9 +62,9 @@ export function Tabelle27({ liga, zeilen }: { liga: Liga27; zeilen: TabellenZeil
                 </span>
               </TeamLink>
               {/* Handy (Betreiber, 04.11.2026): Bilanz als zweite Zeile, weil die Spalten S/U/N, Spiele, Legs dort wegfallen. */}
-              <div className="t27-m" style={{ marginTop: 3, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, color: 'var(--th-text-faint)', lineHeight: 1.5 }}>
-                <span style={{ whiteSpace: 'nowrap' }}><span style={{ color: 'var(--th-win)' }}>{z.s} S</span> · {z.u} U · <span style={{ color: 'var(--th-loss)' }}>{z.n} N</span></span>
-                {' · '}<span style={{ whiteSpace: 'nowrap' }}>Spiele {z.spieleFor}:{z.spieleAgainst}</span>{' · '}<span style={{ whiteSpace: 'nowrap' }}>Legs {z.legsFor}:{z.legsAgainst}</span>
+              <div className="t27-m" title="Siege-Unentschieden-Niederlagen · Spiele · Legs" style={{ marginTop: 3, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, color: 'var(--th-text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <span style={{ color: 'var(--th-win)' }}>{z.s}</span>-{z.u}-<span style={{ color: 'var(--th-loss)' }}>{z.n}</span>
+                {' · '}{z.spieleFor}:{z.spieleAgainst}{' · '}{z.legsFor}:{z.legsAgainst}
               </div>
             </div>
             <span style={zahl}>{z.sp}</span>
@@ -81,6 +81,9 @@ export function Tabelle27({ liga, zeilen }: { liga: Liga27; zeilen: TabellenZeil
         );
       })}
 
+      <div className="t27-m" style={{ padding: '10px 4px 0', fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>
+        Unter dem Team: Siege-Unentschieden-Niederlagen · Spiele · Legs
+      </div>
       <TabellenLegende liga={liga} gespielt={gespielt} />
 
       {(offen || abzug) && (
