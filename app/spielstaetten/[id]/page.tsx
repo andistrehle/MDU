@@ -5,7 +5,7 @@ import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
-import { VorlaeufigHinweis, InfoZeile } from '@/components/mdu/saison-umschalter';
+import { InfoZeile } from '@/components/mdu/saison-umschalter';
 import { TeamChip27, Etikett } from '@/components/mdu/spielplan-27';
 import { SpielortDruck } from '@/components/mdu/spielort-druck';
 import { alleVenues27, alleTeams27, venue27, findLiga27, heimspieleImLokal27, venueBloecke27, kalenderwoche, wochenendeText, NEUE_SAISON } from '@/lib/data/saison-2027';
@@ -61,7 +61,6 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
       />
 
       <div className="mdu-section-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px 80px' }}>
-        <VorlaeufigHinweis />
 
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
           <InfoZeile style={{ margin: 0, flex: '1 1 320px' }}>

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
-import { VorlaeufigHinweis } from './saison-umschalter';
 import { LigaSpielplan27, SpieltagKarte27, type ErgebnisMap27 } from './spielplan-27';
 import { Tabelle27 } from './tabelle-27';
 import { Einzelrangliste27 } from './einzelrangliste-27';
@@ -64,7 +63,7 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
                 ['Spieltage', `${mds.length} (Hin- und Rückrunde)`],
                 // Der letzte Spieltag ist nicht das Saisonende — danach folgen die Relegationsspiele.
                 ['Termine', `${datumText(SAISON_START)} – ${datumText(SAISON_ENDE)}, danach Relegation`],
-                ['Status', gespielt ? `läuft · ${mitErgebnis.length} von ${mds.length} Spieltagen mit Ergebnissen` : 'Saison beginnt · Spielplan vorläufig'],
+                ['Status', gespielt ? `läuft · ${mitErgebnis.length} von ${mds.length} Spieltagen mit Ergebnissen` : 'Saison beginnt'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', gap: 12, padding: '7px 0', borderTop: '1px solid var(--th-line-4)', ...body, fontSize: 13 }}>
                   <span style={{ width: 90, flexShrink: 0, color: 'var(--th-text-faint)' }}>{k}</span>
@@ -99,7 +98,6 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
 
         {tab === 2 && (
           <>
-            <VorlaeufigHinweis />
             <LigaSpielplan27 liga={liga} ergebnisse={ergebnisse} />
           </>
         )}

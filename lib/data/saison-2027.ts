@@ -50,9 +50,6 @@ export const istArchivParam = (v: string | string[] | undefined) => (Array.isArr
 
 /** TC-Sitzung, in der die genauen Termine festgelegt werden. */
 export const TC_SITZUNG = '2026-10-11';
-export const VORLAEUFIG_TEXT =
-  'Spielplan 2026/27: Die festen Termine (Tag und Uhrzeit) aus der TC-Sitzung vom 11.10.2026 sind eingetragen — wo noch keiner steht, gilt das Spielwochenende. „verlegt“ = außerhalb des Spielwochenendes.';
-
 /** Reiter der Liga-Seite 2026/27 (hier statt in der Client-Komponente, damit
  *  die Server-Seite ?tab= auflösen kann — aus 'use client'-Dateien kommen nur Komponenten). */
 export const TABS_27 = ['Übersicht', 'Tabelle', 'Spielplan', 'Ergebnisse', 'Einzelrangliste', 'Teams'] as const;

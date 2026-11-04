@@ -13,7 +13,6 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
-import { VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27, LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canEditTeam, hatTcRecht } from '@/lib/auth/roles';
@@ -54,8 +53,6 @@ export default function MeinSpielplanPage() {
               <span style={{ color: liga.color, fontWeight: 700 }}>{liga.name}</span> · {NEUE_SAISON.name} · Heimspiele: {venue27(t.venueId)?.name ?? 'Spielort folgt'}
             </div>
           </div>
-
-          <VorlaeufigHinweis />
 
           {zusagenFreigeschaltet(user) && <Link href="/mein-team/zusagen" style={{ display: 'block', background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', borderRadius: 14, padding: '14px 18px', marginBottom: 16, textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)' }}>
             <b style={{ color: 'var(--th-text-strong)' }}>✓ Team Manager:</b> Sag für die nächsten Spiele zu oder ab und sieh, wer im Team dabei ist →

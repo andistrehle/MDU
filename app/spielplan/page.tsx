@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
-import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
+import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { LigaSpielplan27 } from '@/components/mdu/spielplan-27';
-import { LIGEN_2027, NEUE_SAISON, SAISON_START, SAISON_ENDE, datumText } from '@/lib/data/saison-2027';
+import { LIGEN_2027, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
 
 export const metadata: Metadata = { title: 'Spielplan' };
 
-// Saison 2026/2027 — vorläufiger Spielplan aller Ligen (statisch, aus
+// Saison 2026/2027 — Spielplan aller Ligen (statisch, aus
 // lib/data/saison-2027). Archiv 2025/26: /spielplan/2025-26.
 export default async function SpielplanPage() {
   const { byKey: ergebnisse } = await ladeErgebnisse27();
@@ -21,12 +21,6 @@ export default async function SpielplanPage() {
 
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         <SaisonUmschalter archiv={false} neuHref="/spielplan" archivHref="/spielplan/2025-26" />
-        <VorlaeufigHinweis>
-          <div style={{ marginTop: 6, color: 'var(--th-text-muted)' }}>
-            Saisonstart am Wochenende ab {datumText(SAISON_START)}, letzter Spieltag am Wochenende bis {datumText(SAISON_ENDE)}.
-            Ferienwochenenden sind spielfrei.
-          </div>
-        </VorlaeufigHinweis>
 
         {/* Sprungmarken zu den Ligen */}
         <nav aria-label="Liga wählen" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>

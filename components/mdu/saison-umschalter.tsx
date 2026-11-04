@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { NEUE_SAISON, ARCHIV_SAISON, VORLAEUFIG_TEXT } from '@/lib/data/saison-2027';
+import { NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 
 /**
  * Umschalter „Saison 2026/27 | Saison 2025/26 (Archiv)" oben auf den
@@ -32,24 +32,6 @@ export function SaisonUmschalter({ archiv, neuHref, archivHref, style }: {
         <span style={{ fontWeight: 600, opacity: 0.8 }}>· Archiv</span>
       </Link>
     </nav>
-  );
-}
-
-/** Gelber Hinweis: Spielplan 2026/27 ist vorläufig. */
-export function VorlaeufigHinweis({ style, children }: { style?: React.CSSProperties; children?: React.ReactNode }) {
-  return (
-    <div role="note" style={{
-      padding: '12px 16px', borderRadius: 10, marginBottom: 24,
-      // Deckend (Kartenfarbe + Goldton darüber) — sonst scheint das Dartboard durch.
-      background: 'linear-gradient(rgba(232,184,74,0.14), rgba(232,184,74,0.14)), var(--th-bg-card)',
-      border: '1px solid rgba(232,184,74,0.45)',
-      fontFamily: 'var(--font-manrope)', fontSize: 13.5, lineHeight: 1.55, color: 'var(--th-text-body)',
-      ...style,
-    }}>
-      <b style={{ color: 'var(--th-text-strong)' }}>Termine.</b>{' '}
-      {VORLAEUFIG_TEXT.replace(/^Spielplan 2026\/27: /, '')}
-      {children}
-    </div>
   );
 }
 

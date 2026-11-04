@@ -164,7 +164,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
           boxShadow: '0 24px 48px rgba(0,0,0,0.5)', gap: 0,
         }}>
           {[
-            { icon: 'calendar', title: 'Spielplan', sub: 'Saison 2026/27 · vorläufig', href: '/spielplan' },
+            { icon: 'calendar', title: 'Spielplan', sub: 'Saison 2026/27', href: '/spielplan' },
             { icon: 'bar',      title: 'Tabellen',  sub: 'Saison 2026/27',             href: '/tabellen'  },
           ].map((item, idx) => (
             <Link

@@ -15,7 +15,7 @@ import { loadPublicTeamProfile, loadPublicPlayerPhotos } from '@/lib/supabase/pr
 import { getActiveSeason, getSeasonTeam, getSeasonRoster, getDbRosterForTeam, getAnySeasonTeamView } from '@/lib/server/season-data';
 import { SeasonTeamView } from '@/components/mdu/season-team-view';
 import { getRowOutcome } from '@/lib/data/competition-outcomes';
-import { SaisonUmschalter, VorlaeufigHinweis } from '@/components/mdu/saison-umschalter';
+import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { TeamSpielplan27 } from '@/components/mdu/spielplan-27';
 import { ladeErgebnisse27, ladeEinzel27, tabelle27 } from '@/lib/server/ergebnisse-2027';
 import { TeamHero, Mannschaftsbild } from '@/components/mdu/team-hero';
@@ -107,7 +107,6 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
             { label: 'Kader', content: <Kader27 kader={kader} color={t27.color} /> },
             { label: 'Spielplan', content: (
               <>
-                <VorlaeufigHinweis style={{ marginBottom: 14, fontSize: 12.5 }} />
                 <TeamSpielplan27 teamId={id} ergebnisse={ergebnisse} nur="offen" leer="Keine offenen Spiele mehr in dieser Saison." />
               </>
             ) },
