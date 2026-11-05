@@ -32,7 +32,8 @@ export async function POST(request: Request) {
       const team = String(r.custom_id ?? '');
       const amount = r.amount as { value?: string; currency_code?: string } | undefined;
       if (team && zuCent(amount?.value) === PREISE.saison.cents && amount?.currency_code === 'EUR') {
-        await freischalten(team, { art: 'saison', weg: 'paypal', durch: null, cents: zuCent(amount?.value), externalId: String(r.id) });
+        const test = (await ladePremium(team))?.note?.startsWith('Testkauf') ?? false;
+        await freischalten(team, { art: 'saison', weg: 'paypal', durch: null, cents: zuCent(amount?.value), externalId: String(r.id), ohneGlocke: test });
       }
     } else if (typ === 'PAYMENT.SALE.COMPLETED') {
       const aboId = String(r.billing_agreement_id ?? '');
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
           const p = await ladePremium(team);
           const bis = [plusMonat(tag), p?.valid_until ?? ''].sort().pop()!;
           const total = (r.amount as { total?: string } | undefined)?.total;
-          await freischalten(team, { art: 'monat', weg: 'paypal', durch: null, bis, cents: zuCent(total) || PREISE.monat.cents, externalId: String(r.id), aboId, aboStatus: 'ACTIVE' });
+          await freischalten(team, { art: 'monat', weg: 'paypal', durch: null, bis, cents: zuCent(total) || PREISE.monat.cents, externalId: String(r.id), aboId, aboStatus: 'ACTIVE', ohneGlocke: p?.note?.startsWith('Testkauf') ?? false });
         }
       }
     } else if (typ.startsWith('BILLING.SUBSCRIPTION.')) {

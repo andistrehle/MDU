@@ -115,7 +115,10 @@ export async function freischalten(teamId: string, o: {
     team_id: teamId, modell: o.art, status: o.art === 'test' ? 'test' : 'aktiv', valid_until: bis,
     trial_used: (alt?.trial_used ?? false) || o.art === 'test',
     requested_model: null, requested_at: null, payment_method: o.weg,
-    note: o.notiz ?? alt?.note ?? null, activated_by: o.durch, activated_at: new Date().toISOString(),
+    // Testkauf des Betreibers merken — der PayPal-Webhook schickt dem Team dann auch keine Glocke.
+    // Nach Ende des Testkaufs (beendet/abgelaufen) fällt der Merker beim nächsten echten Kauf weg.
+    note: o.notiz ?? (o.ohneGlocke ? 'Testkauf Betreiber'
+      : alt?.note?.startsWith('Testkauf') && (alt.status === 'beendet' || alt.status === 'abgelaufen') ? null : alt?.note ?? null), activated_by: o.durch, activated_at: new Date().toISOString(),
     ...(o.aboId !== undefined ? { paypal_subscription_id: o.aboId, abo_status: o.aboStatus ?? null } : {}),
     erinnert_am: null, updated_at: new Date().toISOString(),
   });
