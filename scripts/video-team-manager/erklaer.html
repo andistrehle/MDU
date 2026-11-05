@@ -232,8 +232,8 @@ const W = 1920, H = HOCH ? 1920 : 1080;
 const titel = (t) => `<div class="titel"><img src="${LOGO}"><div class="t">${t}</div></div>`;
 const beispiel = `<div class="beispiel">Beispieldaten</div>`;
 // Bilder: Liste von Shot-Namen; je Satz wählt `b` das gezeigte Bild, `z` zoomt im Laptop ([x%, y%, Faktor]).
-const geraete = (namen, handyExtra = '') => `
-  <div class="laptop"><div class="rand"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}web-${n}.jpg">`).join('')}</div></div><div class="fuss"></div></div>
+const geraete = (namen, handyExtra = '', laptopExtra = '') => `
+  <div class="laptop"><div class="rand"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}web-${n}.jpg">`).join('')}${laptopExtra}</div></div><div class="fuss"></div></div>
   <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}${handyExtra}</div></div>`;
 // Pulsierender Ring über einem Knopf (Laptop-Koordinaten x,y; im Hochformat xh,yh), mit Hinweis darunter
 const ring = (k, text, x, y, art = '', bis, klein = false) => `<div class="ring ${art}${klein ? ' klein' : ''}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${x}px;top:${y}px"><span>${text}</span></div>`;
@@ -306,10 +306,11 @@ const SZENEN = [
       { s: 1.2, b: 0, z: Z.inhalt, intro: 'weg', weiter: true } ] },
 
   // 4 – Dashboard: EIN Bild (dash-n9), die Knöpfe werden mit Ringen gezeigt (vorher sprang das Bild zwischen vier Screenshots)
-  { titel: 'Alles auf <i>einen Blick</i>', html: beispiel + geraete(['dash-n9'])
-      // Ringe: Laptop-Zoom [40, 22, 1.65] und Handy (Koordinaten aus dem Standbild gemessen)
-      + (HOCH ? '' : ring(0, 'Zusage', 450, 618, '', 3) + ring(1, 'Absage', 596, 618, 'rot', 3))
-      + ring(0, 'Zusage', HOCH ? 0 : 1550, HOCH ? 0 : 606, '', 3, true) + ring(1, 'Absage', HOCH ? 0 : 1668, HOCH ? 0 : 606, 'rot', 3, true)
+  // Ringe sitzen IM Bildschirm (zoomen mit dem langsamen Heranzoomen mit); Koordinaten relativ zum Bildschirm,
+  // Laptop bei Zoom [40, 22, 1.65], Handy ungezoomt (aus dem Standbild gemessen)
+  { titel: 'Alles auf <i>einen Blick</i>', html: beispiel + geraete(['dash-n9'],
+        ring(0, 'Zusage', HOCH ? 297 : 196, HOCH ? 718 : 472, '', 3, true) + ring(1, 'Absage', HOCH ? 475 : 314, HOCH ? 718 : 472, 'rot', 3, true),
+        ring(0, 'Zusage', 368, 456, '', 3) + ring(1, 'Absage', 514, 456, 'rot', 3))
       + stempel(-1, 'Genug Leute? ✓', 760, 540, 'gold', 560, 1150, 0)
       + stempel(2, 'Wer ist dabei? 🎯', 760, 470, '', 560, 1150, 3)
       // je Stempel unter seiner Kachel (Laptop-Zoom [44, 62, 1.6])
