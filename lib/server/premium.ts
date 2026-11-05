@@ -98,7 +98,10 @@ export async function freischalten(teamId: string, o: {
   ohneGlocke?: boolean;
 }): Promise<{ bis: string | null; neu: boolean }> {
   const alt = await ladePremium(teamId);
-  const bis = o.bis !== undefined ? o.bis : neuesEnde(o.art, alt?.valid_until ?? null);
+  // Nur eine LAUFENDE Freischaltung verlängert — ein beendeter/abgelaufener Saisonpass (valid_until 31.05.)
+  // darf ein neues Monatsabo nicht bis Juli strecken (Testkauf 05.11.2026).
+  const laeuftNoch = !!alt && (alt.status === 'aktiv' || alt.status === 'test');
+  const bis = o.bis !== undefined ? o.bis : neuesEnde(o.art, laeuftNoch ? alt?.valid_until ?? null : null);
   const h = heute();
 
   if ((o.art === 'saison' || o.art === 'monat') && o.weg !== 'kostenlos' && !o.ohneZahlung) {

@@ -44,7 +44,8 @@ export async function POST(request: Request) {
         if (team) {
           const tag = String(r.create_time ?? new Date().toISOString()).slice(0, 10);
           const p = await ladePremium(team);
-          const bis = [plusMonat(tag), p?.valid_until ?? ''].sort().pop()!;
+          const bisher = p && (p.status === 'aktiv' || p.status === 'test') ? p.valid_until ?? '' : '';
+          const bis = [plusMonat(tag), bisher].sort().pop()!;
           const total = (r.amount as { total?: string } | undefined)?.total;
           await freischalten(team, { art: 'monat', weg: 'paypal', durch: null, bis, cents: zuCent(total) || PREISE.monat.cents, externalId: String(r.id), aboId, aboStatus: 'ACTIVE', ohneGlocke: p?.note?.startsWith('Testkauf') ?? false });
         }
