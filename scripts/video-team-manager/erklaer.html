@@ -216,6 +216,9 @@
   .ring.rot { border-color:var(--rot); box-shadow:0 0 0 6px rgba(210,53,43,.3), 0 8px 24px rgba(0,0,0,.35); }
   .ring.rot span { background:var(--rot); color:#fff; }
   @keyframes puls { 50% { box-shadow:0 0 0 16px rgba(232,184,74,0); } }
+
+  /* Augenführung (Feedback 05.11.2026): jedes Bild zoomt während seiner Szene langsam ein paar Prozent heran */
+  @keyframes ranzoom { from { transform: scale(1); } to { transform: scale(1.05); } }
 </style></head>
 <body><div id="stage"></div>
 <script>
@@ -540,6 +543,9 @@ window.SPIEL = async () => {
     const el = document.getElementById('sz' + i);
     document.querySelectorAll('.szene').forEach(x => x.classList.remove('an'));
     el.classList.add('an');
+    // langsam heranzoomen, über die ganze Szene (ein paar Prozent, kein Sprung zwischen den Sätzen)
+    const szDauer = SZENEN[i].schritte.reduce((a, x) => a + x.s, 0) + vor;
+    el.querySelectorAll('.schirm').forEach(sc => { sc.style.animation = `ranzoom ${szDauer.toFixed(2)}s linear forwards`; });
     zeige(el, { ...SZENEN[i].schritte[0], k: 0 });
     await warte(vor * 1000); vergangen += vor;
     let satz = -1;
