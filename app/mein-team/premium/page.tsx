@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { team27, NEUE_SAISON, LIGEN_2027 } from '@/lib/data/saison-2027';
-import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
+import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
 import { Icon } from '@/components/mdu/icon';
 
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A';
@@ -62,6 +62,8 @@ export default function PremiumSeite() {
   const paypalMoeglich = !!pp?.clientId && (modell === 'saison' || pp.abo);
   const teamName = (team && team27(team)?.name) || 'Dein Team';
   const vorschau = !PREMIUM_OEFFENTLICH;
+  // Bezahlt bis Saisonende, dauerhaft oder laufendes Abo → nichts mehr zu kaufen (Server prüft dasselbe).
+  const voll = !!lage?.aktiv && !!p && (p.modell === 'dauerhaft' || (p.modell === 'saison' && (p.valid_until ?? '') >= SAISONPASS_BIS) || (p.modell === 'monat' && p.abo_status === 'ACTIVE'));
   const preis = PREISE[modell];
   const zweck = verwendungszweck(teamName, modell, NEUE_SAISON.name);
 
@@ -126,6 +128,16 @@ export default function PremiumSeite() {
               </div>
             </section>
 
+            {/* Schon bis Saisonende (oder dauerhaft / laufendes Abo) frei: kein zweites Mal kaufen lassen. */}
+            {voll ? (
+              <section style={karte}>
+                <Kopf titel="Alles erledigt" />
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)', lineHeight: 1.5 }}>
+                  {p?.modell === 'monat' ? 'Euer Monatsabo läuft und verlängert sich von selbst.' : p?.valid_until ? `Euer Team Manager ist bis ${datumDe(p.valid_until)} bezahlt.` : 'Euer Team Manager ist dauerhaft freigeschaltet.'} Du musst nichts weiter tun.
+                </div>
+                {hinweis && <div role={hinweis.ok ? 'status' : 'alert'} style={{ marginTop: 10, padding: '8px 12px', borderRadius: 10, background: hinweis.ok ? 'rgba(31,163,74,0.12)' : 'rgba(210,53,43,0.10)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: hinweis.ok ? GRUEN : ROT }}>{hinweis.text}</div>}
+              </section>
+            ) : (<>
             {/* Preise */}
             <section style={karte}>
               <Kopf titel="Preis fürs ganze Team" />
@@ -170,7 +182,7 @@ export default function PremiumSeite() {
                   </>
                 ) : (
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.5 }}>
-                    {!pp?.clientId ? 'Bezahlen per PayPal und Kreditkarte ist gleich so weit – bis dahin bitte per Überweisung.'
+                    {!pp?.clientId ? (ZAHLUNG.ueberweisung.aktiv ? 'Bezahlen per PayPal und Kreditkarte ist gleich so weit – bis dahin bitte per Überweisung.' : 'Bezahlen per PayPal ist gerade nicht erreichbar – bitte versuch es später noch einmal.')
                       : !lage?.darf ? 'Bezahlen kann der Kapitän (oder der Co-Captain mit Recht „Team Manager“).'
                       : 'Das Monatsabo per PayPal ist gleich so weit – bis dahin Saisonpass per PayPal oder Monat per Überweisung.'}
                   </div>
@@ -202,6 +214,7 @@ export default function PremiumSeite() {
               )}
               {hinweis && <div role={hinweis.ok ? 'status' : 'alert'} style={{ marginTop: 10, padding: '8px 12px', borderRadius: 10, background: hinweis.ok ? 'rgba(31,163,74,0.12)' : 'rgba(210,53,43,0.10)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: hinweis.ok ? GRUEN : ROT }}>{hinweis.text}</div>}
             </section>
+            </>)}
 
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', lineHeight: 1.6 }}>
               Anbieter des Team Managers: <i>folgt</i> · <Link href="#" style={{ color: 'inherit' }}>Abo-Bedingungen</Link> · <Link href="#" style={{ color: 'inherit' }}>Widerruf</Link> · <Link href="/datenschutz" style={{ color: 'inherit' }}>Datenschutz</Link>

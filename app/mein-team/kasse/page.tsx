@@ -30,6 +30,7 @@ import {
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
 import { StrafenAbende } from '@/components/mdu/strafen-tracker';
+import { TeamManagerFehlt } from '@/components/mdu/team-manager-fehlt';
 
 const heuteIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const datumKurz = (iso: string) => { const [y, m, d] = iso.split('-'); return `${d}.${m}.${y.slice(2)}`; };
@@ -135,7 +136,7 @@ export default function KassePage() {
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
         : !zusagenFreigeschaltet(user) ? (
-          <Notice title="Noch nicht freigeschaltet">Die Teamkasse gehört zum Team Manager und ist für dein Team noch nicht verfügbar.</Notice>
+          <TeamManagerFehlt was="Die Teamkasse" />
         ) : !teamId || !t ? (
           <Notice title="Kein Team verknüpft">Deinem Konto ist noch kein Team zugeordnet. Bei Fragen melde dich bei der Ligaleitung.</Notice>
         ) : bereit === null ? <Muted>Lade …</Muted>

@@ -28,6 +28,7 @@ import type { SpielStat } from '@/lib/team-statistik';
 import { MemberShell, Notice, Muted, LoginLink } from './member-area';
 import { karte } from './zusagen-ui';
 import { Icon } from './icon';
+import { TeamManagerFehlt } from '@/components/mdu/team-manager-fehlt';
 
 type Typ = 'mdu' | 'spiel' | 'training' | 'event' | 'sonstiges';
 const TYPEN: { typ: Typ; name: string; mehrzahl: string; kurz: string }[] = [
@@ -145,7 +146,7 @@ export function TeamStatistiken() {
     <MemberShell title="Statistiken">
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Die Statistiken sind nur für dein Team sichtbar.{' '}<LoginLink /></Notice>
-        : !zusagenFreigeschaltet(user) ? <Notice title="Noch nicht freigeschaltet">Die Statistiken gehören zum Team Manager.</Notice>
+        : !zusagenFreigeschaltet(user) ? <TeamManagerFehlt was="Die Statistik" />
         : !teamId ? <Notice title="Kein Team verknüpft">Deinem Konto ist noch kein Team zugeordnet.</Notice>
         : !geladen ? <Muted>Lade …</Muted>
         : (

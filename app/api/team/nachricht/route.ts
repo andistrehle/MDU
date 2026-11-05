@@ -18,7 +18,8 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
+import { authenticateRequest, hatTcRechtServer, isAdminUser } from '@/lib/server/auth';
+import { teamManagerAktiv } from '@/lib/server/premium';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON, datumKurz27 } from '@/lib/data/saison-2027';
 
@@ -46,6 +47,8 @@ export async function POST(request: Request) {
   const teamId = b.teamId ?? '';
   if (!teamId) return NextResponse.json({ error: 'Team fehlt.' }, { status: 400 });
   if (!hatTcRechtServer(u, teamId, 'team_manager')) return NextResponse.json({ error: 'Nur für den Teamcaptain.' }, { status: 403 });
+  // Gehört zum Team Manager (Premium) — Ligaleitung darf immer.
+  if (!isAdminUser(u) && !(await teamManagerAktiv(teamId))) return NextResponse.json({ error: 'Der Team Manager ist für dieses Team nicht freigeschaltet.' }, { status: 403 });
 
   let titel = '', text = '', url = '/mein-team/termine', typ = 'team_termin';
   let nurOffenFuer: string | null = null;

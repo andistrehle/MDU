@@ -106,6 +106,8 @@ async function api<T>(pfad: string, init: { method?: string; body?: unknown; ide
     method: init.method ?? 'GET',
     headers: {
       Authorization: `Bearer ${await zugang()}`, 'Content-Type': 'application/json',
+      // Volle Antwort (purchase_units[].payments.captures[] mit custom_id/amount) — die Prüfung braucht sie.
+      Prefer: 'return=representation',
       ...(init.idem ? { 'PayPal-Request-Id': init.idem } : {}),
     },
     body: init.body ? JSON.stringify(init.body) : undefined,

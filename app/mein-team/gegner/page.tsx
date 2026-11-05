@@ -20,6 +20,7 @@ import { alleBegegnungen27, team27, findLiga27, venue27 } from '@/lib/data/saiso
 import { spieltagPfad, wochentag, tagMonat } from '@/lib/spieltag';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
+import { TeamManagerFehlt } from '@/components/mdu/team-manager-fehlt';
 
 interface Gegner {
   tabelle: { pos: number; pts: number; sp: number; s: number; u: number; n: number; teams: number } | null;
@@ -66,7 +67,7 @@ export default function GegnerSeite() {
     <MemberShell title="Gegneranalyse">
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
-        : !zusagenFreigeschaltet(user) ? <Notice title="Noch nicht freigeschaltet">Die Gegneranalyse gehört zum Team Manager und ist für dein Team noch nicht verfügbar.</Notice>
+        : !zusagenFreigeschaltet(user) ? <TeamManagerFehlt was="Die Gegneranalyse" />
         : !spiel || !gegnerId ? <Notice title="Kein anstehendes Spiel">Für dein Team steht in dieser Saison kein weiteres MDU-Spiel an.</Notice>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }}>

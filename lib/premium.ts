@@ -39,9 +39,11 @@ export const PREISE = {
 export type PremiumModell = keyof typeof PREISE;
 
 /** Zahlungswege (Betreiber, 17.10.2026). IBAN folgt noch — bis dahin Platzhalter. Keine Barzahlung. */
+const UEBERWEISUNG = { inhaber: 'folgt (Kontoinhaber)', iban: 'folgt (IBAN)' };
 export const ZAHLUNG = {
   paypal: { aktiv: true, empfaenger: 'paypal.me/AndreasStrehle', me: 'AndreasStrehle' },
-  ueberweisung: { aktiv: true, inhaber: 'folgt (Kontoinhaber)', iban: 'folgt (IBAN)' },
+  // Überweisung erscheint erst, wenn echte Kontodaten eingetragen sind (keine Platzhalter vor Kunden).
+  ueberweisung: { ...UEBERWEISUNG, aktiv: !UEBERWEISUNG.iban.startsWith('folgt') },
 };
 
 /** paypal.me-Link mit Betrag (öffnet PayPal mit vorbelegtem Betrag). */

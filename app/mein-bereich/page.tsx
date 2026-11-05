@@ -33,8 +33,27 @@ interface Tile {
   inactiveLabel?: string;
   /** Statt Icon: Team-Kürzel-Badge (z. B. „FDF") in Teamfarbe. */
   teamBadge?: { text: string; color: string };
+  /** Premium-Funktion (Team Manager): goldenes Band über der Kachel (Betreiber, 05.11.2026). */
+  premium?: boolean;
   /** Anker für die „Mein Bereich"-Tour (data-tour), rollenabhängig sichtbar. */
   tourKey?: string;
+}
+
+/** Goldenes „Premium“-Band, das oben links über den Kartenrand hängt (Team-Manager-Kacheln). */
+function PremiumBand() {
+  return (
+    <span aria-label="Premium-Funktion" style={{
+      position: 'absolute', top: -11, left: 14, display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '3px 12px 3px 9px', borderRadius: '999px 4px 999px 4px',
+      background: 'linear-gradient(100deg, #B8860B 0%, #E8B84A 45%, #F7DC8C 60%, #E8B84A 75%, #B8860B 100%)',
+      backgroundSize: '200% 100%', animation: 'mdu-premium-glanz 4s linear infinite',
+      color: '#3A2A00', fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+      boxShadow: '0 2px 8px rgba(184,134,11,0.35)',
+    }}>
+      <span aria-hidden>★</span>Premium
+      <style>{'@keyframes mdu-premium-glanz{from{background-position:200% 0}to{background-position:0 0}}@media (prefers-reduced-motion: reduce){[aria-label="Premium-Funktion"]{animation:none!important}}'}</style>
+    </span>
+  );
 }
 
 /** Darf der Nutzer den Kapitäns-Modus nutzen? (Admin mit verknüpftem eigenem Team.) */
@@ -95,19 +114,19 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       // Vorschau der Upgrade-Seite — bis zum Start nur für den Super-Admin (lib/premium.ts)
       if (premiumVorschau(user) && !PREMIUM_OEFFENTLICH) tiles.push(
         { icon: 'star', label: 'Team Manager holen (Vorschau)', description: 'So sieht ein Teamcaptain später das Angebot: testen, Saisonpass oder monatlich.',
-          href: '/mein-team/premium', ready: true },
+          href: '/mein-team/premium', ready: true, premium: true },
       );
       // Nach dem Start: Kapitän/Co-Captain eines Teams ohne Team Manager — oder um zu verlängern.
       if (PREMIUM_OEFFENTLICH && hatTcRecht(user, user.teamId, 'team_manager') && !hasMinRole(user, 'league_admin')) tiles.push(
         { icon: 'star', label: zusagenFreigeschaltet(user) ? 'Team Manager verlängern' : 'Team Manager holen',
           description: zusagenFreigeschaltet(user) ? 'Stand, Abo und Verlängerung.' : `${TESTTAGE} Tage gratis testen, dann Saisonpass oder monatlich.`,
-          href: '/mein-team/premium', ready: true },
+          href: '/mein-team/premium', ready: true, premium: true },
       );
       if (zusagenFreigeschaltet(user)) tiles.push(
         { icon: 'check', label: 'Team Manager', description: teamEditable
             ? 'Zu- und Absagen, Aufstellung, Treffzeit und Aufgaben für jedes Spiel deines Teams.'
             : 'Sag für die nächsten Spiele zu oder ab und sieh, wer noch kommt.',
-          href: '/mein-team/zusagen', ready: true },
+          href: '/mein-team/zusagen', ready: true, premium: true },
       );
     }
     const leagueId = t27?.league ?? getCurrentCompetitionForTeam(user.teamId, getCurrentSeason().id)?.leagueId;
@@ -376,7 +395,7 @@ export default function MeinBereichPage() {
 
             {/* Rollen-Kacheln */}
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12,
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px 12px', // Zeilenabstand: Platz fürs Premium-Band
             }}>
               {tilesFor(user, captainMode, { open: regOpen, registeredTeamName: regTeamName }).map(tile => {
                 // badgeKey = zu erledigende Aufgaben (Admin), notifKey = ungelesene
@@ -385,13 +404,14 @@ export default function MeinBereichPage() {
                 const badgeCount = tile.badgeKey ? counts[tile.badgeKey] : tile.notifKey ? byArea[tile.notifKey] : 0;
                 const inner = (
                   <div data-tour={tile.tourKey} style={{
-                    background: 'var(--th-bg-card)',
-                    border: '1px solid var(--th-line-6)',
+                    background: tile.premium ? 'linear-gradient(180deg, rgba(232,184,74,0.10), transparent 55%), var(--th-bg-card)' : 'var(--th-bg-card)',
+                    border: tile.premium ? '1.5px solid rgba(232,184,74,0.75)' : '1px solid var(--th-line-6)',
                     borderRadius: 12, padding: '18px 18px', height: '100%',
                     display: 'flex', flexDirection: 'column', gap: 10,
                     opacity: tile.ready ? 1 : 0.55,
                     position: 'relative',
                   }}>
+                    {tile.premium && <PremiumBand />}
                     <NotificationBadge
                       count={badgeCount}
                       absolute

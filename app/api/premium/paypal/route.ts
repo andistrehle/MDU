@@ -13,8 +13,8 @@
 
 import { NextResponse } from 'next/server';
 import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
-import { PREMIUM_OEFFENTLICH, PREISE, verwendungszweck } from '@/lib/premium';
-import { freischalten, heute, plusMonat } from '@/lib/server/premium';
+import { PREMIUM_OEFFENTLICH, PREISE, SAISONPASS_BIS, verwendungszweck } from '@/lib/premium';
+import { freischalten, ladePremium } from '@/lib/server/premium';
 import { bestellungAnlegen, bestellungAbschliessen, aboLesen, paypalEingerichtet, planMonat, zuCent } from '@/lib/server/paypal';
 import { team27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
@@ -34,6 +34,14 @@ export async function POST(request: Request) {
   // Testkauf des Betreibers für ein fremdes Team: das Team bekommt keine Glocke.
   const testkauf = u.role === 'super_admin' && u.teamId !== team;
   try {
+    // Kein zweiter Kauf, solange schon bis Saisonende/dauerhaft bezahlt ist oder ein Abo läuft.
+    if (b.aktion === 'bestellen' || b.aktion === 'abo') {
+      const alt = await ladePremium(team);
+      const aktiv = alt && (alt.status === 'aktiv' || alt.status === 'test');
+      if (aktiv && (alt.modell === 'dauerhaft' || (alt.modell === 'saison' && (alt.valid_until ?? '') >= SAISONPASS_BIS) || (alt.modell === 'monat' && alt.abo_status === 'ACTIVE'))) {
+        return fehler('Euer Team Manager ist schon bezahlt – ein zweiter Kauf ist nicht nötig.', 409);
+      }
+    }
     if (b.aktion === 'bestellen') {
       const o = await bestellungAnlegen(team, PREISE.saison.cents, verwendungszweck(team27(team)?.name ?? team, 'saison', NEUE_SAISON.name));
       return NextResponse.json({ id: o.id });
@@ -53,7 +61,8 @@ export async function POST(request: Request) {
       if (a.custom_id !== team) return fehler('Das Abo gehört zu einem anderen Team.');
       if (!a.plan_id || a.plan_id !== (await planMonat())) return fehler('Unbekannter PayPal-Plan.');
       if (a.status !== 'ACTIVE') return fehler(`Das Abo ist bei PayPal noch nicht aktiv (${a.status}). Bitte in ein paar Minuten neu laden.`);
-      const r = await freischalten(team, { art: 'monat', weg: 'paypal', durch: u.id, bis: plusMonat(heute()), ohneZahlung: true, aboId: a.id, aboStatus: a.status, ohneGlocke: testkauf });
+      // Ohne festes `bis`: neuesEnde() verlängert ab dem späteren von heute/bisherigem Ende — Restlaufzeit geht nicht verloren.
+      const r = await freischalten(team, { art: 'monat', weg: 'paypal', durch: u.id, ohneZahlung: true, aboId: a.id, aboStatus: a.status, ohneGlocke: testkauf });
       return NextResponse.json({ ok: true, bis: r.bis });
     }
     return fehler('Unbekannte Aktion.');

@@ -15,6 +15,8 @@
 // erklärt sie nur.
 // ============================================================
 
+import { PREMIUM_OEFFENTLICH, TESTTAGE, PREISE, ZAHLUNG, euroText } from '@/lib/premium';
+
 export interface FaqEintrag {
   id: string;
   frage: string;
@@ -398,7 +400,10 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
       {
         id: 'team-manager-freischalten',
         frage: 'Wie bekommt unser Team den Team Manager?',
-        antwort: `Der Team Manager läuft gerade im Test bei einzelnen Teams. Später wird er allen Teams als kostenpflichtige Zusatzfunktion angeboten. Bei Interesse meldet euch gern über das [Kontaktformular](/kontakt).`,
+        // Schaltet mit PREMIUM_OEFFENTLICH um (lib/premium.ts) — beim Start nichts von Hand ändern.
+        antwort: PREMIUM_OEFFENTLICH
+          ? `Der Teamkapitän (oder ein Co-Captain mit dem Recht „Team Manager“) schaltet ihn unter **Mein Bereich → „Team Manager holen“** für das ganze Team frei. Jedes Team kann ihn einmal **${TESTTAGE} Tage gratis testen** – der Test startet mit dem Klick und endet von selbst, ohne Abo und ohne Zahlungsdaten. Danach gibt es den **Saisonpass für ${euroText(PREISE.saison.cents)}** (gilt bis 31.05.2027) oder **${euroText(PREISE.monat.cents)} im Monat** (jederzeit kündbar). Bezahlt wird per PayPal oder Kreditkarte${ZAHLUNG.ueberweisung.iban.startsWith('folgt') ? '' : ' oder per Überweisung'}. Der Preis gilt fürs ganze Team, nicht pro Spieler. Läuft er ab, bleiben eure Daten erhalten.`
+          : `Der Team Manager läuft gerade im Test bei einzelnen Teams. Später wird er allen Teams als kostenpflichtige Zusatzfunktion angeboten. Bei Interesse meldet euch gern über das [Kontaktformular](/kontakt).`,
       },
     ],
   },
