@@ -181,7 +181,7 @@ async function szenenLesen() {
   const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });
   const p = await b.newPage();
   await p.goto('file://' + path.join(DIR, 'erklaer.html')); await p.waitForTimeout(500);
-  const sz = await p.evaluate(() => SZENEN.map(s => ({ titel: s.titel || '(ohne Titel)', saetze: s.schritte.filter(x => !x.weiter).map(x => x.u) })));
+  const sz = await p.evaluate(() => SZENEN.map(s => ({ titel: s.titel || '(ohne Titel)', saetze: s.schritte.filter(x => !x.weiter).map(x => x.u), nach: s.schritte.filter(x => !x.weiter).map(x => x.nach || 0) })));
   await b.close();
   return sz;
 }
@@ -407,7 +407,10 @@ async function main() {
     // Jeder Satz einzeln (ab seinem Anfang in der Szenen-Tonspur), damit er genau an seiner Stelle im Bild liegt —
     // als ein Stück je Szene liefe der Ton in langen Szenen dem Bild davon (Bildaufnahme langsamer als die Uhr).
     // Ton je Szene AM STÜCK (Bild läuft seit der Einzelbild-Aufnahme exakt im Takt, kein Nachschieben nötig)
-    clips.push({ i, j: 0, datei: t.datei, von: 0, bis: null, piep: t.piep || [] });
+    // Hat ein Satz `nach` (Pause im Bild), wird der Ton dort geteilt und das nächste Stück an seinen Satz gelegt.
+    const schnitte = [0, ...(sz.nach || []).map((n, j) => (n > 0 && j + 1 < t.starts.length ? j + 1 : null)).filter(j => j !== null)];
+    schnitte.forEach((j, n) => clips.push({ i, j, datei: t.datei, von: j === 0 ? 0 : t.starts[j],
+      bis: n + 1 < schnitte.length ? t.starts[schnitte[n + 1]] : null, piep: t.piep || [] }));
   }
   console.log(`\nTon fertig (${zeichen} Zeichen neu abgerufen).`);
 
