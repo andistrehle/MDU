@@ -1,5 +1,15 @@
 # MDU Platform — Backlog / Roadmap
 
+## Später — Team Manager als eigene App (Betreiber, 05.11.2026: „zweiter Schritt“, erst nach dem Start)
+- Eigenes Home-Bildschirm-Symbol „Team Manager“ (bzw. „MDU Team“, noch offen) PARALLEL zur MDU-App: eigene
+  App-Beschreibung (Manifest) nur für `/mein-team/…`, Start direkt im Dashboard, gleiche Domain, gleiches Konto,
+  gleiche Daten. Wer nichts ändert, nutzt den Team Manager weiter über die MDU-App.
+- Knopf „Als App aufs Handy“ im Team Manager (Android: Installieren-Abfrage, iPhone: Anleitung Teilen → Zum Home-Bildschirm).
+- iPhone: jede Home-Bildschirm-App hat eigenen Speicher → einmal eigens anmelden; Push je App. Damit nichts doppelt kommt:
+  Team-Manager-Nachrichten an die TM-App (falls installiert + Push an), sonst an die MDU-App; alles andere an die MDU-App.
+- Aufwand ca. 1–2 Tage. Später denkbar: eigene Adresse (team.mdudarts.de, Anmeldung über beide Domains), Login mit
+  Google/Apple, Termine anderer Ligen per Kalender-Abo (iCal) einlesen; Team Manager für andere Ligen = großes Projekt.
+
 ## Phase 2 — Plattform ist alleinige Datenquelle (DB statt dartunion.de)
 
 Betreiber-Entscheidung (Juli 2026): „Es läuft ab jetzt nichts mehr über dartunion.de."
