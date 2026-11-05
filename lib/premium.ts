@@ -39,7 +39,10 @@ export const PREISE = {
 export type PremiumModell = keyof typeof PREISE;
 
 /** Zahlungswege (Betreiber, 17.10.2026). IBAN folgt noch — bis dahin Platzhalter. Keine Barzahlung. */
-const UEBERWEISUNG = { inhaber: 'folgt (Kontoinhaber)', iban: 'folgt (IBAN)' };
+const UEBERWEISUNG = { inhaber: 'Andreas Strehle', iban: 'DE59 7002 0270 0664 6096 14' };
+
+/** Anbieter (Verkäufer) des Team Managers — der Betreiber, nicht die MDU (Betreiber, 17.10.2026). */
+export const ANBIETER = { name: 'Andreas Strehle', anschrift: 'Zenettistraße 30 · 80337 München', email: 'kontakt@mdudarts.de' };
 export const ZAHLUNG = {
   paypal: { aktiv: true, empfaenger: 'paypal.me/AndreasStrehle', me: 'AndreasStrehle' },
   // Überweisung erscheint erst, wenn echte Kontodaten eingetragen sind (keine Platzhalter vor Kunden).

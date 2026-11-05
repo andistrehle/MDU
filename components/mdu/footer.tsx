@@ -44,7 +44,7 @@ export function Footer() {
 
         {[
           { title: 'Schnellzugriff', links: [{ l: 'Ligen', h: '/ligen' }, { l: 'Spielplan', h: '/spielplan' }, { l: 'Ergebnisse', h: '/ergebnisse' }, { l: 'Teams', h: '/teams' }, { l: 'Downloads', h: '/downloads' }, { l: 'Häufige Fragen', h: '/faq' }] },
-          { title: 'Rechtliches',   links: [{ l: 'Impressum', h: '/impressum' }, { l: 'Datenschutz', h: '/datenschutz' }, { l: 'Nutzungsbedingungen', h: '/nutzungsbedingungen' }] },
+          { title: 'Rechtliches',   links: [{ l: 'Impressum', h: '/impressum' }, { l: 'Datenschutz', h: '/datenschutz' }, { l: 'Nutzungsbedingungen', h: '/nutzungsbedingungen' }, { l: 'Team Manager: Bedingungen', h: '/team-manager/bedingungen' }, { l: 'Verträge hier kündigen', h: '/team-manager/kuendigen' }] },
           { title: 'Kontakt',       links: [{ l: 'Kontaktformular', h: '/kontakt' }, { l: 'kontakt@mdudarts.de', h: 'mailto:kontakt@mdudarts.de' }, { l: 'Impressum', h: '/impressum' }] },
         ].map(group => (
           <div key={group.title}>

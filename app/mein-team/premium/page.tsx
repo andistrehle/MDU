@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { team27, NEUE_SAISON, LIGEN_2027 } from '@/lib/data/saison-2027';
-import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
+import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, ANBIETER, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
 import { Icon } from '@/components/mdu/icon';
 
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A';
@@ -57,6 +57,7 @@ export default function PremiumSeite() {
     setHinweis({ ok: true, text: erfolg.replace('{bis}', r.json.bis ? datumDe(String(r.json.bis)) : '') });
     await neuLaden();
   }
+  const [zustimmung, setZustimmung] = useState(false);
   const p = lage?.premium ?? null;
   const pp = lage?.paypal;
   const paypalMoeglich = !!pp?.clientId && (modell === 'saison' || pp.abo);
@@ -162,6 +163,11 @@ export default function PremiumSeite() {
             {/* Bezahlen */}
             <section style={karte}>
               <Kopf titel="Bezahlen" />
+              {/* § 356 Abs. 4 / § 357a Abs. 2 BGB: sofortiger Start nur auf ausdrücklichen Wunsch — vorher kein Bezahlknopf. */}
+              <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--th-bg-card3)', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-body)', lineHeight: 1.5, cursor: 'pointer' }}>
+                <input type="checkbox" checked={zustimmung} onChange={e => setZustimmung(e.target.checked)} style={{ marginTop: 2, width: 18, height: 18, flexShrink: 0 }} />
+                <span>Ich habe die <Link href="/team-manager/bedingungen" target="_blank" style={{ color: 'var(--th-accent)' }}>Bedingungen</Link> und die <Link href="/team-manager/bedingungen#widerruf" target="_blank" style={{ color: 'var(--th-accent)' }}>Widerrufsbelehrung</Link> gelesen. Ich möchte, dass der Team Manager sofort startet, und weiß, dass ich bei einem Widerruf den Anteil bis dahin bezahle.</span>
+              </label>
               <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
                 {([['paypal', 'PayPal / Kreditkarte'], ['ueberweisung', 'Überweisung']] as const).filter(([k]) => ZAHLUNG[k].aktiv).map(([k, l]) => (
                   <button key={k} type="button" onClick={() => { setWeg(k); setHinweis(null); }} aria-pressed={weg === k} style={{
@@ -170,7 +176,9 @@ export default function PremiumSeite() {
                   }}>{l}</button>
                 ))}
               </div>
-              {weg === 'paypal' ? (
+              {!zustimmung ? (
+                <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)' }}>Bitte zuerst das Häkchen oben setzen.</div>
+              ) : weg === 'paypal' ? (
                 paypalMoeglich && lage?.darf ? (
                   <>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-body)', marginBottom: 10, lineHeight: 1.5 }}>
@@ -217,8 +225,7 @@ export default function PremiumSeite() {
             </>)}
 
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', lineHeight: 1.6 }}>
-              Anbieter des Team Managers: <i>folgt</i> · <Link href="#" style={{ color: 'inherit' }}>Abo-Bedingungen</Link> · <Link href="#" style={{ color: 'inherit' }}>Widerruf</Link> · <Link href="/datenschutz" style={{ color: 'inherit' }}>Datenschutz</Link>
-              {vorschau && ' (Platzhalter – Texte folgen)'}
+              Anbieter des Team Managers: {ANBIETER.name}, {ANBIETER.anschrift} · Alle Preise sind Endpreise · <Link href="/team-manager/bedingungen" style={{ color: 'inherit' }}>Bedingungen</Link> · <Link href="/team-manager/bedingungen#widerruf" style={{ color: 'inherit' }}>Widerruf</Link> · <Link href="/datenschutz" style={{ color: 'inherit' }}>Datenschutz</Link> · <Link href="/team-manager/kuendigen" style={{ color: 'inherit' }}>Verträge hier kündigen</Link>
             </div>
           </div>
         )}

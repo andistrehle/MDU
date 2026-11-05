@@ -10,7 +10,7 @@ export default function DatenschutzPage() {
   return (
     <LegalPage
       title="Datenschutzerklärung"
-      updated="Oktober 2026"
+      updated="November 2026"
       notice={null}
     >
       <LegalSection title="1. Verantwortlicher">
@@ -229,6 +229,24 @@ export default function DatenschutzPage() {
         nehmen. Erlangen wir Kenntnis, dass Daten einer minderjährigen Person ohne die
         erforderliche Rechtsgrundlage verarbeitet werden, löschen wir diese auf Hinweis
         unverzüglich.
+      </LegalSection>
+
+      <LegalSection title="20. Team Manager (kostenpflichtige Zusatzfunktion) und Zahlungen">
+        Den Team Manager bietet Andreas Strehle (Anschrift wie oben) als kostenpflichtige
+        Zusatzfunktion für Teams an. Für Abschluss und Abwicklung (Art. 6 Abs. 1 lit. b DSGVO)
+        verarbeiten wir: Team, Konto des bestellenden Teamcaptains bzw. Co-Captains, gewähltes Modell
+        (Testzeitraum, Saisonpass, Monat), Laufzeit, Zahlungsweg, Betrag, Zahlungsdatum und die
+        Vorgangsnummer der Zahlung. Bei Zahlung per PayPal oder Kreditkarte über PayPal gibst du
+        deine Zahlungsdaten direkt bei der PayPal (Europe) S.à r.l. et Cie, S.C.A., 22-24 Boulevard
+        Royal, L-2449 Luxemburg, ein; wir erhalten von PayPal nur die Bestätigung mit Vorgangs- bzw.
+        Abo-Nummer, Betrag und Status, keine Konto- oder Kartendaten. Für PayPal gilt dessen
+        Datenschutzerklärung (paypal.com/de/legalhub/privacy-full). Bei Überweisung verarbeiten wir die
+        Angaben aus dem Zahlungseingang (Name, Betrag, Verwendungszweck). Rechnungs- und
+        Zahlungsbelege bewahren wir nach den steuer- und handelsrechtlichen Fristen auf (Art. 6 Abs. 1
+        lit. c DSGVO, bis zu 10 Jahre); alle übrigen Angaben löschen wir, sobald sie dafür nicht mehr
+        gebraucht werden. Was das Team im Team Manager einträgt (Zu- und Absagen, Termine, Kasse),
+        bleibt auch nach Ablauf erhalten, damit es bei einer Verlängerung weitergeht; das Team kann
+        die Löschung jederzeit über kontakt@mdudarts.de verlangen.
       </LegalSection>
     </LegalPage>
   );

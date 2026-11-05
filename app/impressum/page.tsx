@@ -11,7 +11,7 @@ export default function ImpressumPage() {
   return (
     <LegalPage
       title="Impressum"
-      updated="Oktober 2026"
+      updated="November 2026"
       notice={null}
     >
       <LegalSection title="Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)">
@@ -65,11 +65,20 @@ export default function ImpressumPage() {
         und Vereinsname werden mit Zustimmung der Münchner Dart Union verwendet.
       </LegalSection>
 
+      <LegalSection title="Team Manager (kostenpflichtige Zusatzfunktion)">
+        Anbieter und Vertragspartner des Team Managers ist nicht die Münchner Dart Union, sondern:<br />
+        Andreas Strehle<br />
+        Zenettistraße 30 · 80337 München<br />
+        E-Mail: kontakt@mdudarts.de<br />
+        Bedingungen und Widerrufsbelehrung:{' '}
+        <Link href="/team-manager/bedingungen" style={{ color: 'var(--th-accent)', textDecoration: 'underline' }}>mdudarts.de/team-manager/bedingungen</Link>
+      </LegalSection>
+
       <LegalSection title="Verbraucherstreitbeilegung">
         Wir sind nicht verpflichtet und nicht bereit, an einem Streitbeilegungsverfahren vor
-        einer Verbraucherschlichtungsstelle (§ 36 VSBG) teilzunehmen. Bei der Münchner Dart Union
-        handelt es sich um einen nicht kommerziellen Zusammenschluss zur Organisation des
-        Dartsport-Spielbetriebs; ein Online-Verkauf an Verbraucher findet nicht statt.
+        einer Verbraucherschlichtungsstelle (§ 36 VSBG) teilzunehmen. Das gilt auch für den
+        Team Manager. Die Münchner Dart Union selbst ist ein nicht kommerzieller Zusammenschluss
+        zur Organisation des Dartsport-Spielbetriebs.
       </LegalSection>
     </LegalPage>
   );

@@ -200,8 +200,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   verlängert ab dem späteren Ende (kein festes `bis`), gesperrte Seiten zeigen `TeamManagerFehlt` mit Weg zum Freischalten,
   `/api/team/nachricht` nur bei aktivem Team Manager, FAQ `team-manager-freischalten` schaltet mit dem Flag um,
   Überweisung erscheint erst mit echter IBAN (`ZAHLUNG.ueberweisung.aktiv`).
-  Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts); bis dahin nur Super-Admin. IBAN/Kontoinhaber in
-  `ZAHLUNG` noch Platzhalter. Verkäufer = Betreiber (Rechtstexte/Steuer: nur auf Anweisung). FAQ erst zum Start.
+  Rechtstexte (Betreiber 05.11.2026 „mach du das“, Entwurf, anwaltlich prüfen): `/team-manager/bedingungen` (Anbieter =
+  `ANBIETER` in lib/premium.ts, Test, Preise = Endpreise, Laufzeit, Kündigung, Haftung, Widerrufsbelehrung `#widerruf` +
+  Muster-Formular), Kündigungsbutton § 312k `/team-manager/kuendigen` (ohne Login, `/api/premium/kuendigung` → Mail an
+  kontakt@ + Eingangsbestätigung an den Kündigenden), beide im Fuß jeder Seite; Impressum-Abschnitt „Team Manager“,
+  Datenschutz Ziffer 20 (PayPal/Zahlungen). Kaufseite: Häkchen „sofort starten + Widerruf anteilig“ vor jedem Bezahlknopf.
+  IBAN/Kontoinhaber eingetragen (Andreas Strehle). Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts);
+  bis dahin nur Super-Admin.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →
