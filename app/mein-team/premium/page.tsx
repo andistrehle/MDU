@@ -191,7 +191,7 @@ export default function PremiumSeite() {
                   </>
                 ) : (
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.5 }}>
-                    {!pp?.clientId ? (ZAHLUNG.ueberweisung.aktiv ? 'Bezahlen per PayPal und Kreditkarte ist gleich so weit – bis dahin bitte per Überweisung.' : 'Bezahlen per PayPal ist gerade nicht erreichbar – bitte versuch es später noch einmal.')
+                    {!lage ? (team ? 'Lade Zahlungsmöglichkeiten …' : 'Wähle oben ein Team.') : !pp?.clientId ? (ZAHLUNG.ueberweisung.aktiv ? 'Bezahlen per PayPal und Kreditkarte ist gleich so weit – bis dahin bitte per Überweisung.' : 'Bezahlen per PayPal ist gerade nicht erreichbar – bitte versuch es später noch einmal.')
                       : !lage?.darf ? 'Bezahlen kann der Kapitän (oder der Co-Captain mit Recht „Team Manager“).'
                       : 'Das Monatsabo per PayPal ist gleich so weit – bis dahin Saisonpass per PayPal oder Monat per Überweisung.'}
                   </div>
