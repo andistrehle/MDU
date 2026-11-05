@@ -195,6 +195,11 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   fehlen sie, nur Überweisung. Produkt, Monatsplan und Webhook legt der Knopf „PayPal einrichten“ (Admin → Premium,
   `/api/premium/paypal/einrichten`) an; ihre IDs schlägt `findeEinrichtung()` bei PayPal nach (ENV PAYPAL_PLAN_MONAT/
   PAYPAL_WEBHOOK_ID nur optional).
+  Go-live-Vorbereitung (05.11.2026): goldenes „Premium“-Band an den Team-Manager-Kacheln in Mein Bereich (`premium: true`),
+  kein Doppelkauf (Seite + `/api/premium/paypal` sperren bei Saisonpass bis Saisonende/dauerhaft/laufendem Abo), Monatsabo
+  verlängert ab dem späteren Ende (kein festes `bis`), gesperrte Seiten zeigen `TeamManagerFehlt` mit Weg zum Freischalten,
+  `/api/team/nachricht` nur bei aktivem Team Manager, FAQ `team-manager-freischalten` schaltet mit dem Flag um,
+  Überweisung erscheint erst mit echter IBAN (`ZAHLUNG.ueberweisung.aktiv`).
   Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts); bis dahin nur Super-Admin. IBAN/Kontoinhaber in
   `ZAHLUNG` noch Platzhalter. Verkäufer = Betreiber (Rechtstexte/Steuer: nur auf Anweisung). FAQ erst zum Start.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
