@@ -348,6 +348,30 @@ const SZENEN = [
       // Witz vom Betreiber (05.11.2026)
       { s: 2.6, u: '[laughs] Und keine Sorge – der Dartenschutz ist gewährleistet!', b: 1, z: [44, 0, 1.6], k: 2 } ] },
 
+  // 5b – App (vor den Pushs: erst die App aufs Handy, dann kommen die Pushs — Betreiber 05.11.2026)
+  { titel: 'Die MDU <i>als App</i>', html: `
+      <div class="handy" style="${HOCH ? '' : 'left:260px;top:120px'}"><div class="schirm">
+        ${safari(0, 1)}${home(1, 2, 1, 99)}
+        <div class="ebene" data-k="2" data-bis="3" style="background:#fff url(${S}handy-push-frage.jpg) top/100% auto no-repeat"></div>
+        ${sperr(3, 4, push(3, 'Neuer Termin', 'Training · Di 3.11. 19:00 Uhr – bitte zu- oder absagen.'))}${home(4, 0, 4, 4)}
+      </div></div>
+      <div class="weg-text" style="left:820px;top:250px">
+        <div class="zeile" data-k="0"><b class="os">iPhone</b><span>Safari</span><i>→</i><span>Teilen □↑</span><i>→</i><span>„Zum Home-Bildschirm“</span></div>
+        <div class="zeile" data-k="1"><b class="os">Android</b><span>Chrome</span><i>→</i><span>⋮</span><i>→</i><span>„App installieren“</span></div>
+        <div class="zeile" data-k="2"><b class="os">Dann</b><span>einloggen</span><i>→</i><span>🔔 „Ja, einschalten“</span></div>
+        <div class="zeile" data-k="0" style="font-size:20px;font-weight:600;color:#5C6470;margin-top:10px">Kein App Store nötig · iPhone ab iOS 16.4, Push nur über das Symbol auf dem Home-Bildschirm</div>
+      </div>
+      ${stempel(0, 'Kein App Store! 🚀', 1300, 130, 'gold', 560, 180, 2)}
+      ${stempel(5, '📱 Dart-Phone 🎯', 900, 700, 'gold', 300, 1300)}`,
+    schritte: [
+      { s: 2.4, u: '[excited] Holt euch am besten die MDU als App aufs Handy – als Web-App, ganz ohne App Store!', k: 1 },
+      { s: 1.1, k: 2, weiter: true },
+      { s: 1.1, k: 3, weiter: true },
+      { s: 1.1, k: 4, weiter: true },
+      { s: 1.2, k: 5, weiter: true },
+      // Witz vom Betreiber (05.11.2026)
+      { s: 2.2, u: '[excited] Macht euer Smartphone zum Dart-Phone!', k: 6 } ] },
+
   // 6 – Push + Offene erinnern + Captain weiß Bescheid
   { titel: 'Direkt <i>aufs Handy</i>', html: beispiel + geraete(['glocke', 'spiel-erinnern'],
         `<div style="position:absolute;left:0;right:0;top:${HOCH ? 70 : 46}px;z-index:5">${push(0, 'Bitte zu- oder absagen', SPIEL_TXT + ' – du hast noch nicht geantwortet.', 1)}</div>`
@@ -411,30 +435,6 @@ const SZENEN = [
     schritte: [
       { s: 2.2, u: 'Und bei euch: Wer war wie oft dabei –', b: 0, z: [30, 30, 1.5] },
       { s: 2, u: 'und wie stehst du im Team?', b: 1, z: [24, 16, 1.9], k: 1 } ] },
-
-  // 12 – App
-  { titel: 'Die MDU <i>als App</i>', html: `
-      <div class="handy" style="${HOCH ? '' : 'left:260px;top:120px'}"><div class="schirm">
-        ${safari(0, 1)}${home(1, 2, 1, 99)}
-        <div class="ebene" data-k="2" data-bis="3" style="background:#fff url(${S}handy-push-frage.jpg) top/100% auto no-repeat"></div>
-        ${sperr(3, 4, push(3, 'Neuer Termin', 'Training · Di 3.11. 19:00 Uhr – bitte zu- oder absagen.'))}${home(4, 0, 4, 4)}
-      </div></div>
-      <div class="weg-text" style="left:820px;top:250px">
-        <div class="zeile" data-k="0"><b class="os">iPhone</b><span>Safari</span><i>→</i><span>Teilen □↑</span><i>→</i><span>„Zum Home-Bildschirm“</span></div>
-        <div class="zeile" data-k="1"><b class="os">Android</b><span>Chrome</span><i>→</i><span>⋮</span><i>→</i><span>„App installieren“</span></div>
-        <div class="zeile" data-k="2"><b class="os">Dann</b><span>einloggen</span><i>→</i><span>🔔 „Ja, einschalten“</span></div>
-        <div class="zeile" data-k="0" style="font-size:20px;font-weight:600;color:#5C6470;margin-top:10px">Kein App Store nötig · iPhone ab iOS 16.4, Push nur über das Symbol auf dem Home-Bildschirm</div>
-      </div>
-      ${stempel(0, 'Kein App Store! 🚀', 1300, 130, 'gold', 560, 180, 2)}
-      ${stempel(5, '📱 Dart-Phone 🎯', 900, 700, 'gold', 300, 1300)}`,
-    schritte: [
-      { s: 2.4, u: '[excited] Holt euch am besten die MDU als App aufs Handy – als Web-App, ganz ohne App Store!', k: 1 },
-      { s: 1.1, k: 2, weiter: true },
-      { s: 1.1, k: 3, weiter: true },
-      { s: 1.1, k: 4, weiter: true },
-      { s: 1.2, k: 5, weiter: true },
-      // Witz vom Betreiber (05.11.2026)
-      { s: 2.2, u: '[excited] Macht euer Smartphone zum Dart-Phone!', k: 6 } ] },
 
   // 13 – Preis
   { titel: '', html: `<div class="collage" id="collage"></div><div class="frage" data-k="1"><span class="tc">Und was kostet<br>der Spaß?</span></div>`,
