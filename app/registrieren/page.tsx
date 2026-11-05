@@ -35,6 +35,14 @@ export default function RegisterPage() {
     teamCaptain?: { teamName: string; captainName: string } | null;
   } | null>(null);
   const [resetSent, setResetSent] = useState(false);
+  // Einladung aus dem Team Manager (Betreiber, 05.11.2026): /registrieren?team=<id> → Hinweis + Kommentar vorbelegt.
+  const [einladung, setEinladung] = useState<string | null>(null);
+  useEffect(() => {
+    // Teamname kommt mit im Link (kein Spielplan-Import auf dieser Seite); nur Anzeige + Kommentarvorschlag.
+    const q = new URLSearchParams(window.location.search);
+    const name = q.get('team') ? (q.get('name') ?? '').trim().slice(0, 80) || null : null;
+    if (name) queueMicrotask(() => { setEinladung(name); setComment(c => c || `Eingeladen ins Team ${name}`); });
+  }, []);
 
   // Spieler-Erkennung (statische Ligadaten, rein clientseitig): Ist der
   // eingegebene Name keinem Spielerprofil zuzuordnen, blenden wir ein
@@ -195,6 +203,11 @@ export default function RegisterPage() {
   return (
     <AuthShell title="Registrieren" subtitle="MDU-Konto erstellen">
       <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {einladung && (
+          <div role="note" style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-body)', lineHeight: 1.5 }}>
+            Du wurdest ins Team <b>{einladung}</b> eingeladen. Registrier dich als Spieler mit deinem Namen wie im Kader – dann wirst du deinem Team zugeordnet und bist im Team Manager dabei.
+          </div>
+        )}
         {error && <AuthError message={error} />}
         <AuthField
           label="Vorname"

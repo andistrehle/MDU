@@ -205,6 +205,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Muster-Formular), Kündigungsbutton § 312k `/team-manager/kuendigen` (ohne Login, `/api/premium/kuendigung` → Mail an
   kontakt@ + Eingangsbestätigung an den Kündigenden), beide im Fuß jeder Seite; Impressum-Abschnitt „Team Manager“,
   Datenschutz Ziffer 20 (PayPal/Zahlungen). Kaufseite: Häkchen „sofort starten + Widerruf anteilig“ vor jedem Bezahlknopf.
+  Kündigen (05.11.2026): Admin → Premium „Zum Laufzeitende kündigen“ (PayPal-Abo aus, frei bis `valid_until`, danach sperrt
+  `abgleich()`) und getrennt „Sofort sperren“ (Testkauf/Erstattung). Nur LAUFENDE Freischaltungen verlängern ein neues Abo.
+  Testkauf merkt sich `note = 'Testkauf Betreiber'` → auch der Webhook schickt keine Glocke.
+  **Team einladen** (05.11.2026, jedes Teammitglied, `components/mdu/team-einladen.tsx` im Dashboard unter „Kapitäns-Team“):
+  „x von y haben ein Konto“ (`/api/team/einladen`, service_role, nur Namen), WhatsApp / Link kopieren / E-Mail, eingeklappt
+  die Fehlenden mit persönlichem WhatsApp-Text; verschwindet, wenn alle ein Konto haben. Link `/registrieren?team=<id>&name=…`
+  zeigt „Du wurdest ins Team … eingeladen“ und belegt den Kommentar vor; zugeordnet wird weiter über den Namen.
   IBAN/Kontoinhaber eingetragen (Andreas Strehle). Kleinunternehmer: `STEUER_HINWEIS` (§ 19 UStG) an allen Preisen. Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts);
   bis dahin nur Super-Admin.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`

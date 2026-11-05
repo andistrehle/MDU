@@ -5,6 +5,7 @@
 // GET  → { zeilen, zahlungen }   alle Teams mit Premium-Zeile + letzte Zahlungen
 // POST { aktion: 'freischalten', team, art, bis?, weg, notiz? }  — z. B. nach Überweisung/bar
 // POST { aktion: 'ablehnen', team }    — gemeldete Überweisung kam nicht an
+// POST { aktion: 'kuendigen', team }   — PayPal-Abo zum Laufzeitende kündigen (bleibt bis valid_until frei)
 // POST { aktion: 'beenden', team }     — sofort sperren (PayPal-Abo wird mit gekündigt)
 // ============================================================
 
@@ -60,6 +61,14 @@ export async function POST(request: Request) {
       const laeuft = p && (p.status === 'aktiv' || p.status === 'test');
       await supabaseAdmin.from('team_premium').update({ requested_model: null, requested_at: null, ...(laeuft ? {} : { status: 'beendet' }), updated_at: new Date().toISOString() }).eq('team_id', team);
       return NextResponse.json({ ok: true });
+    }
+    if (b.aktion === 'kuendigen') {
+      // Zum Laufzeitende: PayPal-Abo beenden, Freischaltung bleibt bis valid_until (abgleich() sperrt danach).
+      const p = await ladePremium(team);
+      if (!p?.paypal_subscription_id || p.abo_status !== 'ACTIVE') return fehler('Es läuft kein PayPal-Abo.');
+      await aboKuendigen(p.paypal_subscription_id, 'Von der Ligaleitung gekündigt (zum Laufzeitende)');
+      await supabaseAdmin.from('team_premium').update({ abo_status: 'CANCELLED', updated_at: new Date().toISOString() }).eq('team_id', team);
+      return NextResponse.json({ ok: true, bis: p.valid_until });
     }
     if (b.aktion === 'beenden') {
       const p = await ladePremium(team);

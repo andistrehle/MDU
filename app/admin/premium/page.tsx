@@ -106,7 +106,9 @@ export default function AdminPremiumPage() {
                     {' · gültig bis '}<b style={{ color: bald ? 'var(--th-gold)' : 'var(--th-win)' }}>{a.valid_until ? datumDe(a.valid_until) : 'unbegrenzt'}</b>
                   </div>
                 </div>
-                {a.modell !== 'dauerhaft' && <button type="button" disabled={laeuft} onClick={() => void tun(a.team_id, { aktion: 'beenden' }, `Team Manager für ${tname(a.team_id)} sofort beenden?${a.paypal_subscription_id ? ' Das PayPal-Abo wird mit gekündigt.' : ''}`, 'Beendet.')} style={{ ...knopf, cursor: 'pointer', opacity: 1 }}>Beenden</button>}
+                {/* Betreiber, 05.11.2026: Kündigen wirkt zum Laufzeitende; sofort sperren nur bewusst (Testkauf, Erstattung). */}
+                {a.paypal_subscription_id && a.abo_status === 'ACTIVE' && <button type="button" disabled={laeuft} onClick={() => void tun(a.team_id, { aktion: 'kuendigen' }, `PayPal-Abo von ${tname(a.team_id)} kündigen? Der Team Manager läuft bis ${a.valid_until ? datumDe(a.valid_until) : 'zum Ende des bezahlten Monats'} weiter.`, 'Gekündigt – läuft bis zum Ende der Laufzeit.')} style={{ ...knopf, cursor: 'pointer', opacity: 1 }}>Zum Laufzeitende kündigen</button>}
+                {a.modell !== 'dauerhaft' && <button type="button" disabled={laeuft} onClick={() => void tun(a.team_id, { aktion: 'beenden' }, `Team Manager für ${tname(a.team_id)} SOFORT sperren (z. B. Testkauf oder Erstattung)?${a.paypal_subscription_id ? ' Das PayPal-Abo wird mit gekündigt.' : ''}`, 'Beendet.')} style={{ ...knopf, cursor: 'pointer', opacity: 1, color: 'var(--th-loss)', borderColor: 'var(--th-loss)' }}>Sofort sperren</button>}
                 {hinweisBei(a.team_id)}
               </div>
             );
