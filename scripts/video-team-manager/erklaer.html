@@ -218,6 +218,7 @@
   @keyframes puls { 50% { box-shadow:0 0 0 16px rgba(232,184,74,0); } }
 
   /* Augenführung (Feedback 05.11.2026): jedes Bild zoomt während seiner Szene langsam ein paar Prozent heran */
+  .schirm > .innen { position:absolute; inset:0; transform-origin:50% 50%; }
   @keyframes ranzoom { from { transform: scale(1); } to { transform: scale(1.09); } }
 </style></head>
 <body><div id="stage"></div>
@@ -237,7 +238,7 @@ const geraete = (namen, handyExtra = '', laptopExtra = '') => `
   <div class="handy"><div class="schirm">${namen.map((n, i) => `<img data-b="${i}" src="${S}handy-${n}.jpg">`).join('')}${handyExtra}</div></div>`;
 // Pulsierender Ring über einem Knopf (Laptop-Koordinaten x,y; im Hochformat xh,yh), mit Hinweis darunter
 const ring = (k, text, x, y, art = '', bis, klein = false) => `<div class="ring ${art}${klein ? ' klein' : ''}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${x}px;top:${y}px"><span>${text}</span></div>`;
-const stempel = (k, text, x, y, art = '', xh, yh, bis) => `<div class="stempel ${art}" data-k="${k}"${bis ? ` data-bis="${bis}"` : ''} style="left:${HOCH ? xh ?? x : x}px;top:${HOCH ? yh ?? y : y}px">${text}</div>`;
+const stempel = (k, text, x, y, art = '', xh, yh, bis) => `<div class="stempel ${art}" data-k="${k}"${bis !== undefined ? ` data-bis="${bis}"` : ''} style="left:${HOCH ? xh ?? x : x}px;top:${HOCH ? yh ?? y : y}px">${text}</div>`;
 
 // Neueste Nachricht unten, ältere wandern nach oben (wie im echten Chat); unsichtbare nehmen keinen Platz.
 const chat = (zeilen) => `<div class="wa"><div class="kopf">👥 <span>DC Demo München<small>Max, Tim, Lena, Sepp, Kai, Flo …</small></span></div>
@@ -556,7 +557,12 @@ window.SPIEL = async () => {
     el.classList.add('an');
     // langsam heranzoomen, über die ganze Szene (ein paar Prozent, kein Sprung zwischen den Sätzen)
     const szDauer = SZENEN[i].schritte.reduce((a, x) => a + x.s, 0) + vor;
-    el.querySelectorAll('.schirm').forEach(sc => { sc.style.animation = `ranzoom ${szDauer.toFixed(2)}s linear forwards`; });
+    // Nur den INHALT zoomen (in einer inneren Ebene), sonst wächst der Bildschirm über den Geräterahmen
+    el.querySelectorAll('.schirm').forEach(sc => {
+      let innen = sc.querySelector(':scope > .innen');
+      if (!innen) { innen = document.createElement('div'); innen.className = 'innen'; innen.append(...sc.childNodes); sc.append(innen); }
+      innen.style.animation = `ranzoom ${szDauer.toFixed(2)}s linear forwards`;
+    });
     zeige(el, { ...SZENEN[i].schritte[0], k: 0 });
     await warte(vor * 1000); vergangen += vor;
     let satz = -1;
