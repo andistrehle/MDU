@@ -31,7 +31,7 @@ export interface PremiumZeile {
   payment_method: Zahlweg | null; note: string | null; paypal_subscription_id: string | null; abo_status: string | null;
   activated_at: string | null; erinnert_am: string | null;
 }
-export const PREMIUM_SPALTEN = 'team_id, modell, status, valid_until, trial_used, requested_model, requested_at, payment_method, note, paypal_subscription_id, abo_status, activated_at, erinnert_am';
+export const PREMIUM_SPALTEN = 'team_id, modell, status, valid_until, trial_used, requested_model, requested_at, payment_method, note, paypal_subscription_id, abo_status, activated_at, erinnert_am, updated_at';
 
 function db() {
   if (!supabaseAdmin) throw new Error('Server-Datenbank ist nicht konfiguriert.');

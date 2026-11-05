@@ -16,7 +16,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { LIGEN_2027, team27 } from '@/lib/data/saison-2027';
 import { PREISE, euroText, PREMIUM_OEFFENTLICH, TESTTAGE, SAISONPASS_BIS } from '@/lib/premium';
 
-interface Zeile { team_id: string; modell: string | null; status: string; valid_until: string | null; requested_model: 'saison' | 'monat' | null; requested_at: string | null; payment_method: string | null; note: string | null; paypal_subscription_id: string | null; abo_status: string | null; activated_at: string | null }
+interface Zeile { team_id: string; modell: string | null; status: string; valid_until: string | null; requested_model: 'saison' | 'monat' | null; requested_at: string | null; payment_method: string | null; note: string | null; paypal_subscription_id: string | null; abo_status: string | null; activated_at: string | null; updated_at?: string | null }
 interface Zahlung { id: string; team_id: string; modell: 'saison' | 'monat'; amount_cents: number; method: string; valid_until: string; external_id: string | null; created_at: string }
 const WEG_TEXT: Record<string, string> = { paypal: 'PayPal', ueberweisung: 'Überweisung', bar: 'Bar', kostenlos: 'kostenlos' };
 const tname = (id: string) => team27(id)?.name ?? id;
@@ -118,7 +118,9 @@ export default function AdminPremiumPage() {
             <h2 style={h2}>Abgelaufen / beendet</h2>
             {vorbei.map(a => (
               <div key={a.team_id} style={{ ...zeile, opacity: 0.8 }}>
-                <div style={{ ...txt, flex: 1 }}><b>{tname(a.team_id)}</b> · {a.status === 'abgelaufen' ? 'abgelaufen' : 'beendet'} {a.valid_until ? `am ${datumDe(a.valid_until)}` : ''}</div>
+                <div style={{ ...txt, flex: 1 }}><b>{tname(a.team_id)}</b> · {a.status === 'abgelaufen'
+                  ? `abgelaufen${a.valid_until ? ` am ${datumDe(a.valid_until)}` : ''}`
+                  : `beendet${a.updated_at ? ` am ${datumDe(a.updated_at)}` : ''}${a.valid_until ? ` (wäre bis ${datumDe(a.valid_until)} gelaufen)` : ''}`}</div>
               </div>
             ))}
           </section>
