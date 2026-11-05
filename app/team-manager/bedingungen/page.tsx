@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, LegalSection } from '@/components/mdu/legal-page';
-import { ANBIETER, PREISE, TESTTAGE, euroText } from '@/lib/premium';
+import { ANBIETER, PREISE, STEUER_HINWEIS, TESTTAGE, euroText } from '@/lib/premium';
 
 // Abo-Bedingungen + Widerrufsbelehrung für den Team Manager (Betreiber, 05.11.2026:
 // „mach du das“). Verkäufer = Betreiber privat, nicht die MDU. Muster-Belehrung nach
@@ -44,7 +44,7 @@ export default function TeamManagerBedingungen() {
       </LegalSection>
 
       <LegalSection title="5. Preise und Laufzeit">
-        Alle Preise sind Endpreise und gelten für das ganze Team.<br />
+        Alle Preise sind Endpreise und gelten für das ganze Team. {STEUER_HINWEIS}<br />
         <b>Saisonpass:</b> {euroText(PREISE.saison.cents)} einmalig, gilt ab Freischaltung bis 31.05.2027 und endet dann
         von selbst – ohne Verlängerung und ohne Kündigung.<br />
         <b>Monatlich:</b> {euroText(PREISE.monat.cents)} pro Monat, im Voraus. Der Vertrag läuft jeweils einen Monat und

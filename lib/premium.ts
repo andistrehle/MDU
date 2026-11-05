@@ -41,6 +41,9 @@ export type PremiumModell = keyof typeof PREISE;
 /** Zahlungswege (Betreiber, 17.10.2026). IBAN folgt noch — bis dahin Platzhalter. Keine Barzahlung. */
 const UEBERWEISUNG = { inhaber: 'Andreas Strehle', iban: 'DE59 7002 0270 0664 6096 14' };
 
+/** Steuerhinweis an jedem Preis (Betreiber, 05.11.2026: Kleinunternehmer). */
+export const STEUER_HINWEIS = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.';
+
 /** Anbieter (Verkäufer) des Team Managers — der Betreiber, nicht die MDU (Betreiber, 17.10.2026). */
 export const ANBIETER = { name: 'Andreas Strehle', anschrift: 'Zenettistraße 30 · 80337 München', email: 'kontakt@mdudarts.de' };
 export const ZAHLUNG = {

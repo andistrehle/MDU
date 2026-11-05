@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { team27, NEUE_SAISON, LIGEN_2027 } from '@/lib/data/saison-2027';
-import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, ANBIETER, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
+import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, ANBIETER, STEUER_HINWEIS, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
 import { Icon } from '@/components/mdu/icon';
 
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A';
@@ -158,6 +158,7 @@ export default function PremiumSeite() {
                   );
                 })}
               </div>
+              <div style={{ marginTop: 8, fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)' }}>Endpreise. {STEUER_HINWEIS}</div>
             </section>
 
             {/* Bezahlen */}
@@ -225,7 +226,7 @@ export default function PremiumSeite() {
             </>)}
 
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11.5, color: 'var(--th-text-faint)', lineHeight: 1.6 }}>
-              Anbieter des Team Managers: {ANBIETER.name}, {ANBIETER.anschrift} · Alle Preise sind Endpreise · <Link href="/team-manager/bedingungen" style={{ color: 'inherit' }}>Bedingungen</Link> · <Link href="/team-manager/bedingungen#widerruf" style={{ color: 'inherit' }}>Widerruf</Link> · <Link href="/datenschutz" style={{ color: 'inherit' }}>Datenschutz</Link> · <Link href="/team-manager/kuendigen" style={{ color: 'inherit' }}>Verträge hier kündigen</Link>
+              Anbieter des Team Managers: {ANBIETER.name}, {ANBIETER.anschrift} · Alle Preise sind Endpreise, {STEUER_HINWEIS.replace(/\.$/, '')} · <Link href="/team-manager/bedingungen" style={{ color: 'inherit' }}>Bedingungen</Link> · <Link href="/team-manager/bedingungen#widerruf" style={{ color: 'inherit' }}>Widerruf</Link> · <Link href="/datenschutz" style={{ color: 'inherit' }}>Datenschutz</Link> · <Link href="/team-manager/kuendigen" style={{ color: 'inherit' }}>Verträge hier kündigen</Link>
             </div>
           </div>
         )}
