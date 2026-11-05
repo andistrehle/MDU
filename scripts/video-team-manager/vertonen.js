@@ -116,7 +116,14 @@ async function sprichSzene(saetze, voice, basis, altBasis) {
       return { datei, ...zm, neu: 0 };
     }
   }
-  if (fs.existsSync(datei) && fs.existsSync(meta)) return { datei, piep: [], ...JSON.parse(fs.readFileSync(meta, 'utf8')), neu: 0 };
+  if (fs.existsSync(datei) && fs.existsSync(meta)) {
+    if (V3 && process.env.ZEITMARKEN_NEU === '1' && process.env.TROCKEN !== '1') {
+      const zm = await zeitmarkenAusSprache(datei, teile);
+      fs.writeFileSync(meta, JSON.stringify(zm));
+      return { datei, ...zm, neu: 0 };
+    }
+    return { datei, piep: [], ...JSON.parse(fs.readFileSync(meta, 'utf8')), neu: 0 };
+  }
   let starts, ende, piep = [];
   if (process.env.TROCKEN === '1') {
     trockenTon(text, datei);
@@ -158,12 +165,18 @@ async function zeitmarkenAusSprache(datei, teile) {
   const ende = w.length ? w[w.length - 1].end : laenge(datei);
   const gesamt = teile.reduce((a, t) => a + ohneRegie(t).length + 1, 0);
   let zeiger = 0, pos = 0;
+  // Satzanfang = die ersten (bis zu) drei Wörter des Satzes in Folge — nur ein Wort verwechselte „und“
+  // in „Zusagen und Absagen“ mit dem Anfang von „und auf deinem …“ (05.11.2026: Bild sprang zu früh weiter).
+  const passt = (k, woerter) => woerter.every((x, m) => w[k + m] && norm(w[k + m].text) === x);
   const starts = teile.map((t, n) => {
-    const erstes = norm(ohneRegie(t).split(/\s+/).find(x => norm(x)) || '');
+    const woerter = ohneRegie(t).split(/\s+/).map(norm).filter(Boolean).slice(0, 3);
     const schaetz = pos / gesamt * ende; pos += ohneRegie(t).length + 1;
-    if (n === 0) { const k = w.findIndex(x => norm(x.text) === erstes); if (k >= 0) zeiger = k + 1; return w[0]?.start ?? 0; }
-    for (let k = zeiger; k < w.length; k++) if (norm(w[k].text) === erstes && Math.abs(w[k].start - schaetz) < 6) { zeiger = k + 1; return w[k].start; }
-    console.warn(`  Satzanfang „${erstes}“ nicht erkannt – geschätzt`);
+    if (n === 0) { const k = w.findIndex((_, k) => passt(k, woerter)); if (k >= 0) zeiger = k + woerter.length; return w[0]?.start ?? 0; }
+    for (const anzahl of [woerter.length, 1]) {
+      const such = woerter.slice(0, anzahl);
+      for (let k = zeiger; k < w.length; k++) if (passt(k, such) && Math.abs(w[k].start - schaetz) < 6) { zeiger = k + such.length; return w[k].start; }
+    }
+    console.warn(`  Satzanfang „${woerter.join(' ')}“ nicht erkannt – geschätzt`);
     return schaetz;
   });
   const piep = w.filter(x => PIEP_WOERTER.includes(norm(x.text))).map(x => ({ s: Math.max(0, x.start - 0.04), e: x.end + 0.06 }));
