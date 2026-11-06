@@ -114,6 +114,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "19:00",
     "note": "Heimeranplatz 1, 80339 München"
+  },
+  {
+    "id": "2026-11-06-harlekin-zusatz",
+    "date": "2026-11-06",
+    "venueId": "harlekin",
+    "art": "zusatz",
+    "time": "20:00",
+    "note": null
   }
 ];
 
