@@ -64,6 +64,9 @@ export const PLAYERS_UPLOADED_MEN_RAW: string[] = [
   '0|551|KREUZER|MICHAEL|0|0||',
   '0|554|HARLEKIN|GIUSEPPE|0|0||',
   '0|557|HARLEKIN|JAKOB|0|0||',
+  '0|579|FIAKER|FLO|0|0||',
+  '0|580|FIAKER|NICKLAS|0|0||',
+  '0|581|FIAKER|ROMAN|0|0||',
 ];
 
 /** Neue Spielerinnen der Damenwertung, aus hochgeladenen Ergebniszetteln. */
