@@ -133,6 +133,20 @@ export async function freischalten(teamId: string, o: {
   // Ändert sich nichts (z. B. erste Abo-Zahlung direkt nach dem Abschluss), keine zweite Glocke.
   if (!o.ohneGlocke && (!war || bis !== alt?.valid_until)) await glocke(await tcEmpfaenger(teamId, 'team_manager', false), war ? 'Team Manager verlängert' : 'Team Manager ist freigeschaltet',
     `${teamName(teamId)}: ${art}${bis ? `, gültig bis ${datumDe(bis)}` : ''}. Viel Spaß!`, '/mein-team/zusagen');
+  // Betreiber bekommt jeden Test, Kauf und jede Abo-Zahlung in die Glocke (+ Push) — Betreiber, 06.11.2026.
+  // Nicht bei eigenem Testkauf und nicht, wenn er selbst freischaltet (Admin → Premium).
+  if (!o.ohneGlocke) {
+    const an = (await betreiber()).filter(id => id !== o.durch);
+    const bezahlt = (o.art === 'saison' || o.art === 'monat') && o.weg !== 'kostenlos' && !o.ohneZahlung;
+    const weg = o.weg === 'paypal' ? 'PayPal' : o.weg === 'ueberweisung' ? 'Überweisung' : o.weg === 'bar' ? 'bar' : 'kostenlos';
+    const name = teamName(teamId);
+    const meldung: [string, string] | null =
+      o.art === 'test' ? [`${name} testet den Team Manager`, `${TESTTAGE} Tage Test gestartet, läuft bis ${bis ? datumDe(bis) : '–'}.`]
+      : bezahlt ? [`Team Manager gekauft: ${name}`, `${PREISE[o.art as PremiumModell].name} · ${euroText(o.cents ?? PREISE[o.art as PremiumModell].cents)} per ${weg}${bis ? `, gültig bis ${datumDe(bis)}` : ''}.`]
+      : o.art === 'monat' ? [`Monatsabo abgeschlossen: ${name}`, `Abo bei PayPal angelegt – die Zahlung kommt als eigene Meldung.`]
+      : null;
+    if (meldung) await glocke(an, meldung[0], meldung[1], '/admin/premium');
+  }
   seitenNeuBauen(teamId);
   return { bis, neu: !war };
 }

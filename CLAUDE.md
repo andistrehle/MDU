@@ -208,6 +208,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Kündigen (05.11.2026): Admin → Premium „Zum Laufzeitende kündigen“ (PayPal-Abo aus, frei bis `valid_until`, danach sperrt
   `abgleich()`) und getrennt „Sofort sperren“ (Testkauf/Erstattung). Nur LAUFENDE Freischaltungen verlängern ein neues Abo.
   Testkauf merkt sich `note = 'Testkauf Betreiber'` → auch der Webhook schickt keine Glocke.
+  Betreiber-Glocke (06.11.2026): `freischalten()` meldet dem Super-Admin jeden Test, Kauf und jede Abo-Zahlung
+  (Glocke + Push, Link Admin → Premium) — nicht bei Testkauf und nicht, wenn er selbst freischaltet.
   **Team einladen** (05.11.2026, jedes Teammitglied, `components/mdu/team-einladen.tsx` im Dashboard unter „Kapitäns-Team“):
   „x von y haben ein Konto“ (`/api/team/einladen`, service_role, nur Namen), WhatsApp / Link kopieren / E-Mail, eingeklappt
   die Fehlenden mit persönlichem WhatsApp-Text; verschwindet, wenn alle ein Konto haben. Link `/registrieren?team=<id>&name=…`
