@@ -29,6 +29,11 @@ export const premiumVorschau = (user: Pick<UserProfile, 'role'> | null | undefin
 
 export const TESTTAGE = 14;
 
+/** Vorstellungsvideo (Betreiber, 06.11.2026) — Kaufseite, News-Beitrag, Startseiten-Banner. */
+export const TM_VIDEO = { src: '/videos/mdu-team-manager.mp4', poster: '/videos/mdu-team-manager.jpg' };
+/** Start-Laufband auf der Startseite: ab Start 7 Tage, Tipp führt zum News-Beitrag mit Video. */
+export const TM_START = { datum: '2026-11-06', tage: 7, newsId: 'team-manager-ist-da' };
+
 /** Saisonpass gilt bis (Betreiber, 29.10.2026: bis Ende Mai, nicht bis zum letzten Spielwochenende). */
 export const SAISONPASS_BIS = '2027-05-31';
 

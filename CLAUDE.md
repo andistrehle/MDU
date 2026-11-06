@@ -214,6 +214,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   zeigt „Du wurdest ins Team … eingeladen“ und belegt den Kommentar vor; zugeordnet wird weiter über den Namen.
   IBAN/Kontoinhaber eingetragen (Andreas Strehle). Kleinunternehmer: `STEUER_HINWEIS` (§ 19 UStG) an allen Preisen. **ÖFFENTLICH seit 06.11.2026** (`PREMIUM_OEFFENTLICH = true`, Betreiber: „Jetzt Video posten“) — Kapitäne/Co-Captains
   sehen „Team Manager holen“, FAQ und Spieltagsbericht-Absatz sind umgeschaltet.
+  Start-Laufband „★ Neu – Der Team Manager ist da“ (`components/mdu/team-manager-banner.tsx`, Gold, unter dem Spieltag-Band,
+  7 Tage ab `TM_START`, Tipp → News `team-manager-ist-da` mit Video), Video `TM_VIDEO` (`public/videos/mdu-team-manager.mp4`)
+  eingebettet auf der Kaufseite direkt unter dem Kopf.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →

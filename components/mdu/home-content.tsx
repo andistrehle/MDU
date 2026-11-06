@@ -11,6 +11,8 @@ import { HeroFullbleed } from '@/components/mdu/hero-fullbleed';
 import { getHomepageNews } from '@/lib/server/news-data';
 import { ladeSpieltagBanner } from '@/lib/server/spieltag-banner';
 import { SpieltagBanner } from '@/components/mdu/spieltag-banner';
+import { TeamManagerBanner } from '@/components/mdu/team-manager-banner';
+import { PREMIUM_OEFFENTLICH, TM_START } from '@/lib/premium';
 import {
   getRecentResults,
   findLeague,
@@ -50,6 +52,12 @@ const ORG_JSONLD = {
  *  - 'fullbleed' → alternative Design-Vorschau: Full-bleed-Bild + Floating-Navbar.
  * Alles unterhalb des Heros ist identisch, damit die Vorschau die ECHTE Seite zeigt.
  */
+/** Team-Manager-Start: 7 Tage ab TM_START.datum (Seite wird alle 10 Min neu gebaut). */
+function tmBannerAktiv(): boolean {
+  const tage = (Date.now() - Date.parse(`${TM_START.datum}T00:00:00+01:00`)) / 86_400_000;
+  return PREMIUM_OEFFENTLICH && tage >= 0 && tage < TM_START.tage;
+}
+
 export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fullbleed' }) {
   // Letzte Spiele: sobald es Ergebnisse 2026/27 aus den Spielberichten gibt,
   // stehen diese da (neueste zuerst); vorher wie bisher das Archiv 2025/26.
@@ -72,6 +80,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
   // Nächstes Spielwochenende der Saison 2026/27 (vorläufiger Plan), alle Ligen.
   const naechstes = naechstesWochenende27();
   const [newsArticles, banner] = await Promise.all([getHomepageNews(), ladeSpieltagBanner()]);
+  const tmBanner = tmBannerAktiv();
 
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh' }}>
@@ -85,6 +94,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
         <>
           <DesktopHeader activeHref="/" />
           {banner && <SpieltagBanner daten={banner} />}
+          {tmBanner && <TeamManagerBanner />}
 
           {/* Hero */}
           <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--th-bg-page)', borderBottom: '1px solid var(--th-line-4)' }}>

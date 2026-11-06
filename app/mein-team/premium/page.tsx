@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { team27, NEUE_SAISON, LIGEN_2027 } from '@/lib/data/saison-2027';
-import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, ANBIETER, STEUER_HINWEIS, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
+import { PREISE, ZAHLUNG, LEISTUNGEN, TESTTAGE, PREMIUM_OEFFENTLICH, SAISONPASS_BIS, ANBIETER, STEUER_HINWEIS, TM_VIDEO, premiumVorschau, verwendungszweck, euroText, type PremiumModell } from '@/lib/premium';
 import { Icon } from '@/components/mdu/icon';
 
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A';
@@ -115,6 +115,16 @@ export default function PremiumSeite() {
               }}>{TESTTAGE} Tage gratis testen</button>}
               {!p?.trial_used && !lage?.aktiv && <div style={{ position: 'relative', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'rgba(239,230,207,0.7)', marginTop: 8 }}>Endet von selbst – kein Abo, keine Zahlungsdaten nötig.</div>}
             </div>
+
+            {/* Vorstellungsvideo (Betreiber, 06.11.2026: präsent, direkt unter dem Kopf) */}
+            <section style={{ ...karte, padding: 0, overflow: 'hidden', border: `2px solid ${GOLD}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', fontFamily: 'var(--font-manrope)', fontWeight: 900, fontSize: 14, color: 'var(--th-text-strong)' }}>
+                <span aria-hidden style={{ display: 'inline-flex', width: 26, height: 26, borderRadius: 999, background: GOLD, color: '#3A2A00', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>▶</span>
+                Im Video erklärt: So funktioniert der Team Manager
+              </div>
+              <video src={TM_VIDEO.src} poster={TM_VIDEO.poster} controls playsInline preload="none"
+                style={{ display: 'block', width: '100%', aspectRatio: '16 / 9', background: '#000' }} />
+            </section>
 
             {/* Leistungen */}
             <section style={karte}>
