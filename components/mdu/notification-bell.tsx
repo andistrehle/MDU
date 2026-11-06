@@ -17,6 +17,7 @@ import { NotificationBadge } from './notification-badge';
 import { useNotifications, relativeTime, type AppNotification } from '@/lib/supabase/user-notifications';
 import { ladeOffeneZusagen, type OffeneZusage } from '@/lib/supabase/zusagen-offen';
 import { useAuth } from '@/lib/auth/auth-context';
+import { oeffneZiel } from '@/lib/oeffne-ziel';
 
 export function NotificationBell() {
   const router = useRouter();
@@ -61,10 +62,24 @@ export function NotificationBell() {
     if (open) panelRef.current?.focus({ preventScroll: true });
   }, [open]);
 
+  // Tipp auf einen Push bei offener App: der Service Worker schickt das Ziel hierher
+  // (public/sw.js, `mdu-oeffnen`) — wir bestätigen und öffnen es wie einen Glocken-Eintrag.
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    const h = (e: MessageEvent) => {
+      const d = e.data as { typ?: string; url?: unknown } | null;
+      if (d?.typ !== 'mdu-oeffnen' || typeof d.url !== 'string') return;
+      e.ports[0]?.postMessage('ok');
+      oeffneZiel(d.url, router);
+    };
+    navigator.serviceWorker.addEventListener('message', h);
+    return () => navigator.serviceWorker.removeEventListener('message', h);
+  }, [router]);
+
   async function onItemClick(n: AppNotification) {
     setOpen(false);
     if (!n.read_at) await markRead(n.id);
-    if (n.action_url) router.push(n.action_url);
+    if (n.action_url) oeffneZiel(n.action_url, router);
   }
 
   return (

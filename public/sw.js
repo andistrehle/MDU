@@ -28,6 +28,15 @@ self.addEventListener('push', (event) => {
   })]));
 });
 
+function seiteOeffnet(f, url) {
+  return new Promise((fertig) => {
+    const kanal = new MessageChannel();
+    const t = setTimeout(() => fertig(false), 1000);
+    kanal.port1.onmessage = () => { clearTimeout(t); fertig(true); };
+    try { f.postMessage({ typ: 'mdu-oeffnen', url }, [kanal.port2]); } catch { clearTimeout(t); fertig(false); }
+  });
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const ziel = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
@@ -35,9 +44,13 @@ self.addEventListener('notificationclick', (event) => {
     const fenster = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const f of fenster) {
       if (new URL(f.url).origin === self.location.origin && 'focus' in f) {
-        await f.focus();
-        if ('navigate' in f) await f.navigate(ziel).catch(() => {});
-        return;
+        await f.focus().catch(() => {});
+        // Zuerst die offene Seite selbst navigieren lassen (die Glocke hört zu und
+        // öffnet auch /news#<id> auf derselben Seite). WindowClient.navigate kann das
+        // nicht zuverlässig (iPhone), deshalb nur als Rückfall ohne Antwort.
+        if (await seiteOeffnet(f, ziel)) return;
+        if ('navigate' in f) { const ok = await f.navigate(ziel).then(() => true, () => false); if (ok) return; }
+        break;
       }
     }
     await self.clients.openWindow(ziel);
