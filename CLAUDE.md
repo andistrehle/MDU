@@ -212,8 +212,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   „x von y haben ein Konto“ (`/api/team/einladen`, service_role, nur Namen), WhatsApp / Link kopieren / E-Mail, eingeklappt
   die Fehlenden mit persönlichem WhatsApp-Text; verschwindet, wenn alle ein Konto haben. Link `/registrieren?team=<id>&name=…`
   zeigt „Du wurdest ins Team … eingeladen“ und belegt den Kommentar vor; zugeordnet wird weiter über den Namen.
-  IBAN/Kontoinhaber eingetragen (Andreas Strehle). Kleinunternehmer: `STEUER_HINWEIS` (§ 19 UStG) an allen Preisen. Öffentlich erst mit `PREMIUM_OEFFENTLICH = true` (lib/premium.ts);
-  bis dahin nur Super-Admin.
+  IBAN/Kontoinhaber eingetragen (Andreas Strehle). Kleinunternehmer: `STEUER_HINWEIS` (§ 19 UStG) an allen Preisen. **ÖFFENTLICH seit 06.11.2026** (`PREMIUM_OEFFENTLICH = true`, Betreiber: „Jetzt Video posten“) — Kapitäne/Co-Captains
+  sehen „Team Manager holen“, FAQ und Spieltagsbericht-Absatz sind umgeschaltet.
   **Web-App + Push** (Migration 0056, Betreiber 22.10.2026, für alle mit Konto): `app/manifest.ts`
   (gelbes MDU-Logo, `public/app/*`; auf mdc-ranking.de ein eigenes MDC-Manifest), `public/sw.js` (nur
   Push, bewusst KEIN Offline-Cache). Jede neue Zeile in `notifications` (Glocke) → Trigger mit pg_net →

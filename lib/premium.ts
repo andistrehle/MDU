@@ -21,7 +21,7 @@
 import { hasRole, type UserProfile } from '@/lib/auth/roles';
 
 /** Erst auf true, wenn Zahlungsdaten (IBAN, PayPal), Rechtstexte und Migration 0063 stehen. */
-export const PREMIUM_OEFFENTLICH = false;
+export const PREMIUM_OEFFENTLICH = true;
 
 /** Vorschau sehen: bis zum Start nur der Super-Admin. */
 export const premiumVorschau = (user: Pick<UserProfile, 'role'> | null | undefined) =>
