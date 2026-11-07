@@ -75,9 +75,9 @@ export const metadata: Metadata = {
   ...(MDC_ICON
     ? {
       icons: {
-        icon: [{ url: `${MDC_ICON.src}?v=2026-09-13`, sizes: '512x512', type: 'image/png' }],
-        shortcut: [{ url: `${MDC_ICON.src}?v=2026-09-13`, sizes: '512x512', type: 'image/png' }],
-        apple: [{ url: `${MDC_ICON.src}?v=2026-09-13`, sizes: '512x512', type: 'image/png' }],
+        icon: [{ url: `${MDC_ICON.src}?v=2026-11-07`, sizes: '512x512', type: 'image/png' }],
+        shortcut: [{ url: `${MDC_ICON.src}?v=2026-11-07`, sizes: '512x512', type: 'image/png' }],
+        apple: [{ url: `${MDC_ICON.src}?v=2026-11-07`, sizes: '512x512', type: 'image/png' }],
       },
     }
     : {}),
