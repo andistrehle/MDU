@@ -130,6 +130,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "18:00",
     "note": null
+  },
+  {
+    "id": "2026-11-08-machete-1-zusatz",
+    "date": "2026-11-08",
+    "venueId": "machete-1",
+    "art": "zusatz",
+    "time": "19:00",
+    "note": "Heimeranplatz 1, 80339, München."
   }
 ];
 
