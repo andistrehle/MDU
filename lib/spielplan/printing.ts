@@ -10,7 +10,7 @@
 import type { SpielplanData } from './types';
 import { MDU_LOGO } from './mdu-logo-data';
 
-const esc = (s: unknown) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export const esc = (s: unknown) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const dm = (iso: string) => { const [, m, day] = iso.split('-'); return `${+day}.${+m}.`; };
 const LG_SHORT: Record<string, string> = { la: 'La', a: 'A', b1: 'B1', b2: 'B2', c: 'C' };
 const LG_COLOR: Record<string, string> = { La: '#8a6d0b', A: '#2E7526', B1: '#4b5563', B2: '#4b5563', C: '#7a5a2a' };
@@ -18,7 +18,7 @@ const LG_COLOR: Record<string, string> = { La: '#8a6d0b', A: '#2E7526', B1: '#4b
 const wkText = (data: SpielplanData, i: number) => { const w = data.weekends[i]; return `${dm(w.fri)}–${dm(w.sun)}`; };
 
 // Kopf mit MDU-Logo, Titel, Liga-Chip und Unterzeile (Old-School-Stil).
-function header(h1: string, chip: string, chipColor: string, sub: string): string {
+export function header(h1: string, chip: string, chipColor: string, sub: string): string {
   return `<header class="hd"><img class="logo" src="${MDU_LOGO}" alt="Münchner Dart Union" />
     <div class="htxt"><div class="brand">Münchner Dart Union · Saison 2026/2027</div>
       <div class="titlerow"><h1>${esc(h1)}</h1><span class="chip" style="--c:${chipColor}">${esc(chip)}</span></div>
@@ -191,7 +191,7 @@ export function wrapDoc(title: string, body: string, toolbar = false): string {
     `<link href="${FONTS}" rel="stylesheet"><style>${PRINT_CSS}</style></head><body>${bar}<div class="wrap">${body}</div></body></html>`;
 }
 
-function openPrint(title: string, body: string) {
+export function openPrint(title: string, body: string) {
   const w = window.open('', '_blank');
   if (!w) { alert('Bitte Pop-ups für diese Seite erlauben und erneut auf „Drucken" tippen.'); return; }
   // Vor dem Druck auf die Schriften warten, damit das Old-School-Layout stimmt.

@@ -20,6 +20,7 @@ import { SpielVerlegen } from '@/components/mdu/spiel-verlegen';
 import { zusagenFreigeschaltet, TC_SITZUNG_DRUCK } from '@/lib/features';
 import { team27, findLiga27, venue27, spielplanDaten27, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { printTeam, printMaster } from '@/lib/spielplan/printing';
+import { printTeamAktuell, printLigaAktuell } from '@/lib/spielplan/druck-aktuell';
 
 export default function MeinSpielplanPage() {
   const { user, loading } = useAuth();
@@ -59,6 +60,19 @@ export default function MeinSpielplanPage() {
           </Link>}
 
           <KalenderAbo teamId={t.id} teamName={t.name} />
+
+          {/* Spielplan drucken — aktueller Stand, für alle Mitglieder (Betreiber, 09.11.2026) */}
+          <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '18px 20px', marginBottom: 24 }}>
+            <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 4 }}>Spielplan drucken</div>
+            <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: '0 0 14px' }}>
+              Mit allen aktuellen Terminen, Uhrzeiten und Spielorten – inklusive Verlegungen. Es öffnet sich ein neuer Tab mit dem Druckdialog, dort kannst du auch „Als PDF speichern“ wählen.
+            </p>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => printTeamAktuell(t.id)} style={btn(true)}>Unser Spielplan</button>
+              <button type="button" onClick={() => printLigaAktuell(liga.code)} style={btn(false)}>Ganze {liga.name}</button>
+              <button type="button" onClick={() => printTeamAktuell(t.id, true)} style={btn(false)}>Beides</button>
+            </div>
+          </div>
 
           {/* Spiel verlegen — TC/Ligaleitung (Migration 0050) */}
           {hatTcRecht(user, t.id, 'verlegung') && <SpielVerlegen teamId={t.id} />}

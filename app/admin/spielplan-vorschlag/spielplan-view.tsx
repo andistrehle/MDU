@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { printLeague, printMaster, printAllLeagues, printTeam } from '@/lib/spielplan/printing';
+import { printLigaAktuell, printAlleLigenAktuell, printTeamAktuell, teamIdNachName } from '@/lib/spielplan/druck-aktuell';
+import type { Liga27Code } from '@/lib/data/saison-2027';
 
 // Anzeige-Komponente für den generierten Spielplan-Vorschlag 2026/2027.
 // Die Daten kommen aus spielplan.json (vom Generator erzeugt) und werden hier
@@ -65,12 +66,12 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
         {data.leagues.map(x => <button key={x.key} type="button" style={pill(x.key === league)} onClick={() => { setLeague(x.key); setTeam(''); }}>{x.label} ({x.teams.length})</button>)}
       </div>
 
-      {/* Drucken / PDF für die TC-Sitzung */}
+      {/* Drucken / PDF — aktueller Stand mit echten Terminen (Betreiber 09.11.2026; die Blanko-Blätter der TC-Sitzung sind vorbei) */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 18 }}>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--th-text-faint)', fontFamily: 'var(--font-manrope)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>🖨 Drucken / PDF</span>
-        <button type="button" style={printBtn(true)} onClick={() => printLeague(data, league)}>{lg?.label ?? 'Liga'}: Team-Blätter + Masterplan</button>
-        <button type="button" style={printBtn(false)} onClick={() => printMaster(data, league)}>nur Masterplan</button>
-        <button type="button" style={printBtn(false)} onClick={() => printAllLeagues(data)}>alle Ligen</button>
+        <button type="button" style={printBtn(true)} onClick={() => printLigaAktuell(league as Liga27Code, true)}>{lg?.label ?? 'Liga'}: alle Teams + Ligaplan</button>
+        <button type="button" style={printBtn(false)} onClick={() => printLigaAktuell(league as Liga27Code)}>nur Ligaplan</button>
+        <button type="button" style={printBtn(false)} onClick={() => printAlleLigenAktuell()}>alle Ligen</button>
       </div>
 
       {/* Einzelne Mannschaft */}
@@ -82,9 +83,9 @@ export function SpielplanView({ data }: { data: SpielplanData }) {
           {[...(lg?.teams ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'de')).map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
         </select>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontFamily: 'var(--font-manrope)', color: 'var(--th-text-muted)' }}>
-          <input type="checkbox" checked={mitMaster} onChange={e => setMitMaster(e.target.checked)} /> mit Masterplan
+          <input type="checkbox" checked={mitMaster} onChange={e => setMitMaster(e.target.checked)} /> mit Ligaplan
         </label>
-        <button type="button" disabled={!team} style={{ ...printBtn(true), opacity: team ? 1 : 0.5, cursor: team ? 'pointer' : 'not-allowed' }} onClick={() => team && printTeam(data, league, team, mitMaster)}>Team-Blatt drucken</button>
+        <button type="button" disabled={!team} style={{ ...printBtn(true), opacity: team ? 1 : 0.5, cursor: team ? 'pointer' : 'not-allowed' }} onClick={() => { const id = team && teamIdNachName(team); if (id) printTeamAktuell(id, mitMaster); else if (team) alert('Team im aktuellen Spielplan nicht gefunden.'); }}>Spielplan drucken</button>
       </div>
 
       {/* Liga-Kurzinfo */}
