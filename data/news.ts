@@ -164,7 +164,8 @@ export const HAS_NEWS = NEWS.some(post => post.published);
 export const KATEGORIEN = ['Features', 'Neuigkeiten', 'Termine'] as const;
 export type Reiter = 'features' | 'neuigkeiten' | 'termine';
 
-const REITER: Reiter[] = ['features', 'neuigkeiten', 'termine'];
+// Termine zuerst (Betreiber, 09.11.2026) — siehe `newsReiter`.
+const REITER: Reiter[] = ['termine', 'features', 'neuigkeiten'];
 const REITER_NAME: Record<Reiter, string> = {
   features: 'Features', neuigkeiten: 'Neuigkeiten', termine: 'Termine',
 };
@@ -183,9 +184,14 @@ export interface NewsReiter {
 }
 
 /**
- * Die Reiter für die Startseite: je höchstens `proReiter` Beiträge, der mit
- * der neuesten Meldung zuerst. Leere Reiter fallen weg — ein Reiter, hinter
- * dem nichts steht, wäre eine leere Zusage.
+ * Die Reiter für die Startseite: je höchstens `proReiter` Beiträge, in jedem
+ * Reiter der neueste oben. Leere Reiter fallen weg — ein Reiter, hinter dem
+ * nichts steht, wäre eine leere Zusage.
+ *
+ * TERMINE STEHT IMMER VORN (Betreiber, 09.11.2026). Es ist das, wofür die
+ * Leute die Seite aufmachen: Wo wird heute gespielt, und fällt etwas aus.
+ * Features und Neuigkeiten dahinter nach Aktualität — der Reiter mit der
+ * neueren Meldung zuerst.
  */
 export function newsReiter(proReiter = 2): NewsReiter[] {
   const alle = publishedNews();
@@ -196,6 +202,10 @@ export function newsReiter(proReiter = 2): NewsReiter[] {
       beitraege: alle.filter(p => reiterVon(p) === code).slice(0, proReiter),
     }))
     .filter(r => r.beitraege.length > 0)
-    // Neuester Beitrag entscheidet, welcher Reiter vorn steht.
-    .sort((a, b) => b.beitraege[0].date.localeCompare(a.beitraege[0].date));
+    .sort((a, b) => {
+      if (a.code === 'termine') return -1;
+      if (b.code === 'termine') return 1;
+      // Dahinter entscheidet der neueste Beitrag des Reiters.
+      return b.beitraege[0].date.localeCompare(a.beitraege[0].date);
+    });
 }
