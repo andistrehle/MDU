@@ -417,10 +417,19 @@ bleibt). Die Vorgabe oben greift nur, wo der Zettel nichts hergibt.
 — fünf Commits wären fünf Vercel-Neubauten und fünfmal ISR-Kontingent, mit
 Zwischenständen, in denen erst der halbe Abend online ist. **Alles oder
 nichts:** Stimmt an einem Zettel etwas nicht, wird gar nichts geschrieben und
-gesagt, welcher es ist. Drei Prüfungen gibt es nur im Stapel (`pruefeStapel`):
+gesagt, welcher es ist. Vier Prüfungen gibt es nur im Stapel (`pruefeStapel`):
 zwei Zettel mit gleichem Datum UND Spielort (der zweite überschriebe den
-ersten), dieselbe freie Nummer für zwei verschiedene Neulinge, und derselbe
-Neuling mit zwei Nummern. Im Browser werden freie Nummern über den GANZEN
+ersten), dieselbe freie Nummer für zwei verschiedene Neulinge, derselbe
+Neuling mit zwei Nummern — und **ein Ranking pro Spieler und Tag**
+(Turnierleitung 09.11.2026, Rechnung in `lib/mdc/ein-ranking-pro-tag.ts`,
+News `nur-ein-ranking-pro-spieler-und-tag`, Karte auf `/regeln`): Steht
+jemand von einem NEUEN Zettel am selben Tag noch in einem anderen Turnier —
+im Stapel oder schon in der Wertung —, wird nichts abgelegt und der Spieler
+beim Namen genannt. Dabei zählt NUR, wer auf einem neuen Zettel steht, und
+ein Turnier, das der Stapel ersetzt (gleiches Datum + Spielort), zählt nicht
+mit; sonst ließe sich kein Abend mehr berichtigen. **Rückwirkend gilt die
+Regel nicht:** Im Bestand stehen rund 100 Tage mit Doppelstarts aus der Zeit,
+als es erlaubt war — die bleiben, wie sie sind. Im Browser werden freie Nummern über den GANZEN
 Stapel verteilt, nicht je Zettel. Ein einzelner Zettel ist der Stapel mit
 einem Element — es gibt nur diesen einen Weg, damit die Prüfungen nicht
 zweimal gepflegt werden; Wortlaut und Commit-Nachricht bleiben dort wie

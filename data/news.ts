@@ -52,6 +52,19 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "nur-ein-ranking-pro-spieler-und-tag",
+    "date": "2026-11-09",
+    "title": "Nur noch ein MDC-Ranking pro Spieler und Tag",
+    "teaser": "Bitte beachten: Ab sofort gilt wieder die ursprüngliche Regel — wer an einem Tag startet, startet an diesem Tag nur bei einem Ranking.",
+    "category": "Neuigkeiten",
+    "paragraphs": [
+      "**Bitte beachten:** Ab sofort tritt wieder die alte, ursprüngliche Regel in Kraft — **pro Spieler und Tag ist nur ein MDC-Ranking möglich.**",
+      "Zwischendurch ließ sich an einem Abend auch ein zweites Lokal mitnehmen. Das ist vorbei: Wer an einem Tag gespielt hat, tritt an diesem Tag in keinem weiteren Ranking mehr an.",
+      "Für alles davor ändert sich nichts — gespielte Turniere bleiben gewertet, wie sie sind. Fragen dazu beantwortet die Turnierleitung."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-10-ambasador-absage",
     "date": "2026-11-09",
     "title": "Kein Ranking am 10.11.2026 im Ambasador",

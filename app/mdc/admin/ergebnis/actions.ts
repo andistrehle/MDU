@@ -29,7 +29,8 @@ import { pointsFor } from '@/lib/mdc/points';
 import { getPlayerByPassNr, playerName } from '@/data/players';
 import { getVenue, venueName } from '@/data/venues';
 import { SEASONS, todayInMunich } from '@/data/season';
-import { getTournamentRecord } from '@/data/tournament-results';
+import { getTournamentRecord, ALL_TOURNAMENTS } from '@/data/tournament-results';
+import { doppelstarts } from '@/lib/mdc/ein-ranking-pro-tag';
 
 export interface VorschlagZeile {
   /** Endgültige Platzierung: die Reihenfolge auf dem Zettel, 1-basiert. */
@@ -319,8 +320,9 @@ function pruefeTurnier(
 }
 
 /**
- * Prüfungen, die es nur im STAPEL gibt — sie können erst auffallen, wenn
- * mehrere Zettel zusammen abgelegt werden.
+ * Prüfungen, die der einzelne Zettel nicht leisten kann: Sie fallen erst auf,
+ * wenn man den ganzen Stapel — und das, was schon in der Wertung steht —
+ * daneben legt.
  */
 function pruefeStapel(eingaben: FreigabeEingabe[]): string | null {
   // Zwei Zettel mit demselben Datum UND demselben Spielort sind dasselbe
@@ -356,6 +358,34 @@ function pruefeStapel(eingaben: FreigabeEingabe[]): string | null {
       .join(', ');
     return `Dieselbe Passnummer soll an zwei verschiedene Neulinge gehen: ${text}. `
       + 'Bitte für einen von beiden eine andere freie Nummer wählen.';
+  }
+
+  // EIN RANKING PRO SPIELER UND TAG (Turnierleitung, 09.11.2026).
+  // Geprüft wird gegen die anderen Zettel des Stapels UND gegen das, was für
+  // denselben Tag schon in der Wertung steht. Ein Turnier, das dieser Stapel
+  // ersetzt (gleiches Datum + Spielort), zählt dabei nicht mit — sonst meldete
+  // jede Berichtigung eines Abends jeden Starter.
+  const tage = eingaben.map(e => e.datum);
+  const beteiligt = ALL_TOURNAMENTS
+    .filter(t => tage.includes(t.date))
+    .map(t => ({ datum: t.date, spielortId: t.venueId, passNummern: t.results.map(r => r.passNr) }));
+  const tagKonflikte = doppelstarts(
+    eingaben.map(e => ({
+      datum: e.datum,
+      spielortId: e.spielortId,
+      passNummern: e.zeilen.map(z => z.passNr),
+    })),
+    beteiligt,
+  );
+  if (tagKonflikte.length) {
+    const text = tagKonflikte.map(d => {
+      const spieler = getPlayerByPassNr(d.passNr);
+      const wer = spieler ? `${playerName(spieler)} (Passnr. ${d.passNr})` : `Passnr. ${d.passNr}`;
+      return `${wer} am ${d.datum} in ${d.spielorte.map(venueName).join(' und ')}`;
+    }).join('; ');
+    return `Pro Spieler und Tag ist nur ein MDC-Ranking möglich — hier steht jemand an `
+      + `einem Tag in zwei Turnieren: ${text}. Bitte den Zettel berichtigen, auf dem er `
+      + 'nicht zählt, und erst dann freigeben.';
   }
 
   // Derselbe Name mit zwei verschiedenen Nummern: Aus einem Menschen würden

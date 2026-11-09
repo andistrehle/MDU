@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Target, Trophy, Users } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Target, Trophy, Users } from 'lucide-react';
 import { PageHero } from '@/components/mdc/ui';
 import {
   EXAMPLE_FIELD_SIZES, MIN_POINTS, TABLE_RANGE, pointsTableRows,
@@ -33,6 +33,14 @@ const BLOCKS = [
     text:
       'Gespielt wird in wechselnden Münchner Lokalen, mehrmals pro Woche. Angemeldet wird vor Ort ' +
       'bis kurz vor Turnierstart. Je nach Feldgröße läuft das Turnier über einen Baum bis 8, 16 oder 32 Plätze.',
+  },
+  {
+    icon: <CalendarCheck size={20} />,
+    title: 'Ein Ranking pro Spieler und Tag',
+    text:
+      'Wer an einem Tag antritt, spielt an diesem Tag nur ein MDC-Ranking — auch wenn in ' +
+      'mehreren Lokalen gespielt wird. Seit 9. November 2026 gilt dafür wieder die ' +
+      'ursprüngliche Regel.',
   },
   {
     icon: <Trophy size={20} />,
