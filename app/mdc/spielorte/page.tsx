@@ -79,11 +79,17 @@ export default function SpielortePage() {
             <div style={{ minWidth: 0 }}>
               <h2 className="mdc-display mdc-h3">Wirte-Login</h2>
               <p style={{ marginTop: 10, fontSize: '0.92rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
-                Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Tragt den Abend
-                selbst ein — er steht dann im Wochenplan, auf der Startseite und bei
-                eurem Lokal. Und fällt bei euch einmal ein Ranking aus, sagt ihr es
-                dort selbst ab, mit kurzem Grund. Das Passwort dafür gibt es bei der
-                Turnierleitung; der Browser fragt danach, der Benutzername ist beliebig.
+                <strong>Ranking ansetzen:</strong> Ihr spielt am Freitag, Samstag oder
+                Sonntag? Tragt den Abend selbst ein.
+              </p>
+              <p style={{ marginTop: 8, fontSize: '0.92rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
+                <strong>Ranking absagen:</strong> Fällt bei euch einmal eines aus, sagt ihr
+                es hier ab — mit kurzem Grund, damit keiner umsonst herfährt.
+              </p>
+              <p style={{ marginTop: 10, fontSize: '0.84rem', lineHeight: 1.65, color: 'var(--mdc-ink-dim)', maxWidth: 640 }}>
+                Beides steht kurz darauf im Wochenplan, auf der Startseite und bei eurem
+                Lokal. Das Passwort gibt es bei der Turnierleitung; der Browser fragt
+                danach, der Benutzername ist beliebig.
               </p>
               <a
                 href={mdcPath('/admin/ansetzen')}
@@ -91,7 +97,7 @@ export default function SpielortePage() {
                 style={{ marginTop: 14 }}
               >
                 <KeyRound size={15} />
-                Anmelden und Termin eintragen
+                Anmelden
               </a>
             </div>
           </div>

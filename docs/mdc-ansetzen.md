@@ -35,7 +35,7 @@ auf der Seite selbst, nicht nur hier.
 ## Wie die Wirte hinkommen
 
 Auf der öffentlichen Seite **Spielorte**, ganz unten: die Karte **Wirte-Login**
-mit dem Knopf „Anmelden und Termin ansetzen" (`app/mdc/spielorte/page.tsx`).
+mit dem Knopf „Anmelden" (`app/mdc/spielorte/page.tsx`).
 Bewusst dort und nicht in der Hauptnavigation: Wer ein Lokal betreibt, landet
 ohnehin auf dieser Seite; alle anderen geht der Zugang nichts an.
 

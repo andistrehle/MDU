@@ -67,7 +67,7 @@ ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 | # | Zeit | Bild | Sprechertext | Einblendung |
 | --- | --- | --- | --- | --- |
 | 1 | 0:00–0:05 | Spielorte-Seite, es wird gescrollt | „Servus! Ab sofort könnt ihr eure Wochenend-Spiele auch auf der Homepage einstellen …" | mdc-ranking.de · Spielorte |
-| 2 | 0:05–0:14 | Karte „Wirte-Login" ganz unten → antippen | „Den Zugang findet ihr unter Spielorte, ganz unten: Wirte-Login. Antippen und das Passwort eingeben." | Spielorte → ganz unten → Wirte-Login |
+| 2 | 0:05–0:14 | Karte „Wirte-Login" ganz unten → „Anmelden" antippen | „Den Zugang findet ihr unter Spielorte, ganz unten: Wirte-Login. Antippen und das Passwort eingeben." | Spielorte → ganz unten → Wirte-Login |
 | 3 | 0:14–0:17 | Auswahl „Lokal" → Ambasador | „Zuerst euer Lokal auswählen." | 1 · Euer Lokal auswählen |
 | 4 | 0:17–0:23 | Datumsfeld → Sa, 24.10.2026 | „Dann den Tag — Freitag, Samstag oder Sonntag, ganz wie ihr es ausmacht." | 2 · Den Tag wählen |
 | 5 | 0:23–0:29 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |

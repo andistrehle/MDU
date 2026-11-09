@@ -105,7 +105,7 @@ const SZENEN = [
       // deshalb geht es direkt weiter — gesagt wird es trotzdem.
       await Promise.all([
         p.waitForURL(/\/admin\/ansetzen/, { timeout: 15000 }),
-        h.zeigeAuf(p.locator('a:has-text("Anmelden und Termin eintragen")'), { klick: true }),
+        h.zeigeAuf(p.locator('a:has-text("Anmelden")'), { klick: true }),
       ]);
       await p.waitForLoadState('networkidle');
     },
