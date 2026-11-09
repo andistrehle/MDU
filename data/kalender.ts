@@ -138,6 +138,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "19:00",
     "note": "Heimeranplatz 1, 80339, München."
+  },
+  {
+    "id": "2026-11-10-ambasador-absage",
+    "date": "2026-11-10",
+    "venueId": "ambasador",
+    "art": "absage",
+    "time": null,
+    "note": "Veranstaltung im Lokal"
   }
 ];
 

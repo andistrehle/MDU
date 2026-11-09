@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-11-10-ambasador-absage",
+    "date": "2026-11-09",
+    "title": "Kein Ranking am 10.11.2026 im Ambasador",
+    "teaser": "Das Ranking am Dienstag, 10.11.2026 im Ambasador fällt aus: Veranstaltung im Lokal.",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Dienstag, 10.11.2026** gibt es im **Ambasador** kein Ranking. Grund: Veranstaltung im Lokal. Der Termin steht durchgestrichen im Wochenplan. Danach läuft wieder alles wie gewohnt."
+    ],
+    "published": true
+  },
+  {
     "id": "wirte-koennen-jetzt-auch-absagen",
     "date": "2026-11-09",
     "title": "Wirte können ihr Ranking jetzt auch selbst absagen",
