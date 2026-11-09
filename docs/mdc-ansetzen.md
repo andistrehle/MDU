@@ -124,6 +124,17 @@ Geht nicht, mit Absicht:
   `werDaIst()` → `'leitung' | 'wirt' | null`. Doppelt mit Absicht — eine
   Server-Aktion ist eine eigene Adresse im Netz, und eine Aktions-Kennung
   ließe sich auch an eine andere Seite schicken.
+- **Jede Änderung schreibt einen News-Beitrag mit** (Betreiber, 09.11.2026 —
+  „künftig: automatisch anlegen wenn jemand ein Termin absagt oder ansetzt").
+  `lib/mdc/termin-news.ts` baut aus dem Eintrag einen kurzen Beitrag unter
+  **Termine** (Kennung `termin-<Termin-Kennung>`), `kalender-commit.ts` legt
+  ihn **im selben Commit** ab — zwei Commits wären zwei Neubauten, und
+  dazwischen läge ein Stand, in dem der Beitrag von einem Termin erzählt, den
+  es noch nicht gibt. Wird der Eintrag geändert, wird der Beitrag ersetzt;
+  wird er zurückgenommen, verschwindet er mit. Scheitert nur der Beitrag (zum
+  Beispiel weil `data/news.ts` von Hand zerlegt wurde), wird der Termin
+  trotzdem abgelegt — er ist das Wichtigere. Gilt auch für den Kalender der
+  Turnierleitung, es ist derselbe Weg.
 - **`app/mdc/admin/ansetzen/actions.ts`** schreibt in dieselbe Datei wie der
   Kalender (`data/kalender.ts`, Commit über `lib/mdc/kalender-commit.ts`):
   `setzeZusatzAn` legt `art: 'zusatz'` ab, `sageRankingAb` ein

@@ -34,7 +34,11 @@ export interface NewsPost {
   title: string;
   /** Ein Satz für die Übersicht und die Startseite. */
   teaser: string;
-  /** Kurzes Schlagwort, z. B. „Ranking" oder „Termine". */
+  /**
+   * Das Schlagwort — und zugleich der Reiter auf der Startseite. Gemeint sind
+   * die drei aus `KATEGORIEN`; etwas anderes ist erlaubt (die Verwaltung lässt
+   * freie Eingabe) und landet dann unter „Neuigkeiten".
+   */
   category: string;
   /** Absätze des Fließtexts. Leere Zeile im Editor = neuer Absatz. */
   paragraphs: string[];
@@ -50,15 +54,11 @@ export const NEWS: NewsPost[] = [
   {
     "id": "wirte-koennen-jetzt-auch-absagen",
     "date": "2026-11-09",
-    "title": "Die Wirte können ihr Ranking jetzt auch selbst absagen",
-    "teaser": "Fällt ein Abend aus — Veranstaltung, Feiertag, geschlossen? Das trägt das Lokal ab sofort selbst ein, und es steht gleich auf der Seite statt nur in der Gruppe.",
-    "category": "Termine",
+    "title": "Wirte können ihr Ranking jetzt auch selbst absagen",
+    "teaser": "Fällt ein Abend aus, trägt das Lokal es selbst ein — der Termin bleibt durchgestrichen mit dem Grund stehen.",
+    "category": "Features",
     "paragraphs": [
-      "Seit Oktober setzen die Wirte ihr Wochenendranking selbst an. Was noch fehlte, war der umgekehrte Fall: Fällt ein Abend aus, stand es bisher in der Facebook-Gruppe — und auf der Seite weiter ein Termin. **Ab sofort sagt das Lokal den Abend selbst ab.**",
-      "Das geht an derselben Stelle: **Spielorte**, ganz unten **Wirte-Login**, dann oben auf **Ranking absagen**. Lokal auswählen, den Abend aus der Liste nehmen, kurz dazuschreiben, warum — fertig. Ein, zwei Minuten später steht es online.",
-      "**Der Termin verschwindet dabei nicht.** Er bleibt stehen, durchgestrichen und mit dem Grund daneben: Wer schon losfahren wollte, soll sehen, warum heute nichts ist. Deshalb ist der Grund auch Pflicht — „fällt aus“ allein lässt jeden rätseln.",
-      "Zurücknehmen geht ebenfalls: Wird die Veranstaltung verschoben und der Abend findet doch statt, nimmt der Wirt die Absage einfach wieder heraus.",
-      "Was weiter über die Turnierleitung läuft: der **feste Spieltag** eines Lokals, also eine dauerhafte Änderung von Wochentag oder Uhrzeit, und alles, was schon vorbei ist."
+      "Im **Wirte-Login** (Spielorte, ganz unten) gibt es jetzt neben „Ranking ansetzen“ auch **„Ranking absagen“**: Abend auswählen, kurz dazuschreiben warum, fertig. Der Termin verschwindet nicht, er bleibt durchgestrichen mit dem Grund stehen — damit keiner umsonst herfährt. Zurücknehmen geht genauso."
     ],
     "published": true
   },
@@ -67,7 +67,7 @@ export const NEWS: NewsPost[] = [
     "date": "2026-10-17",
     "title": "Jetzt neu: Wochenendranking über die Homepage ansetzen",
     "teaser": "Die Wirte tragen ihr Ranking am Freitag, Samstag oder Sonntag ab sofort selbst auf der Seite ein — Zugang unter Spielorte, „Wirte-Login“.",
-    "category": "Termine",
+    "category": "Features",
     "paragraphs": [
       "Das Ranking am Wochenende ist kein fester Abend: Es wird von Lokal zu Lokal verabredet, oft kurzfristig. Bisher ging das nur über die Turnierleitung. **Ab sofort tragen die Wirte den Abend selbst ein** — und er steht sofort dort, wo die Spieler ihn suchen: auf der Startseite, im Wochenplan und beim eigenen Lokal.",
       "Den Zugang gibt es auf der Seite **Spielorte**, ganz unten: **Wirte-Login**. Antippen, Passwort eingeben, Lokal und Tag auswählen, Beginn eintragen — fertig. Ein kurzer Hinweis wie „Anmeldung bis 17:45“ kann dazu. Ein, zwei Minuten später steht der Termin online.",
@@ -81,7 +81,7 @@ export const NEWS: NewsPost[] = [
     "date": "2026-10-07",
     "title": "Neues Ranking in der Aubinger Boazn",
     "teaser": "Ab dem 15. Oktober kommt ein zwölftes Lokal dazu: die Aubinger Boazn in der Bodenseestraße — donnerstags ab 20 Uhr.",
-    "category": "Spielorte",
+    "category": "Termine",
     "paragraphs": [
       "Ab **Donnerstag, 15. Oktober** gibt es ein MDC-Ranking in der **Aubinger Boazn**, Bodenseestraße 238 in München-Aubing. Damit sind es zwölf Lokale.",
       "Gespielt wird **donnerstags ab 20 Uhr**, freigemünzt wird ab 19 Uhr. Angemeldet wird wie überall vor Ort im Lokal — eine Liste führt die MDC nicht.",
@@ -95,7 +95,7 @@ export const NEWS: NewsPost[] = [
     "date": "2026-09-08",
     "title": "Die neue Saison läuft — und die Seite ist online",
     "teaser": "Seit dem 31. August läuft die Saison 2026/27. Ab sofort stehen Rangliste, Turniere und Spielerprofile im Netz.",
-    "category": "MDC",
+    "category": "Neuigkeiten",
     "paragraphs": [
       "Seit dem **31. August** läuft die Saison 2026/27. Die Wertung hat für alle wieder bei null angefangen. Die festen Turnierabende sind wie gewohnt von Montag bis Donnerstag in elf Lokalen in und um München, dazu kommen einzelne Termine am Wochenende.",
       "Neu ist, dass es das alles jetzt auch im Netz gibt: Unter **mdc-ranking.de** stehen die laufende Rangliste getrennt nach Herren und Damen, jedes einzelne Turnier mit der vollständigen Platzierungsliste, alle Spielorte mit ihrem Wochentag und eine eigene Seite für jeden Spieler mit sämtlichen Starts.",
@@ -110,7 +110,7 @@ export const NEWS: NewsPost[] = [
     "date": "2026-09-08",
     "title": "!! VERTRETUNGSRANKING FÜRS FIAKER !!",
     "teaser": "DO. Ranking im 70ER",
-    "category": "MDC",
+    "category": "Termine",
     "paragraphs": [
       "**BITTE BACHTEN**   Do. 10.9. und Do. 17.9. findet das MDC Ranking nicht im Fiakerstüberl statt, sondern beim Donato im 70ER !!!"
     ],
@@ -139,3 +139,52 @@ export function getNewsPost(id: string): NewsPost | undefined {
 
 /** Gibt es überhaupt schon etwas? Die Seiten schalten sich danach. */
 export const HAS_NEWS = NEWS.some(post => post.published);
+
+// ------------------------------------------------------------
+// Die drei Reiter unter „Aktuelles" (Betreiber, 09.11.2026 — wie bei der MDU,
+// nur mit zwei Beiträgen je Reiter statt drei).
+// ------------------------------------------------------------
+
+/**
+ * Die Schlagwörter, die es geben soll. Die Verwaltung bietet sie zur Auswahl
+ * an, erzwingt sie aber nicht: Ein Beitrag mit einem anderen Schlagwort
+ * verschwindet nicht, er steht unter „Neuigkeiten".
+ */
+export const KATEGORIEN = ['Features', 'Neuigkeiten', 'Termine'] as const;
+export type Reiter = 'features' | 'neuigkeiten' | 'termine';
+
+const REITER: Reiter[] = ['features', 'neuigkeiten', 'termine'];
+const REITER_NAME: Record<Reiter, string> = {
+  features: 'Features', neuigkeiten: 'Neuigkeiten', termine: 'Termine',
+};
+
+/** Welcher Reiter? Alles Unbekannte ist eine Neuigkeit. */
+export function reiterVon(post: NewsPost): Reiter {
+  if (post.category === 'Features') return 'features';
+  if (post.category === 'Termine') return 'termine';
+  return 'neuigkeiten';
+}
+
+export interface NewsReiter {
+  code: Reiter;
+  name: string;
+  beitraege: NewsPost[];
+}
+
+/**
+ * Die Reiter für die Startseite: je höchstens `proReiter` Beiträge, der mit
+ * der neuesten Meldung zuerst. Leere Reiter fallen weg — ein Reiter, hinter
+ * dem nichts steht, wäre eine leere Zusage.
+ */
+export function newsReiter(proReiter = 2): NewsReiter[] {
+  const alle = publishedNews();
+  return REITER
+    .map(code => ({
+      code,
+      name: REITER_NAME[code],
+      beitraege: alle.filter(p => reiterVon(p) === code).slice(0, proReiter),
+    }))
+    .filter(r => r.beitraege.length > 0)
+    // Neuester Beitrag entscheidet, welcher Reiter vorn steht.
+    .sort((a, b) => b.beitraege[0].date.localeCompare(a.beitraege[0].date));
+}

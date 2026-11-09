@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { AlertTriangle, Check, ExternalLink, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
-import type { NewsPost } from '@/data/news';
+import { KATEGORIEN as MDC_KATEGORIEN, type NewsPost } from '@/data/news';
 import { NewsAbsatz } from './news';
 import { formatDate } from '@/lib/mdc/format';
 import { speichereBeitrag, entferneBeitrag } from '@/app/mdc/admin/news/actions';
@@ -25,7 +25,10 @@ export interface NewsEditorStatus {
   missing: string[];
 }
 
-const KATEGORIEN = ['Ranking', 'Termine', 'Spielorte', 'Spielbetrieb', 'MDC'];
+// Die drei Reiter der Startseite (data/news.ts) — mehr gibt es bewusst nicht.
+// Freie Eingabe bleibt möglich; ein fremdes Schlagwort landet unter
+// „Neuigkeiten", es geht also nichts verloren.
+const KATEGORIEN = [...MDC_KATEGORIEN];
 
 /** Leere Vorlage für einen neuen Beitrag. */
 function leer(heute: string) {
@@ -34,7 +37,7 @@ function leer(heute: string) {
     date: heute,
     title: '',
     teaser: '',
-    category: 'MDC',
+    category: 'Neuigkeiten',
     text: '',
     published: true,
   };
@@ -225,7 +228,7 @@ export function NewsEditor(
         <div className="mdc-card" style={{ padding: '22px 20px' }}>
           <h2 className="mdc-display" style={{ fontSize: '1.2rem' }}>So sieht es aus</h2>
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--mdc-line)' }}>
-            <span className="mdc-chip mdc-chip-red">{entwurf.category || 'MDC'}</span>
+            <span className="mdc-chip mdc-chip-red">{entwurf.category || 'Neuigkeiten'}</span>
             <h3 className="mdc-display" style={{ fontSize: '1.5rem', marginTop: 10 }}>{entwurf.title}</h3>
             <p style={{ marginTop: 10, fontSize: '1rem', lineHeight: 1.7 }}>{entwurf.teaser}</p>
             {absaetze.map((a, i) => <NewsAbsatz key={i} text={a} />)}

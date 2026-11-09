@@ -14,8 +14,9 @@ import { RankingWidget } from '@/components/mdc/ranking-widget';
 import { TournamentCard } from '@/components/mdc/result-card';
 import { SectionHeading, StatCard, EmptyRanking } from '@/components/mdc/ui';
 import { NewsKarte } from '@/components/mdc/news';
+import { NewsRotator } from '@/components/mdc/news-rotator';
 import { PlanKarte } from '@/components/mdc/plan-karte';
-import { latestNews } from '@/data/news';
+import { newsReiter } from '@/data/news';
 import { finalRankingOf, runningRankingOf, MDC_STATS, RUNNING_HAS_RESULTS } from '@/data/ranking';
 import { getPlayer, playerName, PLAYERS } from '@/data/players';
 import { ARCHIVE_STATS, RUNNING_STATS, tournamentsOfSeasonDesc } from '@/data/tournament-results';
@@ -91,7 +92,9 @@ export default function MdcHomePage() {
   // Die zuletzt gespielten Turniere der abgeschlossenen Saison — echte
   // Ergebnisse aus der Auswertung, keine Demo-Turniere.
   const latest = tournamentsOfSeasonDesc(RUNNING_SEASON.id).slice(0, 3);
-  const neuesteNews = latestNews(2);
+  // Drei Reiter — Features · Neuigkeiten · Termine, je zwei Beiträge, der
+  // Reiter mit der neuesten Meldung vorn (Betreiber, 09.11.2026).
+  const reiter = newsReiter(2);
 
   return (
     <>
@@ -197,7 +200,7 @@ export default function MdcHomePage() {
           Und nur, wenn es etwas gibt: Ein Abschnitt „Aktuelles" mit dem
           Hinweis, dass noch nichts geschrieben wurde, wäre schlechter als gar
           keiner. */}
-      {neuesteNews.length > 0 && (
+      {reiter.length > 0 && (
         <section className="mdc-section">
           <div className="mdc-shell">
             <SectionHeading
@@ -206,9 +209,13 @@ export default function MdcHomePage() {
               description="Was es bei der MDC Neues gibt."
               action={{ label: 'Alle News', href: mdcPath('/news') }}
             />
-            <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-              {neuesteNews.map(post => <NewsKarte key={post.id} post={post} />)}
-            </div>
+            <NewsRotator
+              gruppen={reiter.map(r => ({
+                code: r.code,
+                name: r.name,
+                inhalt: r.beitraege.map(post => <NewsKarte key={post.id} post={post} />),
+              }))}
+            />
           </div>
         </section>
       )}

@@ -16,11 +16,13 @@ import 'server-only';
 import type { NewsPost } from '@/data/news';
 import { CommitFehler, committe, kontext, leseDatei } from './github';
 
-const PFAD = 'data/news.ts';
+/** Auch `kalender-commit.ts` schreibt hier hinein — im selben Commit. */
+export const NEWS_PFAD = 'data/news.ts';
+const PFAD = NEWS_PFAD;
 const ANFANG = 'export const NEWS: NewsPost[] = ';
 
 /** Die Beiträge aus der Datei. */
-function leseBeitraege(quelle: string): NewsPost[] {
+export function leseBeitraege(quelle: string): NewsPost[] {
   const von = quelle.indexOf(ANFANG);
   if (von === -1) throw new CommitFehler('In data/news.ts fehlt die Liste NEWS.');
   const start = von + ANFANG.length;
@@ -45,7 +47,7 @@ function leseBeitraege(quelle: string): NewsPost[] {
  * eingereiht (siehe `veroeffentlicheBeitrag`) und steht damit innerhalb seines
  * Tages oben, wo er hingehört.
  */
-function schreibeBeitraege(quelle: string, beitraege: NewsPost[]): string {
+export function schreibeBeitraege(quelle: string, beitraege: NewsPost[]): string {
   const von = quelle.indexOf(ANFANG);
   const start = von + ANFANG.length;
   const bis = quelle.indexOf('];', start);

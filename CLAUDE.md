@@ -632,6 +632,19 @@ selbst posten, sobald `MDC_FB_PAGE_ID` und `MDC_FB_PAGE_TOKEN` gesetzt sind
 der Wochenlauf endet grün mit „übersprungen". Keine Euro-Beträge je Platz im
 Beitrag — die ändern sich mit jedem Turnier, der Beitrag bleibt stehen.
 Einzelheiten: `docs/mdc-facebook.md`.
+**News-Reiter + automatische Termin-Beiträge (Betreiber, 09.11.2026):** Auf der
+Startseite stehen die News in DREI rollierenden Reitern — **Features ·
+Neuigkeiten · Termine**, je **2** Beiträge (die MDU hat 3), Reiter mit der
+neuesten Meldung vorn, Wechsel alle 6 s, hält an, sobald jemand einen Reiter
+oder eine Karte antippt (`data/news.ts`: `KATEGORIEN`, `reiterVon`,
+`newsReiter`; `components/mdc/news-rotator.tsx`). Das Schlagwort IST der
+Reiter; alles Unbekannte landet unter „Neuigkeiten", es geht also nichts
+verloren. **Jeder Zusatztermin und jede Absage legt automatisch einen kurzen
+Beitrag unter „Termine" an** (`lib/mdc/termin-news.ts`, geschrieben von
+`kalender-commit.ts` IM SELBEN COMMIT wie `data/kalender.ts`): Kennung
+`termin-<Termin-Kennung>`, Änderung ersetzt ihn, Zurücknehmen löscht ihn mit.
+Scheitert nur der Beitrag, wird der Termin trotzdem abgelegt.
+
 **Kalender:** Der Wochenplan steht NICHT in einer Terminliste, sondern in den
 Spielorten (fester Wochentag + Uhrzeit je Lokal, `playDaysFrom`). Unter
 `/admin/kalender` trägt die Turnierleitung nur die Abweichungen ein — `absage`
