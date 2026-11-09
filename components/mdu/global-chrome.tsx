@@ -21,6 +21,7 @@ import { AnalyticsTracker } from './analytics-tracker';
 import { PushAbfrage } from './push-abfrage';
 import { AppZurueck } from './app-zurueck';
 import { AppZaehler } from './app-zaehler';
+import { UmfragePopup } from './umfrage-popup';
 
 export function GlobalChrome() {
   const pathname = usePathname();
@@ -36,6 +37,7 @@ export function GlobalChrome() {
       <PushAbfrage />
       <AppZurueck />
       <AppZaehler />
+      <UmfragePopup />
     </>
   );
 }
