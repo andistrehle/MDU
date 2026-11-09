@@ -6,14 +6,18 @@
 //
 //   MDC_ADMIN_PASSWORD    Die Turnierleitung. Darf alles — Ergebnisse
 //                         freigeben, Passnummern vergeben, News schreiben.
-//   MDC_TERMIN_PASSWORD   Die Wirte. Darf GENAU EINES: ein Ranking ansetzen
-//                         und einen selbst angesetzten Termin wieder
-//                         zurücknehmen (`/admin/ansetzen`).
+//   MDC_TERMIN_PASSWORD   Die Wirte. Darf GENAU EINES: auf `/admin/ansetzen`
+//                         ein Ranking ansetzen, einen festen Abend des Lokals
+//                         absagen (seit 09.11.2026) und beides wieder
+//                         zurücknehmen.
 //
 // Warum überhaupt ein zweites: Das Ranking am Freitag, Samstag oder Sonntag
 // ist kein fester Abend, es wird von Lokal zu Lokal verabredet. Bisher musste
 // jeder Wirt dafür bei der Turnierleitung anrufen. Mit dem zweiten Passwort
-// trägt er es selbst ein — ohne dass er an die Ergebnisse kommt.
+// trägt er es selbst ein — ohne dass er an die Ergebnisse kommt. Dasselbe gilt
+// für den umgekehrten Fall: Fällt ein Abend wegen einer Veranstaltung aus,
+// weiß es der Wirt zuerst, und er sagt es ohnehin — bisher auf Facebook,
+// während die Seite weiter einen Termin behauptete.
 //
 // Warum kein Konto je Wirt: Ein Konto bräuchte eine Anmeldung, eine Sitzung
 // und damit ein Cookie und eine Datenbank. Die MDC hat beides nicht, und das

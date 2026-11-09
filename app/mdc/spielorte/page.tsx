@@ -81,8 +81,9 @@ export default function SpielortePage() {
               <p style={{ marginTop: 10, fontSize: '0.92rem', lineHeight: 1.7, color: 'var(--mdc-ink-soft)', maxWidth: 640 }}>
                 Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Tragt den Abend
                 selbst ein — er steht dann im Wochenplan, auf der Startseite und bei
-                eurem Lokal. Das Passwort dafür gibt es bei der Turnierleitung; der
-                Browser fragt danach, der Benutzername ist beliebig.
+                eurem Lokal. Und fällt bei euch einmal ein Ranking aus, sagt ihr es
+                dort selbst ab, mit kurzem Grund. Das Passwort dafür gibt es bei der
+                Turnierleitung; der Browser fragt danach, der Benutzername ist beliebig.
               </p>
               <a
                 href={mdcPath('/admin/ansetzen')}
@@ -90,7 +91,7 @@ export default function SpielortePage() {
                 style={{ marginTop: 14 }}
               >
                 <KeyRound size={15} />
-                Anmelden und Termin ansetzen
+                Anmelden und Termin eintragen
               </a>
             </div>
           </div>

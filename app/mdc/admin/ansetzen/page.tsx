@@ -23,7 +23,7 @@ import {
   AnsetzForm, type AnsetzVenue, type AngesetzterTermin,
 } from '@/components/mdc/ansetz-form';
 import { KALENDER } from '@/data/kalender';
-import { VENUES, getVenue, venueWeekdayLabel } from '@/data/venues';
+import { VENUES, getVenue, venueWeekdayLabel, playDaysFrom } from '@/data/venues';
 import { todayInMunich } from '@/data/season';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
 import { werDaIst } from '@/lib/mdc/zugang';
@@ -32,7 +32,7 @@ import { mdcPath } from '@/lib/mdc/site';
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
   title: 'Ranking ansetzen',
-  description: 'Einen zusätzlichen Turnierabend eintragen.',
+  description: 'Einen zusätzlichen Turnierabend eintragen oder einen Abend absagen.',
 };
 
 export const dynamic = 'force-dynamic';
@@ -49,22 +49,41 @@ export default async function AnsetzenPage() {
   const rolle = await werDaIst();
   const status = getUploadStatus();
 
+  // Die nächsten Abende je Lokal — daraus wählt die Absage aus, statt ein
+  // freies Datumsfeld anzubieten. So kann niemand einen Tag erwischen, an dem
+  // ohnehin nichts stattfindet; die Aktion lehnt das zwar auch ab, aber erst
+  // NACH dem Tippen, und das ist eine Enttäuschung zu spät.
+  const plan = playDaysFrom(heute, 121);
+  const abende = new Map<string, { date: string; abgesagt: boolean }[]>();
+  for (const tag of plan) {
+    for (const eintrag of tag.eintraege) {
+      // Nur die festen Abende: Was selbst angesetzt wurde, wird nicht
+      // abgesagt, sondern unten in der Liste zurückgenommen.
+      if (eintrag.zusatz) continue;
+      const liste = abende.get(eintrag.venue.id) ?? [];
+      liste.push({ date: tag.date, abgesagt: eintrag.abgesagt });
+      abende.set(eintrag.venue.id, liste);
+    }
+  }
+
   const venues: AnsetzVenue[] = VENUES.map(v => ({
     id: v.id,
     name: v.name,
     time: v.time,
     weekdays: [...v.weekdays],
     weekdayLabel: venueWeekdayLabel(v),
+    spieltage: abende.get(v.id) ?? [],
   }));
 
-  // Nur die eigenen Zusatztermine ab heute — Absagen gehören nicht hierher,
-  // die kann hier auch niemand zurücknehmen.
+  // Alles, was die Lokale selbst eingetragen haben — angesetzt UND abgesagt.
+  // Beides lässt sich hier zurücknehmen.
   const termine: AngesetzterTermin[] = KALENDER
-    .filter(t => t.art === 'zusatz' && t.date >= heute)
+    .filter(t => t.date >= heute)
     .sort((a, b) => a.date.localeCompare(b.date))
     .map(t => ({
       id: t.id,
       date: t.date,
+      art: t.art,
       venueName: getVenue(t.venueId)?.name ?? t.venueId,
       time: t.time ?? getVenue(t.venueId)?.time ?? '20:00',
       note: t.note,
@@ -74,8 +93,8 @@ export default async function AnsetzenPage() {
     <>
       <PageHero
         kicker="Für die Lokale"
-        title="Ranking ansetzen"
-        description="Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Hier eintragen — dann steht es auf der Seite, im Wochenplan und bei eurem Lokal. Ein fester Spieltag ändert sich damit nicht; das bleibt bei der Turnierleitung."
+        title="Ranking ansetzen oder absagen"
+        description="Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Hier eintragen. Und fällt ein Abend aus, sagt ihr ihn hier ab — dann steht es auf der Seite, im Wochenplan und bei eurem Lokal, statt nur in der Facebook-Gruppe. Am festen Spieltag selbst ändert das nichts; der bleibt bei der Turnierleitung."
       />
 
       <section className="mdc-section">
@@ -103,8 +122,8 @@ export default async function AnsetzenPage() {
               </p>
               {rolle === 'leitung' && (
                 <p style={{ marginTop: 8 }}>
-                  Du bist als <strong>Turnierleitung</strong> hier. Absagen, Zusatztermine für
-                  jeden Tag und die ganze Übersicht stehen im{' '}
+                  Du bist als <strong>Turnierleitung</strong> hier. Absagen an jedem Tag,
+                  vergangene Termine und die ganze Übersicht stehen im{' '}
                   {/* Als <a>, nicht als Link: Ein Vorabruf auf /admin fragt sonst
                       mitten im Scrollen nach dem Passwort. */}
                   <a href={mdcPath('/admin/kalender')} style={{ color: 'var(--mdc-red)' }}>
@@ -120,7 +139,8 @@ export default async function AnsetzenPage() {
             <span>
               Der feste Wochenplan steht nicht hier, sondern bei den Lokalen: jeder Spielort mit
               seinem Wochentag und seiner Uhrzeit. Hier kommt nur dazu, was sonst nicht
-              stattfindet.
+              stattfindet — oder fällt einmal weg. Soll sich der Wochentag dauerhaft ändern,
+              bitte der Turnierleitung Bescheid sagen.
             </span>
           </p>
         </div>

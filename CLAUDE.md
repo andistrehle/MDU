@@ -651,13 +651,21 @@ Pfad in `proxy.ts` (`istAnsetzSeite`, mit und ohne `/mdc`-Präfix); überall
 sonst gilt weiter nur `MDC_ADMIN_PASSWORD`. Dieselbe Prüfung für die
 Server-Aktionen steht in `lib/mdc/zugang.ts` (`werDaIst` → 'leitung' | 'wirt' |
 null) — doppelt, weil eine Aktions-Kennung auch an eine andere Adresse
-geschickt werden kann. Dort geht NUR `art: 'zusatz'`: kein Absagen (nimmt
-anderen den Abend weg), nichts in der Vergangenheit, höchstens 120 Tage
-voraus, und nicht am festen Spieltag des Lokals (stünde doppelt im Plan).
-Zurückgenommen wird nur, was auf `-zusatz` endet. **Hinein kommen die Wirte
-über die Spielorte-Seite** (Karte „Wirte-Login“ ganz unten, als `<a>` und nie
-als `Link`) oder direkt über die Adresse; dazu der News-Beitrag
-`wochenendranking-selbst-ansetzen`. **Keine `AdminNav` auf der
+geschickt werden kann. Dort gehen NUR `art: 'zusatz'` und `art: 'absage'`,
+nichts in der Vergangenheit (heute eingeschlossen) und höchstens 120 Tage
+voraus; zurückgenommen wird nur, was auf `-zusatz` oder `-absage` endet.
+**Ansetzen** nur an einem Tag, an dem das Lokal NICHT ohnehin spielt (stünde
+sonst doppelt im Plan). **Absagen** (Betreiber, 09.11.2026 — „dass sie es
+selbst absagen können“; vorher blieb es bei der Turnierleitung, aber der Wirt
+weiß es zuerst und schrieb es ohnehin nur auf Facebook) umgekehrt nur an einem
+FESTEN Abend des Lokals, mit Grund (3–200 Zeichen, Pflicht) und `time: null` —
+der Termin bleibt durchgestrichen mit Grund stehen. Das Datum ist dort keine
+freie Eingabe, sondern eine Auswahl aus `playDaysFrom(heute, 121)` (Prop
+`spieltage`, `zusatz`-Einträge übersprungen, abgesagte gesperrt). **Hinein
+kommen die Wirte über die Spielorte-Seite** (Karte „Wirte-Login“ ganz unten,
+als `<a>` und nie als `Link`) oder direkt über die Adresse; dazu die
+News-Beiträge `wochenendranking-selbst-ansetzen` und
+`wirte-koennen-jetzt-auch-absagen`. **Keine `AdminNav` auf der
 Seite** — ein Vorabruf führte den Wirt sonst in Passwortabfragen für Seiten,
 die ihm nicht aufgehen. Ein Konto je Wirt gibt es bewusst nicht (bräuchte
 Sitzung, Cookie, Datenbank): Das Passwort ist für alle dasselbe, Einträge sind

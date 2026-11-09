@@ -105,7 +105,7 @@ const SZENEN = [
       // deshalb geht es direkt weiter — gesagt wird es trotzdem.
       await Promise.all([
         p.waitForURL(/\/admin\/ansetzen/, { timeout: 15000 }),
-        h.zeigeAuf(p.locator('a:has-text("Anmelden und Termin ansetzen")'), { klick: true }),
+        h.zeigeAuf(p.locator('a:has-text("Anmelden und Termin eintragen")'), { klick: true }),
       ]);
       await p.waitForLoadState('networkidle');
     },
@@ -150,19 +150,46 @@ const SZENEN = [
     text: 'Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal.',
     einblendung: '5 · Ansetzen — fertig',
     async tun(p, h) {
-      await h.zeigeAuf(p.locator('button:has-text("Ansetzen")'), { klick: true });
+      // :text-is, nicht :has-text — seit dem Umschalter gibt es oben auch
+      // einen Knopf „Termin ansetzen", und ein Teiltreffer wäre zweideutig.
+      await h.zeigeAuf(p.locator('button:text-is("Ansetzen")'), { klick: true });
       await p.locator('.mdc-card-accent').first().waitFor({ timeout: 15000 }).catch(() => {});
     },
   },
   {
-    text: 'Vertippt? Jeder Termin lässt sich wieder zurücknehmen.',
+    text: 'Vertippt? Jeder Eintrag lässt sich wieder zurücknehmen.',
     einblendung: 'Zurücknehmen geht immer',
     async tun(p, h) {
-      await h.zeigeAuf(p.locator('.mdc-card').filter({ hasText: 'Schon angesetzt' }));
+      await h.zeigeAuf(p.locator('.mdc-card').filter({ hasText: 'Schon eingetragen' }));
     },
   },
   {
-    text: 'Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!',
+    // Seit 09.11.2026 dürfen die Wirte auch absagen. Eine eigene Szene, weil
+    // es der zweite Grund ist, überhaupt hierherzukommen.
+    text: 'Und fällt bei euch mal ein Abend aus? Oben auf „Ranking absagen“, den Abend auswählen und kurz dazuschreiben, warum. Dann steht es auf der Seite — durchgestrichen, mit dem Grund daneben.',
+    einblendung: 'Fällt ein Abend aus? Hier absagen',
+    async tun(p, h) {
+      await h.zeigeAuf(p.locator('button:has-text("Ranking absagen")'), { klick: true });
+      await p.waitForTimeout(400);
+
+      // Die Abende kommen aus dem Plan des Lokals. Welcher der erste freie
+      // ist, hängt am Aufnahmetag — deshalb wird er gelesen, nicht geraten.
+      const abend = p.locator('select').nth(1);
+      await h.zeigeAuf(abend);
+      const wert = await abend.evaluate(
+        el => [...el.options].find(o => o.value && !o.disabled)?.value ?? '',
+      );
+      if (wert) await abend.selectOption(wert);
+
+      const grund = p.locator('input[placeholder^="z. B."]');
+      await h.zeigeAuf(grund, { klick: true });
+      await grund.type('Veranstaltung im Lokal', { delay: 50 });
+      await h.zeigeAuf(p.locator('button:text-is("Absagen")'), { klick: true });
+      await p.locator('.mdc-card-accent').first().waitFor({ timeout: 15000 }).catch(() => {});
+    },
+  },
+  {
+    text: 'Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Der feste Spieltag selbst bleibt bei ihr. Gut Pfeil!',
     einblendung: 'Passwort bei der Turnierleitung',
     async tun(p) {
       await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));

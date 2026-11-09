@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ExternalLink, MapPin, Phone, Target } from 'lucide-react';
 import { Dartboard } from '@/components/mdc/dartboard';
 import {
-  PHONES_PUBLIC, VENUES, getVenue, nextDatesForVenue, venueMapsUrl, venueWeekdayLabel,
+  PHONES_PUBLIC, VENUES, getVenue, nextEveningsForVenue, venueMapsUrl, venueWeekdayLabel,
 } from '@/data/venues';
 import { tournamentsAtVenue } from '@/data/tournament-results';
 import { getPlayer, playerName } from '@/data/players';
@@ -49,7 +49,7 @@ export default async function SpielortDetailPage(
   // Kommende Termine ergeben sich aus dem festen Spieltag des Lokals —
   // eine Terminliste führt die MDC nicht.
   const heute = todayInMunich();
-  const termine = nextDatesForVenue(venue.id, heute, 4);
+  const termine = nextEveningsForVenue(venue.id, heute, 4);
 
   // Gespielte Turniere dieses Lokals — beide Saisons, neueste zuerst.
   const gespielt = tournamentsAtVenue(venue.id);
@@ -138,22 +138,52 @@ export default async function SpielortDetailPage(
             <div>
               <h2 className="mdc-display mdc-h3" style={{ marginBottom: 6 }}>Nächste Termine</h2>
               <p style={{ color: 'var(--mdc-ink-soft)', fontSize: '0.88rem', marginBottom: 16 }}>
-                {venueWeekdayLabel(venue)}, jeweils ab {formatTime(venue.time)}. Anmelden
+                {venueWeekdayLabel(venue)}, in der Regel ab {formatTime(venue.time)}. Anmelden
                 im Lokal bis kurz vor dem Start — einen Meldestand führt die MDC nicht.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {termine.map(datum => (
+                {/* Ein abgesagter Abend bleibt stehen, durchgestrichen und mit
+                    Grund: „steht nicht da" würde nicht sagen, ob er ausfällt
+                    oder man sich verzählt hat. */}
+                {termine.map(abend => (
                   <span
-                    key={datum}
+                    key={`${abend.date}-${abend.zusatz ? 'z' : 'f'}`}
                     className="mdc-card"
-                    style={{ padding: '10px 14px', display: 'inline-flex', gap: 8, alignItems: 'baseline' }}
+                    style={{
+                      padding: '10px 14px', display: 'inline-flex', gap: 8, alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      borderColor: abend.abgesagt ? 'var(--mdc-line)' : undefined,
+                    }}
                   >
-                    <span className="mdc-display" style={{ fontSize: '0.95rem' }}>
-                      {datum === heute ? 'Heute' : weekdayName(datum)}
+                    <span
+                      className="mdc-display"
+                      style={{
+                        fontSize: '0.95rem',
+                        textDecoration: abend.abgesagt ? 'line-through' : undefined,
+                        color: abend.abgesagt ? 'var(--mdc-ink-dim)' : undefined,
+                      }}
+                    >
+                      {abend.date === heute ? 'Heute' : weekdayName(abend.date)}
                     </span>
-                    <span className="mdc-num" style={{ fontSize: '0.84rem', color: 'var(--mdc-ink-dim)' }}>
-                      {formatDate(datum)}
+                    <span
+                      className="mdc-num"
+                      style={{
+                        fontSize: '0.84rem', color: 'var(--mdc-ink-dim)',
+                        textDecoration: abend.abgesagt ? 'line-through' : undefined,
+                      }}
+                    >
+                      {formatDate(abend.date)}
                     </span>
+                    {abend.zusatz && !abend.abgesagt && (
+                      <span style={{ fontSize: '0.78rem', color: 'var(--mdc-ink-dim)' }}>
+                        · {formatTime(abend.time)}
+                      </span>
+                    )}
+                    {abend.abgesagt && (
+                      <span style={{ fontSize: '0.78rem', color: 'var(--mdc-red-deep)' }}>
+                        Fällt aus{abend.note ? `: ${abend.note}` : ''}
+                      </span>
+                    )}
                   </span>
                 ))}
               </div>

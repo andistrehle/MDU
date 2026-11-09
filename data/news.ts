@@ -48,6 +48,21 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "wirte-koennen-jetzt-auch-absagen",
+    "date": "2026-11-09",
+    "title": "Die Wirte können ihr Ranking jetzt auch selbst absagen",
+    "teaser": "Fällt ein Abend aus — Veranstaltung, Feiertag, geschlossen? Das trägt das Lokal ab sofort selbst ein, und es steht gleich auf der Seite statt nur in der Gruppe.",
+    "category": "Termine",
+    "paragraphs": [
+      "Seit Oktober setzen die Wirte ihr Wochenendranking selbst an. Was noch fehlte, war der umgekehrte Fall: Fällt ein Abend aus, stand es bisher in der Facebook-Gruppe — und auf der Seite weiter ein Termin. **Ab sofort sagt das Lokal den Abend selbst ab.**",
+      "Das geht an derselben Stelle: **Spielorte**, ganz unten **Wirte-Login**, dann oben auf **Ranking absagen**. Lokal auswählen, den Abend aus der Liste nehmen, kurz dazuschreiben, warum — fertig. Ein, zwei Minuten später steht es online.",
+      "**Der Termin verschwindet dabei nicht.** Er bleibt stehen, durchgestrichen und mit dem Grund daneben: Wer schon losfahren wollte, soll sehen, warum heute nichts ist. Deshalb ist der Grund auch Pflicht — „fällt aus“ allein lässt jeden rätseln.",
+      "Zurücknehmen geht ebenfalls: Wird die Veranstaltung verschoben und der Abend findet doch statt, nimmt der Wirt die Absage einfach wieder heraus.",
+      "Was weiter über die Turnierleitung läuft: der **feste Spieltag** eines Lokals, also eine dauerhafte Änderung von Wochentag oder Uhrzeit, und alles, was schon vorbei ist."
+    ],
+    "published": true
+  },
+  {
     "id": "wochenendranking-selbst-ansetzen",
     "date": "2026-10-17",
     "title": "Jetzt neu: Wochenendranking über die Homepage ansetzen",
@@ -56,7 +71,7 @@ export const NEWS: NewsPost[] = [
     "paragraphs": [
       "Das Ranking am Wochenende ist kein fester Abend: Es wird von Lokal zu Lokal verabredet, oft kurzfristig. Bisher ging das nur über die Turnierleitung. **Ab sofort tragen die Wirte den Abend selbst ein** — und er steht sofort dort, wo die Spieler ihn suchen: auf der Startseite, im Wochenplan und beim eigenen Lokal.",
       "Den Zugang gibt es auf der Seite **Spielorte**, ganz unten: **Wirte-Login**. Antippen, Passwort eingeben, Lokal und Tag auswählen, Beginn eintragen — fertig. Ein kurzer Hinweis wie „Anmeldung bis 17:45“ kann dazu. Ein, zwei Minuten später steht der Termin online.",
-      "**Das Passwort gibt es bei der Turnierleitung.** Es öffnet nur diese eine Seite: Ergebnisse, Passnummern und alles andere bleiben zu. Absagen und dauerhafte Änderungen am festen Spieltag laufen weiter über die Turnierleitung.",
+      "**Das Passwort gibt es bei der Turnierleitung.** Es öffnet nur diese eine Seite: Ergebnisse, Passnummern und alles andere bleiben zu. Dauerhafte Änderungen am festen Spieltag laufen weiter über die Turnierleitung. **Nachtrag vom 9. November:** Absagen gehen inzwischen auch selbst — siehe den neueren Beitrag.",
       "Vertippt? Jeder selbst angesetzte Termin lässt sich an derselben Stelle wieder zurücknehmen."
     ],
     "published": true

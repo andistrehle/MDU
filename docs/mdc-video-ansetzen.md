@@ -1,12 +1,24 @@
 # Erklärvideo für die Wirte — „Ranking ansetzen"
 
 **Munich Darts Challenge · Kurzvideo, 56 Sekunden, fertig vertont**
-Stand: 17.10.2026 · Aufbau wie beim [MDU-Einführungsvideo](einfuehrungsvideo-konzept.md):
+Stand: 17.10.2026 · Drehbuch nachgezogen am 09.11.2026 (Absagen)
+Aufbau wie beim [MDU-Einführungsvideo](einfuehrungsvideo-konzept.md):
 Bildschirmaufnahme + **ElevenLabs**-Stimme — hier aber in EINEM Lauf erzeugt
 (`scripts/video-mdc-ansetzen/vertonen.js`), nicht von Hand geschnitten.
 
 > Beschreibt nur, was die Seite wirklich kann (`/admin/ansetzen`, siehe
 > [mdc-ansetzen.md](mdc-ansetzen.md)). Nichts versprechen, was nicht da ist.
+
+> ⚠️ **Das fertige MP4 vom 17.10.2026 ist überholt.** Darin sagt der letzte
+> Satz „Absagen und feste Spieltage bleiben bei ihr" — seit 09.11.2026 sagen
+> die Wirte selbst ab. Das Drehbuch unten ist schon nachgezogen (eine neue
+> Szene fürs Absagen, zwei geänderte Sätze); das Video muss dafür **neu
+> laufen** (`node vertonen.js`, siehe
+> [README](../scripts/video-mdc-ansetzen/README.md)). Unveränderte Szenen
+> kommen aus dem Zwischenspeicher und kosten nichts; abgerechnet werden nur
+> die drei neuen bzw. geänderten (rund 270 Zeichen). Bis dahin: das alte Video
+> nicht mehr weitergeben, oder mit dem Hinweis, dass Absagen inzwischen auch
+> gehen.
 
 ---
 
@@ -61,8 +73,13 @@ ihn hier ändert, ändert ihn bitte dort mit (und umgekehrt).
 | 5 | 0:23–0:29 | Beginn → 18:00 | „Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit." | 3 · Beginn |
 | 6 | 0:29–0:34 | Hinweis wird getippt | „Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite." | 4 · Hinweis |
 | 7 | 0:34–0:42 | „Ansetzen" → grüne Bestätigung | „Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal." | 5 · Ansetzen — fertig |
-| 8 | 0:42–0:46 | Liste „Schon angesetzt" | „Vertippt? Jeder Termin lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
-| 9 | 0:46–0:55 | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+| 8 | 0:42–0:46 | Liste „Schon eingetragen" | „Vertippt? Jeder Eintrag lässt sich wieder zurücknehmen." | Zurücknehmen geht immer |
+| 9 | neu | oben auf „Ranking absagen" → Abend auswählen, Grund tippen, absagen | „Und fällt bei euch mal ein Abend aus? Oben auf „Ranking absagen", den Abend auswählen und kurz dazuschreiben, warum. Dann steht es auf der Seite — durchgestrichen, mit dem Grund daneben." | Fällt ein Abend aus? Hier absagen |
+| 10 | — | zurück zum Seitenkopf | „Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Der feste Spieltag selbst bleibt bei ihr. Gut Pfeil!" | Passwort bei der Turnierleitung |
+
+**Die Zeiten stammen aus dem Lauf vom 17.10.2026.** Ab Szene 8 stimmen sie
+nicht mehr: Szene 9 ist neu, 8 und 10 sind umgeschrieben. Die neuen Zeiten
+schreibt das Skript beim nächsten Lauf selbst nach `ausgabe/szenen.json`.
 
 **Die Passwortabfrage selbst ist nicht im Bild.** Die Aufnahme bringt die
 Zugangsdaten mit, deshalb springt das Video von „Wirte-Login" direkt auf die
@@ -78,8 +95,9 @@ Wirklichkeit steht dazwischen das kleine Fenster des Browsers.
 > Den Beginn eintragen. Lasst ihr das Feld leer, gilt eure übliche Zeit.
 > Ein kurzer Hinweis kann dazu — der steht dann beim Termin auf der Seite.
 > Auf Ansetzen tippen, fertig. Ein, zwei Minuten später steht euer Turnier auf der Startseite, im Wochenplan und bei eurem Lokal.
-> Vertippt? Jeder Termin lässt sich wieder zurücknehmen.
-> Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Absagen und feste Spieltage bleiben bei ihr. Gut Pfeil!
+> Vertippt? Jeder Eintrag lässt sich wieder zurücknehmen.
+> Und fällt bei euch mal ein Abend aus? Oben auf „Ranking absagen", den Abend auswählen und kurz dazuschreiben, warum. Dann steht es auf der Seite — durchgestrichen, mit dem Grund daneben.
+> Das Passwort bekommt ihr bei der Turnierleitung — meldet euch einfach bei Toni. Der feste Spieltag selbst bleibt bei ihr. Gut Pfeil!
 
 **Wenn die Adresse mitgesprochen werden soll** (statt nur eingeblendet), so
 schreiben — sonst buchstabiert die Stimme die Satzzeichen:
@@ -115,17 +133,18 @@ Kurz halten — wer am Handy scrollt, liest drei Zeilen. Das Video dazu hängen,
 dann erklärt es sich selbst. In eine Facebook-GRUPPE kann kein Programm
 schreiben (Meta hat das abgeschaltet), also kopieren und einfügen:
 
-> 🎯 **Neu: Wochenend-Ranking selbst eintragen**
+> 🎯 **Neu: Wochenend-Ranking selbst eintragen — und Abende selbst absagen**
 >
 > Wirte: Ihr macht am Freitag, Samstag oder Sonntag ein Ranking? Tragt es ab
 > sofort selbst auf der Seite ein — es steht dann gleich im Wochenplan und bei
-> eurem Lokal.
+> eurem Lokal. Und fällt bei euch mal ein Ranking aus, sagt ihr es dort selbst
+> ab, mit kurzem Grund.
 >
 > 👉 mdc-ranking.de/spielorte → ganz unten „Wirte-Login"
 > Das Passwort gibt's bei Toni.
 >
-> Für alle anderen: Die Zusatztermine stehen damit genauso auf der Seite wie
-> die festen Abende. Gut Pfeil!
+> Für alle anderen: Zusatztermine und Absagen stehen damit genauso auf der
+> Seite wie die festen Abende. Gut Pfeil!
 
 ## 6. Was im Begleittext zur Weitergabe stehen sollte
 
@@ -133,8 +152,9 @@ Wenn du das Video in die Gruppe oder per WhatsApp schickst:
 
 > Ab sofort könnt ihr euer Ranking am Freitag, Samstag oder Sonntag selbst
 > eintragen: **mdc-ranking.de/admin/ansetzen** — das Passwort gibt's bei Toni.
-> Es gilt für alle Lokale, bitte nicht weitergeben. Absagen und feste Spieltage
-> laufen weiter über die Turnierleitung.
+> Es gilt für alle Lokale, bitte nicht weitergeben. Fällt bei euch mal ein
+> Abend aus, sagt ihr ihn an derselben Stelle ab; der feste Spieltag selbst
+> bleibt bei der Turnierleitung.
 
 Seit 17.10.2026 gibt es den Zugang auch **auf der Seite selbst**: unter
 **Spielorte**, ganz unten, die Karte **Wirte-Login**. Bewusst dort und nicht in

@@ -1,7 +1,9 @@
 # Video „MDC – Ranking ansetzen" (für die Wirte)
 
-Kurzvideo, 8 Szenen, ca. 47 Sekunden, hochkant 860 × 1864. Zeigt, wie ein Wirt
-unter `/admin/ansetzen` einen Turnierabend einträgt. Drehbuch und Sprechertext:
+Kurzvideo, 10 Szenen, hochkant 860 × 1864. Zeigt, wie ein Wirt unter
+`/admin/ansetzen` einen Turnierabend einträgt — und seit 09.11.2026 auch, wie
+er einen Abend absagt. Das fertige MP4 vom 17.10.2026 kennt das Absagen noch
+nicht und sagt am Ende etwas Falsches; es muss einmal neu laufen. Drehbuch und Sprechertext:
 [`docs/mdc-video-ansetzen.md`](../../docs/mdc-video-ansetzen.md) · die Funktion
 selbst: [`docs/mdc-ansetzen.md`](../../docs/mdc-ansetzen.md).
 
@@ -37,8 +39,9 @@ OHNE_TEXT=1 ELEVENLABS_VOICE_ID=gRJR8Fqocw86Vixo4cZV node vertonen.js
   Das hier ist eine Anleitung; wer sie am Tresen schaut, tippt beim Zuschauen
   mit. Über `STABILITY`/`STYLE`/`SPEED` änderbar.
 - **Kosten:** Jede Szene wird nur EINMAL abgerufen (`ton/`, Schlüssel = Stimme +
-  Modell + Klang + Text). Das ganze Video sind rund 620 Zeichen; die zweite
-  Fassung ohne Einblendungen kostet nichts.
+  Modell + Klang + Text). Das ganze Video sind rund 890 Zeichen; die zweite
+  Fassung ohne Einblendungen kostet nichts. Ein erneuter Lauf nach einer
+  Textänderung rechnet nur die geänderten Szenen ab.
 - **Test ohne Schlüssel:** `TROCKEN=1 ELEVENLABS_VOICE_ID=x node vertonen.js`
   (Pieptöne statt Sprache, sonst derselbe Ablauf).
 - `ELEVENLABS_API_KEY` kommt aus der Umgebung der Session — **nie** in eine
@@ -52,8 +55,8 @@ antwortet mit dem, was ein geglückter Commit zurückgäbe. Es läuft also weder
 ein echter GitHub-Aufruf noch ein Doppelgänger-Server. `data/kalender.ts`,
 `data/results-uploaded.ts` und alles andere bleiben unberührt.
 
-**Für die Liste „Schon angesetzt"** braucht es einen Eintrag, sonst steht dort
-„noch kein zusätzlicher Termin" und Szene 7 zeigt nichts. Vor der Aufnahme
+**Für die Liste „Schon eingetragen"** braucht es einen Eintrag, sonst steht
+dort „kein zusätzlicher Termin und keine Absage" und Szene 8 zeigt nichts. Vor der Aufnahme
 deshalb in `data/kalender.ts` einen Demo-Eintrag ergänzen …
 
 ```json
@@ -68,7 +71,8 @@ gibt, und jemand führe hin.
 ## Wenn sich die Seite ändert
 
 Die Szenen greifen auf echte Felder zu (`select`, `input[type=date]`,
-`input[type=time]`, den Knopf „Ansetzen"). Ändert sich die Maske, bricht das
+`input[type=time]`, die Knöpfe „Ansetzen" und „Absagen" — genauer Text, nicht
+Teiltreffer: oben steht seit dem Umschalter auch „Termin ansetzen"). Ändert sich die Maske, bricht das
 Skript hörbar ab, statt still etwas Falsches zu filmen — dann die betroffene
 Szene in `SZENEN` nachziehen und neu laufen lassen. Der Ton wird dabei nicht
 noch einmal abgerechnet, solange der Text gleich bleibt.

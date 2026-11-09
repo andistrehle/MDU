@@ -387,7 +387,7 @@ export function playDaysFrom(fromIso: string, days = 7): PlanTag[] {
         };
       });
 
-    // … und was die Turnierleitung zusätzlich angesetzt hat.
+    // … und was die Wirte oder die Turnierleitung zusätzlich angesetzt haben.
     const extra: PlanEintrag[] = zusatzAm(date)
       .map(t => {
         const venue = BY_ID.get(t.venueId);
@@ -418,15 +418,40 @@ export function playDaysFrom(fromIso: string, days = 7): PlanTag[] {
   return plan;
 }
 
+/** Ein kommender Abend eines Lokals — abgesagte stehen mit drin. */
+export interface VenueAbend {
+  date: string;
+  time: string;
+  /** Extra angesetzt, nicht der feste Spieltag. */
+  zusatz: boolean;
+  abgesagt: boolean;
+  /** Hinweis bzw. Grund der Absage. */
+  note: string | null;
+}
+
 /**
- * Die nächsten Termine EINES Lokals, aus seinem festen Spieltag gerechnet.
- * Kein Meldestand: Angemeldet wird im Lokal, die MDC führt keine Liste.
+ * Die nächsten Abende EINES Lokals, aus seinem festen Spieltag gerechnet
+ * (Zusatztermine kommen dazu). Kein Meldestand: Angemeldet wird im Lokal, die
+ * MDC führt keine Liste.
+ *
+ * ABGESAGTE ABENDE STEHEN MIT DRIN, durchgestrichen und mit Grund — seit
+ * 09.11.2026, als die Wirte das Absagen selbst in die Hand bekamen. Vorher
+ * verschwand ein abgesagter Abend hier einfach; im Wochenplan stand er
+ * durchgestrichen, auf der Seite des Lokals gar nicht. Wer wissen will, ob
+ * heute Abend was ist, schaut aber genau dort — und „ist nicht aufgeführt"
+ * sagt ihm nicht, ob der Abend ausfällt oder er sich verzählt hat.
  */
-export function nextDatesForVenue(venueId: string, fromIso: string, count = 4): string[] {
-  return playDaysFrom(fromIso, count * 7 + 7)
-    .filter(tag => tag.eintraege.some(e => e.venue.id === venueId && !e.abgesagt))
-    .slice(0, count)
-    .map(tag => tag.date);
+export function nextEveningsForVenue(venueId: string, fromIso: string, count = 4): VenueAbend[] {
+  const abende: VenueAbend[] = [];
+  for (const tag of playDaysFrom(fromIso, count * 7 + 7)) {
+    for (const e of tag.eintraege) {
+      if (e.venue.id !== venueId) continue;
+      abende.push({
+        date: tag.date, time: e.time, zusatz: e.zusatz, abgesagt: e.abgesagt, note: e.note,
+      });
+    }
+  }
+  return abende.slice(0, count);
 }
 
 /**
