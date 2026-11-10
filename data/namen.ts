@@ -79,6 +79,13 @@ export const NAMEN: Namenskorrektur[] = [
     "note": null
   },
   {
+    "passNr": 259,
+    "lastName": "STENGL",
+    "firstName": "DOMINIC",
+    "alteId": "dominic-70er",
+    "note": null
+  },
+  {
     "passNr": 297,
     "lastName": "SEDLMEIER",
     "firstName": "DAVID",
