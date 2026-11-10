@@ -26,7 +26,7 @@ interface Gegner {
   tabelle: { pos: number; pts: number; sp: number; s: number; u: number; n: number; teams: number } | null;
   letzte: { key: string; datum: string | null; gegen: string; gegenName: string; f: number; a: number; ergebnis: 'S' | 'U' | 'N'; wertung: boolean; bestaetigt: boolean }[];
   vergleich: { saison: string; wettbewerb: string; datum: string | null; wir: number; sie: number }[];
-  beste: { name: string; points: number; wins: number; singles: number; b180: number }[];
+  beste: { name: string; playerId: string | null; points: number; wins: number; singles: number; b180: number; b171: number; hf: number; hfBest: number | null; sl: number; slBest: number | null }[];
 }
 
 const GRUEN = '#1FA34A', ROT = '#D2352B', GOLD = '#E8B84A';
@@ -159,8 +159,19 @@ export default function GegnerSeite() {
                   {info.beste.length === 0 ? <p style={leise}>Sobald der Gegner gespielt hat, stehen hier seine besten Spieler aus der Einzelrangliste.</p> : info.beste.map((b, i) => (
                     <div key={b.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: i ? '1px solid var(--th-line-5)' : 'none', fontFamily: 'var(--font-manrope)', fontSize: 13.5 }}>
                       <span style={{ width: 22, textAlign: 'center', fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 18, color: i === 0 ? GOLD : 'var(--th-text-faint)' }}>{i + 1}</span>
-                      <span style={{ flex: 1, minWidth: 0, fontWeight: 800, color: 'var(--th-text-strong)' }}>{b.name}</span>
-                      <span style={{ fontSize: 12, color: 'var(--th-text-muted)', whiteSpace: 'nowrap' }}>{b.wins}/{b.singles} Siege{b.b180 ? ` · ${b.b180}× 180` : ''}</span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        {b.playerId
+                          ? <Link href={`/spieler/${b.playerId}`} style={{ fontWeight: 800, color: 'var(--th-text-strong)', textDecoration: 'none' }}>{b.name}</Link>
+                          : <span style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{b.name}</span>}
+                        {/* Alle Highlights, nicht nur 180er (Betreiber, 10.11.2026) */}
+                        <span style={{ display: 'block', fontSize: 12, color: 'var(--th-text-muted)', marginTop: 1 }}>
+                          {[`${b.wins}/${b.singles} Siege`,
+                            b.b180 ? `${b.b180}× 180` : '', b.b171 ? `${b.b171}× 171` : '',
+                            b.hf ? `${b.hf}× HF${b.hfBest ? ` (bis ${b.hfBest})` : ''}` : '',
+                            b.sl ? `${b.sl}× Short Leg${b.slBest ? ` (${b.slBest} Darts)` : ''}` : '',
+                          ].filter(Boolean).join(' · ')}
+                        </span>
+                      </span>
                       <b style={{ width: 46, textAlign: 'right', color: 'var(--th-text-strong)' }}>{b.points} P.</b>
                     </div>
                   ))}

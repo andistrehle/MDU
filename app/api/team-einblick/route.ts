@@ -54,7 +54,8 @@ export async function GET(request: Request) {
             wir: m.homeTeamId === team ? m.result!.home : m.result!.away, sie: m.homeTeamId === team ? m.result!.away : m.result!.home })),
       ],
       beste: alleEinzel.filter(z => z.teamId === gegner).sort((a, b) => b.points - a.points || b.wins - a.wins).slice(0, 5)
-        .map(z => ({ name: z.name, points: z.points, wins: z.wins, singles: z.singles, b180: z.b180 })),
+        .map(z => ({ name: z.name, playerId: z.playerId, points: z.points, wins: z.wins, singles: z.singles,
+          b180: z.b180, b171: z.b171, hf: z.hfAnzahl, hfBest: z.highFinish, sl: z.slAnzahl, slBest: z.shortLeg })),
     };
   }
 
