@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-11-15-aubinger-boazn-zusatz",
+    "date": "2026-11-10",
+    "title": "Zusätzliches Ranking am 15.11.2026 im Aubinger Boazn",
+    "teaser": "Am Sonntag, 15.11.2026 gibt es im Aubinger Boazn ein zusätzliches Ranking, Beginn 17:00 Uhr.",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Sonntag, 15.11.2026** gibt es im **Aubinger Boazn** ein zusätzliches Ranking. Beginn: **17:00 Uhr**. Angemeldet wird wie immer vor Ort im Lokal."
+    ],
+    "published": true
+  },
+  {
     "id": "nur-ein-ranking-pro-spieler-und-tag",
     "date": "2026-11-09",
     "title": "Nur noch ein MDC-Ranking pro Spieler und Tag",

@@ -146,6 +146,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "absage",
     "time": null,
     "note": "Veranstaltung im Lokal"
+  },
+  {
+    "id": "2026-11-15-aubinger-boazn-zusatz",
+    "date": "2026-11-15",
+    "venueId": "aubinger-boazn",
+    "art": "zusatz",
+    "time": "17:00",
+    "note": null
   }
 ];
 
