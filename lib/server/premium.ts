@@ -21,6 +21,7 @@ import { ZUSAGEN_TEAMS } from '@/lib/features';
 import { team27 } from '@/lib/data/saison-2027';
 import { PREISE, TESTTAGE, SAISONPASS_BIS, euroText, type PremiumModell } from '@/lib/premium';
 import { tcEmpfaenger } from './tc-empfaenger';
+import { kaeuferMail } from './kaeufer-mail';
 
 export type Zahlweg = 'paypal' | 'ueberweisung' | 'bar' | 'kostenlos';
 export type Art = PremiumModell | 'test' | 'dauerhaft';
@@ -146,6 +147,8 @@ export async function freischalten(teamId: string, o: {
       : o.art === 'monat' ? [`Monatsabo abgeschlossen: ${name}`, `Abo bei PayPal angelegt – die Zahlung kommt als eigene Meldung.`]
       : null;
     if (meldung) await glocke(an, meldung[0], meldung[1], '/admin/premium');
+    // Erster bezahlter Kauf des Teams → Dankes-Mail mit Umfrage-Link (Betreiber, 11.11.2026). Nie bei Testkauf.
+    if (bezahlt) await kaeuferMail(teamId, name, o.art as PremiumModell, o.durch, await betreiber()).catch(() => {});
   }
   seitenNeuBauen(teamId);
   return { bis, neu: !war };

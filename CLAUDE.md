@@ -160,6 +160,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).
   Website-Umfrage `/umfrage` gebaut, aber NICHT gestartet (`live: false`). Team-Manager-Käufer (Betreiber 11.11.2026):
   `/umfrage/team-manager`, nur per Link, läuft ohne Ende, anonym außer freiwilligem Feld „Name/Team“ (Typ `name`).
+  **Dankes-Mail an Käufer** (Betreiber 11.11.2026): `freischalten()` → `kaeuferMail()` (lib/server/kaeufer-mail.ts, Text in
+  lib/kaeufer-mail.ts) beim ERSTEN bezahlten Kauf eines Teams (genau 1 Zeile in `team_premium_payments`; keine Mail bei
+  Verlängerung/Monatsabbuchung/Testkauf). An den Käufer, sonst den Kapitän; Antwort an `ANBIETER.email`; `email_logs` Typ `premium_danke`.
   **Admin → Spielberichte** (Betreiber, 25.10.2026): alle Begegnungen auf einmal, nach Spieltag gruppiert
   (begonnene zuerst, neuester oben; innerhalb des Spieltags eingereichte zuerst, neueste Einreichung oben —
   Zeit aus `match_report_history` „submitted“, sonst `created_at`, `ladeEinreichzeiten` —, ausstehende danach), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle

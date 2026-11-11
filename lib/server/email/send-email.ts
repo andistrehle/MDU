@@ -39,7 +39,8 @@ export type EmailType =
   | 'draft_reminder_final'
   | 'zusage_reminder'
   | 'match_report_protest'
-  | 'premium_kuendigung';
+  | 'premium_kuendigung'
+  | 'premium_danke';
 
 export type EmailStatus = 'sent' | 'failed' | 'skipped_no_provider';
 
@@ -217,6 +218,11 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
     case 'premium_kuendigung':
       // Wird über sendTextEmail mit eigenem Text verschickt, nicht über diese Vorlagen.
       return { subject: 'Eingangsbestätigung deiner Kündigung', text: `Hallo ${name},\n\nwir haben deine Kündigung erhalten.${SIGNATURE}` };
+    case 'premium_danke':
+      // Wird über sendTextEmail mit eigenem Text verschickt (lib/kaeufer-mail.ts).
+      return { subject: 'Danke für deinen Kauf', text: `Hallo ${name},
+
+vielen Dank für deinen Kauf des Team Managers.${SIGNATURE}` };
     case 'zusage_reminder':
       // Wird über sendTextEmail mit eigenem Text verschickt, nicht über diese Vorlagen.
       return { subject: 'Erinnerung: Zu- oder Absage offen', text: `Hallo ${name},\n\nfür einen Termin deines Teams hast du noch nicht zu- oder abgesagt.${SIGNATURE}` };
@@ -317,8 +323,8 @@ export async function sendRegistrationEmail(
  * Versendet eine schlichte Text-Mail (z. B. Erinnerung an offene Zusagen).
  * Gleiche Ehrlichkeit wie oben: ohne Provider 'skipped_no_provider', bei Fehler 'failed'.
  */
-export async function sendTextEmail(input: { type: EmailType; to: string; subject: string; text: string; relatedEntityType?: string }): Promise<{ status: EmailStatus; error?: string }> {
-  const { type, to, subject, text, relatedEntityType } = input;
+export async function sendTextEmail(input: { type: EmailType; to: string; subject: string; text: string; relatedEntityType?: string; replyTo?: string }): Promise<{ status: EmailStatus; error?: string }> {
+  const { type, to, subject, text, relatedEntityType, replyTo } = input;
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) {
@@ -329,7 +335,7 @@ export async function sendTextEmail(input: { type: EmailType; to: string; subjec
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to: [to], subject, text }),
+      body: JSON.stringify({ from, to: [to], subject, text, ...(replyTo ? { reply_to: replyTo } : {}) }),
     });
     if (!res.ok) {
       const error = `Resend ${res.status}: ${(await res.text()).slice(0, 300)}`;
