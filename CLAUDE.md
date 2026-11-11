@@ -835,10 +835,12 @@ frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
 ## Stolperfallen
 - **`npm run build` prüft nicht alle Typen** (11.11.2026): Ein Typfehler in einer Testdatei ging durch
   den Build, erst `npx tsc --noEmit` fand ihn. Deshalb bleibt `tsc` vor jedem Push Pflicht.
-- **Vitest installieren: npm bricht ab** mit „Cannot read properties of null (reading 'edgesOut')“
-  (Fehler in npm beim Auflösen der optionalen Partnerpakete von Vitest, 10.11.2026). Nur für diese
-  Installation `--legacy-peer-deps` nehmen — dann aber `vite` ausdrücklich mitinstallieren, sonst fehlt
-  es. Bewusst `vite` 7 statt 8: Vite 8 hätte `postcss` des Produktionsbuilds (Tailwind) angehoben.
+- **Vitest braucht `@types/node` ≥ 22** (11.11.2026): Mit `^20` brach `npm install` ab (lokal als
+  „Cannot read properties of null (reading 'edgesOut')“, bei Vercel als ERESOLVE) — und weil der Fehler lokal
+  mit `--legacy-peer-deps` umgangen wurde, schlugen ALLE Vercel-Builds fehl (10./11.11., zwei Commits nicht
+  live). Jetzt `@types/node ^22`. **Abhängigkeiten nie mit `--legacy-peer-deps` installieren**, und nach jeder
+  Änderung an `package.json` einmal `npm ci` in einem leeren Ordner probieren — so installiert Vercel.
+  `vite` 7 statt 8 bewusst: Vite 8 hätte `postcss` des Produktionsbuilds (Tailwind) angehoben.
 - **Supabase-Variablen im Testlauf leer** (`vitest.config.ts`): `lib/supabase/match-reports.ts`
   importiert `lib/supabase/client.ts`, und der legt beim Laden einen Client an, sobald URL und Schlüssel
   gesetzt sind (lokal `.env.local`, Cloud-Sessions als Umgebung). Nicht entfernen — sonst könnte ein
