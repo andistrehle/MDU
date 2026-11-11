@@ -28,7 +28,7 @@ import { dienstagsEnde } from '@/lib/dienstags-ende';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-interface Profil { id: string; role: string; display_name: string | null; first_name: string | null; last_name: string | null; email: string | null }
+interface Profil { id: string; role: string; display_name: string | null; first_name: string | null; last_name: string | null; email: string | null; player_id: string | null }
 const nameVon = (p: Profil) => [p.first_name, p.last_name].filter(Boolean).join(' ') || p.display_name || (p.email ?? '').split('@')[0] || 'Unbekannt';
 const fehler = (text: string, status = 400) => NextResponse.json({ error: text }, { status });
 const migrationFehlt = (m: string) => /team_co_captains|spielbericht_vertretungen/.test(m) ? 'Die Datenbank kennt Co-Captain und Vertretung noch nicht — Migration 0062 fehlt.' : m;
@@ -59,7 +59,7 @@ async function melde(an: string[], ohne: string, titel: string, text: string, ur
 
 async function lageVon(team: string) {
   const [pr, co, ve, mr] = await Promise.all([
-    db().from('profiles').select('id, role, display_name, first_name, last_name, email').eq('team_id', team),
+    db().from('profiles').select('id, role, display_name, first_name, last_name, email, player_id').eq('team_id', team),
     db().from('team_co_captains').select('user_id, rechte').eq('team_id', team).maybeSingle(),
     db().from('spielbericht_vertretungen').select('id, match_key, user_id, gueltig_bis').eq('team_id', team).is('ended_at', null).gt('gueltig_bis', new Date().toISOString()),
     db().from('match_reports').select('home_team_id, guest_team_id, status').eq('season_id', NEUE_SAISON.id).eq('home_team_id', team),
@@ -79,7 +79,7 @@ async function lageVon(team: string) {
     profile, name, coRow,
     antwort: {
       kapitaene: profile.filter(p => p.role === 'team_captain').map(p => ({ userId: p.id, name: nameVon(p) })),
-      coCaptain: coRow ? { userId: coRow.user_id, name: name(coRow.user_id), rechte: coRow.rechte } : null,
+      coCaptain: coRow ? { userId: coRow.user_id, name: name(coRow.user_id), rechte: coRow.rechte, playerId: profile.find(x => x.id === coRow.user_id)?.player_id ?? null } : null,
       mitglieder: profile.map(p => ({ userId: p.id, name: nameVon(p), kapitaen: p.role === 'team_captain' })).sort((a, b) => a.name.localeCompare(b.name, 'de')),
       vertretungen: ((ve.data ?? []) as { id: string; match_key: string; user_id: string; gueltig_bis: string }[])
         .map(v => ({ id: v.id, matchKey: v.match_key, spiel: spielText(v.match_key), userId: v.user_id, name: name(v.user_id), gueltigBis: v.gueltig_bis })),

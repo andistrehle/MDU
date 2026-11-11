@@ -8,6 +8,7 @@ import { getRankedRosterForTeam, getCurrentSeason, getPlayerDisplayName, findTea
 import { NachmeldenButton } from '@/components/mdu/nachmelden-button';
 import { listMyNominations, NOMINATION_STATUS_LABELS, type PlayerNomination } from '@/lib/supabase/nominations';
 import { getCaptainTeamView, listCaptainTeamSeasons } from '@/lib/supabase/season-teams';
+import { supabase } from '@/lib/supabase/client';
 
 type SeasonView = { seasonId: string; seasonName: string; source: 'static' | 'db' };
 
@@ -65,6 +66,21 @@ export default function KaderPage() {
 
   const teamName = staticTeam?.name ?? dbView?.teamName ?? teamId ?? '';
   const seasonLabel = currentView?.seasonName ?? activeSeason.name;
+
+  // Co-TC (Betreiber, 11.11.2026): nur markieren, Rechte bleiben intern. Spieler-Kennung über /api/team/kapitaene.
+  const [coPlayerId, setCoPlayerId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!teamId) return;
+    let weg = false;
+    (async () => {
+      const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+      if (!token) return;
+      const r = await fetch(`/api/team/kapitaene?team=${encodeURIComponent(teamId)}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+      const j = r?.ok ? await r.json().catch(() => null) as { coCaptain?: { playerId: string | null } | null } | null : null;
+      if (!weg) setCoPlayerId(j?.coCaptain?.playerId ?? null);
+    })();
+    return () => { weg = true; };
+  }, [teamId]);
 
   // Normalisierte Kaderzeilen der gewählten Saison (statisch ODER DB).
   const roster = useMemo<{ id: string; name: string; license: string | null; isCaptain: boolean }[]>(() => {
@@ -163,6 +179,9 @@ export default function KaderPage() {
                     <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                     {entry.isCaptain && (
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>Kapitän</span>
+                    )}
+                    {!entry.isCaptain && coPlayerId && entry.id === coPlayerId && (
+                      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>Co-TC</span>
                     )}
                     <span title="Pass-/Lizenznummer" style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: lic ? 'var(--th-text-muted)' : 'var(--th-text-faint)' }}>
                       {lic ?? '—'}
