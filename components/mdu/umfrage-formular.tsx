@@ -14,11 +14,11 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
-import { FRAGEN, TEXT_MAX, UMFRAGE, antwortenPruefen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage } from '@/lib/umfrage';
+import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
 
 export const UMFRAGE_GERAET_KEY = 'mdu-umfrage-geraet';
-export const umfrageFertigKey = () => `mdu-umfrage-${UMFRAGE.id}-fertig`;
+export const umfrageFertigKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-fertig`;
 
 function geraetId(): string {
   try {
@@ -28,10 +28,10 @@ function geraetId(): string {
   } catch { return crypto.randomUUID(); }
 }
 
-const datumDe = (iso: string) => iso.split('-').reverse().join('.');
+const datumDe = (iso: string | null) => (iso ?? '').split('-').reverse().join('.');
 const font = 'var(--font-manrope)';
 
-export function UmfrageFormular() {
+export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: UmfrageDef; fragen?: Frage[] } = {}) {
   const { user } = useAuth();
   const [a, setA] = useState<Antworten>({});
   const [status, setStatus] = useState<'neu' | 'sende' | 'fertig' | 'schon'>('neu');
@@ -40,28 +40,29 @@ export function UmfrageFormular() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      setLaeuft(umfrageLaeuft());
-      try { if (localStorage.getItem(umfrageFertigKey())) setStatus('schon'); } catch { /* egal */ }
+      setLaeuft(umfrageLaeuft(new Date(), def));
+      try { if (localStorage.getItem(umfrageFertigKey(def))) setStatus('schon'); } catch { /* egal */ }
     });
-  }, []);
+  }, [def]);
 
   const darfFreischalten = !!user?.teamId && hatTcRecht(user, user.teamId, 'team_manager');
   const hatTm = !!user?.teamManager;
-  const gruppen = useMemo(() => [...new Set(FRAGEN.map(f => f.gruppe))], []);
+  const gruppen = useMemo(() => [...new Set(fragen.map(f => f.gruppe))], [fragen]);
   const setze = (id: string, v: string | string[] | number | undefined) =>
     setA(alt => { const n = { ...alt }; if (v === undefined || v === '' || (Array.isArray(v) && !v.length)) delete n[id]; else n[id] = v; return n; });
 
   async function absenden() {
     setFehler(null);
-    const sauber = antwortenPruefen(a);
+    const sauber = antwortenPruefen(a, fragen);
     if (!sauber) { setFehler('Bitte beantworte mindestens eine Frage.'); return; }
-    if (!laeuft) { setStatus('fertig'); return; } // Vorschau: nichts speichern
+    if (!laeuft) { setStatus('fertig'); window.scrollTo({ top: 0 }); return; } // Vorschau: nichts speichern
     setStatus('sende');
-    const r = await fetch('/api/umfrage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ geraet: geraetId(), antworten: sauber }) }).catch(() => null);
+    const r = await fetch('/api/umfrage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ umfrage: def.id, geraet: geraetId(), antworten: sauber }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) as { ok?: boolean; error?: string } : { error: 'Keine Verbindung.' };
     if (!r?.ok || !j.ok) { setStatus('neu'); setFehler(j.error ?? 'Absenden fehlgeschlagen. Versuch es bitte noch einmal.'); return; }
-    try { localStorage.setItem(umfrageFertigKey(), new Date().toISOString()); } catch { /* egal */ }
+    try { localStorage.setItem(umfrageFertigKey(def), new Date().toISOString()); } catch { /* egal */ }
     setStatus('fertig');
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // sonst steht man nach dem Absenden in der Fußzeile
   }
 
   const tmHinweis = (a.team_manager === 'nein' || a.team_manager === 'weiss_nicht') && !hatTm ? (
@@ -82,7 +83,7 @@ export function UmfrageFormular() {
   if (status === 'schon') return (
     <Karte>
       <h2 style={h2}>Danke, du hast schon mitgemacht!</h2>
-      <p style={p}>Von diesem Gerät ist deine Antwort schon da. Die Ergebnisse werten wir nach dem {datumDe(umfrageEnde())} aus.</p>
+      <p style={p}>Von diesem Gerät ist deine Antwort schon da.{umfrageEnde(def) ? ` Die Ergebnisse werten wir nach dem ${datumDe(umfrageEnde(def))} aus.` : ''}</p>
     </Karte>
   );
 
@@ -90,7 +91,7 @@ export function UmfrageFormular() {
     <Karte>
       <h2 style={h2}>{laeuft ? 'Danke fürs Mitmachen!' : 'Vorschau – nichts gespeichert'}</h2>
       <p style={p}>{laeuft
-        ? 'Deine Antworten helfen uns, die Seite besser zu machen. Was davon umgesetzt wird, liest du in den News.'
+        ? (def.danke ?? 'Deine Antworten helfen uns, die Seite besser zu machen. Was davon umgesetzt wird, liest du in den News.')
         : 'Die Umfrage ist noch nicht gestartet. So sieht der Abschluss später aus.'}</p>
       {tmHinweis}
     </Karte>
@@ -104,16 +105,18 @@ export function UmfrageFormular() {
         </div>
       )}
       <p style={{ ...p, margin: 0 }}>
-        {FRAGEN.length} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
-        Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
-        Kennung dieses Geräts, damit niemand doppelt abstimmt.{laeuft ? ` Läuft bis ${datumDe(umfrageEnde())}.` : ''}
+        {def.intro ?? <>
+          {fragen.length} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
+          Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
+          Kennung dieses Geräts, damit niemand doppelt abstimmt.{laeuft && umfrageEnde(def) ? ` Läuft bis ${datumDe(umfrageEnde(def))}.` : ''}
+        </>}
       </p>
 
       {gruppen.map(g => (
         <Karte key={g}>
           <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)', marginBottom: 6 }}>{g}</div>
-          {FRAGEN.filter(f => f.gruppe === g).map(f => (
-            <FrageFeld key={f.id} f={f} nr={FRAGEN.indexOf(f) + 1} a={a} setze={setze}>
+          {fragen.filter(f => f.gruppe === g).map(f => (
+            <FrageFeld key={f.id} f={f} nr={fragen.indexOf(f) + 1} a={a} setze={setze}>
               {f.id === 'team_manager' ? tmHinweis : null}
             </FrageFeld>
           ))}
@@ -158,14 +161,18 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
               border: `1px solid ${v === n ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
               background: v === n ? 'var(--th-accent)' : 'var(--th-bg-card)', color: v === n ? '#fff' : 'var(--th-text-body)' }}>{n}</button>
         ))}
+        {f.typ === 'name' && (
+          <input type="text" value={(v as string) ?? ''} maxLength={NAME_MAX} onChange={e => setze(f.id, e.target.value)}
+            placeholder="z. B. Marcus, Funny Darters" aria-label={f.frage} style={feld} />
+        )}
         {f.typ === 'text' && (
           <textarea value={(v as string) ?? ''} maxLength={TEXT_MAX} rows={3} onChange={e => setze(f.id, e.target.value)}
             placeholder="Schreib einfach drauflos …" style={feld} />
         )}
       </div>
-      {f.freitextBei && v === f.freitextBei && (
+      {f.freitextBei && (v === f.freitextBei || (Array.isArray(v) && v.includes(f.freitextBei))) && (
         <textarea value={(a[`${f.id}_text`] as string) ?? ''} maxLength={TEXT_MAX} rows={2} onChange={e => setze(`${f.id}_text`, e.target.value)}
-          placeholder="Was wünschst du dir?" aria-label="Was wünschst du dir?" style={{ ...feld, marginTop: 8 }} />
+          placeholder={f.typ === 'mehr' ? 'Was genau?' : 'Was wünschst du dir?'} aria-label={f.typ === 'mehr' ? 'Was genau?' : 'Was wünschst du dir?'} style={{ ...feld, marginTop: 8 }} />
       )}
       {children}
     </fieldset>

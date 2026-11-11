@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { supabase } from '@/lib/supabase/client';
-import { FRAGEN, UMFRAGE, umfrageEnde, umfrageLaeuft, type Antworten, type Frage } from '@/lib/umfrage';
+import { UMFRAGEN, umfrageEnde, umfrageLaeuft, type Antworten, type Frage } from '@/lib/umfrage';
 
 type Zeile = { antworten: Antworten; created_at: string };
 const datumDe = (iso: string) => iso.slice(0, 10).split('-').reverse().join('.');
@@ -19,28 +19,41 @@ const txt: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 
 export default function UmfrageAuswertung() {
   const [z, setZ] = useState<Zeile[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
+  const [wahl, setWahl] = useState(UMFRAGEN[0].def.id);
+  const { def: UMFRAGE, fragen: FRAGEN } = UMFRAGEN.find(u => u.def.id === wahl) ?? UMFRAGEN[0];
   useEffect(() => {
     let ab = false;
+    queueMicrotask(() => { if (!ab) { setZ(null); setFehler(null); } });
     (async () => {
       const token = (await supabase?.auth.getSession())?.data.session?.access_token;
-      const r = await fetch('/api/umfrage', { headers: { Authorization: `Bearer ${token ?? ''}` } }).catch(() => null);
+      const r = await fetch(`/api/umfrage?umfrage=${encodeURIComponent(wahl)}`, { headers: { Authorization: `Bearer ${token ?? ''}` } }).catch(() => null);
       const j = r ? await r.json().catch(() => ({})) : { error: 'Keine Verbindung.' };
       if (ab) return;
       if (r?.ok) setZ((j as { antworten: Zeile[] }).antworten); else setFehler((j as { error?: string }).error ?? 'Fehlgeschlagen.');
     })();
     return () => { ab = true; };
-  }, []);
+  }, [wahl]);
 
-  const laeuft = umfrageLaeuft();
+  const laeuft = umfrageLaeuft(new Date(), UMFRAGE);
+  const ende = umfrageEnde(UMFRAGE);
   return (
     <AdminGuard title="Umfrage" subtitle={UMFRAGE.titel}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 760 }}>
+        <div role="tablist" aria-label="Umfrage wählen" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {UMFRAGEN.map(u => (
+            <button key={u.def.id} type="button" role="tab" aria-selected={u.def.id === wahl} onClick={() => setWahl(u.def.id)} style={{
+              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+              border: `1px solid ${u.def.id === wahl ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
+              background: u.def.id === wahl ? 'var(--th-accent)' : 'var(--th-bg-card)', color: u.def.id === wahl ? '#fff' : 'var(--th-text-body)',
+            }}>{u.def.titel}</button>
+          ))}
+        </div>
         <Karte>
           <div style={txt}>
             <strong>Status:</strong>{' '}
             {!UMFRAGE.live ? 'noch nicht gestartet (kein Popup, Antworten werden nicht gespeichert)'
-              : laeuft ? `läuft bis ${datumDe(umfrageEnde())}` : `beendet bzw. Zeitraum ${datumDe(UMFRAGE.start)} – ${datumDe(umfrageEnde())}`}
-            {' · '}<a href="/umfrage" target="_blank" rel="noreferrer" style={{ color: 'var(--th-accent)', fontWeight: 700 }}>Umfrage ansehen</a>
+              : laeuft ? (ende ? `läuft bis ${datumDe(ende)}` : 'läuft (ohne Ende, nur per Link)') : `beendet bzw. Zeitraum ${datumDe(UMFRAGE.start)} – ${datumDe(ende ?? '')}`}
+            {' · '}<a href={UMFRAGE.pfad} target="_blank" rel="noreferrer" style={{ color: 'var(--th-accent)', fontWeight: 700 }}>Umfrage ansehen</a>
           </div>
           {z && <div style={{ ...txt, marginTop: 6 }}><strong>{z.length}</strong> Teilnahme{z.length === 1 ? '' : 'n'}{z.length ? ` · zuletzt ${datumDe(z[0].created_at)}` : ''}</div>}
         </Karte>

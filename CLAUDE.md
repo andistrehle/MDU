@@ -156,6 +156,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `LigaTickerLeiste` (eigene Liga ohne eigenes Spiel + Meldung oben; Formular, Live-Modus, zweites Fenster); Seite `/live`.
   Start-Push an ALLE einmal je Spieltag: `/api/live/start` nach dem ersten Autospeichern, Sperre über `live_ticker_push`
   (Datum = Primärschlüssel); ohne Tabelle kein Push. Datenschutz-Absatz dazu: vom Betreiber als nicht nötig entschieden.
+  **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),
+  Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).
+  Website-Umfrage `/umfrage` gebaut, aber NICHT gestartet (`live: false`). Team-Manager-Käufer (Betreiber 11.11.2026):
+  `/umfrage/team-manager`, nur per Link, läuft ohne Ende, anonym außer freiwilligem Feld „Name/Team“ (Typ `name`).
   **Admin → Spielberichte** (Betreiber, 25.10.2026): alle Begegnungen auf einmal, nach Spieltag gruppiert
   (begonnene zuerst, neuester oben; innerhalb des Spieltags eingereichte zuerst, neueste Einreichung oben —
   Zeit aus `match_report_history` „submitted“, sonst `created_at`, `ladeEinreichzeiten` —, ausstehende danach), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle
