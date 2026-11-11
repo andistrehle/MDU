@@ -1,5 +1,6 @@
 'use client';
 
+import { LiveBand } from '@/components/mdu/live-ticker';
 import { useState } from 'react';
 import Link from 'next/link';
 import { TeamBadge } from './team-badge';
@@ -38,6 +39,7 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
 
   return (
     <>
+      <LiveBand liga={code} />
       <div style={{ borderTop: '1px solid var(--th-line-6)', background: 'var(--th-bg-tabbar1)', position: 'sticky', top: 70, zIndex: 10 }}>
         <div className="mdu-tabs-row" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', gap: 36, overflowX: 'auto', overflowY: 'hidden' }}>
           {TABS_27.map((t, i) => (

@@ -13,10 +13,16 @@
 import { useEffect, useState } from 'react';
 import { abonniereLive, letzterLiveStand, type LiveStand } from '@/lib/spielbericht-live';
 import { LiveAnzeige, LIVE_HINTERGRUND, fz } from '@/components/mdu/live-anzeige';
+import { LigaTickerLeiste } from '@/components/mdu/live-ticker';
+import { team27 } from '@/lib/data/saison-2027';
 
 export default function LivePage() {
   const [stand, setStand] = useState<LiveStand | null>(null);
   const [voll, setVoll] = useState(false);
+  const [leisteDa, setLeisteDa] = useState(false);
+  // Live-Ticker der eigenen Liga (ohne das eigene Spiel), nur wenn dort etwas läuft.
+  const tickerLiga = stand?.homeTeamId ? team27(stand.homeTeamId)?.league ?? null : null;
+  const tickerOhne = stand?.homeTeamId && stand.guestTeamId ? `${stand.homeTeamId}|${stand.guestTeamId}` : null;
 
   useEffect(() => {
     queueMicrotask(() => setStand(letzterLiveStand()));
@@ -35,7 +41,7 @@ export default function LivePage() {
     <div style={{ position: 'fixed', inset: 0, zIndex: 2147483000, overflow: 'auto', color: '#fff', fontFamily: 'var(--font-manrope)',
       background: LIVE_HINTERGRUND }}>
       {!voll && (
-        <button type="button" onClick={vollbild} style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 2, padding: '10px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+        <button type="button" onClick={vollbild} style={{ position: 'fixed', right: 16, bottom: leisteDa ? 46 : 16, zIndex: 2, padding: '10px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
           ⛶ Vollbild
         </button>
       )}
@@ -46,7 +52,8 @@ export default function LivePage() {
             <div style={{ marginTop: 10, fontSize: fz(14, 1.2, 20), opacity: 0.75 }}>Wartet auf den Spielbericht … Öffne im anderen Fenster „Spielbericht erfassen“ und wähle die Begegnung.</div>
           </div>
         </div>
-      ) : <LiveAnzeige s={stand} />}
+      ) : <div style={{ paddingBottom: leisteDa ? 40 : 0 }}><LiveAnzeige s={stand} /></div>}
+      {tickerLiga && <LigaTickerLeiste liga={tickerLiga} ohneKey={tickerOhne} fest dunkel onSichtbar={setLeisteDa} />}
     </div>
   );
 }

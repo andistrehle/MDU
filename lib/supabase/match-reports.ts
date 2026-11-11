@@ -280,6 +280,13 @@ export async function listAllReports(): Promise<MatchReport[]> {
   return listMyReports(); // RLS entscheidet (Admin sieht alle)
 }
 
+/** Zeitstempel der letzten Änderung (Schutz gegen gegenseitiges Überschreiben beim Autospeichern). */
+export async function berichtZeitstempel(id: string): Promise<string | null> {
+  if (!supabase) return null;
+  const { data } = await supabase.from('match_reports').select('updated_at').eq('id', id).maybeSingle();
+  return (data as { updated_at: string } | null)?.updated_at ?? null;
+}
+
 export async function getReport(id: string): Promise<MatchReport | null> {
   if (!supabase) return null;
   const { data } = await supabase.from('match_reports').select('*').eq('id', id).maybeSingle();
@@ -370,6 +377,8 @@ export async function createReport(
 
 export async function updateReport(
   id: string, header: Partial<ReportHeaderDraft>, players: ReportPlayer[], games: ReportGame[],
+  /** `neuBauen: false` = Entwurf (zählt noch nicht) → keine Ergebnisseiten neu bauen (Live-Ticker-Autospeichern, 11.11.2026). */
+  opts: { neuBauen?: boolean } = {},
 ): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   const totals = computeTotals(games);
@@ -384,7 +393,7 @@ export async function updateReport(
   if (error) return { error: speicherFehler(error.message) };
   const childErr = await replaceChildren(id, players, games, totals);
   // Ein schon eingereichter Bericht zählt bereits — geänderte Zahlen neu anzeigen.
-  if (!childErr) void ergebnisSeitenNeuBauen();
+  if (!childErr && opts.neuBauen !== false) void ergebnisSeitenNeuBauen();
   return { error: childErr };
 }
 

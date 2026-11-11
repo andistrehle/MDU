@@ -245,8 +245,22 @@ Nach den 7 Tagen wendest du dich an die Ligaleitung.`,
         frage: 'Kann ich den Spielstand im Lokal auf einem Bildschirm zeigen?',
         antwort: `Ja. Im Spielbericht-Formular gibt es den **Live-Modus**: Auf dem Tablet geht die Eingabe auf Vollbild, ihr tippt Ergebnisse und Highlights direkt ein, und alle können mitschauen. Mit „Zweites Fenster“ öffnest du eine reine Anzeige, die du auf einen angeschlossenen Monitor oder Fernseher ziehst.
 
-Die Anzeige läuft nur auf dem Gerät, auf dem eingegeben wird. Einen öffentlichen Link gibt es nicht.`,
+Die Anzeige selbst läuft nur auf dem Gerät, auf dem eingegeben wird. Wer nicht im Lokal ist, verfolgt den Abend im [Live-Ticker](/live). Unten in der Anzeige läuft dezent mit, wie es in den anderen Spielen eurer Liga steht.`,
         stichworte: ['tablet', 'fernseher', 'monitor', 'live'],
+      },
+      {
+        id: 'live-ticker',
+        frage: 'Gibt es einen Live-Ticker?',
+        antwort: `Ja. Am Spieltag zeigt der [Live-Ticker](/live) alle Begegnungen des Abends: den Stand und, aufgeklappt, jedes Spiel mit Spielern und Legs. Er läuft los, sobald die erste Heimmannschaft ein Ergebnis eingetragen hat – dann gibt es auch einmal am Abend eine Push-Nachricht an alle, die Push eingeschaltet haben. Auf Startseite, Spielplan, Ergebnissen und Ligaseite erscheint dann ein rotes Band „LIVE“.
+
+Live-Stände sind vorläufig, so wie die Teams sie eintragen. In Tabelle und Einzelrangliste zählt erst der eingereichte Spielbericht.`,
+        stichworte: ['live', 'ticker', 'zwischenstand', 'mitverfolgen'],
+      },
+      {
+        id: 'automatisch-gespeichert',
+        frage: 'Muss ich den Spielbericht zwischendurch speichern?',
+        antwort: `Nein. Solange der Bericht noch nicht eingereicht ist, speichert das Formular ein paar Sekunden nach jedem eingetragenen Ergebnis von selbst – unter den Knöpfen steht dann „Automatisch gespeichert“. Damit geht nichts verloren, wenn der Akku leer ist, und der Live-Ticker zeigt den Stand. Einreichen musst du am Ende weiterhin selbst.`,
+        stichworte: ['speichern', 'zwischenspeichern', 'automatisch', 'entwurf'],
       },
       {
         id: 'aufstellung-uebernehmen',

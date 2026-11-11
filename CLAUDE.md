@@ -145,6 +145,17 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   speichern). `lib/server/erfassung.ts` ordnet je Begegnung zu: Foto (`source='ocr'`) / live (erstes
   Ergebnis vor Beginn + 3,5 h) / abgeschrieben; ohne Protokoll „geschätzt“ aus `created_at`.
   Admin → Erfassung + Kachel im Dashboard; lesen nur service_role.
+  **Live-Ticker + Autospeichern** (Migration 0069, Betreiber 11.11.2026): Das Formular speichert einen ENTWURF 3 s nach
+  jedem neuen Ergebnis selbst (`autoSpeichern` in app/mein-bereich/spielberichte/page.tsx; nicht im Admin-Modus, nicht bei
+  Korrektur/Wertung/eingereichten Berichten; Konfliktschutz über `updated_at` = `berichtZeitstempel`; Fehler → neuer Versuch
+  nach 15 s; Hinweis „Automatisch gespeichert“ am Knopf). Entwürfe bauen KEINE Seiten neu (`updateReport(…, { neuBauen: false })`).
+  Rechnung rein in `lib/live-ticker.ts` (Spieltag = Berliner Datum von jetzt − 4 h; offen/live/beendet; `meldungText`;
+  Not-Aus `LIVE_TICKER_AN`), Lader `lib/server/live-ticker.ts` (service_role — Entwürfe sind per RLS gesperrt; öffentlich
+  nur Stand, Spieler, Legs), `/api/live` (CDN 20 s). Anzeige `components/mdu/live-ticker.tsx`: `LiveBand` (rot, nur wenn
+  heute etwas läuft/fertig ist, fragt nur 16–04 Uhr; Startseite, Spielplan, Ergebnisse, Ligaseite gefiltert),
+  `LigaTickerLeiste` (eigene Liga ohne eigenes Spiel + Meldung oben; Formular, Live-Modus, zweites Fenster); Seite `/live`.
+  Start-Push an ALLE einmal je Spieltag: `/api/live/start` nach dem ersten Autospeichern, Sperre über `live_ticker_push`
+  (Datum = Primärschlüssel); ohne Tabelle kein Push. Datenschutz-Absatz dazu: vom Betreiber als nicht nötig entschieden.
   **Admin → Spielberichte** (Betreiber, 25.10.2026): alle Begegnungen auf einmal, nach Spieltag gruppiert
   (begonnene zuerst, neuester oben; innerhalb des Spieltags eingereichte zuerst, neueste Einreichung oben —
   Zeit aus `match_report_history` „submitted“, sonst `created_at`, `ladeEinreichzeiten` —, ausstehende danach), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle

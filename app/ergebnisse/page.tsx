@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
+import { LiveBand } from '@/components/mdu/live-ticker';
 import { Footer } from '@/components/mdu/footer';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { SpieltagKarte27 } from '@/components/mdu/spielplan-27';
@@ -22,6 +23,7 @@ export default async function ErgebnissePage() {
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/ergebnisse" />
+      <LiveBand />
 
       <PageBanner eyebrow={NEUE_SAISON.name} title="Ergebnisse" boardRight="max(28px, min(calc(50vw - 288px), calc(100vw - 928px)))" />
 

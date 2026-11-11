@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
+import { LiveBand } from '@/components/mdu/live-ticker';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { LIGEN_2027, NEUE_SAISON } from '@/lib/data/saison-2027';
@@ -16,6 +17,7 @@ export default async function SpielplanPage() {
   return (
     <div style={{ background: 'var(--th-bg-page)', color: 'var(--th-text-strong)', minHeight: '100vh', position: 'relative', isolation: 'isolate' }}>
       <DesktopHeader activeHref="/spielplan" />
+      <LiveBand />
 
       <PageBanner eyebrow={NEUE_SAISON.name} title="Spielplan" boardRight="max(28px, min(calc(50vw - 188px), calc(100vw - 828px)))" />
 

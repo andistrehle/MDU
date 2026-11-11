@@ -18,12 +18,14 @@ import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import { ladeAufstellungen } from '@/lib/supabase/zusagen';
 import { zusagenFuerTeam } from '@/lib/features';
 import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
+import { supabase } from '@/lib/supabase/client';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
+import { LigaTickerLeiste } from '@/components/mdu/live-ticker';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import { KORREKTUR_MIN, KORREKTUR_TAGE, unterschiede, gleicherStand, datumDe, heuteBerlin, type Korrektur, type KorrekturStand } from '@/lib/spielbericht-korrektur';
 import {
   GAME_SCHEDULE, legResults, bestOfFuerLiga, computeTotals,
-  createReport, updateReport, submitReport, notifyReportChange, protokolliereSpeichern,
+  createReport, updateReport, submitReport, notifyReportChange, protokolliereSpeichern, berichtZeitstempel,
   getReport, getReportPlayers, getReportGames, getReportHistory, HISTORY_ACTION_LABELS,
   submitGuestProposal, computePlayerRanking, adminBestaetigen, meldeProtest, PROTEST_MIN,
   ladeKorrektur, frageKorrekturAn, entscheideKorrektur, findeBerichtZurBegegnung,
@@ -192,6 +194,10 @@ function SpielberichteInner() {
   }, [header, homePlayers, guestPlayers, games, bestOf]);
   // Live-Modus (Tablet): die Anzeige im Vollbild, Eingabe direkt durch Antippen.
   const [liveModus, setLiveModus] = useState(false);
+  // Live-Ticker der eigenen Liga (ohne das eigene Spiel) — erscheint nur, wenn dort gerade etwas läuft.
+  const tickerLiga = header.home_team_id ? team27(header.home_team_id)?.league ?? null : null;
+  const tickerOhne = header.home_team_id && header.guest_team_id ? `${header.home_team_id}|${header.guest_team_id}` : null;
+  const [leisteDa, setLeisteDa] = useState(false);
 
   // Vorschlag des Gegners je Spiel-Nr. (zum farblichen Markieren der Abweichungen).
   const proposedByNo = useMemo(() => {
@@ -359,6 +365,70 @@ function SpielberichteInner() {
     setWiederhergestellt(null);
     try { if (sicherungsKey) localStorage.removeItem(sicherungsKey); } catch { /* egal */ }
   }
+  // ── Automatisch zwischenspeichern (Live-Ticker, Betreiber 11.11.2026) ──────
+  // Nur Entwürfe der eintragenden Seite, nicht im Admin-Modus, nicht beim Vorschlag/
+  // bei einer Korrektur. Ausgelöst von jedem neuen/geänderten Ergebnis, 3 s gebündelt.
+  // Schlägt es fehl (Netz im Lokal), bleibt alles wie bisher auf dem Gerät und es wird
+  // nach 15 s erneut versucht. Hat inzwischen jemand anders gespeichert, wird NICHT
+  // überschrieben, sondern gemeldet. Absenden bleibt Handarbeit.
+  const zeitstempelRef = useRef<string | null>(null);
+  const [autoStatus, setAutoStatus] = useState<{ art: 'ok' | 'fehler' | 'konflikt'; zeit: number } | null>(null);
+  const ergebnisKey = games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}`).join(',');
+  const autoErlaubt = geladen && !readOnly && !isAdminRole && !proposing && !korrigieren && !wertung
+    && (!loadedStatus || loadedStatus === 'draft') && !!header.home_team_id && !!header.guest_team_id
+    && games.some(g => g.legs_home != null && g.legs_guest != null);
+  const autoLaeuft = useRef(false);
+  const letzterAutoKey = useRef<string | null>(null);
+  async function autoSpeichern(): Promise<boolean> {
+    if (autoLaeuft.current || busy) return false;
+    if (protestFehler()) return false;
+    autoLaeuft.current = true;
+    try {
+      const players = [...homePlayers, ...guestPlayers];
+      const payload: ReportHeaderDraft = { ...header, season_id: seasonId || header.season_id };
+      let id = regId;
+      if (id) {
+        const jetzt = await berichtZeitstempel(id);
+        if (zeitstempelRef.current && jetzt && jetzt !== zeitstempelRef.current) { setAutoStatus({ art: 'konflikt', zeit: Date.now() }); return false; }
+        const { error } = await updateReport(id, payload, players, games, { neuBauen: false });
+        if (error) { setAutoStatus({ art: 'fehler', zeit: Date.now() }); return false; }
+      } else {
+        payload.confirm_team_id = user?.teamId && user.teamId === header.guest_team_id ? header.home_team_id : header.guest_team_id;
+        const r = await createReport(payload, players, games);
+        if (r.error || !r.id) { setAutoStatus({ art: 'fehler', zeit: Date.now() }); return false; }
+        id = r.id; setRegId(r.id);
+      }
+      void protokolliereSpeichern(id, games, liveModus, erfassungLesen());
+      zeitstempelRef.current = await berichtZeitstempel(id);
+      sicherungErledigt();
+      setAutoStatus({ art: 'ok', zeit: Date.now() });
+      void meldeLiveStart(id);
+      return true;
+    } catch { setAutoStatus({ art: 'fehler', zeit: Date.now() }); return false; }
+    finally { autoLaeuft.current = false; }
+  }
+  useEffect(() => {
+    if (!autoErlaubt || !ungespeichert || autoStatus?.art === 'konflikt') return;
+    // Ausgangsstand je Bericht merken: geladene Ergebnisse lösen nichts aus, erst neue.
+    const fuer = idParam ?? 'neu';
+    if (letzterAutoKey.current === null || !letzterAutoKey.current.startsWith(`${fuer}#`)) letzterAutoKey.current = `${fuer}#${regId ? ergebnisKey : ''}`;
+    if (letzterAutoKey.current === `${fuer}#${ergebnisKey}` && autoStatus?.art !== 'fehler') return;
+    const t = setTimeout(() => {
+      void autoSpeichern().then(ok => { if (ok) letzterAutoKey.current = `${fuer}#${ergebnisKey}`; });
+    }, autoStatus?.art === 'fehler' ? 15000 : 3000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoErlaubt, ungespeichert, ergebnisKey, autoStatus, idParam]);
+
+  /** Start-Push „Live-Ticker läuft“ — der Server entscheidet, ob es der erste Live-Stand des Abends ist. */
+  async function meldeLiveStart(id: string) {
+    const merker = `mdu-live-start:${id}`;
+    try { if (sessionStorage.getItem(merker)) return; sessionStorage.setItem(merker, '1'); } catch { /* egal */ }
+    const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+    if (!token) return;
+    void fetch('/api/live/start', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reportId: id }) }).catch(() => {});
+  }
+
   // ── Erfassung mitschreiben (Admin → Erfassung, Migration 0055) ──────
   // Wann kam auf diesem Gerät das erste und das letzte Spielergebnis dazu?
   // Geladene Stände zählen nicht, nur Eingaben. Liegt im localStorage, weil
@@ -434,6 +504,7 @@ function SpielberichteInner() {
     const r = await getReport(id);
     if (!r) return;
     setRegId(r.id);
+    zeitstempelRef.current = r.updated_at ?? null;
     setOwnerId(r.home_captain_user_id);
     setConfirmTeam(r.confirm_team_id ?? null);
     setLoadedStatus(r.status);
@@ -615,15 +686,18 @@ function SpielberichteInner() {
       payload.confirm_team_id = user?.teamId && user.teamId === header.guest_team_id ? header.home_team_id : header.guest_team_id;
     }
     if (regId) {
-      const { error } = await updateReport(regId, payload, players, games);
+      // Entwürfe zählen noch nicht → kein Neubau der Ergebnisseiten (Absenden baut selbst neu).
+      const { error } = await updateReport(regId, payload, players, games, { neuBauen: !!loadedStatus && loadedStatus !== 'draft' });
       if (error) { setMsg({ kind: 'err', text: error, ort: 'aktionen' }); return null; }
       void protokolliereSpeichern(regId, games, liveModus, erfassungLesen());
+      zeitstempelRef.current = await berichtZeitstempel(regId);
       return regId;
     }
     const { id, error } = await createReport(payload, players, games);
     if (error || !id) { setMsg({ kind: 'err', text: error ?? 'Speichern fehlgeschlagen.', ort: 'aktionen' }); return null; }
     void protokolliereSpeichern(id, games, liveModus, erfassungLesen());
     setRegId(id);
+    zeitstempelRef.current = await berichtZeitstempel(id);
     return id;
   }
 
@@ -742,16 +816,18 @@ function SpielberichteInner() {
     <MemberShell title="Spielbericht erfassen">
       {liveModus && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 2147483000, overflow: 'auto', color: '#fff', fontFamily: 'var(--font-manrope)', background: LIVE_HINTERGRUND }}>
-          <div style={{ paddingBottom: 72 }}><LiveAnzeige s={liveStand} bearbeiten={readOnly ? undefined : liveBearbeiten} /></div>
-          <div style={{ position: 'fixed', right: 12, bottom: 12, zIndex: 3, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <div style={{ paddingBottom: leisteDa ? 110 : 72 }}><LiveAnzeige s={liveStand} bearbeiten={readOnly ? undefined : liveBearbeiten} /></div>
+          <LigaTickerLeiste liga={tickerLiga} ohneKey={tickerOhne} fest dunkel onSichtbar={setLeisteDa} />
+          <div style={{ position: 'fixed', right: 12, bottom: leisteDa ? 46 : 12, zIndex: 3, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {!readOnly && (
-              <button type="button" disabled={busy} onClick={() => void onSaveDraft()} style={liveLeiste}>{busy ? 'Speichert …' : ungespeichert ? '💾 Zwischenspeichern' : '✓ Gespeichert'}</button>
+              <button type="button" disabled={busy} onClick={() => void onSaveDraft()} style={liveLeiste}>{busy ? 'Speichert …' : ungespeichert ? (autoStatus?.art === 'fehler' ? '⚠ Nicht gespeichert – erneut' : autoStatus?.art === 'konflikt' ? '⚠ Neu laden nötig' : '💾 Zwischenspeichern') : autoStatus?.art === 'ok' ? '✓ Automatisch gespeichert' : '✓ Gespeichert'}</button>
             )}
             <button type="button" onClick={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void document.documentElement.requestFullscreen?.().catch(() => {}); }} style={liveLeiste}>⛶ Vollbild</button>
             <button type="button" onClick={() => { setLiveModus(false); if (document.fullscreenElement) void document.exitFullscreen(); }} style={{ ...liveLeiste, background: 'rgba(255,255,255,0.18)' }}>✕ Zurück zum Formular</button>
           </div>
         </div>
       )}
+      {!liveModus && tickerLiga && <LigaTickerLeiste liga={tickerLiga} ohneKey={tickerOhne} />}
       {fromAdmin && (
         <Link href="/admin/spielberichte" style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16,
@@ -1195,6 +1271,7 @@ function SpielberichteInner() {
                   </label>
                 )}
                 {hinweis('aktionen')}
+                {autoErlaubt && autoStatus && <AutoSpeicherHinweis s={autoStatus} />}
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <button type="button" onClick={onSaveDraft} disabled={busy} style={ghost}>Als Entwurf speichern</button>
                   <button type="button" onClick={onSubmit} disabled={busy} style={primary}>{busy ? 'Bitte warten …' : isAdminRole && loadedStatus === 'confirmed' ? 'Änderungen speichern (bleibt bestätigt)' : adminDirekt ? 'Speichern und bestätigen' : 'Spielbericht absenden'}</button>
@@ -1210,6 +1287,15 @@ function SpielberichteInner() {
 }
 
 // ── kleine Bausteine ───────────────────────────────────────────
+
+/** Status des automatischen Zwischenspeicherns (Live-Ticker, 11.11.2026). */
+function AutoSpeicherHinweis({ s }: { s: { art: 'ok' | 'fehler' | 'konflikt'; zeit: number } }) {
+  const zeit = new Date(s.zeit).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const [farbe, text] = s.art === 'ok' ? ['var(--th-accent)', `✓ Automatisch gespeichert · ${zeit} — erscheint im Live-Ticker`]
+    : s.art === 'fehler' ? ['var(--th-gold)', '⚠ Noch nicht gespeichert – wird erneut versucht. Deine Eingaben bleiben auf diesem Gerät.']
+    : ['var(--th-loss)', '⚠ Jemand anders hat diesen Bericht inzwischen gespeichert. Automatisches Speichern pausiert – bitte Seite neu laden, damit nichts überschrieben wird.'];
+  return <div role="status" style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: farbe, margin: '0 0 8px' }}>{text}</div>;
+}
 
 /**
  * Korrektur eines bestätigten Berichts (Migration 0061): offene Anfrage mit

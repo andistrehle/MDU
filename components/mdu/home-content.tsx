@@ -12,6 +12,7 @@ import { getHomepageNews } from '@/lib/server/news-data';
 import { ladeSpieltagBanner } from '@/lib/server/spieltag-banner';
 import { SpieltagBanner } from '@/components/mdu/spieltag-banner';
 import { TeamManagerBanner } from '@/components/mdu/team-manager-banner';
+import { LiveBand } from '@/components/mdu/live-ticker';
 import { PREMIUM_OEFFENTLICH, TM_START } from '@/lib/premium';
 import {
   getRecentResults,
@@ -93,6 +94,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
       ) : (
         <>
           <DesktopHeader activeHref="/" />
+          <LiveBand />
           {banner && <SpieltagBanner daten={banner} />}
           {tmBanner && <TeamManagerBanner />}
 
