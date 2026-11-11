@@ -13,7 +13,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
 
 ## Arbeitsweise (vom Betreiber festgelegt)
 - **Fertige Änderungen direkt committen und auf `main` pushen — ohne nachzufragen.**
-- Vor jedem Push: `npx tsc --noEmit` und `npm run build` müssen grün sein.
+- Vor jedem Push: `npx tsc --noEmit`, `npm test` und `npm run build` müssen grün sein.
+- **Tests** (Vitest, seit 11.11.2026): nur reine Rechenmodule, `lib/**/*.test.ts` neben dem Modul
+  (Tabelle, Einzelrangliste, Spieltagsbericht, Korrektur). Kein Test darf DB, Netz oder externe Dienste
+  anfassen; Uhrzeit nur über `vi.setSystemTime` bzw. Datum als Parameter. Erwartete Werte aus den
+  Regeln von Hand rechnen, nicht aus dem, was der Code gerade liefert. Ein vom Betreiber bestätigter,
+  noch offener Fehler steht als `it.fails` (Einzelrangliste: Spieler ohne Profil nach Teamwechsel) —
+  wird er behoben, schlägt der Test an und `.fails` muss weg.
 - Vor dem Push `git pull --rebase origin main` (eine GitHub-Action pusht ebenfalls auf main).
 - Commit-Footer: `Co-Authored-By: Claude <noreply@anthropic.com>` (Modellname einsetzen).
 - SQL (Migrationen) dem Betreiber immer direkt im Chat geben, MIT Link zum SQL-Editor:
@@ -827,6 +833,16 @@ entsteht, ändert sie sich mit: `alteId` in der Korrektur merkt sich die
 frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
 
 ## Stolperfallen
+- **`npm run build` prüft nicht alle Typen** (11.11.2026): Ein Typfehler in einer Testdatei ging durch
+  den Build, erst `npx tsc --noEmit` fand ihn. Deshalb bleibt `tsc` vor jedem Push Pflicht.
+- **Vitest installieren: npm bricht ab** mit „Cannot read properties of null (reading 'edgesOut')“
+  (Fehler in npm beim Auflösen der optionalen Partnerpakete von Vitest, 10.11.2026). Nur für diese
+  Installation `--legacy-peer-deps` nehmen — dann aber `vite` ausdrücklich mitinstallieren, sonst fehlt
+  es. Bewusst `vite` 7 statt 8: Vite 8 hätte `postcss` des Produktionsbuilds (Tailwind) angehoben.
+- **Supabase-Variablen im Testlauf leer** (`vitest.config.ts`): `lib/supabase/match-reports.ts`
+  importiert `lib/supabase/client.ts`, und der legt beim Laden einen Client an, sobald URL und Schlüssel
+  gesetzt sind (lokal `.env.local`, Cloud-Sessions als Umgebung). Nicht entfernen — sonst könnte ein
+  Test mit der Produktionsdatenbank reden.
 - **Anmeldung liegt in Cookie UND localStorage** (`lib/auth/session-storage.ts`, seit 06.10.2026).
   Vorher nur localStorage: iOS/WebKit (Web-App vom Home-Bildschirm, WebViews) räumt per Skript
   geschriebenen Speicher nach 7 Tagen ab — Nutzer flogen raus. Jetzt Cookies `mdu-sb.*`

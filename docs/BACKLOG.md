@@ -445,6 +445,14 @@ im Kalender-Abo („Extern“ im Titel) und in der Glocke. Premium wie der Rest.
 
 ## Bekannte To-dos
 
+- [ ] **Einzelrangliste: Spielverlauf eines Abends nicht nach Spielnummer** (Befund aus den Tests, 11.11.2026,
+  nur notiert): `lib/server/ergebnisse-2027.ts` lädt `match_report_games` für die Einzelrangliste ohne
+  `.order('game_no')`, und `berechneEinzel` sortiert innerhalb eines Berichts nicht. Die Einzel eines
+  Abends können in `verlauf` (Formkurve, „letzte Ergebnisse“ im Spielerprofil) in Datenbank-Reihenfolge
+  stehen, z. B. nach einer Korrektur (Spiele werden gelöscht und neu geschrieben). Punkte/Ränge unberührt.
+- [ ] **Einzelrangliste: Spieler OHNE Profil wird nach Teamwechsel zu zwei Zeilen** (Kennung enthält den
+  Teamnamen; vom Betreiber als Fehler bestätigt). Test steht als `it.fails` in
+  `lib/einzelrangliste-2027.test.ts`.
 - [ ] Datei-Uploads (Team-Logo / Mannschaftsbild) via Supabase Storage (aktuell URL-Felder)
 - [ ] Übernahme freigegebener Anmeldungen in offizielle Team-/Saisondaten (RPC `apply_team_registration` vorhanden; Roster-Übernahme weiter ausbauen)
 - [ ] Bestätigte Spieler-Nachmeldungen automatisch in den Saison-Kader übernehmen
