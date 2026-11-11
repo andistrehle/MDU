@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "sonntagsranking",
+    "date": "2026-11-11",
+    "title": "SONNTAGSRANKING",
+    "teaser": "nur noch ein Ranking pro Person und Tag",
+    "category": "Neuigkeiten",
+    "paragraphs": [
+      "Ab sofort gilt wieder die alte Regel :  Es ist nur mehr **EIN** MDC Ranking pro Person und Tag möglich !!!"
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-15-aubinger-boazn-zusatz",
     "date": "2026-11-10",
     "title": "Zusätzliches Ranking am 15.11.2026 im Aubinger Boazn",
