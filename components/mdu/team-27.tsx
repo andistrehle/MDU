@@ -19,6 +19,8 @@ export interface Kader27Eintrag {
   name: string;
   licenseNumber: string | null;
   isCaptain: boolean;
+  /** Co-Captain (nur Markierung, Rechte bleiben intern) */
+  isCoCaptain?: boolean;
   neu: boolean;
   photoUrl: string | null;
   stats: (EinzelZeile & { liga: string }) | null;
@@ -38,9 +40,9 @@ const vz = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 // ── Übersicht ──────────────────────────────────────────────────
 
-export function Uebersicht27({ teamId, color, seasonName, ligaName, ligaHref, venueName, venueAddress, captain, zeile, ergebnisse }: {
+export function Uebersicht27({ teamId, color, seasonName, ligaName, ligaHref, venueName, venueAddress, captain, coCaptain, zeile, ergebnisse }: {
   teamId: string; color: string; seasonName: string; ligaName: string; ligaHref: string;
-  venueName: string | null; venueAddress: string | null; captain: string | null;
+  venueName: string | null; venueAddress: string | null; captain: string | null; coCaptain?: string | null;
   zeile: TabellenZeile | null; ergebnisse: ErgebnisMap27;
 }) {
   const gespielt = zeile && zeile.sp > 0 ? zeile : null;
@@ -77,9 +79,12 @@ export function Uebersicht27({ teamId, color, seasonName, ligaName, ligaHref, ve
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Icon name="user" size={14} stroke={2} style={{ flexShrink: 0, color: 'var(--th-text-muted)' }} />
-              {captain
-                ? <span><span style={{ color: 'var(--th-text-dim)', marginRight: 4 }}>TC:</span>{captain}</span>
-                : <span style={{ color: 'var(--th-text-faint)', fontStyle: 'italic' }}>Teamcaptain noch nicht eingetragen</span>}
+              <span>
+                {captain
+                  ? <span><span style={{ color: 'var(--th-text-dim)', marginRight: 4 }}>TC:</span>{captain}</span>
+                  : <span style={{ color: 'var(--th-text-faint)', fontStyle: 'italic' }}>Teamcaptain noch nicht eingetragen</span>}
+                {coCaptain && <span style={{ display: 'block', marginTop: 3 }}><span style={{ color: 'var(--th-text-dim)', marginRight: 4 }}>Co-TC:</span>{coCaptain}</span>}
+              </span>
             </div>
           </div>
         </div>
@@ -159,8 +164,8 @@ function Zeile({ p, children }: { p: Kader27Eintrag; children: React.ReactNode }
     : <div style={style}>{children}</div>;
 }
 
-const TC = ({ size = 9 }: { size?: number }) => (
-  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: size, color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>TC</span>
+const TC = ({ size = 9, text = 'TC' }: { size?: number; text?: string }) => (
+  <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: size, color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 3, padding: '1px 5px', flexShrink: 0, whiteSpace: 'nowrap' }}>{text}</span>
 );
 
 export function Kader27({ kader, color }: { kader: Kader27Eintrag[]; color: string }) {
@@ -184,6 +189,7 @@ export function Kader27({ kader, color }: { kader: Kader27Eintrag[]; color: stri
                       {p.name || 'Name nicht verfügbar'}
                     </span>
                     {p.isCaptain && <TC size={10} />}
+                    {p.isCoCaptain && <TC size={10} text="Co-TC" />}
                     {p.neu && <span style={{ fontSize: 9, fontWeight: 700, color: '#A77A00', textTransform: 'uppercase' }}>neu</span>}
                   </div>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--th-text-muted)', marginTop: 3 }}>

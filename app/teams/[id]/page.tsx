@@ -21,6 +21,7 @@ import { ladeErgebnisse27, ladeEinzel27, tabelle27 } from '@/lib/server/ergebnis
 import { TeamHero, Mannschaftsbild } from '@/components/mdu/team-hero';
 import { TeamTabs } from '@/components/mdu/team-tabs';
 import { Uebersicht27, Kader27, Statistik27, type Kader27Eintrag } from '@/components/mdu/team-27';
+import { ladeCoCaptain } from '@/lib/server/co-captain';
 import { team27, findLiga27, venue27, istArchivParam, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 
 export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
@@ -38,8 +39,8 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
   if (t27 && !archiv) {
     const st = await getSeasonTeam(NEUE_SAISON.id, id);
     if (st) {
-      const [roster, { byKey: ergebnisse }, tabelle, einzel, media] = await Promise.all([
-        getSeasonRoster(NEUE_SAISON.id, id), ladeErgebnisse27(), tabelle27(t27.league), ladeEinzel27(), loadPublicTeamProfile(id),
+      const [roster, { byKey: ergebnisse }, tabelle, einzel, media, co] = await Promise.all([
+        getSeasonRoster(NEUE_SAISON.id, id), ladeErgebnisse27(), tabelle27(t27.league), ladeEinzel27(), loadPublicTeamProfile(id), ladeCoCaptain(id),
       ]);
       const fotos = await loadPublicPlayerPhotos(roster.map(p => p.playerId).filter((x): x is string => !!x));
       const liga = findLiga27(t27.league);
@@ -50,6 +51,9 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
       const gespielt = zeile && zeile.sp > 0 ? zeile : null;
       const captain = roster.find(p => p.isCaptain);
       const captainName = captain ? `${captain.firstName} ${captain.lastName}`.trim() : null;
+      // Co-TC (Betreiber, 11.11.2026): im Kader markiert und neben dem TC genannt — ohne Rechte.
+      const coImKader = co?.playerId ? roster.find(p => p.playerId === co.playerId) : undefined;
+      const coName = coImKader ? `${coImKader.firstName} ${coImKader.lastName}`.trim() : co?.name ?? null;
 
       // Kader: nach der Einzelrangliste, wer noch nicht gespielt hat dahinter
       // (TC zuerst, dann nach Nachname). Bild: Profilbild mit Einwilligung,
@@ -59,6 +63,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
         name: `${p.firstName} ${p.lastName}`.trim(),
         licenseNumber: p.licenseNumber,
         isCaptain: p.isCaptain,
+        isCoCaptain: !!co?.playerId && p.playerId === co.playerId && !p.isCaptain,
         neu: p.status === 'pending_review',
         photoUrl: (p.playerId && (fotos.get(p.playerId) ?? findPlayer(p.playerId)?.photoUrl)) || null,
         stats: (p.playerId && einzel.byPlayer[p.playerId]) || null,
@@ -101,7 +106,7 @@ export default async function TeamProfilePage(props: PageProps<'/teams/[id]'>) {
           <TeamTabs color={t27.color} tabs={[
             { label: 'Übersicht', content: (
               <Uebersicht27 teamId={id} color={t27.color} seasonName={NEUE_SAISON.name} ligaName={ligaName} ligaHref={ligaHref}
-                venueName={venue?.name ?? st.venueName} venueAddress={venue?.address ?? null} captain={captainName}
+                venueName={venue?.name ?? st.venueName} venueAddress={venue?.address ?? null} captain={captainName} coCaptain={coName}
                 zeile={zeile} ergebnisse={ergebnisse} />
             ) },
             { label: 'Kader', content: <Kader27 kader={kader} color={t27.color} /> },
