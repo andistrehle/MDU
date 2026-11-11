@@ -331,7 +331,7 @@ Spiele, deren Bericht am Sonntagabend noch fehlt oder die verlegt sind, stehen a
         frage: 'Können wir ein Spiel verlegen?',
         antwort: `Ja, wenn beide Teamkapitäne einverstanden sind. Unter [Mein Spielplan](/mein-team/spielplan) schlägt ein TC über „Spiel verlegen“ einen neuen Termin vor, der TC des Gegners bestätigt oder lehnt ab. Die Ligaleitung wird informiert. Freigeben muss sie nur, wenn der neue Termin vor dem Saisonstart oder nach dem letzten Spielwochenende liegt.
 
-Bis zur Bestätigung bleibt im Spielplan der alte Termin stehen, mit dem Hinweis „Verlegung angefragt“.
+Bis zur Bestätigung bleibt im Spielplan der alte Termin stehen, mit dem Hinweis „Verlegung angefragt“. Ist die Verlegung übernommen, werden die Zu- und Absagen für dieses Spiel zurückgesetzt – wer schon geantwortet hatte, bekommt eine Benachrichtigung und sagt für den neuen Termin neu zu oder ab.
 
 Laut [Spielbedingungen](/spielbedingungen) gilt außerdem: Die Ligaleitung muss mindestens 48 Stunden vor Spielbeginn Bescheid wissen, und je Hin- und Rückrunde dürfen höchstens drei Spiele verlegt werden.`,
         stichworte: ['verschieben', 'termin ändern', 'verlegung'],

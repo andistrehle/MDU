@@ -132,6 +132,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Ohne Token bleibt die Anfrage „bestätigt – nicht übernommen“ und lässt sich dort erneut übernehmen.
   Von Hand verlegte Termine weiter in `termine-2027.ts` — ein Eintrag in `verlegungen-2027.json`
   schlägt ihn aber.
+  Nach dem Übernehmen löscht `zusagenZuruecksetzen()` alle Zu-/Absagen der Begegnung (beide Teams) und schickt
+  wer geantwortet hatte Glocke + Push „bitte neu zusagen“ (Betreiber 11.11.2026, Hinweis Stefan Friedel); Aufstellung/
+  Treffzeit/Aufgaben bleiben. Von Hand in `termine-2027.ts` verlegte Termine setzen NICHTS zurück.
   **Heimrechttausch durch die TCs** (Migration 0053, Betreiber 20.10.2026): gleiche Karte/Tabelle,
   `kind = 'heimrecht'`, `match_key` = Hinspiel. Gegner-TC bestätigt, Ligaleitung nur informiert, nur
   ohne Spielbericht. Übernehmen = Commit nach `lib/data/heimrecht-2027.json` (`{a,b}` = Hinspiel VOR

@@ -28,6 +28,7 @@ import 'server-only';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { alleBegegnungen27, team27, NEUE_SAISON, SAISON_START, SAISON_ENDE, VERLEGUNGEN_2027, type Begegnung27 } from '@/lib/data/saison-2027';
 import { aendereJsonDatei } from './github-mdu';
+import { spieltagPfad } from '@/lib/spieltag';
 import type { ServerUser } from './auth';
 import { isAdminUser, hatTcRechtServer } from './auth';
 import { tcEmpfaenger } from './tc-empfaenger';
@@ -230,10 +231,32 @@ async function uebernehmen(v: Verlegung, wer: string): Promise<Verlegung> {
     const sha = await aendereJsonDatei<Record<string, unknown>>(DATEI, alt => ({
       ...alt, [v.match_key]: { datum: v.new_date, ...(v.new_time ? { uhrzeit: v.new_time } : {}), am: heute() },
     }), `Spiel verlegt: ${paarung(v)} auf ${termin(v.new_date, v.new_time)}\n\nBestätigt über die Seite (${wer}), Anfrage ${v.id}.`);
-    return await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha, note: null }, ['bestaetigt']);
+    const neu = await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha, note: null }, ['bestaetigt']);
+    await zusagenZuruecksetzen(v).catch(() => {});
+    return neu;
   } catch (e) {
     return await setze(v.id, { note: `Noch nicht übernommen: ${(e as Error).message}` }, ['bestaetigt']);
   }
+}
+
+/**
+ * Neuer Termin → alte Zu-/Absagen gelten nicht mehr (Betreiber, 11.11.2026, nach Hinweis eines Spielers):
+ * alle Antworten der Begegnung (beide Teams) löschen und wer geantwortet hatte bekommt Glocke + Push
+ * „bitte neu zu- oder absagen“. Aufstellung, Treffzeit und Aufgaben bleiben.
+ */
+async function zusagenZuruecksetzen(v: Verlegung) {
+  const { data, error } = await db().from('match_availability').delete()
+    .eq('season_id', NEUE_SAISON.id).eq('match_key', v.match_key).select('team_id, player_id');
+  if (error || !data?.length) return;
+  const zeilen = data as { team_id: string; player_id: string }[];
+  const { data: profile } = await db().from('profiles').select('id, player_id, team_id').in('player_id', [...new Set(zeilen.map(z => z.player_id))]);
+  const text = `${paarung(v)} ist verlegt auf ${termin(v.new_date, v.new_time)}. Deine Antwort galt für den alten Termin – bitte neu zu- oder absagen.`;
+  const glocken = ((profile ?? []) as { id: string; player_id: string; team_id: string | null }[]).flatMap(p => {
+    const z = zeilen.find(x => x.player_id === p.player_id && (!p.team_id || p.team_id === x.team_id));
+    return z ? [{ recipient_user_id: p.id, type: 'match_reschedule', title: 'Spiel verlegt – bitte neu zusagen', message: text, short_text: text,
+      related_entity_type: 'match_reschedules', action_url: spieltagPfad(z.team_id, v.match_key) }] : [];
+  });
+  if (glocken.length) await db().from('notifications').insert(glocken);
 }
 
 export async function beantworteVerlegung(u: ServerUser, id: string, aktion: 'bestaetigen' | 'ablehnen' | 'zurueckziehen', grund?: string | null): Promise<Verlegung> {
