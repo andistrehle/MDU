@@ -159,7 +159,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),
   Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).
   Website-Umfrage `/umfrage` gebaut, aber NICHT gestartet (`live: false`). Team-Manager-Käufer (Betreiber 11.11.2026):
-  `/umfrage/team-manager`, nur per Link, läuft ohne Ende, anonym außer freiwilligem Feld „Name/Team“ (Typ `name`).
+  `/umfrage/team-manager`, nur per Link, läuft ohne Ende, anonym außer freiwilligem Feld „Name/Team“ (Typ `name`). Jede Antwort → Glocke + Push an den Super-Admin
+  (`meldeBetreiber` in /api/umfrage, Link Admin → Umfrage `?umfrage=team-manager-kaeufer`).
   **Dankes-Mail an Käufer** (Betreiber 11.11.2026): `freischalten()` → `kaeuferMail()` (lib/server/kaeufer-mail.ts, Text in
   lib/kaeufer-mail.ts) beim ERSTEN bezahlten Kauf eines Teams (genau 1 Zeile in `team_premium_payments`; keine Mail bei
   Verlängerung/Monatsabbuchung/Testkauf). An den Käufer, sonst den Kapitän; Antwort an `ANBIETER.email`; `email_logs` Typ `premium_danke`.

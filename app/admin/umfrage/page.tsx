@@ -20,6 +20,11 @@ export default function UmfrageAuswertung() {
   const [z, setZ] = useState<Zeile[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [wahl, setWahl] = useState(UMFRAGEN[0].def.id);
+  // Direktlink aus der Glocke: ?umfrage=<id>
+  useEffect(() => {
+    const w = new URLSearchParams(window.location.search).get('umfrage');
+    if (w && UMFRAGEN.some(u => u.def.id === w)) queueMicrotask(() => setWahl(w));
+  }, []);
   const { def: UMFRAGE, fragen: FRAGEN } = UMFRAGEN.find(u => u.def.id === wahl) ?? UMFRAGEN[0];
   useEffect(() => {
     let ab = false;

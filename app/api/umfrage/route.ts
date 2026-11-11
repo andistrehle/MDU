@@ -9,7 +9,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
-import { UMFRAGE, antwortenPruefen, findeUmfrage, umfrageLaeuft } from '@/lib/umfrage';
+import { TM_UMFRAGE, UMFRAGE, antwortenPruefen, findeUmfrage, umfrageLaeuft, type Antworten } from '@/lib/umfrage';
+import { betreiber } from '@/lib/server/premium';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,23 @@ export async function POST(request: Request) {
     if (/duplicate key/.test(error.message)) return NextResponse.json({ ok: true, schonDa: true });
     return NextResponse.json({ ok: false, error: /umfrage_antworten/.test(error.message) ? 'Migration 0068 fehlt noch.' : 'Speichern fehlgeschlagen.' }, { status: 500 });
   }
+  // Team-Manager-Umfrage: Glocke (+ Push über 0056) an den Super-Admin (Betreiber, 11.11.2026).
+  if (u.def.id === TM_UMFRAGE.id) await meldeBetreiber(antworten).catch(() => {});
   return NextResponse.json({ ok: true });
+}
+
+async function meldeBetreiber(a: Antworten) {
+  const an = await betreiber();
+  if (!an.length || !supabaseAdmin) return;
+  const wer = typeof a.name === 'string' ? a.name : 'anonym';
+  const teile = [`von ${wer}`];
+  if (typeof a.gesamt === 'number') teile.push(`${a.gesamt}/5 Sterne`);
+  if (typeof a.empfehlen === 'number') teile.push(`Empfehlung ${a.empfehlen}/10`);
+  const text = `Neue Antwort ${teile.join(' · ')}.`;
+  await supabaseAdmin.from('notifications').insert(an.map(id => ({
+    recipient_user_id: id, type: 'team_premium', title: 'Team-Manager-Umfrage ausgefüllt', message: text, short_text: text,
+    related_entity_type: 'umfrage', action_url: `/admin/umfrage?umfrage=${TM_UMFRAGE.id}`,
+  })));
 }
 
 export async function GET(request: Request) {
