@@ -16,15 +16,31 @@
 // mitzuschleppen. Wer sie benutzt (der Ergebnis-Upload), setzt die Namen
 // selbst ein.
 //
-// WAS SIE NICHT TUT: rückwirkend etwas beanstanden. Der Bestand enthält rund
-// hundert Tage, an denen jemand zweimal gestartet ist — damals war das
-// erlaubt, und an abgelegten Ergebnissen ändert diese Regel nichts.
+// WAS SIE NICHT TUT: rückwirkend etwas beanstanden. „Ab sofort" heißt ab
+// sofort — für Turniere DAVOR galt die andere Regel, und was damals erlaubt
+// war, bleibt erlaubt. Zwei Vorkehrungen dafür:
 //
-// Deshalb zählt NUR, wer auf einem der NEUEN Zettel steht. Zwei alte Turniere,
-// die sich untereinander widersprechen, gehen den an, der gerade einen Zettel
-// hochlädt, nichts an — sonst ließe sich ein Abend von damals nie mehr
-// berichtigen, weil die Freigabe an fremden Namen scheiterte.
+//   • `REGEL_AB`: Turniere vor diesem Tag werden gar nicht erst geprüft.
+//     Betreiber, 11.11.2026, nachdem ein Ergebnis vom Sonntag (08.11.) nicht
+//     mehr nachzutragen war: „Da war diese Regel noch nicht aktiv … bitte da
+//     nochmal die Ausnahmeregelung und alles ab dann gesperrt."
+//   • Es zählt NUR, wer auf einem der NEUEN Zettel steht. Zwei alte Turniere,
+//     die sich untereinander widersprechen, gehen den, der gerade einen
+//     Zettel hochlädt, nichts an — sonst ließe sich ein Abend von damals nie
+//     mehr berichtigen, weil die Freigabe an fremden Namen scheiterte.
+//
+// Im Bestand stehen rund hundert Tage mit Doppelstarts aus der Zeit davor.
+// Die bleiben, wie sie sind.
 // ============================================================
+
+/**
+ * Ab diesem Tag gilt „ein Ranking pro Spieler und Tag" — der Tag der
+ * Ankündigung in der Facebook-Gruppe.
+ *
+ * Verglichen wird mit dem TAG DES TURNIERS, nicht mit dem Tag des Hochladens:
+ * Ein Zettel vom Sonntag darf auch am Mittwoch noch nachgetragen werden.
+ */
+export const REGEL_AB = '2026-11-09';
 
 /** Ein Turnier, verkürzt auf das, worauf es hier ankommt. */
 export interface TagTurnier {
@@ -53,8 +69,9 @@ function kennung(t: { datum: string; spielortId: string }): string {
  * `neu` sind die Zettel, die gerade abgelegt werden sollen; `bestehend` ist,
  * was schon in der Wertung steht.
  *
- * Zwei Dinge bleiben bewusst außen vor:
+ * Drei Dinge bleiben bewusst außen vor:
  *
+ *   • Jeder Tag vor `REGEL_AB`. Da galt die Regel noch nicht.
  *   • Ein bestehendes Turnier mit derselben Kennung (Datum + Spielort) wie ein
  *     neuer Zettel. Ein erneutes Hochladen ERSETZT es, es steht also nicht
  *     neben dem neuen, sondern an seiner Stelle. Ohne das meldete jede
@@ -92,6 +109,8 @@ export function doppelstarts(neu: TagTurnier[], bestehend: TagTurnier[]): Doppel
 
   const treffer: Doppelstart[] = [];
   for (const [datum, tag] of jeTag) {
+    // Vor dem Stichtag galt die Regel nicht — da gibt es nichts zu beanstanden.
+    if (datum < REGEL_AB) continue;
     const neueNummern = neueJeTag.get(datum);
     if (!neueNummern) continue;
     for (const [passNr, orte] of tag) {

@@ -434,8 +434,12 @@ im Stapel oder schon in der Wertung —, wird nichts abgelegt und der Spieler
 beim Namen genannt. Dabei zählt NUR, wer auf einem neuen Zettel steht, und
 ein Turnier, das der Stapel ersetzt (gleiches Datum + Spielort), zählt nicht
 mit; sonst ließe sich kein Abend mehr berichtigen. **Rückwirkend gilt die
-Regel nicht:** Im Bestand stehen rund 100 Tage mit Doppelstarts aus der Zeit,
-als es erlaubt war — die bleiben, wie sie sind. Im Browser werden freie Nummern über den GANZEN
+Regel nicht:** `REGEL_AB = '2026-11-09'` (Tag der Ankündigung) — Turniere von
+davor werden gar nicht geprüft, verglichen wird der TAG DES TURNIERS, nicht
+der des Hochladens (Betreiber 11.11.2026: ein Ergebnis vom Sonntag 08.11. ließ
+sich sonst nicht mehr nachtragen). Im Bestand stehen rund 100 Tage mit
+Doppelstarts aus der Zeit, als es erlaubt war — die bleiben, wie sie sind.
+Tests: `lib/mdc/ein-ranking-pro-tag.test.ts`. Im Browser werden freie Nummern über den GANZEN
 Stapel verteilt, nicht je Zettel. Ein einzelner Zettel ist der Stapel mit
 einem Element — es gibt nur diesen einen Weg, damit die Prüfungen nicht
 zweimal gepflegt werden; Wortlaut und Commit-Nachricht bleiben dort wie
