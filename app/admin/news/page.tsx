@@ -11,6 +11,7 @@ import {
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
 import { NewsZahlenKlein } from '@/components/mdu/news-reaktionen';
 import { SpieltagSocial } from '@/components/mdu/spieltag-social';
+import { NewsSocial } from '@/components/mdu/news-social';
 
 interface FormState {
   id?: string;
@@ -322,7 +323,7 @@ export default function AdminNewsPage() {
               <button type="button" onClick={() => setVorschau(v => (v === n.id ? null : n.id))} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
                 {vorschau === n.id ? 'Vorschau zu' : 'Vorschau'}
               </button>
-              {istSpieltagsbericht(n.id) && (
+              {(
                 <button type="button" onClick={() => setSocial(v => (v === n.id ? null : n.id))} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
                   {social === n.id ? 'Facebook & Instagram zu' : 'Facebook & Instagram'}
                 </button>
@@ -336,7 +337,9 @@ export default function AdminNewsPage() {
                 {meldung[n.id].text}
               </div>
             )}
-            {social === n.id && <SpieltagSocial newsId={n.id} veroeffentlicht={n.status === 'published'} />}
+            {social === n.id && (istSpieltagsbericht(n.id)
+              ? <SpieltagSocial newsId={n.id} veroeffentlicht={n.status === 'published'} />
+              : <NewsSocial id={n.id} titel={n.title} teaser={n.teaser} kategorie={n.category} />)}
             {vorschau === n.id && (
               <div style={{ marginTop: 12 }}>
                 <NewsArticleCard article={{ id: `vorschau-${n.id}`, title: n.title, teaser: n.teaser, source: n.source ?? 'Münchner Dart Union', date: n.display_date, category: n.category, content: n.content }} />

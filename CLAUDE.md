@@ -308,6 +308,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   veröffentlichten Beitrag außer Spieltagsberichten (die haben `pushAlle`). `/api/news/push` (nur Ligaleitung) schreibt jedem Konto
   eine Glocke (`type = 'news'`, Link `/news#<id>`), den Push macht der 0056-Trigger je Zeile. Einmal je Beitrag (gibt es schon eine
   Glocke mit dem Link, passiert nichts), Rückfrage vor dem Senden. Veröffentlichen allein pusht NICHT.
+  Der Push baut `/news` und `/` sofort neu (`revalidatePath`), sonst fehlte der Beitrag bis zu 10 Min. Knopf „Facebook & Instagram“
+  jetzt bei JEDEM Beitrag: normale News → `components/mdu/news-social.tsx` (Bild 1080×1350 mit Logo, Überschrift, Teaser +
+  FB-Text mit Direktlink / IG-Text mit Adresse als Text), Spieltagsberichte weiter `SpieltagSocial`.
   **TC → Team per Glocke/Push** (Betreiber, 27.10.2026, `/api/team/nachricht`, `lib/supabase/team-nachricht.ts`,
   `components/mdu/team-push.tsx`): eigener Termin neu/importiert/geändert/gelöscht mit Häkchen „Team
   benachrichtigen“ (vorausgewählt, `TeamBenachrichtigen` in termin-ui), „Offene erinnern (n)“ auf Spiel- und

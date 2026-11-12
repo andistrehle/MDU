@@ -9,6 +9,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
 
@@ -32,6 +33,10 @@ export async function POST(request: Request) {
   const url = `/news#${n.id}`;
   const { count } = await db.from('notifications').select('id', { count: 'exact', head: true }).eq('type', 'news').eq('action_url', url);
   if (count) return NextResponse.json({ ok: true, schonGesendet: true });
+
+  // /news und Startseite sind statisch (revalidate 600) — sofort neu bauen, sonst landet der Tipp auf den Push
+  // bis zu 10 Minuten lang auf einer Seite ohne den Beitrag.
+  revalidatePath('/news'); revalidatePath('/');
 
   const ids: string[] = [];
   for (let von = 0; ; von += 1000) {
