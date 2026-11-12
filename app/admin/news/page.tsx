@@ -5,7 +5,7 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
   listAllNews, saveNews, deleteNews, setNewsStatus,
-  istSpieltagsbericht, erzeugeSpieltagsbericht, pusheSpieltagsbericht,
+  istSpieltagsbericht, erzeugeSpieltagsbericht, pusheSpieltagsbericht, pusheNews,
   type NewsRecord, type NewsStatus,
 } from '@/lib/supabase/news';
 import { NewsArticleCard } from '@/components/mdu/news-article-card';
@@ -93,6 +93,15 @@ export default function AdminNewsPage() {
     const { data, error } = await pusheSpieltagsbericht(id);
     if (error) { melde(id, `Push nicht gesendet: ${error}`, false); return; }
     melde(id, data?.schonGesendet ? 'Push war schon gesendet – nicht noch einmal geschickt.' : `Push an ${data?.gesendet ?? 0} von ${data?.geraete ?? 0} Geräten gesendet.`, true);
+  };
+
+  // Normale News: Glocke + Push an alle Konten (einmal je Beitrag), mit Rückfrage.
+  const newsPushen = async (n: NewsRecord) => {
+    if (!window.confirm(`Glocke + Push an ALLE Konten schicken?\n\n„${n.title}“\n${n.teaser}\n\nGeht je Beitrag nur einmal.`)) return;
+    melde(n.id, 'Wird gesendet …', true);
+    const { data, error } = await pusheNews(n.id);
+    if (error) { melde(n.id, `Nicht gesendet: ${error}`, false); return; }
+    melde(n.id, data?.schonGesendet ? 'Wurde schon an alle geschickt – nicht noch einmal.' : `Glocke an ${data?.konten ?? 0} Konten – wer Push eingeschaltet hat, bekommt es aufs Handy.`, true);
   };
 
   const erzeugen = async () => {
@@ -303,6 +312,11 @@ export default function AdminNewsPage() {
               {istSpieltagsbericht(n.id) && n.status === 'published' && (
                 <button type="button" onClick={() => pushen(n.id)} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
                   Push senden
+                </button>
+              )}
+              {!istSpieltagsbericht(n.id) && n.status === 'published' && (
+                <button type="button" onClick={() => newsPushen(n)} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>
+                  🔔 Glocke + Push an alle
                 </button>
               )}
               <button type="button" onClick={() => setVorschau(v => (v === n.id ? null : n.id))} style={btn('transparent', 'var(--th-text-strong)', 'var(--th-line-8)')}>

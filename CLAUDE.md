@@ -304,6 +304,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Hinweis; Link-Sticker/Musik setzt man in Instagram. Bildunterschrift fürs Reel (`instaText`: Teaser + „mdudarts.de/news“
   als Text + Hashtags, editierbar, „kopieren“); „Reel teilen“ kopiert sie vorher in die Zwischenablage (01.11.2026). Neu erzeugen per Knopf (nur solange Entwurf). News kennen jetzt `## Zwischenüberschrift`,
   `[Text](/pfad)` und Zeilenumbrüche im Absatz.
+  **News an alle per Glocke + Push** (Betreiber, 12.11.2026): Admin → News, Knopf „🔔 Glocke + Push an alle“ bei jedem
+  veröffentlichten Beitrag außer Spieltagsberichten (die haben `pushAlle`). `/api/news/push` (nur Ligaleitung) schreibt jedem Konto
+  eine Glocke (`type = 'news'`, Link `/news#<id>`), den Push macht der 0056-Trigger je Zeile. Einmal je Beitrag (gibt es schon eine
+  Glocke mit dem Link, passiert nichts), Rückfrage vor dem Senden. Veröffentlichen allein pusht NICHT.
   **TC → Team per Glocke/Push** (Betreiber, 27.10.2026, `/api/team/nachricht`, `lib/supabase/team-nachricht.ts`,
   `components/mdu/team-push.tsx`): eigener Termin neu/importiert/geändert/gelöscht mit Häkchen „Team
   benachrichtigen“ (vorausgewählt, `TeamBenachrichtigen` in termin-ui), „Offene erinnern (n)“ auf Spiel- und

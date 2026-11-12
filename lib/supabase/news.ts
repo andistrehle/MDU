@@ -103,6 +103,18 @@ export async function deleteNews(id: string): Promise<{ error: string | null }> 
   return { error: error?.message ?? null };
 }
 
+/** Veröffentlichten Beitrag an alle Konten: Glocke + Push (einmal je Beitrag, /api/news/push). */
+export async function pusheNews(id: string): Promise<{ data: { konten?: number; schonGesendet?: boolean } | null; error: string | null }> {
+  if (!supabase) return { data: null, error: NOT_CONFIGURED };
+  const t = (await supabase.auth.getSession()).data.session?.access_token;
+  if (!t) return { data: null, error: 'Bitte neu einloggen.' };
+  try {
+    const r = await fetch('/api/news/push', { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    const j = await r.json() as { konten?: number; schonGesendet?: boolean; error?: string };
+    return r.ok ? { data: j, error: null } : { data: null, error: j.error ?? 'Hat nicht geklappt.' };
+  } catch { return { data: null, error: 'Keine Verbindung – bitte noch einmal versuchen.' }; }
+}
+
 // ── Spieltagsbericht (Migration 0058, /api/spieltag-bericht) ──
 // Kennung der automatisch erzeugten Berichte: „spieltag-<Freitag>“.
 export const istSpieltagsbericht = (id: string) => id.startsWith('spieltag-');
