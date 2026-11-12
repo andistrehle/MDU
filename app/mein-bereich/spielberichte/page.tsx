@@ -20,7 +20,7 @@ import { zusagenFuerTeam } from '@/lib/features';
 import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
 import { supabase } from '@/lib/supabase/client';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
-import { LigaTickerLeiste } from '@/components/mdu/live-ticker';
+import { LigaTickerLeiste, LiveTeilenKnopf } from '@/components/mdu/live-ticker';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import { KORREKTUR_MIN, KORREKTUR_TAGE, unterschiede, gleicherStand, datumDe, heuteBerlin, type Korrektur, type KorrekturStand } from '@/lib/spielbericht-korrektur';
 import {
@@ -822,6 +822,7 @@ function SpielberichteInner() {
             {!readOnly && (
               <button type="button" disabled={busy} onClick={() => void onSaveDraft()} style={liveLeiste}>{busy ? 'Speichert …' : ungespeichert ? (autoStatus?.art === 'fehler' ? '⚠ Nicht gespeichert – erneut' : autoStatus?.art === 'konflikt' ? '⚠ Neu laden nötig' : '💾 Zwischenspeichern') : autoStatus?.art === 'ok' ? '✓ Automatisch gespeichert' : '✓ Gespeichert'}</button>
             )}
+            <LiveTeilenKnopf heim={header.home_team_id} gast={header.guest_team_id} heimName={header.home_team_name} gastName={header.guest_team_name} stil={{ ...liveLeiste, background: '#25D366' }} />
             <button type="button" onClick={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void document.documentElement.requestFullscreen?.().catch(() => {}); }} style={liveLeiste}>⛶ Vollbild</button>
             <button type="button" onClick={() => { setLiveModus(false); if (document.fullscreenElement) void document.exitFullscreen(); }} style={{ ...liveLeiste, background: 'rgba(255,255,255,0.18)' }}>✕ Zurück zum Formular</button>
           </div>
@@ -880,6 +881,7 @@ function SpielberichteInner() {
                     style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: 'var(--th-accent)', border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap' }}>
                     Zweites Fenster
                   </button>
+                  <LiveTeilenKnopf heim={header.home_team_id} gast={header.guest_team_id} heimName={header.home_team_name} gastName={header.guest_team_name} />
                 </span>
               </div>
             )}

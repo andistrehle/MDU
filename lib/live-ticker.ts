@@ -12,6 +12,17 @@
 /** Not-Aus: false blendet Ticker, Band, Leiste und Meldungen überall aus (Autospeichern bleibt). */
 export const LIVE_TICKER_AN = true;
 
+/** Wer im Formular „Live-Link teilen“ sieht (Betreiber 12.11.2026: erst intern testen). null = alle Teams. */
+export const LIVE_TEILEN_TEAMS: string[] | null = ['freibad-bazis'];
+export const liveTeilenErlaubt = (heimTeam: string | null | undefined) =>
+  !!heimTeam && LIVE_TICKER_AN && (LIVE_TEILEN_TEAMS === null || LIVE_TEILEN_TEAMS.includes(heimTeam));
+
+/** Link auf EIN Spiel im Live-Ticker (die Seite klappt es auf und springt hin). */
+export const liveLink = (site: string, key: string) => `${site.replace(/\/$/, '')}/live?spiel=${encodeURIComponent(key)}`;
+/** Text zum Teilen (WhatsApp). */
+export const liveTeilenText = (heim: string, gast: string, link: string) =>
+  `🎯 ${heim} – ${gast} läuft live!\nHier könnt ihr Spiel für Spiel mitverfolgen:\n${link}`;
+
 export type TickerStatus = 'offen' | 'live' | 'beendet';
 
 export interface TickerSpiel {

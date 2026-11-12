@@ -17,6 +17,11 @@
 //      eintragen. Nötig, weil WhatsApp das Koppeln von GitHub-Rechnern (Rechenzentrum) ablehnte.
 //   node bot.mjs umfrage    → heute Spieltag + ab 11 Uhr + noch nicht gepostet → posten
 //   node bot.mjs test       → Umfrage fürs nächste Spiel an dich selbst („Du“-Chat)
+//   node bot.mjs live       → LIVE-TICKER (Betreiber, 12.11.2026): läuft während des Bazis-Spiels, fragt
+//      jede Minute /api/live ab und schreibt nach JEDEM neuen Spielergebnis eine Nachricht in die
+//      Gruppe WA_GRUPPE_LIVE (eigene Gruppe, NICHT die Umfrage-Gruppe), zum Schluss den Endstand.
+//      Ohne Bazis-Spiel heute oder ohne WA_GRUPPE_LIVE: meldet sich gar nicht erst an.
+//   node bot.mjs live-test  → dasselbe, aber an dich selbst („Du“-Chat)
 // Umfrage-Inhalt: umfrage.json (erzeugt von umfrage.ts, im Workflow davor).
 // ENV: WA_SCHLUESSEL, WA_GRUPPE (genauer Gruppenname), WA_NUMMER (nur fürs Anmelden)
 // ============================================================
@@ -131,6 +136,34 @@ async function gruppeFinden(sock) {
   return treffer[0].id;
 }
 
+async function gruppeNachName(sock, name) {
+  const gruppen = Object.values(await sock.groupFetchAllParticipating());
+  const treffer = gruppen.filter(g => (g.subject || '').trim() === name);
+  if (treffer.length !== 1) throw new Error(treffer.length ? 'Mehrere Gruppen mit diesem Namen (Live).' : 'Live-Gruppe nicht gefunden – Name in WA_GRUPPE_LIVE genau so wie in WhatsApp?');
+  return treffer[0].id;
+}
+
+// ── Live-Ticker ──────────────────────────────────────────────
+const TEAM = 'freibad-bazis';
+const SITE = 'https://www.mdudarts.de';
+const tickerHolen = async () => {
+  const r = await fetch(`${SITE}/api/live`, { headers: { 'cache-control': 'no-cache' } });
+  if (!r.ok) throw new Error(`Ticker antwortet ${r.status}`);
+  const d = await r.json();
+  return (d.spiele || []).find(s => s.home === TEAM || s.away === TEAM) || null;
+};
+const namen = (l) => (l && l.length ? l.join(' / ') : '?');
+const spielText = (s, g, heim, gast) =>
+  `🎯 Spiel ${g.nr}${g.doppel ? ' · Doppel' : ''}\n${namen(g.heim)} ${g.legsHeim}:${g.legsGast} ${namen(g.gast)}\n➡️ ${s.homeName} ${heim}:${gast} ${s.awayName}`;
+
+async function liveLauf(ziel) {
+  const ende = Date.now() + 5 * 3600_000;
+  let s = await tickerHolen().catch(() => null);
+  if (!s) { sag('Heute kein Spiel der Bazis im Ticker – nichts zu tun.'); return null; }
+  const merkerKey = `live:${s.key}`;
+  return { s, merkerKey, ende, ziel };
+}
+
 function umfrageLesen() {
   const pfad = join(HIER, 'umfrage.json');
   if (!existsSync(pfad)) return null;
@@ -150,6 +183,14 @@ async function main() {
     if (stundeBerlin() < 11) { sag('Noch vor 11 Uhr – der nächste Lauf postet.'); return; }
     if (merker.gepostet.includes(u.datum)) { sag('Umfrage für heute ist schon in der Gruppe.'); return; }
   }
+  let live = null;
+  if (modus === 'live' || modus === 'live-test') {
+    const gruppeName = (process.env.WA_GRUPPE_LIVE || '').trim();
+    if (modus === 'live' && !gruppeName) { sag('WA_GRUPPE_LIVE fehlt – Live-Ticker nicht eingerichtet, nichts zu tun.'); return; }
+    live = await liveLauf(gruppeName);
+    if (!live) return;
+    if (modus === 'live' && (merker.liveFertig || []).includes(live.merkerKey)) { sag('Live-Ticker für dieses Spiel ist schon abgeschlossen.'); return; }
+  }
   if (!modus.startsWith('anmelden') && !existsSync(join(AUTH, 'creds.json'))) {
     throw new Error('Noch nicht angemeldet – Workflow zuerst einmal mit Modus „anmelden“ starten (Standard ist „test“).');
   }
@@ -159,6 +200,36 @@ async function main() {
     if (modus.startsWith('anmelden')) {
       await gruppeFinden(sock);
       sag('Angemeldet ✓ – Gruppe gefunden ✓. Ab jetzt postet der Bot an jedem Spieltag um 11 Uhr.');
+    } else if (live) {
+      const an = modus === 'live' ? await gruppeNachName(sock, live.ziel) : sock.user.id.replace(/:\d+@/, '@');
+      const vor = modus === 'live-test' ? '[TEST] ' : '';
+      const gepostet = new Set((merker.liveSpiele || {})[live.merkerKey] || []);
+      const link = `${SITE}/live?spiel=${encodeURIComponent(live.s.key)}`;
+      const senden = async (text) => { await sock.sendMessage(an, { text: vor + text }); await delay(1500); };
+      if (!gepostet.size) await senden(`🔴 Live: ${live.s.homeName} – ${live.s.awayName}\nIch melde jedes Ergebnis hier. Alles live: ${link}`);
+      let s = live.s;
+      while (Date.now() < live.ende) {
+        // Neue Spiele in Reihenfolge melden, mit dem Stand NACH diesem Spiel (aus allen bis dahin gemeldeten).
+        const bekannt = [...s.spiele].sort((a, b) => a.nr - b.nr);
+        for (const g of bekannt) {
+          if (gepostet.has(g.nr)) continue;
+          gepostet.add(g.nr);
+          const bis = bekannt.filter(x => gepostet.has(x.nr));
+          const heim = bis.filter(x => x.legsHeim > x.legsGast).length, gast = bis.filter(x => x.legsGast > x.legsHeim).length;
+          await senden(spielText(s, g, heim, gast));
+        }
+        merker.liveSpiele = { ...(merker.liveSpiele || {}), [live.merkerKey]: [...gepostet] };
+        if (s.status === 'beendet') {
+          await senden(`🏁 Endstand: ${s.homeName} ${s.standHeim}:${s.standGast} ${s.awayName}\n${link}`);
+          if (modus === 'live') merker.liveFertig = [...(merker.liveFertig || []), live.merkerKey].slice(-60);
+          sag('Endstand gemeldet ✓');
+          break;
+        }
+        if (modus === 'live-test' && gepostet.size) { sag('Test: bisherige Ergebnisse geschickt ✓'); break; }
+        await delay(60_000);
+        s = (await tickerHolen().catch(() => null)) || s;
+      }
+      sag(`Live-Ticker: ${gepostet.size} Spiele gemeldet.`);
     } else if (modus === 'test') {
       const u = umfrageLesen();
       if (!u) throw new Error('Kein kommendes Spiel mit fester Uhrzeit gefunden.');

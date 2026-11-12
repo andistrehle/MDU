@@ -1,0 +1,71 @@
+name: Bazis · Live-Ticker (WhatsApp)
+
+# Während eines Spiels der Freibad Bazis schreibt der Bot nach JEDEM neuen Ergebnis
+# eine Nachricht in die Live-Gruppe (Geheimnis WA_GRUPPE_LIVE — eine ANDERE Gruppe als
+# die Umfrage), zum Schluss den Endstand. Quelle ist der öffentliche Live-Ticker
+# (/api/live), also nur, was live im Spielbericht eingetragen wird.
+# INOFFIZIELL wie die Umfrage (scripts/whatsapp-bot/bot.mjs, Betreiber 12.11.2026, Test).
+#
+# Startet jeden Abend zweimal (18:47 / 19:17 UTC, GitHub startet oft verspätet). Ohne
+# Bazis-Spiel heute oder ohne WA_GRUPPE_LIVE endet der Lauf sofort, ohne sich bei WhatsApp
+# anzumelden. Ein Lauf bleibt bis zum Endstand, höchstens 5 Stunden.
+# Teilt sich die Gruppe „bazis-bot“ mit der Umfrage: nie zwei Anmeldungen gleichzeitig.
+#
+# Von Hand: live (wie der Abendlauf) · live-test (bisherige Ergebnisse an dich selbst)
+on:
+  schedule:
+    - cron: '47 18 * * *'
+    - cron: '17 19 * * *'
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: 'Was soll der Bot tun?'
+        type: choice
+        options: [live, live-test]
+        default: live-test
+
+concurrency:
+  group: bazis-bot
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 320
+    env:
+      MODUS: ${{ inputs.modus || 'live' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Gespeicherte Anmeldung holen
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/whatsapp-bot/sitzung
+          key: wa-sitzung-none
+          restore-keys: wa-sitzung-
+
+      - name: Bot-Abhängigkeiten
+        working-directory: scripts/whatsapp-bot
+        run: npm ci --no-audit --no-fund
+
+      - name: Bot
+        working-directory: scripts/whatsapp-bot
+        env:
+          WA_SCHLUESSEL: ${{ secrets.WA_SCHLUESSEL }}
+          WA_GRUPPE_LIVE: ${{ secrets.WA_GRUPPE_LIVE }}
+          WA_SITZUNG: ${{ secrets.WA_SITZUNG }}
+        run: node bot.mjs "$MODUS"
+
+      - name: Anmeldung (verschlüsselt) sichern
+        if: always() && hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/whatsapp-bot/sitzung
+          key: wa-sitzung-${{ hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') }}

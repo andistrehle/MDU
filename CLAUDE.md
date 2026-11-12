@@ -362,6 +362,11 @@ dem Spielplan inkl. Verlegungen, `umfrage.ts`) über ein verknüpftes Gerät (ba
 Betreibers. Repo ist ÖFFENTLICH: Anmeldung nur AES-verschlüsselt im Actions-Cache (`WA_SCHLUESSEL`),
 Protokoll nennt weder Gruppe noch Nummer — so lassen. Geheimnisse `WA_SCHLUESSEL`, `WA_GRUPPE`
 (genauer Gruppenname), `WA_NUMMER`. Von Hand: anmelden / test / umfrage. Nicht bei Vercel (.vercelignore).
+**Live-Ticker in WhatsApp** (Betreiber 12.11.2026, Test nur Bazis): `.github/workflows/bazis-live.yml` startet abends, `bot.mjs live`
+fragt jede Minute `/api/live` ab und schreibt nach JEDEM neuen Spiel (Spieler, Legs, Stand) in die Gruppe `WA_GRUPPE_LIVE` (eigene
+Gruppe, eigenes Geheimnis; fehlt es, passiert nichts), am Ende den Endstand; höchstens 5 h, gemerkt im verschlüsselten Merker.
+Dazu im Formular/Live-Modus „📲 Live-Link teilen“ (`LiveTeilenKnopf`, nur `LIVE_TEILEN_TEAMS` = Bazis; `null` = alle) → WhatsApp
+mit Link `/live?spiel=<Heim|Gast>` (Seite klappt das Spiel auf und springt hin).
 
 **FAQ** (`/faq`, seit 16.10.2026): Inhalt in `lib/data/faq.ts`, wird laufend erweitert. Bei neuen
 oder geänderten Funktionen die passende Antwort mitpflegen; nichts beschreiben, was die Plattform

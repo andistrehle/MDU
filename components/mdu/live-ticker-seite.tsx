@@ -6,7 +6,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LIVE_ROT, LivePunktStil, useLiveTicker } from './live-ticker';
 import { SPIELE_JE_BEGEGNUNG, type TickerAnzeige } from '@/lib/live-ticker';
 
@@ -16,9 +16,17 @@ const datumText = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateStrin
 
 export function LiveTickerSeite({ ligen }: { ligen: Liga[] }) {
   const d = useLiveTicker(30);
-  const start = useSearchParams().get('liga');
+  const params = useSearchParams();
+  const start = params.get('liga');
+  // ?spiel=<Heim|Gast> (geteilter Live-Link): dieses Spiel aufklappen und hinspringen.
+  const spiel = params.get('spiel');
   const [liga, setLiga] = useState<string | null>(ligen.some(l => l.code === start) ? start : null);
-  const [offen, setOffen] = useState<string | null>(null);
+  const [offen, setOffen] = useState<string | null>(spiel);
+  const geladen = !!d;
+  useEffect(() => {
+    if (!spiel || !geladen) return;
+    document.getElementById(`spiel-${spiel}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [spiel, geladen]);
 
   if (!d) return <p style={{ fontFamily: 'var(--font-manrope)', color: 'var(--th-text-muted)' }}>Lade …</p>;
   const spiele = d.spiele.filter(s => !liga || s.liga === liga);
@@ -74,7 +82,7 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
       : <span>{s.uhrzeit ? `${s.uhrzeit} Uhr` : 'noch nicht begonnen'}</span>;
   const klappbar = s.spiele.length > 0;
   return (
-    <div style={{ borderRadius: 12, background: 'var(--th-bg-card)', border: `1px solid ${s.status === 'live' ? LIVE_ROT : 'var(--th-line-8)'}`, borderLeft: `4px solid ${s.ligaFarbe}`, overflow: 'hidden' }}>
+    <div id={`spiel-${s.key}`} style={{ scrollMarginTop: 90, borderRadius: 12, background: 'var(--th-bg-card)', border: `1px solid ${s.status === 'live' ? LIVE_ROT : 'var(--th-line-8)'}`, borderLeft: `4px solid ${s.ligaFarbe}`, overflow: 'hidden' }}>
       <button type="button" onClick={klappbar ? umschalten : undefined} aria-expanded={klappbar ? auf : undefined} disabled={!klappbar} style={{
         width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '12px 14px', cursor: klappbar ? 'pointer' : 'default', color: 'inherit', font: 'inherit',
       }}>

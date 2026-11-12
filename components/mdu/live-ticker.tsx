@@ -14,7 +14,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { LIVE_TICKER_AN, meldungText, type LiveAntwort, type TickerAnzeige } from '@/lib/live-ticker';
+import { LIVE_TICKER_AN, liveLink, liveTeilenErlaubt, liveTeilenText, meldungText, type LiveAntwort, type TickerAnzeige } from '@/lib/live-ticker';
 
 export const LIVE_ROT = '#E11D48';
 
@@ -167,5 +167,32 @@ export function LigaTickerLeiste({ liga, ohneKey, fest = false, dunkel = false, 
         </div>
       )}
     </>
+  );
+}
+
+/** „Live-Link teilen“ (Spielbericht-Formular / Live-Modus): WhatsApp bzw. Teilen-Menü mit Link auf das eigene Spiel. */
+export function LiveTeilenKnopf({ heim, gast, heimName, gastName, stil }: {
+  heim: string | null | undefined; gast: string | null | undefined; heimName: string; gastName: string; stil?: React.CSSProperties;
+}) {
+  const [hinweis, setHinweis] = useState<string | null>(null);
+  if (!heim || !gast || !liveTeilenErlaubt(heim)) return null;
+  const link = liveLink(typeof window !== 'undefined' ? window.location.origin : 'https://www.mdudarts.de', `${heim}|${gast}`);
+  const text = liveTeilenText(heimName, gastName, link);
+  async function teilen() {
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share) {
+      try { await nav.share({ text }); return; } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    setHinweis('WhatsApp geöffnet – Gruppe wählen und senden.');
+  }
+  return (
+    <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 4 }}>
+      <button type="button" onClick={() => void teilen()} style={stil ?? {
+        padding: '9px 16px', borderRadius: 8, cursor: 'pointer', background: '#25D366', color: '#fff', border: 'none',
+        fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap',
+      }}>📲 Live-Link teilen</button>
+      {hinweis && <span role="status" style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{hinweis}</span>}
+    </span>
   );
 }
