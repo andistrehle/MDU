@@ -451,15 +451,16 @@ async function main() {
       }
       sag(`Live-Ticker: ${gepostet.size} Spiele gemeldet.`);
     } else if (modus === 'spiegel') {
-      // Nachgeholte Nachrichten kommen in den ersten Sekunden nach dem Verbinden — warten, bis 15 s Ruhe ist (max. 2 Min.).
+      // Verpasste Nachrichten liefert WhatsApp erst nach ~1 Minute nach (Test 13.11.2026: 38 „append“-Pakete).
+      // Deshalb mindestens 75 s warten, dann bis 20 s Ruhe ist, höchstens 4 Min.
       const mithoeren = Number(process.env.SPIEGEL_MINUTEN || 0);
       if (mithoeren > 0) { sag(`Spiegel: höre ${mithoeren} Min. mit – jetzt eine Nachricht in die Gruppe schreiben.`); await delay(mithoeren * 60_000); }
-      const bis = Date.now() + 120_000;
+      const bis = Date.now() + 240_000;
+      await delay(75_000);
       let zuletzt = -1, ruhigSeit = Date.now();
-      await delay(10_000);
       while (Date.now() < bis) {
-        if (spiegelSammler.length !== zuletzt) { zuletzt = spiegelSammler.length; ruhigSeit = Date.now(); }
-        if (Date.now() - ruhigSeit > 15_000) break;
+        if (spiegelZahl.nachrichten !== zuletzt) { zuletzt = spiegelZahl.nachrichten; ruhigSeit = Date.now(); }
+        if (Date.now() - ruhigSeit > 20_000) break;
         await delay(3000);
       }
     } else if (modus === 'test') {
