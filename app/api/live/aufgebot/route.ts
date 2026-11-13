@@ -32,9 +32,16 @@ export async function GET(req: Request) {
   }
   let zugesagt: string[] = [];
   if (supabaseAdmin) {
-    const { data } = await supabaseAdmin.from('match_availability').select('player_name')
+    const { data } = await supabaseAdmin.from('match_availability').select('player_id, player_name')
       .eq('season_id', NEUE_SAISON.id).eq('team_id', team).eq('match_key', b.key).eq('status', 'yes');
-    zugesagt = ((data ?? []) as { player_name: string }[]).map(r => r.player_name.trim()).filter(Boolean)
+    const zeilen = (data ?? []) as { player_id: string; player_name: string }[];
+    // Name aus dem Kader (players), nicht der Kontoname — der kann z. B. „Andreas Super Admin“ heißen (13.11.2026).
+    const { data: sp } = zeilen.length
+      ? await supabaseAdmin.from('players').select('id, first_name, last_name').in('id', zeilen.map(z => z.player_id))
+      : { data: [] };
+    const kader = new Map(((sp ?? []) as { id: string; first_name: string | null; last_name: string | null }[])
+      .map(p => [p.id, [p.first_name, p.last_name].filter(Boolean).join(' ').trim()]));
+    zugesagt = zeilen.map(z => (kader.get(z.player_id) || z.player_name || '').trim()).filter(Boolean)
       .sort((x, y) => x.localeCompare(y, 'de'));
   }
   return NextResponse.json({
