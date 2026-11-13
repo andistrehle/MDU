@@ -156,6 +156,45 @@ const namen = (l) => (l && l.length ? l.join(' / ') : '?');
 const spielText = (s, g, heim, gast) =>
   `🎯 Spiel ${g.nr}${g.doppel ? ' · Doppel' : ''}\n${namen(g.heim)} ${g.legsHeim}:${g.legsGast} ${namen(g.gast)}\n➡️ ${s.homeName} ${heim}:${gast} ${s.awayName}`;
 
+// Startnachricht (Betreiber, 13.11.2026): Lokal, Gegner, Anwurf + alle Zusagen aus dem Team Manager
+// (egal, wer am Ende spielt). Die Namen holt der Bot über /api/live/aufgebot, das nur diesem
+// Workflow antwortet (GitHub-OIDC-Ausweis, `permissions: id-token: write`).
+async function oidcToken() {
+  const url = process.env.ACTIONS_ID_TOKEN_REQUEST_URL, tok = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+  if (!url || !tok) return null;
+  const r = await fetch(`${url}&audience=mdudarts`, { headers: { authorization: `Bearer ${tok}` } });
+  return r.ok ? (await r.json()).value : null;
+}
+async function aufgebotHolen(key) {
+  try {
+    const t = await oidcToken();
+    if (!t) { sag('Kein GitHub-Ausweis – Startnachricht ohne Zusagen.'); return null; }
+    const r = await fetch(`${SITE}/api/live/aufgebot?team=${TEAM}&spiel=${encodeURIComponent(key)}`, { headers: { authorization: `Bearer ${t}` } });
+    if (!r.ok) { sag(`Aufgebot antwortet ${r.status} – Startnachricht ohne Zusagen.`); return null; }
+    return await r.json();
+  } catch { sag('Aufgebot nicht erreichbar – Startnachricht ohne Zusagen.'); return null; }
+}
+function startText(s, a) {
+  const team = a?.team || (s.home === TEAM ? s.homeName : s.awayName);
+  const gegner = a?.gegner || (s.home === TEAM ? s.awayName : s.homeName);
+  const lokal = a?.lokal ? ` aus dem ${a.lokal}` : '';
+  const uhr = a?.uhrzeit || s.uhrzeit;
+  const zeilen = [`Heute live${lokal}: ${team} gg. ${gegner}.${uhr ? ` Anwurf ist um ${uhr} Uhr.` : ''}`];
+  if (a) zeilen.push('', 'Heute an der Scheibe:', ...(a.zugesagt?.length ? a.zugesagt : ['(noch keine Zusagen)']));
+  zeilen.push('', 'Gute Unterhaltung und good Darts 🎯');
+  return zeilen.join('\n');
+}
+/** Frühestens 30 Minuten vor Anwurf starten (Berliner Zeit); ohne Uhrzeit sofort. */
+async function wartenBisStart(uhrzeit) {
+  if (!uhrzeit) return;
+  const [h, m] = uhrzeit.split(':').map(Number);
+  const jetzt = new Date();
+  const teile = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(jetzt).map(x => [x.type, x.value]));
+  const minutenBis = (h * 60 + m - 30) - (Number(teile.hour) * 60 + Number(teile.minute));
+  if (minutenBis > 0 && minutenBis < 6 * 60) { sag(`Warte ${minutenBis} Min. bis 30 Min. vor Anwurf.`); await delay(minutenBis * 60_000); }
+}
+
 async function liveLauf(ziel) {
   const ende = Date.now() + 5 * 3600_000;
   let s = await tickerHolen().catch(() => null);
@@ -206,7 +245,11 @@ async function main() {
       const gepostet = new Set((merker.liveSpiele || {})[live.merkerKey] || []);
       const link = `${SITE}/live?spiel=${encodeURIComponent(live.s.key)}`;
       const senden = async (text) => { await sock.sendMessage(an, { text: vor + text }); await delay(1500); };
-      if (!gepostet.size) await senden(`🔴 Live: ${live.s.homeName} – ${live.s.awayName}\nIch melde jedes Ergebnis hier. Alles live: ${link}`);
+      if (!gepostet.size && !(merker.liveStart || []).includes(live.merkerKey)) {
+        if (modus === 'live') await wartenBisStart(live.s.uhrzeit);
+        await senden(startText(live.s, await aufgebotHolen(live.s.key)));
+        if (modus === 'live') merker.liveStart = [...(merker.liveStart || []), live.merkerKey].slice(-60);
+      }
       let s = live.s;
       while (Date.now() < live.ende) {
         // Neue Spiele in Reihenfolge melden, mit dem Stand NACH diesem Spiel (aus allen bis dahin gemeldeten).

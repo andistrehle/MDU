@@ -9,6 +9,8 @@ name: Bazis · Live-Ticker (WhatsApp)
 # Startet jeden Abend zweimal (18:47 / 19:17 UTC, GitHub startet oft verspätet). Ohne
 # Bazis-Spiel heute oder ohne WA_GRUPPE_LIVE endet der Lauf sofort, ohne sich bei WhatsApp
 # anzumelden. Ein Lauf bleibt bis zum Endstand, höchstens 5 Stunden.
+# Erste Nachricht frühestens 30 Min. vor Anwurf (Betreiber 13.11.2026): Lokal, Gegner, Anwurf und
+# alle Zusagen aus dem Team Manager („Heute an der Scheibe“), geholt über /api/live/aufgebot.
 # Teilt sich die Gruppe „bazis-bot“ mit der Umfrage: nie zwei Anmeldungen gleichzeitig.
 #
 # Von Hand: live (wie der Abendlauf) · live-test (bisherige Ergebnisse an dich selbst)
@@ -30,6 +32,8 @@ concurrency:
 
 permissions:
   contents: read
+  # GitHub-Ausweis (OIDC) für /api/live/aufgebot: Zusagen für die Startnachricht, ohne Geheimnis.
+  id-token: write
 
 jobs:
   live:
