@@ -165,14 +165,23 @@ async function oidcToken() {
   const r = await fetch(`${url}&audience=mdudarts`, { headers: { authorization: `Bearer ${tok}` } });
   return r.ok ? (await r.json()).value : null;
 }
-async function aufgebotHolen(key) {
+async function mitAusweis(pfad, key, was) {
   try {
     const t = await oidcToken();
-    if (!t) { sag('Kein GitHub-Ausweis – Startnachricht ohne Zusagen.'); return null; }
-    const r = await fetch(`${SITE}/api/live/aufgebot?team=${TEAM}&spiel=${encodeURIComponent(key)}`, { headers: { authorization: `Bearer ${t}` } });
-    if (!r.ok) { sag(`Aufgebot antwortet ${r.status} – Startnachricht ohne Zusagen.`); return null; }
+    if (!t) { sag(`Kein GitHub-Ausweis – ${was} entfällt.`); return null; }
+    const r = await fetch(`${SITE}/api/live/${pfad}?team=${TEAM}&spiel=${encodeURIComponent(key)}`, { headers: { authorization: `Bearer ${t}` } });
+    if (!r.ok) { sag(`${pfad} antwortet ${r.status} – ${was} entfällt.`); return null; }
     return await r.json();
-  } catch { sag('Aufgebot nicht erreichbar – Startnachricht ohne Zusagen.'); return null; }
+  } catch { sag(`${pfad} nicht erreichbar – ${was} entfällt.`); return null; }
+}
+const aufgebotHolen = (key) => mitAusweis('aufgebot', key, 'Liste der Zusagen');
+/** Minuten bis „uhrzeit“ (Berliner Zeit, heute); null ohne Uhrzeit. */
+function minutenBis(uhrzeit) {
+  if (!uhrzeit) return null;
+  const [h, m] = uhrzeit.split(':').map(Number);
+  const teile = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date()).map(x => [x.type, x.value]));
+  return h * 60 + m - (Number(teile.hour) * 60 + Number(teile.minute));
 }
 function startText(s, a) {
   const team = a?.team || (s.home === TEAM ? s.homeName : s.awayName);
@@ -187,13 +196,10 @@ function startText(s, a) {
 }
 /** Frühestens 30 Minuten vor Anwurf starten (Berliner Zeit); ohne Uhrzeit sofort. */
 async function wartenBisStart(uhrzeit) {
-  if (!uhrzeit) return;
-  const [h, m] = uhrzeit.split(':').map(Number);
-  const jetzt = new Date();
-  const teile = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-    .formatToParts(jetzt).map(x => [x.type, x.value]));
-  const minutenBis = (h * 60 + m - 30) - (Number(teile.hour) * 60 + Number(teile.minute));
-  if (minutenBis > 0 && minutenBis < 6 * 60) { sag(`Warte ${minutenBis} Min. bis 30 Min. vor Anwurf.`); await delay(minutenBis * 60_000); }
+  const bis = minutenBis(uhrzeit);
+  if (bis === null) return;
+  const warte = bis - 30;
+  if (warte > 0 && warte < 6 * 60) { sag(`Warte ${warte} Min. bis 30 Min. vor Anwurf.`); await delay(warte * 60_000); }
 }
 
 async function liveLauf(ziel) {
@@ -251,10 +257,21 @@ async function main() {
         await senden(startText(live.s, await aufgebotHolen(live.s.key)));
         if (modus === 'live') merker.liveStart = [...(merker.liveStart || []), live.merkerKey].slice(-60);
       }
+      // Vorbericht (Betreiber, 13.11.2026): genau zwischen Startnachricht und Anwurf, spätestens vor dem ersten Spiel.
+      const bisAnwurf = minutenBis(live.s.uhrzeit);
+      const vorberichtAb = Date.now() + Math.max(0, Math.floor((bisAnwurf ?? 0) / 2)) * 60_000;
+      let vorberichtDa = modus === 'live-test' ? false : (merker.liveVorbericht || []).includes(live.merkerKey);
+      const vorberichtSenden = async () => {
+        vorberichtDa = true;
+        const v = await mitAusweis('vorbericht', live.s.key, 'Vorbericht');
+        if (v?.text) { await senden(v.text); sag(`Vorbericht gepostet ✓ (${v.quelle})`); }
+        if (modus === 'live') merker.liveVorbericht = [...(merker.liveVorbericht || []), live.merkerKey].slice(-60);
+      };
       let s = live.s;
       while (Date.now() < live.ende) {
         // Neue Spiele in Reihenfolge melden, mit dem Stand NACH diesem Spiel (aus allen bis dahin gemeldeten).
         const bekannt = [...s.spiele].sort((a, b) => a.nr - b.nr);
+        if (!vorberichtDa && !gepostet.size && (Date.now() >= vorberichtAb || bekannt.some(g => !gepostet.has(g.nr)))) await vorberichtSenden();
         for (const g of bekannt) {
           if (gepostet.has(g.nr)) continue;
           gepostet.add(g.nr);
