@@ -92,8 +92,9 @@ async function verbinden({ koppeln = false, qr = false } = {}) {
     });
     sock.ev.on('creds.update', saveCreds);
     // Spiegel: Gruppen-Nachrichten einsammeln, sobald die Verbindung steht (auch nachgeholte).
-    sock.ev.on('messages.upsert', ({ messages }) => {
-      for (const m of messages || []) if (m?.key?.remoteJid?.endsWith('@g.us')) spiegelSammler.push(m);
+    sock.ev.on('messages.upsert', ({ messages, type }) => {
+      spiegelZahl.ereignisse++; spiegelZahl.typen[type] = (spiegelZahl.typen[type] || 0) + 1;
+      for (const m of messages || []) { spiegelZahl.nachrichten++; if (m?.key?.remoteJid?.endsWith('@g.us')) spiegelSammler.push(m); }
     });
     // QR-Weg (Modus „anmelden-qr“): QR-Code ins Protokoll, mit dem Handy abscannen.
     if (qr) sock.ev.on('connection.update', async (u) => {
@@ -241,6 +242,8 @@ let signalAktiv = false;
 // Datenschutz: Die Gruppe weiß Bescheid (Betreiber).
 const SPIEGEL = (process.env.WA_GRUPPE_SPIEGEL || '').trim();
 const spiegelSammler = [];
+// Nur ANZAHLEN fürs (öffentliche) Protokoll, nie Inhalte oder Namen.
+const spiegelZahl = { ereignisse: 0, typen: {}, nachrichten: 0, gruppe: 0, alt: 0, bekannt: 0, leer: 0, stub: {} };
 let spiegelGruppe = null; // { jid, name }
 
 const textVon = (msg) => msg?.conversation || msg?.extendedTextMessage?.text || '';
@@ -273,8 +276,12 @@ async function spiegelLeeren(sock, merker) {
   let n = 0;
   while (spiegelSammler.length) {
     const m = spiegelSammler.shift();
-    if (m.key.remoteJid !== jid || !m.key.id || ids.has(m.key.id)) continue;
-    if (Number(m.messageTimestamp || 0) < (merker.spiegelSeit || 0)) continue;
+    if (m.key.remoteJid !== jid || !m.key.id) continue;
+    spiegelZahl.gruppe++;
+    if (ids.has(m.key.id)) { spiegelZahl.bekannt++; continue; }
+    const zeit = Number(m.messageTimestamp?.toNumber ? m.messageTimestamp.toNumber() : m.messageTimestamp || 0);
+    if (zeit && zeit < (merker.spiegelSeit || 0)) { spiegelZahl.alt++; continue; }
+    if (!m.message) { spiegelZahl.leer++; const st = String(m.messageStubType ?? '-'); spiegelZahl.stub[st] = (spiegelZahl.stub[st] || 0) + 1; continue; }
     ids.add(m.key.id);
     const msg = inhalt(m);
     const wer = m.key.fromMe ? ich : (m.pushName || 'Jemand');
@@ -295,7 +302,7 @@ async function spiegelLeeren(sock, merker) {
         rmSync(datei, { force: true });
       } else if (msg.videoMessage) ts = await signalSenden(`${kopf}\n🎥 Video${msg.videoMessage.caption ? `: ${msg.videoMessage.caption}` : ''} (nur in WhatsApp)`);
       else if (msg.documentMessage) ts = await signalSenden(`${kopf}\n📎 Datei: ${msg.documentMessage.fileName || ''} (nur in WhatsApp)`);
-      else continue; // Reaktionen, Abstimmungen, Sticker, Systemmeldungen: nicht weiterleiten
+      else { spiegelZahl.andere = (spiegelZahl.andere || 0) + 1; spiegelZahl.arten = [...new Set([...(spiegelZahl.arten || []), ...Object.keys(msg)])].slice(0, 12); continue; } // Reaktionen, Abstimmungen, Sticker, Systemmeldungen
     } catch (e) { sag(`Spiegel: eine Nachricht nicht weitergeleitet (${e.message}).`); continue; }
     if (ts) karte[ts] = { id: m.key.id, participant: m.key.participant || null, fromMe: !!m.key.fromMe, text: (textVon(msg) || '…').slice(0, 200) };
     n++;
@@ -314,7 +321,8 @@ async function spiegelLeeren(sock, merker) {
   }
   merker.spiegelIds = [...ids].slice(-500);
   merker.spiegelKarte = Object.fromEntries(Object.entries(karte).slice(-300));
-  if (n || a) sag(`Spiegel: ${n} weitergeleitet, ${a} Antwort(en) in die Gruppe.`);
+  const z = spiegelZahl;
+  sag(`Spiegel: ${n} weitergeleitet, ${a} Antwort(en) in die Gruppe. [Ereignisse ${z.ereignisse} ${JSON.stringify(z.typen)}, Nachrichten ${z.nachrichten}, aus der Gruppe ${z.gruppe}, bekannt ${z.bekannt}, alt ${z.alt}, leer ${z.leer} ${JSON.stringify(z.stub)}, andere ${z.andere || 0} ${JSON.stringify(z.arten || [])}]`);
 }
 
 async function main() {
