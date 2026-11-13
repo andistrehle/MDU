@@ -3,3 +3,6 @@ node_modules/
 sitzung/
 umfrage.json
 WA_SITZUNG.txt
+signal/
+.signal-daten/
+.signal.tar

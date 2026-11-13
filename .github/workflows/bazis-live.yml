@@ -14,6 +14,11 @@ name: Bazis · Live-Ticker (WhatsApp)
 # Teilt sich die Gruppe „bazis-bot“ mit der Umfrage: nie zwei Anmeldungen gleichzeitig.
 #
 # Von Hand: live (wie der Abendlauf) · live-test (bisherige Ergebnisse an dich selbst)
+#   signal-anmelden — einmalig: Link im Protokoll als QR-Code mit Signal scannen (Konto muss WA_NUMMER sein)
+#   signal-test     — Testnachricht per Signal an dich selbst
+# SIGNAL (Betreiber 13.11.2026): Ist das Geheimnis SIGNAL_EMPFAENGER (Nummer +49…) gesetzt und angemeldet,
+# geht jede Nachricht zusätzlich per Signal an diese EINE Person (scripts/whatsapp-bot/signal.mjs).
+# Ohne Geheimnis wird signal-cli gar nicht erst installiert.
 on:
   schedule:
     - cron: '47 18 * * *'
@@ -23,7 +28,7 @@ on:
       modus:
         description: 'Was soll der Bot tun?'
         type: choice
-        options: [live, live-test]
+        options: [live, live-test, signal-anmelden, signal-test]
         default: live-test
 
 concurrency:
@@ -41,6 +46,7 @@ jobs:
     timeout-minutes: 320
     env:
       MODUS: ${{ inputs.modus || 'live' }}
+      SIGNAL_EMPFAENGER: ${{ secrets.SIGNAL_EMPFAENGER }}
     steps:
       - uses: actions/checkout@v4
 
@@ -55,6 +61,23 @@ jobs:
           key: wa-sitzung-none
           restore-keys: wa-sitzung-
 
+      - name: Signal-Anmeldung (verschlüsselt) holen
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/whatsapp-bot/signal
+          key: signal-sitzung-none
+          restore-keys: signal-sitzung-
+
+      - name: signal-cli installieren (nur wenn Signal eingerichtet)
+        if: env.SIGNAL_EMPFAENGER != '' || startsWith(env.MODUS, 'signal')
+        continue-on-error: true
+        run: |
+          url=$(curl -fsSL https://api.github.com/repos/AsamK/signal-cli/releases/latest | jq -r '.assets[] | select(.name | test("Linux-native\\.tar\\.gz$")) | .browser_download_url' | head -1)
+          echo "signal-cli: $url"
+          mkdir -p "$RUNNER_TEMP/signal-cli" && curl -fsSL "$url" | tar -xz -C "$RUNNER_TEMP/signal-cli"
+          bin=$(find "$RUNNER_TEMP/signal-cli" -type f -name signal-cli | head -1) && chmod +x "$bin"
+          echo "SIGNAL_CLI=$bin" >> "$GITHUB_ENV" && "$bin" --version
+
       - name: Bot-Abhängigkeiten
         working-directory: scripts/whatsapp-bot
         run: npm ci --no-audit --no-fund
@@ -65,6 +88,7 @@ jobs:
           WA_SCHLUESSEL: ${{ secrets.WA_SCHLUESSEL }}
           WA_GRUPPE_LIVE: ${{ secrets.WA_GRUPPE_LIVE }}
           WA_SITZUNG: ${{ secrets.WA_SITZUNG }}
+          WA_NUMMER: ${{ secrets.WA_NUMMER }}
         run: node bot.mjs "$MODUS"
 
       - name: Anmeldung (verschlüsselt) sichern
@@ -73,3 +97,10 @@ jobs:
         with:
           path: scripts/whatsapp-bot/sitzung
           key: wa-sitzung-${{ hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') }}
+
+      - name: Signal-Anmeldung (verschlüsselt) sichern
+        if: always() && hashFiles('scripts/whatsapp-bot/signal/signal.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/whatsapp-bot/signal
+          key: signal-sitzung-${{ hashFiles('scripts/whatsapp-bot/signal/signal.enc') }}

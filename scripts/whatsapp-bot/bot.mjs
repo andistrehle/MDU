@@ -22,6 +22,7 @@
 //      Gruppe WA_GRUPPE_LIVE (eigene Gruppe, NICHT die Umfrage-Gruppe), zum Schluss den Endstand.
 //      Ohne Bazis-Spiel heute oder ohne WA_GRUPPE_LIVE: meldet sich gar nicht erst an.
 //   node bot.mjs live-test  → dasselbe, aber an dich selbst („Du“-Chat)
+//   node bot.mjs signal-anmelden / signal-test → Live-Ticker zusätzlich per Signal an EINE Person (signal.mjs)
 // Umfrage-Inhalt: umfrage.json (erzeugt von umfrage.ts, im Workflow davor).
 // ENV: WA_SCHLUESSEL, WA_GRUPPE (genauer Gruppenname), WA_NUMMER (nur fürs Anmelden)
 // ============================================================
@@ -33,6 +34,7 @@ import { fileURLToPath } from 'node:url';
 import makeWASocket, { Browsers, DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState as authAusOrdner, delay } from 'baileys';
 import pino from 'pino';
 import QRCode from 'qrcode';
+import { signalAnmelden, signalLaden, signalSenden, signalSpeichern } from './signal.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const SITZUNG = join(HIER, 'sitzung', 'sitzung.enc');
@@ -216,9 +218,20 @@ function umfrageLesen() {
   return JSON.parse(readFileSync(pfad, 'utf8') || 'null');
 }
 
+let signalAktiv = false;
+
 async function main() {
   if (!SCHLUESSEL || SCHLUESSEL.length < 16) {
     sag('Nicht eingerichtet (Geheimnis WA_SCHLUESSEL fehlt oder ist kürzer als 16 Zeichen) – nichts zu tun.');
+    return;
+  }
+  // Signal (Betreiber, 13.11.2026): eigene Modi, ohne WhatsApp-Anmeldung.
+  if (modus === 'signal-anmelden') { await signalAnmelden(); return; }
+  if (modus === 'signal-test') {
+    if (!signalLaden()) throw new Error('Signal nicht bereit – SIGNAL_EMPFAENGER gesetzt und „signal-anmelden“ gelaufen?');
+    await signalSenden('[TEST] MDU Live-Bot ✓ – so kommt der Live-Ticker bei Signal an.', { anMich: true });
+    signalSpeichern();
+    sag('Signal-Test an dich selbst geschickt ✓ (Chat „Notiz an mich“).');
     return;
   }
   const merker = sitzungLaden();
@@ -251,7 +264,13 @@ async function main() {
       const vor = modus === 'live-test' ? '[TEST] ' : '';
       const gepostet = new Set((merker.liveSpiele || {})[live.merkerKey] || []);
       const link = `${SITE}/live?spiel=${encodeURIComponent(live.s.key)}`;
-      const senden = async (text) => { await sock.sendMessage(an, { text: vor + text }); await delay(1500); };
+      // Parallel an EINE Person per Signal, falls eingerichtet (sonst tut signalSenden nichts).
+      signalAktiv = signalLaden();
+      const senden = async (text) => {
+        await sock.sendMessage(an, { text: vor + text });
+        if (signalAktiv) await signalSenden(vor + text, { anMich: modus === 'live-test' }).catch(() => {});
+        await delay(1500);
+      };
       if (!gepostet.size && !(merker.liveStart || []).includes(live.merkerKey)) {
         if (modus === 'live') await wartenBisStart(live.s.uhrzeit);
         await senden(startText(live.s, await aufgebotHolen(live.s.key)));
@@ -307,6 +326,7 @@ async function main() {
     }
     await delay(5000); // Nachricht rausschicken, Schlüssel speichern lassen
   } finally {
+    if (signalAktiv) signalSpeichern();
     sock.end(undefined);
     await delay(1000);
     sitzungSpeichern(merker);
