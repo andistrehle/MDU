@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LIVE_ROT, LivePunktStil, useLiveTicker } from './live-ticker';
-import { SPIELE_JE_BEGEGNUNG, type TickerAnzeige } from '@/lib/live-ticker';
+import { SPIELE_JE_BEGEGNUNG, highlightKurz, type TickerAnzeige, type TickerHighlight } from '@/lib/live-ticker';
 
 type Liga = { code: string; name: string; farbe: string };
 
@@ -108,17 +108,37 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
         <div style={{ borderTop: '1px solid var(--th-line-6)', padding: '6px 14px 12px' }}>
           {s.spiele.map(g => {
             const heimSieg = g.legsHeim > g.legsGast;
+            const hl = (s.highlights ?? []).filter(h => h.spiel === g.nr);
             return (
-              <div key={g.nr} style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto 1fr', gap: 8, alignItems: 'center', padding: '6px 0', fontSize: 13, borderBottom: '1px solid var(--th-line-4, var(--th-line-6))' }}>
-                <span style={{ color: 'var(--th-text-faint)', fontSize: 11 }}>{g.nr}{g.doppel ? ' D' : ''}</span>
-                <span style={{ fontWeight: heimSieg ? 700 : 400, color: 'var(--th-text-body)' }}>{g.heim.join(' / ') || '–'}</span>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{g.legsHeim}:{g.legsGast}</span>
-                <span style={{ fontWeight: !heimSieg ? 700 : 400, color: 'var(--th-text-body)', textAlign: 'right' }}>{g.gast.join(' / ') || '–'}</span>
+              <div key={g.nr} style={{ padding: '6px 0', fontSize: 13, borderBottom: '1px solid var(--th-line-4, var(--th-line-6))' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto 1fr', gap: 8, alignItems: 'center' }}>
+                  <span style={{ color: 'var(--th-text-faint)', fontSize: 11 }}>{g.nr}{g.doppel ? ' D' : ''}</span>
+                  <span style={{ fontWeight: heimSieg ? 700 : 400, color: 'var(--th-text-body)' }}>{g.heim.join(' / ') || '–'}</span>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{g.legsHeim}:{g.legsGast}</span>
+                  <span style={{ fontWeight: !heimSieg ? 700 : 400, color: 'var(--th-text-body)', textAlign: 'right' }}>{g.gast.join(' / ') || '–'}</span>
+                </div>
+                {hl.length > 0 && <HighlightZeile hl={hl} />}
               </div>
             );
           })}
+          {(s.highlights ?? []).some(h => h.spiel == null) && (
+            <div style={{ padding: '6px 0', fontSize: 12 }}><HighlightZeile hl={s.highlights.filter(h => h.spiel == null)} /></div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Highlights eines Spiels: „🎯 180 · Moritz Becker“, Heim links, Gast rechts. */
+function HighlightZeile({ hl }: { hl: TickerHighlight[] }) {
+  const teil = (h: TickerHighlight) => <span key={h.id} style={{ whiteSpace: 'nowrap' }}>{highlightKurz(h)} · {h.name || '?'}</span>;
+  const heim = hl.filter(h => h.seite === 'heim'), gast = hl.filter(h => h.seite === 'gast');
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr', gap: 8, marginTop: 3, fontSize: 11.5, color: 'var(--th-text-muted)' }}>
+      <span />
+      <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>{heim.map(teil)}</span>
+      <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px', justifyContent: 'flex-end', textAlign: 'right' }}>{gast.map(teil)}</span>
     </div>
   );
 }

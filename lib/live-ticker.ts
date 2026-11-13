@@ -50,9 +50,54 @@ export interface TickerEintrag extends TickerPlan {
   bestaetigt: boolean;
   /** Spiele mit Ergebnis, nach Spielnummer */
   spiele: TickerSpiel[];
+  /** Highlights der Begegnung (mit Spielzuordnung) */
+  highlights: TickerHighlight[];
 }
 
 export const SPIELE_JE_BEGEGNUNG = 18;
+
+// ── Highlights im Live-Ticker (Betreiber 13.11.2026) ──
+// Im Spielbericht hängen Highlights an der PERSON (Seite + Position), nicht am Spiel. Zugeordnet wird dem
+// LETZTEN Spiel mit Ergebnis, in dem diese Person (einzeln oder im Doppel) stand — eingetragen wird ein
+// Highlight praktisch immer direkt nach dem Spiel. Der WhatsApp-Bot merkt sich, was er schon gemeldet hat.
+export type HighlightTyp = '180' | '171' | 'high_finish' | 'short_leg';
+export interface TickerHighlight {
+  /** stabil je Eintrag: Seite:Position:Typ:Wert:laufende Nummer gleicher Einträge */
+  id: string;
+  seite: 'heim' | 'gast';
+  name: string;
+  typ: HighlightTyp;
+  /** 180/171: Anzahl · High Finish: Checkout · Short Leg: Darts */
+  wert: number;
+  /** Spielnummer (1–18) oder null, wenn die Person noch kein Spiel mit Ergebnis hat */
+  spiel: number | null;
+}
+export interface RohHighlight { side: 'home' | 'guest'; slot: number; type: string; value: number | null }
+export interface RohSpiel { game_no: number; home_slot: number | null; guest_slot: number | null; home_slot2: number | null; guest_slot2: number | null; legs_home: number | null; legs_guest: number | null }
+
+const TYPEN: readonly string[] = ['180', '171', 'high_finish', 'short_leg'];
+
+export function highlightsZuordnen(roh: RohHighlight[], spiele: RohSpiel[], name: (side: 'home' | 'guest', slot: number) => string): TickerHighlight[] {
+  const zaehler = new Map<string, number>();
+  const gespielt = spiele.filter(g => g.legs_home != null && g.legs_guest != null);
+  const out: TickerHighlight[] = [];
+  for (const h of roh || []) {
+    if (!h || !TYPEN.includes(h.type) || h.value == null || !(h.value > 0)) continue;
+    const basis = `${h.side}:${h.slot}:${h.type}:${h.value}`;
+    const n = (zaehler.get(basis) ?? 0) + 1; zaehler.set(basis, n);
+    const dabei = gespielt.filter(g => h.side === 'home' ? (g.home_slot === h.slot || g.home_slot2 === h.slot) : (g.guest_slot === h.slot || g.guest_slot2 === h.slot));
+    const spiel = dabei.length ? Math.max(...dabei.map(g => g.game_no)) : null;
+    out.push({ id: `${basis}:${n}`, seite: h.side === 'home' ? 'heim' : 'gast', name: name(h.side, h.slot), typ: h.type as HighlightTyp, wert: h.value, spiel });
+  }
+  return out;
+}
+
+/** „🎯 180“, „🎯 2× 180“, „💥 High Finish 121“, „⚡ Short Leg 15 Darts“ — ohne Namen. */
+export function highlightKurz(h: Pick<TickerHighlight, 'typ' | 'wert'>): string {
+  if (h.typ === '180' || h.typ === '171') return `🎯 ${h.wert > 1 ? `${h.wert}× ` : ''}${h.typ}`;
+  if (h.typ === 'high_finish') return `💥 High Finish ${h.wert}`;
+  return `⚡ Short Leg ${h.wert} Darts`;
+}
 
 /** Berliner Datum (JJJJ-MM-TT) des laufenden Spieltags: jetzt minus 4 Stunden. */
 export function spieltagDatum(jetzt: Date): string {
@@ -67,7 +112,7 @@ export function tickerEintrag(plan: TickerPlan, b: TickerBericht | null): Ticker
   for (const s of spiele) { if (s.legsHeim > s.legsGast) h += 1; else if (s.legsGast > s.legsHeim) g += 1; }
   const eingereicht = !!b && b.status !== 'draft';
   const status: TickerStatus = eingereicht ? 'beendet' : spiele.length ? 'live' : 'offen';
-  return { ...plan, status, standHeim: h, standGast: g, gespielt: spiele.length, bestaetigt: b?.status === 'confirmed', spiele };
+  return { ...plan, status, standHeim: h, standGast: g, gespielt: spiele.length, bestaetigt: b?.status === 'confirmed', spiele, highlights: [] };
 }
 
 /** Reihenfolge: live zuerst (meiste Spiele vorn), dann beendet, dann offen nach Beginn. */

@@ -172,6 +172,11 @@ const tickerHolen = async () => {
   return (d.spiele || []).find(s => s.home === TEAM || s.away === TEAM) || null;
 };
 const namen = (l) => (l && l.length ? l.join(' / ') : '?');
+// Highlights (Betreiber 13.11.2026): an die Meldung des Spiels, in dem sie passiert sind (Zuordnung macht
+// /api/live: letztes Spiel der Person mit Ergebnis). Später eingetragene kommen als Nachtrag zu diesem Spiel.
+const hlKurz = (h) => h.typ === '180' || h.typ === '171' ? `🎯 ${h.wert > 1 ? `${h.wert}× ` : ''}${h.typ}`
+  : h.typ === 'high_finish' ? `💥 High Finish ${h.wert}` : `⚡ Short Leg ${h.wert} Darts`;
+const hlZeilen = (liste) => liste.map(h => `${hlKurz(h)} – ${h.name || '?'}`).join('\n');
 const spielText = (s, g, heim, gast) =>
   `🎯 Spiel ${g.nr}${g.doppel ? ' · Doppel' : ''}\n${namen(g.heim)} ${g.legsHeim}:${g.legsGast} ${namen(g.gast)}\n➡️ ${s.homeName} ${heim}:${gast} ${s.awayName}`;
 
@@ -399,7 +404,7 @@ async function main() {
     throw new Error('Noch nicht angemeldet – Workflow zuerst einmal mit Modus „anmelden“ starten (Standard ist „test“).');
   }
 
-  const sock = await verbinden({ koppeln: modus === 'anmelden', qr: modus === 'anmelden-qr' || modus === 'anmelden-lokal' });
+  let sock = await verbinden({ koppeln: modus === 'anmelden', qr: modus === 'anmelden-qr' || modus === 'anmelden-lokal' });
   try {
     if (modus.startsWith('anmelden')) {
       await gruppeFinden(sock);
@@ -411,8 +416,18 @@ async function main() {
       const link = `${SITE}/live?spiel=${encodeURIComponent(live.s.key)}`;
       // Parallel an EINE Person per Signal, falls eingerichtet (sonst tut signalSenden nichts).
       signalAktiv = signalLaden();
+      // WhatsApp trennt lange Verbindungen gelegentlich (13.11.2026 nach ~53 Min.: „Connection Closed“) —
+      // dann neu verbinden und noch einmal senden, statt den ganzen Live-Lauf zu verlieren.
       const senden = async (text) => {
-        await sock.sendMessage(an, { text: vor + text });
+        try { await sock.sendMessage(an, { text: vor + text }); }
+        catch (e) {
+          sag(`Senden gescheitert (${e.message}) – verbinde neu.`);
+          try { sock.end(undefined); } catch { /* schon zu */ }
+          await delay(3000);
+          sock = await verbinden();
+          await sock.sendMessage(an, { text: vor + text });
+          sag('Neu verbunden ✓');
+        }
         if (signalAktiv) await signalSenden(vor + text, { anMich: modus === 'live-test' }).catch(() => {});
         await delay(1500);
       };
@@ -430,21 +445,35 @@ async function main() {
         if (v?.text) { await senden(v.text); sag(`Vorbericht gepostet ✓ (${v.quelle})`); }
         if (modus === 'live') merker.liveVorbericht = [...(merker.liveVorbericht || []), live.merkerKey].slice(-60);
       };
+      const hlGemeldet = new Set((merker.liveHighlights || {})[live.merkerKey] || []);
       let s = live.s;
       while (Date.now() < live.ende) {
         // Neue Spiele in Reihenfolge melden, mit dem Stand NACH diesem Spiel (aus allen bis dahin gemeldeten).
         const bekannt = [...s.spiele].sort((a, b) => a.nr - b.nr);
         if (!vorberichtDa && !gepostet.size && (Date.now() >= vorberichtAb || bekannt.some(g => !gepostet.has(g.nr)))) await vorberichtSenden();
+        const hlNeu = (s.highlights || []).filter(h => !hlGemeldet.has(h.id));
         for (const g of bekannt) {
           if (gepostet.has(g.nr)) continue;
           gepostet.add(g.nr);
           const bis = bekannt.filter(x => gepostet.has(x.nr));
           const heim = bis.filter(x => x.legsHeim > x.legsGast).length, gast = bis.filter(x => x.legsGast > x.legsHeim).length;
-          await senden(spielText(s, g, heim, gast));
+          const dazu = hlNeu.filter(h => h.spiel === g.nr);
+          dazu.forEach(h => hlGemeldet.add(h.id));
+          await senden(spielText(s, g, heim, gast) + (dazu.length ? `\n${hlZeilen(dazu)}` : ''));
+        }
+        // Nachtrag: Highlight zu einem schon gemeldeten Spiel (später eingetragen)
+        const nach = hlNeu.filter(h => !hlGemeldet.has(h.id) && h.spiel != null && gepostet.has(h.spiel));
+        for (const nr of [...new Set(nach.map(h => h.spiel))].sort((a, b) => a - b)) {
+          const teil = nach.filter(h => h.spiel === nr);
+          teil.forEach(h => hlGemeldet.add(h.id));
+          await senden(`🔥 Nachtrag Spiel ${nr}\n${hlZeilen(teil)}`);
         }
         merker.liveSpiele = { ...(merker.liveSpiele || {}), [live.merkerKey]: [...gepostet] };
+        merker.liveHighlights = { ...(merker.liveHighlights || {}), [live.merkerKey]: [...hlGemeldet].slice(-200) };
         if (s.status === 'beendet') {
-          await senden(`🏁 Endstand: ${s.homeName} ${s.standHeim}:${s.standGast} ${s.awayName}\n${link}`);
+          const rest = (s.highlights || []).filter(h => !hlGemeldet.has(h.id));
+          rest.forEach(h => hlGemeldet.add(h.id));
+          await senden(`🏁 Endstand: ${s.homeName} ${s.standHeim}:${s.standGast} ${s.awayName}${rest.length ? `\n${hlZeilen(rest)}` : ''}\n${link}`);
           if (modus === 'live') merker.liveFertig = [...(merker.liveFertig || []), live.merkerKey].slice(-60);
           sag('Endstand gemeldet ✓');
           break;

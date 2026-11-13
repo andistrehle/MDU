@@ -14,12 +14,12 @@ import { NEUE_SAISON, alleBegegnungen27, findLiga27, team27, venue27 } from '@/l
 import { ergebnisAusBericht } from '@/lib/tabelle-2027';
 import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 import {
-  sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag,
+  highlightsZuordnen, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type RohHighlight,
   type LiveAntwort, type TickerAnzeige, type TickerBericht, type TickerPlan,
 } from '@/lib/live-ticker';
 
 type Bericht = { id: string; home_team_id: string; guest_team_id: string; status: string; match_date: string | null; forfeit: string | null;
-  spiele_home: number | null; spiele_guest: number | null; legs_home: number | null; legs_guest: number | null };
+  spiele_home: number | null; spiele_guest: number | null; legs_home: number | null; legs_guest: number | null; highlights: RohHighlight[] | null };
 type Spiel = { report_id: string; game_no: number; game_type: string; home_slot: number | null; guest_slot: number | null; home_slot2: number | null; guest_slot2: number | null; legs_home: number | null; legs_guest: number | null };
 type Spieler = { report_id: string; side: 'home' | 'guest'; slot: number; name: string };
 
@@ -35,10 +35,10 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
   for (const b of alle) if (b.termin?.datum === datum) plan.set(b.key, { key: b.key, liga: b.liga, home: b.home, away: b.away, uhrzeit: b.termin.uhrzeit ?? null });
 
   const { data: rohe } = await db.from('match_reports')
-    .select('id, home_team_id, guest_team_id, status, match_date, forfeit, spiele_home, spiele_guest, legs_home, legs_guest')
+    .select('id, home_team_id, guest_team_id, status, match_date, forfeit, spiele_home, spiele_guest, legs_home, legs_guest, highlights')
     .eq('season_id', NEUE_SAISON.id).eq('match_date', datum);
   const { data: geplant } = plan.size
-    ? await db.from('match_reports').select('id, home_team_id, guest_team_id, status, match_date, forfeit, spiele_home, spiele_guest, legs_home, legs_guest')
+    ? await db.from('match_reports').select('id, home_team_id, guest_team_id, status, match_date, forfeit, spiele_home, spiele_guest, legs_home, legs_guest, highlights')
       .eq('season_id', NEUE_SAISON.id).in('home_team_id', [...new Set([...plan.values()].map(p => p.home))])
     : { data: [] };
   const berichte = new Map<string, Bericht>();
@@ -82,6 +82,9 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
       };
     }
     const e = tickerEintrag(p, b);
+    if (r && !r.forfeit) {
+      e.highlights = highlightsZuordnen(r.highlights ?? [], ((spiele ?? []) as Spiel[]).filter(g => g.report_id === r.id), (side, slot) => name(r.id, side, slot));
+    }
     // Wertung (Nichtantritt/kein Bericht): Stand aus der Wertung, keine Partien.
     if (r?.forfeit) {
       const w = ergebnisAusBericht({ ...r, forfeit: r.forfeit }, legsJeSpiel(bestOfFuerLiga(p.liga)));

@@ -3,7 +3,7 @@
 // Stand = gewonnene Spiele. Spieltag läuft bis 4 Uhr früh weiter (Berliner Zeit).
 
 import { describe, expect, it } from 'vitest';
-import { meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
+import { highlightKurz, highlightsZuordnen, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
 
 const plan = (key: string, uhrzeit: string | null = '20:00'): TickerPlan => ({ key, liga: 'a', home: key.split('|')[0], away: key.split('|')[1], uhrzeit });
 const spiel = (nr: number, h: number | null, g: number | null) => ({ nr, doppel: nr === 9 || nr === 18, heim: ['H'], gast: ['G'], legsHeim: h, legsGast: g });
@@ -59,7 +59,7 @@ describe('Reihenfolge und Aktivität', () => {
 
 describe('Meldung bei Standänderung', () => {
   const a = (status: 'offen' | 'live' | 'beendet', h: number, g: number): TickerAnzeige => ({
-    key: 'x|y', liga: 'a', home: 'x', away: 'y', uhrzeit: '20:00', status, standHeim: h, standGast: g, gespielt: h + g, bestaetigt: false, spiele: [],
+    key: 'x|y', liga: 'a', home: 'x', away: 'y', uhrzeit: '20:00', status, standHeim: h, standGast: g, gespielt: h + g, bestaetigt: false, spiele: [], highlights: [],
     homeName: 'Heim', awayName: 'Gast', ligaName: 'A Liga', ligaFarbe: '#000', ort: null, wertung: false,
   });
   it('erste Abfrage oder keine Änderung: nichts', () => {
@@ -72,5 +72,39 @@ describe('Meldung bei Standänderung', () => {
     expect(meldungText(a('live', 3, 4), a('live', 4, 4))).toBe('Ausgleich: Heim 4:4 Gast');
     expect(meldungText(a('live', 5, 4), a('live', 6, 4))).toBe('Heim 6:4 Gast');
     expect(meldungText(a('live', 9, 8), a('beendet', 10, 8))).toBe('Endstand: Heim 10:8 Gast');
+  });
+});
+
+describe('Highlights im Live-Ticker', () => {
+  const g = (game_no: number, home_slot: number | null, guest_slot: number | null, legs: [number | null, number | null], h2: number | null = null, g2: number | null = null) =>
+    ({ game_no, home_slot, guest_slot, home_slot2: h2, guest_slot2: g2, legs_home: legs[0], legs_guest: legs[1] });
+  const name = (side: 'home' | 'guest', slot: number) => `${side === 'home' ? 'H' : 'G'}${slot}`;
+
+  it('ordnet dem letzten Spiel MIT Ergebnis der Person zu (auch Doppel), ohne Spiel → null', () => {
+    const spiele = [g(1, 1, 1, [2, 0]), g(5, 1, 2, [1, 2]), g(9, 3, 1, [2, 1], 1, 4), g(13, 1, 3, [null, null])];
+    const h = highlightsZuordnen([
+      { side: 'home', slot: 1, type: '180', value: 1 },
+      { side: 'guest', slot: 2, type: 'high_finish', value: 121 },
+      { side: 'guest', slot: 7, type: 'short_leg', value: 15 },
+    ], spiele, name);
+    expect(h.map(x => [x.name, x.spiel])).toEqual([['H1', 9], ['G2', 5], ['G7', null]]);
+    expect(h[0].seite).toBe('heim');
+  });
+
+  it('gleiche Einträge bekommen verschiedene Kennungen; Unbekanntes und leere Werte fallen weg', () => {
+    const h = highlightsZuordnen([
+      { side: 'home', slot: 2, type: 'high_finish', value: 100 },
+      { side: 'home', slot: 2, type: 'high_finish', value: 100 },
+      { side: 'home', slot: 2, type: 'quatsch', value: 3 },
+      { side: 'home', slot: 2, type: '171', value: null },
+    ], [], name);
+    expect(h.map(x => x.id)).toEqual(['home:2:high_finish:100:1', 'home:2:high_finish:100:2']);
+  });
+
+  it('Kurztext', () => {
+    expect(highlightKurz({ typ: '180', wert: 1 })).toBe('🎯 180');
+    expect(highlightKurz({ typ: '180', wert: 2 })).toBe('🎯 2× 180');
+    expect(highlightKurz({ typ: 'high_finish', wert: 121 })).toBe('💥 High Finish 121');
+    expect(highlightKurz({ typ: 'short_leg', wert: 15 })).toBe('⚡ Short Leg 15 Darts');
   });
 });
