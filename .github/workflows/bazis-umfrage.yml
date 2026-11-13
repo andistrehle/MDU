@@ -22,6 +22,9 @@ name: Bazis · Ankunfts-Umfrage (WhatsApp)
 #   anmelden-qr — wie anmelden, aber per QR-Code (Protokoll am Laptop öffnen, mit dem Handy scannen)
 #   test     — Umfrage fürs nächste Spiel an dich selbst schicken
 #   umfrage  — wie der tägliche Lauf
+#   signal-umfrage — die heutige Umfrage NUR per Signal an SIGNAL_EMPFAENGER (Test)
+# SIGNAL (Betreiber 13.11.2026): Mit Geheimnis SIGNAL_EMPFAENGER (+ einmal „signal-anmelden“ im
+# Live-Workflow) geht die Umfrage zusätzlich per Signal an diese EINE Person.
 on:
   schedule:
     - cron: '17 9 * * *'
@@ -33,7 +36,7 @@ on:
       modus:
         description: 'Was soll der Bot tun?'
         type: choice
-        options: [anmelden, anmelden-qr, test, umfrage]
+        options: [anmelden, anmelden-qr, test, umfrage, signal-umfrage]
         default: anmelden
 
 concurrency:
@@ -49,6 +52,7 @@ jobs:
     timeout-minutes: 10
     env:
       MODUS: ${{ inputs.modus || 'umfrage' }}
+      SIGNAL_EMPFAENGER: ${{ secrets.SIGNAL_EMPFAENGER }}
     steps:
       - uses: actions/checkout@v4
 
@@ -69,6 +73,23 @@ jobs:
           key: wa-sitzung-none
           restore-keys: wa-sitzung-
 
+      - name: Signal-Anmeldung (verschlüsselt) holen
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/whatsapp-bot/signal
+          key: signal-sitzung-none
+          restore-keys: signal-sitzung-
+
+      - name: signal-cli installieren (nur wenn Signal eingerichtet)
+        if: env.SIGNAL_EMPFAENGER != ''
+        continue-on-error: true
+        run: |
+          url=$(curl -fsSL https://api.github.com/repos/AsamK/signal-cli/releases/latest | jq -r '.assets[] | select(.name | test("Linux-native\\.tar\\.gz$")) | .browser_download_url' | head -1)
+          echo "signal-cli: $url"
+          mkdir -p "$RUNNER_TEMP/signal-cli" && curl -fsSL "$url" | tar -xz -C "$RUNNER_TEMP/signal-cli"
+          bin=$(find "$RUNNER_TEMP/signal-cli" -type f -name signal-cli | head -1) && chmod +x "$bin"
+          echo "SIGNAL_CLI=$bin" >> "$GITHUB_ENV" && "$bin" --version
+
       - name: Bot-Abhängigkeiten
         working-directory: scripts/whatsapp-bot
         run: npm ci --no-audit --no-fund
@@ -88,3 +109,10 @@ jobs:
         with:
           path: scripts/whatsapp-bot/sitzung
           key: wa-sitzung-${{ hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') }}
+
+      - name: Signal-Anmeldung (verschlüsselt) sichern
+        if: always() && hashFiles('scripts/whatsapp-bot/signal/signal.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/whatsapp-bot/signal
+          key: signal-sitzung-${{ hashFiles('scripts/whatsapp-bot/signal/signal.enc') }}

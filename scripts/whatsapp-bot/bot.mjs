@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url';
 import makeWASocket, { Browsers, DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState as authAusOrdner, delay } from 'baileys';
 import pino from 'pino';
 import QRCode from 'qrcode';
-import { signalAnmelden, signalLaden, signalSenden, signalSpeichern } from './signal.mjs';
+import { signalAnmelden, signalLaden, signalSenden, signalSpeichern, signalUmfrage } from './signal.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const SITZUNG = join(HIER, 'sitzung', 'sitzung.enc');
@@ -255,6 +255,17 @@ async function main() {
     sag('Signal-Test an dich selbst geschickt ✓ (Chat „Notiz an mich“).');
     return;
   }
+  // Umfrage NUR per Signal (Test, Betreiber 13.11.2026) — WhatsApp bleibt unberührt.
+  if (modus === 'signal-umfrage') {
+    const u = umfrageLesen();
+    if (!u) { sag('Heute kein Spiel mit fester Uhrzeit – nichts zu tun.'); return; }
+    if (!signalLaden()) throw new Error('Signal nicht bereit – SIGNAL_EMPFAENGER gesetzt und „signal-anmelden“ gelaufen?');
+    const ok = await signalUmfrage(u.name, u.optionen);
+    signalSpeichern();
+    if (!ok) throw new Error('Signal-Umfrage nicht verschickt.');
+    sag(`Signal-Umfrage für ${u.datum} (${u.uhrzeit} Uhr) verschickt ✓`);
+    return;
+  }
   const merker = sitzungLaden();
 
   if (modus === 'umfrage') {
@@ -344,6 +355,9 @@ async function main() {
       await sock.sendMessage(gruppe, { poll: { name: u.name, values: u.optionen, selectableCount: 0 } });
       merker.gepostet = [...merker.gepostet, u.datum].slice(-60);
       sag(`Umfrage für ${u.datum} (${u.uhrzeit} Uhr) gepostet ✓`);
+      // Parallel per Signal an EINE Person (Betreiber 13.11.2026), falls eingerichtet; Fehler bremsen nichts.
+      signalAktiv = signalLaden();
+      if (signalAktiv && await signalUmfrage(u.name, u.optionen).catch(() => false)) sag('Umfrage auch per Signal verschickt ✓');
     }
     await delay(5000); // Nachricht rausschicken, Schlüssel speichern lassen
   } finally {

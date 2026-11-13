@@ -89,6 +89,16 @@ export async function signalSenden(text, { anMich = false } = {}) {
   if (r.status !== 0) sag(`Senden fehlgeschlagen (Code ${r.status}).`);
 }
 
+/** Ankunfts-Umfrage per Signal an den Empfänger (Mehrfachauswahl wie in WhatsApp). true = verschickt. */
+export async function signalUmfrage(frage, optionen) {
+  if (!konto) return false;
+  const an = (process.env.SIGNAL_EMPFAENGER || '').trim();
+  if (!an) return false;
+  const r = cli(['-a', konto, 'sendPollCreate', an, '-q', frage, '-o', ...optionen.slice(0, 10)]);
+  if (r.status !== 0) { sag(`Umfrage fehlgeschlagen (Code ${r.status}).`); return false; }
+  return true;
+}
+
 /** Ein Verknüpfungsversuch: `zeige(link)` bekommt den sgnl://-Link (Signal wartet ~2 Min.). */
 function einmalVerknuepfen(zeige) {
   return new Promise((fertig) => {
