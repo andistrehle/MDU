@@ -23,6 +23,7 @@
 //      Ohne Bazis-Spiel heute oder ohne WA_GRUPPE_LIVE: meldet sich gar nicht erst an.
 //   node bot.mjs live-test  → dasselbe, aber an dich selbst („Du“-Chat)
 //   node bot.mjs signal-anmelden / signal-test → Live-Ticker zusätzlich per Signal an EINE Person (signal.mjs)
+//   node bot.mjs spiegel    → Gruppe WA_GRUPPE_SPIEGEL nach Signal spiegeln (+ zitierte Antworten zurück), alle 15 Min.
 // Umfrage-Inhalt: umfrage.json (erzeugt von umfrage.ts, im Workflow davor).
 // ENV: WA_SCHLUESSEL, WA_GRUPPE (genauer Gruppenname), WA_NUMMER (nur fürs Anmelden)
 // ============================================================
@@ -31,10 +32,10 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import makeWASocket, { Browsers, DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState as authAusOrdner, delay } from 'baileys';
+import makeWASocket, { Browsers, DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState as authAusOrdner, delay, downloadMediaMessage } from 'baileys';
 import pino from 'pino';
 import QRCode from 'qrcode';
-import { signalAnmelden, signalLaden, signalSenden, signalSpeichern, signalUmfrage } from './signal.mjs';
+import { signalAnmelden, signalAntworten, signalLaden, signalSenden, signalSpeichern, signalUmfrage } from './signal.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const SITZUNG = join(HIER, 'sitzung', 'sitzung.enc');
@@ -90,6 +91,10 @@ async function verbinden({ koppeln = false, qr = false } = {}) {
       markOnlineOnConnect: false, syncFullHistory: false,
     });
     sock.ev.on('creds.update', saveCreds);
+    // Spiegel: Gruppen-Nachrichten einsammeln, sobald die Verbindung steht (auch nachgeholte).
+    sock.ev.on('messages.upsert', ({ messages }) => {
+      for (const m of messages || []) if (m?.key?.remoteJid?.endsWith('@g.us')) spiegelSammler.push(m);
+    });
     // QR-Weg (Modus „anmelden-qr“): QR-Code ins Protokoll, mit dem Handy abscannen.
     if (qr) sock.ev.on('connection.update', async (u) => {
       if (!u.qr) return;
@@ -226,6 +231,92 @@ function umfrageLesen() {
 
 let signalAktiv = false;
 
+// ── Spiegel: WhatsApp-Gruppe → Signal (Betreiber 13.11.2026, Test über GitHub) ──
+// Alles aus der Gruppe WA_GRUPPE_SPIEGEL (genauer Name) geht per Signal an SIGNAL_EMPFAENGER — ein
+// Mitglied ohne WhatsApp: Text mit Absender, Bilder, Sprachnachrichten, Umfragen (als Text). Antwortet
+// er in Signal mit ZITAT auf eine weitergeleitete Nachricht, landet die Antwort als Antwort darauf in der
+// Gruppe („Name (Signal): …“, von deiner Nummer). Alles andere, was er dir schreibt, bleibt bei Signal.
+// Läuft in JEDEM Modus mit WhatsApp-Verbindung (sonst verbrauchte z. B. der Live-Lauf die Nachrichten),
+// dazu der Workflow bazis-spiegel.yml alle 15 Min. Erste Runde: nur Nachrichten ab jetzt.
+// Datenschutz: Die Gruppe weiß Bescheid (Betreiber).
+const SPIEGEL = (process.env.WA_GRUPPE_SPIEGEL || '').trim();
+const spiegelSammler = [];
+let spiegelGruppe = null; // { jid, name }
+
+const textVon = (msg) => msg?.conversation || msg?.extendedTextMessage?.text || '';
+function inhalt(m) {
+  let msg = m.message || {};
+  if (msg.ephemeralMessage) msg = msg.ephemeralMessage.message || {};
+  if (msg.viewOnceMessageV2) msg = msg.viewOnceMessageV2.message || {};
+  if (msg.documentWithCaptionMessage) msg = msg.documentWithCaptionMessage.message || {};
+  return msg;
+}
+
+async function spiegelBereit(sock, merker) {
+  if (!SPIEGEL || !signalAktiv) return false;
+  if (spiegelGruppe) return true;
+  try {
+    const jid = await gruppeNachName(sock, SPIEGEL);
+    spiegelGruppe = { jid, name: SPIEGEL };
+    if (!merker.spiegelSeit) merker.spiegelSeit = Math.floor(Date.now() / 1000); // nichts von früher nachschicken
+    return true;
+  } catch (e) { sag(`Spiegel: ${e.message.replace('Live-Gruppe', 'Gruppe').replace('WA_GRUPPE_LIVE', 'WA_GRUPPE_SPIEGEL')}`); return false; }
+}
+
+/** Gesammeltes weiterleiten + zitierende Antworten aus Signal in die Gruppe stellen. */
+async function spiegelLeeren(sock, merker) {
+  if (!(await spiegelBereit(sock, merker))) return;
+  const { jid, name: gruppe } = spiegelGruppe;
+  const ids = new Set(merker.spiegelIds || []);
+  const karte = merker.spiegelKarte || {}; // Signal-Zeitstempel → WhatsApp-Nachricht (für Antworten)
+  const ich = sock.user?.name || 'Ich';
+  let n = 0;
+  while (spiegelSammler.length) {
+    const m = spiegelSammler.shift();
+    if (m.key.remoteJid !== jid || !m.key.id || ids.has(m.key.id)) continue;
+    if (Number(m.messageTimestamp || 0) < (merker.spiegelSeit || 0)) continue;
+    ids.add(m.key.id);
+    const msg = inhalt(m);
+    const wer = m.key.fromMe ? ich : (m.pushName || 'Jemand');
+    const kopf = `💬 Nachricht aus ${gruppe}\n${wer} schreibt:`;
+    let ts = null;
+    try {
+      const text = textVon(msg);
+      const umfrage = msg.pollCreationMessage || msg.pollCreationMessageV2 || msg.pollCreationMessageV3;
+      if (text) ts = await signalSenden(`${kopf}\n${text}`);
+      else if (umfrage) ts = await signalSenden(`${kopf}\n📊 Umfrage: ${umfrage.name}\n${(umfrage.options || []).map(o => `▫️ ${o.optionName}`).join('\n')}\n(Abstimmen geht nur in WhatsApp)`);
+      else if (msg.imageMessage || msg.audioMessage) {
+        const bild = !!msg.imageMessage;
+        const buf = await downloadMediaMessage({ ...m, message: msg }, 'buffer', {}, { reuploadRequest: sock.updateMediaMessage });
+        const datei = join(HIER, `.spiegel-${m.key.id}.${bild ? 'jpg' : 'ogg'}`);
+        writeFileSync(datei, buf);
+        const unter = bild ? (msg.imageMessage.caption ? `\n${msg.imageMessage.caption}` : '\n📷 Bild') : '\n🎤 Sprachnachricht';
+        ts = await signalSenden(`${kopf}${unter}`, { dateien: [datei] });
+        rmSync(datei, { force: true });
+      } else if (msg.videoMessage) ts = await signalSenden(`${kopf}\n🎥 Video${msg.videoMessage.caption ? `: ${msg.videoMessage.caption}` : ''} (nur in WhatsApp)`);
+      else if (msg.documentMessage) ts = await signalSenden(`${kopf}\n📎 Datei: ${msg.documentMessage.fileName || ''} (nur in WhatsApp)`);
+      else continue; // Reaktionen, Abstimmungen, Sticker, Systemmeldungen: nicht weiterleiten
+    } catch (e) { sag(`Spiegel: eine Nachricht nicht weitergeleitet (${e.message}).`); continue; }
+    if (ts) karte[ts] = { id: m.key.id, participant: m.key.participant || null, fromMe: !!m.key.fromMe, text: (textVon(msg) || '…').slice(0, 200) };
+    n++;
+    await delay(800);
+  }
+  // Antworten aus Signal (nur mit Zitat auf eine weitergeleitete Nachricht)
+  let a = 0;
+  for (const r of signalAntworten()) {
+    const ziel = karte[r.zitat];
+    if (!ziel || !r.text.trim()) continue;
+    const zitiert = { key: { remoteJid: jid, id: ziel.id, participant: ziel.participant || undefined, fromMe: ziel.fromMe }, message: { conversation: ziel.text } };
+    const raus = await sock.sendMessage(jid, { text: `${r.name || 'Signal'} (Signal): ${r.text}` }, { quoted: zitiert });
+    if (raus?.key?.id) ids.add(raus.key.id); // eigene Antwort nicht zurückspiegeln
+    a++;
+    await delay(800);
+  }
+  merker.spiegelIds = [...ids].slice(-500);
+  merker.spiegelKarte = Object.fromEntries(Object.entries(karte).slice(-300));
+  if (n || a) sag(`Spiegel: ${n} weitergeleitet, ${a} Antwort(en) in die Gruppe.`);
+}
+
 async function main() {
   if (!SCHLUESSEL || SCHLUESSEL.length < 16) {
     sag('Nicht eingerichtet (Geheimnis WA_SCHLUESSEL fehlt oder ist kürzer als 16 Zeichen) – nichts zu tun.');
@@ -266,7 +357,10 @@ async function main() {
     sag(`Signal-Umfrage für ${u.datum} (${u.uhrzeit} Uhr) verschickt ✓`);
     return;
   }
+  if (modus === 'spiegel' && !SPIEGEL) { sag('WA_GRUPPE_SPIEGEL fehlt – Spiegel nicht eingerichtet, nichts zu tun.'); return; }
   const merker = sitzungLaden();
+  if (SPIEGEL && !modus.startsWith('anmelden')) signalAktiv = signalLaden();
+  if (modus === 'spiegel' && !signalAktiv) throw new Error('Signal nicht bereit – Spiegel braucht SIGNAL_EMPFAENGER + „signal-anmelden“.');
 
   if (modus === 'umfrage') {
     const u = umfrageLesen();
@@ -338,10 +432,21 @@ async function main() {
           break;
         }
         if (modus === 'live-test' && gepostet.size) { sag('Test: bisherige Ergebnisse geschickt ✓'); break; }
+        await spiegelLeeren(sock, merker).catch((e) => sag(`Spiegel: ${e.message}`));
         await delay(60_000);
         s = (await tickerHolen().catch(() => null)) || s;
       }
       sag(`Live-Ticker: ${gepostet.size} Spiele gemeldet.`);
+    } else if (modus === 'spiegel') {
+      // Nachgeholte Nachrichten kommen in den ersten Sekunden nach dem Verbinden — warten, bis 15 s Ruhe ist (max. 2 Min.).
+      const bis = Date.now() + 120_000;
+      let zuletzt = -1, ruhigSeit = Date.now();
+      await delay(10_000);
+      while (Date.now() < bis) {
+        if (spiegelSammler.length !== zuletzt) { zuletzt = spiegelSammler.length; ruhigSeit = Date.now(); }
+        if (Date.now() - ruhigSeit > 15_000) break;
+        await delay(3000);
+      }
     } else if (modus === 'test') {
       const u = umfrageLesen();
       if (!u) throw new Error('Kein kommendes Spiel mit fester Uhrzeit gefunden.');
@@ -352,13 +457,15 @@ async function main() {
     } else {
       const u = umfrageLesen();
       const gruppe = await gruppeFinden(sock);
-      await sock.sendMessage(gruppe, { poll: { name: u.name, values: u.optionen, selectableCount: 0 } });
+      const raus = await sock.sendMessage(gruppe, { poll: { name: u.name, values: u.optionen, selectableCount: 0 } });
+      if (raus?.key?.id) merker.spiegelIds = [...(merker.spiegelIds || []), raus.key.id].slice(-500); // geht schon direkt an Signal
       merker.gepostet = [...merker.gepostet, u.datum].slice(-60);
       sag(`Umfrage für ${u.datum} (${u.uhrzeit} Uhr) gepostet ✓`);
       // Parallel per Signal an EINE Person (Betreiber 13.11.2026), falls eingerichtet; Fehler bremsen nichts.
       signalAktiv = signalLaden();
       if (signalAktiv && await signalUmfrage(u.name, u.optionen).catch(() => false)) sag('Umfrage auch per Signal verschickt ✓');
     }
+    if (!modus.startsWith('anmelden')) await spiegelLeeren(sock, merker).catch((e) => sag(`Spiegel: ${e.message}`));
     await delay(5000); // Nachricht rausschicken, Schlüssel speichern lassen
   } finally {
     if (signalAktiv) signalSpeichern();

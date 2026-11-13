@@ -1,0 +1,107 @@
+name: Bazis · Spiegel WhatsApp → Signal
+
+# Alles aus der WhatsApp-Gruppe WA_GRUPPE_SPIEGEL (genauer Gruppenname) geht per Signal an
+# SIGNAL_EMPFAENGER — ein Mitglied ohne WhatsApp (Betreiber 13.11.2026, Test über GitHub):
+# „Nachricht aus <Gruppe> / X schreibt: …“, Bilder, Sprachnachrichten, Umfragen als Text.
+# Antwortet er in Signal mit ZITAT auf eine weitergeleitete Nachricht, geht die Antwort als Antwort
+# darauf in die Gruppe („Name (Signal): …“, von der Nummer des Betreibers). INOFFIZIELL wie die anderen
+# Bazis-Workflows (scripts/whatsapp-bot/bot.mjs, Modus „spiegel“).
+#
+# Alle 15 Minuten — GitHub startet geplante Läufe oft verspätet, dann kommt es später an. Der Bot holt
+# beim Verbinden nach, was seit dem letzten Lauf in der Gruppe kam. Umfrage- und Live-Lauf spiegeln
+# ebenfalls mit (sonst verbrauchten sie die Nachrichten). Ohne WA_GRUPPE_SPIEGEL endet der Lauf sofort.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+# EIGENE Warteschlange: In „bazis-bot“ würde jeder neue Spiegel-Lauf einen wartenden Umfrage-/Live-Lauf
+# verdrängen (GitHub behält je Gruppe nur EINEN wartenden). Stattdessen setzt der Spiegel aus, solange
+# Umfrage oder Live laufen (die spiegeln selbst mit), und die warten ihrerseits kurz auf einen Spiegel-Lauf.
+concurrency:
+  group: bazis-spiegel
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  spiegel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WA_GRUPPE_SPIEGEL: ${{ secrets.WA_GRUPPE_SPIEGEL }}
+      SIGNAL_EMPFAENGER: ${{ secrets.SIGNAL_EMPFAENGER }}
+    steps:
+      - name: Eingerichtet? Läuft gerade Umfrage/Live?
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$WA_GRUPPE_SPIEGEL" ] || [ -z "$SIGNAL_EMPFAENGER" ]; then echo "Spiegel nicht eingerichtet – nichts zu tun."; exit 0; fi
+          for wf in bazis-umfrage.yml bazis-live.yml; do
+            for st in in_progress queued; do
+              n=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$wf/runs?status=$st&per_page=1" | jq '.total_count')
+              if [ "${n:-0}" != "0" ]; then echo "$wf läuft ($st) – spiegelt selbst mit, aussetzen."; exit 0; fi
+            done
+          done
+          echo "SPIEGEL_LOS=1" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        if: env.SPIEGEL_LOS == '1'
+
+      - uses: actions/setup-node@v4
+        if: env.SPIEGEL_LOS == '1'
+        with:
+          node-version: '22'
+
+      - name: Gespeicherte Anmeldung holen
+        if: env.SPIEGEL_LOS == '1'
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/whatsapp-bot/sitzung
+          key: wa-sitzung-none
+          restore-keys: wa-sitzung-
+
+      - name: Signal-Anmeldung (verschlüsselt) holen
+        if: env.SPIEGEL_LOS == '1'
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/whatsapp-bot/signal
+          key: signal-sitzung-none
+          restore-keys: signal-sitzung-
+
+      - name: signal-cli installieren
+        if: env.SPIEGEL_LOS == '1'
+        run: |
+          url=$(curl -fsSL https://api.github.com/repos/AsamK/signal-cli/releases/latest | jq -r '.assets[] | select(.name | test("Linux-native\\.tar\\.gz$")) | .browser_download_url' | head -1)
+          mkdir -p "$RUNNER_TEMP/signal-cli" && curl -fsSL "$url" | tar -xz -C "$RUNNER_TEMP/signal-cli"
+          bin=$(find "$RUNNER_TEMP/signal-cli" -type f -name signal-cli | head -1) && chmod +x "$bin"
+          echo "SIGNAL_CLI=$bin" >> "$GITHUB_ENV"
+
+      - name: Bot-Abhängigkeiten
+        if: env.SPIEGEL_LOS == '1'
+        working-directory: scripts/whatsapp-bot
+        run: npm ci --no-audit --no-fund
+
+      - name: Bot
+        if: env.SPIEGEL_LOS == '1'
+        working-directory: scripts/whatsapp-bot
+        env:
+          WA_SCHLUESSEL: ${{ secrets.WA_SCHLUESSEL }}
+          WA_SITZUNG: ${{ secrets.WA_SITZUNG }}
+        run: node bot.mjs spiegel
+
+      - name: Anmeldung (verschlüsselt) sichern
+        if: always() && hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/whatsapp-bot/sitzung
+          key: wa-sitzung-${{ hashFiles('scripts/whatsapp-bot/sitzung/sitzung.enc') }}
+
+      - name: Signal-Anmeldung (verschlüsselt) sichern
+        if: always() && hashFiles('scripts/whatsapp-bot/signal/signal.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/whatsapp-bot/signal
+          key: signal-sitzung-${{ hashFiles('scripts/whatsapp-bot/signal/signal.enc') }}

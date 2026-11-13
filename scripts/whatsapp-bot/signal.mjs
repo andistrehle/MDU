@@ -53,9 +53,9 @@ function kontoLesen() {
   return nr ? nr[0] : null;
 }
 
-/** Entschlüsselt die Anmeldung. true = Signal ist bereit (Empfänger gesetzt, angemeldet, signal-cli da). */
+/** Entschlüsselt die Anmeldung. true = Signal ist bereit (Empfänger gesetzt, angemeldet, signal-cli da). Mehrfach aufrufbar. */
 export function signalLaden() {
-  konto = null;
+  if (konto) return true;
   if (!process.env.SIGNAL_EMPFAENGER || !existsSync(DATEI) || !SCHLUESSEL) return false;
   if (spawnSync(CLI, ['--version'], { encoding: 'utf8' }).status !== 0) { sag('signal-cli fehlt – übersprungen.'); return false; }
   try {
@@ -65,10 +65,38 @@ export function signalLaden() {
     spawnSync('tar', ['-xf', tar, '-C', DATEN]); rmSync(tar, { force: true });
     konto = kontoLesen();
     if (!konto) { sag('nicht angemeldet – übersprungen.'); return false; }
-    cli(['-a', konto, 'receive', '-t', '5']); // Signal will, dass verknüpfte Geräte ab und zu abholen
+    abholen(5); // Signal will, dass verknüpfte Geräte ab und zu abholen — Antworten dabei merken
     sag('bereit ✓');
     return true;
   } catch (e) { sag(`Anmeldung nicht lesbar (${e.message}) – übersprungen.`); return false; }
+}
+
+// ── Antworten des Empfängers (Spiegel, Betreiber 13.11.2026) ──
+// Jedes Abholen (receive) verbraucht die Nachrichten — deshalb merken wir uns hier JEDE Antwort des
+// Empfängers, die eine unserer Nachrichten ZITIERT, in eingang.json (liegt verschlüsselt mit der Anmeldung).
+// Alles, was er dir sonst schreibt, wird nicht angefasst (dein Handy bekommt es ohnehin).
+const EINGANG = () => join(DATEN, 'eingang.json');
+function eingangLesen() { try { return JSON.parse(readFileSync(EINGANG(), 'utf8')); } catch { return []; } }
+function abholen(sekunden) {
+  if (!konto) return;
+  const r = cli(['-o', 'json', '-a', konto, 'receive', '-t', String(sekunden)]);
+  const von = nurZiffern(process.env.SIGNAL_EMPFAENGER);
+  const neu = [];
+  for (const zeile of (r.stdout || '').split('\n')) {
+    let e; try { e = JSON.parse(zeile).envelope; } catch { continue; }
+    const d = e?.dataMessage;
+    if (!d?.quote?.id || nurZiffern(e.sourceNumber || e.source) !== von) continue;
+    neu.push({ zitat: Number(d.quote.id), text: d.message || '', name: e.sourceName || '', ts: Number(d.timestamp || e.timestamp) });
+  }
+  if (neu.length) writeFileSync(EINGANG(), JSON.stringify([...eingangLesen(), ...neu].slice(-100)));
+}
+/** Zitierende Antworten des Empfängers seit dem letzten Mal (holt vorher kurz ab) — und vergisst sie. */
+export function signalAntworten() {
+  if (!konto) return [];
+  abholen(3);
+  const a = eingangLesen();
+  if (a.length) writeFileSync(EINGANG(), '[]');
+  return a;
 }
 
 export function signalSpeichern() {
@@ -80,23 +108,30 @@ export function signalSpeichern() {
   rmSync(DATEN, { recursive: true, force: true });
 }
 
-/** Text an den Empfänger (live) bzw. an dich selbst (test). Fehler werden nur gemeldet, nie geworfen. */
-export async function signalSenden(text, { anMich = false } = {}) {
-  if (!konto) return;
+const zeitstempel = (out) => { const m = String(out || '').match(/\b\d{13}\b/); return m ? Number(m[0]) : null; };
+
+/** Text (optional mit Dateien) an den Empfänger bzw. an dich selbst. Liefert den Signal-Zeitstempel
+ *  (= Kennung der Nachricht, darauf zitiert der Empfänger) oder null. Wirft nie. */
+export async function signalSenden(text, { anMich = false, dateien = [] } = {}) {
+  if (!konto) return null;
   const an = anMich ? konto : (process.env.SIGNAL_EMPFAENGER || '').trim();
-  if (!an) return;
-  const r = cli(['-a', konto, 'send', '-m', text, an]);
-  if (r.status !== 0) sag(`Senden fehlgeschlagen (Code ${r.status}).`);
+  if (!an) return null;
+  // Empfänger VOR den Optionen: -a (Dateien) nimmt sonst alles Folgende als weitere Datei.
+  const args = ['-a', konto, 'send', an, '-m', text];
+  if (dateien.length) args.push('-a', ...dateien);
+  const r = cli(args);
+  if (r.status !== 0) { sag(`Senden fehlgeschlagen (Code ${r.status}).`); return null; }
+  return zeitstempel(r.stdout);
 }
 
-/** Ankunfts-Umfrage per Signal an den Empfänger (Mehrfachauswahl wie in WhatsApp). true = verschickt. */
+/** Ankunfts-Umfrage per Signal an den Empfänger (Mehrfachauswahl wie in WhatsApp). Zeitstempel/true = verschickt. */
 export async function signalUmfrage(frage, optionen) {
   if (!konto) return false;
   const an = (process.env.SIGNAL_EMPFAENGER || '').trim();
   if (!an) return false;
   const r = cli(['-a', konto, 'sendPollCreate', an, '-q', frage, '-o', ...optionen.slice(0, 10)]);
   if (r.status !== 0) { sag(`Umfrage fehlgeschlagen (Code ${r.status}).`); return false; }
-  return true;
+  return zeitstempel(r.stdout) ?? true;
 }
 
 /** Ein Verknüpfungsversuch: `zeige(link)` bekommt den sgnl://-Link (Signal wartet ~2 Min.). */
