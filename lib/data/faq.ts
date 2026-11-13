@@ -388,7 +388,7 @@ Eine Begegnung hat 18 Spiele: acht Einzel, ein Doppel, acht Einzel und ein absch
 - Eigene Termine außerhalb der MDU (andere Liga, Pokal, Training) lassen sich eintragen oder aus einer Tabelle importieren.
 - Die Teamkasse führt Strafen, Beiträge und den Kassenstand.
 
-Jedes Spiel hat eine eigene Seite, deren Link ihr in der Teamgruppe teilen könnt.`,
+Jedes Spiel hat eine eigene Seite, deren Link ihr in der Teamgruppe teilen könnt. Bist du angemeldet, siehst du im Spielplan an jedem Spiel deines Teams, ob du schon zugesagt hast – ein Tipp darauf bringt dich direkt zur Spielseite.`,
         stichworte: ['zusagen', 'absagen', 'aufstellung', 'premium'],
       },
       {

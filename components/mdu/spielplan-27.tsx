@@ -3,6 +3,7 @@ import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
 import { Icon } from './icon';
 import { VerlegungEtikett } from './verlegung-etikett';
+import { MeinSpielLink } from './mein-spiel-link';
 import {
   team27, venue27, spieltage27, spieleFuerTeam27, wochenendeText, begegnungKey,
   termin27, terminVerlegt,
@@ -139,8 +140,10 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
                 <Mitte e={e} />
                 <Seite id={g.away} />
               </div>
-              <div className="mdu-sp-ort" style={{ ...faint, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                {e ? <ZumBericht e={e}><ErgebnisZeile e={e} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</>}
+              <div className="mdu-sp-ort" style={{ ...faint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '4px 5px' }}>
+                {e ? <ZumBericht e={e}><ErgebnisZeile e={e} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</span>}
+                {/* Nur für Mitglieder von Heim/Gast mit Team Manager: eigener Stand + Weg zur Spielseite */}
+                <MeinSpielLink heim={g.home} gast={g.away} k={begegnungKey(g.home, g.away)} />
               </div>
             </div>
           );
@@ -234,6 +237,7 @@ export function TeamSpielplan27({ teamId, ergebnisse, nur, leer, max }: { teamId
                   {terminVerlegt(t, s.fri, s.sun) && <Etikett>verlegt</Etikett>}
                   <VerlegungEtikett k={s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)} />
                   {s.derby && <Etikett ton="grau">Derby</Etikett>}
+                  <MeinSpielLink heim={s.heim ? teamId : s.gegner} gast={s.heim ? s.gegner : teamId} k={s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)} />
                 </div>
               </div>
             ) : (
