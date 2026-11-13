@@ -48,7 +48,7 @@ jobs:
     env:
       MODUS: ${{ inputs.modus || 'live' }}
       SIGNAL_EMPFAENGER: ${{ secrets.SIGNAL_EMPFAENGER }}
-      WA_GRUPPE_SPIEGEL: ${{ secrets.WA_GRUPPE_SPIEGEL }}
+      WA_GRUPPE_SPIEGEL: ${{ secrets.WA_GRUPPE }}  # gespiegelt wird die Umfrage-Gruppe (Betreiber 13.11.2026)
     steps:
       - name: Auf laufenden Spiegel-Lauf warten
         env:

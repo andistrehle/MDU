@@ -1,6 +1,6 @@
 name: Bazis · Spiegel WhatsApp → Signal
 
-# Alles aus der WhatsApp-Gruppe WA_GRUPPE_SPIEGEL (genauer Gruppenname) geht per Signal an
+# Alles aus der WhatsApp-Gruppe der Umfrage (Geheimnis WA_GRUPPE → WA_GRUPPE_SPIEGEL) geht per Signal an
 # SIGNAL_EMPFAENGER — ein Mitglied ohne WhatsApp (Betreiber 13.11.2026, Test über GitHub):
 # „Nachricht aus <Gruppe> / X schreibt: …“, Bilder, Sprachnachrichten, Umfragen als Text.
 # Antwortet er in Signal mit ZITAT auf eine weitergeleitete Nachricht, geht die Antwort als Antwort
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      WA_GRUPPE_SPIEGEL: ${{ secrets.WA_GRUPPE_SPIEGEL }}
+      WA_GRUPPE_SPIEGEL: ${{ secrets.WA_GRUPPE }}  # gespiegelt wird die Umfrage-Gruppe (Betreiber 13.11.2026)
       SIGNAL_EMPFAENGER: ${{ secrets.SIGNAL_EMPFAENGER }}
     steps:
       - name: Eingerichtet? Läuft gerade Umfrage/Live?
