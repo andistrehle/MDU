@@ -179,7 +179,7 @@ function startText(s, a) {
   const gegner = a?.gegner || (s.home === TEAM ? s.awayName : s.homeName);
   const lokal = a?.lokal ? ` aus dem ${a.lokal}` : '';
   const uhr = a?.uhrzeit || s.uhrzeit;
-  const zeilen = [`🔴 Heute live${lokal} 🍻`, `⚔️ ${team} gg. ${gegner}`];
+  const zeilen = [`🔴 Heute live${lokal} 🍻`, '', `⚔️ ${team} gg. ${gegner}`, ''];
   if (uhr) zeilen.push(`⏰ Anwurf ist um ${uhr} Uhr`);
   if (a) zeilen.push('', '🎯 Heute an der Scheibe:', ...(a.zugesagt?.length ? a.zugesagt.map(n => `▪️ ${n}`) : ['(noch keine Zusagen)']));
   zeilen.push('', 'Gute Unterhaltung und good Darts 🎯🔥');
