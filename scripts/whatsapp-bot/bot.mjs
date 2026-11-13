@@ -179,9 +179,10 @@ function startText(s, a) {
   const gegner = a?.gegner || (s.home === TEAM ? s.awayName : s.homeName);
   const lokal = a?.lokal ? ` aus dem ${a.lokal}` : '';
   const uhr = a?.uhrzeit || s.uhrzeit;
-  const zeilen = [`Heute live${lokal}: ${team} gg. ${gegner}.${uhr ? ` Anwurf ist um ${uhr} Uhr.` : ''}`];
-  if (a) zeilen.push('', 'Heute an der Scheibe:', ...(a.zugesagt?.length ? a.zugesagt : ['(noch keine Zusagen)']));
-  zeilen.push('', 'Gute Unterhaltung und good Darts 🎯');
+  const zeilen = [`🔴 Heute live${lokal} 🍻`, `⚔️ ${team} gg. ${gegner}`];
+  if (uhr) zeilen.push(`⏰ Anwurf ist um ${uhr} Uhr`);
+  if (a) zeilen.push('', '🎯 Heute an der Scheibe:', ...(a.zugesagt?.length ? a.zugesagt.map(n => `▪️ ${n}`) : ['(noch keine Zusagen)']));
+  zeilen.push('', 'Gute Unterhaltung und good Darts 🎯🔥');
   return zeilen.join('\n');
 }
 /** Frühestens 30 Minuten vor Anwurf starten (Berliner Zeit); ohne Uhrzeit sofort. */
