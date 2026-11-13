@@ -6,11 +6,12 @@
 // signal-cli nur, wenn er es braucht; ohne Geheimnis SIGNAL_EMPFAENGER oder ohne
 // Anmeldung passiert hier NICHTS (WhatsApp läuft unverändert weiter).
 //
-// Anmeldung: Workflow-Modus „signal-anmelden“ → Link im Protokoll → als QR-Code
-// mit Signal scannen (Einstellungen → Verknüpfte Geräte). Weil das Protokoll
-// öffentlich ist, prüfen wir danach, dass das verknüpfte Konto WA_NUMMER ist
-// (sonst könnte ein Fremder den Link schneller scannen) — passt es nicht, wird
-// die Anmeldung verworfen.
+// Anmeldung: Workflow-Modus „signal-anmelden“ → der Bot schickt den QR-Code als Bild
+// in DEINEN WhatsApp-Chat („Du“) — das Protokoll ist öffentlich und erst nach dem
+// Lauf lesbar, Signal wartet aber nur ~2 Min. je Code (bis zu 4 Codes). Mit Signal
+// scannen (Einstellungen → Verknüpfte Geräte → +). Danach wird geprüft, dass das
+// verknüpfte Konto WA_NUMMER ist; sonst wird die Anmeldung verworfen. Der Link
+// selbst steht NICHT im Protokoll.
 //
 // Daten von signal-cli liegen NUR verschlüsselt (AES-256-GCM, WA_SCHLUESSEL) im
 // Actions-Cache (signal/signal.enc). Das Protokoll nennt weder Nummer noch Empfänger.
@@ -88,28 +89,34 @@ export async function signalSenden(text, { anMich = false } = {}) {
   if (r.status !== 0) sag(`Senden fehlgeschlagen (Code ${r.status}).`);
 }
 
-/** Modus „signal-anmelden“: Link ausgeben, auf das Scannen warten, Konto prüfen, verschlüsselt sichern. */
-export async function signalAnmelden() {
-  if (!SCHLUESSEL || SCHLUESSEL.length < 16) throw new Error('WA_SCHLUESSEL fehlt.');
-  rmSync(DATEN, { recursive: true, force: true }); mkdirSync(DATEN, { recursive: true });
-  const ziel = nurZiffern(process.env.WA_NUMMER);
-  if (!ziel) throw new Error('WA_NUMMER fehlt – damit wird geprüft, dass DEIN Konto verknüpft wurde.');
-  await new Promise((fertig, fehler) => {
+/** Ein Verknüpfungsversuch: `zeige(link)` bekommt den sgnl://-Link (Signal wartet ~2 Min.). */
+function einmalVerknuepfen(zeige) {
+  return new Promise((fertig) => {
     const p = spawn(CLI, ['--config', DATEN, 'link', '-n', 'MDU Live-Bot'], { stdio: ['ignore', 'pipe', 'pipe'] });
-    const uhr = setTimeout(() => { p.kill(); fehler(new Error('Nicht innerhalb von 8 Minuten gescannt.')); }, 8 * 60_000);
+    let gezeigt = false;
+    const uhr = setTimeout(() => p.kill(), 4 * 60_000);
     const lies = (b) => {
-      const t = b.toString();
-      const link = t.match(/sgnl:\/\/linkdevice\S+/);
-      if (link) {
-        sag('──────────────────────────────────────────');
-        sag('LINK (als QR-Code mit Signal scannen: Einstellungen → Verknüpfte Geräte → +):');
-        console.log(link[0]);
-        sag('──────────────────────────────────────────');
-      }
+      const link = b.toString().match(/sgnl:\/\/linkdevice\S+/);
+      if (link && !gezeigt) { gezeigt = true; Promise.resolve(zeige(link[0])).catch((e) => sag(`Link konnte nicht zugestellt werden (${e.message}).`)); }
     };
     p.stdout.on('data', lies); p.stderr.on('data', lies);
-    p.on('exit', (code) => { clearTimeout(uhr); code === 0 ? fertig() : fehler(new Error(`Verknüpfen abgebrochen (Code ${code}).`)); });
+    p.on('exit', (code) => { clearTimeout(uhr); fertig(code === 0); });
   });
+}
+
+/** Modus „signal-anmelden“: Link über `zeige` zustellen (QR in deinen WhatsApp-Chat), bis zu 4 Versuche,
+ *  danach prüfen, dass es DEIN Konto (WA_NUMMER) ist, und verschlüsselt sichern. */
+export async function signalAnmelden(zeige) {
+  if (!SCHLUESSEL || SCHLUESSEL.length < 16) throw new Error('WA_SCHLUESSEL fehlt.');
+  const ziel = nurZiffern(process.env.WA_NUMMER);
+  if (!ziel) throw new Error('WA_NUMMER fehlt – damit wird geprüft, dass DEIN Konto verknüpft wurde.');
+  let ok = false;
+  for (let versuch = 1; versuch <= 4 && !ok; versuch++) {
+    rmSync(DATEN, { recursive: true, force: true }); mkdirSync(DATEN, { recursive: true });
+    sag(`Verknüpfen, Versuch ${versuch} von 4 – QR-Code geht in deinen WhatsApp-Chat.`);
+    ok = await einmalVerknuepfen((link) => zeige(link, versuch));
+  }
+  if (!ok) throw new Error('Nicht gescannt (4 Versuche à ca. 2 Minuten).');
   konto = kontoLesen();
   if (!konto || nurZiffern(konto) !== ziel) {
     rmSync(DATEN, { recursive: true, force: true });

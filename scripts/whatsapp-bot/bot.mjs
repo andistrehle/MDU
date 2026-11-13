@@ -226,7 +226,22 @@ async function main() {
     return;
   }
   // Signal (Betreiber, 13.11.2026): eigene Modi, ohne WhatsApp-Anmeldung.
-  if (modus === 'signal-anmelden') { await signalAnmelden(); return; }
+  if (modus === 'signal-anmelden') {
+    // QR-Code per WhatsApp an dich selbst — WhatsApp-Anmeldung wie bei den anderen Modi.
+    const m = sitzungLaden();
+    if (!existsSync(join(AUTH, 'creds.json'))) throw new Error('WhatsApp nicht angemeldet – der QR-Code für Signal geht über WhatsApp an dich.');
+    const sock = await verbinden();
+    try {
+      const ich = sock.user.id.replace(/:\d+@/, '@');
+      await signalAnmelden(async (link, versuch) => {
+        const bild = await QRCode.toBuffer(link, { width: 640, margin: 2 });
+        await sock.sendMessage(ich, { image: bild, caption: `🔗 Signal verknüpfen (Code ${versuch}/4, gilt ca. 2 Min.)\nSignal → Einstellungen → Verknüpfte Geräte → + → diesen Code scannen.` });
+      });
+      await sock.sendMessage(ich, { text: '✅ Signal ist verknüpft – der Live-Ticker geht ab jetzt auch per Signal raus.' });
+      await delay(3000);
+    } finally { sock.end(undefined); await delay(1000); sitzungSpeichern(m); rmSync(AUTH, { recursive: true, force: true }); }
+    return;
+  }
   if (modus === 'signal-test') {
     if (!signalLaden()) throw new Error('Signal nicht bereit – SIGNAL_EMPFAENGER gesetzt und „signal-anmelden“ gelaufen?');
     await signalSenden('[TEST] MDU Live-Bot ✓ – so kommt der Live-Ticker bei Signal an.', { anMich: true });
