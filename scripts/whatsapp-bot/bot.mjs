@@ -388,6 +388,12 @@ async function main() {
     live = await liveLauf(gruppeName);
     if (!live) return;
     if (modus === 'live' && (merker.liveFertig || []).includes(live.merkerKey)) { sag('Live-Ticker für dieses Spiel ist schon abgeschlossen.'); return; }
+    // Warten VOR dem Anmelden (13.11.2026: 75 Min. mit offener, ungenutzter Verbindung → WhatsApp trennte, „Connection Closed“).
+    if (modus === 'live' && !(merker.liveStart || []).includes(live.merkerKey)) {
+      await wartenBisStart(live.s.uhrzeit);
+      live.ende = Date.now() + 4 * 3600_000; // Job-Grenze 320 Min.: Wartezeit + Spiel müssen hineinpassen
+      live.s = (await tickerHolen().catch(() => null)) || live.s;
+    }
   }
   if (!modus.startsWith('anmelden') && !existsSync(join(AUTH, 'creds.json'))) {
     throw new Error('Noch nicht angemeldet – Workflow zuerst einmal mit Modus „anmelden“ starten (Standard ist „test“).');
@@ -411,7 +417,6 @@ async function main() {
         await delay(1500);
       };
       if (!gepostet.size && !(merker.liveStart || []).includes(live.merkerKey)) {
-        if (modus === 'live') await wartenBisStart(live.s.uhrzeit);
         await senden(startText(live.s, await aufgebotHolen(live.s.key)));
         if (modus === 'live') merker.liveStart = [...(merker.liveStart || []), live.merkerKey].slice(-60);
       }
