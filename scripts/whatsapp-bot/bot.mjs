@@ -42,7 +42,13 @@ const AUTH = join(HIER, '.auth');
 const modus = process.argv[2] || 'umfrage';
 const SCHLUESSEL = process.env.WA_SCHLUESSEL || '';
 
-const sag = (t) => console.log(`[bazis-bot] ${t}`);
+// Das Protokoll ist ÖFFENTLICH. Die Krypto-Bibliothek unter baileys schreibt beim Schließen einer
+// Chat-Sitzung deren Schlüssel per console.log heraus („Closing session: SessionEntry …“, 13.11.2026
+// gesehen). Deshalb geht NUR unsere eigene Ausgabe ins Protokoll — alles andere wird verschluckt.
+const roh = { log: console.log.bind(console), error: console.error.bind(console) };
+for (const k of ['log', 'info', 'warn', 'error', 'debug', 'trace', 'dir']) console[k] = () => {};
+const sag = (t) => roh.log(`[bazis-bot] ${t}`);
+const sagRoh = (t) => roh.log(t);
 const heute = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 const stundeBerlin = () => Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
 
@@ -88,7 +94,7 @@ async function verbinden({ koppeln = false, qr = false } = {}) {
     if (qr) sock.ev.on('connection.update', async (u) => {
       if (!u.qr) return;
       sag('Neuer QR-Code (gilt ca. 20 Sekunden) – WhatsApp → Verknüpfte Geräte → Gerät hinzufügen → scannen:');
-      console.log(await QRCode.toString(u.qr, { type: 'terminal', small: true }));
+      sagRoh(await QRCode.toString(u.qr, { type: 'terminal', small: true }));
     });
     // Kopplungscode nur EINMAL anfordern: Ein neuer Code macht den alten ungültig.
     // Angefordert wird erst, wenn der Server bereit ist (erstes „qr“-Ereignis).
@@ -357,4 +363,4 @@ async function main() {
   }
 }
 
-main().then(() => process.exit(0)).catch((e) => { console.error(`[bazis-bot] FEHLER: ${e.message}`); process.exit(1); });
+main().then(() => process.exit(0)).catch((e) => { roh.error(`[bazis-bot] FEHLER: ${e.message}`); process.exit(1); });

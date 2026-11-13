@@ -28,7 +28,7 @@ const DATEI = join(HIER, 'signal', 'signal.enc');
 const DATEN = join(HIER, '.signal-daten');
 const SCHLUESSEL = process.env.WA_SCHLUESSEL || '';
 const CLI = process.env.SIGNAL_CLI || 'signal-cli';
-const sag = (t) => console.log(`[bazis-bot] Signal: ${t}`);
+const sag = (t) => process.stdout.write(`[bazis-bot] Signal: ${t}\n`);
 const nurZiffern = (n) => String(n || '').replace(/\D/g, '');
 
 let konto = null; // +49… nach dem Laden
