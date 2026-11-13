@@ -14,6 +14,10 @@ on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+    inputs:
+      minuten:
+        description: 'Mithören (Minuten, 0 = nur nachholen)'
+        default: '0'
 
 # EIGENE Warteschlange: In „bazis-bot“ würde jeder neue Spiegel-Lauf einen wartenden Umfrage-/Live-Lauf
 # verdrängen (GitHub behält je Gruppe nur EINEN wartenden). Stattdessen setzt der Spiegel aus, solange
@@ -90,6 +94,7 @@ jobs:
         env:
           WA_SCHLUESSEL: ${{ secrets.WA_SCHLUESSEL }}
           WA_SITZUNG: ${{ secrets.WA_SITZUNG }}
+          SPIEGEL_MINUTEN: ${{ inputs.minuten || '0' }}
         run: node bot.mjs spiegel
 
       - name: Anmeldung (verschlüsselt) sichern

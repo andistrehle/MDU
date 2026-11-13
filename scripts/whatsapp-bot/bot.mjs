@@ -92,6 +92,11 @@ async function verbinden({ koppeln = false, qr = false } = {}) {
     });
     sock.ev.on('creds.update', saveCreds);
     // Spiegel: Gruppen-Nachrichten einsammeln, sobald die Verbindung steht (auch nachgeholte).
+    sock.ev.on('messaging-history.set', ({ messages, syncType }) => {
+      spiegelZahl.verlauf = (spiegelZahl.verlauf || 0) + 1; spiegelZahl.verlaufTyp = syncType;
+      for (const m of messages || []) { spiegelZahl.verlaufNachrichten = (spiegelZahl.verlaufNachrichten || 0) + 1; if (m?.key?.remoteJid?.endsWith('@g.us')) spiegelSammler.push(m); }
+    });
+    sock.ev.on('messages.update', (u) => { spiegelZahl.updates = (spiegelZahl.updates || 0) + (u?.length || 0); });
     sock.ev.on('messages.upsert', ({ messages, type }) => {
       spiegelZahl.ereignisse++; spiegelZahl.typen[type] = (spiegelZahl.typen[type] || 0) + 1;
       for (const m of messages || []) { spiegelZahl.nachrichten++; if (m?.key?.remoteJid?.endsWith('@g.us')) spiegelSammler.push(m); }
@@ -322,7 +327,7 @@ async function spiegelLeeren(sock, merker) {
   merker.spiegelIds = [...ids].slice(-500);
   merker.spiegelKarte = Object.fromEntries(Object.entries(karte).slice(-300));
   const z = spiegelZahl;
-  sag(`Spiegel: ${n} weitergeleitet, ${a} Antwort(en) in die Gruppe. [Ereignisse ${z.ereignisse} ${JSON.stringify(z.typen)}, Nachrichten ${z.nachrichten}, aus der Gruppe ${z.gruppe}, bekannt ${z.bekannt}, alt ${z.alt}, leer ${z.leer} ${JSON.stringify(z.stub)}, andere ${z.andere || 0} ${JSON.stringify(z.arten || [])}]`);
+  sag(`Spiegel: ${n} weitergeleitet, ${a} Antwort(en) in die Gruppe. [Ereignisse ${z.ereignisse} ${JSON.stringify(z.typen)}, Nachrichten ${z.nachrichten}, aus der Gruppe ${z.gruppe}, bekannt ${z.bekannt}, alt ${z.alt}, leer ${z.leer} ${JSON.stringify(z.stub)}, andere ${z.andere || 0} ${JSON.stringify(z.arten || [])}, Verlauf ${z.verlauf || 0}/${z.verlaufNachrichten || 0} (${z.verlaufTyp ?? '-'}), Updates ${z.updates || 0}]`);
 }
 
 async function main() {
@@ -447,6 +452,8 @@ async function main() {
       sag(`Live-Ticker: ${gepostet.size} Spiele gemeldet.`);
     } else if (modus === 'spiegel') {
       // Nachgeholte Nachrichten kommen in den ersten Sekunden nach dem Verbinden — warten, bis 15 s Ruhe ist (max. 2 Min.).
+      const mithoeren = Number(process.env.SPIEGEL_MINUTEN || 0);
+      if (mithoeren > 0) { sag(`Spiegel: höre ${mithoeren} Min. mit – jetzt eine Nachricht in die Gruppe schreiben.`); await delay(mithoeren * 60_000); }
       const bis = Date.now() + 120_000;
       let zuletzt = -1, ruhigSeit = Date.now();
       await delay(10_000);
