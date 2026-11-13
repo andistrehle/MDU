@@ -481,8 +481,9 @@ async function main() {
       signalAktiv = signalLaden();
       if (signalAktiv && await signalUmfrage(u.name, u.optionen).catch(() => false)) sag('Umfrage auch per Signal verschickt ✓');
     }
-    if (!modus.startsWith('anmelden')) await spiegelLeeren(sock, merker).catch((e) => sag(`Spiegel: ${e.message}`));
     await delay(5000); // Nachricht rausschicken, Schlüssel speichern lassen
+    // Zuletzt: was bis hierher aus der Gruppe kam, weiterleiten (sonst wäre es abgeholt, aber nicht gespiegelt).
+    if (!modus.startsWith('anmelden')) await spiegelLeeren(sock, merker).catch((e) => sag(`Spiegel: ${e.message}`));
   } finally {
     if (signalAktiv) signalSpeichern();
     sock.end(undefined);
