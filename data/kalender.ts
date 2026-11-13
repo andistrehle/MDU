@@ -170,6 +170,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "zusatz",
     "time": "18:00",
     "note": null
+  },
+  {
+    "id": "2026-11-18-machete-1-absage",
+    "date": "2026-11-18",
+    "venueId": "machete-1",
+    "art": "absage",
+    "time": null,
+    "note": "Stiller Feiertag ( BUSS UND BETTAG)"
   }
 ];
 

@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-11-18-machete-1-absage",
+    "date": "2026-11-13",
+    "title": "Kein Ranking am 18.11.2026 im Machete 1",
+    "teaser": "Das Ranking am Mittwoch, 18.11.2026 im Machete 1 fällt aus: Stiller Feiertag ( BUSS UND BETTAG).",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Mittwoch, 18.11.2026** gibt es im **Machete 1** kein Ranking. Grund: Stiller Feiertag ( BUSS UND BETTAG). Der Termin steht durchgestrichen im Wochenplan. Danach läuft wieder alles wie gewohnt."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-13-harlekin-zusatz",
     "date": "2026-11-13",
     "title": "Zusätzliches Ranking am 13.11.2026 im Harlekin",
