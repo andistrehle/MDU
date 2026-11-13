@@ -45,11 +45,12 @@ function meineZusagen(teamId: string, playerId: string): Promise<Stand> {
   return p;
 }
 
+// Texte klar PERSÖNLICH (Betreiber 13.11.2026: „Abgesagt“ las sich wie „Spiel fällt aus“).
 const ART: Record<ZusageStatus | 'offen', { text: string; bg: string; fg: string; titel: string }> = {
-  yes: { text: '✓ Zugesagt', bg: 'rgba(46,140,87,0.14)', fg: '#23774A', titel: 'Du hast zugesagt – zur Spielseite im Team Manager' },
-  no: { text: '✗ Abgesagt', bg: 'rgba(196,60,60,0.12)', fg: '#B23A3A', titel: 'Du hast abgesagt – zur Spielseite im Team Manager' },
-  maybe: { text: '? Unsicher', bg: 'rgba(120,120,120,0.14)', fg: 'var(--th-text-muted)', titel: 'Du bist unsicher – zur Spielseite im Team Manager' },
-  offen: { text: 'Zusagen', bg: '#F2C230', fg: '#1A1A1A', titel: 'Du hast noch nicht geantwortet – jetzt zu- oder absagen' },
+  yes: { text: '✓ Du bist dabei', bg: 'rgba(46,140,87,0.14)', fg: '#23774A', titel: 'Du hast zugesagt – zur Spielseite im Team Manager' },
+  no: { text: '✗ Du bist nicht dabei', bg: 'rgba(196,60,60,0.12)', fg: '#B23A3A', titel: 'Du hast abgesagt – das Spiel findet trotzdem statt. Zur Spielseite im Team Manager' },
+  maybe: { text: '? Du bist unsicher', bg: 'rgba(120,120,120,0.14)', fg: 'var(--th-text-muted)', titel: 'Du bist unsicher – zur Spielseite im Team Manager' },
+  offen: { text: 'Deine Rückmeldung fehlt', bg: '#F2C230', fg: '#1A1A1A', titel: 'Du hast noch nicht geantwortet – jetzt zu- oder absagen' },
 };
 
 /** Knopf an einem Spiel: nur für Mitglieder von Heim oder Gast mit Team Manager. */
