@@ -3,7 +3,7 @@
 // Stand = gewonnene Spiele. Spieltag läuft bis 4 Uhr früh weiter (Berliner Zeit).
 
 import { describe, expect, it } from 'vitest';
-import { highlightKurz, highlightsZuordnen, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
+import { highlightKurz, highlightsZuordnen, spieleVon, vorschlagSpiel, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
 
 const plan = (key: string, uhrzeit: string | null = '20:00'): TickerPlan => ({ key, liga: 'a', home: key.split('|')[0], away: key.split('|')[1], uhrzeit });
 const spiel = (nr: number, h: number | null, g: number | null) => ({ nr, doppel: nr === 9 || nr === 18, heim: ['H'], gast: ['G'], legsHeim: h, legsGast: g });
@@ -106,5 +106,23 @@ describe('Highlights im Live-Ticker', () => {
     expect(highlightKurz({ typ: '180', wert: 2 })).toBe('🎯 2× 180');
     expect(highlightKurz({ typ: 'high_finish', wert: 121 })).toBe('💥 High Finish 121');
     expect(highlightKurz({ typ: 'short_leg', wert: 15 })).toBe('⚡ Short Leg 15 Darts');
+  });
+});
+
+describe('Highlight: festgehaltenes Spiel', () => {
+  const g = (game_no: number, home_slot: number | null, legs: [number | null, number | null], home_slot2: number | null = null) =>
+    ({ game_no, home_slot, guest_slot: 1, home_slot2, guest_slot2: null, legs_home: legs[0], legs_guest: legs[1] });
+  const spiele = [g(2, 1, [2, 0]), g(6, 1, [0, 2]), g(9, 3, [null, null], 1), g(14, 1, [null, null])];
+
+  it('beim Eintragen gespeichertes Spiel bleibt, auch wenn die Person später weiterspielt', () => {
+    const h = highlightsZuordnen([{ side: 'home', slot: 1, type: 'high_finish', value: 100, game_no: 2 }], spiele, () => 'X');
+    expect(h[0].spiel).toBe(2);
+  });
+
+  it('Spiele der Person (inkl. Doppel) und Vorschlag = letztes fertiges, sonst erstes', () => {
+    expect(spieleVon(spiele, 'home', 1)).toEqual([2, 6, 9, 14]);
+    expect(vorschlagSpiel(spiele, 'home', 1)).toBe(6);
+    expect(vorschlagSpiel(spiele, 'home', 3)).toBe(9);
+    expect(vorschlagSpiel(spiele, 'home', 7)).toBeNull();
   });
 });

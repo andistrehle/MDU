@@ -21,6 +21,7 @@ import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
 import { supabase } from '@/lib/supabase/client';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { LigaTickerLeiste, LiveTeilenKnopf } from '@/components/mdu/live-ticker';
+import { spieleVon, vorschlagSpiel } from '@/lib/live-ticker';
 import { getOcrAvailability, ladeBerichtFotos } from '@/lib/supabase/match-report-uploads';
 import { KORREKTUR_MIN, KORREKTUR_TAGE, unterschiede, gleicherStand, datumDe, heuteBerlin, type Korrektur, type KorrekturStand } from '@/lib/spielbericht-korrektur';
 import {
@@ -554,6 +555,10 @@ function SpielberichteInner() {
   const [hlPick, setHlPick] = useState('');      // "home:3"
   const [hlType, setHlType] = useState<HighlightType>('180');
   const [hlValue, setHlValue] = useState('');
+  const [hlSpielWahl, setHlSpielWahl] = useState<number | null>(null);
+  const hlPickSide = hlPick ? (hlPick.split(':')[0] as 'home' | 'guest') : null, hlPickSlot = hlPick ? Number(hlPick.split(':')[1]) : null;
+  const hlMeineSpiele = hlPickSide && hlPickSlot ? spieleVon(games, hlPickSide, hlPickSlot) : [];
+  const hlSpiel = hlSpielWahl != null && hlMeineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlPickSide && hlPickSlot ? vorschlagSpiel(games, hlPickSide, hlPickSlot) : null);
   const highlightPlayerOptions = [
     ...homePlayers.filter(p => p.name.trim()).map(p => ({ key: `home:${p.slot}`, label: `H${p.slot} · ${p.name}` })),
     ...guestPlayers.filter(p => p.name.trim()).map(p => ({ key: `guest:${p.slot}`, label: `G${p.slot} · ${p.name}` })),
@@ -566,7 +571,7 @@ function SpielberichteInner() {
     if (!value || value < cfg.min || value > cfg.max) {
       setMsg({ kind: 'err', text: `Bitte ${cfg.label} zwischen ${cfg.min} und ${cfg.max} angeben.`, ort: 'highlight' }); return;
     }
-    const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value };
+    const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value, game_no: hlSpiel };
     setHeader(h => ({ ...h, highlights: highlightHinzufuegen(h.highlights ?? [], entry) }));
     setHlValue(''); setMsg(null);
   }
@@ -1128,12 +1133,21 @@ function SpielberichteInner() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <div style={{ flex: 2, minWidth: 160 }}>
                   <Field label="Spieler">
-                    <select value={hlPick} onChange={e => setHlPick(e.target.value)} style={input}>
+                    <select value={hlPick} onChange={e => { setHlPick(e.target.value); setHlSpielWahl(null); }} style={input}>
                       <option value="">— wählen —</option>
                       {highlightPlayerOptions.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
                     </select>
                   </Field>
                 </div>
+                {hlMeineSpiele.length > 0 && (
+                  <div style={{ width: 90 }}>
+                    <Field label="Spiel">
+                      <select value={hlSpiel ?? ''} onChange={e => setHlSpielWahl(Number(e.target.value))} style={input}>
+                        {hlMeineSpiele.map(nr => <option key={nr} value={nr}>{nr}</option>)}
+                      </select>
+                    </Field>
+                  </div>
+                )}
                 <div style={{ flex: 1, minWidth: 110 }}>
                   <Field label="Typ">
                     <select value={hlType} onChange={e => setHlType(e.target.value as HighlightType)} style={input}>
@@ -1158,7 +1172,7 @@ function SpielberichteInner() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {(header.highlights ?? []).map((hl, i) => (
                     <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)' }}>
-                      <strong style={{ color: 'var(--th-text-strong)' }}>{hl.side === 'home' ? 'H' : 'G'}{hl.slot}</strong> {playerName(hl.side, hl.slot)} · {HIGHLIGHT_TYPE_LABELS[hl.type]}{hl.value ? (HIGHLIGHT_VALUE_CONFIG[hl.type].isCount ? ` ×${hl.value}` : ` ${hl.value}`) : ''}
+                      <strong style={{ color: 'var(--th-text-strong)' }}>{hl.side === 'home' ? 'H' : 'G'}{hl.slot}</strong> {playerName(hl.side, hl.slot)}{hl.game_no ? ` · Spiel ${hl.game_no}` : ''} · {HIGHLIGHT_TYPE_LABELS[hl.type]}{hl.value ? (HIGHLIGHT_VALUE_CONFIG[hl.type].isCount ? ` ×${hl.value}` : ` ${hl.value}`) : ''}
                       <button type="button" onClick={() => removeHighlight(i)} aria-label="Entfernen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
                     </span>
                   ))}

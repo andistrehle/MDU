@@ -60,12 +60,12 @@ export function vereinheitliche(s: KorrekturStand): KorrekturStand {
       }))
       .sort((a, b) => a.game_no - b.game_no),
     highlights: (s.highlights ?? [])
-      .map(h => ({ side: h.side, slot: h.slot, type: h.type, value: h.value ?? null }))
+      .map(h => ({ side: h.side, slot: h.slot, type: h.type, value: h.value ?? null, ...(h.game_no ? { game_no: h.game_no } : {}) }))
       .sort((a, b) => hlKey(a).localeCompare(hlKey(b))),
   };
 }
 
-const hlKey = (h: HighlightEntry) => `${h.side}:${h.slot}:${h.type}:${h.value ?? ''}`;
+const hlKey = (h: HighlightEntry) => `${h.side}:${h.slot}:${h.type}:${h.value ?? ''}:${h.game_no ?? ''}`;
 
 /** Gleicher Inhalt? (beide vorher vereinheitlicht) */
 export const gleicherStand = (a: KorrekturStand, b: KorrekturStand) => JSON.stringify(vereinheitliche(a)) === JSON.stringify(vereinheitliche(b));

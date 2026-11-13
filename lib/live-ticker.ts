@@ -72,10 +72,23 @@ export interface TickerHighlight {
   /** Spielnummer (1–18) oder null, wenn die Person noch kein Spiel mit Ergebnis hat */
   spiel: number | null;
 }
-export interface RohHighlight { side: 'home' | 'guest'; slot: number; type: string; value: number | null }
+export interface RohHighlight { side: 'home' | 'guest'; slot: number; type: string; value: number | null; game_no?: number | null }
 export interface RohSpiel { game_no: number; home_slot: number | null; guest_slot: number | null; home_slot2: number | null; guest_slot2: number | null; legs_home: number | null; legs_guest: number | null }
 
 const TYPEN: readonly string[] = ['180', '171', 'high_finish', 'short_leg'];
+
+type SpielSlots = Pick<RohSpiel, 'game_no' | 'home_slot' | 'guest_slot' | 'home_slot2' | 'guest_slot2' | 'legs_home' | 'legs_guest'>;
+/** Spiele (Nummern, aufsteigend), in denen diese Person aufgestellt ist — einzeln oder im Doppel. */
+export function spieleVon(spiele: SpielSlots[], side: 'home' | 'guest', slot: number): number[] {
+  return spiele.filter(g => side === 'home' ? (g.home_slot === slot || g.home_slot2 === slot) : (g.guest_slot === slot || g.guest_slot2 === slot))
+    .map(g => g.game_no).sort((a, b) => a - b);
+}
+/** Vorschlag beim Eintragen: letztes Spiel der Person MIT Ergebnis, sonst ihr erstes Spiel ohne; keins → null. */
+export function vorschlagSpiel(spiele: SpielSlots[], side: 'home' | 'guest', slot: number): number | null {
+  const meine = spieleVon(spiele, side, slot);
+  const fertig = meine.filter(nr => { const g = spiele.find(x => x.game_no === nr)!; return g.legs_home != null && g.legs_guest != null; });
+  return fertig.length ? fertig[fertig.length - 1] : meine[0] ?? null;
+}
 
 export function highlightsZuordnen(roh: RohHighlight[], spiele: RohSpiel[], name: (side: 'home' | 'guest', slot: number) => string): TickerHighlight[] {
   const zaehler = new Map<string, number>();
@@ -83,10 +96,11 @@ export function highlightsZuordnen(roh: RohHighlight[], spiele: RohSpiel[], name
   const out: TickerHighlight[] = [];
   for (const h of roh || []) {
     if (!h || !TYPEN.includes(h.type) || h.value == null || !(h.value > 0)) continue;
-    const basis = `${h.side}:${h.slot}:${h.type}:${h.value}`;
+    const basis = `${h.side}:${h.slot}:${h.type}:${h.value}${h.game_no ? `@${h.game_no}` : ''}`;
     const n = (zaehler.get(basis) ?? 0) + 1; zaehler.set(basis, n);
+    // Beim Eintragen festgehaltenes Spiel gilt; ältere Einträge ohne → letztes Spiel der Person mit Ergebnis.
     const dabei = gespielt.filter(g => h.side === 'home' ? (g.home_slot === h.slot || g.home_slot2 === h.slot) : (g.guest_slot === h.slot || g.guest_slot2 === h.slot));
-    const spiel = dabei.length ? Math.max(...dabei.map(g => g.game_no)) : null;
+    const spiel = h.game_no ?? (dabei.length ? Math.max(...dabei.map(g => g.game_no)) : null);
     out.push({ id: `${basis}:${n}`, seite: h.side === 'home' ? 'heim' : 'gast', name: name(h.side, h.slot), typ: h.type as HighlightTyp, wert: h.value, spiel });
   }
   return out;

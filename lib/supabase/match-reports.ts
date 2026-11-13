@@ -73,6 +73,8 @@ export interface HighlightEntry {
   slot: number;
   type: HighlightType;
   value: number | null;
+  /** In welchem Spiel (1–18) — beim Eintragen festgehalten (13.11.2026); ältere Einträge haben keins. */
+  game_no?: number | null;
 }
 
 /**
@@ -82,7 +84,7 @@ export interface HighlightEntry {
  */
 export function highlightHinzufuegen(liste: HighlightEntry[], neu: HighlightEntry): HighlightEntry[] {
   if (!HIGHLIGHT_VALUE_CONFIG[neu.type].isCount) return [...liste, neu];
-  const i = liste.findIndex(h => h.type === neu.type && h.side === neu.side && h.slot === neu.slot);
+  const i = liste.findIndex(h => h.type === neu.type && h.side === neu.side && h.slot === neu.slot && (h.game_no ?? null) === (neu.game_no ?? null));
   if (i < 0) return [...liste, neu];
   return liste.map((h, j) => (j === i ? { ...h, value: Math.min(HIGHLIGHT_VALUE_CONFIG[h.type].max, (h.value ?? 0) + (neu.value ?? 0)) } : h));
 }

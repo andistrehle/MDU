@@ -13,6 +13,7 @@
 // ============================================================
 
 import { useState } from 'react';
+import { spieleVon, vorschlagSpiel } from '@/lib/live-ticker';
 import {
   computeTotals, GAME_SCHEDULE, HIGHLIGHT_TYPE_LABELS, HIGHLIGHT_TYPES, HIGHLIGHT_VALUE_CONFIG,
   type HighlightEntry, type HighlightType, type ReportGame, type ReportPlayer,
@@ -284,6 +285,8 @@ function Highlights({ s, onWeg }: { s: LiveStand; onWeg?: (i: number) => void })
 function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: LiveStand; b: LiveBearbeiten; onClose: () => void }) {
   const [hlSeite, setHlSeite] = useState<'home' | 'guest'>('home');
   const [hlSlot, setHlSlot] = useState<number | null>(null);
+  // In welchem Spiel? Vorschlag = letztes fertiges Spiel der Person, per Tipp änderbar (13.11.2026).
+  const [hlSpielWahl, setHlSpielWahl] = useState<number | null>(null);
   const [hlTyp, setHlTyp] = useState<HighlightType>('180');
   const [hlWert, setHlWert] = useState('1');
   const spielerVon = (seite: 'home' | 'guest') => (seite === 'home' ? s.homePlayers : s.guestPlayers).filter(p => p.name.trim());
@@ -330,15 +333,25 @@ function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: 
     const cfg = HIGHLIGHT_VALUE_CONFIG[hlTyp];
     const wert = Number(hlWert);
     const ok = hlSlot != null && wert >= cfg.min && wert <= cfg.max;
+    const meineSpiele = hlSlot != null ? spieleVon(s.games, hlSeite, hlSlot) : [];
+    const hlSpiel = hlSpielWahl != null && meineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlSlot != null ? vorschlagSpiel(s.games, hlSeite, hlSlot) : null);
     titel = 'Highlight eintragen';
     inhalt = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {(['home', 'guest'] as const).map(x => <button key={x} type="button" onClick={() => { setHlSeite(x); setHlSlot(null); }} style={knopf(hlSeite === x)}>{x === 'home' ? s.homeName : s.guestName}</button>)}
+          {(['home', 'guest'] as const).map(x => <button key={x} type="button" onClick={() => { setHlSeite(x); setHlSlot(null); setHlSpielWahl(null); }} style={knopf(hlSeite === x)}>{x === 'home' ? s.homeName : s.guestName}</button>)}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
-          {spielerVon(hlSeite).map(p => <button key={p.slot} type="button" onClick={() => setHlSlot(p.slot)} style={{ ...knopf(hlSlot === p.slot), textAlign: 'left' }}>{hlSeite === 'home' ? 'H' : 'G'}{p.slot} {p.name.trim()}</button>)}
+          {spielerVon(hlSeite).map(p => <button key={p.slot} type="button" onClick={() => { setHlSlot(p.slot); setHlSpielWahl(null); }} style={{ ...knopf(hlSlot === p.slot), textAlign: 'left' }}>{hlSeite === 'home' ? 'H' : 'G'}{p.slot} {p.name.trim()}</button>)}
         </div>
+        {meineSpiele.length > 0 && (
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', opacity: 0.7, marginBottom: 6 }}>IN SPIEL</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {meineSpiele.map(nr => <button key={nr} type="button" onClick={() => setHlSpielWahl(nr)} style={{ ...knopf(hlSpiel === nr), minWidth: 52 }}>{nr}</button>)}
+            </div>
+          </div>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {HIGHLIGHT_TYPES.map(t => <button key={t} type="button" onClick={() => { setHlTyp(t); setHlWert(HIGHLIGHT_VALUE_CONFIG[t].isCount ? '1' : ''); }} style={knopf(hlTyp === t)}>{HIGHLIGHT_TYPE_LABELS[t]}</button>)}
         </div>
@@ -348,7 +361,7 @@ function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: 
             style={{ width: 110, padding: '12px 12px', borderRadius: 10, border: '1.5px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 20, fontWeight: 800 }} />
           <span style={{ opacity: 0.6, fontSize: 13 }}>{cfg.min}–{cfg.max}</span>
         </label>
-        <button type="button" disabled={!ok} onClick={() => { b.onHighlight({ side: hlSeite, slot: hlSlot!, type: hlTyp, value: wert }); onClose(); }} style={{ ...knopf(true), opacity: ok ? 1 : 0.4 }}>Eintragen</button>
+        <button type="button" disabled={!ok} onClick={() => { b.onHighlight({ side: hlSeite, slot: hlSlot!, type: hlTyp, value: wert, game_no: hlSpiel }); onClose(); }} style={{ ...knopf(true), opacity: ok ? 1 : 0.4 }}>Eintragen</button>
       </div>
     );
   }
