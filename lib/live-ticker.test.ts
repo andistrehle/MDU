@@ -119,9 +119,10 @@ describe('Highlight: festgehaltenes Spiel', () => {
     expect(h[0].spiel).toBe(2);
   });
 
-  it('Spiele der Person (inkl. Doppel) und Vorschlag = letztes fertiges, sonst erstes', () => {
+  it('Spiele der Person (inkl. Doppel) und Vorschlag = erstes noch offenes (das laufende)', () => {
     expect(spieleVon(spiele, 'home', 1)).toEqual([2, 6, 9, 14]);
-    expect(vorschlagSpiel(spiele, 'home', 1)).toBe(6);
+    // H1: 2 und 6 fertig, 9 (Doppel) offen → 9 (Betreiber 14.11.: live wird vor dem Ergebnis eingetragen)
+    expect(vorschlagSpiel(spiele, 'home', 1)).toBe(9);
     expect(vorschlagSpiel(spiele, 'home', 3)).toBe(9);
     expect(vorschlagSpiel(spiele, 'home', 7)).toBeNull();
   });
@@ -148,5 +149,26 @@ describe('Wechsel aus den Einzeln', () => {
     expect(wechselErmitteln([e(15, 2, 3, 2, 6), e(3, 3, 3, 3, 3), { nr: 7, heimPos: 3, gastPos: 4, heimSlot: null, gastSlot: null }], namen)).toEqual([
       { seite: 'gast', nr: 15, position: 3, rein: 'Vera', raus: 'Zora', rueck: false },
     ]);
+  });
+});
+
+describe('High Finish nur an einem Spiel mit gewonnenem Leg (Fall Jolly Pirates V – Illuminati, 14.11.2026)', () => {
+  // H4 spielt 4 (0:2 verloren) und 8; HF 105 wurde mit Spiel 4 gespeichert, gewonnen hat H4 erst Spiel 8 mit 2:1.
+  const g = (game_no: number, legs: [number | null, number | null]) => ({ game_no, home_slot: 4, guest_slot: 1, home_slot2: null, guest_slot2: null, legs_home: legs[0], legs_guest: legs[1] });
+  const hf = [{ side: 'home' as const, slot: 4, type: 'high_finish', value: 105, game_no: 4 }];
+
+  it('Spiel 8 schon eingetragen → das HF steht bei Spiel 8', () => {
+    expect(highlightsZuordnen(hf, [g(4, [0, 2]), g(8, [2, 1])], () => 'X')[0].spiel).toBe(8);
+  });
+  it('Spiel 8 noch ohne Ergebnis → vorerst ohne Spiel', () => {
+    expect(highlightsZuordnen(hf, [g(4, [0, 2]), g(8, [null, null])], () => 'X')[0].spiel).toBeNull();
+  });
+  it('180 darf auch in einem verlorenen Spiel stehen', () => {
+    expect(highlightsZuordnen([{ side: 'home', slot: 4, type: '180', value: 1, game_no: 4 }], [g(4, [0, 2]), g(8, [2, 1])], () => 'X')[0].spiel).toBe(4);
+  });
+  it('Vorschlag: laufendes Spiel 8; alles fertig → bei HF das letzte mit gewonnenem Leg', () => {
+    expect(vorschlagSpiel([g(4, [0, 2]), g(8, [null, null])], 'home', 4, 'high_finish')).toBe(8);
+    expect(vorschlagSpiel([g(4, [2, 1]), g(8, [0, 2])], 'home', 4, 'high_finish')).toBe(4);
+    expect(vorschlagSpiel([g(4, [2, 1]), g(8, [0, 2])], 'home', 4, '180')).toBe(8);
   });
 });

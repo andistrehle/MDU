@@ -558,7 +558,7 @@ function SpielberichteInner() {
   const [hlSpielWahl, setHlSpielWahl] = useState<number | null>(null);
   const hlPickSide = hlPick ? (hlPick.split(':')[0] as 'home' | 'guest') : null, hlPickSlot = hlPick ? Number(hlPick.split(':')[1]) : null;
   const hlMeineSpiele = hlPickSide && hlPickSlot ? spieleVon(games, hlPickSide, hlPickSlot) : [];
-  const hlSpiel = hlSpielWahl != null && hlMeineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlPickSide && hlPickSlot ? vorschlagSpiel(games, hlPickSide, hlPickSlot) : null);
+  const hlSpiel = hlSpielWahl != null && hlMeineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlPickSide && hlPickSlot ? vorschlagSpiel(games, hlPickSide, hlPickSlot, hlType) : null);
   const highlightPlayerOptions = [
     ...homePlayers.filter(p => p.name.trim()).map(p => ({ key: `home:${p.slot}`, label: `H${p.slot} · ${p.name}` })),
     ...guestPlayers.filter(p => p.name.trim()).map(p => ({ key: `guest:${p.slot}`, label: `G${p.slot} · ${p.name}` })),

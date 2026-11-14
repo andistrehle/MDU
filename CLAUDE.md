@@ -159,6 +159,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `LigaTickerLeiste` (eigene Liga ohne eigenes Spiel + Meldung oben; Formular, Live-Modus, zweites Fenster); Seite `/live`.
   Aufgeklappt zeigt `/live` auch Aufstellung H1–H8/G1–G8 und Wechsel (Betreiber 14.11.2026): Wechsel = Einzel, in dem auf der
   Plan-Position (`GAME_SCHEDULE`) ein anderer Slot steht als zuletzt, Rückwechsel = wieder der Stammspieler (`wechselErmitteln`, getestet).
+  Highlight-Spiel (Betreiber 14.11.2026): Vorschlag im Formular/Live-Modus = erstes OFFENES Spiel der Person (live wird vor dem
+  Ergebnis eingetragen), alles fertig → bei HF/SL das letzte mit gewonnenem Leg (`vorschlagSpiel(…, typ)`). Anzeige: HF/SL an einem
+  fertigen Spiel ohne gewonnenes Leg rutscht zum nächsten Spiel der Person mit gewonnenem Leg (`plausiblesSpiel`), Daten bleiben.
   Start-Push an ALLE einmal je Spieltag: `/api/live/start` nach dem ersten Autospeichern, Sperre über `live_ticker_push`
   (Datum = Primärschlüssel); ohne Tabelle kein Push. Datenschutz-Absatz dazu: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),

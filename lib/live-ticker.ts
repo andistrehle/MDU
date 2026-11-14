@@ -83,11 +83,41 @@ export function spieleVon(spiele: SpielSlots[], side: 'home' | 'guest', slot: nu
   return spiele.filter(g => side === 'home' ? (g.home_slot === slot || g.home_slot2 === slot) : (g.guest_slot === slot || g.guest_slot2 === slot))
     .map(g => g.game_no).sort((a, b) => a - b);
 }
-/** Vorschlag beim Eintragen: letztes Spiel der Person MIT Ergebnis, sonst ihr erstes Spiel ohne; keins → null. */
-export function vorschlagSpiel(spiele: SpielSlots[], side: 'home' | 'guest', slot: number): number | null {
-  const meine = spieleVon(spiele, side, slot);
-  const fertig = meine.filter(nr => { const g = spiele.find(x => x.game_no === nr)!; return g.legs_home != null && g.legs_guest != null; });
-  return fertig.length ? fertig[fertig.length - 1] : meine[0] ?? null;
+const fertigSpiel = (g: SpielSlots) => g.legs_home != null && g.legs_guest != null;
+/** Legs, die diese Seite in dem Spiel gewonnen hat. */
+const legsDerSeite = (g: SpielSlots, side: 'home' | 'guest') => (side === 'home' ? g.legs_home : g.legs_guest) ?? 0;
+/** Typen, die ein gewonnenes Leg voraussetzen (wer ein Finish/Short Leg wirft, gewinnt das Leg). */
+const BRAUCHT_LEG: readonly string[] = ['high_finish', 'short_leg'];
+
+/**
+ * Vorschlag beim Eintragen (Betreiber 14.11.2026: live wird das Highlight eingetragen, BEVOR das Ergebnis
+ * des laufenden Spiels drin ist): das erste Spiel der Person OHNE Ergebnis (= das laufende). Sind alle fertig:
+ * das letzte — bei High Finish/Short Leg das letzte, in dem sie ein Leg gewonnen hat. Keins → null.
+ */
+export function vorschlagSpiel(spiele: SpielSlots[], side: 'home' | 'guest', slot: number, typ?: string): number | null {
+  const meine = spieleVon(spiele, side, slot).map(nr => spiele.find(x => x.game_no === nr)!);
+  const offen = meine.find(g => !fertigSpiel(g));
+  if (offen) return offen.game_no;
+  const passend = typ && BRAUCHT_LEG.includes(typ) ? meine.filter(g => legsDerSeite(g, side) > 0) : meine;
+  const liste = passend.length ? passend : meine;
+  return liste.length ? liste[liste.length - 1].game_no : null;
+}
+
+/**
+ * High Finish/Short Leg an einem fertigen Spiel, in dem die Person KEIN Leg gewonnen hat, kann nicht stimmen
+ * (so eingetragen mit dem alten Vorschlag „letztes fertiges Spiel“). Dann gilt ihr nächstes Spiel mit gewonnenem
+ * Leg; ist das nächste noch ohne Ergebnis → null (steht dann vorerst ohne Spiel).
+ */
+function plausiblesSpiel(spiele: SpielSlots[], side: 'home' | 'guest', slot: number, typ: string, spiel: number | null): number | null {
+  if (spiel == null || !BRAUCHT_LEG.includes(typ)) return spiel;
+  const meine = spieleVon(spiele, side, slot).map(nr => spiele.find(x => x.game_no === nr)!);
+  const g = meine.find(x => x.game_no === spiel);
+  if (!g || !fertigSpiel(g) || legsDerSeite(g, side) > 0) return spiel;
+  for (const n of meine.filter(x => x.game_no > spiel)) {
+    if (!fertigSpiel(n)) return null;
+    if (legsDerSeite(n, side) > 0) return n.game_no;
+  }
+  return null;
 }
 
 export function highlightsZuordnen(roh: RohHighlight[], spiele: RohSpiel[], name: (side: 'home' | 'guest', slot: number) => string): TickerHighlight[] {
@@ -100,7 +130,8 @@ export function highlightsZuordnen(roh: RohHighlight[], spiele: RohSpiel[], name
     const n = (zaehler.get(basis) ?? 0) + 1; zaehler.set(basis, n);
     // Beim Eintragen festgehaltenes Spiel gilt; ältere Einträge ohne → letztes Spiel der Person mit Ergebnis.
     const dabei = gespielt.filter(g => h.side === 'home' ? (g.home_slot === h.slot || g.home_slot2 === h.slot) : (g.guest_slot === h.slot || g.guest_slot2 === h.slot));
-    const spiel = h.game_no ?? (dabei.length ? Math.max(...dabei.map(g => g.game_no)) : null);
+    const roh = h.game_no ?? (dabei.length ? Math.max(...dabei.map(g => g.game_no)) : null);
+    const spiel = plausiblesSpiel(spiele, h.side, h.slot, h.type, roh);
     out.push({ id: `${basis}:${n}`, seite: h.side === 'home' ? 'heim' : 'gast', name: name(h.side, h.slot), typ: h.type as HighlightTyp, wert: h.value, spiel });
   }
   return out;

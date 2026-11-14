@@ -334,7 +334,7 @@ function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: 
     const wert = Number(hlWert);
     const ok = hlSlot != null && wert >= cfg.min && wert <= cfg.max;
     const meineSpiele = hlSlot != null ? spieleVon(s.games, hlSeite, hlSlot) : [];
-    const hlSpiel = hlSpielWahl != null && meineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlSlot != null ? vorschlagSpiel(s.games, hlSeite, hlSlot) : null);
+    const hlSpiel = hlSpielWahl != null && meineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlSlot != null ? vorschlagSpiel(s.games, hlSeite, hlSlot, hlTyp) : null);
     titel = 'Highlight eintragen';
     inhalt = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
