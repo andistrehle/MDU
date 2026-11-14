@@ -385,25 +385,38 @@ export function KaderZeile({ name, z, darfSetzen, ohneGrund = false, onSetze }: 
   ohneGrund?: boolean;
 }) {
   const [grundFuer, setGrundFuer] = useState<ZusageStatus | null>(null);
+  const aktuell = z?.status ?? null;
+  // Aufgeräumt (Betreiber 14.11.2026): EINE Zeile — Name links, rechts ein Umschalter ✓ | ? | ✕, die gewählte
+  // Antwort gefüllt. Nochmal auf die gewählte tippen = zurück auf offen (ersetzt den Pfeil-Knopf).
+  function waehle(s: ZusageStatus) {
+    if (aktuell === s && !grundFuer) { void onSetze(null, null); return; }
+    if (braucheGrund(s)) { setGrundFuer(s); return; }
+    setGrundFuer(null); void onSetze(s, null);
+  }
   return (
-    <div style={{ padding: '9px 0', borderTop: '1px solid var(--th-line-4)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <StatusIcon s={z?.status ?? null} size={24} />
-        <span style={{ flex: '1 1 150px', minWidth: 0, fontFamily: 'var(--font-manrope)', fontSize: 14, fontWeight: 700, color: 'var(--th-text-strong)' }}>
+    <div style={{ padding: '10px 0', borderTop: '1px solid var(--th-line-4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {!darfSetzen && <StatusIcon s={aktuell} size={22} />}
+        <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontSize: 14, fontWeight: 700, color: 'var(--th-text-strong)', overflowWrap: 'anywhere' }}>
           {name}
           {z?.note && <span style={{ display: 'block', fontWeight: 500, fontSize: 12.5, color: 'var(--th-text-muted)' }}>„{z.note}“</span>}
         </span>
         {darfSetzen && (
-          <span style={{ display: 'flex', gap: 5 }}>
-            {REIHE.map(s => (
-              <button key={s} type="button" title={`${STATUS[s].text} setzen`} aria-label={`${name}: ${STATUS[s].text}`} style={klein(z?.status === s || grundFuer === s, STATUS[s].farbe)}
-                onClick={() => (braucheGrund(s) ? setGrundFuer(s) : (setGrundFuer(null), void onSetze('yes', z?.status === 'yes' ? z.note : null)))}>
-                <Icon name={STATUS[s].icon} size={14} stroke={2.6} />
-              </button>
-            ))}
-            <button type="button" onClick={() => { setGrundFuer(null); void onSetze(null, null); }} disabled={!z} style={{ ...klein(false, 'var(--th-text-muted)'), opacity: z ? 1 : 0.35 }} title="Zurück auf offen" aria-label={`${name}: zurück auf offen`}>
-              <Icon name="arrow-up" size={14} stroke={2.2} style={{ transform: 'rotate(-90deg)' }} />
-            </button>
+          <span role="group" aria-label={`${name}: Antwort setzen`} style={{ display: 'inline-flex', flexShrink: 0, borderRadius: 999, border: '1px solid var(--th-line-8)', overflow: 'hidden', background: 'var(--th-bg-card)' }}>
+            {REIHE.map((s, i) => {
+              const an = aktuell === s || grundFuer === s;
+              return (
+                <button key={s} type="button" onClick={() => waehle(s)} aria-pressed={an}
+                  title={an ? `${STATUS[s].text} – nochmal tippen: zurück auf offen` : `${STATUS[s].text} setzen`} aria-label={`${name}: ${STATUS[s].text}`}
+                  style={{
+                    width: 38, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none',
+                    borderLeft: i ? '1px solid var(--th-line-8)' : 'none',
+                    background: an ? STATUS[s].farbe : 'transparent', color: an ? '#fff' : STATUS[s].farbe,
+                  }}>
+                  <Icon name={STATUS[s].icon} size={15} stroke={2.6} />
+                </button>
+              );
+            })}
           </span>
         )}
       </div>
