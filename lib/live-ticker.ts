@@ -150,6 +150,37 @@ export interface TickerAnzeige extends TickerEintrag {
   ort: string | null;
   /** Wertung der Ligaleitung (Nichtantritt/kein Bericht) statt gespielter Partien */
   wertung: boolean;
+  /** Aufstellung H1–H8 / G1–G8 (nur belegte Plätze; 1–4 Stamm, 5–8 Ersatz) */
+  aufstellung?: { heim: AufstellungPlatz[]; gast: AufstellungPlatz[] };
+  /** Ein- und Rückwechsel, aus den eingetragenen Einzeln errechnet */
+  wechsel?: WechselEreignis[];
+}
+
+// ── Aufstellung + Wechsel (Betreiber, 14.11.2026) ─────────────────────────
+// Der Spielbericht kennt keine eigenen Wechsel-Einträge: Ein Wechsel ist ein Einzel,
+// in dem auf einer Position (1–4, fest im Spielplan des Abends) ein anderer Spieler
+// steht als zuletzt dort. Steht wieder der Stammspieler da, ist es ein Rückwechsel.
+// Doppel zählen nicht (dort ist die Besetzung frei).
+
+export interface AufstellungPlatz { slot: number; name: string }
+export interface WechselEreignis { seite: 'heim' | 'gast'; nr: number; position: number; rein: string; raus: string; rueck: boolean }
+export interface EinzelBesetzung { nr: number; heimPos: number; gastPos: number; heimSlot: number | null; gastSlot: number | null }
+
+export function wechselErmitteln(einzel: EinzelBesetzung[], namen: { heim: Map<number, string>; gast: Map<number, string> }): WechselEreignis[] {
+  const out: WechselEreignis[] = [];
+  for (const seite of ['heim', 'gast'] as const) {
+    const belegt = new Map<number, number>();
+    const name = (slot: number) => namen[seite].get(slot) || `${seite === 'heim' ? 'H' : 'G'}${slot}`;
+    for (const g of [...einzel].sort((a, b) => a.nr - b.nr)) {
+      const pos = seite === 'heim' ? g.heimPos : g.gastPos;
+      const slot = seite === 'heim' ? g.heimSlot : g.gastSlot;
+      if (slot == null) continue;
+      const vorher = belegt.get(pos) ?? pos;
+      if (slot !== vorher) out.push({ seite, nr: g.nr, position: pos, rein: name(slot), raus: name(vorher), rueck: slot === pos });
+      belegt.set(pos, slot);
+    }
+  }
+  return out.sort((a, b) => a.nr - b.nr || (a.seite === 'heim' ? -1 : 1));
 }
 export interface LiveAntwort { datum: string; aktiv: boolean; spiele: TickerAnzeige[] }
 

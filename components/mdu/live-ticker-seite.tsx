@@ -106,6 +106,7 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
       </button>
       {auf && (
         <div style={{ borderTop: '1px solid var(--th-line-6)', padding: '6px 14px 12px' }}>
+          <AufstellungBlock s={s} />
           {s.spiele.map(g => {
             const heimSieg = g.legsHeim > g.legsGast;
             const hl = (s.highlights ?? []).filter(h => h.spiel === g.nr);
@@ -140,6 +141,46 @@ function HighlightZeile({ hl }: { hl: TickerHighlight[] }) {
       <span />
       <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>{heim.map(teil)}</span>
       <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px', justifyContent: 'flex-end', textAlign: 'right' }}>{gast.map(teil)}</span>
+    </div>
+  );
+}
+
+const klein: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-faint)', margin: '8px 0 4px' };
+
+/** Aufstellung H1–H8 / G1–G8 und die Wechsel des Abends (nur, was eingetragen ist). */
+function AufstellungBlock({ s }: { s: TickerAnzeige }) {
+  const a = s.aufstellung;
+  if (!a || (!a.heim.length && !a.gast.length)) return null;
+  const spalte = (liste: { slot: number; name: string }[], kz: 'H' | 'G', rechts: boolean) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, textAlign: rechts ? 'right' : 'left' }}>
+      {liste.map(p => (
+        <span key={p.slot} style={{ fontSize: 13, color: p.slot > 4 ? 'var(--th-text-muted)' : 'var(--th-text-body)' }}>
+          {!rechts && <span style={{ color: 'var(--th-text-faint)', fontSize: 11, marginRight: 6 }}>{kz}{p.slot}</span>}
+          {p.name}
+          {rechts && <span style={{ color: 'var(--th-text-faint)', fontSize: 11, marginLeft: 6 }}>{kz}{p.slot}</span>}
+        </span>
+      ))}
+    </div>
+  );
+  const w = s.wechsel ?? [];
+  return (
+    <div style={{ paddingBottom: 8, borderBottom: '1px solid var(--th-line-6)', marginBottom: 4 }}>
+      <div style={klein}>Aufstellung <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>(1–4 Stamm · 5–8 Ersatz)</span></div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {spalte(a.heim, 'H', false)}
+        {spalte(a.gast, 'G', true)}
+      </div>
+      {w.length > 0 && (
+        <>
+          <div style={klein}>Wechsel</div>
+          {w.map((x, i) => (
+            <div key={i} style={{ fontSize: 13, color: 'var(--th-text-body)', padding: '2px 0' }}>
+              <span style={{ color: 'var(--th-text-faint)', fontSize: 11, marginRight: 6 }}>ab Spiel {x.nr}</span>
+              {x.seite === 'heim' ? s.homeName : s.awayName}: <strong>{x.rein}</strong> {x.rueck ? 'wieder' : 'kommt'} für {x.raus}
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }

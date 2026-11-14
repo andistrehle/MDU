@@ -13,8 +13,9 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON, alleBegegnungen27, findLiga27, team27, venue27 } from '@/lib/data/saison-2027';
 import { ergebnisAusBericht } from '@/lib/tabelle-2027';
 import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
+import { GAME_SCHEDULE } from '@/lib/supabase/match-reports';
 import {
-  highlightsZuordnen, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type RohHighlight,
+  highlightsZuordnen, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type AufstellungPlatz, type RohHighlight,
   type LiveAntwort, type TickerAnzeige, type TickerBericht, type TickerPlan,
 } from '@/lib/live-ticker';
 
@@ -90,9 +91,24 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
       const w = ergebnisAusBericht({ ...r, forfeit: r.forfeit }, legsJeSpiel(bestOfFuerLiga(p.liga)));
       Object.assign(e, { standHeim: w.spieleHome, standGast: w.spieleAway, gespielt: 0, spiele: [] });
     }
+    // Aufstellung + Wechsel (nur bei gespielten Abenden, nicht bei Wertungen).
+    let aufstellung: { heim: AufstellungPlatz[]; gast: AufstellungPlatz[] } | undefined;
+    let wechsel: ReturnType<typeof wechselErmitteln> | undefined;
+    if (r && !r.forfeit) {
+      const ps = ((spieler ?? []) as Spieler[]).filter(x => x.report_id === r.id && x.name?.trim());
+      const liste = (side: 'home' | 'guest') => ps.filter(x => x.side === side).sort((a, b) => a.slot - b.slot).map(x => ({ slot: x.slot, name: x.name.trim() }));
+      aufstellung = { heim: liste('home'), gast: liste('guest') };
+      const plan = new Map(GAME_SCHEDULE.filter(g => g.type === 'single').map(g => [g.no, g]));
+      const einzel = ((spiele ?? []) as Spiel[])
+        .filter(g => g.report_id === r.id && g.game_type === 'single' && plan.has(g.game_no) && g.legs_home != null && g.legs_guest != null)
+        .map(g => ({ nr: g.game_no, heimPos: plan.get(g.game_no)!.homeSlot!, gastPos: plan.get(g.game_no)!.guestSlot!, heimSlot: g.home_slot, gastSlot: g.guest_slot }));
+      wechsel = wechselErmitteln(einzel, {
+        heim: new Map(aufstellung.heim.map(x => [x.slot, x.name])), gast: new Map(aufstellung.gast.map(x => [x.slot, x.name])),
+      });
+    }
     const H = team27(p.home), A = team27(p.away);
     return { ...e, homeName: H?.name ?? p.home, awayName: A?.name ?? p.away, ligaName: findLiga27(p.liga)?.name ?? p.liga, ligaFarbe: findLiga27(p.liga)?.color ?? '#888',
-      ort: venue27(H?.venueId)?.name ?? null, wertung: !!r?.forfeit };
+      ort: venue27(H?.venueId)?.name ?? null, wertung: !!r?.forfeit, aufstellung, wechsel };
   });
   const sortiert = sortiereTicker(eintraege) as TickerAnzeige[];
   return { datum, aktiv: tickerAktiv(sortiert), spiele: sortiert };

@@ -251,7 +251,7 @@ Die Anzeige selbst läuft nur auf dem Gerät, auf dem eingegeben wird. Wer nicht
       {
         id: 'live-ticker',
         frage: 'Gibt es einen Live-Ticker?',
-        antwort: `Ja. Am Spieltag zeigt der [Live-Ticker](/live) alle Begegnungen des Abends: den Stand und, aufgeklappt, jedes Spiel mit Spielern und Legs. Er läuft los, sobald die erste Heimmannschaft ein Ergebnis eingetragen hat – dann gibt es auch einmal am Abend eine Push-Nachricht an alle, die Push eingeschaltet haben. Auf Startseite, Spielplan, Ergebnissen und Ligaseite erscheint dann ein rotes Band „LIVE“.
+        antwort: `Ja. Am Spieltag zeigt der [Live-Ticker](/live) alle Begegnungen des Abends: den Stand und, aufgeklappt, die Aufstellung, die Wechsel und jedes Spiel mit Spielern und Legs. Er läuft los, sobald die erste Heimmannschaft ein Ergebnis eingetragen hat – dann gibt es auch einmal am Abend eine Push-Nachricht an alle, die Push eingeschaltet haben. Auf Startseite, Spielplan, Ergebnissen und Ligaseite erscheint dann ein rotes Band „LIVE“.
 
 Live-Stände sind vorläufig, so wie die Teams sie eintragen. In Tabelle und Einzelrangliste zählt erst der eingereichte Spielbericht.`,
         stichworte: ['live', 'ticker', 'zwischenstand', 'mitverfolgen'],

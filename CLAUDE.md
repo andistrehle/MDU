@@ -157,6 +157,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   nur Stand, Spieler, Legs), `/api/live` (CDN 20 s). Anzeige `components/mdu/live-ticker.tsx`: `LiveBand` (rot, nur wenn
   heute etwas läuft/fertig ist, fragt nur 16–04 Uhr; Startseite, Spielplan, Ergebnisse, Ligaseite gefiltert),
   `LigaTickerLeiste` (eigene Liga ohne eigenes Spiel + Meldung oben; Formular, Live-Modus, zweites Fenster); Seite `/live`.
+  Aufgeklappt zeigt `/live` auch Aufstellung H1–H8/G1–G8 und Wechsel (Betreiber 14.11.2026): Wechsel = Einzel, in dem auf der
+  Plan-Position (`GAME_SCHEDULE`) ein anderer Slot steht als zuletzt, Rückwechsel = wieder der Stammspieler (`wechselErmitteln`, getestet).
   Start-Push an ALLE einmal je Spieltag: `/api/live/start` nach dem ersten Autospeichern, Sperre über `live_ticker_push`
   (Datum = Primärschlüssel); ohne Tabelle kein Push. Datenschutz-Absatz dazu: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),

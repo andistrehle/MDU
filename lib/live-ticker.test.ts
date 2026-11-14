@@ -3,7 +3,7 @@
 // Stand = gewonnene Spiele. Spieltag läuft bis 4 Uhr früh weiter (Berliner Zeit).
 
 import { describe, expect, it } from 'vitest';
-import { highlightKurz, highlightsZuordnen, spieleVon, vorschlagSpiel, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
+import { highlightKurz, highlightsZuordnen, spieleVon, vorschlagSpiel, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
 
 const plan = (key: string, uhrzeit: string | null = '20:00'): TickerPlan => ({ key, liga: 'a', home: key.split('|')[0], away: key.split('|')[1], uhrzeit });
 const spiel = (nr: number, h: number | null, g: number | null) => ({ nr, doppel: nr === 9 || nr === 18, heim: ['H'], gast: ['G'], legsHeim: h, legsGast: g });
@@ -124,5 +124,29 @@ describe('Highlight: festgehaltenes Spiel', () => {
     expect(vorschlagSpiel(spiele, 'home', 1)).toBe(6);
     expect(vorschlagSpiel(spiele, 'home', 3)).toBe(9);
     expect(vorschlagSpiel(spiele, 'home', 7)).toBeNull();
+  });
+});
+
+describe('Wechsel aus den Einzeln', () => {
+  const namen = {
+    heim: new Map([[1, 'Anna'], [2, 'Bert'], [3, 'Clara'], [4, 'Dora'], [5, 'Emil']]),
+    gast: new Map([[1, 'Xaver'], [2, 'Yvonne'], [3, 'Zora'], [4, 'Willi'], [6, 'Vera']]),
+  };
+  // Spielplan-Positionen wie im Bogen: Spiel 2 = H2/G2, Spiel 6 = H2/G1, Spiel 11 = H2/G4, Spiel 15 = H2/G3
+  const e = (nr: number, heimPos: number, gastPos: number, heimSlot: number, gastSlot: number) => ({ nr, heimPos, gastPos, heimSlot, gastSlot });
+
+  it('ohne Wechsel: nichts', () => {
+    expect(wechselErmitteln([e(2, 2, 2, 2, 2), e(6, 2, 1, 2, 1)], namen)).toEqual([]);
+  });
+  it('Ersatz kommt auf Position 2, später Rückwechsel des Stammspielers', () => {
+    expect(wechselErmitteln([e(2, 2, 2, 2, 2), e(6, 2, 1, 5, 1), e(11, 2, 4, 5, 4), e(15, 2, 3, 2, 3)], namen)).toEqual([
+      { seite: 'heim', nr: 6, position: 2, rein: 'Emil', raus: 'Bert', rueck: false },
+      { seite: 'heim', nr: 15, position: 2, rein: 'Bert', raus: 'Emil', rueck: true },
+    ]);
+  });
+  it('Gastwechsel, auch wenn die Spiele ungeordnet kommen; leere Plätze zählen nicht', () => {
+    expect(wechselErmitteln([e(15, 2, 3, 2, 6), e(3, 3, 3, 3, 3), { nr: 7, heimPos: 3, gastPos: 4, heimSlot: null, gastSlot: null }], namen)).toEqual([
+      { seite: 'gast', nr: 15, position: 3, rein: 'Vera', raus: 'Zora', rueck: false },
+    ]);
   });
 });
