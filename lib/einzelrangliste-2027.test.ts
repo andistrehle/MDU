@@ -7,7 +7,7 @@
 // Nur erfundene Daten, kein Datenbank- oder Netzzugriff.
 
 import { describe, expect, it } from 'vitest';
-import { berechneEinzel, highlightPunkte, rangliste, type EinzelBericht } from './einzelrangliste-2027';
+import { berechneEinzel, highlightPunkte, hlGesamtWert, ligaFaktor, rangliste, spieleJeTeam, type EinzelBericht } from './einzelrangliste-2027';
 import { pointsForLegs } from './legs';
 
 type Spieler = EinzelBericht['players'][number];
@@ -119,5 +119,28 @@ describe('Highlight-Punkte', () => {
   });
   it('Short Leg: bis 12 Darts = 4 · 13–15 = 3 · 16–20 = 2 · darüber 0', () => {
     expect([9, 12, 13, 15, 16, 20, 21].map(v => highlightPunkte('short_leg', v))).toEqual([4, 4, 3, 3, 2, 2, 0]);
+  });
+});
+
+describe('Alle Ligen: Ausgleich für unterschiedlich viele Spiele (Betreiber, 14.11.2026)', () => {
+  // Spielplan 2026/27: La 6 Teams/30 Begegnungen = 10 je Team, A 9/72 = 16, B1 8/56 = 14, B2 7/42 = 12, C 7/42 = 12.
+  const sp = spieleJeTeam([
+    { code: 'la', teams: 6, begegnungen: 30 }, { code: 'a', teams: 9, begegnungen: 72 }, { code: 'b1', teams: 8, begegnungen: 56 },
+    { code: 'b2', teams: 7, begegnungen: 42 }, { code: 'c', teams: 7, begegnungen: 42 },
+  ]);
+  it('Begegnungen je Team aus dem Spielplan', () => {
+    expect(sp).toEqual({ la: 10, a: 16, b1: 14, b2: 12, c: 12 });
+  });
+  it('Faktor = meiste ÷ eigene: La 16/10, A 1, B1 16/14, B2/C 16/12; unbekannt → 1', () => {
+    expect(ligaFaktor(sp, 'la')).toBeCloseTo(1.6);
+    expect(ligaFaktor(sp, 'a')).toBe(1);
+    expect(ligaFaktor(sp, 'b1')).toBeCloseTo(16 / 14);
+    expect(ligaFaktor(sp, 'c')).toBeCloseTo(16 / 12);
+    expect(ligaFaktor(sp, undefined)).toBe(1);
+  });
+  it('La Liga: 15 Punkte × ⅔ × 1,6 = 16; C Liga: 9 × 16/12 = 12; A Liga: 9 bleibt 9', () => {
+    expect(hlGesamtWert(15, 'la', ligaFaktor(sp, 'la'))).toBeCloseTo(16);
+    expect(hlGesamtWert(9, 'c', ligaFaktor(sp, 'c'))).toBeCloseTo(12);
+    expect(hlGesamtWert(9, 'a', ligaFaktor(sp, 'a'))).toBe(9);
   });
 });

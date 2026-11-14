@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { TeamBadge } from './team-badge';
 import { team27, findLiga27 } from '@/lib/data/saison-2027';
-import { LA_LIGA_GEWICHT, type EinzelZeile } from '@/lib/einzelrangliste-2027';
+import { hlGesamtWert, ligaFaktor, type EinzelZeile } from '@/lib/einzelrangliste-2027';
 
 // Einzelrangliste 2026/27 einer Liga, gerechnet in lib/einzelrangliste-2027.ts
 // aus den Spielberichten. Umschalter (Betreiber, 25.10.2026): Punkte (die
@@ -25,12 +25,21 @@ const ARTEN: { key: Art; label: string }[] = [
 // (`highlightPunkte`), bei „Alle Ligen“ La Liga × ⅔. Gleichstand → mehr
 // Highlights, sonst geteilter Platz.
 const hlAnzahl = (z: EinzelZeile) => z.b180 + z.b171 + z.hfAnzahl + z.slAnzahl;
-const hlWert = (z: EinzelZeile, gesamt: boolean) =>
-  gesamt && team27(z.teamId)?.league === 'la' ? z.hlPunkte * LA_LIGA_GEWICHT : z.hlPunkte;
+// „Alle Ligen“: La Liga × ⅔ und × Liga-Faktor (meiste Begegnungen je Team ÷ die der eigenen Liga, Betreiber 14.11.2026).
+type Abende = Record<string, number>;
+const LIGA_KURZ: Record<string, string> = { la: 'La Liga', a: 'A', b1: 'B1', b2: 'B2', c: 'C' };
+/** „ (La Liga × 16/10, B1 × 16/14, …)“ aus dem Spielplan. */
+function faktorText(sp: Abende): string {
+  const max = Math.max(0, ...Object.values(sp));
+  const teile = Object.entries(sp).filter(([, n]) => n > 0 && n < max).map(([l, n]) => `${LIGA_KURZ[l] ?? l} × ${max}/${Math.round(n)}`);
+  return teile.length ? ` (${teile.join(', ')})` : '';
+}
+const hlWert = (z: EinzelZeile, gesamt: boolean, abende: Abende) =>
+  gesamt ? hlGesamtWert(z.hlPunkte, team27(z.teamId)?.league, ligaFaktor(abende, team27(z.teamId)?.league)) : z.hlPunkte;
 // Angezeigt ganzzahlig (Betreiber, 04.11.2026); sortiert wird mit dem genauen Wert (hlListe).
 const zahl = (n: number) => String(Math.round(n));
-function hlListe(zeilen: EinzelZeile[], gesamt: boolean): EinzelZeile[] {
-  const vgl = (x: EinzelZeile, y: EinzelZeile) => (Math.round((hlWert(y, gesamt) - hlWert(x, gesamt)) * 1000)) || (hlAnzahl(y) - hlAnzahl(x));
+function hlListe(zeilen: EinzelZeile[], gesamt: boolean, abende: Abende): EinzelZeile[] {
+  const vgl = (x: EinzelZeile, y: EinzelZeile) => (Math.round((hlWert(y, gesamt, abende) - hlWert(x, gesamt, abende)) * 1000)) || (hlAnzahl(y) - hlAnzahl(x));
   const s = zeilen.filter(z => z.hlPunkte > 0).sort((x, y) => vgl(x, y) || x.name.localeCompare(y.name, 'de'));
   let pos = 0;
   return s.map((z, i) => { if (i === 0 || vgl(s[i - 1], z) !== 0) pos = i + 1; return { ...z, pos }; });
@@ -50,14 +59,14 @@ function statListe(zeilen: EinzelZeile[], a: Exclude<Art, 'highlights'>): Einzel
 const mono: React.CSSProperties = { fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, textAlign: 'right', color: 'var(--th-text-muted)' };
 const mitBest = (n: number, b: number | null, einheit = '') => n ? <>{n}{b != null && <span style={{ color: 'var(--th-text-faint)' }}> ({b}{einheit})</span>}</> : '';
 
-export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: EinzelZeile[]; alle?: EinzelZeile[]; bestOf?: 3 | 5 }) {
+export function Einzelrangliste27({ zeilen, alle, bestOf = 3, abende = {} }: { zeilen: EinzelZeile[]; alle?: EinzelZeile[]; bestOf?: 3 | 5; /** Begegnungen je Team je Liga */ abende?: Record<string, number> }) {
   const [art, setArt] = useState<Art>('punkte');
   const [gesamt, setGesamt] = useState(false);
   if (!zeilen.length && !alle?.length) {
     return <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)', margin: 0, padding: '14px 16px' }}>Noch keine Einzel gespielt. Die Rangliste füllt sich mit dem ersten eingereichten Spielbericht.</p>;
   }
   const quelle = art !== 'punkte' && gesamt && alle ? alle : zeilen;
-  const liste = art === 'punkte' ? zeilen : art === 'highlights' ? hlListe(quelle, gesamt) : statListe(quelle, art);
+  const liste = art === 'punkte' ? zeilen : art === 'highlights' ? hlListe(quelle, gesamt, abende) : statListe(quelle, art);
   const offen = liste.some(z => z.offen > 0);
   const chip = (an: boolean): React.CSSProperties => ({
     padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12.5,
@@ -148,7 +157,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                     <span style={mono}>{z.b171 || ''}</span>
                     <span style={mono}>{mitBest(z.hfAnzahl, z.highFinish)}</span>
                     <span style={mono}>{mitBest(z.slAnzahl, z.shortLeg)}</span>
-                    <span style={{ ...mono, fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>{zahl(hlWert(z, gesamt))}</span>
+                    <span style={{ ...mono, fontWeight: 800, fontSize: 13, color: 'var(--th-text-strong)' }}>{zahl(hlWert(z, gesamt, abende))}</span>
                   </div>
                 ))}
               </>
@@ -191,7 +200,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
                     {/* Bilanz nur bei „Punkte“ (Betreiber, 01.11.2026) — in den Highlight-Listen war unklar, was sie bedeutet. */}
                     {art === 'punkte' && <span style={{ ...mono, fontSize: 12 }}>{z.wins}-{z.losses}</span>}
                     <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 16, color: 'var(--th-text-strong)', textAlign: 'right' }}>
-                      {art === 'punkte' ? z.points : art === 'highlights' ? zahl(hlWert(z, gesamt)) : `${anzahl(z, art)}×`}
+                      {art === 'punkte' ? z.points : art === 'highlights' ? zahl(hlWert(z, gesamt, abende)) : `${anzahl(z, art)}×`}
                     </span>
                   </div>
                   {teile.length > 0 && (
@@ -210,7 +219,7 @@ export function Einzelrangliste27({ zeilen, alle, bestOf = 3 }: { zeilen: Einzel
         {art === 'punkte'
           ? <>Nur Einzel: {bestOf === 5 ? '3:0 = 5 · 3:1 = 4 · 3:2 = 3 · 2:3 = 2 · 1:3 = 1 · 0:3 = 0' : '2:0 = 3 · 2:1 = 2 · 1:2 = 1 · 0:2 = 0'} Punkte. Reihenfolge: Punkte, dann Legdifferenz, dann Siege. HF = High Finishes (höchstes), SL = Short Legs (kürzestes, Darts).</>
           : art === 'highlights'
-            ? <>Punkte je Highlight: 180er und 171er je 3 · High Finish 100–129 = 2, 130–159 = 3, ab 160 = 4 · Short Leg bis 12 Darts = 4, 13–15 = 3, 16–20 = 2.{gesamt ? ' Bei „Alle Ligen“ zählen Highlights aus der La Liga zwei Drittel (Best of 5, also mehr Legs); angezeigt gerundet, die Reihenfolge rechnet genau.' : ''} Bei Punktgleichheit entscheidet die Zahl der Highlights. HF/SL: Anzahl (höchstes Finish / kürzestes Leg).</>
+            ? <>Punkte je Highlight: 180er und 171er je 3 · High Finish 100–129 = 2, 130–159 = 3, ab 160 = 4 · Short Leg bis 12 Darts = 4, 13–15 = 3, 16–20 = 2.{gesamt ? ` Bei „Alle Ligen“ zählen Highlights aus der La Liga zwei Drittel (Best of 5, also mehr Legs). Weil die Ligen unterschiedlich viele Spiele haben, werden die Punkte auf gleich viele Begegnungen hochgerechnet${faktorText(abende)}. Angezeigt gerundet, die Reihenfolge rechnet genau.` : ''} Bei Punktgleichheit entscheidet die Zahl der Highlights. HF/SL: Anzahl (höchstes Finish / kürzestes Leg).</>
           : art === 'hf' || art === 'sl'
             ? <>Sortiert nach Anzahl, bei Gleichstand nach dem {art === 'hf' ? 'höchsten Finish' : 'kürzesten Leg'}. Aus den Highlights der Spielberichte.</>
             : <>Sortiert nach Anzahl. Aus den Highlights der Spielberichte.</>}

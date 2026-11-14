@@ -92,6 +92,26 @@ export function highlightPunkte(typ: string, wert: number): number {
 }
 export const LA_LIGA_GEWICHT = 2 / 3;
 
+/**
+ * „Alle Ligen“ – unterschiedlich viele Spiele (Betreiber, 14.11.2026): Die Ligen sind verschieden groß
+ * (Begegnungen je Team in der Saison: La Liga 10, A Liga 16, B1 14, B2/C 12). Highlight-Punkte werden mit
+ * (meiste Begegnungen je Team einer Liga) ÷ (Begegnungen je Team der eigenen Liga) hochgerechnet — fest
+ * aus dem Spielplan, NICHT nach bisher gespielten Abenden (die schwanken am Saisonanfang zu stark).
+ * Zusätzlich gilt das ⅔ der La Liga (Best of 5). Liga = Team des letzten Einsatzes.
+ */
+export function spieleJeTeam(ligen: { code: string; teams: number; begegnungen: number }[]): Record<string, number> {
+  return Object.fromEntries(ligen.filter(l => l.teams > 0).map(l => [l.code, (2 * l.begegnungen) / l.teams]));
+}
+export function ligaFaktor(spiele: Record<string, number>, liga: string | undefined): number {
+  const max = Math.max(0, ...Object.values(spiele));
+  const eigen = liga ? spiele[liga] ?? 0 : 0;
+  return eigen > 0 && max > 0 ? max / eigen : 1;
+}
+/** Highlight-Punkte für „Alle Ligen“: La Liga × ⅔ und × Liga-Faktor. */
+export function hlGesamtWert(punkte: number, liga: string | undefined, faktor: number): number {
+  return punkte * (liga === 'la' ? LA_LIGA_GEWICHT : 1) * faktor;
+}
+
 export function berechneEinzel(berichte: EinzelBericht[]): Map<string, EinzelZeile> {
   const out = new Map<string, EinzelZeile>();
   // ältere Berichte zuerst, damit „Team des letzten Einsatzes" stimmt

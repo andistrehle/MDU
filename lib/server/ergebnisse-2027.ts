@@ -21,7 +21,7 @@ import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, team27, type Liga27Code } from '@/lib/data/saison-2027';
 import { berechneTabelle, ergebnisAusBericht, zaehlt, type Ergebnis27, type Rohbericht, type TabellenZeile } from '@/lib/tabelle-2027';
-import { berechneEinzel, rangliste, type EinzelBericht, type EinzelZeile } from '@/lib/einzelrangliste-2027';
+import { spieleJeTeam, berechneEinzel, rangliste, type EinzelBericht, type EinzelZeile } from '@/lib/einzelrangliste-2027';
 import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 
 export interface Ergebnisse27 {
@@ -81,10 +81,14 @@ export interface Einzel27 {
   jeLiga: Record<Liga27Code, EinzelZeile[]>;
   /** Zeile je Spieler-ID (für das Spielerprofil) */
   byPlayer: Record<string, EinzelZeile & { liga: Liga27Code }>;
+  /** Begegnungen je Team in der Saison, je Liga (aus dem Spielplan) — Ausgleich bei „Alle Ligen“ */
+  spieleJeTeam: Record<string, number>;
 }
 
+const planSpiele = () => spieleJeTeam(LIGEN_2027.map(l => ({ code: l.code, teams: l.teams.length, begegnungen: alleBegegnungen27().filter(b => b.liga === l.code).length })));
+
 export const ladeEinzel27 = cache(async (): Promise<Einzel27> => {
-  const leer = { jeLiga: Object.fromEntries(LIGEN_2027.map(l => [l.code, []])) as unknown as Record<Liga27Code, EinzelZeile[]>, byPlayer: {} };
+  const leer = { jeLiga: Object.fromEntries(LIGEN_2027.map(l => [l.code, []])) as unknown as Record<Liga27Code, EinzelZeile[]>, byPlayer: {}, spieleJeTeam: planSpiele() };
   if (!supabaseAdmin) return leer;
   const { byKey } = await ladeErgebnisse27();
   const zaehlend = Object.values(byKey).filter(e => !e.wertung);
@@ -110,7 +114,7 @@ export const ladeEinzel27 = cache(async (): Promise<Einzel27> => {
     players: players.get(e.reportId) ?? [], games: games.get(e.reportId) ?? [], highlights: hl.get(e.reportId) ?? [],
   }));
   const alle = [...berechneEinzel(berichte).values()];
-  const out: Einzel27 = { jeLiga: leer.jeLiga, byPlayer: {} };
+  const out: Einzel27 = { jeLiga: leer.jeLiga, byPlayer: {}, spieleJeTeam: leer.spieleJeTeam };
   for (const l of LIGEN_2027) {
     const liste = rangliste(alle.filter(z => team27(z.teamId)?.league === l.code));
     out.jeLiga[l.code] = liste;
