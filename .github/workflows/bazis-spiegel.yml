@@ -78,8 +78,11 @@ jobs:
       - name: signal-cli installieren
         if: env.SPIEGEL_LOS == '1'
         run: |
-          url=$(curl -fsSL https://api.github.com/repos/AsamK/signal-cli/releases/latest | jq -r '.assets[] | select(.name | test("Linux-native\\.tar\\.gz$")) | .browser_download_url' | head -1)
-          mkdir -p "$RUNNER_TEMP/signal-cli" && curl -fsSL "$url" | tar -xz -C "$RUNNER_TEMP/signal-cli"
+          # Feste Version, direkt geladen (14.11.2026: die Abfrage „latest“ über die GitHub-API scheiterte nachts
+          # zweimal — vermutlich Abfrage-Limit, dann leere Adresse → „gzip: unexpected end of file“).
+          url=https://github.com/AsamK/signal-cli/releases/download/v0.14.10/signal-cli-0.14.10-Linux-native.tar.gz
+          mkdir -p "$RUNNER_TEMP/signal-cli"
+          for i in 1 2 3; do curl -fsSL --retry 3 "$url" -o "$RUNNER_TEMP/signal-cli.tgz" && tar -xzf "$RUNNER_TEMP/signal-cli.tgz" -C "$RUNNER_TEMP/signal-cli" && break; sleep 5; done
           bin=$(find "$RUNNER_TEMP/signal-cli" -type f -name signal-cli | head -1) && chmod +x "$bin"
           echo "SIGNAL_CLI=$bin" >> "$GITHUB_ENV"
 

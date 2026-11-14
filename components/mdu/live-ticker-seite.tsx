@@ -90,12 +90,12 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
           <span>{s.ligaName}{s.ort ? ` · ${s.ort}` : ''}</span>
           {etikett}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--th-text-strong)' }}>{s.homeName}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--th-text-strong)', overflowWrap: 'anywhere' }}>{s.homeName}</span>
           <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800, fontSize: 22, color: s.status === 'offen' ? 'var(--th-text-faint)' : 'var(--th-text-strong)' }}>
             {s.status === 'offen' ? '–:–' : `${s.standHeim}:${s.standGast}`}
           </span>
-          <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--th-text-strong)', textAlign: 'right' }}>{s.awayName}</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--th-text-strong)', textAlign: 'right', overflowWrap: 'anywhere' }}>{s.awayName}</span>
         </div>
         {s.status === 'live' && (
           <div aria-hidden style={{ height: 3, borderRadius: 2, background: 'var(--th-line-8)', marginTop: 10 }}>
@@ -111,11 +111,12 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
             const hl = (s.highlights ?? []).filter(h => h.spiel === g.nr);
             return (
               <div key={g.nr} style={{ padding: '6px 0', fontSize: 13, borderBottom: '1px solid var(--th-line-4, var(--th-line-6))' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto 1fr', gap: 8, alignItems: 'center' }}>
+                {/* minmax(0,1fr) + Umbruch: lange Namen dürfen nicht über den Rand schieben (Android, große Schrift, 14.11.2026) */}
+                <div style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr) auto minmax(0,1fr)', gap: 8, alignItems: 'center' }}>
                   <span style={{ color: 'var(--th-text-faint)', fontSize: 11 }}>{g.nr}{g.doppel ? ' D' : ''}</span>
-                  <span style={{ fontWeight: heimSieg ? 700 : 400, color: 'var(--th-text-body)' }}>{g.heim.join(' / ') || '–'}</span>
+                  <span style={{ fontWeight: heimSieg ? 700 : 400, color: 'var(--th-text-body)', overflowWrap: 'anywhere', minWidth: 0 }}>{g.heim.join(' / ') || '–'}</span>
                   <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: 'var(--th-text-strong)' }}>{g.legsHeim}:{g.legsGast}</span>
-                  <span style={{ fontWeight: !heimSieg ? 700 : 400, color: 'var(--th-text-body)', textAlign: 'right' }}>{g.gast.join(' / ') || '–'}</span>
+                  <span style={{ fontWeight: !heimSieg ? 700 : 400, color: 'var(--th-text-body)', textAlign: 'right', overflowWrap: 'anywhere', minWidth: 0 }}>{g.gast.join(' / ') || '–'}</span>
                 </div>
                 {hl.length > 0 && <HighlightZeile hl={hl} />}
               </div>
@@ -132,10 +133,10 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
 
 /** Highlights eines Spiels: „🎯 180 · Moritz Becker“, Heim links, Gast rechts. */
 function HighlightZeile({ hl }: { hl: TickerHighlight[] }) {
-  const teil = (h: TickerHighlight) => <span key={h.id} style={{ whiteSpace: 'nowrap' }}>{highlightKurz(h)} · {h.name || '?'}</span>;
+  const teil = (h: TickerHighlight) => <span key={h.id} style={{ overflowWrap: 'anywhere' }}>{highlightKurz(h)} · {h.name || '?'}</span>;
   const heim = hl.filter(h => h.seite === 'heim'), gast = hl.filter(h => h.seite === 'gast');
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr', gap: 8, marginTop: 3, fontSize: 11.5, color: 'var(--th-text-muted)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr) minmax(0,1fr)', gap: 8, marginTop: 3, fontSize: 11.5, color: 'var(--th-text-muted)' }}>
       <span />
       <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>{heim.map(teil)}</span>
       <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px', justifyContent: 'flex-end', textAlign: 'right' }}>{gast.map(teil)}</span>
