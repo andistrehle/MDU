@@ -22,13 +22,16 @@ describe('Team-Manager-Umfrage', () => {
 });
 
 describe('Website-Umfrage bleibt wie bisher', () => {
-  it('Standard = Website-Fragen, Start 15.11. ab 19:55 Uhr Berlin, 14 Tage bis einschließlich 28.11.', () => {
+  it('Standard = Website-Fragen, Start 15.11., 14 Tage bis einschließlich 28.11.', () => {
     expect(antwortenPruefen({ rolle: 'tc', grund: ['test'] })).toEqual({ rolle: 'tc' });
-    expect(umfrageLaeuft(new Date('2026-11-12T12:00:00Z'))).toBe(false);
-    expect(umfrageLaeuft(new Date('2026-11-15T18:54:00Z'))).toBe(false); // 19:54 Berlin
-    expect(umfrageLaeuft(new Date('2026-11-15T19:00:00Z'))).toBe(UMFRAGE.live); // 20:00 Berlin
+    expect(umfrageLaeuft(new Date('2026-11-14T22:00:00Z'))).toBe(false); // 14.11. 23:00 Berlin
+    expect(umfrageLaeuft(new Date('2026-11-15T12:30:00Z'))).toBe(UMFRAGE.live);
     expect(umfrageLaeuft(new Date('2026-11-28T22:30:00Z'))).toBe(UMFRAGE.live); // 23:30 Berlin, letzter Tag
     expect(umfrageLaeuft(new Date('2026-11-28T23:30:00Z'))).toBe(false); // 29.11. 00:30 Berlin
+    // genauer Startzeitpunkt (`ab`) am Starttag
+    const mitAb = { ...UMFRAGE, live: true, ab: '2026-11-15T18:55:00Z' };
+    expect(umfrageLaeuft(new Date('2026-11-15T18:54:00Z'), mitAb)).toBe(false);
+    expect(umfrageLaeuft(new Date('2026-11-15T19:00:00Z'), mitAb)).toBe(true);
     expect(umfrageEnde()).toBe('2026-11-28');
     expect(findeUmfrage(undefined)).toBeUndefined();
     expect(findeUmfrage('website-2026-11')?.fragen).toBe(FRAGEN);

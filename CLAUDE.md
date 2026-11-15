@@ -167,7 +167,16 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (Datum = Primärschlüssel); ohne Tabelle kein Push. Datenschutz-Absatz dazu: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),
   Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).
-  Website-Umfrage `/umfrage` gebaut, aber NICHT gestartet (`live: false`). Team-Manager-Käufer (Betreiber 11.11.2026):
+  **Website-Umfrage läuft seit 15.11.2026 bis 28.11.** (`UMFRAGE.live = true`, Betreiber): die GANZE Umfrage im Popup
+  (`components/mdu/umfrage-popup.tsx` → `UmfrageFormular imPopup`), Einstieg „Servus! Hast du 2 Minuten?“ (Ok, bin dabei · Wenn's sei
+  muas · Später vielleicht · Geh ma ned auf'n Wecker = Popup auf dem Gerät aus), dann EINE Frage je Schritt mit Fortschritt; höchstens
+  1× am Tag, Zwischenstand im localStorage (× kostet nichts), nicht im Spielbericht-Formular. Bericht per Direktlink offen
+  (`lib/artikel-signal.ts`): Frage VORHER mit „Erst den Bericht lesen“, am Ende des Berichts noch einmal. Fragen-Logik in
+  `lib/umfrage.ts` (getestet): `nurWenn`/`nichtWenn`/`optionNichtWenn` (Fans ohne Spielbericht/Team Manager, TC ohne „Ich sag's dem
+  Captain“), `tippBei` (Web-App, Push, Live-Ticker), `freitextBei`, `max` (Wünsche höchstens 3), Mikrofon (`sprach-knopf.tsx`,
+  Spracherkennung des Browsers). Danke-Seite mit „Schick's deinem Team“ und dem VERSPRECHEN „Ergebnisse Anfang Dezember in den News“.
+  Spieltagsbericht bekommt beim Erzeugen den `UMFRAGE_ABSATZ`, solange sie läuft. `?umfrage=probe` zeigt das Popup immer.
+  Team-Manager-Käufer (Betreiber 11.11.2026):
   `/umfrage/team-manager`, nur per Link, läuft ohne Ende, anonym außer freiwilligem Feld „Name/Team“ (Typ `name`). Jede Antwort → Glocke + Push an den Super-Admin
   (`meldeBetreiber` in /api/umfrage, Link Admin → Umfrage `?umfrage=team-manager-kaeufer`).
   **Dankes-Mail an Käufer** (Betreiber 11.11.2026): `freischalten()` → `kaeuferMail()` (lib/server/kaeufer-mail.ts, Text in

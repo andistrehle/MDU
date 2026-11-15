@@ -131,11 +131,10 @@ export const FRAGEN: Frage[] = [
 
 export const UMFRAGE: UmfrageDef = {
   id: 'website-2026-11',
-  // Gestartet zusammen mit dem Spieltagsbericht 13./14.11. (Betreiber 15.11.2026): 19:55 Uhr Berlin,
-  // kurz vor dem Erzeugen des Berichts um 20:00 — der bekommt dann den Umfrage-Absatz. Bis 28.11.
+  // Gestartet am 15.11.2026 mittags (Betreiber: „jetzt starten wir die Umfrage“), zusammen mit dem
+  // Spieltagsbericht 13./14.11. — der bekommt beim Erzeugen den Umfrage-Absatz. Läuft bis 28.11.
   live: true,
   start: '2026-11-15',
-  ab: '2026-11-15T18:55:00Z',
   tage: 14,
   titel: 'Wie gefällt dir mdudarts.de?',
   pfad: '/umfrage',
