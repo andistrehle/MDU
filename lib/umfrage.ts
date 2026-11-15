@@ -86,7 +86,8 @@ export const FRAGEN: Frage[] = [
   { gruppe: 'Funktionen', id: 'ticker', typ: 'eine', frage: 'Hast du den Live-Ticker schon genutzt?', hinweis: 'Spielstände am Spielabend unter mdudarts.de/live.',
     optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, beim Eintragen'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']) },
   { gruppe: 'Funktionen', id: 'wunsch', typ: 'eine', frage: 'Welche neue Funktion wünschst du dir am meisten?', freitextBei: 'sonst',
-    optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['ersatz', 'Ersatzspieler-Börse'], ['kalender', 'Turnier- und Eventkalender'], ['sonst', 'Etwas anderes …']) },
+    optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['ersatz', 'Ersatzspieler-Börse'], ['kalender', 'Turnier- und Eventkalender'],
+      ['forum', 'Forum zum Chatten'], ['brett', 'Schwarzes Brett'], ['mdc', 'Verknüpfung mit der MDC (Munich Darts Challenge)'], ['sonst', 'Etwas anderes …']) },
 
   { gruppe: 'Deine Meinung', id: 'gut', typ: 'text', frage: 'Was gefällt dir am besten?' },
   { gruppe: 'Deine Meinung', id: 'schlecht', typ: 'text', frage: 'Was nervt dich oder fehlt dir?' },
