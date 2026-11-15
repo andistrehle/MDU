@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
-import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
+import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, freitextBei, sichtbareFragen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
 
 export const UMFRAGE_GERAET_KEY = 'mdu-umfrage-geraet';
@@ -52,17 +52,22 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
   const [schritt, setSchritt] = useState(0);
   const oben = useRef<HTMLDivElement>(null);
   const weiterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sichtbar = sichtbareFragen(fragen, a);
   const geheZu = (n: number) => {
     if (weiterTimer.current) clearTimeout(weiterTimer.current);
-    setSchritt(Math.max(0, Math.min(fragen.length - 1, n)));
+    setSchritt(Math.max(0, n));
     oben.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const setze = (id: string, v: string | string[] | number | undefined) => {
     setA(alt => { const n = { ...alt }; if (v === undefined || v === '' || (Array.isArray(v) && !v.length)) delete n[id]; else n[id] = v; return n; });
     const f = fragen.find(x => x.id === id);
-    const selbst = f && v !== undefined && (f.typ === 'sterne' || f.typ === 'skala' || (f.typ === 'eine' && v !== f.freitextBei && f.id !== 'team_manager'));
-    const i = fragen.findIndex(x => x.id === id);
-    if (selbst && i < fragen.length - 1) {
+    // Nicht selbst weiter, wenn unter der Frage etwas erscheint (Freitext, Tipp, Team-Manager-Hinweis) oder eine
+    // Folgefrage dranhängt — die Liste der sichtbaren Fragen ändert sich dann erst mit dieser Antwort.
+    const haengtDran = !!f && (typeof v === 'string' && (freitextBei(f).includes(v) || f.tippBei?.wert === v)
+      || f.id === 'team_manager' || f.id === 'tm_nein' || fragen.some(x => x.nurWenn?.id === f.id));
+    const selbst = f && v !== undefined && !haengtDran && (f.typ === 'sterne' || f.typ === 'skala' || f.typ === 'eine');
+    const i = sichtbar.findIndex(x => x.id === id);
+    if (selbst && i < sichtbar.length - 1) {
       if (weiterTimer.current) clearTimeout(weiterTimer.current);
       weiterTimer.current = setTimeout(() => geheZu(i + 1), 380);
     }
@@ -82,7 +87,7 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
     window.scrollTo({ top: 0, behavior: 'smooth' }); // sonst steht man nach dem Absenden in der Fußzeile
   }
 
-  const tmHinweis = (a.team_manager === 'nein' || a.team_manager === 'weiss_nicht') && !hatTm ? (
+  const tmHinweis = !hatTm && (a.team_manager === 'weiss_nicht' || a.tm_nein === 'okay' || a.tm_nein === 'captain') ? (
     <div style={{ marginTop: 12, padding: '14px 16px', borderRadius: 12, background: 'linear-gradient(135deg, rgba(232,184,48,0.16), rgba(232,184,48,0.06))', border: '1px solid rgba(201,154,22,0.45)', fontFamily: font, fontSize: 14, lineHeight: 1.55, color: 'var(--th-text-body)' }}>
       <strong style={{ color: 'var(--th-text-strong)' }}>Der Team Manager:</strong> Zu- und Absagen, Aufstellung, Termine, Teamkasse und
       Statistik – alles fürs Team an einem Ort. {TESTTAGE} Tage kostenlos, ohne Abo und ohne Zahlungsdaten.
@@ -123,38 +128,40 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
       )}
       {schritt === 0 && <p style={{ ...p, margin: 0 }}>
         {def.intro ?? <>
-          {fragen.length} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
+          {fragen.filter(f => !f.nurWenn).length} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
           Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
           Kennung dieses Geräts, damit niemand doppelt abstimmt.{laeuft && umfrageEnde(def) ? ` Läuft bis ${datumDe(umfrageEnde(def))}.` : ''}
         </>}
       </p>}
 
       {(() => {
-        const f = fragen[schritt];
-        const letzte = schritt === fragen.length - 1;
+        const nr = Math.min(schritt, sichtbar.length - 1);
+        const f = sichtbar[nr];
+        const letzte = nr === sichtbar.length - 1;
         const beantwortet = a[f.id] !== undefined;
         return (
           <Karte>
             <div ref={oben} style={{ scrollMarginTop: 90 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
                 <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)' }}>{f.gruppe}</span>
-                <span style={{ fontFamily: font, fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-muted)', whiteSpace: 'nowrap' }}>Frage {schritt + 1} von {fragen.length}</span>
+                <span style={{ fontFamily: font, fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-muted)', whiteSpace: 'nowrap' }}>Frage {nr + 1} von {sichtbar.length}</span>
               </div>
               <div aria-hidden style={{ height: 4, borderRadius: 2, background: 'var(--th-line-8)', marginBottom: 4 }}>
-                <div style={{ height: 4, borderRadius: 2, background: 'var(--th-accent)', width: `${Math.round(((schritt + 1) / fragen.length) * 100)}%`, transition: 'width .25s' }} />
+                <div style={{ height: 4, borderRadius: 2, background: 'var(--th-accent)', width: `${Math.round(((nr + 1) / sichtbar.length) * 100)}%`, transition: 'width .25s' }} />
               </div>
             </div>
-            <FrageFeld key={f.id} f={f} nr={schritt + 1} a={a} setze={setze}>
-              {f.id === 'team_manager' ? tmHinweis : null}
+            <FrageFeld key={f.id} f={f} nr={nr + 1} a={a} setze={setze}>
+              {(f.id === 'team_manager' && a.team_manager === 'weiss_nicht') || f.id === 'tm_nein' ? tmHinweis : null}
+              {f.id === 'tm_nein' && a.tm_nein === 'stur' && <p style={{ ...p, marginTop: 10, fontSize: 14 }}>Schade 😉 – falls du’s dir anders überlegst: {TESTTAGE} Tage kostenlos, ohne Abo.</p>}
             </FrageFeld>
             {fehler && letzte && <div role="alert" style={{ fontFamily: font, fontSize: 14, fontWeight: 700, color: 'var(--th-loss)', marginTop: 10 }}>{fehler}</div>}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 18 }}>
-              {schritt > 0
-                ? <button type="button" onClick={() => geheZu(schritt - 1)} style={{ fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>← Zurück</button>
+              {nr > 0
+                ? <button type="button" onClick={() => geheZu(nr - 1)} style={{ fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>← Zurück</button>
                 : <span />}
               {letzte
                 ? <button type="button" onClick={absenden} disabled={status === 'sende'} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '12px 22px', opacity: status === 'sende' ? 0.6 : 1 }}>{status === 'sende' ? 'Sende …' : 'Absenden'}</button>
-                : <button type="button" onClick={() => geheZu(schritt + 1)} style={beantwortet ? { ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '11px 20px' } : { fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-muted)', cursor: 'pointer' }}>
+                : <button type="button" onClick={() => geheZu(nr + 1)} style={beantwortet ? { ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '11px 20px' } : { fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-muted)', cursor: 'pointer' }}>
                     {beantwortet ? 'Weiter →' : 'Überspringen →'}
                   </button>}
             </div>
@@ -203,9 +210,20 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
             placeholder="Schreib einfach drauflos …" style={feld} />
         )}
       </div>
-      {f.freitextBei && (v === f.freitextBei || (Array.isArray(v) && v.includes(f.freitextBei))) && (
-        <textarea value={(a[`${f.id}_text`] as string) ?? ''} maxLength={TEXT_MAX} rows={2} onChange={e => setze(`${f.id}_text`, e.target.value)}
-          placeholder={f.typ === 'mehr' ? 'Was genau?' : 'Was wünschst du dir?'} aria-label={f.typ === 'mehr' ? 'Was genau?' : 'Was wünschst du dir?'} style={{ ...feld, marginTop: 8 }} />
+      {(typeof v === 'string' ? freitextBei(f).includes(v) : Array.isArray(v) && v.some(x => freitextBei(f).includes(x))) && (() => {
+        const frage = f.freitextFrage ?? (f.typ === 'mehr' ? 'Was genau?' : 'Was wünschst du dir?');
+        return (
+          <label style={{ display: 'block', marginTop: 10 }}>
+            {f.freitextFrage && <span style={{ display: 'block', fontFamily: font, fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', marginBottom: 4 }}>{frage}</span>}
+            <textarea value={(a[`${f.id}_text`] as string) ?? ''} maxLength={TEXT_MAX} rows={2} onChange={e => setze(`${f.id}_text`, e.target.value)}
+              placeholder={f.freitextFrage ? 'Schreib einfach drauflos …' : frage} aria-label={frage} style={feld} />
+          </label>
+        );
+      })()}
+      {f.tippBei && v === f.tippBei.wert && (
+        <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: 'var(--th-accent-a07, rgba(46,140,87,0.08))', border: '1px solid var(--th-accent-a25, rgba(46,140,87,0.3))', fontFamily: font, fontSize: 13.5, lineHeight: 1.5, color: 'var(--th-text-body)' }}>
+          💡 {f.tippBei.text}{f.tippBei.link && <> <Link href={f.tippBei.link.href} target="_blank" style={{ color: 'var(--th-accent)', fontWeight: 700 }}>{f.tippBei.link.text} →</Link></>}
+        </div>
       )}
       {children}
     </fieldset>

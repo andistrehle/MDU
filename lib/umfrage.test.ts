@@ -1,6 +1,6 @@
 // Tests: Antworten prüfen (lib/umfrage.ts) — nur reine Rechnung, kein Netz.
 import { describe, expect, it } from 'vitest';
-import { FRAGEN, TM_FRAGEN, TM_UMFRAGE, UMFRAGE, antwortenPruefen, findeUmfrage, umfrageEnde, umfrageLaeuft } from './umfrage';
+import { FRAGEN, TM_FRAGEN, TM_UMFRAGE, UMFRAGE, antwortenPruefen, findeUmfrage, umfrageEnde, umfrageLaeuft, sichtbareFragen } from './umfrage';
 
 describe('Team-Manager-Umfrage', () => {
   it('nimmt Mehrfachwahl samt Freitext bei „Etwas anderes“ und den freiwilligen Namen', () => {
@@ -40,5 +40,22 @@ describe('Wunsch-Frage: mehrere, höchstens 3', () => {
     expect(antwortenPruefen({ wunsch: ['forum', 'mdc', 'quatsch', 'brett', 'statistik'] })).toEqual({ wunsch: ['forum', 'mdc', 'brett'] });
     expect(antwortenPruefen({ wunsch: ['sonst'], wunsch_text: ' Dartscheiben-Tausch ' })).toEqual({ wunsch: ['sonst'], wunsch_text: 'Dartscheiben-Tausch' });
     expect(antwortenPruefen({ wunsch: ['forum'], wunsch_text: 'egal' })).toEqual({ wunsch: ['forum'] });
+  });
+});
+
+describe('Folgefragen, Freitext und Tipps (Betreiber 15.11.2026)', () => {
+  it('„😱 Warum nicht?“ nur bei Team Manager = Nein — sichtbar und gespeichert', () => {
+    expect(sichtbareFragen(FRAGEN, { team_manager: 'ja' }).some(f => f.id === 'tm_nein')).toBe(false);
+    expect(sichtbareFragen(FRAGEN, { team_manager: 'nein' }).some(f => f.id === 'tm_nein')).toBe(true);
+    expect(antwortenPruefen({ team_manager: 'ja', tm_nein: 'stur' })).toEqual({ team_manager: 'ja' });
+    expect(antwortenPruefen({ team_manager: 'nein', tm_nein: 'captain' })).toEqual({ team_manager: 'nein', tm_nein: 'captain' });
+  });
+
+  it('Freitext „Was würdest du besser machen?“ nur bei den passenden Antworten', () => {
+    expect(antwortenPruefen({ zurecht: 'oft_nicht', zurecht_text: 'Menü' })).toEqual({ zurecht: 'oft_nicht', zurecht_text: 'Menü' });
+    expect(antwortenPruefen({ zurecht: 'sehr', zurecht_text: 'Menü' })).toEqual({ zurecht: 'sehr' });
+    expect(antwortenPruefen({ spielbericht: '2', spielbericht_text: 'x' })).toEqual({ spielbericht: '2', spielbericht_text: 'x' });
+    expect(antwortenPruefen({ spielbericht: '1', spielbericht_text: 'x' })).toEqual({ spielbericht: '1', spielbericht_text: 'x' });
+    expect(antwortenPruefen({ spielbericht: '3', spielbericht_text: 'x' })).toEqual({ spielbericht: '3' });
   });
 });

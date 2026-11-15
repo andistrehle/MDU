@@ -15,8 +15,14 @@ export interface Frage {
   frage: string;
   typ: FrageTyp;
   optionen?: { wert: string; text: string }[];
-  /** Bei 'eine': Freitext, wenn diese Option gewählt ist (Schlüssel `<id>_text`). */
-  freitextBei?: string;
+  /** Freitext, wenn (eine) dieser Optionen gewählt ist (Schlüssel `<id>_text`). */
+  freitextBei?: string | string[];
+  /** Platzhalter/Überschrift des Freitexts (sonst „Was wünschst du dir?“). */
+  freitextFrage?: string;
+  /** Tipp unter der Frage, wenn diese Option gewählt ist (nur Anzeige, nichts gespeichert). */
+  tippBei?: { wert: string; text: string; link?: { href: string; text: string } };
+  /** Frage nur zeigen, wenn eine andere Frage so beantwortet wurde (Betreiber 15.11.2026). */
+  nurWenn?: { id: string; wert: string };
   /** Bei 'mehr': höchstens so viele Antworten (Betreiber 15.11.2026: Wunsch-Frage höchstens 3). */
   max?: number;
   hinweis?: string;
@@ -66,27 +72,30 @@ export const FRAGEN: Frage[] = [
   { gruppe: 'Über dich', id: 'haeufigkeit', typ: 'eine', frage: 'Wie oft bist du auf mdudarts.de?',
     optionen: o(['taeglich', 'Täglich'], ['woche', 'Mehrmals pro Woche'], ['spieltag', 'Rund um den Spieltag'], ['selten', 'Selten']) },
   { gruppe: 'Über dich', id: 'geraet', typ: 'eine', frage: 'Womit bist du meistens drauf?',
-    optionen: o(['handy', 'Handy (Browser)'], ['app', 'Als App installiert'], ['pc', 'PC / Laptop'], ['tablet', 'Tablet']) },
+    optionen: o(['handy', 'Handy (Browser)'], ['app', 'Als App installiert'], ['pc', 'PC / Laptop'], ['tablet', 'Tablet']),
+    tippBei: { wert: 'handy', text: 'Tipp: Leg dir mdudarts.de als Web-App auf den Startbildschirm – dann öffnet sie sich wie eine App, im Vollbild, und du bekommst Benachrichtigungen aufs Handy.',
+      link: { href: '/faq#app', text: 'So geht’s' } } },
 
   { gruppe: 'Aussehen und Bedienung', id: 'modus', typ: 'eine', frage: 'Welchen Modus nutzt du?',
     hinweis: 'Umschalter oben rechts: „Old School“ (hell) oder „New Design“ (dunkel).',
     optionen: o(['hell', 'Old School (hell)'], ['dunkel', 'New Design (dunkel)'], ['beide', 'Mal so, mal so'], ['unbekannt', 'Wusste nicht, dass es zwei gibt']) },
   { gruppe: 'Aussehen und Bedienung', id: 'gesamt', typ: 'sterne', frage: 'Wie gefällt dir die Seite insgesamt?' },
   { gruppe: 'Aussehen und Bedienung', id: 'zurecht', typ: 'eine', frage: 'Findest du dich gut zurecht?',
-    optionen: o(['sehr', 'Sehr gut'], ['meist', 'Meistens'], ['oft_nicht', 'Oft nicht']) },
+    optionen: o(['sehr', 'Sehr gut'], ['meist', 'Meistens'], ['oft_nicht', 'Oft nicht']), freitextBei: 'oft_nicht', freitextFrage: 'Was würdest du besser machen?' },
 
   { gruppe: 'Funktionen', id: 'bereiche', typ: 'mehr', frage: 'Welche Bereiche nutzt du am meisten?', hinweis: 'Mehrere möglich.',
     optionen: o(['tabellen', 'Tabellen'], ['spielplan', 'Spielplan'], ['ergebnisse', 'Ergebnisse'], ['spielberichte', 'Spielberichte'],
       ['einzel', 'Einzelrangliste'], ['profile', 'Spielerprofile'], ['news', 'Spieltagsberichte / News'], ['teams', 'Team-Seiten'], ['lokale', 'Spielstätten']) },
   { gruppe: 'Funktionen', id: 'spielbericht', typ: 'eine', frage: 'Wie zufrieden bist du mit dem digitalen Spielbericht?',
-    optionen: o(['5', 'Sehr zufrieden'], ['4', 'Zufrieden'], ['3', 'Geht so'], ['2', 'Eher unzufrieden'], ['1', 'Unzufrieden'], ['nicht', 'Nutze ich nicht']) },
+    optionen: o(['5', 'Sehr zufrieden'], ['4', 'Zufrieden'], ['3', 'Geht so'], ['2', 'Eher unzufrieden'], ['1', 'Unzufrieden'], ['nicht', 'Nutze ich nicht']),
+    freitextBei: ['2', '1'], freitextFrage: 'Was würdest du besser machen?' },
   { gruppe: 'Funktionen', id: 'push', typ: 'eine', frage: 'Benachrichtigungen aufs Handy (Push)?',
     optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']) },
   { gruppe: 'Funktionen', id: 'bericht', typ: 'eine', frage: 'Liest du den Spieltagsbericht am Wochenende?',
     optionen: o(['immer', 'Immer'], ['manchmal', 'Manchmal'], ['nie', 'Nie']) },
   // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
   { gruppe: 'Funktionen', id: 'ticker', typ: 'eine', frage: 'Hast du den Live-Ticker schon genutzt?', hinweis: 'Spielstände am Spielabend unter mdudarts.de/live.',
-    optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, beim Eintragen'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']) },
+    optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, ich trage selbst live ein'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']) },
   { gruppe: 'Funktionen', id: 'wunsch', typ: 'mehr', max: 3, frage: 'Welche neuen Funktionen wünschst du dir am meisten?', hinweis: 'Bis zu 3 auswählen.', freitextBei: 'sonst',
     optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['kalender', 'Turnier- und Eventkalender'],
       ['forum', 'Forum zum Chatten'], ['brett', 'Schwarzes Brett (z. B. Spieler/Team gesucht, Flohmarkt)'], ['mdc', 'Verknüpfung mit der MDC (Munich Darts Challenge)'], ['sonst', 'Etwas anderes …']) },
@@ -97,6 +106,10 @@ export const FRAGEN: Frage[] = [
 
   { gruppe: 'Zum Schluss', id: 'team_manager', typ: 'eine', frage: 'Nutzt dein Team schon den Team Manager?',
     optionen: o(['ja', 'Ja'], ['nein', 'Nein'], ['weiss_nicht', 'Weiß nicht']) },
+  // Nur bei „Nein“ (Betreiber 15.11.2026, mit Augenzwinkern).
+  { gruppe: 'Zum Schluss', id: 'tm_nein', typ: 'eine', nurWenn: { id: 'team_manager', wert: 'nein' },
+    frage: '😱 Warum nicht??? Probier’s doch mal aus!',
+    optionen: o(['okay', 'Okay, ich teste ihn'], ['captain', 'Ich sag’s dem Captain'], ['stur', 'Nein, ich bleib stur']) },
 ];
 
 export const UMFRAGE: UmfrageDef = {
@@ -162,24 +175,31 @@ export const NAME_MAX = 80;
 
 export type Antworten = Record<string, string | string[] | number>;
 
+/** Optionen, bei denen ein Freitext dazugehört (immer als Liste). */
+export const freitextBei = (f: Frage): string[] => (f.freitextBei == null ? [] : Array.isArray(f.freitextBei) ? f.freitextBei : [f.freitextBei]);
+
+/** Fragen, die bei diesen Antworten zu sehen sind (`nurWenn`). */
+export const sichtbareFragen = (fragen: Frage[], a: Antworten): Frage[] => fragen.filter(f => !f.nurWenn || a[f.nurWenn.id] === f.nurWenn.wert);
+
 /** Prüft und säubert Antworten (Server UND Browser). Unbekanntes fliegt raus. */
 export function antwortenPruefen(roh: unknown, fragen: Frage[] = FRAGEN): Antworten | null {
   if (!roh || typeof roh !== 'object') return null;
   const r = roh as Record<string, unknown>;
   const a: Antworten = {};
   for (const f of fragen) {
+    if (f.nurWenn && r[f.nurWenn.id] !== f.nurWenn.wert) continue;
     const v = r[f.id];
     if (v == null || v === '') continue;
     const erlaubt = new Set((f.optionen ?? []).map(x => x.wert));
     if (f.typ === 'eine' && typeof v === 'string' && erlaubt.has(v)) {
       a[f.id] = v;
       const t = r[`${f.id}_text`];
-      if (f.freitextBei === v && typeof t === 'string' && t.trim()) a[`${f.id}_text`] = t.trim().slice(0, TEXT_MAX);
+      if (freitextBei(f).includes(v) && typeof t === 'string' && t.trim()) a[`${f.id}_text`] = t.trim().slice(0, TEXT_MAX);
     } else if (f.typ === 'mehr' && Array.isArray(v)) {
       const w = [...new Set(v.filter((x): x is string => typeof x === 'string' && erlaubt.has(x)))].slice(0, f.max ?? Infinity);
       if (w.length) a[f.id] = w;
       const t = r[`${f.id}_text`];
-      if (f.freitextBei && w.includes(f.freitextBei) && typeof t === 'string' && t.trim()) a[`${f.id}_text`] = t.trim().slice(0, TEXT_MAX);
+      if (w.some(x => freitextBei(f).includes(x)) && typeof t === 'string' && t.trim()) a[`${f.id}_text`] = t.trim().slice(0, TEXT_MAX);
     } else if (f.typ === 'sterne' && typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 5) a[f.id] = v;
     else if (f.typ === 'skala' && typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 10) a[f.id] = v;
     else if (f.typ === 'text' && typeof v === 'string' && v.trim()) a[f.id] = v.trim().slice(0, TEXT_MAX);

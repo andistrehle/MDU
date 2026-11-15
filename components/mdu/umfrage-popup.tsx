@@ -53,7 +53,7 @@ export function UmfragePopup() {
         <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)' }}>Kurze Umfrage</div>
         <h2 id="umfrage-popup-titel" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, textTransform: 'uppercase', lineHeight: 1.05, margin: '4px 0 10px' }}>{UMFRAGE.titel}</h2>
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14.5, lineHeight: 1.55, color: 'var(--th-text-body)', margin: '0 0 16px' }}>
-          Hilf uns, die Seite besser zu machen: {FRAGEN.length} kurze Fragen, etwa 2 Minuten – anonym.
+          Hilf uns, die Seite besser zu machen: {FRAGEN.filter(f => !f.nurWenn).length} kurze Fragen, etwa 2 Minuten – anonym.
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Link href="/umfrage" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, padding: '11px 20px', borderRadius: 10, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none' }}>Mitmachen</Link>
