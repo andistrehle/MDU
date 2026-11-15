@@ -7,43 +7,65 @@
 // bis abgestimmt wurde; × oder „Später“ schließt es bis morgen. Ein angefangener Stand bleibt gemerkt
 // (umfrageStandKey) — beim nächsten Öffnen geht es an derselben Frage weiter. Nicht auf /umfrage selbst, nicht
 // im Admin, nicht bei Login/Registrierung und nicht im Spielbericht (dort wird gerade eingetragen).
-// Zum Ausprobieren: ?umfrage=probe zeigt es sofort, auch vor dem Start.
+// Bericht per Link direkt geöffnet → Frage VORHER mit „Erst den Bericht lesen“, danach am Ende des Berichts
+// noch einmal (lib/artikel-signal.ts). Zum Ausprobieren: ?umfrage=probe zeigt es sofort, auch vor dem Start.
 // ============================================================
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { UMFRAGE, umfrageLaeuft } from '@/lib/umfrage';
 import { UmfrageFormular } from './umfrage-formular';
+import { artikelOffen, beiArtikel } from '@/lib/artikel-signal';
 
 const fertigKey = () => `mdu-umfrage-${UMFRAGE.id}-fertig`;
 const abgelehntKey = () => `mdu-umfrage-${UMFRAGE.id}-abgelehnt`;
 const tagKey = () => `mdu-umfrage-${UMFRAGE.id}-gezeigt-am`;
 const AUSGENOMMEN = /^\/(umfrage|admin|login|registrieren|passwort|auth|mein-bereich\/spielberichte)/;
-/** Gilt nur bis zum Neuladen der Seite (Modul-Variable, kein Speicher). */
-let gesehenInDiesemLaden = false;
+/** Gilt nur bis zum Neuladen der Seite (kein Speicher). `wartet` = nach dem Lesen eines Berichts noch einmal fragen. */
+const merk = { gesehen: false, wartet: false };
+const heuteBerlin = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+const tagMerken = () => { try { localStorage.setItem(tagKey(), heuteBerlin()); } catch { /* egal */ } };
+
+type Variante = 'normal' | 'vorher' | 'nachher';
 
 export function UmfragePopup() {
   const pathname = usePathname() ?? '/';
   const [offen, setOffen] = useState(false);
+  const [variante, setVariante] = useState<Variante>('normal');
 
   useEffect(() => {
     const probe = new URLSearchParams(window.location.search).get('umfrage') === 'probe';
-    if (gesehenInDiesemLaden || AUSGENOMMEN.test(pathname)) return;
+    if (merk.gesehen || AUSGENOMMEN.test(pathname)) return;
     // Höchstens 1× am Tag (Betreiber 15.11.2026): gezeigt wird es nur, wenn es heute auf diesem Gerät noch nicht da war.
-    const heute = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
     if (!probe) {
       if (!umfrageLaeuft()) return;
       try {
         if (localStorage.getItem(fertigKey()) || localStorage.getItem(abgelehntKey())) return;
-        if (localStorage.getItem(tagKey()) === heute) return;
+        if (localStorage.getItem(tagKey()) === heuteBerlin()) return;
       } catch { return; }
     }
-    const t = setTimeout(() => {
-      gesehenInDiesemLaden = true; setOffen(true);
-      if (!probe) { try { localStorage.setItem(tagKey(), heute); } catch { /* egal */ } }
-    }, probe ? 300 : 2500);
-    return () => clearTimeout(t);
+    const zeigen = (v: Variante) => { merk.gesehen = true; setVariante(v); setOffen(true); if (!probe) tagMerken(); };
+    // Bericht per Link direkt geöffnet (z. B. aus Facebook, Betreiber 15.11.2026): VORHER fragen, „Erst den Bericht
+    // lesen“ möglich. Sonst nach 2,5 s — ist dann gerade ein Bericht offen, nicht stören, sondern danach fragen.
+    let spaet: ReturnType<typeof setTimeout> | undefined;
+    const frueh = setTimeout(() => {
+      if (artikelOffen()) { zeigen('vorher'); return; }
+      spaet = setTimeout(() => {
+        if (artikelOffen()) { merk.gesehen = true; merk.wartet = true; return; }
+        zeigen('normal');
+      }, probe ? 0 : 1800);
+    }, probe ? 400 : 700);
+    return () => { clearTimeout(frueh); if (spaet) clearTimeout(spaet); };
   }, [pathname]);
+
+  // Nach dem Lesen: am ENDE des Berichts (bis unten gescrollt) oder beim Schließen noch einmal fragen —
+  // viele schließen den Bericht nie, sondern gleich den Tab.
+  useEffect(() => beiArtikel(art => {
+    if (!merk.wartet || (art !== 'ende' && art !== 'zu')) return;
+    merk.wartet = false;
+    try { if (localStorage.getItem(fertigKey()) || localStorage.getItem(abgelehntKey())) return; } catch { return; }
+    setVariante('nachher'); setOffen(true); tagMerken();
+  }), []);
 
   useEffect(() => {
     if (!offen) return;
@@ -63,7 +85,10 @@ export function UmfragePopup() {
       }}>
         <button type="button" aria-label="Schließen" onClick={() => setOffen(false)} style={{ position: 'absolute', top: 8, right: 10, background: 'none', border: 'none', fontSize: 24, lineHeight: 1, cursor: 'pointer', color: 'var(--th-text-muted)', zIndex: 1 }}>×</button>
         <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)', marginBottom: 6 }}>Kurze Umfrage · {UMFRAGE.titel}</div>
-        <UmfrageFormular imPopup onSchliessen={() => setOffen(false)} />
+        <UmfrageFormular imPopup onSchliessen={() => setOffen(false)}
+          einstieg={variante === 'vorher' ? { titel: 'Servus! 👋', frage: 'Bevor du den Bericht liest: Hast du kurz 2 Minuten für uns?' }
+            : variante === 'nachher' ? { titel: 'Na, wie war der Bericht? 😄', frage: 'Hast du jetzt noch 2 Minuten für uns?' } : undefined}
+          onErstLesen={variante === 'vorher' ? () => { merk.wartet = true; setOffen(false); } : undefined} />
       </div>
     </div>
   );

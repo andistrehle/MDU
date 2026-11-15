@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { hasMinRole } from '@/lib/auth/roles';
 import { ShareNews } from './share-news';
 import { NewsZahlenKlein, NewsReaktionen, alsGelesenMelden } from './news-reaktionen';
+import { meldeArtikel } from '@/lib/artikel-signal';
 
 /**
  * Rendert die wenigen Auszeichnungen im Beitrag: **fett** und Links
@@ -69,6 +70,19 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
     };
+  }, [open]);
+
+  // Für die Website-Umfrage (lib/artikel-signal.ts): offen / bis zum Ende gelesen / geschlossen melden.
+  const endeRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    meldeArtikel('auf');
+    const el = endeRef.current;
+    const io = el && 'IntersectionObserver' in window
+      ? new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { meldeArtikel('ende'); io?.disconnect(); } })
+      : null;
+    if (el && io) io.observe(el);
+    return () => { io?.disconnect(); meldeArtikel('zu'); };
   }, [open]);
 
   // Deep-Link: Artikel per #<id> in der URL direkt öffnen (teilbarer Link).
@@ -239,6 +253,7 @@ export function NewsArticleCard({ article }: { article: NewsArticle }) {
                 );
               })}
             </div>
+            <div ref={endeRef} aria-hidden style={{ height: 1 }} />
 
             <div style={{
               marginTop: 22, paddingTop: 16, borderTop: '1px solid var(--th-line-6)',

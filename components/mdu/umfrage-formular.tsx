@@ -39,11 +39,19 @@ const font = 'var(--font-manrope)';
 /** Im Popup (Betreiber 15.11.2026: die ganze Umfrage läuft im Popup) ohne eigene Kartenrahmen. */
 const ImPopup = createContext(false);
 
-export function UmfrageFormular(props: { def?: UmfrageDef; fragen?: Frage[]; imPopup?: boolean; onSchliessen?: () => void } = {}) {
+interface FormularProps {
+  def?: UmfrageDef; fragen?: Frage[]; imPopup?: boolean; onSchliessen?: () => void;
+  /** Eigener Einstiegstext (Popup vor/nach einem Bericht). */
+  einstieg?: { titel: string; frage: string };
+  /** Zeigt im Einstieg „Erst den Bericht lesen 📖“ statt „Später vielleicht“. */
+  onErstLesen?: () => void;
+}
+
+export function UmfrageFormular(props: FormularProps = {}) {
   return <ImPopup.Provider value={!!props.imPopup}><FormularInnen {...props} /></ImPopup.Provider>;
 }
 
-function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchliessen }: { def?: UmfrageDef; fragen?: Frage[]; imPopup?: boolean; onSchliessen?: () => void }) {
+function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchliessen, einstieg, onErstLesen }: FormularProps) {
   const { user } = useAuth();
   const [a, setA] = useState<Antworten>({});
   // 'start' = Einstiegs-Bildschirm (nur wenn die Umfrage eine Einstiegsfrage hat), 'nein' = „Geh ma ned …“, 'spaeter'.
@@ -141,15 +149,16 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
   if (status === 'start' && einstiegsFrage) return (
     <Karte>
       {!laeuft && <p style={{ ...p, fontSize: 13, color: 'var(--th-loss)', margin: '0 0 8px' }}><strong>Vorschau</strong> – Antworten werden noch nicht gespeichert.</p>}
-      <h2 style={h2}>Servus! 👋</h2>
-      <p style={{ ...p, fontSize: 17, fontWeight: 800, color: 'var(--th-text-strong)', margin: '6px 0 4px' }}>{einstiegsFrage.frage}</p>
+      <h2 style={h2}>{einstieg?.titel ?? 'Servus! 👋'}</h2>
+      <p style={{ ...p, fontSize: 17, fontWeight: 800, color: 'var(--th-text-strong)', margin: '6px 0 4px' }}>{einstieg?.frage ?? einstiegsFrage.frage}</p>
       <p style={{ ...p, fontSize: 14, margin: '0 0 14px' }}>
         {fragenZahl(fragen)} schnelle Fragen, ganz anonym – wir speichern weder Namen noch Konto, nur eine zufällige Gerätekennung,
         damit keiner doppelt abstimmt. Und ja: Wir lesen wirklich alles 😉{def.ergebnisse ? ` ${def.ergebnisse}` : ''}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {einstiegsFrage.optionen!.map(o => (
+        {einstiegsFrage.optionen!.map(o => (onErstLesen && o.wert === 'spaeter' ? { ...o, text: 'Erst den Bericht lesen 📖' } : o)).map(o => (
           <button key={o.wert} type="button" onClick={() => {
+            if (onErstLesen && o.wert === 'spaeter') { onErstLesen(); return; }
             setA(alt => ({ ...alt, [einstiegsFrage.id]: o.wert }));
             if (o.wert === 'ned') {
               try { localStorage.setItem(umfrageAbgelehntKey(def), new Date().toISOString()); } catch { /* egal */ }
