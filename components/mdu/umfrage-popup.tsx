@@ -11,9 +11,9 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FRAGEN, UMFRAGE, fragenZahl, umfrageLaeuft } from '@/lib/umfrage';
+import { UMFRAGE, umfrageLaeuft } from '@/lib/umfrage';
+import { UmfrageFormular } from './umfrage-formular';
 
 const fertigKey = () => `mdu-umfrage-${UMFRAGE.id}-fertig`;
 const abgelehntKey = () => `mdu-umfrage-${UMFRAGE.id}-abgelehnt`;
@@ -44,22 +44,17 @@ export function UmfragePopup() {
   }, [offen]);
 
   if (!offen) return null;
+  // Die ganze Umfrage läuft im Popup (Betreiber 15.11.2026): Einstieg „Servus! Hast du 2 Minuten?“, dann Schritt für
+  // Schritt. Kein Schließen per Tipp daneben — sonst wären halb ausgefüllte Antworten mit einem Fehltipp weg.
   return (
-    <div onClick={() => setOffen(false)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(5,7,10,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div role="dialog" aria-modal="true" aria-labelledby="umfrage-popup-titel" onClick={e => e.stopPropagation()} style={{
-        width: '100%', maxWidth: 420, background: 'var(--th-bg-card)', color: 'var(--th-text-strong)', borderRadius: 18,
-        border: '1px solid var(--th-line-10)', boxShadow: '0 24px 60px rgba(0,0,0,0.35)', padding: '22px 22px 18px', position: 'relative',
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(5,7,10,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+      <div role="dialog" aria-modal="true" aria-label={UMFRAGE.titel} style={{
+        width: '100%', maxWidth: 480, maxHeight: 'min(92vh, 780px)', overflowY: 'auto', background: 'var(--th-bg-card)', color: 'var(--th-text-strong)', borderRadius: 18,
+        border: '1px solid var(--th-line-10)', boxShadow: '0 24px 60px rgba(0,0,0,0.35)', padding: '20px 20px 18px', position: 'relative',
       }}>
-        <button type="button" aria-label="Schließen" onClick={() => setOffen(false)} style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--th-text-muted)' }}>×</button>
-        <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)' }}>Kurze Umfrage</div>
-        <h2 id="umfrage-popup-titel" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, textTransform: 'uppercase', lineHeight: 1.05, margin: '4px 0 10px' }}>{UMFRAGE.titel}</h2>
-        <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14.5, lineHeight: 1.55, color: 'var(--th-text-body)', margin: '0 0 16px' }}>
-          Servus! 👋 Hast du 2 Minuten? {fragenZahl(FRAGEN)} schnelle Fragen, ganz anonym – und ja, wir lesen wirklich alles 😉
-        </p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link href="/umfrage?los=1" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, padding: '11px 20px', borderRadius: 10, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none' }}>Ok, bin dabei 💪</Link>
-          <button type="button" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 15, padding: '11px 16px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>Später</button>
-        </div>
+        <button type="button" aria-label="Schließen" onClick={() => setOffen(false)} style={{ position: 'absolute', top: 8, right: 10, background: 'none', border: 'none', fontSize: 24, lineHeight: 1, cursor: 'pointer', color: 'var(--th-text-muted)', zIndex: 1 }}>×</button>
+        <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)', marginBottom: 6 }}>Kurze Umfrage · {UMFRAGE.titel}</div>
+        <UmfrageFormular imPopup onSchliessen={() => setOffen(false)} />
       </div>
     </div>
   );

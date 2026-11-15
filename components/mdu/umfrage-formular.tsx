@@ -10,7 +10,7 @@
 // anderen zum Video-Beitrag (zum Weitergeben an den Kapitän).
 // ============================================================
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
@@ -33,7 +33,14 @@ function geraetId(): string {
 const datumDe = (iso: string | null) => (iso ?? '').split('-').reverse().join('.');
 const font = 'var(--font-manrope)';
 
-export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: UmfrageDef; fragen?: Frage[] } = {}) {
+/** Im Popup (Betreiber 15.11.2026: die ganze Umfrage läuft im Popup) ohne eigene Kartenrahmen. */
+const ImPopup = createContext(false);
+
+export function UmfrageFormular(props: { def?: UmfrageDef; fragen?: Frage[]; imPopup?: boolean; onSchliessen?: () => void } = {}) {
+  return <ImPopup.Provider value={!!props.imPopup}><FormularInnen {...props} /></ImPopup.Provider>;
+}
+
+function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchliessen }: { def?: UmfrageDef; fragen?: Frage[]; imPopup?: boolean; onSchliessen?: () => void }) {
   const { user } = useAuth();
   const [a, setA] = useState<Antworten>({});
   // 'start' = Einstiegs-Bildschirm (nur wenn die Umfrage eine Einstiegsfrage hat), 'nein' = „Geh ma ned …“, 'spaeter'.
@@ -126,7 +133,7 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
             if (o.wert === 'ned') {
               try { localStorage.setItem(umfrageAbgelehntKey(def), new Date().toISOString()); } catch { /* egal */ }
               setStatus('nein');
-            } else if (o.wert === 'spaeter') setStatus('spaeter');
+            } else if (o.wert === 'spaeter') { if (imPopup && onSchliessen) onSchliessen(); else setStatus('spaeter'); }
             else { setSchritt(0); setStatus('neu'); }
           }} style={{
             textAlign: 'left', fontFamily: font, fontSize: 15.5, fontWeight: 800, padding: '13px 16px', borderRadius: 12, cursor: 'pointer',
@@ -146,7 +153,9 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
         <button type="button" onClick={() => { try { localStorage.removeItem(umfrageAbgelehntKey(def)); } catch { /* egal */ } setSchritt(0); setStatus('neu'); }}
           style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 14.5 }}>Na gut, doch mitmachen</button>
-        <Link href="/" style={{ fontFamily: font, fontWeight: 700, fontSize: 14.5, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', textDecoration: 'none' }}>Zur Startseite</Link>
+        {imPopup && onSchliessen
+          ? <button type="button" onClick={onSchliessen} style={{ fontFamily: font, fontWeight: 700, fontSize: 14.5, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--th-line-10)', background: 'transparent', color: 'var(--th-text-body)', cursor: 'pointer' }}>Schließen</button>
+          : <Link href="/" style={{ fontFamily: font, fontWeight: 700, fontSize: 14.5, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', textDecoration: 'none' }}>Zur Startseite</Link>}
       </div>
     </Karte>
   );
@@ -165,6 +174,9 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
         ? (def.danke ?? 'Deine Antworten helfen uns, die Seite besser zu machen. Was davon umgesetzt wird, liest du in den News.')
         : 'Die Umfrage ist noch nicht gestartet. So sieht der Abschluss später aus.'}</p>
       {tmHinweis}
+      {imPopup && onSchliessen && (
+        <button type="button" onClick={onSchliessen} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, marginTop: 14 }}>Schließen</button>
+      )}
     </Karte>
   );
 
@@ -175,7 +187,7 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
           <strong>Vorschau:</strong> Die Umfrage ist noch nicht gestartet – Antworten werden nicht gespeichert.
         </div>
       )}
-      {schritt === 0 && <p style={{ ...p, margin: 0 }}>
+      {schritt === 0 && !imPopup && <p style={{ ...p, margin: 0 }}>
         {def.intro ?? <>
           {fragenZahl(fragen)} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
           Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
@@ -290,6 +302,8 @@ function Chip({ an, gesperrt = false, onClick, children }: { an: boolean; gesper
 }
 
 function Karte({ children }: { children: React.ReactNode }) {
+  const imPopup = useContext(ImPopup);
+  if (imPopup) return <div>{children}</div>; // das Popup ist selbst die Karte
   return <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '16px 18px' }}>{children}</div>;
 }
 
