@@ -131,7 +131,7 @@ export const UMFRAGE: UmfrageDef = {
   tage: 14,
   titel: 'Wie gefällt dir mdudarts.de?',
   pfad: '/umfrage',
-  danke: 'Merci! 🎯 Dein Feedback landet direkt bei uns – was sich umsetzen lässt, liest du in den News. Und jetzt: Pfeile raus!',
+  danke: 'Vielen Dank! 🎯 Mit deiner Meinung trägst du dazu bei, die MDU noch besser zu machen. Einen wunderschönen Tag noch! ☀️',
 };
 
 // ── Team-Manager-Käufer (Betreiber, 11.11.2026) ──────────────────────────
