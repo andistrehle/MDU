@@ -13,9 +13,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FRAGEN, UMFRAGE, umfrageLaeuft } from '@/lib/umfrage';
+import { FRAGEN, UMFRAGE, fragenZahl, umfrageLaeuft } from '@/lib/umfrage';
 
 const fertigKey = () => `mdu-umfrage-${UMFRAGE.id}-fertig`;
+const abgelehntKey = () => `mdu-umfrage-${UMFRAGE.id}-abgelehnt`;
 const AUSGENOMMEN = /^\/(umfrage|admin|login|registrieren|passwort|auth|mein-bereich\/spielberichte)/;
 /** Gilt nur bis zum Neuladen der Seite (Modul-Variable, kein Speicher). */
 let gesehenInDiesemLaden = false;
@@ -29,7 +30,7 @@ export function UmfragePopup() {
     if (gesehenInDiesemLaden || AUSGENOMMEN.test(pathname)) return;
     if (!probe) {
       if (!umfrageLaeuft()) return;
-      try { if (localStorage.getItem(fertigKey())) return; } catch { return; }
+      try { if (localStorage.getItem(fertigKey()) || localStorage.getItem(abgelehntKey())) return; } catch { return; }
     }
     const t = setTimeout(() => { gesehenInDiesemLaden = true; setOffen(true); }, probe ? 300 : 2500);
     return () => clearTimeout(t);
@@ -53,10 +54,10 @@ export function UmfragePopup() {
         <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)' }}>Kurze Umfrage</div>
         <h2 id="umfrage-popup-titel" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 28, textTransform: 'uppercase', lineHeight: 1.05, margin: '4px 0 10px' }}>{UMFRAGE.titel}</h2>
         <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 14.5, lineHeight: 1.55, color: 'var(--th-text-body)', margin: '0 0 16px' }}>
-          Hilf uns, die Seite besser zu machen: {FRAGEN.filter(f => !f.nurWenn).length} kurze Fragen, etwa 2 Minuten – anonym.
+          Servus! 👋 Hast du 2 Minuten? {fragenZahl(FRAGEN)} schnelle Fragen, ganz anonym – und ja, wir lesen wirklich alles 😉
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link href="/umfrage" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, padding: '11px 20px', borderRadius: 10, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none' }}>Mitmachen</Link>
+          <Link href="/umfrage?los=1" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, padding: '11px 20px', borderRadius: 10, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none' }}>Ok, bin dabei 💪</Link>
           <button type="button" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 15, padding: '11px 16px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>Später</button>
         </div>
       </div>

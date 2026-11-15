@@ -1,6 +1,6 @@
 // Tests: Antworten prüfen (lib/umfrage.ts) — nur reine Rechnung, kein Netz.
 import { describe, expect, it } from 'vitest';
-import { FRAGEN, TM_FRAGEN, TM_UMFRAGE, UMFRAGE, antwortenPruefen, findeUmfrage, umfrageEnde, umfrageLaeuft, sichtbareFragen } from './umfrage';
+import { FRAGEN, TM_FRAGEN, TM_UMFRAGE, UMFRAGE, antwortenPruefen, findeUmfrage, umfrageEnde, umfrageLaeuft, sichtbareFragen, fragenZahl } from './umfrage';
 
 describe('Team-Manager-Umfrage', () => {
   it('nimmt Mehrfachwahl samt Freitext bei „Etwas anderes“ und den freiwilligen Namen', () => {
@@ -57,5 +57,13 @@ describe('Folgefragen, Freitext und Tipps (Betreiber 15.11.2026)', () => {
     expect(antwortenPruefen({ spielbericht: '2', spielbericht_text: 'x' })).toEqual({ spielbericht: '2', spielbericht_text: 'x' });
     expect(antwortenPruefen({ spielbericht: '1', spielbericht_text: 'x' })).toEqual({ spielbericht: '1', spielbericht_text: 'x' });
     expect(antwortenPruefen({ spielbericht: '3', spielbericht_text: 'x' })).toEqual({ spielbericht: '3' });
+  });
+});
+
+describe('Einstieg (Betreiber 15.11.2026)', () => {
+  it('zählt nicht als Frage und erscheint nicht in den Schritten, die Antwort wird aber gespeichert', () => {
+    expect(fragenZahl(FRAGEN)).toBe(16);
+    expect(sichtbareFragen(FRAGEN, {}).some(f => f.id === 'einstieg')).toBe(false);
+    expect(antwortenPruefen({ einstieg: 'muas', rolle: 'spieler' })).toEqual({ einstieg: 'muas', rolle: 'spieler' });
   });
 });

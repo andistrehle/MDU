@@ -14,11 +14,13 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
-import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, freitextBei, sichtbareFragen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
+import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
 
 export const UMFRAGE_GERAET_KEY = 'mdu-umfrage-geraet';
 export const umfrageFertigKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-fertig`;
+/** „Geh ma ned auf’n Wecker“ — Popup auf diesem Gerät nicht mehr zeigen (nichts gespeichert). */
+export const umfrageAbgelehntKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-abgelehnt`;
 
 function geraetId(): string {
   try {
@@ -34,16 +36,21 @@ const font = 'var(--font-manrope)';
 export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: UmfrageDef; fragen?: Frage[] } = {}) {
   const { user } = useAuth();
   const [a, setA] = useState<Antworten>({});
-  const [status, setStatus] = useState<'neu' | 'sende' | 'fertig' | 'schon'>('neu');
+  // 'start' = Einstiegs-Bildschirm (nur wenn die Umfrage eine Einstiegsfrage hat), 'nein' = „Geh ma ned …“, 'spaeter'.
+  const einstiegsFrage = fragen.find(f => f.einstieg);
+  const [status, setStatus] = useState<'start' | 'neu' | 'sende' | 'fertig' | 'schon' | 'nein' | 'spaeter'>(einstiegsFrage ? 'start' : 'neu');
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
 
   useEffect(() => {
     queueMicrotask(() => {
       setLaeuft(umfrageLaeuft(new Date(), def));
-      try { if (localStorage.getItem(umfrageFertigKey(def))) setStatus('schon'); } catch { /* egal */ }
+      try { if (localStorage.getItem(umfrageFertigKey(def))) { setStatus('schon'); return; } } catch { /* egal */ }
+      // Aus dem Popup mit „Ok, bin dabei“ gekommen (?los=1): Einstieg überspringen.
+      const ein = fragen.find(f => f.einstieg);
+      if (ein && new URLSearchParams(window.location.search).get('los') === '1') { setA(alt => ({ ...alt, [ein.id]: 'dabei' })); setStatus('neu'); }
     });
-  }, [def]);
+  }, [def, fragen]);
 
   const darfFreischalten = !!user?.teamId && hatTcRecht(user, user.teamId, 'team_manager');
   const hatTm = !!user?.teamManager;
@@ -102,6 +109,48 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
     </div>
   ) : null;
 
+  // ── Einstieg mit Augenzwinkern (Betreiber 15.11.2026) ──
+  if (status === 'start' && einstiegsFrage) return (
+    <Karte>
+      {!laeuft && <p style={{ ...p, fontSize: 13, color: 'var(--th-loss)', margin: '0 0 8px' }}><strong>Vorschau</strong> – Antworten werden noch nicht gespeichert.</p>}
+      <h2 style={h2}>Servus! 👋</h2>
+      <p style={{ ...p, fontSize: 17, fontWeight: 800, color: 'var(--th-text-strong)', margin: '6px 0 4px' }}>{einstiegsFrage.frage}</p>
+      <p style={{ ...p, fontSize: 14, margin: '0 0 14px' }}>
+        {fragenZahl(fragen)} schnelle Fragen, ganz anonym – wir speichern weder Namen noch Konto, nur eine zufällige Gerätekennung,
+        damit keiner doppelt abstimmt. Und ja: Wir lesen wirklich alles 😉
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {einstiegsFrage.optionen!.map(o => (
+          <button key={o.wert} type="button" onClick={() => {
+            setA(alt => ({ ...alt, [einstiegsFrage.id]: o.wert }));
+            if (o.wert === 'ned') {
+              try { localStorage.setItem(umfrageAbgelehntKey(def), new Date().toISOString()); } catch { /* egal */ }
+              setStatus('nein');
+            } else if (o.wert === 'spaeter') setStatus('spaeter');
+            else { setSchritt(0); setStatus('neu'); }
+          }} style={{
+            textAlign: 'left', fontFamily: font, fontSize: 15.5, fontWeight: 800, padding: '13px 16px', borderRadius: 12, cursor: 'pointer',
+            border: `1px solid ${o.wert === 'dabei' ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
+            background: o.wert === 'dabei' ? 'var(--th-accent)' : 'var(--th-bg-card)', color: o.wert === 'dabei' ? '#fff' : 'var(--th-text-body)',
+          }}>{o.text}</button>
+        ))}
+      </div>
+    </Karte>
+  );
+  if (status === 'nein' || status === 'spaeter') return (
+    <Karte>
+      <h2 style={h2}>{status === 'nein' ? 'Na guad, dann hoid ned 😅' : 'Passt, bis später! ⏳'}</h2>
+      <p style={p}>{status === 'nein'
+        ? 'Kein Problem – wir nerven dich auf diesem Gerät nicht mehr damit. Servus und good Darts! 🎯'
+        : 'Wir fragen dich beim nächsten Besuch einfach nochmal. Good Darts! 🎯'}</p>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+        <button type="button" onClick={() => { try { localStorage.removeItem(umfrageAbgelehntKey(def)); } catch { /* egal */ } setSchritt(0); setStatus('neu'); }}
+          style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 14.5 }}>Na gut, doch mitmachen</button>
+        <Link href="/" style={{ fontFamily: font, fontWeight: 700, fontSize: 14.5, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', textDecoration: 'none' }}>Zur Startseite</Link>
+      </div>
+    </Karte>
+  );
+
   if (status === 'schon') return (
     <Karte>
       <h2 style={h2}>Danke, du hast schon mitgemacht!</h2>
@@ -128,7 +177,7 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
       )}
       {schritt === 0 && <p style={{ ...p, margin: 0 }}>
         {def.intro ?? <>
-          {fragen.filter(f => !f.nurWenn).length} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
+          {fragenZahl(fragen)} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
           Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
           Kennung dieses Geräts, damit niemand doppelt abstimmt.{laeuft && umfrageEnde(def) ? ` Läuft bis ${datumDe(umfrageEnde(def))}.` : ''}
         </>}

@@ -21,6 +21,8 @@ export interface Frage {
   freitextFrage?: string;
   /** Tipp unter der Frage, wenn diese Option gewählt ist (nur Anzeige, nichts gespeichert). */
   tippBei?: { wert: string; text: string; link?: { href: string; text: string } };
+  /** Einstiegs-Bildschirm vor Frage 1 (zählt nicht mit, Betreiber 15.11.2026). */
+  einstieg?: boolean;
   /** Frage nur zeigen, wenn eine andere Frage so beantwortet wurde (Betreiber 15.11.2026). */
   nurWenn?: { id: string; wert: string };
   /** Bei 'mehr': höchstens so viele Antworten (Betreiber 15.11.2026: Wunsch-Frage höchstens 3). */
@@ -67,6 +69,9 @@ export function umfrageLaeuft(jetzt = new Date(), def: UmfrageDef = UMFRAGE): bo
 const o = (...p: [string, string][]) => p.map(([wert, text]) => ({ wert, text }));
 
 export const FRAGEN: Frage[] = [
+  // Einstieg mit Augenzwinkern (Betreiber 15.11.2026) — eigener Bildschirm, zählt nicht als Frage.
+  { gruppe: 'Einstieg', id: 'einstieg', typ: 'eine', einstieg: true, frage: 'Hast du 2 Minuten für uns?',
+    optionen: o(['dabei', 'Ok, bin dabei 💪'], ['muas', 'Wenn’s sei muas 🙄'], ['spaeter', 'Später vielleicht ⏳'], ['ned', 'Geh ma ned auf’n Wecker 😤']) },
   { gruppe: 'Über dich', id: 'rolle', typ: 'eine', frage: 'Wer bist du?',
     optionen: o(['spieler', 'Spieler'], ['tc', 'Teamcaptain'], ['co', 'Co-Captain'], ['fan', 'Fan / Zuschauer']) },
   { gruppe: 'Über dich', id: 'haeufigkeit', typ: 'eine', frage: 'Wie oft bist du auf mdudarts.de?',
@@ -78,7 +83,7 @@ export const FRAGEN: Frage[] = [
 
   { gruppe: 'Aussehen und Bedienung', id: 'modus', typ: 'eine', frage: 'Welchen Modus nutzt du?',
     hinweis: 'Umschalter oben rechts: „Old School“ (hell) oder „New Design“ (dunkel).',
-    optionen: o(['hell', 'Old School (hell)'], ['dunkel', 'New Design (dunkel)'], ['beide', 'Mal so, mal so'], ['unbekannt', 'Wusste nicht, dass es zwei gibt']) },
+    optionen: o(['hell', 'Old School (hell)'], ['dunkel', 'New Design (dunkel)'], ['beide', 'Mal so, mal so'], ['unbekannt', 'Wusste nicht, dass es zwei gibt 🤯']) },
   { gruppe: 'Aussehen und Bedienung', id: 'gesamt', typ: 'sterne', frage: 'Wie gefällt dir die Seite insgesamt?' },
   { gruppe: 'Aussehen und Bedienung', id: 'zurecht', typ: 'eine', frage: 'Findest du dich gut zurecht?',
     optionen: o(['sehr', 'Sehr gut'], ['meist', 'Meistens'], ['oft_nicht', 'Oft nicht']), freitextBei: 'oft_nicht', freitextFrage: 'Was würdest du besser machen?' },
@@ -90,7 +95,7 @@ export const FRAGEN: Frage[] = [
     optionen: o(['5', 'Sehr zufrieden'], ['4', 'Zufrieden'], ['3', 'Geht so'], ['2', 'Eher unzufrieden'], ['1', 'Unzufrieden'], ['nicht', 'Nutze ich nicht']),
     freitextBei: ['2', '1'], freitextFrage: 'Was würdest du besser machen?' },
   { gruppe: 'Funktionen', id: 'push', typ: 'eine', frage: 'Benachrichtigungen aufs Handy (Push)?',
-    optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']) },
+    optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele 🙉'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']) },
   { gruppe: 'Funktionen', id: 'bericht', typ: 'eine', frage: 'Liest du den Spieltagsbericht am Wochenende?',
     optionen: o(['immer', 'Immer'], ['manchmal', 'Manchmal'], ['nie', 'Nie']) },
   // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
@@ -101,8 +106,8 @@ export const FRAGEN: Frage[] = [
       ['forum', 'Forum zum Chatten'], ['brett', 'Schwarzes Brett (z. B. Spieler/Team gesucht, Flohmarkt)'], ['mdc', 'Verknüpfung mit der MDC (Munich Darts Challenge)'], ['sonst', 'Etwas anderes …']) },
 
   { gruppe: 'Deine Meinung', id: 'gut', typ: 'text', frage: 'Was gefällt dir am besten?' },
-  { gruppe: 'Deine Meinung', id: 'schlecht', typ: 'text', frage: 'Was nervt dich oder fehlt dir?' },
-  { gruppe: 'Deine Meinung', id: 'empfehlen', typ: 'skala', frage: 'Würdest du die Seite anderen Dartern empfehlen?', hinweis: '0 = auf keinen Fall · 10 = auf jeden Fall' },
+  { gruppe: 'Deine Meinung', id: 'schlecht', typ: 'text', frage: 'Was nervt dich oder fehlt dir?', hinweis: 'Raus damit – wir halten das aus 😄' },
+  { gruppe: 'Deine Meinung', id: 'empfehlen', typ: 'skala', frage: 'Würdest du die Seite anderen Dartern empfehlen?', hinweis: '0 = auf keinen Fall · 10 = sofort, ich schick’s in die Teamgruppe' },
 
   { gruppe: 'Zum Schluss', id: 'team_manager', typ: 'eine', frage: 'Nutzt dein Team schon den Team Manager?',
     optionen: o(['ja', 'Ja'], ['nein', 'Nein'], ['weiss_nicht', 'Weiß nicht']) },
@@ -122,6 +127,7 @@ export const UMFRAGE: UmfrageDef = {
   tage: 14,
   titel: 'Wie gefällt dir mdudarts.de?',
   pfad: '/umfrage',
+  danke: 'Merci! 🎯 Dein Feedback landet direkt bei uns – was sich umsetzen lässt, liest du in den News. Und jetzt: Pfeile raus!',
 };
 
 // ── Team-Manager-Käufer (Betreiber, 11.11.2026) ──────────────────────────
@@ -179,7 +185,9 @@ export type Antworten = Record<string, string | string[] | number>;
 export const freitextBei = (f: Frage): string[] => (f.freitextBei == null ? [] : Array.isArray(f.freitextBei) ? f.freitextBei : [f.freitextBei]);
 
 /** Fragen, die bei diesen Antworten zu sehen sind (`nurWenn`). */
-export const sichtbareFragen = (fragen: Frage[], a: Antworten): Frage[] => fragen.filter(f => !f.nurWenn || a[f.nurWenn.id] === f.nurWenn.wert);
+export const sichtbareFragen = (fragen: Frage[], a: Antworten): Frage[] => fragen.filter(f => !f.einstieg && (!f.nurWenn || a[f.nurWenn.id] === f.nurWenn.wert));
+/** Zahl der „richtigen“ Fragen für Popup und Einleitung (ohne Einstieg und Folgefragen). */
+export const fragenZahl = (fragen: Frage[]) => fragen.filter(f => !f.einstieg && !f.nurWenn).length;
 
 /** Prüft und säubert Antworten (Server UND Browser). Unbekanntes fliegt raus. */
 export function antwortenPruefen(roh: unknown, fragen: Frage[] = FRAGEN): Antworten | null {
