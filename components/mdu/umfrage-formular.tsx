@@ -14,7 +14,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
-import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
+import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, sichtbareOptionen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
 import { SprachKnopf } from './sprach-knopf';
 
@@ -22,6 +22,8 @@ export const UMFRAGE_GERAET_KEY = 'mdu-umfrage-geraet';
 export const umfrageFertigKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-fertig`;
 /** „Geh ma ned auf’n Wecker“ — Popup auf diesem Gerät nicht mehr zeigen (nichts gespeichert). */
 export const umfrageAbgelehntKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-abgelehnt`;
+/** Zwischenstand (Antworten + Frage), damit ein × nichts kostet (Betreiber 15.11.2026). */
+export const umfrageStandKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-stand`;
 
 function geraetId(): string {
   try {
@@ -49,11 +51,24 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
   const [status, setStatus] = useState<'start' | 'neu' | 'sende' | 'fertig' | 'schon' | 'nein' | 'spaeter'>(einstiegsFrage ? 'start' : 'neu');
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
+  const [schritt, setSchritt] = useState(0);
+  const [weiter, setWeiter] = useState(false); // „Schön, dass du wieder da bist“
+  // Zwischenstand merken, solange noch nicht abgeschickt.
+  useEffect(() => {
+    if (status !== 'neu' || !Object.keys(a).length) return;
+    try { localStorage.setItem(umfrageStandKey(def), JSON.stringify({ a, schritt })); } catch { /* egal */ }
+  }, [a, schritt, status, def]);
 
   useEffect(() => {
     queueMicrotask(() => {
       setLaeuft(umfrageLaeuft(new Date(), def));
       try { if (localStorage.getItem(umfrageFertigKey(def))) { setStatus('schon'); return; } } catch { /* egal */ }
+      // Zwischenstand von vorhin? Dann genau dort weiter (Einstieg überspringen).
+      try {
+        const roh = localStorage.getItem(umfrageStandKey(def));
+        const st = roh ? JSON.parse(roh) as { a?: Antworten; schritt?: number } : null;
+        if (st?.a && Object.keys(st.a).length) { setA(st.a); setSchritt(Math.max(0, st.schritt ?? 0)); setWeiter(true); setStatus('neu'); return; }
+      } catch { /* egal */ }
       // Aus dem Popup mit „Ok, bin dabei“ gekommen (?los=1): Einstieg überspringen.
       const ein = fragen.find(f => f.einstieg);
       if (ein && new URLSearchParams(window.location.search).get('los') === '1') { setA(alt => ({ ...alt, [ein.id]: 'dabei' })); setStatus('neu'); }
@@ -64,7 +79,6 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
   const hatTm = !!user?.teamManager;
   // Schritt für Schritt (Betreiber 15.11.2026): eine Frage je Bildschirm, Fortschritt oben, Zurück/Weiter unten.
   // Einfachauswahl, Sterne und Skala springen nach dem Antippen von selbst weiter (außer Freitext/Team-Manager-Hinweis).
-  const [schritt, setSchritt] = useState(0);
   const oben = useRef<HTMLDivElement>(null);
   const weiterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sichtbar = sichtbareFragen(fragen, a);
@@ -92,12 +106,12 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
     setFehler(null);
     const sauber = antwortenPruefen(a, fragen);
     if (!sauber) { setFehler('Bitte beantworte mindestens eine Frage.'); return; }
-    if (!laeuft) { setStatus('fertig'); window.scrollTo({ top: 0 }); return; } // Vorschau: nichts speichern
+    if (!laeuft) { try { localStorage.removeItem(umfrageStandKey(def)); } catch { /* egal */ } setStatus('fertig'); window.scrollTo({ top: 0 }); return; } // Vorschau: nichts speichern
     setStatus('sende');
     const r = await fetch('/api/umfrage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ umfrage: def.id, geraet: geraetId(), antworten: sauber }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) as { ok?: boolean; error?: string } : { error: 'Keine Verbindung.' };
     if (!r?.ok || !j.ok) { setStatus('neu'); setFehler(j.error ?? 'Absenden fehlgeschlagen. Versuch es bitte noch einmal.'); return; }
-    try { localStorage.setItem(umfrageFertigKey(def), new Date().toISOString()); } catch { /* egal */ }
+    try { localStorage.setItem(umfrageFertigKey(def), new Date().toISOString()); localStorage.removeItem(umfrageStandKey(def)); } catch { /* egal */ }
     setStatus('fertig');
     window.scrollTo({ top: 0, behavior: 'smooth' }); // sonst steht man nach dem Absenden in der Fußzeile
   }
@@ -131,7 +145,7 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
       <p style={{ ...p, fontSize: 17, fontWeight: 800, color: 'var(--th-text-strong)', margin: '6px 0 4px' }}>{einstiegsFrage.frage}</p>
       <p style={{ ...p, fontSize: 14, margin: '0 0 14px' }}>
         {fragenZahl(fragen)} schnelle Fragen, ganz anonym – wir speichern weder Namen noch Konto, nur eine zufällige Gerätekennung,
-        damit keiner doppelt abstimmt. Und ja: Wir lesen wirklich alles 😉
+        damit keiner doppelt abstimmt. Und ja: Wir lesen wirklich alles 😉{def.ergebnisse ? ` ${def.ergebnisse}` : ''}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {einstiegsFrage.optionen!.map(o => (
@@ -180,6 +194,8 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
       <p style={p}>{laeuft
         ? (def.danke ?? 'Deine Antworten helfen uns, die Seite besser zu machen. Was davon umgesetzt wird, liest du in den News.')
         : 'Die Umfrage ist noch nicht gestartet. So sieht der Abschluss später aus.'}</p>
+      {def.ergebnisse && <p style={{ ...p, fontSize: 14, color: 'var(--th-text-muted)', marginTop: 6 }}>{def.ergebnisse}</p>}
+      {def.id === UMFRAGE.id && <TeilenKnopf />}
       {tmHinweis}
       {imPopup && onSchliessen && (
         <button type="button" onClick={onSchliessen} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, marginTop: 14 }}>Schließen</button>
@@ -218,6 +234,9 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
                 <div style={{ height: 4, borderRadius: 2, background: 'var(--th-accent)', width: `${Math.round(((nr + 1) / sichtbar.length) * 100)}%`, transition: 'width .25s' }} />
               </div>
             </div>
+            {weiter && nr > 0 && (
+              <p style={{ ...p, fontSize: 13.5, margin: '0 0 6px', color: 'var(--th-accent)', fontWeight: 700 }}>Schön, dass du wieder da bist – es geht da weiter, wo du aufgehört hast 👍</p>
+            )}
             <FrageFeld key={f.id} f={f} nr={nr + 1} a={a} setze={setze}>
               {(f.id === 'team_manager' && a.team_manager === 'kenne_nicht') || f.id === 'tm_nein' ? tmHinweis : null}
               {f.id === 'tm_nein' && a.tm_nein === 'stur' && <p style={{ ...p, marginTop: 10, fontSize: 14 }}>Schade 😉 – falls du’s dir anders überlegst: {TESTTAGE} Tage kostenlos, ohne Abo.</p>}
@@ -249,10 +268,10 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
       </legend>
       {f.hinweis && <div style={{ clear: 'both', fontFamily: font, fontSize: 12.5, color: 'var(--th-text-muted)', marginBottom: 6 }}>{f.hinweis}</div>}
       <div style={{ clear: 'both', display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
-        {f.typ === 'eine' && f.optionen!.map(o => (
+        {f.typ === 'eine' && sichtbareOptionen(f, a).map(o => (
           <Chip key={o.wert} an={v === o.wert} onClick={() => setze(f.id, v === o.wert ? undefined : o.wert)}>{o.text}</Chip>
         ))}
-        {f.typ === 'mehr' && f.optionen!.map(o => {
+        {f.typ === 'mehr' && sichtbareOptionen(f, a).map(o => {
           const liste = (Array.isArray(v) ? v : []) as string[];
           const an = liste.includes(o.wert);
           const voll = !an && f.max != null && liste.length >= f.max;
@@ -321,3 +340,20 @@ const h2: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fon
 const p: React.CSSProperties = { fontFamily: font, fontSize: 14.5, lineHeight: 1.6, color: 'var(--th-text-body)', margin: '0 0 4px' };
 const knopf: React.CSSProperties = { display: 'inline-block', fontFamily: font, fontWeight: 800, fontSize: 14, padding: '9px 16px', borderRadius: 10, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none' };
 const feld: React.CSSProperties = { width: '100%', boxSizing: 'border-box', fontFamily: font, fontSize: 14.5, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--th-line-10)', background: 'var(--th-bg-inset)', color: 'var(--th-text-strong)', resize: 'vertical' };
+
+/** Nach dem Absenden: Umfrage ans Team weiterschicken (Betreiber 15.11.2026). */
+function TeilenKnopf() {
+  async function teilen() {
+    const url = `${window.location.origin}/umfrage`;
+    const text = `Hab grad bei der MDU-Umfrage mitgemacht – dauert 2 Minuten, ganz anonym. Mach auch mit! 🎯 ${url}`;
+    const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };
+    if (nav.share) { try { await nav.share({ text }); return; } catch { /* abgebrochen → WhatsApp */ } }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  }
+  return (
+    <button type="button" onClick={teilen} style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: font, fontWeight: 800, fontSize: 15,
+      padding: '11px 18px', borderRadius: 10, cursor: 'pointer', border: 'none', background: '#25D366', color: '#fff' }}>
+      📲 Schick’s deinem Team
+    </button>
+  );
+}

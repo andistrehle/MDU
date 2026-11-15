@@ -3,9 +3,9 @@
 // ============================================================
 // Website-Umfrage: Popup beim Öffnen der Seite (Betreiber, 09.11.2026)
 // ============================================================
-// Nur solange die Umfrage läuft (lib/umfrage.ts). Betreiber 15.11.2026: erscheint bei JEDEM Laden der
-// Seite wieder, bis auf diesem Gerät abgestimmt wurde; × (oder „Später“) schließt es nur bis zum nächsten
-// Neuladen — beim Weiterklicken innerhalb der Seite kommt es nicht erneut. Nicht auf /umfrage selbst, nicht
+// Nur solange die Umfrage läuft (lib/umfrage.ts). Betreiber 15.11.2026: höchstens EINMAL am Tag je Gerät,
+// bis abgestimmt wurde; × oder „Später“ schließt es bis morgen. Ein angefangener Stand bleibt gemerkt
+// (umfrageStandKey) — beim nächsten Öffnen geht es an derselben Frage weiter. Nicht auf /umfrage selbst, nicht
 // im Admin, nicht bei Login/Registrierung und nicht im Spielbericht (dort wird gerade eingetragen).
 // Zum Ausprobieren: ?umfrage=probe zeigt es sofort, auch vor dem Start.
 // ============================================================
@@ -17,6 +17,7 @@ import { UmfrageFormular } from './umfrage-formular';
 
 const fertigKey = () => `mdu-umfrage-${UMFRAGE.id}-fertig`;
 const abgelehntKey = () => `mdu-umfrage-${UMFRAGE.id}-abgelehnt`;
+const tagKey = () => `mdu-umfrage-${UMFRAGE.id}-gezeigt-am`;
 const AUSGENOMMEN = /^\/(umfrage|admin|login|registrieren|passwort|auth|mein-bereich\/spielberichte)/;
 /** Gilt nur bis zum Neuladen der Seite (Modul-Variable, kein Speicher). */
 let gesehenInDiesemLaden = false;
@@ -28,11 +29,19 @@ export function UmfragePopup() {
   useEffect(() => {
     const probe = new URLSearchParams(window.location.search).get('umfrage') === 'probe';
     if (gesehenInDiesemLaden || AUSGENOMMEN.test(pathname)) return;
+    // Höchstens 1× am Tag (Betreiber 15.11.2026): gezeigt wird es nur, wenn es heute auf diesem Gerät noch nicht da war.
+    const heute = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
     if (!probe) {
       if (!umfrageLaeuft()) return;
-      try { if (localStorage.getItem(fertigKey()) || localStorage.getItem(abgelehntKey())) return; } catch { return; }
+      try {
+        if (localStorage.getItem(fertigKey()) || localStorage.getItem(abgelehntKey())) return;
+        if (localStorage.getItem(tagKey()) === heute) return;
+      } catch { return; }
     }
-    const t = setTimeout(() => { gesehenInDiesemLaden = true; setOffen(true); }, probe ? 300 : 2500);
+    const t = setTimeout(() => {
+      gesehenInDiesemLaden = true; setOffen(true);
+      if (!probe) { try { localStorage.setItem(tagKey(), heute); } catch { /* egal */ } }
+    }, probe ? 300 : 2500);
     return () => clearTimeout(t);
   }, [pathname]);
 

@@ -25,6 +25,10 @@ export interface Frage {
   einstieg?: boolean;
   /** Frage nur zeigen, wenn eine andere Frage so beantwortet wurde (Betreiber 15.11.2026). */
   nurWenn?: { id: string; wert: string };
+  /** Frage NICHT zeigen, wenn eine andere Frage einen dieser Werte hat (z. B. Fans, Betreiber 15.11.2026). */
+  nichtWenn?: { id: string; werte: string[] };
+  /** Einzelne Optionen ausblenden, wenn eine andere Frage einen dieser Werte hat. */
+  optionNichtWenn?: Record<string, { id: string; werte: string[] }>;
   /** Bei 'mehr': höchstens so viele Antworten (Betreiber 15.11.2026: Wunsch-Frage höchstens 3). */
   max?: number;
   hinweis?: string;
@@ -45,6 +49,8 @@ export interface UmfrageDef {
   intro?: string;
   /** Text nach dem Absenden. */
   danke?: string;
+  /** Versprechen, wann/wo es die Ergebnisse gibt (Einstieg + Danke). */
+  ergebnisse?: string;
   /** Adresse der Seite. */
   pfad: string;
 }
@@ -93,7 +99,7 @@ export const FRAGEN: Frage[] = [
       ['einzel', 'Einzelrangliste'], ['profile', 'Spielerprofile'], ['news', 'Spieltagsberichte / News'], ['teams', 'Team-Seiten'], ['lokale', 'Spielstätten']) },
   { gruppe: 'Funktionen', id: 'spielbericht', typ: 'eine', frage: 'Wie zufrieden bist du mit dem digitalen Spielbericht?',
     optionen: o(['5', 'Sehr zufrieden'], ['4', 'Zufrieden'], ['3', 'Geht so'], ['2', 'Eher unzufrieden'], ['1', 'Unzufrieden'], ['nicht', 'Nutze ich nicht']),
-    freitextBei: ['2', '1'], freitextFrage: 'Was würdest du besser machen?' },
+    freitextBei: ['2', '1'], freitextFrage: 'Was würdest du besser machen?', nichtWenn: { id: 'rolle', werte: ['fan'] } },
   { gruppe: 'Funktionen', id: 'push', typ: 'eine', frage: 'Benachrichtigungen aufs Handy (Push)?',
     optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele 🙉'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']),
     tippBei: { wert: 'weiss_nicht', text: 'So geht’s: Anmelden, dann unter Mein Bereich → „Benachrichtigungen aufs Handy“ einschalten und erlauben. Am iPhone klappt das nur, wenn mdudarts.de als App auf dem Home-Bildschirm liegt (Teilen → „Zum Home-Bildschirm“) und du sie darüber öffnest.',
@@ -103,6 +109,7 @@ export const FRAGEN: Frage[] = [
   // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
   { gruppe: 'Funktionen', id: 'ticker', typ: 'eine', frage: 'Hast du den Live-Ticker schon genutzt?', hinweis: 'Spielstände am Spielabend unter mdudarts.de/live.',
     optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, ich trage selbst live ein'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']),
+    optionNichtWenn: { eintragen: { id: 'rolle', werte: ['fan'] } },
     tippBei: { wert: 'kenne_nicht', text: 'Am Spielabend tragen die Teams ihre Ergebnisse direkt im Spielbericht ein – und alle können live mitverfolgen, wie es steht: jedes Spiel mit Spielern, Legs und Highlights. Ein rotes LIVE-Band auf der Startseite zeigt, wenn gerade was läuft.',
       link: { href: '/live', text: 'Zum Live-Ticker' } } },
   { gruppe: 'Funktionen', id: 'wunsch', typ: 'mehr', max: 3, frage: 'Welche neuen Funktionen wünschst du dir am meisten?', hinweis: 'Bis zu 3 auswählen.', freitextBei: 'sonst',
@@ -113,12 +120,13 @@ export const FRAGEN: Frage[] = [
   { gruppe: 'Deine Meinung', id: 'schlecht', typ: 'text', frage: 'Was nervt dich oder fehlt dir?', hinweis: 'Raus damit – wir halten das aus 😄' },
   { gruppe: 'Deine Meinung', id: 'empfehlen', typ: 'skala', frage: 'Würdest du die Seite anderen Dartern empfehlen?', hinweis: '0 = auf keinen Fall · 10 = sofort, ich schick’s in die Teamgruppe' },
 
-  { gruppe: 'Zum Schluss', id: 'team_manager', typ: 'eine', frage: 'Nutzt dein Team schon den Team Manager?',
+  { gruppe: 'Zum Schluss', id: 'team_manager', typ: 'eine', frage: 'Nutzt dein Team schon den Team Manager?', nichtWenn: { id: 'rolle', werte: ['fan'] },
     optionen: o(['ja', 'Ja'], ['nein', 'Nein'], ['kenne_nicht', 'Kenne ich nicht']) },
   // Nur bei „Nein“ (Betreiber 15.11.2026, mit Augenzwinkern).
   { gruppe: 'Zum Schluss', id: 'tm_nein', typ: 'eine', nurWenn: { id: 'team_manager', wert: 'nein' },
     frage: '😱 Warum nicht??? Probier’s doch mal aus!',
-    optionen: o(['okay', 'Okay, ich teste ihn'], ['captain', 'Ich sag’s dem Captain'], ['stur', 'Nein, ich bleib stur']) },
+    optionen: o(['okay', 'Okay, ich teste ihn'], ['captain', 'Ich sag’s dem Captain'], ['stur', 'Nein, ich bleib stur']),
+    optionNichtWenn: { captain: { id: 'rolle', werte: ['tc', 'co'] } } },
 ];
 
 export const UMFRAGE: UmfrageDef = {
@@ -132,6 +140,7 @@ export const UMFRAGE: UmfrageDef = {
   titel: 'Wie gefällt dir mdudarts.de?',
   pfad: '/umfrage',
   danke: 'Vielen Dank! 🎯 Mit deiner Meinung trägst du dazu bei, die MDU noch besser zu machen. Einen wunderschönen Tag noch! ☀️',
+  ergebnisse: 'Die Ergebnisse gibt’s Anfang Dezember in den News.',
 };
 
 // ── Team-Manager-Käufer (Betreiber, 11.11.2026) ──────────────────────────
@@ -189,7 +198,12 @@ export type Antworten = Record<string, string | string[] | number>;
 export const freitextBei = (f: Frage): string[] => (f.freitextBei == null ? [] : Array.isArray(f.freitextBei) ? f.freitextBei : [f.freitextBei]);
 
 /** Fragen, die bei diesen Antworten zu sehen sind (`nurWenn`). */
-export const sichtbareFragen = (fragen: Frage[], a: Antworten): Frage[] => fragen.filter(f => !f.einstieg && (!f.nurWenn || a[f.nurWenn.id] === f.nurWenn.wert));
+const gilt = (f: Frage, a: Antworten | Record<string, unknown>) =>
+  (!f.nurWenn || a[f.nurWenn.id] === f.nurWenn.wert) && (!f.nichtWenn || !f.nichtWenn.werte.includes(String(a[f.nichtWenn.id])));
+export const sichtbareFragen = (fragen: Frage[], a: Antworten): Frage[] => fragen.filter(f => !f.einstieg && gilt(f, a));
+/** Optionen einer Frage, die bei diesen Antworten zu sehen sind (`optionNichtWenn`). */
+export const sichtbareOptionen = (f: Frage, a: Antworten | Record<string, unknown>) =>
+  (f.optionen ?? []).filter(o => { const b = f.optionNichtWenn?.[o.wert]; return !b || !b.werte.includes(String(a[b.id])); });
 /** Zahl der „richtigen“ Fragen für Popup und Einleitung (ohne Einstieg und Folgefragen). */
 export const fragenZahl = (fragen: Frage[]) => fragen.filter(f => !f.einstieg && !f.nurWenn).length;
 
@@ -199,10 +213,10 @@ export function antwortenPruefen(roh: unknown, fragen: Frage[] = FRAGEN): Antwor
   const r = roh as Record<string, unknown>;
   const a: Antworten = {};
   for (const f of fragen) {
-    if (f.nurWenn && r[f.nurWenn.id] !== f.nurWenn.wert) continue;
+    if (!gilt(f, r)) continue;
     const v = r[f.id];
     if (v == null || v === '') continue;
-    const erlaubt = new Set((f.optionen ?? []).map(x => x.wert));
+    const erlaubt = new Set(sichtbareOptionen(f, r).map(x => x.wert));
     if (f.typ === 'eine' && typeof v === 'string' && erlaubt.has(v)) {
       a[f.id] = v;
       const t = r[`${f.id}_text`];
