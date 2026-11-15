@@ -529,6 +529,10 @@ function EditModal({ actor, profile, onClose, onSaved }: {
   // es auch greift, wenn der Spieler schon im Feld steht.
   const [teamManuell, setTeamManuell] = useState(!!profile.team_id);
   const kaderTeam = playerId ? (PLAYER_TEAM.get(playerId) ?? '') : '';
+  // Erkannter Spieler: Team aus dem Kader der laufenden Saison vor dem Team aus der Registrierung —
+  // die Erkennung dort rechnet mit den Daten der Vorsaison (Fall Florian Erhard, 15.11.2026:
+  // erkannt „Massl Ghabt“, spielt 2026/27 aber bei Black Storm).
+  const erkanntTeam = profile.matched_player_id ? (PLAYER_TEAM.get(profile.matched_player_id) ?? profile.matched_team_id ?? '') : '';
   const teamWert = teamManuell || teamId ? teamId : kaderTeam;
   const teamAusKader = !teamManuell && !teamId && !!kaderTeam;
   // „Bewusst ohne Spieler-/Team-Zuordnung" — nimmt das Konto aus „Zuzuweisen"
@@ -659,7 +663,8 @@ function EditModal({ actor, profile, onClose, onSaved }: {
               {profile.matched_player_id ? (
                 <>
                   <div>Erkannt: <strong style={{ color: 'var(--th-text-strong)' }}>{playerName(profile.matched_player_id)}</strong>
-                    {profile.matched_team_id ? ` · ${teamName(profile.matched_team_id)}` : ''}
+                    {erkanntTeam ? ` · ${teamName(erkanntTeam)}` : ''}
+                    {erkanntTeam && profile.matched_team_id && erkanntTeam !== profile.matched_team_id ? <span style={{ color: 'var(--th-text-muted)' }}> (Kader 2026/27; Vorsaison: {teamName(profile.matched_team_id)})</span> : null}
                     {profile.match_confidence ? ` (${profile.match_confidence})` : ''}</div>
                   {/* Bei TC-Wunsch: war der erkannte Spieler bisher schon Kapitän? (Gegencheck) */}
                   {profile.registration_intent === 'team_captain' && (() => {
@@ -678,7 +683,7 @@ function EditModal({ actor, profile, onClose, onSaved }: {
                   })()}
                   <button type="button" onClick={() => {
                     setPlayerId(profile.matched_player_id ?? '');
-                    if (profile.matched_team_id) setTeamId(profile.matched_team_id);
+                    if (erkanntTeam) { setTeamId(erkanntTeam); setTeamManuell(true); }
                     // Auch die gewünschte Rolle übernehmen (sofern der Admin sie vergeben darf).
                     const wished: UserRole | null = profile.registration_intent === 'team_captain' ? 'team_captain'
                       : profile.registration_intent === 'player' ? 'player' : null;
