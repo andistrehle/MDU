@@ -222,7 +222,7 @@ const SYSTEM = `Du schreibst für die News-Seite der Münchner Dart Union (MDU, 
 
 Ton: freundlich, sachlich, lebendig wie eine Lokalsport-Redaktion — kein Marketing-Sprech, keine leeren Superlative. Deutsch.
 
-Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher, der Bericht kam erst jetzt. art="nachgeholt" heißt: ein VERLEGTES Spiel eines früheren Spieltags, das jetzt gespielt wurde — nenne es ausdrücklich Nachholspiel des genannten Spieltags (z. B. „Nachholspiel vom 1. Spieltag“), NICHT „in der Liga stand der x. Spieltag an“. art="vorgezogen" heißt: gehört zu diesem Spieltag, wurde aber schon früher gespielt (datum). vorgezogeneSpieleSpaetererSpieltage: bereits gespielte Begegnungen eines SPÄTEREN Spieltags — erwähne sie höchstens in EINEM Satz in der Einleitung (wer, Ergebnis, „vorgezogen vom x. Spieltag“, „mehr dazu im Bericht zu diesem Spieltag“); sie gehören NICHT in Highlights, knappe/deutliche Spiele, Spieler des Spieltages oder Tabelle. Den Hinweis, dass diese Teams eine Begegnung mehr haben, setzt das System selbst unter die Tabellen — schreibe ihn nicht. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden an diesem Wochenende erst noch statt, solche mit „verlegt auf …“ wurden auf einen späteren Termin verlegt (so benennen). Dass Teams dadurch eine Begegnung weniger haben, setzt das System selbst als Hinweis unter die Tabellen — schreibe ihn nicht. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
+Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher, der Bericht kam erst jetzt. art="nachgeholt" heißt: ein VERLEGTES Spiel eines früheren Spieltags, das jetzt gespielt wurde — nenne es ausdrücklich Nachholspiel des genannten Spieltags (z. B. „Nachholspiel vom 1. Spieltag“), NICHT „in der Liga stand der x. Spieltag an“. art="vorgezogen" heißt: gehört zu diesem Spieltag, wurde aber schon früher gespielt (datum). vorgezogeneSpieleSpaetererSpieltage: bereits gespielte Begegnungen eines SPÄTEREN Spieltags — erwähne sie höchstens in EINEM Satz in der Einleitung (wer, Ergebnis, „vorgezogen vom x. Spieltag“, „mehr dazu im Bericht zu diesem Spieltag“); sie gehören NICHT in Highlights, knappe/deutliche Spiele, Spieler des Spieltages oder Tabelle. Den Hinweis, dass diese Teams eine Begegnung mehr haben, setzt das System selbst unter die Tabellen — schreibe ihn nicht. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden an diesem Wochenende erst noch statt, solche mit „verlegt auf …“ wurden auf einen späteren Termin verlegt (so benennen). Dass dadurch nicht alle Teams gleich viele Spiele haben, setzt das System selbst als Hinweis unter die Tabellen — schreibe ihn nicht. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
 
 Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste, wenn es dazu nichts gibt):
 - einleitung: kurzer Überblick über das Wochenende.
@@ -333,23 +333,16 @@ function ergebnisZeile(x: Eintrag): string {
   return `[${titel}](${berichtPfad(x.b.key)}) **${ergText(x.e)}${stern}**${zusatz}`;
 }
 
-/** Hinweis unter den Tabellen (Betreiber 15.11.2026): Teams mit vorgezogenem Spiel haben eine Begegnung MEHR,
- *  Teams mit nach hinten verlegtem Spiel eine WENIGER — die Tabelle ist dadurch im Moment ein bisschen verfälscht.
+/** Hinweis unter den Tabellen (Betreiber 15.11.2026): EIN kurzer Satz, sobald in einer Liga nicht alle Teams so viele
+ *  Spiele haben, wie der Plan bis zu diesem Wochenende vorsieht (vorgezogen = eins mehr, verlegt/ausstehend = eins
+ *  weniger) — egal, an welchem Spieltag das entstanden ist. Spielfrei zählt nicht (steht so im Plan). Ohne Teamnamen.
  *  Setzt der Code, nicht Claude. */
-export function tabellenHinweis(f: Pick<Fakten, 'vorab' | 'offen'>): string[] {
-  const teams = (bs: { home: string; away: string }[]) => liste([...new Set(bs.flatMap(b => [name(b.home), name(b.away)]))]);
-  const out: string[] = [];
-  for (const l of LIGEN_2027) {
-    const mehr = f.vorab.filter(x => x.b.liga === l.code).map(x => x.b);
-    const weniger = f.offen.filter(x => x.verlegt && x.b.liga === l.code).map(x => x.b);
-    if (!mehr.length && !weniger.length) continue;
-    const teile = [
-      mehr.length ? `${teams(mehr)} haben durch ${mehr.length === 1 ? 'ihr vorgezogenes Spiel' : 'vorgezogene Spiele'} schon eine Begegnung mehr` : '',
-      weniger.length ? `${teams(weniger)} haben durch ${weniger.length === 1 ? 'ihr verlegtes Spiel' : 'verlegte Spiele'} eine Begegnung weniger` : '',
-    ].filter(Boolean);
-    out.push(`Hinweis zur ${l.name}: ${teile.join(', ')} als die anderen – die Tabelle ist dadurch im Moment ein bisschen verfälscht.`);
-  }
-  return out;
+export function tabellenHinweis(f: Pick<Fakten, 'fri' | 'tabellen'>): string[] {
+  const soll = new Map<string, number>();
+  for (const b of alleBegegnungen27()) if (b.fri <= f.fri) for (const t of [b.home, b.away]) soll.set(t, (soll.get(t) ?? 0) + 1);
+  const ligen = LIGEN_2027.filter(l => (f.tabellen[l.code] ?? []).some(t => t.spiele !== (soll.get(t.teamId) ?? 0))).map(l => l.name);
+  if (!ligen.length) return [];
+  return [`Hinweis: In der ${liste(ligen)} haben durch vorgezogene, verlegte oder noch offene Spiele nicht alle Teams gleich viele Begegnungen – die Tabelle ist dadurch im Moment ein bisschen verfälscht.`];
 }
 
 export function inhalt(f: Fakten, t: BerichtText): string[] {
