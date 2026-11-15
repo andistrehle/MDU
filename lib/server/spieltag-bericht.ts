@@ -219,7 +219,7 @@ const SYSTEM = `Du schreibst für die News-Seite der Münchner Dart Union (MDU, 
 
 Ton: freundlich, sachlich, lebendig wie eine Lokalsport-Redaktion — kein Marketing-Sprech, keine leeren Superlative. Deutsch.
 
-Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher, der Bericht kam erst jetzt. art="nachgeholt" heißt: ein VERLEGTES Spiel eines früheren Spieltags, das jetzt gespielt wurde — nenne es ausdrücklich Nachholspiel des genannten Spieltags (z. B. „Nachholspiel vom 1. Spieltag“), NICHT „in der Liga stand der x. Spieltag an“. art="vorgezogen" heißt: gehört zu diesem Spieltag, wurde aber schon früher gespielt (datum). vorgezogeneSpieleSpaetererSpieltage: bereits gespielte Begegnungen eines SPÄTEREN Spieltags — erwähne sie höchstens in EINEM Satz in der Einleitung (wer, Ergebnis, „vorgezogen vom x. Spieltag“, „mehr dazu im Bericht zu diesem Spieltag“); sie gehören NICHT in Highlights, knappe/deutliche Spiele, Spieler des Spieltages oder Tabelle. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden erst noch statt. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
+Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher, der Bericht kam erst jetzt. art="nachgeholt" heißt: ein VERLEGTES Spiel eines früheren Spieltags, das jetzt gespielt wurde — nenne es ausdrücklich Nachholspiel des genannten Spieltags (z. B. „Nachholspiel vom 1. Spieltag“), NICHT „in der Liga stand der x. Spieltag an“. art="vorgezogen" heißt: gehört zu diesem Spieltag, wurde aber schon früher gespielt (datum). vorgezogeneSpieleSpaetererSpieltage: bereits gespielte Begegnungen eines SPÄTEREN Spieltags — erwähne sie höchstens in EINEM Satz in der Einleitung (wer, Ergebnis, „vorgezogen vom x. Spieltag“, „mehr dazu im Bericht zu diesem Spieltag“); sie gehören NICHT in Highlights, knappe/deutliche Spiele, Spieler des Spieltages oder Tabelle. Den Hinweis, dass diese Teams eine Begegnung mehr haben, setzt das System selbst unter die Tabellen — schreibe ihn nicht. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden erst noch statt. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
 
 Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste, wenn es dazu nichts gibt):
 - einleitung: kurzer Überblick über das Wochenende.
@@ -330,6 +330,15 @@ function ergebnisZeile(x: Eintrag): string {
   return `[${titel}](${berichtPfad(x.b.key)}) **${ergText(x.e)}${stern}**${zusatz}`;
 }
 
+/** Hinweis unter den Tabellen (Betreiber 15.11.2026): Teams mit vorgezogenem Spiel haben eine Begegnung mehr —
+ *  die Tabelle ist dadurch vorübergehend etwas verzerrt. Setzt der Code, nicht Claude. */
+export function vorabHinweis(f: Pick<Fakten, 'vorab'>): string[] {
+  return LIGEN_2027.filter(l => f.vorab.some(x => x.b.liga === l.code)).map(l => {
+    const teams = [...new Set(f.vorab.filter(x => x.b.liga === l.code).flatMap(x => [name(x.e.home), name(x.e.away)]))];
+    return `Hinweis zur ${l.name}: ${liste(teams)} haben durch ${f.vorab.filter(x => x.b.liga === l.code).length === 1 ? 'ihr vorgezogenes Spiel' : 'vorgezogene Spiele'} schon eine Begegnung mehr als die anderen – die Tabelle ist dadurch vorübergehend etwas verzerrt.`;
+  });
+}
+
 export function inhalt(f: Fakten, t: BerichtText): string[] {
   const out: string[] = [...t.einleitung];
   const abschnitt = (titel: string, absaetze: string[]) => { if (absaetze.length) out.push(`## ${titel}`, ...absaetze); };
@@ -354,7 +363,7 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
     ].join('\n'));
   }
   if ([...f.eintraege, ...f.vorab].some(x => !x.e.bestaetigt)) out.push('* = vom Gegner noch nicht bestätigt');
-  abschnitt('Tabellen', [...t.tabelle, '[Zu allen Tabellen](/tabellen)']);
+  abschnitt('Tabellen', [...t.tabelle, ...vorabHinweis(f), '[Zu allen Tabellen](/tabellen)']);
   // Team Manager am Ende jedes Berichts (Betreiber, 01.11.2026): bis zum Start „Coming soon“,
   // danach mit Test-Link — umgeschaltet über PREMIUM_OEFFENTLICH (lib/premium.ts).
   out.push(...TEAM_MANAGER_ABSATZ());
