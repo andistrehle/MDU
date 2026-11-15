@@ -114,7 +114,7 @@ export const FRAGEN: Frage[] = [
   { gruppe: 'Deine Meinung', id: 'empfehlen', typ: 'skala', frage: 'Würdest du die Seite anderen Dartern empfehlen?', hinweis: '0 = auf keinen Fall · 10 = sofort, ich schick’s in die Teamgruppe' },
 
   { gruppe: 'Zum Schluss', id: 'team_manager', typ: 'eine', frage: 'Nutzt dein Team schon den Team Manager?',
-    optionen: o(['ja', 'Ja'], ['nein', 'Nein'], ['weiss_nicht', 'Weiß nicht']) },
+    optionen: o(['ja', 'Ja'], ['nein', 'Nein'], ['kenne_nicht', 'Kenne ich nicht']) },
   // Nur bei „Nein“ (Betreiber 15.11.2026, mit Augenzwinkern).
   { gruppe: 'Zum Schluss', id: 'tm_nein', typ: 'eine', nurWenn: { id: 'team_manager', wert: 'nein' },
     frage: '😱 Warum nicht??? Probier’s doch mal aus!',

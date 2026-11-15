@@ -101,16 +101,22 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
     window.scrollTo({ top: 0, behavior: 'smooth' }); // sonst steht man nach dem Absenden in der Fußzeile
   }
 
-  const tmHinweis = !hatTm && (a.team_manager === 'weiss_nicht' || a.tm_nein === 'okay' || a.tm_nein === 'captain') ? (
+  // Team-Manager-Hinweis je Antwort (Betreiber 15.11.2026): „Kenne ich nicht“ → Video, „Okay, ich teste ihn“ → Probeabo,
+  // „Ich sag's dem Captain“ → Video zum Weitergeben.
+  const tmFall = hatTm ? null : a.team_manager === 'kenne_nicht' ? 'video' : a.tm_nein === 'okay' ? 'test' : a.tm_nein === 'captain' ? 'captain' : null;
+  const tmHinweis = tmFall ? (
     <div style={{ marginTop: 12, padding: '14px 16px', borderRadius: 12, background: 'linear-gradient(135deg, rgba(232,184,48,0.16), rgba(232,184,48,0.06))', border: '1px solid rgba(201,154,22,0.45)', fontFamily: font, fontSize: 14, lineHeight: 1.55, color: 'var(--th-text-body)' }}>
       <strong style={{ color: 'var(--th-text-strong)' }}>Der Team Manager:</strong> Zu- und Absagen, Aufstellung, Termine, Teamkasse und
       Statistik – alles fürs Team an einem Ort. {TESTTAGE} Tage kostenlos, ohne Abo und ohne Zahlungsdaten.
       <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-        {darfFreischalten
-          ? <Link href="/mein-team/premium" style={knopf}>{TESTTAGE} Tage kostenlos testen →</Link>
+        {tmFall === 'test'
+          ? <>
+              <Link href="/mein-team/premium" target={imPopup ? '_blank' : undefined} style={knopf}>{TESTTAGE} Tage kostenlos testen →</Link>
+              {!darfFreischalten && <span style={{ fontSize: 13, color: 'var(--th-text-muted)' }}>Freischalten kann dein Teamcaptain oder Co-Captain.</span>}
+            </>
           : <>
-              <Link href="/news#team-manager-ist-da" style={knopf}>Video ansehen →</Link>
-              <span style={{ fontSize: 13, color: 'var(--th-text-muted)' }}>Freischalten kann dein Teamcaptain – zeig es ihm einfach.</span>
+              <Link href="/news#team-manager-ist-da" target={imPopup ? '_blank' : undefined} style={knopf}>Video ansehen →</Link>
+              {tmFall === 'captain' && <span style={{ fontSize: 13, color: 'var(--th-text-muted)' }}>Zeig es deinem Captain einfach.</span>}
             </>}
       </div>
     </div>
@@ -212,7 +218,7 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
               </div>
             </div>
             <FrageFeld key={f.id} f={f} nr={nr + 1} a={a} setze={setze}>
-              {(f.id === 'team_manager' && a.team_manager === 'weiss_nicht') || f.id === 'tm_nein' ? tmHinweis : null}
+              {(f.id === 'team_manager' && a.team_manager === 'kenne_nicht') || f.id === 'tm_nein' ? tmHinweis : null}
               {f.id === 'tm_nein' && a.tm_nein === 'stur' && <p style={{ ...p, marginTop: 10, fontSize: 14 }}>Schade 😉 – falls du’s dir anders überlegst: {TESTTAGE} Tage kostenlos, ohne Abo.</p>}
             </FrageFeld>
             {fehler && letzte && <div role="alert" style={{ fontFamily: font, fontSize: 14, fontWeight: 700, color: 'var(--th-loss)', marginTop: 10 }}>{fehler}</div>}
