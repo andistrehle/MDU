@@ -10,7 +10,7 @@
 // anderen zum Video-Beitrag (zum Weitergeben an den Kapitän).
 // ============================================================
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
@@ -47,9 +47,26 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
 
   const darfFreischalten = !!user?.teamId && hatTcRecht(user, user.teamId, 'team_manager');
   const hatTm = !!user?.teamManager;
-  const gruppen = useMemo(() => [...new Set(fragen.map(f => f.gruppe))], [fragen]);
-  const setze = (id: string, v: string | string[] | number | undefined) =>
+  // Schritt für Schritt (Betreiber 15.11.2026): eine Frage je Bildschirm, Fortschritt oben, Zurück/Weiter unten.
+  // Einfachauswahl, Sterne und Skala springen nach dem Antippen von selbst weiter (außer Freitext/Team-Manager-Hinweis).
+  const [schritt, setSchritt] = useState(0);
+  const oben = useRef<HTMLDivElement>(null);
+  const weiterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const geheZu = (n: number) => {
+    if (weiterTimer.current) clearTimeout(weiterTimer.current);
+    setSchritt(Math.max(0, Math.min(fragen.length - 1, n)));
+    oben.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const setze = (id: string, v: string | string[] | number | undefined) => {
     setA(alt => { const n = { ...alt }; if (v === undefined || v === '' || (Array.isArray(v) && !v.length)) delete n[id]; else n[id] = v; return n; });
+    const f = fragen.find(x => x.id === id);
+    const selbst = f && v !== undefined && (f.typ === 'sterne' || f.typ === 'skala' || (f.typ === 'eine' && v !== f.freitextBei && f.id !== 'team_manager'));
+    const i = fragen.findIndex(x => x.id === id);
+    if (selbst && i < fragen.length - 1) {
+      if (weiterTimer.current) clearTimeout(weiterTimer.current);
+      weiterTimer.current = setTimeout(() => geheZu(i + 1), 380);
+    }
+  };
 
   async function absenden() {
     setFehler(null);
@@ -104,31 +121,46 @@ export function UmfrageFormular({ def = UMFRAGE, fragen = FRAGEN }: { def?: Umfr
           <strong>Vorschau:</strong> Die Umfrage ist noch nicht gestartet – Antworten werden nicht gespeichert.
         </div>
       )}
-      <p style={{ ...p, margin: 0 }}>
+      {schritt === 0 && <p style={{ ...p, margin: 0 }}>
         {def.intro ?? <>
           {fragen.length} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
           Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
           Kennung dieses Geräts, damit niemand doppelt abstimmt.{laeuft && umfrageEnde(def) ? ` Läuft bis ${datumDe(umfrageEnde(def))}.` : ''}
         </>}
-      </p>
+      </p>}
 
-      {gruppen.map(g => (
-        <Karte key={g}>
-          <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)', marginBottom: 6 }}>{g}</div>
-          {fragen.filter(f => f.gruppe === g).map(f => (
-            <FrageFeld key={f.id} f={f} nr={fragen.indexOf(f) + 1} a={a} setze={setze}>
+      {(() => {
+        const f = fragen[schritt];
+        const letzte = schritt === fragen.length - 1;
+        const beantwortet = a[f.id] !== undefined;
+        return (
+          <Karte>
+            <div ref={oben} style={{ scrollMarginTop: 90 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+                <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--th-accent)' }}>{f.gruppe}</span>
+                <span style={{ fontFamily: font, fontSize: 12.5, fontWeight: 700, color: 'var(--th-text-muted)', whiteSpace: 'nowrap' }}>Frage {schritt + 1} von {fragen.length}</span>
+              </div>
+              <div aria-hidden style={{ height: 4, borderRadius: 2, background: 'var(--th-line-8)', marginBottom: 4 }}>
+                <div style={{ height: 4, borderRadius: 2, background: 'var(--th-accent)', width: `${Math.round(((schritt + 1) / fragen.length) * 100)}%`, transition: 'width .25s' }} />
+              </div>
+            </div>
+            <FrageFeld key={f.id} f={f} nr={schritt + 1} a={a} setze={setze}>
               {f.id === 'team_manager' ? tmHinweis : null}
             </FrageFeld>
-          ))}
-        </Karte>
-      ))}
-
-      {fehler && <div role="alert" style={{ fontFamily: font, fontSize: 14, fontWeight: 700, color: 'var(--th-loss)' }}>{fehler}</div>}
-      <div>
-        <button type="button" onClick={absenden} disabled={status === 'sende'} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '12px 22px', opacity: status === 'sende' ? 0.6 : 1 }}>
-          {status === 'sende' ? 'Sende …' : 'Absenden'}
-        </button>
-      </div>
+            {fehler && letzte && <div role="alert" style={{ fontFamily: font, fontSize: 14, fontWeight: 700, color: 'var(--th-loss)', marginTop: 10 }}>{fehler}</div>}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 18 }}>
+              {schritt > 0
+                ? <button type="button" onClick={() => geheZu(schritt - 1)} style={{ fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>← Zurück</button>
+                : <span />}
+              {letzte
+                ? <button type="button" onClick={absenden} disabled={status === 'sende'} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '12px 22px', opacity: status === 'sende' ? 0.6 : 1 }}>{status === 'sende' ? 'Sende …' : 'Absenden'}</button>
+                : <button type="button" onClick={() => geheZu(schritt + 1)} style={beantwortet ? { ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '11px 20px' } : { fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-muted)', cursor: 'pointer' }}>
+                    {beantwortet ? 'Weiter →' : 'Überspringen →'}
+                  </button>}
+            </div>
+          </Karte>
+        );
+      })()}
     </div>
   );
 }
