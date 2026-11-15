@@ -102,7 +102,9 @@ export const FRAGEN: Frage[] = [
     optionen: o(['immer', 'Immer'], ['manchmal', 'Manchmal'], ['nie', 'Nie']) },
   // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
   { gruppe: 'Funktionen', id: 'ticker', typ: 'eine', frage: 'Hast du den Live-Ticker schon genutzt?', hinweis: 'Spielstände am Spielabend unter mdudarts.de/live.',
-    optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, ich trage selbst live ein'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']) },
+    optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, ich trage selbst live ein'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']),
+    tippBei: { wert: 'kenne_nicht', text: 'Am Spielabend tragen die Teams ihre Ergebnisse direkt im Spielbericht ein – und alle können live mitverfolgen, wie es steht: jedes Spiel mit Spielern, Legs und Highlights. Ein rotes LIVE-Band auf der Startseite zeigt, wenn gerade was läuft.',
+      link: { href: '/live', text: 'Zum Live-Ticker' } } },
   { gruppe: 'Funktionen', id: 'wunsch', typ: 'mehr', max: 3, frage: 'Welche neuen Funktionen wünschst du dir am meisten?', hinweis: 'Bis zu 3 auswählen.', freitextBei: 'sonst',
     optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['kalender', 'Turnier- und Eventkalender'],
       ['forum', 'Forum zum Chatten'], ['brett', 'Schwarzes Brett (z. B. Spieler/Team gesucht, Flohmarkt)'], ['mdc', 'Verknüpfung mit der MDC (Munich Darts Challenge)'], ['sonst', 'Etwas anderes …']) },
