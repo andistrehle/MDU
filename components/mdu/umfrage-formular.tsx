@@ -16,6 +16,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
 import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
+import { SprachKnopf } from './sprach-knopf';
 
 export const UMFRAGE_GERAET_KEY = 'mdu-umfrage-geraet';
 export const umfrageFertigKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-fertig`;
@@ -273,8 +274,11 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
             placeholder="z. B. Marcus, Funny Darters" aria-label={f.frage} style={feld} />
         )}
         {f.typ === 'text' && (
-          <textarea value={(v as string) ?? ''} maxLength={TEXT_MAX} rows={3} onChange={e => setze(f.id, e.target.value)}
-            placeholder="Schreib einfach drauflos …" style={feld} />
+          <div style={{ width: '100%' }}>
+            <textarea value={(v as string) ?? ''} maxLength={TEXT_MAX} rows={3} onChange={e => setze(f.id, e.target.value)}
+              placeholder="Schreib einfach drauflos – oder sprich es ein 🎤" style={feld} />
+            <SprachKnopf wert={(v as string) ?? ''} onText={t => setze(f.id, t.slice(0, TEXT_MAX))} />
+          </div>
         )}
       </div>
       {(typeof v === 'string' ? freitextBei(f).includes(v) : Array.isArray(v) && v.some(x => freitextBei(f).includes(x))) && (() => {
