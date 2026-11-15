@@ -3,10 +3,11 @@
 // ============================================================
 // Website-Umfrage: Popup beim Öffnen der Seite (Betreiber, 09.11.2026)
 // ============================================================
-// Nur solange die Umfrage läuft (lib/umfrage.ts: live + 14 Tage), je Gerät
-// EINMAL — egal ob „Mitmachen“ oder „Nein danke“, danach nie wieder. Nicht
-// auf /umfrage selbst, nicht im Admin, nicht bei Login/Registrierung, und
-// nicht, wenn von diesem Gerät schon abgestimmt wurde.
+// Nur solange die Umfrage läuft (lib/umfrage.ts). Betreiber 15.11.2026: erscheint bei JEDEM Laden der
+// Seite wieder, bis auf diesem Gerät abgestimmt wurde; × (oder „Später“) schließt es nur bis zum nächsten
+// Neuladen — beim Weiterklicken innerhalb der Seite kommt es nicht erneut. Nicht auf /umfrage selbst, nicht
+// im Admin, nicht bei Login/Registrierung und nicht im Spielbericht (dort wird gerade eingetragen).
+// Zum Ausprobieren: ?umfrage=probe zeigt es sofort, auch vor dem Start.
 // ============================================================
 
 import { useEffect, useState } from 'react';
@@ -14,21 +15,23 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FRAGEN, UMFRAGE, umfrageLaeuft } from '@/lib/umfrage';
 
-const gezeigtKey = () => `mdu-umfrage-${UMFRAGE.id}-popup`;
 const fertigKey = () => `mdu-umfrage-${UMFRAGE.id}-fertig`;
-const AUSGENOMMEN = /^\/(umfrage|admin|login|registrieren|passwort|auth)/;
+const AUSGENOMMEN = /^\/(umfrage|admin|login|registrieren|passwort|auth|mein-bereich\/spielberichte)/;
+/** Gilt nur bis zum Neuladen der Seite (Modul-Variable, kein Speicher). */
+let gesehenInDiesemLaden = false;
 
 export function UmfragePopup() {
   const pathname = usePathname() ?? '/';
   const [offen, setOffen] = useState(false);
 
   useEffect(() => {
-    if (!umfrageLaeuft() || AUSGENOMMEN.test(pathname)) return;
-    try { if (localStorage.getItem(gezeigtKey()) || localStorage.getItem(fertigKey())) return; } catch { return; }
-    const t = setTimeout(() => {
-      setOffen(true);
-      try { localStorage.setItem(gezeigtKey(), new Date().toISOString()); } catch { /* egal */ }
-    }, 2500);
+    const probe = new URLSearchParams(window.location.search).get('umfrage') === 'probe';
+    if (gesehenInDiesemLaden || AUSGENOMMEN.test(pathname)) return;
+    if (!probe) {
+      if (!umfrageLaeuft()) return;
+      try { if (localStorage.getItem(fertigKey())) return; } catch { return; }
+    }
+    const t = setTimeout(() => { gesehenInDiesemLaden = true; setOffen(true); }, probe ? 300 : 2500);
     return () => clearTimeout(t);
   }, [pathname]);
 
@@ -54,7 +57,7 @@ export function UmfragePopup() {
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Link href="/umfrage" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, padding: '11px 20px', borderRadius: 10, background: 'var(--th-accent)', color: '#fff', textDecoration: 'none' }}>Mitmachen</Link>
-          <button type="button" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 15, padding: '11px 16px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>Nein danke</button>
+          <button type="button" onClick={() => setOffen(false)} style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 15, padding: '11px 16px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>Später</button>
         </div>
       </div>
     </div>
