@@ -95,7 +95,9 @@ export const FRAGEN: Frage[] = [
     optionen: o(['5', 'Sehr zufrieden'], ['4', 'Zufrieden'], ['3', 'Geht so'], ['2', 'Eher unzufrieden'], ['1', 'Unzufrieden'], ['nicht', 'Nutze ich nicht']),
     freitextBei: ['2', '1'], freitextFrage: 'Was würdest du besser machen?' },
   { gruppe: 'Funktionen', id: 'push', typ: 'eine', frage: 'Benachrichtigungen aufs Handy (Push)?',
-    optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele 🙉'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']) },
+    optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele 🙉'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']),
+    tippBei: { wert: 'weiss_nicht', text: 'So geht’s: Anmelden, dann unter Mein Bereich → „Benachrichtigungen aufs Handy“ einschalten und erlauben. Am iPhone klappt das nur, wenn mdudarts.de als App auf dem Home-Bildschirm liegt (Teilen → „Zum Home-Bildschirm“) und du sie darüber öffnest.',
+      link: { href: '/faq#push', text: 'Mehr dazu' } } },
   { gruppe: 'Funktionen', id: 'bericht', typ: 'eine', frage: 'Liest du den Spieltagsbericht am Wochenende?',
     optionen: o(['immer', 'Immer'], ['manchmal', 'Manchmal'], ['nie', 'Nie']) },
   // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
