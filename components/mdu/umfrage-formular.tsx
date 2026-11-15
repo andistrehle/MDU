@@ -199,10 +199,10 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
 
   if (status === 'fertig') return (
     <Karte>
-      <h2 style={h2}>{laeuft ? 'Danke fürs Mitmachen!' : 'Vorschau – nichts gespeichert'}</h2>
-      <p style={p}>{laeuft
-        ? (def.danke ?? 'Deine Antworten helfen uns, die Seite besser zu machen. Was davon umgesetzt wird, liest du in den News.')
-        : 'Die Umfrage ist noch nicht gestartet. So sieht der Abschluss später aus.'}</p>
+      {/* Vorschau zeigt den ECHTEN Abschluss (Betreiber 15.11.2026), nur mit kleinem Hinweis. */}
+      {!laeuft && <p style={{ ...p, fontSize: 13, color: 'var(--th-loss)', margin: '0 0 8px' }}><strong>Vorschau</strong> – nichts gespeichert. So sieht der Abschluss aus:</p>}
+      <h2 style={h2}>Danke fürs Mitmachen! 🙌</h2>
+      <p style={p}>{def.danke ?? 'Deine Antworten helfen uns, die Seite besser zu machen. Was davon umgesetzt wird, liest du in den News.'}</p>
       {def.ergebnisse && <p style={{ ...p, fontSize: 14, color: 'var(--th-text-muted)', marginTop: 6 }}>{def.ergebnisse}</p>}
       {def.id === UMFRAGE.id && <TeilenKnopf />}
       {tmHinweis}
