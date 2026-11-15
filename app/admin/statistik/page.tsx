@@ -15,6 +15,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { canManageUsers } from '@/lib/auth/roles';
 
 const PUNKTE = [
+  { href: '/admin/umfrage', titel: 'Umfrage-Ergebnisse', text: 'Teilnahmen und Antworten der Umfragen – „Wie gefällt dir mdudarts.de?“ und Team Manager.', nurSuper: false },
   { href: '/admin/erfassung', titel: 'Erfassung der Spielberichte', text: 'Je Begegnung: live eingetragen, Foto hochgeladen oder vom Zettel abgeschrieben.', nurSuper: false },
   { href: '/admin/web-app', titel: 'Web-App', text: 'Wie viele Geräte die App installiert haben, wie viele sie nutzen, und wer Benachrichtigungen bekommt.', nurSuper: true },
   { href: '/admin/analytics', titel: 'Nutzungsstatistik', text: 'Anonyme Aufrufe, Top-Seiten, Dark/Classic, Login-Quote.', nurSuper: true },

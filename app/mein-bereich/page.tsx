@@ -179,7 +179,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true, badgeKey: 'matchReports' },
       { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
-      { icon: 'bar',    label: 'Statistik',               description: 'Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
+      { icon: 'bar',    label: 'Statistik',               description: 'Umfrage-Ergebnisse, Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
     );
   }
 
