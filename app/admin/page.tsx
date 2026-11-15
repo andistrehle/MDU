@@ -11,6 +11,8 @@ import { useAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/
 import { NotificationBadge } from '@/components/mdu/notification-badge';
 import { useEffect, useState } from 'react';
 import { ladeErfassung, zaehle, WEG, WEGE, type Erfassung } from '@/lib/supabase/erfassung';
+import { supabase } from '@/lib/supabase/client';
+import { UMFRAGE, umfrageEnde, umfrageLaeuft } from '@/lib/umfrage';
 
 interface AdminCard {
   icon: string;
@@ -34,6 +36,7 @@ const CARDS: AdminCard[] = [
   { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte', badgeKey: 'matchReports' },
   { icon: 'bar',      label: 'Erfassung',          desc: 'Live, Foto oder abgeschrieben?',  href: '/admin/erfassung' },
   { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
+  { icon: 'list',     label: 'Umfrage',            desc: 'Ergebnisse der Umfragen ansehen.', href: '/admin/umfrage' },
   { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },
   { icon: 'upload',   label: 'Datenimport',        desc: 'dartunion.de-Importstatus.',      href: '/admin/import' },
   { icon: 'check',    label: 'Sicherheit',         desc: 'Datenschutz- & Security-Status.', href: '/admin/security' },
@@ -70,6 +73,7 @@ export default function AdminDashboardPage() {
       {/* Offene Hinweise für Ligaleitung / Super Admin */}
       {canManageLeague(user) && <NotificationsPanel />}
       {canManageLeague(user) && <ErfassungKachel />}
+      {canManageLeague(user) && <UmfrageKachel />}
 
       {/* System-Status (echte Zahlen aus Projektdaten) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12, marginBottom: 22 }}>
@@ -173,6 +177,43 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
       <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26, color: accent ? 'var(--th-win)' : 'var(--th-text-strong)', lineHeight: 1 }}>{value}</div>
       <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-faint)', marginTop: 6 }}>{label}</div>
     </div>
+  );
+}
+
+/** Website-Umfrage, solange sie läuft: Teilnahmen gesamt und heute (Admin → Umfrage). */
+function UmfrageKachel() {
+  const [zeiten, setZeiten] = useState<string[] | null>(null);
+  const laeuft = umfrageLaeuft();
+  useEffect(() => {
+    if (!laeuft || !supabase) return;
+    let weg = false;
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      const r = await fetch(`/api/umfrage?umfrage=${encodeURIComponent(UMFRAGE.id)}`, {
+        headers: { Authorization: `Bearer ${data.session?.access_token ?? ''}` },
+      }).catch(() => null);
+      if (!r?.ok) return;
+      const j = (await r.json()) as { antworten?: { created_at: string }[] };
+      if (!weg) setZeiten((j.antworten ?? []).map(a => a.created_at));
+    })();
+    return () => { weg = true; };
+  }, [laeuft]);
+  if (!laeuft || !zeiten) return null;
+  const tag = (d: Date) => d.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+  const heute = zeiten.filter(z => tag(new Date(z)) === tag(new Date())).length;
+  const ende = new Date(`${umfrageEnde(UMFRAGE)}T12:00:00`).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  const text = { fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13.5, color: 'var(--th-text-body)' } as const;
+  return (
+    <Link href="/admin/umfrage" style={{
+      display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, textDecoration: 'none',
+      background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, padding: '14px 18px', marginBottom: 18,
+    }}>
+      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>Umfrage „{UMFRAGE.titel}“:</span>
+      <span style={text}><b style={{ color: 'var(--th-accent)' }}>{zeiten.length}</b> {zeiten.length === 1 ? 'Teilnahme' : 'Teilnahmen'}</span>
+      <span style={text}><b>{heute}</b> heute</span>
+      <span style={text}>läuft bis {ende}</span>
+      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-accent)' }}>Ergebnisse →</span>
+    </Link>
   );
 }
 
