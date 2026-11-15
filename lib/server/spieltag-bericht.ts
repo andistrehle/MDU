@@ -15,6 +15,7 @@
 // spieltag_berichte.quelle), der Entwurf kommt also immer.
 // ============================================================
 
+import { UMFRAGE, umfrageEnde, umfrageLaeuft } from '@/lib/umfrage';
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
@@ -372,11 +373,22 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
   abschnitt('Tabellen', [...t.tabelle, ...tabellenHinweis(f), '[Zu allen Tabellen](/tabellen)']);
   // Team Manager am Ende jedes Berichts (Betreiber, 01.11.2026): bis zum Start „Coming soon“,
   // danach mit Test-Link — umgeschaltet über PREMIUM_OEFFENTLICH (lib/premium.ts).
+  // Website-Umfrage, solange sie läuft (Betreiber 15.11.2026), vor dem Team-Manager-Absatz.
+  out.push(...UMFRAGE_ABSATZ());
   out.push(...TEAM_MANAGER_ABSATZ());
   return out;
 }
 
 // ── Entwurf anlegen ──────────────────────────────────────────
+
+export const UMFRAGE_ABSATZ = (jetzt = new Date()): string[] => {
+  if (!umfrageLaeuft(jetzt)) return [];
+  const ende = umfrageEnde();
+  const bis = ende ? ` – noch bis ${Number(ende.slice(8, 10))}.${Number(ende.slice(5, 7))}.` : '';
+  return ['## Wie gefällt dir mdudarts.de?',
+    `Sag uns in ein paar Minuten, was dir gefällt und was fehlt. Anonym und für alle${bis}`,
+    `[Zur Umfrage](${UMFRAGE.pfad})`];
+};
 
 export const TEAM_MANAGER_ABSATZ = (): string[] => (PREMIUM_OEFFENTLICH
   ? ['## Habt ihr schon den Team Manager?',

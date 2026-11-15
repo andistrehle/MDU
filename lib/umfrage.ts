@@ -26,6 +26,8 @@ export interface UmfrageDef {
   id: string;
   live: boolean;
   start: string;
+  /** Genauer Startzeitpunkt (ISO, UTC) am Starttag — vorher läuft sie noch nicht. */
+  ab?: string;
   /** Laufzeit in Tagen ab `start`; null = ohne Ende. */
   tage: number | null;
   titel: string;
@@ -50,6 +52,7 @@ export function umfrageLaeuft(jetzt = new Date(), def: UmfrageDef = UMFRAGE): bo
   if (!def.live) return false;
   const heute = jetzt.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
   const ende = umfrageEnde(def);
+  if (def.ab && jetzt.getTime() < Date.parse(def.ab)) return false;
   return heute >= def.start && (!ende || heute <= ende);
 }
 
@@ -79,8 +82,11 @@ export const FRAGEN: Frage[] = [
     optionen: o(['passt', 'An – passt so'], ['zuviel', 'An – aber zu viele'], ['will_nicht', 'Aus – will ich nicht'], ['weiss_nicht', 'Aus – weiß nicht, wie das geht']) },
   { gruppe: 'Funktionen', id: 'bericht', typ: 'eine', frage: 'Liest du den Spieltagsbericht am Wochenende?',
     optionen: o(['immer', 'Immer'], ['manchmal', 'Manchmal'], ['nie', 'Nie']) },
+  // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
+  { gruppe: 'Funktionen', id: 'ticker', typ: 'eine', frage: 'Hast du den Live-Ticker schon genutzt?', hinweis: 'Spielstände am Spielabend unter mdudarts.de/live.',
+    optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, beim Eintragen'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']) },
   { gruppe: 'Funktionen', id: 'wunsch', typ: 'eine', frage: 'Welche neue Funktion wünschst du dir am meisten?', freitextBei: 'sonst',
-    optionen: o(['ticker', 'Live-Ticker am Spielabend'], ['statistik', 'Mehr Statistiken'], ['ersatz', 'Ersatzspieler-Börse'], ['kalender', 'Turnier- und Eventkalender'], ['sonst', 'Etwas anderes …']) },
+    optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['ersatz', 'Ersatzspieler-Börse'], ['kalender', 'Turnier- und Eventkalender'], ['sonst', 'Etwas anderes …']) },
 
   { gruppe: 'Deine Meinung', id: 'gut', typ: 'text', frage: 'Was gefällt dir am besten?' },
   { gruppe: 'Deine Meinung', id: 'schlecht', typ: 'text', frage: 'Was nervt dich oder fehlt dir?' },
@@ -92,8 +98,11 @@ export const FRAGEN: Frage[] = [
 
 export const UMFRAGE: UmfrageDef = {
   id: 'website-2026-11',
-  live: false,
-  start: '2026-11-09',
+  // Gestartet zusammen mit dem Spieltagsbericht 13./14.11. (Betreiber 15.11.2026): 19:55 Uhr Berlin,
+  // kurz vor dem Erzeugen des Berichts um 20:00 — der bekommt dann den Umfrage-Absatz. Bis 28.11.
+  live: true,
+  start: '2026-11-15',
+  ab: '2026-11-15T18:55:00Z',
   tage: 14,
   titel: 'Wie gefällt dir mdudarts.de?',
   pfad: '/umfrage',
