@@ -64,7 +64,7 @@ export default function UmfrageAuswertung() {
         </Karte>
         {fehler && <div role="alert" style={{ ...txt, color: 'var(--th-loss)', fontWeight: 700 }}>{fehler}</div>}
         {!z && !fehler && <div style={txt}>Lade …</div>}
-        {z && z.length > 0 && FRAGEN.map((f, i) => <Auswertung key={f.id} f={f} nr={i + 1} z={z} />)}
+        {z && z.length > 0 && FRAGEN.map((f, i) => <Auswertung key={f.id} f={f} nr={f.einstieg ? 0 : FRAGEN.slice(0, i + 1).filter(x => !x.einstieg).length} z={z} />)}
       </div>
     </AdminGuard>
   );
@@ -99,7 +99,7 @@ function Auswertung({ f, nr, z }: { f: Frage; nr: number; z: Zeile[] }) {
   return (
     <Karte>
       <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 15, color: 'var(--th-text-strong)', marginBottom: 8 }}>
-        {nr}. {f.frage} <span style={{ fontWeight: 600, color: 'var(--th-text-muted)', fontSize: 13 }}>· {n} Antwort{n === 1 ? '' : 'en'}</span>
+        {nr ? `${nr}. ` : 'Einstieg: '}{f.frage} <span style={{ fontWeight: 600, color: 'var(--th-text-muted)', fontSize: 13 }}>· {n} Antwort{n === 1 ? '' : 'en'}</span>
       </div>
       {n ? inhalt : <div style={{ ...txt, color: 'var(--th-text-muted)' }}>Noch keine Antworten.</div>}
     </Karte>
