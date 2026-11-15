@@ -28,6 +28,8 @@ import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
 import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
 import { berichtLink, type SocialDaten } from '@/lib/spieltag-social';
+import { LIVE_TICKER_AN } from '@/lib/live-ticker';
+import { ladeErfassung } from '@/lib/server/erfassung';
 import {
   einordnen, fenster, tagDanach, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
   type BegegnungDaten, type EintragArt, type SpielerWertung,
@@ -346,7 +348,19 @@ export function tabellenHinweis(f: Pick<Fakten, 'fri' | 'tabellen'>): string[] {
   return [`Hinweis: In der ${liste(ligen)} haben durch vorgezogene, verlegte oder noch offene Spiele nicht alle Teams gleich viele Begegnungen – die Tabelle ist dadurch im Moment ein bisschen verfälscht.`];
 }
 
-export function inhalt(f: Fakten, t: BerichtText): string[] {
+/** Live-Ticker-Absatz am Ende (Betreiber 15.11.2026). `live` = wie viele der Begegnungen dieses Berichts
+ *  nachweislich live eingetragen wurden (Speicher-Protokoll, lib/server/erfassung.ts); ohne Zahl nur der Hinweis. */
+export function LIVE_TICKER_ABSATZ(live?: { live: number; von: number }): string[] {
+  if (!LIVE_TICKER_AN) return [];
+  const zahl = live && live.live > 0
+    ? ` An diesem Wochenende ${live.live === 1 ? 'wurde schon eine' : `wurden schon ${live.live}`} von ${live.von} Begegnungen live eingetragen – je mehr Teams mitmachen, desto spannender wird’s.`
+    : '';
+  return ['## Live dabei: der Live-Ticker',
+    `An den Spielabenden könnt ihr die Begegnungen live mitverfolgen: jedes Spiel mit Spielern, Legs und Highlights, sobald es im Spielbericht eingetragen ist.${zahl}`,
+    '[Zum Live-Ticker](/live)'];
+}
+
+export function inhalt(f: Fakten, t: BerichtText, live?: { live: number; von: number }): string[] {
   const out: string[] = [...t.einleitung];
   const abschnitt = (titel: string, absaetze: string[]) => { if (absaetze.length) out.push(`## ${titel}`, ...absaetze); };
   abschnitt('Highlights', t.highlights);
@@ -373,6 +387,7 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
   abschnitt('Tabellen', [...t.tabelle, ...tabellenHinweis(f), '[Zu allen Tabellen](/tabellen)']);
   // Team Manager am Ende jedes Berichts (Betreiber, 01.11.2026): bis zum Start „Coming soon“,
   // danach mit Test-Link — umgeschaltet über PREMIUM_OEFFENTLICH (lib/premium.ts).
+  out.push(...LIVE_TICKER_ABSATZ(live));
   // Website-Umfrage, solange sie läuft (Betreiber 15.11.2026), vor dem Team-Manager-Absatz.
   out.push(...UMFRAGE_ABSATZ());
   out.push(...TEAM_MANAGER_ABSATZ());
@@ -428,6 +443,16 @@ export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDat
   };
 }
 
+/** Wie viele Begegnungen des Berichts wurden live eingetragen? Nur mit Protokoll (nicht geschätzt); bei Fehlern keine Zahl. */
+async function liveZahl(f: Fakten): Promise<{ live: number; von: number } | undefined> {
+  try {
+    const keys = new Set(f.eintraege.filter(x => !x.e.wertung).map(x => x.b.key));
+    const { bereit, zeilen } = await ladeErfassung();
+    if (!bereit || !keys.size) return undefined;
+    return { live: zeilen.filter(z => keys.has(z.key) && z.weg === 'live' && !z.geschaetzt).length, von: keys.size };
+  } catch { return undefined; }
+}
+
 export type ErzeugenErgebnis =
   | { ok: true; newsId: string; quelle: 'claude' | 'vorlage'; begegnungen: number; offen: number }
   | { ok: false; grund: string };
@@ -451,7 +476,7 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean; n
   const zeile = {
     title: t.titel.trim().slice(0, 120), teaser: t.teaser.trim().slice(0, 240), source: 'Münchner Dart Union',
     display_date: new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date()),
-    category: 'Spieltag', content: inhalt(f, t), status: 'draft',
+    category: 'Spieltag', content: inhalt(f, t, await liveZahl(f)), status: 'draft',
   };
   const { error } = vorhanden
     ? await db.from('news').update(zeile).eq('id', id)
