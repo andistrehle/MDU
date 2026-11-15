@@ -34,3 +34,11 @@ describe('Website-Umfrage bleibt wie bisher', () => {
     expect(findeUmfrage('website-2026-11')?.fragen).toBe(FRAGEN);
   });
 });
+
+describe('Wunsch-Frage: mehrere, höchstens 3', () => {
+  it('nimmt bis zu 3 erlaubte Wünsche, den Freitext nur bei „Etwas anderes“', () => {
+    expect(antwortenPruefen({ wunsch: ['forum', 'mdc', 'quatsch', 'brett', 'statistik'] })).toEqual({ wunsch: ['forum', 'mdc', 'brett'] });
+    expect(antwortenPruefen({ wunsch: ['sonst'], wunsch_text: ' Dartscheiben-Tausch ' })).toEqual({ wunsch: ['sonst'], wunsch_text: 'Dartscheiben-Tausch' });
+    expect(antwortenPruefen({ wunsch: ['forum'], wunsch_text: 'egal' })).toEqual({ wunsch: ['forum'] });
+  });
+});

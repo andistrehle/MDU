@@ -17,6 +17,8 @@ export interface Frage {
   optionen?: { wert: string; text: string }[];
   /** Bei 'eine': Freitext, wenn diese Option gewählt ist (Schlüssel `<id>_text`). */
   freitextBei?: string;
+  /** Bei 'mehr': höchstens so viele Antworten (Betreiber 15.11.2026: Wunsch-Frage höchstens 3). */
+  max?: number;
   hinweis?: string;
   gruppe: string;
 }
@@ -85,9 +87,9 @@ export const FRAGEN: Frage[] = [
   // Live-Ticker gibt es seit 11.11.2026 — eigene Frage statt Wunsch-Option (Betreiber 15.11.2026).
   { gruppe: 'Funktionen', id: 'ticker', typ: 'eine', frage: 'Hast du den Live-Ticker schon genutzt?', hinweis: 'Spielstände am Spielabend unter mdudarts.de/live.',
     optionen: o(['zuschauer', 'Ja, als Zuschauer'], ['eintragen', 'Ja, beim Eintragen'], ['noch_nicht', 'Noch nicht'], ['kenne_nicht', 'Kenne ich nicht']) },
-  { gruppe: 'Funktionen', id: 'wunsch', typ: 'eine', frage: 'Welche neue Funktion wünschst du dir am meisten?', freitextBei: 'sonst',
-    optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['ersatz', 'Ersatzspieler-Börse'], ['kalender', 'Turnier- und Eventkalender'],
-      ['forum', 'Forum zum Chatten'], ['brett', 'Schwarzes Brett'], ['mdc', 'Verknüpfung mit der MDC (Munich Darts Challenge)'], ['sonst', 'Etwas anderes …']) },
+  { gruppe: 'Funktionen', id: 'wunsch', typ: 'mehr', max: 3, frage: 'Welche neuen Funktionen wünschst du dir am meisten?', hinweis: 'Bis zu 3 auswählen.', freitextBei: 'sonst',
+    optionen: o(['whatsapp', 'Live-Ergebnisse per WhatsApp'], ['statistik', 'Mehr Statistiken'], ['kalender', 'Turnier- und Eventkalender'],
+      ['forum', 'Forum zum Chatten'], ['brett', 'Schwarzes Brett (z. B. Spieler/Team gesucht, Flohmarkt)'], ['mdc', 'Verknüpfung mit der MDC (Munich Darts Challenge)'], ['sonst', 'Etwas anderes …']) },
 
   { gruppe: 'Deine Meinung', id: 'gut', typ: 'text', frage: 'Was gefällt dir am besten?' },
   { gruppe: 'Deine Meinung', id: 'schlecht', typ: 'text', frage: 'Was nervt dich oder fehlt dir?' },
@@ -174,7 +176,7 @@ export function antwortenPruefen(roh: unknown, fragen: Frage[] = FRAGEN): Antwor
       const t = r[`${f.id}_text`];
       if (f.freitextBei === v && typeof t === 'string' && t.trim()) a[`${f.id}_text`] = t.trim().slice(0, TEXT_MAX);
     } else if (f.typ === 'mehr' && Array.isArray(v)) {
-      const w = [...new Set(v.filter((x): x is string => typeof x === 'string' && erlaubt.has(x)))];
+      const w = [...new Set(v.filter((x): x is string => typeof x === 'string' && erlaubt.has(x)))].slice(0, f.max ?? Infinity);
       if (w.length) a[f.id] = w;
       const t = r[`${f.id}_text`];
       if (f.freitextBei && w.includes(f.freitextBei) && typeof t === 'string' && t.trim()) a[`${f.id}_text`] = t.trim().slice(0, TEXT_MAX);

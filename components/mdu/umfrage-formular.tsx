@@ -148,7 +148,8 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
         {f.typ === 'mehr' && f.optionen!.map(o => {
           const liste = (Array.isArray(v) ? v : []) as string[];
           const an = liste.includes(o.wert);
-          return <Chip key={o.wert} an={an} onClick={() => setze(f.id, an ? liste.filter(x => x !== o.wert) : [...liste, o.wert])}>{an ? '✓ ' : ''}{o.text}</Chip>;
+          const voll = !an && f.max != null && liste.length >= f.max;
+          return <Chip key={o.wert} an={an} gesperrt={voll} onClick={() => { if (!voll) setze(f.id, an ? liste.filter(x => x !== o.wert) : [...liste, o.wert]); }}>{an ? '✓ ' : ''}{o.text}</Chip>;
         })}
         {f.typ === 'sterne' && [1, 2, 3, 4, 5].map(n => (
           <button key={n} type="button" aria-label={`${n} von 5 Sternen`} aria-pressed={typeof v === 'number' && v >= n}
@@ -179,10 +180,10 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
   );
 }
 
-function Chip({ an, onClick, children }: { an: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ an, gesperrt = false, onClick, children }: { an: boolean; gesperrt?: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" aria-pressed={an} onClick={onClick} style={{
-      fontFamily: font, fontSize: 14, fontWeight: 700, padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
+    <button type="button" aria-pressed={an} aria-disabled={gesperrt} title={gesperrt ? 'Höchstens 3 – erst eine andere abwählen' : undefined} onClick={onClick} style={{
+      fontFamily: font, fontSize: 14, fontWeight: 700, padding: '8px 14px', borderRadius: 999, cursor: gesperrt ? 'not-allowed' : 'pointer', opacity: gesperrt ? 0.45 : 1,
       border: `1px solid ${an ? 'var(--th-accent)' : 'var(--th-line-10)'}`,
       background: an ? 'var(--th-accent)' : 'var(--th-bg-card)', color: an ? '#fff' : 'var(--th-text-body)',
     }}>{children}</button>
