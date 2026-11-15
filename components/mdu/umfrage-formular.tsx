@@ -152,8 +152,8 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
       <h2 style={h2}>{einstieg?.titel ?? 'Servus! 👋'}</h2>
       <p style={{ ...p, fontSize: 17, fontWeight: 800, color: 'var(--th-text-strong)', margin: '6px 0 4px' }}>{einstieg?.frage ?? einstiegsFrage.frage}</p>
       <p style={{ ...p, fontSize: 14, margin: '0 0 14px' }}>
-        {fragenZahl(fragen)} schnelle Fragen, ganz anonym – wir speichern weder Namen noch Konto, nur eine zufällige Gerätekennung,
-        damit keiner doppelt abstimmt. Und ja: Wir lesen wirklich alles 😉{def.ergebnisse ? ` ${def.ergebnisse}` : ''}
+        Dauert 2 Minuten – jede Frage kannst du überspringen. Ganz anonym: Wir speichern weder Namen noch Konto, nur eine
+        zufällige Gerätekennung, damit keiner doppelt abstimmt. Und ja: Wir lesen wirklich alles 😉{def.ergebnisse ? ` ${def.ergebnisse}` : ''}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {einstiegsFrage.optionen!.map(o => (onErstLesen && o.wert === 'spaeter' ? { ...o, text: 'Erst den Bericht lesen 📖' } : o)).map(o => (
@@ -219,7 +219,7 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
           <strong>Vorschau:</strong> Die Umfrage ist noch nicht gestartet – Antworten werden nicht gespeichert.
         </div>
       )}
-      {schritt === 0 && !imPopup && <p style={{ ...p, margin: 0 }}>
+      {schritt === 0 && !imPopup && !einstiegsFrage && <p style={{ ...p, margin: 0 }}>
         {def.intro ?? <>
           {fragenZahl(fragen)} kurze Fragen, etwa 2 Minuten. Alles ist freiwillig – beantworte, was du magst.
           Die Umfrage ist <strong>anonym</strong>: Wir speichern keinen Namen und kein Konto, nur eine zufällige
