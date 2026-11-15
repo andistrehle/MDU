@@ -331,11 +331,11 @@ function ergebnisZeile(x: Eintrag): string {
 }
 
 /** Hinweis unter den Tabellen (Betreiber 15.11.2026): Teams mit vorgezogenem Spiel haben eine Begegnung mehr —
- *  die Tabelle ist dadurch vorübergehend etwas verzerrt. Setzt der Code, nicht Claude. */
+ *  die Tabelle ist dadurch im Moment ein bisschen verfälscht. Setzt der Code, nicht Claude. */
 export function vorabHinweis(f: Pick<Fakten, 'vorab'>): string[] {
   return LIGEN_2027.filter(l => f.vorab.some(x => x.b.liga === l.code)).map(l => {
     const teams = [...new Set(f.vorab.filter(x => x.b.liga === l.code).flatMap(x => [name(x.e.home), name(x.e.away)]))];
-    return `Hinweis zur ${l.name}: ${liste(teams)} haben durch ${f.vorab.filter(x => x.b.liga === l.code).length === 1 ? 'ihr vorgezogenes Spiel' : 'vorgezogene Spiele'} schon eine Begegnung mehr als die anderen – die Tabelle ist dadurch vorübergehend etwas verzerrt.`;
+    return `Hinweis zur ${l.name}: ${liste(teams)} haben durch ${f.vorab.filter(x => x.b.liga === l.code).length === 1 ? 'ihr vorgezogenes Spiel' : 'vorgezogene Spiele'} schon eine Begegnung mehr als die anderen – die Tabelle ist dadurch im Moment ein bisschen verfälscht.`;
   });
 }
 
