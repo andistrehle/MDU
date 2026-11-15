@@ -287,7 +287,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   an (Kategorie „Spieltag“) + Glocke an die Ligaleitung; Veröffentlichen unter Admin → News schickt den Push
   an ALLE Geräte (`pushAlle`, einmal je Bericht über `spieltag_berichte.push_at`). Rechnung rein in
   `lib/spieltag-bericht.ts` (Fenster Mo nach dem vorigen Wochenende bis So, nachgereicht = früher gespielt, in
-  keinem Bericht; knapp ≤ 2 Spiele mit Spielverlauf, deutlich ≥ 8). Spieler des Spieltages (Betreiber
+  keinem Bericht; knapp ≤ 2 Spiele mit Spielverlauf, deutlich ≥ 8). Seit 15.11.2026 (`einordnen`, getestet): verlegtes Spiel
+  eines FRÜHEREN Spieltags im Fenster = „Nachholspiel vom n. Spieltag“; schon gespieltes Spiel eines SPÄTEREN Spieltags = nur
+  eine Zeile („vorgezogen …, mehr im Bericht zum n. Spieltag“, `Fakten.vorab`, nicht in Wertung/Tabelle/`keys`) und ausführlich
+  im Bericht seines Spieltags. Spieler-Wertung JE BEGEGNUNG (höchstens vier Einzel je Abend, nie über zwei Abende summiert). Spieler des Spieltages (Betreiber
   27.10.2026) = Einzelbilanz zuerst (Siege ↓, Niederlagen ↑), Gleichstand → Highlight-Punkte (180/171 = 3, HF
   100–129/130–159/160+ = 2/3/4, SL ≤12/13–15/16–20 = 3/2/1, La Liga × ⅔), dann Legdifferenz. Eigens: „die
   meisten Highlights“ (Anzahl) und besondere (höchstes Finish, HF ≥ 140, SL ≤ 15, 180er/171er ab zwei).

@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  fenster, HF_PUNKTE, meisteHighlights, SL_PUNKTE, spielerDesSpieltages, spielerWertung, spielverlauf, tabellenAenderung, tagDanach,
+  einordnen, fenster, HF_PUNKTE, meisteHighlights, SL_PUNKTE, spielerDesSpieltages, spielerWertung, spielverlauf, tabellenAenderung, tagDanach,
   type BegegnungDaten, type BerichtSpiel,
 } from './spieltag-bericht';
 import type { Ergebnis27, TabellenZeile } from './tabelle-2027';
@@ -171,5 +171,54 @@ describe('Tabellen vorher/nachher', () => {
       { teamId: 'b', vorher: 0, nachher: 1, punkte: 3, spiele: 1 },
       { teamId: 'a', vorher: 1, nachher: 2, punkte: 3, spiele: 2 },
     ]);
+  });
+});
+
+// Betreiber 15.11.2026: je Abend höchstens vier Einzel — zwei Begegnungen eines Spielers werden NICHT zusammengezählt.
+describe('Spieler mit zwei Begegnungen im Zeitraum', () => {
+  const abend = (key: string, home: string, away: string, legs: [number, number][], hl: BegegnungDaten['highlights'] = []): BegegnungDaten => ({
+    key, liga: 'a', spieltag: 2, e: ergebnis(home, away),
+    spieler: [{ side: 'home', slot: 1, name: 'Fabian', playerId: 'fabian' }, { side: 'guest', slot: 1, name: 'Gast', playerId: `g-${key}` }],
+    spiele: legs.map(([h, g], i) => einzel(i + 1, 1, 1, h, g)), highlights: hl,
+  });
+  // Abend 1: 4:0 bei 8:0 Legs · Abend 2: 4:0 bei 8:1 Legs + ein Short Leg mit 20 Darts (1 Punkt)
+  const a1 = abend('x|y', 'x', 'y', [[2, 0], [2, 0], [2, 0], [2, 0]]);
+  const a2 = abend('x|z', 'x', 'z', [[2, 0], [2, 1], [2, 0], [2, 0]], [{ side: 'home', slot: 1, type: 'short_leg', value: 20 }]);
+
+  it('zwei Einträge mit je 4:0 statt einmal 8:0', () => {
+    const fabian = spielerWertung([a1, a2]).filter(z => z.name === 'Fabian');
+    expect(fabian.map(z => `${z.einzelSiege}:${z.einzelNiederlagen} ${z.legsFor}:${z.legsAgainst} hl${z.highlightAnzahl}`))
+      .toEqual(['4:0 8:1 hl1', '4:0 8:0 hl0']); // der Abend mit Highlight liegt vorn
+    expect(Math.max(...spielerWertung([a1, a2]).map(z => z.einzelSiege))).toBe(4);
+  });
+});
+
+// Betreiber 15.11.2026. Plan-Wochenende des Berichts: Fr 13.11.; Fenster 26.10.–15.11.
+describe('Einordnung: Nachholspiel, vorgezogen, nachgereicht', () => {
+  const f = { fri: '2026-11-13', von: '2026-10-26', bis: '2026-11-15' };
+  it('Spiel des Wochenendes im Fenster → gespielt', () => {
+    expect(einordnen({ ...f, planFri: '2026-11-13', datum: '2026-11-14' })).toBe('gespielt');
+  });
+  it('verlegtes Spiel eines früheren Spieltags, jetzt gespielt → nachgeholt', () => {
+    expect(einordnen({ ...f, planFri: '2026-10-23', datum: '2026-11-14' })).toBe('nachgeholt');
+  });
+  it('Spiel eines späteren Spieltags, schon gespielt → vorab (nur kurz erwähnt)', () => {
+    expect(einordnen({ ...f, planFri: '2026-11-20', datum: '2026-11-06' })).toBe('vorab');
+  });
+  it('dasselbe Spiel im Bericht SEINES Spieltags (Fenster 16.–22.11.) → vorgezogen, ausführlich', () => {
+    expect(einordnen({ fri: '2026-11-20', von: '2026-11-16', bis: '2026-11-22', planFri: '2026-11-20', datum: '2026-11-06' })).toBe('vorgezogen');
+  });
+  it('früher gespielt, früherer Spieltag, Bericht kam erst jetzt → nachgereicht', () => {
+    expect(einordnen({ ...f, planFri: '2026-10-23', datum: '2026-10-24' })).toBe('nachgereicht');
+  });
+  it('späterer Spieltag, vor dem Fenster gespielt → wartet auf seinen Spieltag; nach dem Fenster → gehört nicht hierher', () => {
+    expect(einordnen({ ...f, planFri: '2026-11-27', datum: '2026-10-20' })).toBeNull();
+    expect(einordnen({ ...f, planFri: '2026-11-13', datum: '2026-11-18' })).toBeNull();
+  });
+  it('Nachtrag: wie bisher', () => {
+    const n = { fri: '2026-10-23', von: '2026-10-26', bis: '2026-11-01', nachtrag: true };
+    expect(einordnen({ ...n, planFri: '2026-10-23', datum: '2026-10-30' })).toBe('nachgereicht');
+    expect(einordnen({ ...n, planFri: '2026-11-13', datum: '2026-10-30' })).toBe('gespielt');
+    expect(einordnen({ ...n, planFri: '2026-10-23', datum: '2026-10-24' })).toBe('nachgereicht');
   });
 });

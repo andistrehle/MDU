@@ -16,11 +16,13 @@
 //     vorgezogene und nachgeholte Spiele genau einmal in einem Bericht.
 //   • nachgereicht: Ergebnis da, Spieldatum VOR dem Fenster, aber in keinem
 //     früheren Bericht enthalten (Bericht kam erst nach dem Sonntag).
+//   Seit 15.11.2026 feiner (`einordnen`): ein VORGEZOGENES Spiel eines späteren Spieltags wird nur kurz erwähnt
+//     und kommt ausführlich in den Bericht seines Spieltags; ein NACHHOLSPIEL eines früheren Spieltags heißt auch so.
 //   • offen: Spiel dieses Wochenendes oder mit Termin im Fenster, aber noch
 //     ohne Ergebnis — „verlegt auf …“ oder „Bericht steht noch aus“.
 //
 // Spieler des Spieltages (Betreiber, 27.10.2026): wer im Einzel am meisten
-//   gewonnen hat — mehr Siege, dann weniger Niederlagen (4:0 vor 3:1); erst bei
+//   gewonnen hat, JE BEGEGNUNG (höchstens vier Einzel je Abend) — mehr Siege, dann weniger Niederlagen (4:0 vor 3:1); erst bei
 //   Gleichstand entscheiden die Highlights, dann die Legdifferenz. Eigens dazu:
 //   „die meisten Highlights“ (Anzahl: jeder 180er/171er, jedes High Finish,
 //   jedes Short Leg), dazu im Highlight-Abschnitt das höchste Finish, jedes
@@ -120,7 +122,10 @@ export function spielerWertung(begegnungen: BegegnungDaten[]): SpielerWertung[] 
       const p = find(side, slot);
       if (!p) return null;
       const teamId = side === 'home' ? b.e.home : b.e.away;
-      const key = p.playerId ?? `name:${teamId}:${p.name.toLowerCase()}`;
+      // JE BEGEGNUNG ein Eintrag (Betreiber 15.11.2026): Wer im Zeitraum zwei Abende spielt (z. B. Nachholspiel +
+      // regulärer Spieltag), wird nicht zusammengezählt — sonst stünden „8 Einzelsiege“ da, obwohl es je Abend
+      // höchstens vier Einzel gibt. Jeder Abend zählt für sich, auch bei den Highlights.
+      const key = `${p.playerId ?? `name:${teamId}:${p.name.toLowerCase()}`}@${b.key}`;
       let z = m.get(key);
       if (!z) { z = { name: p.name, teamId, highlightPunkte: 0, highlightAnzahl: 0, einzelSiege: 0, einzelNiederlagen: 0, legsFor: 0, legsAgainst: 0, b180: 0, b171: 0, hf: [], sl: [] }; m.set(key, z); }
       return z;
@@ -180,6 +185,23 @@ export function tabellenAenderung(vorher: TabellenZeile[], nachher: TabellenZeil
     const v = pos.get(z.team);
     return { teamId: z.team, vorher: v && v.sp > 0 ? v.pos : 0, nachher: z.pos, punkte: z.pts, spiele: z.sp };
   });
+}
+
+// ── Einordnung einer Begegnung mit Ergebnis ──────────────────
+
+/** `nachgeholt` = verlegtes Spiel eines FRÜHEREN Spieltags, im Zeitraum gespielt (Nachholspiel) ·
+ *  `vorgezogen` = Spiel DIESES Spieltags, schon vor dem Zeitraum gespielt · `nachgereicht` = früher gespielt,
+ *  Bericht kam erst jetzt · `vorab` = Spiel eines SPÄTEREN Spieltags, schon gespielt: hier nur kurz erwähnt,
+ *  ausführlich im Bericht seines Spieltags (Betreiber 15.11.2026) · null = gehört (noch) nicht hierher. */
+export type EintragArt = 'gespielt' | 'nachgereicht' | 'nachgeholt' | 'vorgezogen';
+export function einordnen(p: { planFri: string; datum: string; fri: string; von: string; bis: string; nachtrag?: boolean }): EintragArt | 'vorab' | null {
+  const imFenster = p.datum >= p.von && p.datum <= p.bis;
+  // Nachtrag (Rest nach einem schon veröffentlichten Bericht): wie bisher, ohne die feinere Einordnung.
+  if (p.nachtrag) return imFenster ? (p.planFri === p.fri ? 'nachgereicht' : 'gespielt') : p.datum < p.von ? 'nachgereicht' : null;
+  if (p.planFri > p.fri) return imFenster ? 'vorab' : null;
+  if (imFenster) return p.planFri < p.fri ? 'nachgeholt' : 'gespielt';
+  if (p.datum < p.von) return p.planFri === p.fri ? 'vorgezogen' : 'nachgereicht';
+  return null;
 }
 
 // ── Fenster je Plan-Wochenende ───────────────────────────────

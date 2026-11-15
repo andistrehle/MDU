@@ -28,8 +28,8 @@ import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
 import { berichtLink, type SocialDaten } from '@/lib/spieltag-social';
 import {
-  fenster, tagDanach, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
-  type BegegnungDaten, type SpielerWertung,
+  einordnen, fenster, tagDanach, spielverlauf, spielerWertung, spielerDesSpieltages, meisteHighlights, tabellenAenderung,
+  type BegegnungDaten, type EintragArt, type SpielerWertung,
 } from '@/lib/spieltag-bericht';
 
 const MODELL = process.env.SPIELTAG_MODEL || 'claude-opus-5-5';
@@ -54,7 +54,7 @@ export const letztesWochenende = (heute = heuteMuenchen()) => planWochenenden().
 
 // ── Fakten sammeln ───────────────────────────────────────────
 
-interface Eintrag { b: Begegnung27; e: Ergebnis27; datum: string; art: 'gespielt' | 'nachgereicht' }
+interface Eintrag { b: Begegnung27; e: Ergebnis27; datum: string; art: EintragArt }
 interface Offen { b: Begegnung27; grund: string }
 
 export interface Fakten {
@@ -63,6 +63,9 @@ export interface Fakten {
    *  Spiele (z. B. Rest des 1. Spieltags) bekommen einen eigenen Bericht bis `bis` (heute). */
   nachtrag?: { von: string; bis: string };
   eintraege: Eintrag[];
+  /** Vorgezogene Spiele SPÄTERER Spieltage (Betreiber 15.11.2026): nur kurz erwähnt, nicht in Wertung, Tabelle
+   *  und `keys` — ausführlich im Bericht ihres Spieltags. */
+  vorab: Eintrag[];
   offen: Offen[];
   daten: Map<string, BegegnungDaten>;
   wertung: SpielerWertung[];
@@ -71,6 +74,9 @@ export interface Fakten {
   meiste: SpielerWertung[];
   tabellen: Partial<Record<Liga27Code, ReturnType<typeof tabellenAenderung>>>;
 }
+
+/** Zählt als Spiel des Spieltags dieser Liga (für die Überschrift „n. Spieltag“): regulär oder vorgezogen. */
+const REGULAER = (x: Eintrag) => x.art === 'gespielt' || x.art === 'vorgezogen';
 
 const spieldatum = (b: Begegnung27, e?: Ergebnis27) => (e?.datum ?? b.termin?.datum ?? b.fri).slice(0, 10);
 
@@ -90,15 +96,16 @@ export async function sammeln(fri: string, nachtragBis?: string): Promise<Fakten
   const { data: frueher } = await db.from('spieltag_berichte').select('wochenende, keys').neq('wochenende', nachtragBis ?? fri);
   const schonDrin = new Set(((frueher ?? []) as { keys: string[] }[]).flatMap(r => r.keys));
 
-  const eintraege: Eintrag[] = [], offen: Offen[] = [];
+  const eintraege: Eintrag[] = [], vorab: Eintrag[] = [], offen: Offen[] = [];
   for (const b of alleBegegnungen27()) {
     const e = byKey[b.key];
     const datum = spieldatum(b, e);
     if (e) {
       // Was schon in einem anderen Bericht stand (z. B. Nachtrag), kommt nicht noch einmal.
       if (schonDrin.has(b.key)) continue;
-      if (datum >= f.von && datum <= f.bis) eintraege.push({ b, e, datum, art: nachtragBis && b.fri === fri ? 'nachgereicht' : 'gespielt' });
-      else if (datum < f.von) eintraege.push({ b, e, datum, art: 'nachgereicht' });
+      const art = einordnen({ planFri: b.fri, datum, fri, von: f.von, bis: f.bis, nachtrag: !!nachtragBis });
+      if (art === 'vorab') vorab.push({ b, e, datum, art: 'vorgezogen' });
+      else if (art) eintraege.push({ b, e, datum, art });
     } else if (b.fri === fri || (datum >= f.von && datum <= f.bis)) {
       // Teil des Wochenendes schon gespielt, Rest folgt noch (Bericht mitten im Wochenende erzeugt).
       offen.push({ b, grund: datum > heute ? `spielt ${datumKurz27(datum)}` : datum > w.sun ? `verlegt auf ${datumKurz27(datum)}` : SPIELTAG_HINWEISE_2027[b.key] ?? 'Bericht steht noch aus' });
@@ -123,7 +130,7 @@ export async function sammeln(fri: string, nachtragBis?: string): Promise<Fakten
     );
   }
   const wertung = spielerWertung([...daten.values()]);
-  return { fri, sun: w.sun, nachtrag: nachtragBis ? { von: f.von, bis: f.bis } : undefined, eintraege, offen, daten, wertung, sieger: spielerDesSpieltages(wertung), meiste: meisteHighlights(wertung), tabellen };
+  return { fri, sun: w.sun, nachtrag: nachtragBis ? { von: f.von, bis: f.bis } : undefined, eintraege, vorab, offen, daten, wertung, sieger: spielerDesSpieltages(wertung), meiste: meisteHighlights(wertung), tabellen };
 }
 
 // ── Für Claude: nur Zahlen, als JSON ─────────────────────────
@@ -142,7 +149,7 @@ export function faktenJson(f: Fakten) {
     art: f.nachtrag ? 'nachtrag' : 'wochenende',
     ligen: LIGEN_2027.filter(l => f.eintraege.some(x => x.b.liga === l.code) || f.offen.some(x => x.b.liga === l.code)).map(l => ({
       liga: l.name,
-      spieltage: [...new Set(f.eintraege.concat().filter(x => x.b.liga === l.code && x.art === 'gespielt').map(x => x.b.spieltag))],
+      spieltage: [...new Set(f.eintraege.concat().filter(x => x.b.liga === l.code && REGULAER(x)).map(x => x.b.spieltag))],
       ergebnisse: f.eintraege.filter(x => x.b.liga === l.code).map(x => {
         const d = f.daten.get(x.b.key)!;
         const diff = Math.abs(x.e.spieleHome - x.e.spieleAway);
@@ -162,6 +169,9 @@ export function faktenJson(f: Fakten) {
       }),
       tabelle: (f.tabellen[l.code] ?? []).map(t => ({ platz: t.nachher, platzVorher: t.vorher || null, team: name(t.teamId), punkte: t.punkte, spiele: t.spiele })),
       offen: f.offen.filter(x => x.b.liga === l.code).map(x => ({ heim: name(x.b.home), gast: name(x.b.away), grund: x.grund })),
+    })),
+    vorgezogeneSpieleSpaetererSpieltage: f.vorab.map(x => ({
+      liga: ligaName(x.b.liga), heim: name(x.e.home), gast: name(x.e.away), spiele: ergText(x.e), spieltag: x.b.spieltag, gespieltAm: x.datum,
     })),
     hoechstesFinish: hoechstesFinish(f),
     besondereHighlights: besondere(f),
@@ -209,14 +219,14 @@ const SYSTEM = `Du schreibst für die News-Seite der Münchner Dart Union (MDU, 
 
 Ton: freundlich, sachlich, lebendig wie eine Lokalsport-Redaktion — kein Marketing-Sprech, keine leeren Superlative. Deutsch.
 
-Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher (oder wurde nachgeholt), der Bericht kam erst jetzt. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden erst noch statt. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
+Wichtig: Verwende ausschließlich die Fakten aus dem JSON. Erfinde keine Spielszenen, Zitate, Gründe, Stimmungen, Zuschauer oder Zahlen, die dort nicht stehen. Namen von Spielern und Teams exakt wie angegeben. Ein Ergebnis „spiele“ ist Heim:Gast nach Spielen (18 Spiele je Begegnung, Sieg 3 Punkte, Remis 1). Ergebnisse mit bestaetigt=false sind vorläufig — das musst du nicht erwähnen. art="nachgereicht" heißt: Spiel lag früher, der Bericht kam erst jetzt. art="nachgeholt" heißt: ein VERLEGTES Spiel eines früheren Spieltags, das jetzt gespielt wurde — nenne es ausdrücklich Nachholspiel des genannten Spieltags (z. B. „Nachholspiel vom 1. Spieltag“), NICHT „in der Liga stand der x. Spieltag an“. art="vorgezogen" heißt: gehört zu diesem Spieltag, wurde aber schon früher gespielt (datum). vorgezogeneSpieleSpaetererSpieltage: bereits gespielte Begegnungen eines SPÄTEREN Spieltags — erwähne sie höchstens in EINEM Satz in der Einleitung (wer, Ergebnis, „vorgezogen vom x. Spieltag“, „mehr dazu im Bericht zu diesem Spieltag“); sie gehören NICHT in Highlights, knappe/deutliche Spiele, Spieler des Spieltages oder Tabelle. Steht oben art="nachtrag", ist es KEIN reguläres Spielwochenende, sondern ein Nachtrag mit nachgeholten bzw. nachgereichten Begegnungen (z. B. der Rest eines Spieltags) — so benennen, Titel entsprechend. offen-Einträge mit „spielt …“ finden erst noch statt. Bei Wertungen (Nichtantritt/kein Bericht) nichts dramatisieren.
 
 Abschnitte (jeweils Liste von Absätzen, meist 1–2 kurze Absätze; leere Liste, wenn es dazu nichts gibt):
 - einleitung: kurzer Überblick über das Wochenende.
 - highlights: 180er, 171er, High Finishes (Wert = Checkout), Short Legs (Wert = Darts) — wer, für welches Team. Eigens hervorheben: das höchste Finish (hoechstesFinish) und alles aus besondereHighlights (Finishes ab 140, Short Legs bis 15 Darts, wer zwei oder mehr 180er bzw. 171er hatte). Kleinere Highlights gern zusammengefasst.
 - knappe: Begegnungen mit knapp=true; beschreibe den Spielverlauf anhand der Zwischenstände (nach jedem Spiel Heim:Gast), Führungswechsel, Rückstand, wann es entschieden war.
 - deutliche: Begegnungen mit deutlich=true.
-- spieler: zuerst der Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) — gewählt nach der Einzelbilanz (die meisten Siege ohne Niederlage), bei Gleichstand nach Highlights; nenne seine Bilanz und seine Highlights. Danach eigens, wer die meisten Highlights hatte (meisteHighlights, mit Anzahl und welche) — auch wenn es dieselbe Person ist. Gern die nächsten aus der bestenliste kurz erwähnen. Nenne KEINE Punkte, keine Formel und keine Gewichtung.
+- spieler: zuerst der Spieler des Spieltages (spielerDesSpieltages; bei mehreren geteilter Titel) — gewählt nach der Einzelbilanz EINER Begegnung (je Abend höchstens vier Einzel; die meisten Siege ohne Niederlage), bei Gleichstand nach Highlights; nenne seine Bilanz und seine Highlights. Danach eigens, wer die meisten Highlights hatte (meisteHighlights, mit Anzahl und welche) — auch wenn es dieselbe Person ist. Gern die nächsten aus der bestenliste kurz erwähnen. Nenne KEINE Punkte, keine Formel und keine Gewichtung.
 - tabelle: Auswirkungen auf die Tabellen je Liga (Tabellenführung, Sprünge nach oben/unten über platzVorher → platz; platzVorher null = erstes Spiel).
 - facebook: EIN kurzer Teaser für die Facebook-Gruppe der MDU, 3–5 Sätze, locker, Du/Ihr-Ansprache erlaubt, ein paar passende Emojis (🎯 🔥 💯 …, nicht übertreiben). Das Spannendste des Wochenendes (Krimi, deutlichster Sieg, Spieler des Spieltages, höchstes Finish) — macht Lust auf den ganzen Bericht. KEIN Link, KEINE Hashtags, kein „Link in Bio“ — das fügt das System an. Kein Markdown, kein **fett**.
 
@@ -258,7 +268,7 @@ function hlText(z: SpielerWertung): string {
 }
 
 export function vorlage(f: Fakten): BerichtText {
-  const gespielt = f.eintraege.filter(x => x.art === 'gespielt');
+  const gespielt = f.eintraege.filter(x => x.art !== 'nachgereicht');
   const knapp = f.eintraege.filter(x => !x.e.wertung && Math.abs(x.e.spieleHome - x.e.spieleAway) <= KNAPP);
   const deutlich = f.eintraege.filter(x => !x.e.wertung && Math.abs(x.e.spieleHome - x.e.spieleAway) >= DEUTLICH);
   const hl = f.wertung.filter(z => z.highlightAnzahl > 0);
@@ -313,7 +323,9 @@ export function vorlage(f: Fakten): BerichtText {
 function ergebnisZeile(x: Eintrag): string {
   const titel = `${name(x.e.home)} – ${name(x.e.away)}`;
   const stern = x.e.bestaetigt ? '' : '*';
-  const zusatz = x.art === 'nachgereicht' ? ` (nachgereicht, gespielt ${datumKurz27(x.datum)})` : '';
+  const zusatz = x.art === 'nachgereicht' ? ` (nachgereicht, gespielt ${datumKurz27(x.datum)})`
+    : x.art === 'nachgeholt' ? ` (Nachholspiel vom ${x.b.spieltag}. Spieltag)`
+    : x.art === 'vorgezogen' ? ` (vorgezogen, gespielt ${datumKurz27(x.datum)})` : '';
   if (x.e.wertung) return `${titel} **${ergText(x.e)}** (Wertung: ${WERTUNG_TEXT[x.e.wertung]})${zusatz}`;
   return `[${titel}](${berichtPfad(x.b.key)}) **${ergText(x.e)}${stern}**${zusatz}`;
 }
@@ -329,16 +341,19 @@ export function inhalt(f: Fakten, t: BerichtText): string[] {
   out.push('## Alle Ergebnisse');
   for (const l of LIGEN_2027) {
     const xs = f.eintraege.filter(x => x.b.liga === l.code);
+    const vs = f.vorab.filter(x => x.b.liga === l.code);
     const os = f.offen.filter(x => x.b.liga === l.code);
-    if (!xs.length && !os.length) continue;
-    const st = [...new Set(xs.filter(x => x.art === 'gespielt').map(x => x.b.spieltag))];
+    if (!xs.length && !vs.length && !os.length) continue;
+    const st = [...new Set(xs.filter(REGULAER).map(x => x.b.spieltag))].sort((a, b) => a - b);
     out.push([
       `**${l.name}**${st.length ? ` · ${st.join('/')}. Spieltag` : ''}`,
       ...xs.map(ergebnisZeile),
+      // Vorgezogen von einem späteren Spieltag: nur das Ergebnis, der Rest steht im Bericht dieses Spieltags.
+      ...vs.map(x => `[${name(x.e.home)} – ${name(x.e.away)}](${berichtPfad(x.b.key)}) **${ergText(x.e)}${x.e.bestaetigt ? '' : '*'}** (vorgezogen vom ${x.b.spieltag}. Spieltag, gespielt ${datumKurz27(x.datum)} – mehr im Bericht zum ${x.b.spieltag}. Spieltag)`),
       ...os.map(x => `${name(x.b.home)} – ${name(x.b.away)}: ${x.grund}`),
     ].join('\n'));
   }
-  if (f.eintraege.some(x => !x.e.bestaetigt)) out.push('* = vom Gegner noch nicht bestätigt');
+  if ([...f.eintraege, ...f.vorab].some(x => !x.e.bestaetigt)) out.push('* = vom Gegner noch nicht bestätigt');
   abschnitt('Tabellen', [...t.tabelle, '[Zu allen Tabellen](/tabellen)']);
   // Team Manager am Ende jedes Berichts (Betreiber, 01.11.2026): bis zum Start „Coming soon“,
   // danach mit Test-Link — umgeschaltet über PREMIUM_OEFFENTLICH (lib/premium.ts).
@@ -370,7 +385,7 @@ export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDat
     newsId, titel, wochenende: zeitraumText(f),
     ligen: LIGEN_2027.map(l => {
       const xs = f.eintraege.filter(x => x.b.liga === l.code);
-      const st = [...new Set(xs.filter(x => x.art === 'gespielt').map(x => x.b.spieltag))];
+      const st = [...new Set(xs.filter(REGULAER).map(x => x.b.spieltag))].sort((a, b) => a - b);
       return {
         name: l.name, farbe: l.color, spieltag: st.length ? `${st.join('/')}. Spieltag` : 'Nachholspiele',
         ergebnisse: xs.map(x => ({ heim: name(x.e.home), gast: name(x.e.away), erg: ergText(x.e), bestaetigt: x.e.bestaetigt })),
