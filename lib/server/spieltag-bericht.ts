@@ -27,7 +27,7 @@ import { berechneTabelle, type Ergebnis27 } from '@/lib/tabelle-2027';
 import { ladeErgebnisse27, ladeBericht27 } from '@/lib/server/ergebnisse-2027';
 import { berichtPfad } from '@/lib/spieltag';
 import { SPIELTAG_HINWEISE_2027 } from '@/lib/data/spieltag-hinweise-2027';
-import { berichtLink, type SocialDaten } from '@/lib/spieltag-social';
+import { berichtLink, facebookKopf, type SocialDaten } from '@/lib/spieltag-social';
 import { LIVE_TICKER_AN } from '@/lib/live-ticker';
 import { ladeErfassung } from '@/lib/server/erfassung';
 import {
@@ -416,9 +416,9 @@ export const TEAM_MANAGER_ABSATZ = (): string[] => (PREMIUM_OEFFENTLICH
 
 const HASHTAGS = '#münchnerdartunion #mdu #darts #edarts #dartsliga #münchen';
 
-/** Fertiger Facebook-Text: Claudes Teaser + Hinweis + Direktlink + Hashtags. */
-export const facebookText = (teaser: string, newsId: string) =>
-  `${teaser.trim()}\n\nDen vollständigen Bericht mit allen Ergebnissen und Tabellen gibt's auf mdudarts.de:\n👉 ${berichtLink(newsId)}\n\n${HASHTAGS}`;
+/** Fertiger Facebook-Text: fette Überschrift (seit 15.11.2026) + Claudes Teaser + Hinweis + Direktlink + Hashtags. */
+export const facebookText = (teaser: string, newsId: string, titel?: string) =>
+  `${titel?.trim() ? `${facebookKopf(titel)}\n\n` : ''}${teaser.trim()}\n\nDen vollständigen Bericht mit allen Ergebnissen und Tabellen gibt's auf mdudarts.de:\n👉 ${berichtLink(newsId)}\n\n${HASHTAGS}`;
 
 export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDaten {
   const spieler = (z: SpielerWertung) => ({ name: z.name, team: name(z.teamId), text: [`Einzel ${z.einzelSiege}:${z.einzelNiederlagen}`, hlText(z)].filter(Boolean).join(' · ') });
@@ -484,7 +484,7 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean; n
   if (error) return { ok: false, grund: error.message };
   const basis = { wochenende: schluessel, news_id: id, keys: f.eintraege.map(x => x.b.key), quelle: claude ? 'claude' : 'vorlage', erstellt_at: new Date().toISOString() };
   let { error: le } = await db.from('spieltag_berichte').upsert({
-    ...basis, facebook: facebookText(t.facebook || t.teaser, id), social: socialDaten(f, id, zeile.title),
+    ...basis, facebook: facebookText(t.facebook || t.teaser, id, zeile.title), social: socialDaten(f, id, zeile.title),
   });
   // Ohne Migration 0060 (Spalten facebook/social) trotzdem den Bericht ablegen.
   if (le && /facebook|social/.test(le.message)) ({ error: le } = await db.from('spieltag_berichte').upsert(basis));
