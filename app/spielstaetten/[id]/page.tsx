@@ -64,7 +64,7 @@ export default async function SpielortPlanPage(props: PageProps<'/spielstaetten/
 
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
           <InfoZeile style={{ margin: 0, flex: '1 1 320px' }}>
-            {v.address && <>{v.address} · </>}
+            {v.address && <>{v.address} · <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${v.name}, ${v.address}`)}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Route ›</a> · </>}
             <b style={{ color: 'var(--th-text-strong)' }}>{anzahl} Heimspiele</b> an {mitSpiel} Wochenenden
             {maxAbend > 1 && <> · bis zu {maxAbend} Spiele am selben Abend</>}
           </InfoZeile>

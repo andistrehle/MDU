@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from './icon';
 import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
@@ -816,7 +816,10 @@ export function TeamDetailClient({
   scheduledMatches,
   completedMatches,
 }: Props) {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTabRoh] = useState(0);
+  // Reiter steht als #t<nr> in der Adresse: „Zurück“ landet im selben Reiter (wie TeamTabs, 16.11.2026).
+  useEffect(() => { queueMicrotask(() => { const m = window.location.hash.match(/^#t(\d)$/); if (m) setActiveTabRoh(Number(m[1])); }); }, []);
+  const setActiveTab = (i: number) => { setActiveTabRoh(i); window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#t${i}`); };
   const [card, setCard] = useState<PlayerCardData | null>(null);
 
   // Open the card for a roster player (playerId + stats already resolved).

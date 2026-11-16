@@ -113,6 +113,15 @@ function Seite({ id, heim = false }: { id: string; heim?: boolean }) {
   );
 }
 
+/** Lokal eines kommenden Spiels — führt zur Spielort-Seite mit Adresse und Route (Umfrage-Rückmeldung 16.11.2026:
+ *  „vom Terminplan kann man die Details nicht aufrufen“). */
+function Ort27({ id, name, klein = false }: { id?: string | null; name?: string; klein?: boolean }) {
+  const inhalt = <><Icon name="pin" size={klein ? 12 : 13} stroke={2} />{name ?? 'Spielort folgt'}</>;
+  const stil: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: klein ? 4 : 5 };
+  if (!id || !name) return <span style={stil}>{inhalt}</span>;
+  return <Link href={`/spielstaetten/${id}`} title={`${name}: Adresse, Route und alle Spiele dort`} style={{ ...stil, color: 'inherit', textDecoration: 'none' }}>{inhalt}<span aria-hidden style={{ color: 'var(--th-accent)', fontWeight: 700 }}>›</span></Link>;
+}
+
 /** Mitte: Spielstand bzw. „vs". */
 function Mitte({ e }: { e?: Ergebnis27 }) {
   if (!e) return <span className="mdu-sp-mitte" style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', color: 'var(--th-text-faint)' }}>VS</span>;
@@ -141,7 +150,7 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
                 <Seite id={g.away} />
               </div>
               <div className="mdu-sp-ort" style={{ ...faint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '4px 5px' }}>
-                {e ? <ZumBericht e={e}><ErgebnisZeile e={e} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="pin" size={13} stroke={2} />{v?.name ?? 'Spielort folgt'}</span>}
+                {e ? <ZumBericht e={e}><ErgebnisZeile e={e} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <Ort27 id={team27(g.home)?.venueId} name={v?.name} />}
                 {/* Nur für Mitglieder von Heim/Gast mit Team Manager: eigener Stand + Weg zur Spielseite */}
                 <MeinSpielLink heim={g.home} gast={g.away} k={begegnungKey(g.home, g.away)} />
               </div>
@@ -231,7 +240,7 @@ export function TeamSpielplan27({ teamId, ergebnisse, nur, leer, max }: { teamId
                   )}
                 </div>
                 <div style={{ ...faint, marginTop: 6, marginLeft: 34, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 8px' }}>
-                  {e ? <ZumBericht e={e}><ErgebnisZeile e={e} gast={!s.heim} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="pin" size={12} stroke={2} />{ort?.name ?? 'Spielort folgt'}</span>}
+                  {e ? <ZumBericht e={e}><ErgebnisZeile e={e} gast={!s.heim} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <Ort27 id={team27(s.heim ? teamId : s.gegner)?.venueId} name={ort?.name} klein />}
                   <span style={{ color: 'var(--th-text-faint)' }}>· {s.spieltag}. ST</span>
                   {t?.vorlaeufig && <Etikett>wird geprüft</Etikett>}
                   {terminVerlegt(t, s.fri, s.sun) && <Etikett>verlegt</Etikett>}
