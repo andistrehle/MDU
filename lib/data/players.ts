@@ -411,7 +411,7 @@ export const PLAYERS: Player[] = [
   { id: 'despina-assimenidu', firstName: 'Despina', lastName: 'Assimenidu', licenseNumber: 'MDU 26 6504', status: 'active', photoUrl: '/player-photos/despina-assimenidu.jpg' },
   { id: 'joerg-hirschfeld', firstName: 'Jörg', lastName: 'Hirschfeld', licenseNumber: 'MDU 26 6508', status: 'active', photoUrl: '/player-photos/joerg-hirschfeld.jpg' },
   { id: 'marcus-kampmann', firstName: 'Marcus', lastName: 'Kampmann', licenseNumber: 'MDU 26 6501', status: 'active', photoUrl: '/player-photos/marcus-kampmann.jpg' },    // TC
-  { id: 'athanasios-karagkiozdis', firstName: 'Athanasios', lastName: 'Karagkiozdis', licenseNumber: 'MDU 26 6507', status: 'active', photoUrl: '/player-photos/athanasios-karagkiozdis.jpg' },
+  { id: 'athanasios-karagkiozdis', firstName: 'Athanasios', lastName: 'Karagkiozidis', licenseNumber: 'MDU 26 6507', status: 'active', photoUrl: '/player-photos/athanasios-karagkiozdis.jpg' },
   { id: 'panos-moraitis', firstName: 'Panos', lastName: 'Moraitis', licenseNumber: 'MDU 26 6505', status: 'active' },
   { id: 'vassilios-papadopoulos', firstName: 'Vassilios', lastName: 'Papadopoulos', licenseNumber: 'MDU 26 6509', status: 'active', photoUrl: '/player-photos/vassilios-papadopoulos.jpg' },
   { id: 'dimitrios-papadopoulos', firstName: 'Dimitrios', lastName: 'Papadopoulos', licenseNumber: 'MDU 26 6506', status: 'active', photoUrl: '/player-photos/dimitrios-papadopoulos.jpg' },
