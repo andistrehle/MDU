@@ -123,8 +123,10 @@ export async function POST(request: Request) {
   // ── Anfrage „E-Mail-Adresse vergessen" → Ligaleitung ──
   if (action === 'login-help-request') {
     const requesterName = String(body.requesterName ?? '').trim();
-    const note          = String(body.note ?? '').trim();
+    const note          = String(body.note ?? '').trim().slice(0, 500);
+    const contact       = String(body.contact ?? '').trim().slice(0, 200);
     if (!requesterName) return NextResponse.json({ error: 'name_required' }, { status: 400 });
+    if (!contact) return NextResponse.json({ error: 'contact_required' }, { status: 400 });
 
     const { data: admins } = await supabaseAdmin
       .from('profiles').select('email').in('role', ['league_admin', 'super_admin']);
@@ -135,7 +137,7 @@ export async function POST(request: Request) {
 
     for (const to of recipients) {
       await sendRegistrationEmail({
-        type: 'login_help_request', to, name: 'Ligaleitung', requesterName, note,
+        type: 'login_help_request', to, name: 'Ligaleitung', requesterName, requesterContact: contact, note,
       });
     }
     return NextResponse.json({ ok: true, sent: recipients.length });

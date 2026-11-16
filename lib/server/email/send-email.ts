@@ -68,6 +68,8 @@ export interface RegistrationEmailInput {
   /** Nur für link_reset_request / login_help_request: anfragende Person. */
   requesterName?: string;
   requesterEmail?: string;
+  /** login_help_request: Rückweg (Handynummer oder E-Mail), wie eingegeben. */
+  requesterContact?: string;
   /** Optionale Freitext-Nachricht (login_help_request). */
   note?: string;
 }
@@ -169,6 +171,7 @@ export function renderRegistrationEmail(input: RegistrationEmailInput): Rendered
           `eine Person kann sich nicht anmelden und kennt ihre Login-E-Mail-Adresse nicht mehr. ` +
           `Sie bittet die Ligaleitung um Hilfe bei der Zuordnung ihres Kontos.\n\n` +
           `Name: ${input.requesterName?.trim() || '—'}\n` +
+          `Erreichbar unter: ${input.requesterContact?.trim() || '—'}\n` +
           (input.note?.trim() ? `Nachricht: ${input.note.trim()}\n` : '') +
           `\nBitte das Konto in der Benutzerverwaltung heraussuchen und der Person die hinterlegte ` +
           `E-Mail-Adresse mitteilen bzw. das Konto zurücksetzen.` + SIGNATURE,

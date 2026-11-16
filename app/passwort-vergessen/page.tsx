@@ -15,6 +15,7 @@ export default function ForgotPasswordPage() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpName, setHelpName] = useState('');
   const [helpNote, setHelpNote] = useState('');
+  const [helpKontakt, setHelpKontakt] = useState('');
   const [helpBusy, setHelpBusy] = useState(false);
   const [helpSent, setHelpSent] = useState(false);
 
@@ -33,12 +34,12 @@ export default function ForgotPasswordPage() {
 
   async function onHelpSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!helpName.trim()) return;
+    if (!helpName.trim() || !helpKontakt.trim()) return;
     setHelpBusy(true);
     try {
       await fetch('/api/registration-checks', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login-help-request', requesterName: helpName.trim(), note: helpNote.trim() }),
+        body: JSON.stringify({ action: 'login-help-request', requesterName: helpName.trim(), contact: helpKontakt.trim(), note: helpNote.trim() }),
       });
     } catch { /* best-effort */ }
     setHelpBusy(false);
@@ -87,13 +88,20 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={onHelpSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.55, margin: 0 }}>
-              Kein Problem — gib deinen Namen ein, dann hilft dir die Ligaleitung, dein Konto zu finden.
+              Kein Problem — gib deinen Namen ein und wie wir dich erreichen, dann hilft dir die Ligaleitung, dein Konto zu finden.
             </p>
             <AuthField label="Vor- und Nachname" type="text" placeholder="Max Mustermann" required
               value={helpName} onChange={e => setHelpName(e.target.value)} />
+            <div>
+              <AuthField label="Wie erreichen wir dich?" type="text" placeholder="Handynummer oder E-Mail-Adresse" required
+                value={helpKontakt} onChange={e => setHelpKontakt(e.target.value)} />
+              <p style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)', lineHeight: 1.5, margin: '5px 0 0' }}>
+                Am besten deine Handynummer – oder eine E-Mail-Adresse, die du sicher liest. Nur darüber können wir dir antworten.
+              </p>
+            </div>
             <AuthField label="Nachricht (optional)" type="text" placeholder="z. B. Team / weitere Hinweise"
               value={helpNote} onChange={e => setHelpNote(e.target.value)} />
-            <AuthSubmit busy={helpBusy} disabled={!helpName.trim()}>Ligaleitung kontaktieren</AuthSubmit>
+            <AuthSubmit busy={helpBusy} disabled={!helpName.trim() || !helpKontakt.trim()}>Ligaleitung kontaktieren</AuthSubmit>
           </form>
         )}
       </div>

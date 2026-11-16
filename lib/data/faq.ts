@@ -65,7 +65,7 @@ Kommt nichts an, schau bitte im Spam-Ordner nach.`,
       {
         id: 'email-vergessen',
         frage: 'Ich weiß nicht mehr, mit welcher E-Mail-Adresse ich mich registriert habe.',
-        antwort: `Unter [Passwort vergessen](/passwort-vergessen) findest du „E-Mail-Adresse vergessen?“. Dort gibst du deinen Namen und optional eine Nachricht ein und klickst „Ligaleitung kontaktieren“. Wir melden uns bei dir.`,
+        antwort: `Unter [Passwort vergessen](/passwort-vergessen) findest du „E-Mail-Adresse vergessen?“. Dort gibst du deinen Namen, eine Handynummer oder E-Mail-Adresse, unter der wir dich erreichen, und optional eine Nachricht ein und klickst „Ligaleitung kontaktieren“. Wir melden uns bei dir.`,
       },
       {
         id: 'spieler-bereits-vorhanden',
