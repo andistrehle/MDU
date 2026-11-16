@@ -11,6 +11,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ZurueckLink } from './zurueck-link';
+import { profilPfad } from '@/lib/spieltag';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht, hasMinRole } from '@/lib/auth/roles';
@@ -177,7 +179,7 @@ export function TerminAnsicht({ id }: { id: string }) {
   const farbe = terminFarbe(t);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Link href="/mein-team/termine" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Termine</Link>
+      <ZurueckLink href="/mein-team/termine" text="Alle Termine" />
 
       {bearbeiten ? (
         <TerminFormular start={t} titel="Termin ändern" onSpeichern={aendern} onAbbrechen={() => setBearbeiten(false)} onLoeschen={team => void loeschen(team)} />
@@ -254,7 +256,7 @@ export function TerminAnsicht({ id }: { id: string }) {
                       <span style={{ flex: 1, height: 1, background: 'var(--th-line-6)' }} />
                     </div>
                     {gruppe.map(p => (
-                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
+                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} profil={profilPfad(p.id)} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
                         ohneGrund={istKapitaen && p.id !== user.playerId}
                         onSetze={(st, n) => setze(p, st, n, istKapitaen && p.id !== user.playerId)} />
                     ))}

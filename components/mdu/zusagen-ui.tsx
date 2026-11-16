@@ -7,6 +7,7 @@
 
 import { useState, useSyncExternalStore } from 'react';
 import { Icon } from './icon';
+import Link from 'next/link';
 import { TeamBadge } from './team-badge';
 import { team27, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
 import { NOTIZ_MAX, GRUND_MIN, braucheGrund, type Zusage, type ZusageStatus } from '@/lib/supabase/zusagen';
@@ -48,12 +49,16 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
   const fg = '#fff';
   const fgLeise = 'rgba(255,255,255,0.75)';
   const chipGrund = 'rgba(255,255,255,0.14)';
+  // Auf der Spielseite (gross) führen Logo/Name zur Teamseite und die Liga zur Tabelle (Betreiber 16.11.2026).
+  // In der Kachel NICHT: dort ist die ganze Karte schon ein Link.
+  const huelle = (href: string, titel: string, style: React.CSSProperties, children: React.ReactNode) =>
+    gross ? <Link href={href} title={titel} style={{ ...style, textDecoration: 'none', color: 'inherit' }}>{children}</Link> : <div style={style}>{children}</div>;
   const seite = (tm: typeof H, id: string) => (
-    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
+    huelle(`/teams/${id}`, `Teamseite ${tm?.name ?? id}`, { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }, <>
       <TeamBadge initials={tm?.short ?? id.slice(0, 3).toUpperCase()} color={tm?.color} logoUrl={tm?.logoUrl ?? undefined} size={logo}
         ring={id === teamId ? '#fff' : 'rgba(255,255,255,0.45)'} />
-      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: gross ? 14 : 12.5, lineHeight: 1.2, color: id === teamId ? fg : fgLeise, overflowWrap: 'anywhere' }}>{tm?.name ?? id}</span>
-    </div>
+      <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: gross ? 14 : 12.5, lineHeight: 1.2, color: id === teamId ? fg : fgLeise, overflowWrap: 'anywhere' }}>{tm?.name ?? id}{gross && <span aria-hidden style={{ opacity: 0.6 }}> ›</span>}</span>
+    </>)
   );
   return (
     <div style={{
@@ -68,7 +73,7 @@ export function SpielKopf({ b, teamId, liga, ligaFarbe, gross = false, rechts }:
         {b.derby && <span style={chip('rgba(232,184,74,0.95)', '#3A2A00')}>Derby</span>}
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, color: fgLeise }}>
           <span aria-hidden style={{ width: 7, height: 7, borderRadius: 999, background: ligaFarbe }} />
-          <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{liga} · {b.spieltag}. ST</span>
+          {huelle(`/ligen/${b.liga}?tab=tabelle`, `Tabelle ${liga}`, { fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }, <>{liga} · {b.spieltag}. ST</>)}
           {rechts}
         </span>
       </div>
@@ -379,7 +384,9 @@ export function MeineAntwort({ z, onSetze }: { z?: Zusage; onSetze: (s: ZusageSt
 }
 
 /** Eine Zeile in der Teilnehmerliste; der Kapitän setzt den Status, bei ✗/? mit Begründung. */
-export function KaderZeile({ name, z, darfSetzen, ohneGrund = false, onSetze }: {
+export function KaderZeile({ name, profil, z, darfSetzen, ohneGrund = false, onSetze }: {
+  /** Pfad zum Spielerprofil – der Name wird dann zum Verweis. */
+  profil?: string | null;
   name: string; z?: Zusage; darfSetzen: boolean; onSetze: (s: ZusageStatus | null, note: string | null) => void | Promise<void>;
   /** TC setzt für einen anderen Spieler → Begründung freiwillig. */
   ohneGrund?: boolean;
@@ -398,7 +405,7 @@ export function KaderZeile({ name, z, darfSetzen, ohneGrund = false, onSetze }: 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {!darfSetzen && <StatusIcon s={aktuell} size={22} />}
         <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontSize: 14, fontWeight: 700, color: 'var(--th-text-strong)', overflowWrap: 'anywhere' }}>
-          {name}
+          {profil ? <Link href={profil} title="Spielerprofil ansehen" style={{ color: 'inherit', textDecoration: 'none' }}>{name}</Link> : name}
           {z?.note && <span style={{ display: 'block', fontWeight: 500, fontSize: 12.5, color: 'var(--th-text-muted)' }}>„{z.note}“</span>}
         </span>
         {darfSetzen && (

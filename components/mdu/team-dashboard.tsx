@@ -122,7 +122,7 @@ export function TeamDashboard({ teamId, teamName, liga, spiele, vergangen, zusag
         </div>
       )}
 
-      <Statistik termine={vergangen} zusagen={zusagen} personen={personen} ichId={ichId} berichte={berichte} />
+      <Statistik teamId={teamId} termine={vergangen} zusagen={zusagen} personen={personen} ichId={ichId} berichte={berichte} />
 
       <style>{'.mdu-dash-hover{transition:transform 160ms ease,box-shadow 160ms ease}.mdu-dash-hover:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--th-shadow)}.mdu-dash-zeile:hover{background:var(--th-bg-card3)}.mdu-dash-kacheln{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media (max-width:640px){.mdu-dash-kacheln{grid-template-columns:1fr 1fr}.mdu-dash-breit{grid-column:1/-1}}'}</style>
     </section>
@@ -165,7 +165,8 @@ function Hero({ teamId, teamName, liga, vorname, e, zusagen, personen, ichId, me
           <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(239,230,207,0.75)' }}>Servus {vorname} 👋</div>
           <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, lineHeight: 1, textTransform: 'uppercase', letterSpacing: '0.02em' }}>{teamName}</div>
         </div>
-        <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: GOLD, border: `1px solid ${GOLD}66`, borderRadius: 999, padding: '4px 9px' }}>{liga}</span>
+        {/* Liga → Tabelle; liegt über dem Karten-Link (zIndex 2) */}
+        <Link href={t ? `/ligen/${t.league}?tab=tabelle` : '/tabellen'} title="Zur Tabelle" style={{ position: 'relative', zIndex: 2, textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: GOLD, border: `1px solid ${GOLD}66`, borderRadius: 999, padding: '4px 9px' }}>{liga} ›</Link>
       </div>
 
       {e ? (
@@ -278,7 +279,8 @@ function Scheibe({ personen, zusagen, ichId, tage }: { personen: { id: string; n
 
 // ── Statistik ───────────────────────────────────────────────
 
-function Statistik({ termine, zusagen, personen, ichId, berichte }: {
+function Statistik({ teamId, termine, zusagen, personen, ichId, berichte }: {
+  teamId: string;
   termine: Termin[]; zusagen: Zusage[]; personen: { id: string; name: string }[]; ichId: string | null; berichte: Record<string, SpielStat> | null;
 }) {
   // Gleiche Rechnung wie /mein-team/statistik: Teilnahme = zugesagt oder laut Spielbericht gespielt.
@@ -323,7 +325,7 @@ function Statistik({ termine, zusagen, personen, ichId, berichte }: {
 
           {/* Teilnahme wie unter Statistiken: die letzten Termine */}
           <div style={{ borderTop: '1px solid var(--th-line-5)', paddingTop: 6 }}>
-            <TeilnahmeTabelle kompakt termine={termine.slice(0, 5)} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={ichId} />
+            <TeilnahmeTabelle kompakt teamId={teamId} termine={termine.slice(0, 5)} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={ichId} />
           </div>
         </>
       )}

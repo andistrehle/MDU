@@ -26,6 +26,9 @@ const istApp = () =>
 // nimmt die letzte wieder heraus, damit erkennbar bleibt, ob es noch zurückgeht.
 const verlauf: string[] = [];
 
+/** Seite, auf der man in dieser Sitzung davor war (Pfad) — null ohne Vorgeschichte. Für ZurueckLink. */
+export const seiteDavor = (): string | null => (verlauf.length > 1 ? verlauf[verlauf.length - 2] : null);
+
 export function AppZurueck() {
   const pathname = usePathname();
   const router = useRouter();

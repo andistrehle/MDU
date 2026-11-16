@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       tabelle: zeile ? { pos: zeile.pos, pts: zeile.pts, sp: zeile.sp, s: zeile.s, u: zeile.u, n: zeile.n, teams: tab.length } : null,
       letzte: spiele.slice(0, 5).map(s => ({ ...s, gegenName: team27(s.gegen)?.name ?? s.gegen })),
       vergleich: [
-        ...spiele.filter(s => s.gegen === team).map(s => ({ saison: '2026/27', wettbewerb: findLiga27(G.league)?.name ?? '', datum: s.datum, wir: s.a, sie: s.f })),
+        ...spiele.filter(s => s.gegen === team).map(s => ({ saison: '2026/27', wettbewerb: findLiga27(G.league)?.name ?? '', datum: s.datum, wir: s.a, sie: s.f, key: s.wertung ? null : s.key })),
         // Archiv 2025/26 (statische Daten + Import), gleiche Team-Kennungen
         ...MATCHES.filter(m => m.status === 'completed' && m.result
             && ((m.homeTeamId === team && m.awayTeamId === gegner) || (m.homeTeamId === gegner && m.awayTeamId === team)))

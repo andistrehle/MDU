@@ -15,7 +15,7 @@
 // ============================================================
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { ZurueckLink } from '@/components/mdu/zurueck-link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
@@ -144,7 +144,7 @@ export default function KassePage() {
           <Notice title="Gleich startklar">Die Teamkasse wird gerade eingerichtet. Schau bitte etwas später noch mal vorbei.</Notice>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
-            <Link href="/mein-team/zusagen" style={zurueck}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
+            <ZurueckLink href="/mein-team/zusagen" text="Team Manager" />
 
             {msg && (
               <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: msg.kind === 'err' ? 'rgba(212,0,0,0.10)' : 'rgba(34,197,94,0.10)', border: `1px solid ${msg.kind === 'err' ? 'rgba(212,0,0,0.35)' : 'rgba(34,197,94,0.35)'}`, color: msg.kind === 'err' ? '#E24B4A' : GRUEN }}>{msg.text}</div>
@@ -737,7 +737,6 @@ function Einstellungen({ einst, kader, onSpeichern }: {
 
 // ── Stile ──────────────────────────────────────────────────
 
-const zurueck: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' };
 const label: React.CSSProperties = { display: 'block', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 700, color: 'var(--th-text-muted)', marginBottom: 6 };
 const feld: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: '1px solid var(--th-line-8)', background: 'var(--th-bg-card)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 15 };
 const plusKnopf: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 12px', borderRadius: 12, cursor: 'pointer', background: 'var(--th-bg-card)', border: '1.5px dashed var(--th-accent)', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };

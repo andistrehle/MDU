@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { profilPfad } from '@/lib/spieltag';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -176,7 +178,9 @@ export default function KaderPage() {
                     borderBottom: i < filtered.length - 1 ? '1px solid var(--th-line-4)' : 'none',
                   }}>
                     <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-faint)', width: 22, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
-                    <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 14, color: 'var(--th-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {profilPfad(entry.id) ? <Link href={profilPfad(entry.id)!} title="Spielerprofil ansehen" style={{ color: 'inherit', textDecoration: 'none' }}>{name} <span aria-hidden style={{ color: 'var(--th-text-faint)' }}>›</span></Link> : name}
+                    </span>
                     {entry.isCaptain && (
                       <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-gold)', background: 'rgba(232,184,74,0.12)', border: '1px solid rgba(232,184,74,0.3)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>Kapitän</span>
                     )}

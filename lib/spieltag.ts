@@ -35,3 +35,7 @@ export const wochentag = (iso: string) => WT[d(iso).getUTCDay()];
 export const wochentagLang = (iso: string) => WT_LANG[d(iso).getUTCDay()];
 /** „23.10.“ */
 export const tagMonat = (iso: string) => `${d(iso).getUTCDate()}.${d(iso).getUTCMonth() + 1}.`;
+
+/** Spielerprofil zu einer Kader-Kennung — null für Spieler ohne Profil (Kennung „name:…“). */
+export const profilPfad = (kennung: string | null | undefined) =>
+  kennung && !kennung.startsWith('name:') && !kennung.startsWith('row-') ? `/spieler/${kennung}` : null;

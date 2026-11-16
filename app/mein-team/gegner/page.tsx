@@ -17,15 +17,15 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { zusagenFreigeschaltet } from '@/lib/features';
 import { alleBegegnungen27, team27, findLiga27, venue27 } from '@/lib/data/saison-2027';
-import { spieltagPfad, wochentag, tagMonat } from '@/lib/spieltag';
+import { berichtPfad, spieltagPfad, wochentag, tagMonat } from '@/lib/spieltag';
+import { ZurueckLink, Querverweise } from '@/components/mdu/zurueck-link';
 import { TeamBadge } from '@/components/mdu/team-badge';
-import { Icon } from '@/components/mdu/icon';
 import { TeamManagerFehlt } from '@/components/mdu/team-manager-fehlt';
 
 interface Gegner {
   tabelle: { pos: number; pts: number; sp: number; s: number; u: number; n: number; teams: number } | null;
   letzte: { key: string; datum: string | null; gegen: string; gegenName: string; f: number; a: number; ergebnis: 'S' | 'U' | 'N'; wertung: boolean; bestaetigt: boolean }[];
-  vergleich: { saison: string; wettbewerb: string; datum: string | null; wir: number; sie: number }[];
+  vergleich: { saison: string; wettbewerb: string; datum: string | null; wir: number; sie: number; key?: string | null }[];
   beste: { name: string; playerId: string | null; points: number; wins: number; singles: number; b180: number; b171: number; hf: number; hfBest: number | null; sl: number; slBest: number | null }[];
 }
 
@@ -39,14 +39,23 @@ export default function GegnerSeite() {
   const teamId = user?.teamId ?? null;
   const [info, setInfo] = useState<Gegner | null | undefined>(undefined);
 
+  // Von einer Spielseite aus: ?spiel=<Heim|Gast> zeigt den Gegner GENAU dieses Spiels (Betreiber 16.11.2026).
+  const [wahl, setWahl] = useState<string | null | undefined>(undefined);
+  useEffect(() => { queueMicrotask(() => setWahl(new URLSearchParams(window.location.search).get('spiel'))); }, []);
+
   // Nächstes MDU-Spiel des eigenen Teams
-  const spiel = useMemo(() => {
+  const naechstes = useMemo(() => {
     if (!teamId) return undefined;
     const heute = heuteIso();
     return alleBegegnungen27()
       .filter(b => (b.home === teamId || b.away === teamId) && (b.termin?.datum ?? b.sun) >= heute)
       .sort((a, b) => (a.termin?.datum ?? a.fri).localeCompare(b.termin?.datum ?? b.fri))[0];
   }, [teamId]);
+  const spiel = useMemo(() => {
+    if (wahl === undefined) return undefined;
+    const g = wahl && teamId ? alleBegegnungen27().find(b => b.key === wahl && (b.home === teamId || b.away === teamId)) : undefined;
+    return g ?? naechstes;
+  }, [wahl, teamId, naechstes]);
   const gegnerId = spiel ? (spiel.home === teamId ? spiel.away : spiel.home) : null;
 
   useEffect(() => {
@@ -68,10 +77,11 @@ export default function GegnerSeite() {
       {loading ? <Muted>Lade …</Muted>
         : !user ? <Notice title="Bitte einloggen">Dieser Bereich ist nur für angemeldete Mitglieder.{' '}<LoginLink /></Notice>
         : !zusagenFreigeschaltet(user) ? <TeamManagerFehlt was="Die Gegneranalyse" />
+        : wahl === undefined ? <Muted>Lade …</Muted>
         : !spiel || !gegnerId ? <Notice title="Kein anstehendes Spiel">Für dein Team steht in dieser Saison kein weiteres MDU-Spiel an.</Notice>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }}>
-            <Link href="/mein-team/zusagen" style={zurueck}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
+            <ZurueckLink href="/mein-team/zusagen" text="Team Manager" />
 
             {/* Kopf */}
             <Link href={spieltagPfad(teamId!, spiel.key)} style={{
@@ -81,7 +91,7 @@ export default function GegnerSeite() {
             }}>
               <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'repeating-conic-gradient(from 9deg at 85% 50%, rgba(255,255,255,0.045) 0 18deg, transparent 18deg 36deg)' }} />
               <div style={{ position: 'relative', fontFamily: 'var(--font-manrope)', fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: GOLD }}>
-                Nächstes Spiel · {spiel.termin ? `${wochentag(spiel.termin.datum)} ${tagMonat(spiel.termin.datum)}${spiel.termin.uhrzeit ? ` · ${spiel.termin.uhrzeit} Uhr` : ''}` : 'Termin folgt'} · {heim ? 'Heim' : 'Auswärts'}
+                {spiel.key === naechstes?.key ? 'Nächstes Spiel' : (spiel.termin?.datum ?? spiel.sun) < heuteIso() ? 'Gespielt' : 'Spiel'} · {spiel.termin ? `${wochentag(spiel.termin.datum)} ${tagMonat(spiel.termin.datum)}${spiel.termin.uhrzeit ? ` · ${spiel.termin.uhrzeit} Uhr` : ''}` : 'Termin folgt'} · {heim ? 'Heim' : 'Auswärts'}
               </div>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 14, marginTop: 12 }}>
                 <TeamBadge initials={G?.short ?? gegnerId.slice(0, 3)} color={G?.color} logoUrl={G?.logoUrl ?? undefined} size={62} ring="#EFE6CF" />
@@ -99,6 +109,12 @@ export default function GegnerSeite() {
                 )}
               </div>
             </Link>
+            <Querverweise links={[
+              { href: spieltagPfad(teamId!, spiel.key), text: 'Zu- und Absagen' },
+              { href: `/teams/${gegnerId}#kader`, text: 'Kader' },
+              G && { href: `/ligen/${G.league}?tab=tabelle`, text: 'Tabelle' },
+              { href: `/teams/${gegnerId}`, text: 'Teamseite' },
+            ]} />
 
             {info === undefined ? <Muted>Lade die Analyse …</Muted> : info === null ? (
               <Notice title="Gerade nicht verfügbar">Die Daten zum Gegner lassen sich im Moment nicht laden. Versuch es bitte später noch einmal.</Notice>
@@ -118,15 +134,17 @@ export default function GegnerSeite() {
                     <>
                       <div style={miniTitel}>Letzte {info.letzte.length} Spiele</div>
                       {info.letzte.map(l => (
-                        <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-5)', fontFamily: 'var(--font-manrope)', fontSize: 13.5 }}>
+                        <Zeile key={l.key} href={l.wertung ? null : berichtPfad(l.key)} titel="Spielbericht ansehen" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-5)', fontFamily: 'var(--font-manrope)', fontSize: 13.5 }}>
                           <span title={ERG[l.ergebnis].t} style={{ width: 24, height: 24, borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: ERG[l.ergebnis].f, color: l.ergebnis === 'U' ? '#3A2A00' : '#fff', fontSize: 12, fontWeight: 900 }}>{l.ergebnis}</span>
                           <span style={{ width: 58, flexShrink: 0, fontSize: 12, color: 'var(--th-text-muted)' }}>{datumKurz(l.datum)}</span>
                           <span style={{ flex: 1, minWidth: 0, fontWeight: 700, color: 'var(--th-text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.gegen === teamId ? 'gegen euch' : l.gegenName}</span>
                           <b style={{ color: 'var(--th-text-strong)' }}>{l.f}:{l.a}{!l.bestaetigt ? '*' : ''}</b>
-                        </div>
+                          {!l.wertung && <span aria-hidden style={{ color: 'var(--th-text-faint)' }}>›</span>}
+                        </Zeile>
                       ))}
                     </>
                   )}
+                  {G && <Link href={`/ligen/${G.league}?tab=tabelle`} style={mehr}>Ganze Tabelle der {findLiga27(G.league)?.name} →</Link>}
                 </section>
 
                 {/* Direkter Vergleich */}
@@ -142,11 +160,12 @@ export default function GegnerSeite() {
                         </div>
                       )}
                       {[...info.vergleich].sort((a, b) => (b.datum ?? b.saison).localeCompare(a.datum ?? a.saison)).map((v, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-5)', fontFamily: 'var(--font-manrope)', fontSize: 13.5 }}>
+                        <Zeile key={i} href={v.key ? berichtPfad(v.key) : null} titel="Spielbericht ansehen" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: '1px solid var(--th-line-5)', fontFamily: 'var(--font-manrope)', fontSize: 13.5 }}>
                           <span style={{ width: 58, flexShrink: 0, fontSize: 12, color: 'var(--th-text-muted)' }}>{v.datum ? datumKurz(v.datum) : v.saison}</span>
                           <span style={{ flex: 1, minWidth: 0, color: 'var(--th-text-body)' }}>{v.saison} · {v.wettbewerb}</span>
                           <b style={{ color: v.wir > v.sie ? '#16A34A' : v.wir < v.sie ? '#DC2626' : '#B07A00' }}>{v.wir}:{v.sie}</b>
-                        </div>
+                          {v.key && <span aria-hidden style={{ color: 'var(--th-text-faint)' }}>›</span>}
+                        </Zeile>
                       ))}
                       <div style={{ ...leise, fontSize: 11.5, marginTop: 6 }}>Aus eurer Sicht. 2025/26 aus dem Archiv; hat ein Team seitdem den Namen gewechselt, fehlen dessen alte Spiele.</div>
                     </>
@@ -175,6 +194,8 @@ export default function GegnerSeite() {
                       <b style={{ width: 46, textAlign: 'right', color: 'var(--th-text-strong)' }}>{b.points} P.</b>
                     </div>
                   ))}
+                  <Link href={`/teams/${gegnerId}#kader`} style={mehr}>Ganzer Kader von {G?.name ?? gegnerId} →</Link>
+                  {G && <Link href={`/ligen/${G.league}?tab=einzelrangliste`} style={{ ...mehr, marginTop: 6 }}>Einzelrangliste der {findLiga27(G.league)?.name} →</Link>}
                 </section>
               </>
             )}
@@ -182,6 +203,13 @@ export default function GegnerSeite() {
         )}
     </MemberShell>
   );
+}
+
+/** Zeile, die als Ganzes verlinkt — oder schlicht, wenn es kein Ziel gibt. */
+function Zeile({ href, titel, style, children }: { href: string | null; titel?: string; style: React.CSSProperties; children: React.ReactNode }) {
+  return href
+    ? <Link href={href} title={titel} style={{ ...style, textDecoration: 'none', color: 'inherit' }}>{children}</Link>
+    : <div style={style}>{children}</div>;
 }
 
 function Kopf({ titel }: { titel: string }) {
@@ -194,7 +222,7 @@ function Kopf({ titel }: { titel: string }) {
 }
 
 const karte: React.CSSProperties = { background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 16px var(--th-shadow)' };
-const zurueck: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' };
+const mehr: React.CSSProperties = { display: 'block', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--th-line-5)', fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 800, color: 'var(--th-accent)', textDecoration: 'none' };
 const miniTitel: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-muted)', marginBottom: 4 };
 const zahlBox: React.CSSProperties = { padding: '10px 6px', borderRadius: 12, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', textAlign: 'center' };
 const zahl: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, lineHeight: 1.05, color: 'var(--th-text-strong)' };

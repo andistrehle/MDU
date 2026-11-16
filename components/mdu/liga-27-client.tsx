@@ -1,7 +1,7 @@
 'use client';
 
 import { LiveBand } from '@/components/mdu/live-ticker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { TeamBadge } from './team-badge';
 import { TeamLink } from './team-link';
@@ -31,6 +31,15 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
   abende?: Record<string, number>;
 }) {
   const [tab, setTab] = useState(initialTab);
+  // Der Reiter steht in der Adresse (?tab=…). Beim „Zurück“ liefert Next die Seite aus dem Zwischenspeicher mit dem
+  // ALTEN initialTab — deshalb hier noch einmal aus der Adresse lesen (Betreiber 16.11.2026: zurück = Absprungstelle).
+  useEffect(() => {
+    queueMicrotask(() => {
+      const w = new URLSearchParams(window.location.search).get('tab')?.toLowerCase();
+      const i = w ? TABS_27.findIndex(x => x.toLowerCase() === w) : -1;
+      if (i >= 0) setTab(i);
+    });
+  }, []);
   const liga = findLiga27(code)!;
   const mds = spieltage27(code);
   const gespielt = tabelle.some(z => z.sp > 0);
@@ -44,7 +53,7 @@ export function Liga27Client({ code, initialTab = 0, tabelle, ergebnisse, einzel
       <div style={{ borderTop: '1px solid var(--th-line-6)', background: 'var(--th-bg-tabbar1)', position: 'sticky', top: 70, zIndex: 10 }}>
         <div className="mdu-tabs-row" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', gap: 36, overflowX: 'auto', overflowY: 'hidden' }}>
           {TABS_27.map((t, i) => (
-            <button key={t} onClick={() => setTab(i)} style={{
+            <button key={t} onClick={() => { setTab(i); window.history.replaceState(window.history.state, '', `${window.location.pathname}?tab=${t.toLowerCase()}`); }} style={{
               padding: '16px 0', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
               color: i === tab ? 'var(--th-accent)' : 'var(--th-text-muted)',
               border: 'none', borderBottom: i === tab ? '2px solid var(--th-accent)' : '2px solid transparent',

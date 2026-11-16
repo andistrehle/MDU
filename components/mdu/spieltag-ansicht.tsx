@@ -22,9 +22,11 @@ import {
   ladeAufgaben, neueAufgabe, setzeErledigt, loescheAufgabe, AUFGABE_MAX, SPIEL_NOTIZ_MAX,
   type Zusage, type ZusageStatus, type SpielDetails, type Aufgabe,
 } from '@/lib/supabase/zusagen';
-import { spielSlug, treffZeit } from '@/lib/spieltag';
+import { berichtPfad, profilPfad, spielSlug, treffZeit } from '@/lib/spieltag';
+import { zusagenFreigeschaltet } from '@/lib/features';
 import { Icon } from './icon';
 import { OffeneErinnern } from './team-push';
+import { ZurueckLink, Querverweise } from './zurueck-link';
 import { STATUS, REIHE, MeineAntwort, KaderZeile, gruppenAnker, namenJeGruppe, springeZuGruppe, type StandGruppe, SpielKopf, Zeitleiste, StandLeiste, karte, knopf, h2 } from './zusagen-ui';
 
 type Stand = { yes: number; maybe: number; no: number; meetTime: string | null; meetMinutes: number | null };
@@ -42,6 +44,14 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
   const label = `${t ? terminKurz(t) : wochenendeText(b.fri, b.sun, false)} · ${heim ? teamName : gegner} – ${heim ? gegner : teamName}`;
 
   const [stand, setStand] = useState<Stand | null>(null);
+  // Gibt es schon einen zählenden Spielbericht? Dann Verweis darauf (öffentliche Seite, 404 ohne Bericht).
+  const [gespielt, setGespielt] = useState(false);
+  useEffect(() => {
+    if ((t?.datum ?? b.fri) > new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' })) return;
+    let weg = false;
+    fetch(berichtPfad(b.key), { method: 'HEAD' }).then(r => { if (!weg && r.ok) setGespielt(true); }).catch(() => {});
+    return () => { weg = true; };
+  }, [b.key, b.fri, t?.datum]);
   const [kader, setKader] = useState<KaderOption[] | null>(null);
   const [zusagen, setZusagen] = useState<Zusage[]>([]);
   const [treffenMin, setTreffenMin] = useState(TREFFEN_VORGABE);
@@ -142,9 +152,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {mitglied && (
-        <Link href="/mein-team/termine" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Alle Spiele</Link>
-      )}
+      {mitglied && <ZurueckLink href="/mein-team/termine" text="Alle Spiele" />}
 
       {/* ── Übersicht ── */}
       <div style={{ borderRadius: 18, overflow: 'hidden', background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', boxShadow: '0 4px 20px var(--th-shadow)' }}>
@@ -170,6 +178,15 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
           meins={mitglied && user?.playerId ? zuVon(user.playerId)?.status ?? null : undefined}
           namen={mitglied && kader ? namenJeGruppe(personen, zuVon) : undefined} />
       </div>
+
+      {/* Querverweise (Betreiber 16.11.2026): alles rund um dieses Spiel */}
+      <Querverweise links={[
+        mitglied && user?.teamId === teamId && zusagenFreigeschaltet(user) && { href: `/mein-team/gegner?spiel=${encodeURIComponent(b.key)}`, text: 'Gegneranalyse' },
+        { href: `/teams/${heim ? b.away : b.home}#kader`, text: `Kader ${gegner}` },
+        { href: `/ligen/${b.liga}?tab=tabelle`, text: 'Tabelle' },
+        gespielt && { href: berichtPfad(b.key), text: 'Spielbericht' },
+        mitglied && user?.teamId === teamId && { href: '/mein-team/statistik', text: 'Team-Statistik' },
+      ]} />
 
       <button type="button" onClick={() => void teilen()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '13px 16px', borderRadius: 12, cursor: 'pointer', border: 'none', background: 'var(--th-accent)', color: '#fff', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, boxShadow: '0 4px 14px var(--th-accent-a30)' }}>
         <Icon name="share" size={18} stroke={2.2} /> Spiel teilen
@@ -228,7 +245,7 @@ export function SpieltagAnsicht({ b, teamId, teamName, gegner, liga, ort }: {
                       <span style={{ flex: 1, height: 1, background: 'var(--th-line-6)' }} />
                     </div>
                     {gruppe.map(p => (
-                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
+                      <KaderZeile key={p.id + (zuVon(p.id)?.updated_at ?? '')} profil={profilPfad(p.id)} name={p.name + (p.isCaptain ? ' (TC)' : '')} z={zuVon(p.id)} darfSetzen={istKapitaen}
                         ohneGrund={istKapitaen && p.id !== user?.playerId}
                         onSetze={(st, n) => setze(p, st, n, istKapitaen && p.id !== user?.playerId)} />
                     ))}

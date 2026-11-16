@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { ZurueckLink } from './zurueck-link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht, hasMinRole } from '@/lib/auth/roles';
 import { NEUE_SAISON, spieleFuerTeam27, team27, termin27 } from '@/lib/data/saison-2027';
@@ -279,7 +280,7 @@ export function StrafenTracker({ id }: { id: string }) {
         : !abend ? <Notice title="Nicht gefunden">{fehler ?? 'Diesen Strafen-Abend gibt es nicht (mehr), oder er gehört zu einem anderen Team.'}</Notice>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }}>
-            <Link href="/mein-team/kasse" style={zurueck}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Teamkasse</Link>
+            <ZurueckLink href="/mein-team/kasse" text="Teamkasse" />
 
             <div style={{ ...karte, gap: 6 }}>
               <h2 style={h2}>{abend.titel || 'Strafen-Abend'}</h2>
@@ -372,7 +373,6 @@ const nebenKnopf: React.CSSProperties = { padding: '9px 16px', borderRadius: 10,
 const plusKnopf: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', background: 'var(--th-bg-card)', border: '1.5px dashed var(--th-accent)', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13 };
 const knopfKlein: React.CSSProperties = { padding: '6px 12px', borderRadius: 999, border: '1.5px solid var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, flexShrink: 0 };
 const abendZeile: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--th-line-8)', textDecoration: 'none', fontFamily: 'var(--font-manrope)', fontSize: 14 };
-const zurueck: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' };
 const fehlerStil: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 13, color: '#E24B4A' };
 const okStil: React.CSSProperties = { padding: '10px 14px', borderRadius: 8, fontFamily: 'var(--font-manrope)', fontSize: 13, background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.35)', color: 'var(--th-win)' };
 function zaehlKnopf(plus: boolean): React.CSSProperties {

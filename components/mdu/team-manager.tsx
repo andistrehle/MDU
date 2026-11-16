@@ -36,6 +36,7 @@ import { NachrichtAnsTeam } from '@/components/mdu/team-push';
 import { ladeTermine, speichereTermin, importiereTermine, terminKey, type TeamTermin, type TerminEingabe } from '@/lib/supabase/termine';
 import { karte, h2 as h2Karte } from '@/components/mdu/zusagen-ui';
 import { Icon } from '@/components/mdu/icon';
+import { ZurueckLink } from '@/components/mdu/zurueck-link';
 import { TeamDashboard, type DashKasse } from '@/components/mdu/team-dashboard';
 import { TeamEinladen } from '@/components/mdu/team-einladen';
 import { baueTermine } from '@/components/mdu/team-statistiken';
@@ -205,7 +206,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             {dash && <KapitaensTeam teamId={teamId} />}
             {dash && <TeamEinladen teamId={teamId} teamName={t.name} />}
             {dash ? null : (<>
-            <Link href="/mein-team/zusagen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' }}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
+            <ZurueckLink href="/mein-team/zusagen" text="Team Manager" />
 
             {istKapitaen && (
               <details className="mdu-einst" style={{ ...karte, padding: 0, overflow: 'hidden' }}>

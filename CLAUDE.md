@@ -335,6 +335,15 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Terminseite (nur Kontoinhaber ohne Zeile in `match_availability`), „Nachricht ans Team“ (Freitext ≤ 200) im
   Dashboard. Server prüft TC des Teams/Ligaleitung, schreibt Glocken per service_role (Push via 0056), Absender
   ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
+  **Querverweise + „Zurück = Absprungstelle“ im Team Manager** (Betreiber, 16.11.2026): `components/mdu/scroll-merker.tsx` (global in
+  GlobalChrome) merkt je Adresse die Scroll-Position und setzt sie nach „Zurück“ noch einmal, sobald die im Browser nachgeladene
+  Seite lang genug ist. `components/mdu/zurueck-link.tsx`: `ZurueckLink` (statt fester „‹ Team Manager“-Verweise — geht ZURÜCK, wenn es
+  eine Seite davor gibt, sonst zum festen Ziel; `seiteDavor()` aus app-zurueck.tsx) und `Querverweise` (Knopfleiste). Reiter stehen in
+  der Adresse, damit „Zurück“ im selben Reiter landet: Teamseite `#kader` (`TeamTabs`), Ligaseite `?tab=…` (`Liga27Client` liest sie beim
+  Zurückkehren selbst), Statistik `#berichte`/`#aufgaben`. Verweise: Spielseite (Teams/Liga im Kopf, Leiste Gegneranalyse · Kader Gegner ·
+  Tabelle · Spielbericht · Team-Statistik, Namen → Spielerprofil über `profilPfad`), Gegneranalyse (`?spiel=<Heim|Gast>` zeigt den Gegner
+  GENAU dieses Spiels; letzte Spiele/direkter Vergleich → Spielbericht, „Ganzer Kader“, Tabelle, Einzelrangliste), Statistik (Namen →
+  Profil, Terminspalten → Spiel-/Terminseite), Kader, Dashboard (Liga → Tabelle). Neue Team-Manager-Seiten: Verweise gleich mit einbauen.
   **Statistiken** (Betreiber, 30.10.2026, Vorbild SpielerPlus, ganzes Team sieht alles): `/mein-team/statistik`
   (`components/mdu/team-statistiken.tsx`, Link unter der Statistik-Karte im Dashboard). Die Dashboard-Karte zeigt
   dieselbe Rechnung: Ring „Deine Saison“ (feiner Fortschrittsring) + `TeilnahmeTabelle kompakt` der letzten 5 Termine

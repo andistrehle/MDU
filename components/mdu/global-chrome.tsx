@@ -20,6 +20,7 @@ import { DemoTour } from './demo-tour';
 import { AnalyticsTracker } from './analytics-tracker';
 import { PushAbfrage } from './push-abfrage';
 import { AppZurueck } from './app-zurueck';
+import { ScrollMerker } from './scroll-merker';
 import { AppZaehler } from './app-zaehler';
 import { UmfragePopup } from './umfrage-popup';
 
@@ -36,6 +37,7 @@ export function GlobalChrome() {
       <AnalyticsTracker />
       <PushAbfrage />
       <AppZurueck />
+      <ScrollMerker />
       <AppZaehler />
       <UmfragePopup />
     </>

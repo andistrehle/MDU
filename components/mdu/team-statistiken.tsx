@@ -28,6 +28,8 @@ import type { SpielStat } from '@/lib/team-statistik';
 import { MemberShell, Notice, Muted, LoginLink } from './member-area';
 import { karte } from './zusagen-ui';
 import { Icon } from './icon';
+import { ZurueckLink } from './zurueck-link';
+import { profilPfad, spieltagPfad } from '@/lib/spieltag';
 import { TeamManagerFehlt } from '@/components/mdu/team-manager-fehlt';
 
 type Typ = 'mdu' | 'spiel' | 'training' | 'event' | 'sonstiges';
@@ -103,7 +105,10 @@ export function TeamStatistiken() {
   const [aufgaben, setAufgaben] = useState<Aufgabe[]>([]);
   const [berichte, setBerichte] = useState<Record<string, SpielStat> | null>(null);
   const [geladen, setGeladen] = useState(false);
-  const [reiter, setReiter] = useState<Reiter>('teilnahme');
+  const [reiter, setReiterRoh] = useState<Reiter>('teilnahme');
+  // Reiter steht als #anker in der Adresse: „Zurück“ landet im selben Reiter (Betreiber 16.11.2026).
+  useEffect(() => { queueMicrotask(() => { const h = window.location.hash.slice(1); if (h === 'berichte' || h === 'aufgaben') setReiterRoh(h); }); }, []);
+  const setReiter = (r: Reiter) => { setReiterRoh(r); window.history.replaceState(window.history.state, '', `${window.location.pathname}#${r}`); };
   const [typen, setTypen] = useState<Set<Typ>>(new Set(TYPEN.map(t => t.typ)));
   const [zeitraum, setZeitraum] = useState<Zeitraum>('saison');
   const [ort, setOrt] = useState<Ort>('alle');
@@ -151,7 +156,7 @@ export function TeamStatistiken() {
         : !geladen ? <Muted>Lade …</Muted>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <Link href="/mein-team/zusagen" style={zurueck}><Icon name="chevron" size={12} style={{ transform: 'rotate(180deg)' }} /> Team Manager</Link>
+            <ZurueckLink href="/mein-team/zusagen" text="Team Manager" />
             <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 13.5, color: 'var(--th-text-muted)' }}>Teilnahme, Spielberichte und Aufgaben deines Teams in der {NEUE_SAISON.kurz}.</div>
 
             <div role="tablist" style={{ display: 'flex', gap: 4, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4 }}>
@@ -193,7 +198,7 @@ export function TeamStatistiken() {
               ))}
             </div>
 
-            {reiter === 'teilnahme' && <TeilnahmeTabelle termine={gefiltert} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={user.playerId ?? null} />}
+            {reiter === 'teilnahme' && <TeilnahmeTabelle teamId={teamId ?? undefined} termine={gefiltert} personen={personen} zusagen={zusagen} berichte={berichte ?? {}} ichId={user.playerId ?? null} />}
             {reiter === 'berichte' && (berichte === null ? <Muted>Lade Spielberichte …</Muted> : <Spielberichte termine={gefiltert} berichte={berichte} ichId={user.playerId ?? null} />)}
             {reiter === 'aufgaben' && <Aufgaben termine={gefiltert} aufgaben={aufgaben} />}
           </div>
@@ -221,7 +226,22 @@ export function teilnahmeZeilen(termine: Termin[], personen: { id: string; name:
 }
 
 /** Teilnahme-Tabelle. `kompakt` (Dashboard): ohne Kartenrahmen, kurze Legende. */
-export function TeilnahmeTabelle({ termine, personen, zusagen, berichte, ichId, kompakt = false }: {
+/** Name als Verweis aufs Spielerprofil (nur mit echter Spieler-Kennung). */
+function ProfilName({ id, name }: { id: string; name: string }) {
+  const pfad = profilPfad(id);
+  return pfad ? <Link href={pfad} title="Spielerprofil ansehen" style={{ color: 'inherit', textDecoration: 'none' }}>{name}</Link> : <>{name}</>;
+}
+
+/** Terminspalte → Spielseite (MDU) bzw. Terminseite (eigener Termin, Kennung „ext:<id>“). */
+function TerminLink({ t, teamId, children }: { t: Termin; teamId?: string; children: React.ReactNode }) {
+  if (!teamId) return <>{children}</>;
+  const pfad = t.typ === 'mdu' ? spieltagPfad(teamId, t.key) : `/termin/${t.key.replace(/^ext:/, '')}`;
+  return <Link href={pfad} style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>{children}</Link>;
+}
+
+export function TeilnahmeTabelle({ termine, personen, zusagen, berichte, ichId, teamId, kompakt = false }: {
+  /** Mit Team: Termine im Kopf führen zur Spiel-/Terminseite (Querverweise, Betreiber 16.11.2026). */
+  teamId?: string;
   termine: Termin[]; personen: { id: string; name: string }[]; zusagen: Zusage[]; berichte: Record<string, SpielStat>; ichId: string | null; kompakt?: boolean;
 }) {
   const zeilen = useMemo(() => teilnahmeZeilen(termine, personen, zusagen, berichte), [termine, personen, zusagen, berichte]);
@@ -238,10 +258,12 @@ export function TeilnahmeTabelle({ termine, personen, zusagen, berichte, ichId, 
               <th style={{ ...kopf, ...links, left: name, minWidth: 92, borderRight: '1px solid var(--th-line-8)' }}>Teilnahme</th>
               {termine.map(t => (
                 <th key={t.key} title={`${t.titel} · ${TYPEN.find(x => x.typ === t.typ)?.name}`} style={{ ...kopf, textAlign: 'center', minWidth: 54 }}>
+                  <TerminLink t={t} teamId={teamId}>
                   <div style={{ fontWeight: 800, color: 'var(--th-text-strong)' }}>{tagMonat(t.datum)}</div>
                   <div style={{ fontSize: 10, fontWeight: 700, color: t.typ === 'mdu' ? (t.heim ? GRUEN : '#4E7DBD') : 'var(--th-text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {TYPEN.find(x => x.typ === t.typ)?.kurz}{t.heim !== null ? (t.heim ? ' · H' : ' · A') : ''}
                   </div>
+                  </TerminLink>
                 </th>
               ))}
             </tr>
@@ -249,7 +271,7 @@ export function TeilnahmeTabelle({ termine, personen, zusagen, berichte, ichId, 
           <tbody>
             {zeilen.map(p => (
               <tr key={p.id}>
-                <td style={{ ...zelle, ...links, left: 0, fontWeight: p.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: name, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</td>
+                <td style={{ ...zelle, ...links, left: 0, fontWeight: p.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: name, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><ProfilName id={p.id} name={p.name} /></td>
                 <td style={{ ...zelle, ...links, left: name, borderRight: '1px solid var(--th-line-8)', whiteSpace: 'nowrap' }}>
                   <b style={{ color: 'var(--th-text-strong)' }}>{p.n}</b> <span style={{ color: 'var(--th-text-muted)' }}>({prozent(p.n, termine.length)} %)</span>
                 </td>
@@ -301,7 +323,7 @@ function Spielberichte({ termine, berichte, ichId }: { termine: Termin[]; berich
               const dl = z.lp - z.lm;
               return (
                 <tr key={z.id}>
-                  <td style={{ ...zelle, ...links, left: 0, borderRight: '1px solid var(--th-line-8)', fontWeight: z.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: 128, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{z.name}</td>
+                  <td style={{ ...zelle, ...links, left: 0, borderRight: '1px solid var(--th-line-8)', fontWeight: z.id === ichId ? 800 : 700, color: 'var(--th-text-strong)', maxWidth: 128, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><ProfilName id={z.id} name={z.name} /></td>
                   <Zahl>{z.sp}</Zahl>
                   <Zahl>{z.eS}:{z.eN}</Zahl>
                   <Zahl>{z.dS}:{z.dN}</Zahl>
@@ -387,7 +409,6 @@ function Zahl({ children, farbe, hell }: { children: React.ReactNode; farbe?: st
 
 const klein: React.CSSProperties = { fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.45 };
 const textKnopf: React.CSSProperties = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 12.5, padding: 0 };
-const zurueck: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', fontFamily: 'var(--font-manrope)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--th-text-muted)', textDecoration: 'none' };
 const kopf: React.CSSProperties = { padding: '10px 8px', fontSize: 11.5, fontWeight: 800, color: 'var(--th-text-muted)', textAlign: 'left', borderBottom: '1px solid var(--th-line-8)', background: 'var(--th-bg-card)', whiteSpace: 'nowrap' };
 const zelle: React.CSSProperties = { padding: '9px 8px', borderBottom: '1px solid var(--th-line-5)', background: 'var(--th-bg-card)' };
 const links: React.CSSProperties = { position: 'sticky', zIndex: 1 };
