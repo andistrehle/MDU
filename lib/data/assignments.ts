@@ -591,7 +591,7 @@ export const TEAM_PLAYER_ASSIGNMENTS: TeamPlayerAssignment[] = [
   { id: 'tpa-2026-fd-despina-assimenidu', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'despina-assimenidu', status: 'active', isCaptain: false },
   { id: 'tpa-2026-fd-joerg-hirschfeld', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'joerg-hirschfeld', status: 'active', isCaptain: false },
   { id: 'tpa-2026-fd-marcus-kampmann', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'marcus-kampmann', status: 'active', isCaptain: true  },
-  { id: 'tpa-2026-fd-athanasios-karagkiozdis', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'athanasios-karagkiozdis', status: 'active', isCaptain: false },
+  { id: 'tpa-2026-fd-athanasios-karagkiozdis', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'athanasios-karagkiozidis', status: 'active', isCaptain: false },
   { id: 'tpa-2026-fd-panos-moraitis', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'panos-moraitis', status: 'active', isCaptain: false },
   { id: 'tpa-2026-fd-vassilios-papadopoulos', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'vassilios-papadopoulos', status: 'active', isCaptain: false },
   { id: 'tpa-2026-fd-dimitrios-papadopoulos', seasonId: 'season-2026', teamId: 'funny-darters', playerId: 'dimitrios-papadopoulos', status: 'active', isCaptain: false },
