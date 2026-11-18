@@ -30,11 +30,13 @@ export interface AdminNotificationCounts {
   matchReports: number;
   /** offene Spieler-Nachmeldungen (pending) */
   nominations: number;
+  /** offene Mails im Postfach kontakt@mdudarts.de (Admin → Postfach) */
+  postfach: number;
   /** Summe aller offenen Admin-Aufgaben */
   total: number;
 }
 
-export const ZERO_COUNTS: AdminNotificationCounts = { registrations: 0, users: 0, matchReports: 0, nominations: 0, total: 0 };
+export const ZERO_COUNTS: AdminNotificationCounts = { registrations: 0, users: 0, matchReports: 0, nominations: 0, postfach: 0, total: 0 };
 
 /** Offene Mannschaftsanmeldungen (warten auf Prüfung). */
 export async function getPendingRegistrationCount(user: UserProfile | null): Promise<number> {
@@ -99,16 +101,31 @@ export async function countOffeneProteste(): Promise<number> {
   return error ? 0 : count ?? 0;
 }
 
+/** Offene Mails im Postfach — nur per Server lesbar (Tabelle ohne Policies). Fehler/ohne Migration 0070 → 0. */
+export async function countOffenePost(): Promise<number> {
+  try {
+    if (!supabase) return 0;
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) return 0;
+    const res = await fetch('/api/postfach?zahl=1', { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return 0;
+    return Number((await res.json()).offen) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** Alle Admin-Zähler in einem Rutsch (parallele Count-Queries). */
 export async function getAdminNotificationCounts(user: UserProfile | null): Promise<AdminNotificationCounts> {
   if (!canManageLeague(user)) return ZERO_COUNTS;
-  const [registrations, users, nominations, matchReports] = await Promise.all([
+  const [registrations, users, nominations, matchReports, postfach] = await Promise.all([
     getPendingRegistrationCount(user),
     getNewUserCount(user),
     countPendingNominations(),
     countOffeneProteste(),
+    countOffenePost(),
   ]);
-  return { registrations, users, matchReports, nominations, total: registrations + users + matchReports + nominations };
+  return { registrations, users, matchReports, nominations, postfach, total: registrations + users + matchReports + nominations + postfach };
 }
 
 export function getTotalAdminNotificationCount(counts: AdminNotificationCounts): number {

@@ -178,6 +178,7 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
       { icon: 'calendar', label: 'Spielplan / TC-Pläne',  description: 'Plan jeder Mannschaft, Liga oder jedes Spielorts drucken.', href: '/admin/spielplan-vorschlag', ready: true },
       { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true, badgeKey: 'matchReports' },
       { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
+      { icon: 'file',   label: 'Postfach',                description: 'Mails an kontakt@mdudarts.de lesen und beantworten.', href: '/admin/postfach', ready: true, badgeKey: 'postfach' },
       { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
       { icon: 'bar',    label: 'Statistik',               description: 'Umfrage-Ergebnisse, Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
     );

@@ -35,6 +35,7 @@ const CARDS: AdminCard[] = [
   { icon: 'calendar', label: 'Spielplan / TC-Pläne', desc: 'Pläne je Mannschaft, Liga und Spielort drucken.', href: '/admin/spielplan-vorschlag' },
   { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte', badgeKey: 'matchReports' },
   { icon: 'bar',      label: 'Erfassung',          desc: 'Live, Foto oder abgeschrieben?',  href: '/admin/erfassung' },
+  { icon: 'file',     label: 'Postfach',           desc: 'Mails an kontakt@mdudarts.de lesen und beantworten.', href: '/admin/postfach', badgeKey: 'postfach' },
   { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
   { icon: 'list',     label: 'Umfrage',            desc: 'Ergebnisse der Umfragen ansehen.', href: '/admin/umfrage' },
   { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },

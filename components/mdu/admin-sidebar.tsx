@@ -31,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: 'calendar', label: 'Verlegungen',   href: '/admin/verlegungen',   require: 'league' },
   { icon: 'bar',      label: 'Erfassung',     href: '/admin/erfassung',     require: 'league' },
   { icon: 'user',     label: 'Nachmeldungen', href: '/admin/nachmeldungen', require: 'league', badgeKey: 'nominations' },
+  { icon: 'file',     label: 'Postfach',      href: '/admin/postfach',      require: 'league', badgeKey: 'postfach' },
   { icon: 'bell',     label: 'News',          href: '/admin/news',          require: 'league' },
   { icon: 'list',     label: 'Umfrage',       href: '/admin/umfrage',       require: 'league' },
   { icon: 'download', label: 'Downloads',     href: '/admin/downloads',     require: 'league' },
