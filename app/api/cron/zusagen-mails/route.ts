@@ -24,6 +24,7 @@ import { termineImFenster } from '@/lib/server/zusagen-fenster';
 import { sendTextEmail } from '@/lib/server/email/send-email';
 import { pushAn, pushBereit } from '@/lib/server/push';
 import { abmeldeSchluessel } from '@/lib/server/zusage-mail-token';
+import { snapshotUebernehmen } from '@/lib/server/saison-snapshot';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,6 +45,9 @@ export async function GET(request: Request) {
   // Team Manager (Migration 0063): Abgelaufenes sperren, kurz vor Ablauf erinnern.
   const premium = await abgleich().catch(e => ({ fehler: e instanceof Error ? e.message : String(e) }));
   bericht.push({ premium });
+  // Öffentliche Seiten nachziehen, falls ein Team Logo/Kürzel/Namen/Lokal geändert hat (lib/server/saison-snapshot.ts).
+  const snapshot = await snapshotUebernehmen();
+  bericht.push({ snapshot: { geaendert: snapshot.geaendert, anzahl: snapshot.unterschiede.length, fehler: snapshot.error ?? null } });
   for (const teamId of await aktiveTeams()) {
     const { data: einst, error: einstErr } = await db.from('team_availability_settings')
       .select('reminder_days, email_reminder').eq('team_id', teamId).maybeSingle();

@@ -8,6 +8,7 @@
 // Supabase. Read-only-Übersicht; Standard-Saison ist die Anmelde-Saison.
 // ============================================================
 
+import { SnapshotAbgleich, snapshotUebernehmen } from '@/components/mdu/snapshot-abgleich';
 import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { AdminGuard } from '@/components/mdu/admin-guard';
@@ -186,6 +187,7 @@ export default function AdminSeasonTeamsPage() {
   const [venueName, setVenueName] = useState('');
   const [venueAddr, setVenueAddr] = useState('');
   const [savingVenue, setSavingVenue] = useState(false);
+  const [abgleich, setAbgleich] = useState(0);
   async function onSaveVenue(teamId: string) {
     if (!venueName.trim()) return;
     setSavingVenue(true);
@@ -194,6 +196,10 @@ export default function AdminSeasonTeamsPage() {
     if (error) { setFinalizeMsg({ teamId, kind: 'err', text: error }); return; }
     setTeams(await listSeasonTeams(seasonId));
     setVenueEditTeam(null);
+    // Das Lokal steht auch auf Spielplan, Teamseite und Spielstätten — dort gleich mit nachziehen (Betreiber 18.11.2026).
+    const r = await snapshotUebernehmen();
+    setFinalizeMsg({ teamId, kind: r.art, text: r.text });
+    setAbgleich(n => n + 1);
   }
 
   // Ansprechpartner/„Kapitän-Kontakt" bearbeiten (v. a. bei im Namen der
@@ -645,6 +651,7 @@ export default function AdminSeasonTeamsPage() {
 
   return (
     <AdminGuard title="Saison-Teams" subtitle="Freigegebene Mannschaften je Saison (aus den Anmeldungen übernommen).">
+      <SnapshotAbgleich neuLaden={abgleich} />
       {/* Saison-Auswahl */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
         <span style={{ fontFamily: 'var(--font-manrope)', fontSize: 13, fontWeight: 700, color: 'var(--th-text-muted)' }}>Saison:</span>

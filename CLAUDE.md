@@ -49,8 +49,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
 - **Zwei Saisons öffentlich (seit 30.09.2026):** Standard ist **2026/27** aus
   `lib/data/saison-2027.ts` (vorläufiger Spielplan + Ligen La/A/B1/B2/C + Teams/Lokale;
   Daten in `saison-2027.generated.json`, erzeugt von `scripts/mdu-saison-2027-snapshot.ts`
-  aus dem Spielplan-Vorschlag + DB, NUR LESEND — nach Änderungen an Plan, Teamnamen, Kürzeln,
-  Logos oder Spielorten neu laufen lassen). **2025/26 ist ARCHIV**: die alten Seiten liegen
+  aus dem Spielplan-Vorschlag + DB, NUR LESEND — Teamnamen, Kürzel, Logos und Spielorte zieht der Server seit 18.11.2026
+  selbst nach, nach Änderungen am PLAN das Skript von Hand laufen lassen). **2025/26 ist ARCHIV**: die alten Seiten liegen
   unverändert unter `…/2025-26` (`/spielplan`, `/ergebnisse`, `/tabellen`, `/ligen`, `/teams`,
   `/spielstaetten`), Detailseiten schalten mit `?saison=2025-26` um (`/ligen/[code]` zeigt
   Codes, die es 26/27 nicht gibt — a1, a2, Playoffs — automatisch als Archiv). Umschalter:
@@ -337,6 +337,14 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Terminseite (nur Kontoinhaber ohne Zeile in `match_availability`), „Nachricht ans Team“ (Freitext ≤ 200) im
   Dashboard. Server prüft TC des Teams/Ligaleitung, schreibt Glocken per service_role (Push via 0056), Absender
   ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
+  **Momentaufnahme 2026/27 zieht von selbst nach** (Betreiber, 18.11.2026; Anlass: Dart's Vaders wechselten das Lokal, öffentlich stand
+  noch das alte): Rechnung rein in `lib/saison-snapshot.ts` (`baueSnapshot`, `unterschiede` in Worten; getestet) — dieselbe nutzen das
+  Skript `scripts/mdu-saison-2027-snapshot.ts` und der Server `lib/server/saison-snapshot.ts`, der Unterschiede zwischen DB und
+  `saison-2027.generated.json` als EIN Commit übernimmt (`aendereJsonDatei`, `MDU_GITHUB_TOKEN` → Neubau). Ausgelöst: nach dem Speichern
+  eines Lokals unter Admin → Saison-Teams, per Knopf im Hinweis „Die öffentlichen Seiten zeigen noch den alten Stand“
+  (`components/mdu/snapshot-abgleich.tsx`, `/api/admin/saison-snapshot` GET vergleicht / POST übernimmt) und täglich im Cron
+  `zusagen-mails` (für Logo/Kürzel/Name, die Teams selbst ändern). Ein LEERES Logo-Feld zählt wie keines; beigelegte Logos bleiben
+  über die bisherige Datei erhalten. Ohne Unterschied kein Commit.
   **Admin-Kacheln in 7 Gruppen** (Betreiber, 18.11.2026, per Klick-Umfrage): Mein Bereich und Admin-Dashboard zeigen Postfach ·
   Spielbetrieb · Teams & Spieler · Benutzer · News · Statistik · Premium (Dashboard zusätzlich Downloads, Sicherheit, Einstellungen).
   Sammelkacheln führen auf ein Untermenü (`components/mdu/admin-hub.tsx`: `/admin/spielbetrieb`, `/admin/teams-spieler`,
