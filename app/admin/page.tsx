@@ -24,25 +24,18 @@ interface AdminCard {
   badgeKey?: keyof AdminNotificationCounts;
 }
 
+// Dieselben Gruppen wie in Mein Bereich (Betreiber, 18.11.2026) — die Seitenleiste bleibt der Direktzugriff auf alle Seiten.
 const CARDS: AdminCard[] = [
+  { icon: 'file',     label: 'Postfach',        desc: 'Mails an kontakt@mdudarts.de lesen und beantworten.', href: '/admin/postfach', badgeKey: 'postfach' },
+  { icon: 'calendar', label: 'Spielbetrieb',    desc: 'Spielberichte, Verlegungen, Spielplan / TC-Pläne.', href: '/admin/spielbetrieb', badgeKey: 'matchReports' },
+  { icon: 'trophy',   label: 'Teams & Spieler', desc: 'Saison-Teams, Spieler, Kontakte, Anmeldungen, Nachmeldungen.', href: '/admin/teams-spieler', badgeKey: 'teamsSpieler' },
+  { icon: 'users',    label: 'Benutzer',        desc: 'Konten, Verknüpfungen, Rollen & Rechte.', href: '/admin/benutzer', badgeKey: 'users' },
+  { icon: 'bell',     label: 'News',            desc: 'Aktuelles verwalten.', href: '/admin/news' },
+  { icon: 'bar',      label: 'Statistik',       desc: 'Umfrage, Erfassung der Spielberichte, Web-App, Nutzung.', href: '/admin/statistik' },
   { icon: 'star',     label: 'Premium (Team Manager)', desc: 'Zahlungen, Überweisungen freischalten, Abläufe, PayPal.', href: '/admin/premium', super: true },
-  { icon: 'users',    label: 'Benutzerverwaltung', desc: 'Konten, Rollen & Verknüpfungen.', href: '/admin/users', badgeKey: 'users' },
-  { icon: 'edit',     label: 'Rollenverwaltung',   desc: 'Rollen & Rechte im Überblick.',   href: '/admin/roles' },
-  { icon: 'trophy',   label: 'Saison-Teams',       desc: 'Mannschaften je Saison, Liga & Kader.', href: '/admin/season-teams' },
-  { icon: 'user',     label: 'Spieler',            desc: 'Spieler & Verknüpfungen.',        href: '/admin/players' },
-  { icon: 'users',    label: 'Spieler umbenennen', desc: 'Namen und Profil-Adresse ändern, Dubletten finden.', href: '/admin/spieler' },
-  { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/registrations', badgeKey: 'registrations' },
-  { icon: 'user',     label: 'Nachmeldungen',      desc: 'Spieler-Nachmeldungen prüfen.',   href: '/admin/nachmeldungen', badgeKey: 'nominations' },
-  { icon: 'calendar', label: 'Spielplan / TC-Pläne', desc: 'Pläne je Mannschaft, Liga und Spielort drucken.', href: '/admin/spielplan-vorschlag' },
-  { icon: 'file',     label: 'Spielberichte',      desc: 'Berichte prüfen & freigeben.',    href: '/admin/spielberichte', badgeKey: 'matchReports' },
-  { icon: 'bar',      label: 'Erfassung',          desc: 'Live, Foto oder abgeschrieben?',  href: '/admin/erfassung' },
-  { icon: 'file',     label: 'Postfach',           desc: 'Mails an kontakt@mdudarts.de lesen und beantworten.', href: '/admin/postfach', badgeKey: 'postfach' },
-  { icon: 'bell',     label: 'News',               desc: 'Aktuelles verwalten.',            href: '/admin/news' },
-  { icon: 'list',     label: 'Umfrage',            desc: 'Ergebnisse der Umfragen ansehen.', href: '/admin/umfrage' },
-  { icon: 'download', label: 'Downloads',          desc: 'Dokumente & Formulare.',          href: '/admin/downloads' },
-  { icon: 'upload',   label: 'Datenimport',        desc: 'dartunion.de-Importstatus.',      href: '/admin/import' },
-  { icon: 'check',    label: 'Sicherheit',         desc: 'Datenschutz- & Security-Status.', href: '/admin/security' },
-  { icon: 'settings', label: 'Einstellungen',      desc: 'Systemeinstellungen.',            href: '/admin/settings', super: true },
+  { icon: 'download', label: 'Downloads',       desc: 'Dokumente & Formulare.', href: '/admin/downloads' },
+  { icon: 'check',    label: 'Sicherheit',      desc: 'Datenschutz- & Security-Status.', href: '/admin/security' },
+  { icon: 'settings', label: 'Einstellungen',   desc: 'Systemeinstellungen.', href: '/admin/settings', super: true },
 ];
 
 export default function AdminDashboardPage() {

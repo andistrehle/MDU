@@ -170,25 +170,14 @@ function tilesFor(user: UserProfile, captainMode: boolean, reg: { open: boolean;
   // Ligaleitung / Vorstand aufwärts — Verwaltung (im Kapitäns-Modus ausgeblendet)
   if (canManageLeague(user) && !inCaptainMode) {
     tiles.push(
-      { icon: 'users',  label: 'Benutzer verwalten',      description: 'Konten und Zuordnungen prüfen.', href: '/admin/users', ready: true, badgeKey: 'users' },
-      { icon: 'list',   label: 'Offene Saisonanmeldungen', description: 'Mannschaftsanmeldungen prüfen und freigeben.', href: '/admin/registrations', ready: true, badgeKey: 'registrations' },
-      { icon: 'trophy', label: 'Saison-Teams',            description: 'Freigegebene Mannschaften je Saison.', href: '/admin/season-teams', ready: true },
-      { icon: 'user',   label: 'Kontakte',               description: 'Telefonnummern der Team-Kapitäne.', href: '/admin/kontakte', ready: true },
-      { icon: 'users',  label: 'Spieler',                description: 'Alle Spieler alphabetisch – Namen und Profil-Adresse ändern, löschen, Dubletten finden.', href: '/admin/spieler', ready: true },
-      { icon: 'calendar', label: 'Spielplan / TC-Pläne',  description: 'Plan jeder Mannschaft, Liga oder jedes Spielorts drucken.', href: '/admin/spielplan-vorschlag', ready: true },
-      { icon: 'file',   label: 'Spielberichte (Übersicht)', description: 'Alle Spielberichte einsehen.', href: '/admin/spielberichte', ready: true, badgeKey: 'matchReports' },
-      { icon: 'user',   label: 'Nachmeldungen',            description: 'Spieler-Nachmeldungen prüfen.', href: '/admin/nachmeldungen', ready: true, badgeKey: 'nominations' },
-      { icon: 'file',   label: 'Postfach',                description: 'Mails an kontakt@mdudarts.de lesen und beantworten.', href: '/admin/postfach', ready: true, badgeKey: 'postfach' },
-      { icon: 'bell',   label: 'News pflegen',            description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
-      { icon: 'bar',    label: 'Statistik',               description: 'Umfrage-Ergebnisse, Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
-    );
-  }
-
-  // Super Admin — exklusiv (im Kapitäns-Modus ausgeblendet)
-  if (canManageUsers(user) && !inCaptainMode) {
-    tiles.push(
-      { icon: 'edit',     label: 'Rollenverwaltung',    description: 'Rollen vergeben (in der Benutzerverwaltung).', href: '/admin/users', ready: true },
-      { icon: 'settings', label: 'Systemeinstellungen', description: 'Plattform-Einstellungen (folgt).', ready: false },
+      // Sieben Gruppen statt vieler Einzelkacheln (Betreiber, 18.11.2026): Sammelkacheln öffnen ein Untermenü
+      // (components/mdu/admin-hub.tsx), die Zahl offener Aufgaben steht an der Kachel und dort am Punkt.
+      { icon: 'file',   label: 'Postfach',        description: 'Mails an kontakt@mdudarts.de lesen und beantworten.', href: '/admin/postfach', ready: true, badgeKey: 'postfach' },
+      { icon: 'calendar', label: 'Spielbetrieb',  description: 'Spielberichte, Verlegungen, Spielplan / TC-Pläne.', href: '/admin/spielbetrieb', ready: true, badgeKey: 'matchReports' },
+      { icon: 'trophy', label: 'Teams & Spieler', description: 'Saison-Teams, Spieler, Kontakte, Anmeldungen, Nachmeldungen.', href: '/admin/teams-spieler', ready: true, badgeKey: 'teamsSpieler' },
+      { icon: 'users',  label: 'Benutzer',        description: 'Konten und Zuordnungen prüfen, Rollen & Rechte.', href: '/admin/benutzer', ready: true, badgeKey: 'users' },
+      { icon: 'bell',   label: 'News pflegen',    description: 'Aktuelles verwalten.', href: '/admin/news', ready: true },
+      { icon: 'bar',    label: 'Statistik',       description: 'Umfrage-Ergebnisse, Erfassung der Spielberichte (live, Foto, abgeschrieben) und Nutzungsstatistik.', href: '/admin/statistik', ready: true },
     );
   }
 

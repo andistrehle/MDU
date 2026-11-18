@@ -158,3 +158,21 @@ export function htmlZuText(html: string): string {
     .split('\n').map(z => z.replace(/[ \t]+/g, ' ').trim()).join('\n')
     .replace(/\n{3,}/g, '\n\n').trim();
 }
+
+/** Leere neue Mail: Platz für Anrede und Text, darunter die Signatur. */
+export const NEUE_MAIL_VORLAGE = `Hallo ,\n\n\n\n${SIGNATUR}`;
+
+/** Prüft eine NEUE Mail (keine Antwort) vor dem Senden. null = in Ordnung. `nurEntwurf`: Empfänger/Text dürfen noch fehlen. */
+export function neueMailPruefen(an: string, betreff: string, text: string, nurEntwurf = false): { feld: 'an' | 'betreff' | 'text'; text: string } | null {
+  const a = (an ?? '').trim();
+  if (a && !MAIL.test(a)) return { feld: 'an', text: 'Das ist keine gültige E-Mail-Adresse.' };
+  if (a && nichtBeantwortbar(a)) return { feld: 'an', text: 'An eine no-reply-Adresse lässt sich nichts schicken.' };
+  if ((betreff ?? '').trim().length > 300) return { feld: 'betreff', text: 'Der Betreff ist zu lang (höchstens 300 Zeichen).' };
+  if ((text ?? '').length > 20_000) return { feld: 'text', text: 'Der Text ist zu lang (höchstens 20.000 Zeichen).' };
+  if (nurEntwurf) return null;
+  if (!a) return { feld: 'an', text: 'Bitte eine E-Mail-Adresse eintragen.' };
+  if ((betreff ?? '').trim().length < 3) return { feld: 'betreff', text: 'Bitte einen Betreff eintragen.' };
+  const t = (text ?? '').trim();
+  if (t.length < 10 || t === NEUE_MAIL_VORLAGE.trim() || /^Hallo[^\n]*,\s*Viele Grüße\s*Andi\s*Münchner Dart Union$/.test(t)) return { feld: 'text', text: 'Der Text ist noch leer.' };
+  return null;
+}

@@ -4,14 +4,15 @@
 // GET            Liste (?status=offen|erledigt|alle), dazu Stand des Abholens.
 // GET ?zahl=1    nur die Zahl offener Mails (Kachel/Seitenleiste).
 // POST aktion:   abholen · status · entwurf · notiz · senden · anhang
+//                neu_entwurf · neu_senden · neu_loeschen (neue Mail, keine Antwort)
 // Alles per service_role (Tabelle ohne Policies), Zugang nur Ligaleitung.
 // ============================================================
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
-import { abholen, anhangLink, antworten, postfachEingerichtet } from '@/lib/server/postfach';
-import { antwortPruefen } from '@/lib/postfach';
+import { abholen, anhangLink, antworten, entwurfSpeichern, neueMailSenden, postfachEingerichtet } from '@/lib/server/postfach';
+import { antwortPruefen, neueMailPruefen } from '@/lib/postfach';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
 
   const status = url.searchParams.get('status') ?? 'offen';
   let q = z.db.from('postfach_mails').select(SPALTEN).order('datum', { ascending: false }).limit(200);
-  if (status === 'offen') q = q.eq('status', 'offen').eq('richtung', 'ein');
+  if (status === 'offen') q = q.eq('status', 'offen'); // eingehende offene UND eigene Entwürfe (richtung 'aus')
   else if (status === 'erledigt') q = q.eq('status', 'erledigt');
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: fehlt(error.message) }, { status: 500 });
@@ -72,6 +73,28 @@ export async function POST(request: Request) {
     if (r.status === 'nicht_eingerichtet') return NextResponse.json({ error: 'Die Zugangsdaten für Strato fehlen noch in Vercel (POSTFACH_IMAP_USER, POSTFACH_IMAP_PASSWORD).' }, { status: 503 });
     if (r.status === 'fehler') return NextResponse.json({ error: r.fehler ?? 'Abholen fehlgeschlagen.' }, { status: 502 });
     return NextResponse.json({ ok: true, neu: r.neu });
+  }
+
+  // ── Neue Mail (keine Antwort): Entwurf speichern / senden / Entwurf löschen ──
+  if (aktion === 'neu_entwurf' || aktion === 'neu_senden') {
+    const an = String(body.an ?? ''), betreff = String(body.betreff ?? ''), text = String(body.text ?? '');
+    const m = neueMailPruefen(an, betreff, text, aktion === 'neu_entwurf');
+    if (m) return NextResponse.json({ error: m.text, feld: m.feld }, { status: 400 });
+    if (aktion === 'neu_entwurf') {
+      const r = await entwurfSpeichern({ id: id || null, an, betreff, text });
+      if (r.error || !r.id) return NextResponse.json({ error: fehlt(r.error ?? 'Speichern fehlgeschlagen.') }, { status: 500 });
+      return NextResponse.json({ ok: true, id: r.id });
+    }
+    const r = await neueMailSenden({ an, betreff, text, userId: z.user.id, entwurfId: id || null });
+    if (r.status === 'skipped_no_provider') return NextResponse.json({ error: 'Der Mailversand ist auf dem Server nicht eingerichtet – die Mail wurde NICHT verschickt.' }, { status: 503 });
+    if (r.status === 'failed') return NextResponse.json({ error: `Die Mail wurde NICHT verschickt: ${r.error ?? 'unbekannter Fehler'}` }, { status: 502 });
+    return NextResponse.json({ ok: true });
+  }
+  if (aktion === 'neu_loeschen') {
+    if (!id) return NextResponse.json({ error: 'Entwurf fehlt.' }, { status: 400 });
+    const { error } = await z.db.from('postfach_mails').delete().eq('id', id).eq('richtung', 'aus').eq('status', 'offen');
+    if (error) return NextResponse.json({ error: fehlt(error.message) }, { status: 500 });
+    return NextResponse.json({ ok: true });
   }
 
   if (!id) return NextResponse.json({ error: 'Mail fehlt.' }, { status: 400 });

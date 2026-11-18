@@ -32,11 +32,13 @@ export interface AdminNotificationCounts {
   nominations: number;
   /** offene Mails im Postfach kontakt@mdudarts.de (Admin → Postfach) */
   postfach: number;
+  /** Sammelkachel „Teams & Spieler“: Anmeldungen + Nachmeldungen (zählt NICHT zusätzlich in total) */
+  teamsSpieler: number;
   /** Summe aller offenen Admin-Aufgaben */
   total: number;
 }
 
-export const ZERO_COUNTS: AdminNotificationCounts = { registrations: 0, users: 0, matchReports: 0, nominations: 0, postfach: 0, total: 0 };
+export const ZERO_COUNTS: AdminNotificationCounts = { registrations: 0, users: 0, matchReports: 0, nominations: 0, postfach: 0, teamsSpieler: 0, total: 0 };
 
 /** Offene Mannschaftsanmeldungen (warten auf Prüfung). */
 export async function getPendingRegistrationCount(user: UserProfile | null): Promise<number> {
@@ -125,7 +127,7 @@ export async function getAdminNotificationCounts(user: UserProfile | null): Prom
     countOffeneProteste(),
     countOffenePost(),
   ]);
-  return { registrations, users, matchReports, nominations, postfach, total: registrations + users + matchReports + nominations + postfach };
+  return { registrations, users, matchReports, nominations, postfach, teamsSpieler: registrations + nominations, total: registrations + users + matchReports + nominations + postfach };
 }
 
 export function getTotalAdminNotificationCount(counts: AdminNotificationCounts): number {

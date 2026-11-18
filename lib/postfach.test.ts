@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { htmlZuText, istNewsletter, antwortBetreff, antwortPruefen, antwortText, betreffKern, fadenSchluessel, istAutomatisch, leererEntwurf, vorname, vorschau, zitat } from './postfach';
+import { neueMailPruefen, NEUE_MAIL_VORLAGE, htmlZuText, istNewsletter, antwortBetreff, antwortPruefen, antwortText, betreffKern, fadenSchluessel, istAutomatisch, leererEntwurf, vorname, vorschau, zitat } from './postfach';
 
 describe('Postfach', () => {
   it('Betreff-Kern: alle Antwort- und Weiterleitungs-Vorsätze fallen weg', () => {
@@ -72,5 +72,18 @@ describe('Postfach', () => {
     expect(htmlZuText('<style>p{color:red}</style><p>Hallo Toni,</p><p>bitte <b>Linprunner</b> in Limbrunner &auml;ndern&nbsp;&#8211; danke &#x1F3AF;</p><script>alert(1)</script>'))
       .toBe('Hallo Toni,\nbitte Linprunner in Limbrunner ändern – danke 🎯');
     expect(htmlZuText('a<br>b<br/>c &amp; d &unbekannt;')).toBe('a\nb\nc & d &unbekannt;');
+  });
+
+  it('neue Mail prüfen: Meldung gehört zum richtigen Feld; ein Entwurf darf unfertig sein', () => {
+    const gut = 'Servus Stephan,\n\nkurze Bitte …\n\nViele Grüße\n\nAndi\nMünchner Dart Union';
+    expect(neueMailPruefen('s@example.de', 'Login von Linda', gut)).toBeNull();
+    expect(neueMailPruefen('', 'Login von Linda', gut)?.feld).toBe('an');
+    expect(neueMailPruefen('kein-at', 'Login von Linda', gut)?.feld).toBe('an');
+    expect(neueMailPruefen('no-reply@example.de', 'Login von Linda', gut)?.feld).toBe('an');
+    expect(neueMailPruefen('s@example.de', ' ', gut)?.feld).toBe('betreff');
+    expect(neueMailPruefen('s@example.de', 'Login von Linda', NEUE_MAIL_VORLAGE)?.feld).toBe('text');
+    // Entwurf: leer ist erlaubt, eine kaputte Adresse nicht
+    expect(neueMailPruefen('', '', '', true)).toBeNull();
+    expect(neueMailPruefen('kein-at', '', '', true)?.feld).toBe('an');
   });
 });

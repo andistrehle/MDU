@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { supabase } from '@/lib/supabase/client';
-import { leererEntwurf, vorschau, antwortPruefen, type PostfachMail } from '@/lib/postfach';
+import { leererEntwurf, vorschau, antwortPruefen, neueMailPruefen, NEUE_MAIL_VORLAGE, type PostfachMail } from '@/lib/postfach';
 
 type Mail = PostfachMail & { automatisch: boolean; bezug: string | null };
 type Filter = 'offen' | 'erledigt' | 'alle';
@@ -46,6 +46,7 @@ export default function AdminPostfachPage() {
   const [offen, setOffen] = useState<string | null>(null);
   const [holt, setHolt] = useState(false);
   const [holMeldung, setHolMeldung] = useState<{ art: 'ok' | 'err'; text: string } | null>(null);
+  const [neu, setNeu] = useState(false);
 
   const laden = useCallback(async (f: Filter) => {
     const { ok, j } = await ruf('GET', `/api/postfach?status=${f}`);
@@ -89,7 +90,10 @@ export default function AdminPostfachPage() {
             ))}
           </div>
           <span style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-            <button type="button" onClick={() => void abholen()} disabled={holt} style={{ ...knopf(false), opacity: holt ? 0.6 : 1 }}>{holt ? 'Hole ab …' : 'Jetzt abholen'}</button>
+            <span style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={() => setNeu(true)} disabled={neu} style={{ ...knopf(true), opacity: neu ? 0.6 : 1 }}>Neue Mail</button>
+              <button type="button" onClick={() => void abholen()} disabled={holt} style={{ ...knopf(false), opacity: holt ? 0.6 : 1 }}>{holt ? 'Hole ab …' : 'Jetzt abholen'}</button>
+            </span>
             {/* Hinweise direkt am Knopf */}
             {holMeldung && <span role={holMeldung.art === 'err' ? 'alert' : 'status'} style={{ ...klein, color: holMeldung.art === 'err' ? 'var(--th-loss)' : 'var(--th-win)', maxWidth: 320, textAlign: 'right' }}>{holMeldung.text}</span>}
             {!holMeldung && daten?.stand?.letzter_lauf && <span style={klein}>Zuletzt abgeholt: {zeit(daten.stand.letzter_lauf)} · automatisch jede Stunde</span>}
@@ -108,16 +112,88 @@ export default function AdminPostfachPage() {
           <Hinweis ton="gold" titel="Mailversand nicht eingerichtet">Antworten lassen sich im Moment nicht von hier verschicken.</Hinweis>
         )}
 
+        {neu && <NeueMail versand={!!daten?.versand} onFertig={() => { setNeu(false); void laden(filter); }} onZu={() => setNeu(false)} />}
+
         {fehler ? <Hinweis ton="rot" titel="Postfach lässt sich nicht laden">{fehler}</Hinweis>
           : !daten ? <div style={klein}>Lade …</div>
           : mails.length === 0 ? <div style={{ ...karte, ...klein, fontSize: 14 }}>{filter === 'offen' ? 'Nichts offen – alles erledigt.' : 'Keine Mails.'}</div>
-          : mails.map(m => (
+          : mails.map(m => (m.richtung === 'aus' && m.status === 'offen' ? (
+            // Eigener Entwurf einer neuen Mail (auch von Claude vorbereitet): bearbeiten, senden oder verwerfen.
+            <NeueMail key={`${m.id}:${(m.entwurf ?? '').length}`} entwurf={m} versand={daten.versand} onFertig={() => void laden(filter)} />
+          ) : (
             <MailKarte key={`${m.id}:${m.status}:${(m.entwurf ?? '').length}:${(m.notiz ?? '').length}`} m={m} auf={offen === m.id} versand={daten.versand}
-              verlauf={(verlaufJe.get(m.faden) ?? []).filter(v => v.id !== m.id)}
+              verlauf={(verlaufJe.get(m.faden) ?? []).filter(v => v.id !== m.id && !(v.richtung === 'aus' && v.status === 'offen'))}
               onAuf={() => setOffen(o => (o === m.id ? null : m.id))} onGeaendert={() => void laden(filter)} />
+          )
           ))}
       </div>
     </AdminGuard>
+  );
+}
+
+/** Neue Mail schreiben (keine Antwort) bzw. einen gespeicherten Entwurf bearbeiten. Gesendet wird nur per Klick + Rückfrage. */
+function NeueMail({ entwurf, versand, onFertig, onZu }: { entwurf?: Mail; versand: boolean; onFertig: () => void; onZu?: () => void }) {
+  const [id, setId] = useState<string | null>(entwurf?.id ?? null);
+  const [an, setAn] = useState(entwurf?.an ?? '');
+  const [betreff, setBetreff] = useState(entwurf?.betreff ?? '');
+  const [text, setText] = useState(entwurf?.entwurf ?? NEUE_MAIL_VORLAGE);
+  const [laeuft, setLaeuft] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ art: 'ok' | 'err'; feld: 'an' | 'betreff' | 'text' | 'knopf'; text: string } | null>(null);
+
+  async function ruft(aktion: 'neu_entwurf' | 'neu_senden' | 'neu_loeschen') {
+    setLaeuft(aktion); setMsg(null);
+    const { ok, j } = await ruf('POST', '/api/postfach', { aktion, id, an, betreff, text });
+    setLaeuft(null);
+    if (!ok) { setMsg({ art: 'err', feld: (j.feld as 'an') ?? 'knopf', text: (j.error as string) ?? 'Hat nicht geklappt.' }); return null; }
+    return j;
+  }
+  async function speichern() {
+    const m = neueMailPruefen(an, betreff, text, true);
+    if (m) { setMsg({ art: 'err', ...m }); return; }
+    const j = await ruft('neu_entwurf');
+    if (j) { if (j.id) setId(String(j.id)); setMsg({ art: 'ok', feld: 'knopf', text: 'Entwurf gespeichert – er liegt unter „Offen“.' }); }
+  }
+  async function senden() {
+    const m = neueMailPruefen(an, betreff, text);
+    if (m) { setMsg({ art: 'err', ...m }); return; }
+    if (!window.confirm(`Mail jetzt als kontakt@mdudarts.de an ${an.trim()} senden?`)) return;
+    if (await ruft('neu_senden')) onFertig();
+  }
+  async function verwerfen() {
+    if (id) { if (!window.confirm('Entwurf löschen?')) return; if (!(await ruft('neu_loeschen'))) return; onFertig(); }
+    else onZu?.();
+  }
+  const m = (feld: string) => msg?.feld === feld && <span role={msg.art === 'err' ? 'alert' : 'status'} style={{ ...klein, fontWeight: 700, textTransform: 'none', letterSpacing: 'normal', color: msg.art === 'err' ? 'var(--th-loss)' : 'var(--th-win)' }}>{msg.text}</span>;
+
+  return (
+    <div style={{ ...karte, borderLeft: '4px solid #E8B84A', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 14, color: 'var(--th-text-strong)' }}>{entwurf ? 'Entwurf' : 'Neue Mail'}</span>
+        {entwurf && <Etikett gold>noch nicht gesendet</Etikett>}
+        {entwurf && <span style={{ ...klein, marginLeft: 'auto' }}>{zeit(entwurf.datum)}</span>}
+      </div>
+      <label style={feldTitel}>An
+        <input type="email" inputMode="email" autoCapitalize="none" value={an} onChange={e => setAn(e.target.value)} placeholder="name@beispiel.de" style={eingabe} />
+        {m('an')}
+      </label>
+      <label style={feldTitel}>Betreff
+        <input type="text" value={betreff} onChange={e => setBetreff(e.target.value)} style={eingabe} />
+        {m('betreff')}
+      </label>
+      <label style={feldTitel}>Text
+        <textarea value={text} onChange={e => setText(e.target.value)} rows={10} style={eingabe} />
+        {m('text')}
+      </label>
+      <div style={{ ...klein, marginTop: -4 }}>Geht als kontakt@mdudarts.de raus. Antworten kommen ins Postfach zurück.</div>
+      <div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => void senden()} disabled={!!laeuft || !versand} style={{ ...knopf(true), opacity: laeuft || !versand ? 0.6 : 1 }}>{laeuft === 'neu_senden' ? 'Sende …' : 'Senden'}</button>
+          <button type="button" onClick={() => void speichern()} disabled={!!laeuft} style={knopf(false)}>Entwurf speichern</button>
+          <button type="button" onClick={() => void verwerfen()} disabled={!!laeuft} style={knopf(false)}>{id ? 'Entwurf löschen' : 'Abbrechen'}</button>
+        </div>
+        {m('knopf')}
+      </div>
+    </div>
   );
 }
 

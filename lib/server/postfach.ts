@@ -278,6 +278,68 @@ export async function antworten(mailId: string, antwort: string, userId: string)
   return { status: 'sent' };
 }
 
+/**
+ * Neue Mail (keine Antwort) als kontakt@mdudarts.de schicken. Mit `entwurfId` wird der gespeicherte Entwurf
+ * (richtung 'aus', status 'offen') zur gesendeten Mail, sonst entsteht eine neue ausgehende Zeile.
+ */
+export async function neueMailSenden(o: { an: string; betreff: string; text: string; userId: string; entwurfId?: string | null }): Promise<{ status: SendeStatus; error?: string }> {
+  const db = supabaseAdmin;
+  if (!db) return { status: 'failed', error: 'Server-Datenbank ist nicht konfiguriert.' };
+  const an = o.an.trim().toLowerCase(), betreff = o.betreff.trim(), text = o.text.trim();
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = absender();
+  const log = (status: SendeStatus, fehler?: string) => db.from('email_logs').insert({
+    to_email: an, subject: betreff, type: 'postfach_neu', related_entity_type: 'postfach', related_entity_id: o.entwurfId ?? null,
+    status, error_message: fehler ?? null, sent_at: status === 'sent' ? new Date().toISOString() : null,
+  });
+  if (!apiKey || !from) { await log('skipped_no_provider'); return { status: 'skipped_no_provider' }; }
+
+  const messageId = `<${crypto.randomUUID()}@mdudarts.de>`;
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to: [an], subject: betreff, text, reply_to: POSTFACH_ADRESSE, headers: { 'Message-ID': messageId } }),
+    });
+    if (!res.ok) {
+      const fehler = `Resend ${res.status}: ${(await res.text()).slice(0, 300)}`;
+      await log('failed', fehler);
+      return { status: 'failed', error: fehler };
+    }
+  } catch (e) {
+    const fehler = e instanceof Error ? e.message : 'Unbekannter Fehler beim Versand.';
+    await log('failed', fehler);
+    return { status: 'failed', error: fehler };
+  }
+
+  const jetzt = new Date().toISOString();
+  await log('sent');
+  const zeile = {
+    richtung: 'aus', message_id: messageId, von_name: 'Münchner Dart Union', von_email: POSTFACH_ADRESSE, an, betreff, text,
+    datum: jetzt, faden: fadenSchluessel(betreff, an), status: 'erledigt', entwurf: null, gesendet_von: o.userId, erledigt_von: o.userId, erledigt_am: jetzt,
+  };
+  if (o.entwurfId) await db.from('postfach_mails').update(zeile).eq('id', o.entwurfId).eq('richtung', 'aus').eq('status', 'offen');
+  else await db.from('postfach_mails').insert(zeile);
+  await inGesendet({ an, betreff, text, messageId, bezug: null, uid: null, from });
+  return { status: 'sent' };
+}
+
+/** Entwurf einer neuen Mail anlegen oder ändern (liegt unter „Offen“, bis er gesendet oder gelöscht wird). */
+export async function entwurfSpeichern(o: { id?: string | null; an: string; betreff: string; text: string }): Promise<{ id: string | null; error?: string }> {
+  const db = supabaseAdmin;
+  if (!db) return { id: null, error: 'Server-Datenbank ist nicht konfiguriert.' };
+  const an = o.an.trim().toLowerCase(), betreff = o.betreff.trim().slice(0, 300);
+  const zeile = { an, betreff, entwurf: o.text.slice(0, 20_000), faden: fadenSchluessel(betreff, an), datum: new Date().toISOString() };
+  if (o.id) {
+    const { error } = await db.from('postfach_mails').update(zeile).eq('id', o.id).eq('richtung', 'aus').eq('status', 'offen');
+    return { id: o.id, error: error?.message };
+  }
+  const { data, error } = await db.from('postfach_mails').insert({
+    ...zeile, richtung: 'aus', status: 'offen', von_name: 'Münchner Dart Union', von_email: POSTFACH_ADRESSE, text: '',
+  }).select('id').single();
+  return { id: (data as { id: string } | null)?.id ?? null, error: error?.message };
+}
+
 /** Signierter Link (5 Minuten) auf einen Anhang. */
 export async function anhangLink(mailId: string, index: number): Promise<string | null> {
   const db = supabaseAdmin;
