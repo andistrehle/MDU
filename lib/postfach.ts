@@ -102,16 +102,39 @@ export function vorschau(text: string, max = 140): string {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
-/** Mails, die die Plattform selbst an kontakt@ schickt (Login-Hilfe, Kündigung …) oder Automaten. */
-export function istAutomatisch(vonEmail: string, betreff: string): boolean {
-  const v = (vonEmail ?? '').toLowerCase();
-  return /^(no-?reply|noreply|mailer-daemon|postmaster|bounce)/.test(v) || /^(undeliverable|unzustellbar|delivery status|automatische antwort|abwesenheit)/i.test((betreff ?? '').trim());
+/** Kopfzeilen, an denen man Massen- und Automatenpost erkennt. */
+export interface MailMerkmale { listUnsubscribe?: boolean; autoSubmitted?: string | null; precedence?: string | null }
+
+const KEIN_MENSCH = /^(no-?reply|do-?not-?reply|mailer-daemon|postmaster|bounces?)([+.\-_][^@]*)?@/i;
+const eigeneDomain = (email: string) => (email ?? '').toLowerCase().endsWith(`@${POSTFACH_ADRESSE.split('@')[1]}`);
+
+/** Newsletter/Werbung (Instagram & Co.): trägt einen Abmelde-Kopf oder ist als Massenpost markiert. */
+export function istNewsletter(m: MailMerkmale | undefined): boolean {
+  return !!m && (!!m.listUnsubscribe || /^(bulk|list|junk)$/i.test((m.precedence ?? '').trim()));
 }
+
+/**
+ * Automatenpost OHNE Aufgabe für uns: Abwesenheitsnotizen, Unzustellbar-Meldungen, fremde no-reply-Absender.
+ * NICHT automatisch sind die Mails der Plattform selbst (no-reply@mdudarts.de: Login-Hilfe, Kontaktformular,
+ * Kündigung) — das sind echte Aufgaben für die Ligaleitung (Betreiber 18.11.2026).
+ */
+export function istAutomatisch(vonEmail: string, betreff: string, m?: MailMerkmale): boolean {
+  const v = (vonEmail ?? '').toLowerCase();
+  if (eigeneDomain(v)) return false;
+  if (istNewsletter(m)) return true;
+  const auto = (m?.autoSubmitted ?? '').trim().toLowerCase();
+  if (auto && auto !== 'no') return true;
+  return KEIN_MENSCH.test(v) || /^(undeliverable|unzustellbar|delivery status|automatische antwort|abwesenheit|out of office)/i.test((betreff ?? '').trim());
+}
+
+/** Adresse, an die man nicht antworten kann (no-reply & Co.). */
+export const nichtBeantwortbar = (email: string) => KEIN_MENSCH.test((email ?? '').trim());
 
 const MAIL = /^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/;
 /** Prüft eine Antwort vor dem Senden. null = in Ordnung, sonst die Meldung fürs Feld. */
 export function antwortPruefen(an: string, text: string): string | null {
   if (!MAIL.test((an ?? '').trim())) return 'An diese Adresse lässt sich nicht antworten.';
+  if (nichtBeantwortbar(an)) return 'An eine no-reply-Adresse lässt sich nicht antworten – die Person bitte über die Angaben im Text erreichen.';
   const t = (text ?? '').trim();
   if (t.length < 10) return 'Die Antwort ist noch leer.';
   if (t === leererEntwurf({ von_name: null }).trim() || /^Hallo[^\n]*,\s*Viele Grüße\s*Andi\s*Münchner Dart Union$/.test(t)) return 'Die Antwort enthält nur Anrede und Signatur.';

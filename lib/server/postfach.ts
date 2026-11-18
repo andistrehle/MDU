@@ -22,7 +22,7 @@ import { ImapFlow } from 'imapflow';
 import { simpleParser, type ParsedMail } from 'mailparser';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import {
-  ABSENDER, ANHANG_MAX, POSTFACH_ADRESSE, TEXT_MAX, antwortBetreff, antwortText, fadenSchluessel, htmlZuText, istAutomatisch,
+  ABSENDER, ANHANG_MAX, POSTFACH_ADRESSE, TEXT_MAX, antwortBetreff, antwortText, fadenSchluessel, htmlZuText, istAutomatisch, istNewsletter,
   type PostfachAnhang, type PostfachMail,
 } from '@/lib/postfach';
 
@@ -127,6 +127,9 @@ export async function abholen(): Promise<AbholErgebnis> {
   return { status: 'ok', neu: neu.length };
 }
 
+/** Kontaktformular-Mails nennen die Person im Text („Name: …“). */
+const nameAusText = (text: string) => (text.match(/^\s*Name:\s*(.+)$/m)?.[1] ?? '').trim().slice(0, 80);
+
 async function ablegen(p: ParsedMail, uid: number, eingang: Date | null): Promise<{ id: string; betreff: string; von: string; automatisch: boolean } | null> {
   const db = supabaseAdmin!;
   const messageId = (p.messageId || `uid-${uid}@postfach.mdudarts.de`).trim();
@@ -134,18 +137,29 @@ async function ablegen(p: ParsedMail, uid: number, eingang: Date | null): Promis
   if (da) return null;
 
   const von = p.from?.value?.[0];
-  const vonEmail = (von?.address || '').trim().toLowerCase() || 'unbekannt@unbekannt.invalid';
-  const vonName = (von?.name || '').trim() || null;
+  let vonEmail = (von?.address || '').trim().toLowerCase() || 'unbekannt@unbekannt.invalid';
+  let vonName = (von?.name || '').trim() || null;
+  // Mails der Plattform selbst (Kontaktformular) tragen die Person als Antwort-an: dann ist SIE der Absender,
+  // damit Name, Verlauf und Antwort stimmen. Ohne Antwort-an (Login-Hilfe) bleibt es bei no-reply.
+  const antwortAn = p.replyTo?.value?.[0];
+  if (antwortAn?.address && vonEmail.endsWith(`@${POSTFACH_ADRESSE.split('@')[1]}`) && antwortAn.address.toLowerCase() !== POSTFACH_ADRESSE) {
+    vonEmail = antwortAn.address.trim().toLowerCase();
+    vonName = (antwortAn.name || '').trim() || nameAusText(p.text || '') || null;
+  }
   const anRoh = p.to ? (Array.isArray(p.to) ? p.to : [p.to]).flatMap(a => a.value.map(v => v.address || '')).filter(Boolean).join(', ') : '';
   const betreff = (p.subject || '').trim().slice(0, 300);
   const text = ((p.text && p.text.trim()) || (typeof p.html === 'string' ? htmlZuText(p.html) : '') || '').slice(0, TEXT_MAX);
-  const automatisch = istAutomatisch(vonEmail, betreff);
+  const kopf = (n: string) => { const w = p.headers.get(n); return typeof w === 'string' ? w : w ? 'ja' : null; };
+  const merkmale = { listUnsubscribe: p.headers.has('list-unsubscribe'), autoSubmitted: kopf('auto-submitted'), precedence: kopf('precedence') };
+  const automatisch = istAutomatisch(vonEmail, betreff, merkmale);
+  // Newsletter/Werbung: gleich abgehakt (unter „Erledigt“ zu finden), keine Glocke.
+  const werbung = istNewsletter(merkmale) && !vonEmail.endsWith(`@${POSTFACH_ADRESSE.split('@')[1]}`);
 
   const { data: zeile, error } = await db.from('postfach_mails').insert({
     richtung: 'ein', message_id: messageId, imap_uid: uid, in_reply_to: (p.inReplyTo || null),
     von_name: vonName, von_email: vonEmail, an: anRoh || POSTFACH_ADRESSE, betreff, text,
     datum: (p.date || eingang || new Date()).toISOString(), faden: fadenSchluessel(betreff, vonEmail),
-    status: 'offen', automatisch, anhaenge: [],
+    status: werbung ? 'erledigt' : 'offen', automatisch, anhaenge: [],
   }).select('id').single();
   if (error || !zeile) return null;
   const id = (zeile as { id: string }).id;

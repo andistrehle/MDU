@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { htmlZuText, antwortBetreff, antwortPruefen, antwortText, betreffKern, fadenSchluessel, istAutomatisch, leererEntwurf, vorname, vorschau, zitat } from './postfach';
+import { htmlZuText, istNewsletter, antwortBetreff, antwortPruefen, antwortText, betreffKern, fadenSchluessel, istAutomatisch, leererEntwurf, vorname, vorschau, zitat } from './postfach';
 
 describe('Postfach', () => {
   it('Betreff-Kern: alle Antwort- und Weiterleitungs-Vorsätze fallen weg', () => {
@@ -43,15 +43,26 @@ describe('Postfach', () => {
     expect(vorschau('a'.repeat(200), 20)).toBe(`${'a'.repeat(19)}…`);
   });
 
-  it('automatische Mails erkennen', () => {
+  it('automatische Mails erkennen — die eigenen Plattform-Mails sind Aufgaben, keine Automatenpost', () => {
     expect(istAutomatisch('noreply@example.de', 'Hallo')).toBe(true);
+    expect(istAutomatisch('no-reply@mail.instagram.com', 'sieh dir an, was du verpasst hast')).toBe(true);
     expect(istAutomatisch('MAILER-DAEMON@strato.de', 'x')).toBe(true);
     expect(istAutomatisch('w@example.de', 'Automatische Antwort: Urlaub')).toBe(true);
     expect(istAutomatisch('w@example.de', 'Name ändern')).toBe(false);
+    // Login-Hilfe / Kontaktformular der Plattform
+    expect(istAutomatisch('no-reply@mdudarts.de', 'MDU: Hilfe beim Login (E-Mail-Adresse vergessen)')).toBe(false);
+    // Kopfzeilen
+    expect(istAutomatisch('news@example.de', 'Neues', { listUnsubscribe: true })).toBe(true);
+    expect(istAutomatisch('w@example.de', 'Re: Frage', { autoSubmitted: 'auto-replied' })).toBe(true);
+    expect(istAutomatisch('w@example.de', 'Re: Frage', { autoSubmitted: 'no' })).toBe(false);
+    expect(istNewsletter({ precedence: 'bulk' })).toBe(true);
+    expect(istNewsletter({})).toBe(false);
+    expect(istNewsletter(undefined)).toBe(false);
   });
 
   it('Antwort prüfen: Adresse, leer, nur Anrede + Signatur', () => {
     expect(antwortPruefen('kein-at', 'Hallo, das ist ein Text.')).toMatch(/Adresse/);
+    expect(antwortPruefen('no-reply@mdudarts.de', 'Hallo, das ist ein Text.')).toMatch(/no-reply/);
     expect(antwortPruefen('w@example.de', '  ')).toMatch(/leer/);
     expect(antwortPruefen('w@example.de', leererEntwurf({ von_name: 'Wolfgang L' }))).toMatch(/nur Anrede/);
     expect(antwortPruefen('w@example.de', 'Hallo Limo,\n\nerledigt.\n\nViele Grüße\n\nAndi\nMünchner Dart Union')).toBeNull();
