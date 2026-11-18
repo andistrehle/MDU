@@ -25,6 +25,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
 - SQL (Migrationen) dem Betreiber immer direkt im Chat geben, MIT Link zum SQL-Editor:
   https://supabase.com/dashboard/project/jbppgreathybxrakvhsh/sql/new — er führt es selbst aus.
 - UI-Texte auf Deutsch, Du-Form; Ton freundlich, kein Marketing-Sprech.
+- **Mail-Entwürfe für den Betreiber** (Antworten an Spieler/Kapitäne, 18.11.2026) enden IMMER mit dieser Signatur:
+  „Viele Grüße" · Leerzeile · „Andi" · „Münchner Dart Union" (drei Zeilen, Leerzeile nach dem Gruß).
 - **Ehrlichkeitsprinzip:** nie Erfolg vortäuschen (E-Mail-Versand meldet ehrlich
   `skipped_no_provider`/`failed`; OCR übernimmt nie ungeprüft; keine erfundenen Daten/Features).
 
