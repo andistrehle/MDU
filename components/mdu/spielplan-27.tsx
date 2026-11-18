@@ -152,7 +152,7 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
               <div className="mdu-sp-ort" style={{ ...faint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '4px 5px' }}>
                 {e ? <ZumBericht e={e}><ErgebnisZeile e={e} />{!e.wertung && <span style={{ color: 'var(--th-accent)', fontWeight: 700 }}> · Spielbericht ›</span>}</ZumBericht> : <Ort27 id={team27(g.home)?.venueId} name={v?.name} />}
                 {/* Nur für Mitglieder von Heim/Gast mit Team Manager: eigener Stand + Weg zur Spielseite */}
-                <MeinSpielLink heim={g.home} gast={g.away} k={begegnungKey(g.home, g.away)} />
+                <MeinSpielLink heim={g.home} gast={g.away} k={begegnungKey(g.home, g.away)} gespielt={!!e} />
               </div>
             </div>
           );
@@ -246,7 +246,7 @@ export function TeamSpielplan27({ teamId, ergebnisse, nur, leer, max }: { teamId
                   {terminVerlegt(t, s.fri, s.sun) && <Etikett>verlegt</Etikett>}
                   <VerlegungEtikett k={s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)} />
                   {s.derby && <Etikett ton="grau">Derby</Etikett>}
-                  <MeinSpielLink heim={s.heim ? teamId : s.gegner} gast={s.heim ? s.gegner : teamId} k={s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)} />
+                  <MeinSpielLink heim={s.heim ? teamId : s.gegner} gast={s.heim ? s.gegner : teamId} k={s.heim ? begegnungKey(teamId, s.gegner) : begegnungKey(s.gegner, teamId)} gespielt={!!e} />
                 </div>
               </div>
             ) : (
