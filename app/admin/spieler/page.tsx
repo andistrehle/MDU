@@ -9,7 +9,21 @@ import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canApproveRegistrations } from '@/lib/auth/roles';
 import { normalizePersonName } from '@/lib/auth/player-match';
-import { listAllDbPlayers, setPlayerName, deleteDbPlayer, type AdminPlayerRow } from '@/lib/supabase/players-admin';
+import { listAllDbPlayers, deleteDbPlayer, type AdminPlayerRow } from '@/lib/supabase/players-admin';
+import { supabase } from '@/lib/supabase/client';
+import { findPlayer } from '@/lib/data';
+import { betroffen, nameTeilen, neueKennung } from '@/lib/spieler-kennung';
+
+/** Name (und auf Wunsch Profil-Adresse) über den Server ändern — stellt ALLE Stellen um (Migration 0071). */
+async function umbenennen(playerId: string, name: string, adresse: boolean, pruefen: boolean) {
+  const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+  const r = await fetch('/api/admin/spieler', {
+    method: 'POST', headers: { Authorization: `Bearer ${token ?? ''}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ playerId, name, adresse, pruefen }),
+  }).catch(() => null);
+  const j = r ? ((await r.json().catch(() => ({}))) as { error?: string; neu?: string; wechsel?: boolean; zahlen?: Record<string, number> }) : { error: 'Keine Verbindung.' };
+  return r?.ok ? { ...j, error: null as string | null } : { ...j, error: j.error ?? 'Speichern fehlgeschlagen.' };
+}
 
 export default function AdminSpielerPage() {
   const { user } = useAuth();
@@ -19,6 +33,8 @@ export default function AdminSpielerPage() {
   const [q, setQ] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [editVal, setEditVal] = useState('');
+  const [mitAdresse, setMitAdresse] = useState(false);
+  const [editFehler, setEditFehler] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -49,13 +65,18 @@ export default function AdminSpielerPage() {
   async function onSave(id: string) {
     const val = editVal.trim().replace(/\s+/g, ' ');
     if (!val) return;
-    const parts = val.split(' ').filter(Boolean);
-    const first = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0] ?? '';
-    const last = parts.length > 1 ? parts[parts.length - 1] : '';
-    setBusy(id); setMsg(null);
-    const { error } = await setPlayerName(id, first, last);
+    setBusy(id); setMsg(null); setEditFehler(null);
+    // Erst prüfen (ändert nichts), dann mit Rückfrage ausführen.
+    const probe = await umbenennen(id, val, mitAdresse, true);
+    if (probe.error) { setBusy(null); setEditFehler(probe.error); return; }
+    const b = betroffen(probe.zahlen ?? {});
+    const frage = `„${val}“ speichern?\n\n${b.zeilen} ${b.zeilen === 1 ? 'Eintrag' : 'Einträge'} in ${b.tabellen} ${b.tabellen === 1 ? 'Bereich' : 'Bereichen'} (Kader, Spielberichte, Team Manager …) ${b.zeilen === 1 ? 'wird' : 'werden'} mit umgestellt.`
+      + (probe.wechsel ? `\n\nNeue Profil-Adresse: /spieler/${probe.neu}\nDie alte Adresse leitet dauerhaft dorthin weiter.` : '');
+    if (!window.confirm(frage)) { setBusy(null); return; }
+    const r = await umbenennen(id, val, mitAdresse, false);
     setBusy(null);
-    if (error) { setMsg({ kind: 'err', text: error }); return; }
+    if (r.error) { setEditFehler(r.error); return; }
+    setMsg({ kind: 'ok', text: r.wechsel ? `Gespeichert. Neue Adresse: /spieler/${r.neu}` : 'Name gespeichert.' });
     setEditId(null); load();
   }
 
@@ -71,7 +92,7 @@ export default function AdminSpielerPage() {
   }
 
   return (
-    <AdminGuard title="Spieler" subtitle="Alle in der Plattform angelegten Spieler — Namen korrigieren oder löschen.">
+    <AdminGuard title="Spieler" subtitle="Alle in der Plattform angelegten Spieler — Namen und Profil-Adresse korrigieren oder löschen.">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Suche (Name, Passnummer, Team) …"
           style={{ flex: 1, minWidth: 200, padding: '10px 12px', background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', borderRadius: 8, color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 14, outline: 'none' }} />
@@ -102,6 +123,23 @@ export default function AdminSpielerPage() {
                       style={{ flex: 1, minWidth: 160, padding: '6px 10px', borderRadius: 7, background: 'var(--th-bg-header)', border: '1px solid var(--th-line-10)', color: 'var(--th-text-strong)', fontFamily: 'var(--font-manrope)', fontSize: 13.5, outline: 'none' }} />
                     <button type="button" onClick={() => onSave(p.id)} disabled={busy === p.id || !editVal.trim()} style={btnPrimary}>Speichern</button>
                     <button type="button" onClick={() => setEditId(null)} style={btnGhost}>Abbrechen</button>
+                    {/* Hinweise direkt am Feld */}
+                    <div style={{ flexBasis: '100%', fontFamily: 'var(--font-manrope)', fontSize: 12.5, color: 'var(--th-text-muted)', lineHeight: 1.5 }}>
+                      {findPlayer(p.id) ? (
+                        <>Adresse bleibt <code>/spieler/{p.id}</code> – dieser Spieler steht im festen Stamm aus 2025/26.</>
+                      ) : (
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={mitAdresse} onChange={e => setMitAdresse(e.target.checked)} style={{ marginTop: 3 }} />
+                          <span>
+                            Auch die Profil-Adresse anpassen{' '}
+                            {(() => { const t = nameTeilen(editVal); const n = neueKennung(p.id, t.vorname, t.nachname); return n === p.id
+                              ? <>(bleibt <code>/spieler/{p.id}</code>)</>
+                              : <>→ <code>/spieler/{n}</code>. Die alte Adresse leitet dauerhaft weiter.</>; })()}
+                          </span>
+                        </label>
+                      )}
+                      {editFehler && <div role="alert" style={{ marginTop: 4, fontWeight: 700, color: '#E24B4A' }}>{editFehler}</div>}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -111,7 +149,7 @@ export default function AdminSpielerPage() {
                       {p.teams.length > 0 && <span style={{ fontWeight: 400, color: 'var(--th-text-faint)' }}> · {p.teams.join(', ')}</span>}
                     </span>
                     <span style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: p.license ? 'var(--th-text-muted)' : 'var(--th-text-faint)' }}>{p.license ?? '—'}</span>
-                    <button type="button" title="Namen bearbeiten" onClick={() => { setEditId(p.id); setEditVal(`${p.firstName} ${p.lastName}`.trim()); setMsg(null); }} style={iconBtn}>✎</button>
+                    <button type="button" title="Namen bearbeiten" onClick={() => { setEditId(p.id); setEditVal(`${p.firstName} ${p.lastName}`.trim()); setMsg(null); setEditFehler(null); setMitAdresse(!findPlayer(p.id) && neueKennung(p.id, p.firstName, p.lastName) !== p.id); }} style={iconBtn}>✎</button>
                     <button type="button" title="Spieler löschen" onClick={() => onDelete(p)} disabled={busy === p.id} style={{ ...iconBtn, color: '#E24B4A', borderColor: 'rgba(212,0,0,0.35)' }}>🗑</button>
                   </>
                 )}

@@ -337,6 +337,14 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Terminseite (nur Kontoinhaber ohne Zeile in `match_availability`), „Nachricht ans Team“ (Freitext ≤ 200) im
   Dashboard. Server prüft TC des Teams/Ligaleitung, schreibt Glocken per service_role (Push via 0056), Absender
   ausgenommen; Treffzeit/Aufstellung pushen bewusst NICHT. Kein eigener Abschalter (Betreiber).
+  **Spieler umbenennen: Name UND Profil-Adresse** (Migration 0071, Betreiber 18.11.2026): Admin → Spieler → ✎ ändert den Namen ÜBERALL
+  und auf Wunsch (Häkchen) die Adresse `/spieler/<kennung>`. Die Kennung steht in ~18 Tabellen — die Arbeit macht NUR die DB-Funktion
+  `spieler_umbenennen(alt, neu, vorname, nachname, von, pruefen)` (eine Transaktion; Liste der Tabellen im Kopf der Migration — NEUE
+  Tabellen mit Spieler-Kennung dort nachtragen), aufgerufen von `/api/admin/spieler` (Ligaleitung; erst `pruefen`, dann Rückfrage).
+  Neue Kennung = Name als Slug + Passnummer-Endung der alten (`lib/spieler-kennung.ts`, getestet). Alte Adresse → `player_id_aliases`,
+  `app/spieler/[playerId]/page.tsx` leitet dauerhaft weiter. `match_tasks` wird VOR `profiles` umgestellt (sonst Glocke „Aufgabe für
+  dich“). Spieler aus dem festen Stamm 2025/26 (`findPlayer`) behalten ihre Adresse (steht im Code), der Name geht. Nie mehr von Hand
+  einzelne Tabellen umbenennen. Die Funktion ist gegen ein Testschema mit allen Tabellen durchgespielt (18.11.2026).
   **Postfach kontakt@mdudarts.de in der Plattform** (Migration 0070, Betreiber 18.11.2026, „Weg B“): `lib/server/postfach.ts` holt
   stündlich per IMAP (imapflow, `POSTFACH_IMAP_USER`/`POSTFACH_IMAP_PASSWORD` nur in Vercel, vom Betreiber selbst eingetragen; PEEK —
   bei Strato bleibt alles ungelesen/unverschoben) neue Mails ab: `postfach_mails` (nur Text, HTML-Mails über `htmlZuText`, nie HTML

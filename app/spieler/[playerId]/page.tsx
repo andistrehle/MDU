@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Pill } from '@/components/mdu/pill';
@@ -34,7 +35,18 @@ export default async function PlayerProfilePage(
   const staticPlayer = findPlayer(playerId);
   const dbProfile = staticPlayer ? null : await getDbPlayer(playerId);
   const player = staticPlayer ?? dbProfile?.player;
-  if (!player) notFound();
+  if (!player) {
+    // Umbenannter Spieler (Admin → Spieler, Migration 0071): die alte Adresse leitet dauerhaft auf die neue.
+    const { data: alias } = supabaseAdmin
+      ? await supabaseAdmin.from('player_id_aliases').select('neu').eq('alt', playerId).maybeSingle()
+      : { data: null };
+    const neu = (alias as { neu?: string } | null)?.neu;
+    if (neu && neu !== playerId) {
+      const q = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === 'string' ? [[k, v]] : [])) as [string, string][]).toString();
+      permanentRedirect(`/spieler/${neu}${q ? `?${q}` : ''}`);
+    }
+    notFound();
+  }
 
   const displayName = getPlayerDisplayName(player);
   const archivStats = getPlayerSeasonStats(player.id, season.id);
