@@ -178,6 +178,14 @@ export const KALENDER: Terminaenderung[] = [
     "art": "absage",
     "time": null,
     "note": "Stiller Feiertag ( BUSS UND BETTAG)"
+  },
+  {
+    "id": "2026-11-22-aubinger-boazn-zusatz",
+    "date": "2026-11-22",
+    "venueId": "aubinger-boazn",
+    "art": "zusatz",
+    "time": "17:00",
+    "note": null
   }
 ];
 
