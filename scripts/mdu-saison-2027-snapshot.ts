@@ -57,9 +57,10 @@ async function main() {
         name: s.teams.name.trim(),
         short: (s.teams.short_name ?? stat?.short ?? s.teams.name.slice(0, 3)).trim().toUpperCase(),
         color: stat?.color ?? '#6B7A8F',
-        logoUrl: profLogo.get(s.team_id) ?? s.teams.logo_url ?? stat?.logoUrl
+        // „||“ statt „??“: ein LEERES Logo-Feld in der DB (18.11.2026: vier Teams) zählt wie keins.
+        logoUrl: profLogo.get(s.team_id) || s.teams.logo_url || stat?.logoUrl
           // Logo liegt als Datei bei, steht aber nirgends verknüpft (Gambas, Alptraum, …)
-          ?? (existsSync(`public/team-logos/${s.team_id}.png`) ? `/team-logos/${s.team_id}.png` : null),
+          || (existsSync(join(ROOT, `public/team-logos/${s.team_id}.png`)) ? `/team-logos/${s.team_id}.png` : null),
         venueId: s.venues?.id ?? null,
         league: lg.key,
       };

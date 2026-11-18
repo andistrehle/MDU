@@ -2,7 +2,7 @@
   "_hinweis": "ERZEUGT von scripts/mdu-saison-2027-snapshot.ts — nicht von Hand ändern, Skript neu laufen lassen.",
   "seasonId": "season-2027",
   "planGeneratedAt": "2026-09-29T19:26:12.777Z",
-  "snapshotAt": "2026-10-01T11:34:53.654Z",
+  "snapshotAt": "2026-11-18T12:11:04.215Z",
   "leagues": [
     {
       "key": "la",
@@ -133,7 +133,7 @@
       "name": "Illuminati",
       "short": "NATI",
       "color": "#6B7A8F",
-      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-illuminati--28d702/logo.webp?t=1784874123507",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-illuminati--28d702/logo.webp?t=1790862842065",
       "venueId": "venue-2f7039adec",
       "league": "a"
     },
@@ -211,7 +211,7 @@
     },
     "muenchen-0815": {
       "name": "München 08/15",
-      "short": "",
+      "short": "MUC",
       "color": "#D40000",
       "logoUrl": "/team-logos/muenchen-0815.png",
       "venueId": "venue-c99fab52d2",
@@ -246,7 +246,7 @@
       "short": "DVS",
       "color": "#6B7A8F",
       "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-dart-s-vaders-48de8a/logo.webp?t=1784649665159",
-      "venueId": "venue-2f7039adec",
+      "venueId": "venue-722940217f",
       "league": "b1"
     },
     "team-black-storm-02eed0": {
@@ -309,7 +309,7 @@
       "name": "Wakan Tanka",
       "short": "WTA",
       "color": "#6B7A8F",
-      "logoUrl": "",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-wakan-tanka-fff298/logo.webp?t=1794929435055",
       "venueId": "venue-8be6255892",
       "league": "b2"
     },
@@ -317,7 +317,7 @@
       "name": "DartPromillos",
       "short": "‰",
       "color": "#6B7A8F",
-      "logoUrl": "",
+      "logoUrl": null,
       "venueId": "venue-f9748ae424",
       "league": "c"
     },
@@ -365,7 +365,7 @@
       "name": "Jolly Pirates VII",
       "short": "JP7",
       "color": "#6B7A8F",
-      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-jolly-pirates-vii-3156af/logo.webp?t=1790777610940",
+      "logoUrl": "https://jbppgreathybxrakvhsh.supabase.co/storage/v1/object/public/media/teams/team-jolly-pirates-vii-3156af/logo.webp?t=1791724620309",
       "venueId": "venue-08c4104796",
       "league": "c"
     }
@@ -422,6 +422,10 @@
     "venue-91fd852852": {
       "name": "Bistro 118",
       "address": "Drygalski-Allee 118, 81477 München"
+    },
+    "venue-722940217f": {
+      "name": "Aubinger Boazn",
+      "address": "Bodenseestr. 238, 81243 München"
     },
     "venue-2511166909": {
       "name": "DC Moosach",
