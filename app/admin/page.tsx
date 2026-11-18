@@ -30,6 +30,7 @@ const CARDS: AdminCard[] = [
   { icon: 'edit',     label: 'Rollenverwaltung',   desc: 'Rollen & Rechte im Überblick.',   href: '/admin/roles' },
   { icon: 'trophy',   label: 'Saison-Teams',       desc: 'Mannschaften je Saison, Liga & Kader.', href: '/admin/season-teams' },
   { icon: 'user',     label: 'Spieler',            desc: 'Spieler & Verknüpfungen.',        href: '/admin/players' },
+  { icon: 'users',    label: 'Spieler umbenennen', desc: 'Namen und Profil-Adresse ändern, Dubletten finden.', href: '/admin/spieler' },
   { icon: 'list',     label: 'Saisonanmeldungen',  desc: 'Mannschaftsanmeldungen prüfen.',  href: '/admin/registrations', badgeKey: 'registrations' },
   { icon: 'user',     label: 'Nachmeldungen',      desc: 'Spieler-Nachmeldungen prüfen.',   href: '/admin/nachmeldungen', badgeKey: 'nominations' },
   { icon: 'calendar', label: 'Spielplan / TC-Pläne', desc: 'Pläne je Mannschaft, Liga und Spielort drucken.', href: '/admin/spielplan-vorschlag' },
