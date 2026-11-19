@@ -60,6 +60,7 @@ export default function KioskPage() {
   const [modus, setModus] = useState<'probe' | 'echt' | null>(null);
   const [code, setCode] = useState('');
   useEffect(() => {
+    (window as unknown as { __kioskLaeuft?: boolean }).__kioskLaeuft = true;   // für die Diagnose im Layout
     queueMicrotask(() => {
       const q = new URLSearchParams(window.location.search);
       setCode((q.get('code') ?? '').replace(/\D/g, '').slice(0, CODE_LAENGE));
