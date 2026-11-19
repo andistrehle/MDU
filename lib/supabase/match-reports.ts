@@ -334,6 +334,8 @@ export const HISTORY_ACTION_LABELS: Record<string, string> = {
   korrektur_bestaetigt: 'Korrektur bestätigt und übernommen',
   korrektur_abgelehnt: 'Korrektur abgelehnt',
   korrektur_zurueckgezogen: 'Korrektur zurückgezogen',
+  kiosk_angelegt: 'Am Tablet im Lokal begonnen',
+  kiosk_abgesendet: 'Am Tablet im Lokal abgesendet',
 };
 
 export async function getReportHistory(reportId: string): Promise<ReportHistoryEntry[]> {

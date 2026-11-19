@@ -15,7 +15,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { ergebnisSeitenMarkieren } from '@/lib/server/ergebnis-neubau';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
 
 export const runtime = 'nodejs';
@@ -28,13 +28,6 @@ export async function POST(request: Request) {
   if (!isAdminUser(u) && u.role !== 'team_captain' && !u.coRechte.includes('spielberichte') && !u.vertretungen.length) {
     return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   }
-  revalidatePath('/');
-  revalidatePath('/tabellen');
-  revalidatePath('/ergebnisse');
-  revalidatePath('/spielplan');
-  revalidatePath('/ligen/[code]', 'page');
-  revalidatePath('/teams/[id]', 'page');
-  revalidatePath('/spieler/[playerId]', 'page');
-  revalidatePath('/spielbericht/[spiel]', 'page');
+  ergebnisSeitenMarkieren();
   return NextResponse.json({ ok: true });
 }

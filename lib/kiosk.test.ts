@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { alleGespielt, aufstellungFertig, erlaubteSlots, leereSpiele, leereSpieler, legsSetzen, slotSetzen } from './kiosk';
+import {
+  absendeFehler, alleGespielt, aufstellungFertig, codeNormal, erlaubteSlots, heimspielAm, kioskErlaubt, leereSpiele, leereSpieler, legsSetzen,
+  naechstesHeimspiel, pruefeStand, slotSetzen, type KioskStand,
+} from './kiosk';
 
 const mit = (side: 'home' | 'guest', namen: Record<number, string>) =>
   leereSpieler(side).map(p => ({ ...p, name: namen[p.slot] ?? '' }));
@@ -55,5 +58,79 @@ describe('Kiosk-Regeln', () => {
     for (let n = 1; n <= 17; n++) g = legsSetzen(g, n, '2:0');
     expect(alleGespielt(g)).toBe(false);
     expect(alleGespielt(legsSetzen(g, 18, '0:2'))).toBe(true);
+  });
+});
+
+describe('Kiosk — Echtbetrieb', () => {
+  const plan = [
+    { key: 'a|b', home: 'a', away: 'b', termin: { datum: '2026-11-20', uhrzeit: '20:00' } },
+    { key: 'b|a', home: 'b', away: 'a', termin: { datum: '2026-11-27' } },
+    { key: 'a|c', home: 'a', away: 'c', termin: { datum: '2026-12-11' } },
+    { key: 'a|d', home: 'a', away: 'd', termin: null },
+  ];
+
+  it('zeigt nur das HEIMspiel des eigenen Teams am Tag — nie ein Auswärtsspiel, nie ein fremdes', () => {
+    expect(heimspielAm(plan, 'a', '2026-11-20')?.key).toBe('a|b');
+    expect(heimspielAm(plan, 'b', '2026-11-20')).toBeNull();   // b spielt an dem Tag auswärts
+    expect(heimspielAm(plan, 'a', '2026-11-27')).toBeNull();   // a spielt an dem Tag auswärts
+    expect(heimspielAm(plan, 'a', '2026-11-21')).toBeNull();
+  });
+
+  it('nächstes Heimspiel: das früheste NACH dem Tag, Spiele ohne Termin zählen nicht', () => {
+    expect(naechstesHeimspiel(plan, 'a', '2026-11-20')?.key).toBe('a|c');
+    expect(naechstesHeimspiel(plan, 'a', '2026-12-11')).toBeNull();
+  });
+
+  it('freigegeben sind zum Start nur die Bazis', () => {
+    expect(kioskErlaubt('freibad-bazis')).toBe(true);
+    expect(kioskErlaubt('irgendein-team')).toBe(false);
+    expect(kioskErlaubt(null)).toBe(false);
+  });
+
+  it('Kopplungscode: acht Ziffern, Leerzeichen egal', () => {
+    expect(codeNormal('1234 5678')).toBe('12345678');
+    expect(codeNormal('1234567')).toBeNull();
+    expect(codeNormal('1234567a')).toBeNull();
+  });
+
+  const namen = (n: number) => Array.from({ length: n }, (_, i) => ({ slot: i + 1, name: `Spieler ${i + 1}` }));
+  const roh = () => ({ heim: namen(4), gast: namen(4), games: leereSpiele(), highlights: [] });
+
+  it('nimmt einen sauberen Stand an und setzt die Spielart aus dem Bogen, nicht vom Gerät', () => {
+    const r = roh();
+    r.games[0] = { ...r.games[0], game_type: 'double', home_slot2: 3, legs_home: 2, legs_guest: 1 };
+    const p = pruefeStand(r, 3);
+    expect(p.fehler).toBeNull();
+    expect(p.stand!.games[0]).toMatchObject({ game_type: 'single', home_slot2: null, legs_home: 2, legs_guest: 1 });
+    expect(p.stand!.games).toHaveLength(18);
+  });
+
+  it('lehnt ab: Ergebnis, das es im Modus nicht gibt · Platz 9 · fehlendes Spiel · überlangen Namen · falsches Highlight', () => {
+    const a = roh(); a.games[0] = { ...a.games[0], legs_home: 3, legs_guest: 0 };
+    expect(pruefeStand(a, 3).stand).toBeNull();
+    expect(pruefeStand(a, 5).stand).not.toBeNull();           // in der La Liga gibt es 3:0
+    const b = roh(); b.games[1] = { ...b.games[1], home_slot: 9 };
+    expect(pruefeStand(b, 3).stand).toBeNull();
+    const c = roh(); c.games = c.games.slice(1);
+    expect(pruefeStand(c, 3).stand).toBeNull();
+    const d = roh(); d.heim[0].name = 'x'.repeat(61);
+    expect(pruefeStand(d, 3).stand).toBeNull();
+    const e = { ...roh(), highlights: [{ side: 'home', slot: 1, type: 'high_finish', value: 99 }] };
+    expect(pruefeStand(e, 3).stand).toBeNull();
+    expect(pruefeStand(null, 3).stand).toBeNull();
+  });
+
+  it('absenden erst, wenn alle 18 Spiele besetzt und gespielt sind', () => {
+    let games = leereSpiele();
+    for (let n = 1; n <= 18; n++) games = legsSetzen(games, n, '2:0');
+    const stand: KioskStand = { heim: namen(4), gast: namen(4), games, highlights: [] };
+    // Doppel 9 und 18 haben noch keine Spieler
+    expect(absendeFehler(stand)).toMatch(/Spiel 9/);
+    for (const n of [9, 18]) for (const [feld, slot] of [['home_slot', 1], ['home_slot2', 2], ['guest_slot', 1], ['guest_slot2', 2]] as const) {
+      stand.games = slotSetzen(stand.games, n, feld, n === 9 ? slot : slot + 2);
+    }
+    expect(absendeFehler(stand)).toBeNull();
+    expect(absendeFehler({ ...stand, games: legsSetzen(stand.games, 17, '') })).toMatch(/Spiel 17/);
+    expect(absendeFehler({ ...stand, gast: namen(3) })).toMatch(/G4/);
   });
 });

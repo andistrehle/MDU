@@ -1,16 +1,21 @@
 // ============================================================
 // Kiosk-Eingabe (Tablet im Lokal) — reine Regeln
 // ============================================================
-// Stand 19.11.2026: NUR die Probe unter /kiosk?probe=1 (rechnet im Gerät,
-// schickt nichts an den Server). Gerätebindung, Server-Route und Speichern
-// folgen erst nach Freigabe des Konzepts durch den Betreiber.
+// Betreiber, 19.11.2026. Das Tablet hat KEIN Konto: Es weist sich mit einem
+// Geräte-Schlüssel aus (Migration 0072, lib/server/kiosk.ts) und darf nur den
+// ENTWURF des heutigen Heimspiels seines Teams führen und absenden.
+// Hier steht alles, was sich ohne Datenbank rechnen lässt (getestet).
+// Probe unter /kiosk?probe=1: rechnet im Gerät, schickt nichts an den Server.
 //
 // Die Regeln hier sind dieselben wie im Formular
 // (app/mein-bereich/spielberichte/page.tsx): Ersatzspieler binden sich an eine
 // Position, ein Wechsel gilt für die folgenden Einzel dieser Position.
 // ============================================================
 
-import { GAME_SCHEDULE, type ReportGame, type ReportPlayer } from '@/lib/supabase/match-reports';
+import {
+  GAME_SCHEDULE, HIGHLIGHT_TYPES, HIGHLIGHT_VALUE_CONFIG, legResults,
+  type BestOf, type HighlightEntry, type ReportGame, type ReportPlayer,
+} from '@/lib/supabase/match-reports';
 
 export type Seite = 'home' | 'guest';
 export type SlotFeld = 'home_slot' | 'guest_slot' | 'home_slot2' | 'guest_slot2';
@@ -105,3 +110,114 @@ export const PROBE = {
   kaderHeim: ['Anna Beispiel', 'Bernd Muster', 'Clara Probe', 'Dieter Test', 'Emil Ersatz', 'Frieda Wechsel'],
   kaderGast: ['Gustav Gast', 'Hanna Auswärts', 'Ingo Gegner', 'Jana Fremd', 'Kurt Bank', 'Lena Reserve'],
 } as const;
+
+// ── Echtbetrieb: Freischaltung, Heimspiel des Tages, Prüfung der Eingabe ──
+
+/** Not-Aus für die ganze Tablet-Eingabe (Probe bleibt). */
+export const KIOSK_AN = true;
+/** Zum Start nur diese Teams (Betreiber, 19.11.2026); `null` = alle Teams mit Team Manager. */
+export const KIOSK_TEAMS: string[] | null = ['freibad-bazis'];
+export const kioskErlaubt = (team: string | null | undefined) =>
+  !!team && KIOSK_AN && (KIOSK_TEAMS === null || KIOSK_TEAMS.includes(team));
+
+export interface KioskPlan { key: string; home: string; away: string; termin: { datum: string; uhrzeit?: string | null } | null }
+
+/** Das Heimspiel des Teams an diesem Spieltag-Datum — nur Spiele mit festem Termin. */
+export const heimspielAm = <T extends KioskPlan>(plan: T[], team: string, datum: string): T | null =>
+  plan.find(b => b.home === team && b.termin?.datum === datum) ?? null;
+
+/** Das nächste Heimspiel nach diesem Datum (für „Heute kein Spiel“). */
+export const naechstesHeimspiel = <T extends KioskPlan>(plan: T[], team: string, datum: string): T | null =>
+  plan.filter(b => b.home === team && !!b.termin && b.termin.datum > datum)
+    .sort((a, b) => a.termin!.datum.localeCompare(b.termin!.datum))[0] ?? null;
+
+/** Kopplungscode: acht Ziffern, Leerzeichen und Striche beim Tippen egal. */
+export const CODE_LAENGE = 8;
+export function codeNormal(s: string): string | null {
+  const z = (s ?? '').replace(/[\s-]/g, '');
+  return new RegExp(`^\\d{${CODE_LAENGE}}$`).test(z) ? z : null;
+}
+export const codeAnzeige = (c: string) => `${c.slice(0, 4)} ${c.slice(4)}`;
+
+export interface KioskStand {
+  heim: { slot: number; name: string }[];
+  gast: { slot: number; name: string }[];
+  games: ReportGame[];
+  highlights: HighlightEntry[];
+}
+
+const ganz = (v: unknown, min: number, max: number): v is number => typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max;
+const slotOderLeer = (v: unknown): number | null | undefined => (v == null ? null : ganz(v, 1, 8) ? v : undefined);
+
+/**
+ * Was das Tablet schickt, wird NIE ungeprüft geschrieben: Aus der Eingabe
+ * entsteht ein frischer Stand mit genau 18 Spielen in der Reihenfolge des
+ * Bogens (Spielart kommt aus dem Plan, nicht vom Gerät), Plätzen 1–8, Namen
+ * ohne Überlänge und nur Ergebnissen, die es in diesem Modus gibt.
+ */
+export function pruefeStand(roh: unknown, bestOf: BestOf): { stand: KioskStand; fehler: null } | { stand: null; fehler: string } {
+  const nein = (fehler: string) => ({ stand: null, fehler });
+  const r = roh as Partial<Record<keyof KioskStand, unknown>> | null;
+  if (!r || typeof r !== 'object') return nein('Eingabe fehlt.');
+  const seite = (liste: unknown): { slot: number; name: string }[] | null => {
+    if (!Array.isArray(liste) || liste.length > 8) return null;
+    const out: { slot: number; name: string }[] = [];
+    for (const p of liste as { slot?: unknown; name?: unknown }[]) {
+      if (!p || !ganz(p.slot, 1, 8) || typeof p.name !== 'string') return null;
+      const name = p.name.replace(/\s+/g, ' ').trim();
+      if (name.length > 60) return null;
+      if (out.some(o => o.slot === p.slot)) return null;
+      if (name) out.push({ slot: p.slot, name });
+    }
+    return out;
+  };
+  const heim = seite(r.heim), gast = seite(r.gast);
+  if (!heim || !gast) return nein('Aufstellung ist nicht lesbar.');
+  if (!Array.isArray(r.games)) return nein('Spiele fehlen.');
+  const erlaubt = legResults(bestOf) as readonly string[];
+  const games: ReportGame[] = [];
+  for (const plan of GAME_SCHEDULE) {
+    const g = (r.games as Partial<ReportGame>[]).find(x => x?.game_no === plan.no);
+    if (!g) return nein(`Spiel ${plan.no} fehlt.`);
+    const h1 = slotOderLeer(g.home_slot), g1 = slotOderLeer(g.guest_slot), h2 = slotOderLeer(g.home_slot2), g2 = slotOderLeer(g.guest_slot2);
+    if (h1 === undefined || g1 === undefined || h2 === undefined || g2 === undefined) return nein(`Spiel ${plan.no}: Spieler nicht lesbar.`);
+    const doppel = plan.type === 'double';
+    const offen = g.legs_home == null && g.legs_guest == null;
+    if (!offen && !erlaubt.includes(`${g.legs_home}:${g.legs_guest}`)) return nein(`Spiel ${plan.no}: Ergebnis gibt es nicht.`);
+    games.push({
+      game_no: plan.no, game_type: plan.type,
+      home_slot: h1, guest_slot: g1, home_slot2: doppel ? h2 : null, guest_slot2: doppel ? g2 : null,
+      legs_home: offen ? null : g.legs_home as number, legs_guest: offen ? null : g.legs_guest as number,
+    });
+  }
+  const highlights: HighlightEntry[] = [];
+  if (r.highlights != null) {
+    if (!Array.isArray(r.highlights) || r.highlights.length > 100) return nein('Highlights sind nicht lesbar.');
+    for (const h of r.highlights as Partial<HighlightEntry>[]) {
+      if (!h || (h.side !== 'home' && h.side !== 'guest') || !ganz(h.slot, 1, 8) || !HIGHLIGHT_TYPES.includes(h.type as never)) return nein('Highlight ist nicht lesbar.');
+      const k = HIGHLIGHT_VALUE_CONFIG[h.type!];
+      if (!ganz(h.value, k.min, k.max)) return nein('Highlight: Wert passt nicht.');
+      if (h.game_no != null && !ganz(h.game_no, 1, 18)) return nein('Highlight: Spiel passt nicht.');
+      highlights.push({ side: h.side, slot: h.slot, type: h.type!, value: h.value, game_no: h.game_no ?? null });
+    }
+  }
+  return { stand: { heim, gast, games, highlights }, fehler: null };
+}
+
+/** Darf abgesendet werden? Dieselben Regeln wie im Formular. Gibt den Grund zurück, sonst null. */
+export function absendeFehler(s: KioskStand): string | null {
+  for (let i = 1; i <= 4; i++) {
+    if (!s.heim.some(p => p.slot === i)) return `Heimspieler H${i} fehlt.`;
+    if (!s.gast.some(p => p.slot === i)) return `Gastspieler G${i} fehlt.`;
+  }
+  const da = (liste: { slot: number }[], slot: number | null) => slot != null && liste.some(p => p.slot === slot);
+  for (const g of s.games) {
+    const d = g.game_type === 'double';
+    if (!da(s.heim, g.home_slot) || !da(s.gast, g.guest_slot) || (d && (!da(s.heim, g.home_slot2) || !da(s.gast, g.guest_slot2)))) {
+      return `Spiel ${g.game_no}${d ? ' (Doppel)' : ''}: Bitte für beide Seiten die Spieler antippen.`;
+    }
+    if (d && (g.home_slot === g.home_slot2 || g.guest_slot === g.guest_slot2)) return `Spiel ${g.game_no} (Doppel): Pro Seite zwei verschiedene Spieler.`;
+    if (g.legs_home == null || g.legs_guest == null) return `Spiel ${g.game_no}: Ergebnis fehlt.`;
+  }
+  return null;
+}

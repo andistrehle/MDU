@@ -167,6 +167,22 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   fertigen Spiel ohne gewonnenes Leg rutscht zum nächsten Spiel der Person mit gewonnenem Leg (`plausiblesSpiel`), Daten bleiben.
   Start-Push an ALLE einmal je Spieltag: `/api/live/start` nach dem ersten Autospeichern, Sperre über `live_ticker_push`
   (Datum = Primärschlüssel); ohne Tabelle kein Push. Datenschutz-Absatz dazu: vom Betreiber als nicht nötig entschieden.
+  **Tablet im Lokal / Kiosk** (Migration 0072, Betreiber 19.11.2026): `/kiosk` (ohne MDU-Chrome, noindex) ist die Eingabeseite für ein Tablet im
+  Kiosk-Modus — OHNE Konto. Einmal koppeln: Kapitän/Co-Captain (spielberichte)/Ligaleitung legt im Team-Manager-Dashboard unter „Tablet im Lokal“
+  (`components/mdu/kiosk-geraete.tsx`, `/api/team/kiosk`, höchstens 3 je Team) ein Gerät an → achtstelliger Code (15 Min, einmal) → am Tablet
+  eintippen (`/api/kiosk/koppeln`, Bremse 8 Fehlversuche/10 Min) → Geräte-Schlüssel als HttpOnly-Cookie `mdu-kiosk` + localStorage; in
+  `kiosk_geraete` liegt nur der SHA-256 (Tabelle OHNE Policy, nur service_role). Das Tablet redet nie direkt mit der DB und nennt nie Team oder
+  Begegnung: `lib/server/kiosk.ts` leitet aus dem Schlüssel das Team ab und nimmt das HEIMSPIEL am `spieltagDatum` (sonst „Heute kein Spiel“).
+  Es darf nur den ENTWURF dieser Begegnung führen und absenden (Betreiber: Knopf „Abend fertig – absenden“ mit Rückfrage, erst mit 18 Ergebnissen;
+  wie eine Vertretung) — nie bestätigen, kein Protest, keine Korrektur/Wertung, kein anderes Spiel. Jede Eingabe läuft durch `pruefeStand`
+  (lib/kiosk.ts, getestet; Spielart kommt aus `GAME_SCHEDULE`, nicht vom Gerät), Passnummern/Spieler-IDs setzt der Server aus dem Kader (das Tablet
+  sieht nur Namen). Oberfläche = `LiveAnzeige` wie im Live-Modus, davor „Wer spielt heute?“ (H1–H8/G1–G8, vorbelegt aus `match_team_details`).
+  Autospeichern 3 s nach der Eingabe ab dem ersten Ergebnis, Fehler → 15 s, ungespeichert im localStorage; Konfliktschutz über `updated_at`
+  (`basis`) — speichert der Kapitän am Handy, lädt das Tablet dessen Stand. Start-Push über `liveStartPush` (lib/server/live-start.ts, gemeinsam
+  mit `/api/live/start`), Neubau über `ergebnisSeitenMarkieren`. Der Bericht läuft unter dem Konto des Kapitäns (`home_captain_user_id` ist
+  Pflicht), Verlauf `kiosk_angelegt`/`kiosk_abgesendet` mit Gerätename. Nur mit Team Manager UND `KIOSK_TEAMS` (zum Start nur Bazis; `null` = alle,
+  dann auch FAQ-Eintrag ergänzen — bis dahin bewusst keiner), Not-Aus `KIOSK_AN`. Probe `/kiosk?probe=1`: erfundene Begegnung, rechnet nur im
+  Gerät. Datenschutz-Absatz: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),
   Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).
   **Website-Umfrage läuft seit 15.11.2026 bis 28.11.** (`UMFRAGE.live = true`, Betreiber): die GANZE Umfrage im Popup

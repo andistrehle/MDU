@@ -20,6 +20,7 @@ import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-a
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
 import { KapitaensTeam } from '@/components/mdu/kapitaens-team';
+import { KioskGeraete } from '@/components/mdu/kiosk-geraete';
 import { zusagenFreigeschaltet } from '@/lib/features';
 import { PREMIUM_OEFFENTLICH, TESTTAGE } from '@/lib/premium';
 import { alleBegegnungen27, team27, findLiga27, NEUE_SAISON, terminKurz, wochenendeText, type Begegnung27 } from '@/lib/data/saison-2027';
@@ -204,6 +205,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             ) : null}
             {dash && istKapitaen && <NachrichtAnsTeam teamId={teamId} />}
             {dash && <KapitaensTeam teamId={teamId} />}
+            {dash && hatTcRecht(user, teamId, 'spielberichte') && <KioskGeraete teamId={teamId} />}
             {dash && <TeamEinladen teamId={teamId} teamName={t.name} />}
             {dash ? null : (<>
             <ZurueckLink href="/mein-team/zusagen" text="Team Manager" />
