@@ -30,7 +30,8 @@ const lesen = <T,>(k: string): T | null => { try { const s = localStorage.getIte
 const schreiben = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* privat / voll */ } };
 
 const knopf: React.CSSProperties = { border: 0, borderRadius: 14, padding: '14px 22px', fontSize: 18, fontWeight: 800, color: '#fff', background: 'rgba(255,255,255,0.14)', cursor: 'pointer', fontFamily: 'inherit', minHeight: 56 };
-const rahmen: React.CSSProperties = { position: 'fixed', inset: 0, overflow: 'auto', color: '#fff', fontFamily: 'var(--font-manrope)', background: LIVE_HINTERGRUND };
+// top/right/bottom/left statt `inset`: ältere iPads (Safari < 14.1) kennen `inset` nicht — die Seite blieb dort weiß (19.11.2026).
+const rahmen: React.CSSProperties = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, overflow: 'auto', color: '#fff', fontFamily: 'var(--font-manrope)', background: LIVE_HINTERGRUND };
 const gross: React.CSSProperties = { fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, textTransform: 'uppercase', lineHeight: 1.05 };
 
 const mitNamen = (side: 'home' | 'guest', liste: { slot: number; name: string }[]) =>
@@ -65,7 +66,7 @@ export default function KioskPage() {
       setModus(q.get('probe') === '1' ? 'probe' : 'echt');
     });
   }, []);
-  if (modus === null) return <div style={rahmen} />;
+  if (modus === null) return <Laedt />;
   return modus === 'probe' ? <Probe /> : <Echt codeVorgabe={code} />;
 }
 
@@ -195,7 +196,7 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
     return () => clearInterval(t);
   }, [lage, spiel, laden]);
 
-  if (lage === null) return <div style={rahmen} />;
+  if (lage === null) return <Laedt />;
   if (lage === 'koppeln') return <Koppeln vorgabe={codeVorgabe} fertig={() => { setLage(null); void laden(true); }} />;
   if (lage === 'fehler') return <Tafel titel="Keine Verbindung" text="Das Tablet erreicht die MDU-Seite gerade nicht. Es versucht es von selbst wieder." knopfText="Jetzt versuchen" onKnopf={() => void laden(true)} />;
   if (lage.art === 'aus' || lage.art === 'kein_premium') return <Tafel titel="Tablet-Eingabe nicht aktiv" text={lage.art === 'aus' ? `Für ${lage.team} ist die Eingabe am Tablet nicht freigeschaltet.` : `${lage.team} hat den Team Manager gerade nicht aktiv. Der Kapitän kann ihn unter „Mein Team“ wieder freischalten.`} />;
@@ -205,7 +206,7 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
       ? `Nächstes Heimspiel von ${lage.team}: ${new Date(n.datum + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}${n.uhrzeit ? `, ${n.uhrzeit} Uhr` : ''} gegen ${n.gegner}.`
       : `Für ${lage.team} steht kein weiteres Heimspiel im Plan.`} knopfText="Aktualisieren" onKnopf={() => void laden(true)} leise />;
   }
-  if (!z || !spiel) return <div style={rahmen} />;
+  if (!z || !spiel) return <Laedt />;
   const kopf = { heimName: spiel.heimName, gastName: spiel.gastName, heimId: spiel.heimId, gastId: spiel.gastId, liga: spiel.liga, datum: spiel.datum, ort: spiel.ort, bestOf: spiel.bestOf };
 
   if (spiel.status !== 'offen') return (
@@ -378,6 +379,10 @@ function Koppeln({ vorgabe, fertig }: { vorgabe: string; fertig: () => void }) {
 }
 
 // ── Kleinteile ─────────────────────────────────────────────────
+/** Steht schon im ausgelieferten HTML: Bleibt es bei „Lädt …“, läuft das Skript der Seite auf diesem Gerät nicht. */
+function Laedt() {
+  return <div style={{ ...rahmen, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, opacity: 0.9 }}>Lädt …</div>;
+}
 const bandKnopf: React.CSSProperties = { border: 0, borderRadius: 999, padding: '6px 14px', fontWeight: 800, fontSize: 14, background: 'rgba(0,0,0,0.18)', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit' };
 function Band({ farbe, hell, children }: { farbe: string; hell?: boolean; children: React.ReactNode }) {
   return <div style={{ position: 'sticky', top: 0, zIndex: 5, background: farbe, color: hell ? '#fff' : '#1a1300', fontWeight: 800, fontSize: 16, padding: '10px 14px', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', textAlign: 'center' }}>{children}</div>;
@@ -395,7 +400,7 @@ function Tafel({ titel, text, knopfText, onKnopf, leise }: { titel: string; text
 }
 function Frage({ titel, text, ja, nein, onJa, onNein }: { titel: string; text: string; ja: string; nein?: string; onJa: () => void; onNein?: () => void }) {
   return (
-    <div role="dialog" aria-modal="true" aria-label={titel} style={{ position: 'fixed', inset: 0, zIndex: 2147483600, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 20 }}>
+    <div role="dialog" aria-modal="true" aria-label={titel} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 2147483600, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 20 }}>
       <div style={{ width: 'min(520px, 100%)', borderRadius: 20, padding: 24, background: '#1B212D', border: '1px solid rgba(255,255,255,0.15)', textAlign: 'center' }}>
         <div style={{ ...gross, fontSize: 34 }}>{titel}</div>
         <p style={{ fontSize: 18, opacity: 0.85, lineHeight: 1.45, margin: '12px 0 20px' }}>{text}</p>

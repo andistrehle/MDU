@@ -367,7 +367,7 @@ function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: 
   }
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 5, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 5, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: 'min(720px, 100%)', maxHeight: '85vh', overflow: 'auto', padding: '18px 18px 24px', borderRadius: '18px 18px 0 0', background: '#1B2230', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontFamily: 'var(--font-manrope)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{titel}</span>
