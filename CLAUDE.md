@@ -186,8 +186,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Verlängerung/Monatsabbuchung/Testkauf). An den Käufer, sonst den Kapitän; Antwort an `ANBIETER.email`; `email_logs` Typ `premium_danke`.
   **Admin → Spielberichte** (Betreiber, 25.10.2026): alle Begegnungen auf einmal, nach Spieltag gruppiert
   (begonnene zuerst, neuester oben; innerhalb des Spieltags eingereichte zuerst, neueste Einreichung oben —
-  Zeit aus `match_report_history` „submitted“, sonst `created_at`, `ladeEinreichzeiten` —, ausstehende danach), Filter Status (Alle/Fehlt/Eingereicht·unbestätigt/Bestätigt/Problemfälle
-  mit Anzahl), Liga, Spieltag, Wochenende (echter Termin), Erfassungsweg, Team-Suche. „Fehlt“ = Termin vorbei,
+  Zeit aus `match_report_history` „submitted“, sonst `created_at`, `ladeEinreichzeiten` —, ausstehende danach), Filter als Knöpfe mit Anzahl: Status (Alle/Fehlt/Unbestätigt/Bestätigt/Problem)
+  und Erfassungsweg (Live/Foto/Abgeschrieben — seit 19.11.2026 Knöpfe statt Auswahlfeld), dazu Liga, Spieltag, Wochenende (echter Termin), Team-Suche. „Fehlt“ = Termin vorbei,
   nichts eingereicht (Entwurf zählt als fehlt); Problemfälle = überfällig (nach Di 24 Uhr), Wertung,
   Änderung angefordert, offener Protest. Die alte Liste je Liga ist darunter als „Rohliste“ eingeklappt.
   **Protest** (Migration 0057, Betreiber 25.10.2026): nur mit Begründung (≥ `PROTEST_MIN` = 15 Zeichen,

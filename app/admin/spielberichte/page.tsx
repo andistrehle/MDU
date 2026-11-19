@@ -103,6 +103,12 @@ export default function AdminSpielberichtePage() {
   }, [alle, fLiga, fSpieltag, fWoche, fTeam, fWeg]);
   const passt = (x: (typeof alle)[number], f: StatusFilter) => f === 'alle' || (f === 'problem' ? x.problem : x.st === f);
   const zahl = (f: StatusFilter) => vorStatus.filter(x => passt(x, f)).length;
+  // Zahl je Erfassungsweg: alle anderen Filter (auch Status) gelten, nur der Weg selbst nicht.
+  const zahlWeg = (w: Erfassungsweg) => {
+    const q = normal(fTeam);
+    return alle.filter(x => x.weg === w && passt(x, fStatus) && (fLiga === 'alle' || x.b.liga === fLiga) && (!fSpieltag || x.b.spieltag === fSpieltag)
+      && (!fWoche || x.woche === fWoche) && (!q || normal(team27(x.b.home)?.name ?? x.b.home).includes(q) || normal(team27(x.b.away)?.name ?? x.b.away).includes(q))).length;
+  };
   const gruppen = useMemo(() => {
     const m = new Map<number, typeof alle>();
     for (const x of vorStatus.filter(x => passt(x, fStatus))) (m.get(x.b.spieltag) ?? m.set(x.b.spieltag, []).get(x.b.spieltag)!).push(x);
@@ -182,13 +188,21 @@ export default function AdminSpielberichtePage() {
             </button>
           ))}
         </div>
+        {/* Erfassungsweg als Knöpfe mit Anzahl (Betreiber 19.11.2026 — vorher ein Auswahlfeld, das niemand fand). Nochmal tippen = aus. */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {WEGE.map(w => (
+            <button key={w} type="button" aria-pressed={fWeg === w} onClick={() => setFWeg(fWeg === w ? '' : w)} style={chip(fWeg === w, WEG[w].farbe)}>
+              {WEG[w].icon} {WEG[w].label} <span style={{ opacity: 0.75 }}>{rows === null ? '' : zahlWeg(w)}</span>
+            </button>
+          ))}
+        </div>
         {/* Liga */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
           {([{ code: 'alle', name: 'Alle Ligen' }, ...LIGEN_2027] as { code: Liga27Code | 'alle'; name: string }[]).map(l => (
             <button key={l.code} type="button" onClick={() => setFLiga(l.code)} style={chip(fLiga === l.code)}>{l.name}</button>
           ))}
         </div>
-        {/* Spieltag, Wochenende, Erfassungsweg, Team */}
+        {/* Spieltag, Wochenende, Team */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
           <select value={fSpieltag} onChange={e => setFSpieltag(Number(e.target.value))} style={sel} aria-label="Spieltag">
             <option value={0}>Alle Spieltage</option>
@@ -197,10 +211,6 @@ export default function AdminSpielberichtePage() {
           <select value={fWoche} onChange={e => setFWoche(e.target.value)} style={sel} aria-label="Wochenende">
             <option value="">Alle Wochenenden</option>
             {wochen.map(w => <option key={w} value={w}>{wocheText(w)}</option>)}
-          </select>
-          <select value={fWeg} onChange={e => setFWeg(e.target.value as Erfassungsweg | '')} style={sel} aria-label="Erfassungsweg">
-            <option value="">Jeder Erfassungsweg</option>
-            {WEGE.map(w => <option key={w} value={w}>{WEG[w].icon} {WEG[w].label}</option>)}
           </select>
           <input value={fTeam} onChange={e => setFTeam(e.target.value)} placeholder="Team suchen …" style={{ ...sel, flex: '1 1 180px' }} aria-label="Team suchen" />
           {filterAktiv && (
@@ -223,7 +233,7 @@ export default function AdminSpielberichtePage() {
           ))}
         </div>
         <p style={{ ...muted, fontSize: 11.5, margin: '12px 0 0' }}>
-          „Fehlt“ = Termin vorbei, kein eingereichter Bericht (auch wenn ein Entwurf existiert). „Problemfälle“ = überfällig (nach Dienstag 24 Uhr), Wertung, Änderung angefordert oder offener Protest (bis „Protest erledigt“).
+          „Fehlt“ = Termin vorbei, kein eingereichter Bericht (auch wenn ein Entwurf existiert). „Unbestätigt“ = eingereicht, vom Gegner noch nicht bestätigt. „Problem“ = überfällig (nach Dienstag 24 Uhr), Wertung, Änderung angefordert oder offener Protest (bis „Protest erledigt“).
         </p>
       </div>
 
@@ -346,9 +356,9 @@ type StatusFilter = 'alle' | 'fehlt' | 'eingereicht' | 'bestaetigt' | 'problem';
 const STATUS_FILTER: { key: StatusFilter; label: string; farbe?: string }[] = [
   { key: 'alle', label: 'Alle' },
   { key: 'fehlt', label: 'Fehlt', farbe: 'var(--th-loss)' },
-  { key: 'eingereicht', label: 'Eingereicht · unbestätigt', farbe: '#9A6B00' },
+  { key: 'eingereicht', label: 'Unbestätigt', farbe: '#9A6B00' },
   { key: 'bestaetigt', label: 'Bestätigt', farbe: 'var(--th-win)' },
-  { key: 'problem', label: 'Problemfälle', farbe: 'var(--th-loss)' },
+  { key: 'problem', label: 'Problem', farbe: 'var(--th-loss)' },
 ];
 
 interface Partie {
