@@ -29,6 +29,8 @@ export function GlobalChrome() {
   // `isMdcPath` ist auf der eigenen MDC-Domain immer wahr — dort gibt es die
   // MDU-Oberfläche gar nicht, und der Pfad heißt im Browser nicht mehr /mdc.
   if (isMdcPath(pathname)) return null;
+  // Tablet im Lokal (/kiosk): nichts außer der Eingabe — keine Navigation, kein Popup.
+  if (pathname === '/kiosk' || pathname?.startsWith('/kiosk/')) return null;
 
   return (
     <>
