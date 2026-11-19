@@ -183,3 +183,21 @@ export function neueMailPruefen(an: string, betreff: string, text: string, nurEn
   if (t.length < 10 || t === NEUE_MAIL_VORLAGE.trim() || /^Hallo[^\n]*,\s*Viele Grüße\s*Andi\s*Münchner Dart Union$/.test(t)) return { feld: 'text', text: 'Der Text ist noch leer.' };
   return null;
 }
+
+/** Nummer für wa.me: nur Ziffern mit Ländervorwahl (ohne Vorwahl = Deutschland). Leer, wenn zu kurz. */
+export function waNummer(roh: string | null | undefined): string {
+  let d = (roh ?? '').replace(/[^\d+]/g, '');
+  if (d.startsWith('+')) d = d.slice(1);
+  else if (d.startsWith('00')) d = d.slice(2);
+  else if (d.startsWith('0')) d = `49${d.slice(1)}`;
+  d = d.replace(/\D/g, '');
+  return d.length >= 8 ? d : '';
+}
+
+/** WhatsApp-Link mit vorbelegtem Text — oder null ohne brauchbare Nummer. Sehr lange Texte kürzt WhatsApp selbst nicht, deshalb hier bei 3.500 Zeichen. */
+export function waLink(telefon: string | null | undefined, text: string): string | null {
+  const n = waNummer(telefon);
+  if (!n) return null;
+  const t = (text ?? '').trim();
+  return `https://wa.me/${n}?text=${encodeURIComponent(t.length > 3500 ? `${t.slice(0, 3499)}…` : t)}`;
+}

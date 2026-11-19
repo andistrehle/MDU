@@ -11,7 +11,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
-import { abholen, anhangLink, antworten, entwurfSpeichern, neueMailSenden, postfachEingerichtet } from '@/lib/server/postfach';
+import { abholen, anhangLink, antworten, entwurfSpeichern, neueMailSenden, postfachEingerichtet, telefonZu } from '@/lib/server/postfach';
 import { antwortPruefen, neueMailPruefen } from '@/lib/postfach';
 
 export const runtime = 'nodejs';
@@ -39,6 +39,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ offen: count ?? 0 }, { headers: { 'Cache-Control': 'no-store' } });
   }
 
+  // Nummer zu EINER Adresse (Feld „An“ einer neuen Mail): ?telefon=<adresse>
+  const frage = url.searchParams.get('telefon');
+  if (frage) {
+    const t = await telefonZu([frage]);
+    return NextResponse.json({ telefon: t[frage.trim().toLowerCase()] ?? null }, { headers: { 'Cache-Control': 'no-store' } });
+  }
+
   const status = url.searchParams.get('status') ?? 'offen';
   let q = z.db.from('postfach_mails').select(SPALTEN).order('datum', { ascending: false }).limit(200);
   if (status === 'offen') q = q.eq('status', 'offen'); // eingehende offene UND eigene Entwürfe (richtung 'aus')
@@ -54,9 +61,15 @@ export async function GET(request: Request) {
     const { data: v } = await z.db.from('postfach_mails').select(SPALTEN).in('faden', faeden).order('datum', { ascending: true }).limit(400);
     verlauf = v ?? [];
   }
+  // Hinterlegte Telefonnummern der Gegenüber (für „Per WhatsApp“): eingehend der Absender, bei Entwürfen der Empfänger.
+  const ein = (mails as { richtung: string; von_email: string; von_name: string | null; an: string }[]);
+  const telefone = await telefonZu(
+    ein.map(m => (m.richtung === 'ein' ? m.von_email : m.an)),
+    Object.fromEntries(ein.filter(m => m.richtung === 'ein').map(m => [m.von_email.toLowerCase(), m.von_name])),
+  );
   const { data: stand } = await z.db.from('postfach_stand').select('letzter_lauf, letzter_fehler').eq('id', 1).maybeSingle();
   return NextResponse.json(
-    { mails, verlauf, stand: stand ?? null, eingerichtet: postfachEingerichtet(), versand: !!(process.env.RESEND_API_KEY && process.env.EMAIL_FROM) },
+    { mails, verlauf, telefone, stand: stand ?? null, eingerichtet: postfachEingerichtet(), versand: !!(process.env.RESEND_API_KEY && process.env.EMAIL_FROM) },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

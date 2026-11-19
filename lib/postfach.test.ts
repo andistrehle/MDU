@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { neueMailPruefen, NEUE_MAIL_VORLAGE, htmlZuText, istNewsletter, antwortBetreff, antwortPruefen, antwortText, betreffKern, fadenSchluessel, istAutomatisch, leererEntwurf, vorname, vorschau, zitat } from './postfach';
+import { waLink, waNummer, neueMailPruefen, NEUE_MAIL_VORLAGE, htmlZuText, istNewsletter, antwortBetreff, antwortPruefen, antwortText, betreffKern, fadenSchluessel, istAutomatisch, leererEntwurf, vorname, vorschau, zitat } from './postfach';
 
 describe('Postfach', () => {
   it('Betreff-Kern: alle Antwort- und Weiterleitungs-Vorsätze fallen weg', () => {
@@ -91,5 +91,15 @@ describe('Postfach', () => {
     // Entwurf: leer ist erlaubt, eine kaputte Adresse nicht
     expect(neueMailPruefen('', '', '', true)).toBeNull();
     expect(neueMailPruefen('kein-at', '', '', true)?.feld).toBe('an');
+  });
+
+  it('WhatsApp: Nummer mit Ländervorwahl, Link mit Text; ohne Nummer kein Link', () => {
+    expect(waNummer('0163 7181163')).toBe('491637181163');
+    expect(waNummer('+49 (163) 71 81-163')).toBe('491637181163');
+    expect(waNummer('0043 660 1234567')).toBe('436601234567');
+    expect(waNummer('12')).toBe('');
+    expect(waNummer(null)).toBe('');
+    expect(waLink('0163 7181163', ' Servus Stephan,\nkurze Bitte ')).toBe('https://wa.me/491637181163?text=Servus%20Stephan%2C%0Akurze%20Bitte');
+    expect(waLink('', 'Text')).toBeNull();
   });
 });

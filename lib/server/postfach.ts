@@ -346,6 +346,56 @@ export async function entwurfSpeichern(o: { id?: string | null; an: string; betr
   return { id: (data as { id: string } | null)?.id ?? null, error: error?.message };
 }
 
+/**
+ * Hinterlegte Telefonnummern zu Mail-Adressen (für „Per WhatsApp“ im Postfach, Betreiber 19.11.2026):
+ * 1) Ansprechpartner einer Mannschaftsanmeldung mit genau dieser Adresse, 2) Konto mit dieser Adresse, das Kapitän
+ * eines Saison-Teams ist → Nummer aus dessen Anmeldung (wie Admin → Kontakte), 3) Konto → Spielerprofil → eigene Nummer,
+ * 4) der Absendername, wenn er als Ansprechpartner auf genau eine Nummer führt.
+ */
+export async function telefonZu(adressen: string[], namen: Record<string, string | null> = {}): Promise<Record<string, string>> {
+  const db = supabaseAdmin;
+  const liste = [...new Set(adressen.map(a => (a ?? '').trim().toLowerCase()).filter(a => a.includes('@')))];
+  if (!db || !liste.length) return {};
+  const aus: Record<string, string> = {};
+  const setze = (mail: string | null | undefined, tel: string | null | undefined) => {
+    const m = (mail ?? '').trim().toLowerCase(), t = (tel ?? '').trim();
+    if (m && t && !aus[m]) aus[m] = t;
+  };
+  const { data: reg } = await db.from('team_registrations').select('contact_email, contact_phone').in('contact_email', liste);
+  for (const r of (reg ?? []) as { contact_email: string | null; contact_phone: string | null }[]) setze(r.contact_email, r.contact_phone);
+
+  const { data: prof } = await db.from('profiles').select('id, email, player_id').in('email', liste);
+  const profile = (prof ?? []) as { id: string; email: string; player_id: string | null }[];
+  if (profile.length) {
+    const { data: sta } = await db.from('season_team_assignments').select('captain_user_id, registration_id').in('captain_user_id', profile.map(p => p.id));
+    const zeilen = ((sta ?? []) as { captain_user_id: string | null; registration_id: string | null }[]).filter(z => z.registration_id);
+    if (zeilen.length) {
+      const { data: regs } = await db.from('team_registrations').select('id, contact_phone').in('id', zeilen.map(z => z.registration_id!));
+      const tel = new Map(((regs ?? []) as { id: string; contact_phone: string | null }[]).map(r => [r.id, r.contact_phone]));
+      for (const z of zeilen) setze(profile.find(p => p.id === z.captain_user_id)?.email, tel.get(z.registration_id!));
+    }
+    const spieler = profile.filter(p => p.player_id);
+    if (spieler.length) {
+      const { data: kont } = await db.from('player_contacts').select('player_id, phone').in('player_id', spieler.map(p => p.player_id!));
+      for (const k of (kont ?? []) as { player_id: string; phone: string | null }[]) setze(spieler.find(p => p.player_id === k.player_id)?.email, k.phone);
+    }
+  }
+  // 4) Über den NAMEN des Absenders: Kapitäne schreiben oft von einer anderen Adresse als der hinterlegten (Marcus Kampmann,
+  //    19.11.2026). Nur wenn der Name bei den Ansprechpartnern der Anmeldungen auf GENAU EINE Nummer führt.
+  const offen = liste.filter(a => !aus[a] && (namen[a] ?? '').trim().includes(' '));
+  if (offen.length) {
+    const { data: alle } = await db.from('team_registrations').select('contact_name, contact_phone').not('contact_phone', 'is', null);
+    const norm = (x: string) => x.trim().toLowerCase().replace(/\s+/g, ' ');
+    for (const a of offen) {
+      const n = norm(namen[a]!);
+      const nummern = new Set(((alle ?? []) as { contact_name: string | null; contact_phone: string | null }[])
+        .filter(r => r.contact_name && norm(r.contact_name) === n && (r.contact_phone ?? '').trim()).map(r => r.contact_phone!.replace(/\D/g, '')));
+      if (nummern.size === 1) setze(a, ((alle ?? []) as { contact_name: string | null; contact_phone: string | null }[]).find(r => r.contact_name && norm(r.contact_name) === n)!.contact_phone);
+    }
+  }
+  return aus;
+}
+
 /** Signierter Link (5 Minuten) auf einen Anhang. */
 export async function anhangLink(mailId: string, index: number): Promise<string | null> {
   const db = supabaseAdmin;

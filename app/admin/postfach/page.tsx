@@ -14,11 +14,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { supabase } from '@/lib/supabase/client';
-import { leererEntwurf, vorschau, antwortPruefen, neueMailPruefen, NEUE_MAIL_VORLAGE, type PostfachMail } from '@/lib/postfach';
+import { leererEntwurf, vorschau, antwortPruefen, neueMailPruefen, waLink, NEUE_MAIL_VORLAGE, type PostfachMail } from '@/lib/postfach';
 
 type Mail = PostfachMail & { automatisch: boolean; bezug: string | null };
 type Filter = 'offen' | 'erledigt' | 'alle';
-interface Daten { mails: Mail[]; verlauf: Mail[]; stand: { letzter_lauf: string | null; letzter_fehler: string | null } | null; eingerichtet: boolean; versand: boolean }
+interface Daten { mails: Mail[]; verlauf: Mail[]; telefone?: Record<string, string>; stand: { letzter_lauf: string | null; letzter_fehler: string | null } | null; eingerichtet: boolean; versand: boolean }
 
 const zeit = (iso: string | null | undefined) => {
   if (!iso) return '';
@@ -119,9 +119,9 @@ export default function AdminPostfachPage() {
           : mails.length === 0 ? <div style={{ ...karte, ...klein, fontSize: 14 }}>{filter === 'offen' ? 'Nichts offen – alles erledigt.' : 'Keine Mails.'}</div>
           : mails.map(m => (m.richtung === 'aus' && m.status === 'offen' ? (
             // Eigener Entwurf einer neuen Mail (auch von Claude vorbereitet): bearbeiten, senden oder verwerfen.
-            <NeueMail key={`${m.id}:${(m.entwurf ?? '').length}`} entwurf={m} versand={daten.versand} onFertig={() => void laden(filter)} />
+            <NeueMail key={`${m.id}:${(m.entwurf ?? '').length}`} entwurf={m} telefon={daten.telefone?.[m.an.toLowerCase()] ?? null} versand={daten.versand} onFertig={() => void laden(filter)} />
           ) : (
-            <MailKarte key={`${m.id}:${m.status}:${(m.entwurf ?? '').length}:${(m.notiz ?? '').length}`} m={m} auf={offen === m.id} versand={daten.versand}
+            <MailKarte key={`${m.id}:${m.status}:${(m.entwurf ?? '').length}:${(m.notiz ?? '').length}`} m={m} auf={offen === m.id} versand={daten.versand} telefon={daten.telefone?.[m.von_email.toLowerCase()] ?? null}
               verlauf={(verlaufJe.get(m.faden) ?? []).filter(v => v.id !== m.id && !(v.richtung === 'aus' && v.status === 'offen'))}
               onAuf={() => setOffen(o => (o === m.id ? null : m.id))} onGeaendert={() => void laden(filter)} />
           )
@@ -131,12 +131,33 @@ export default function AdminPostfachPage() {
   );
 }
 
+/** „Per WhatsApp“ — nur wenn zur Adresse eine Nummer hinterlegt ist (Anmeldung des Teams oder Spielerprofil). Öffnet WhatsApp
+ *  mit dem Text; gesendet wird dort von Hand. Die Mail bleibt offen, bis man sie abhakt bzw. den Entwurf löscht. */
+function WhatsAppKnopf({ telefon, text }: { telefon: string | null; text: string }) {
+  const link = waLink(telefon, text);
+  if (!link) return null;
+  return (
+    <a href={link} target="_blank" rel="noopener noreferrer" title={`WhatsApp an ${telefon}`}
+      style={{ ...knopf(false), textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, borderColor: '#25D366', color: '#128C4B' }}>
+      📲 Per WhatsApp <span style={{ fontWeight: 600, opacity: 0.8 }}>· {telefon}</span>
+    </a>
+  );
+}
+
 /** Neue Mail schreiben (keine Antwort) bzw. einen gespeicherten Entwurf bearbeiten. Gesendet wird nur per Klick + Rückfrage. */
-function NeueMail({ entwurf, versand, onFertig, onZu }: { entwurf?: Mail; versand: boolean; onFertig: () => void; onZu?: () => void }) {
+function NeueMail({ entwurf, telefon: telefonStart = null, versand, onFertig, onZu }: { entwurf?: Mail; telefon?: string | null; versand: boolean; onFertig: () => void; onZu?: () => void }) {
   const [id, setId] = useState<string | null>(entwurf?.id ?? null);
   const [an, setAn] = useState(entwurf?.an ?? '');
   const [betreff, setBetreff] = useState(entwurf?.betreff ?? '');
   const [text, setText] = useState(entwurf?.entwurf ?? NEUE_MAIL_VORLAGE);
+  const [telefon, setTelefon] = useState<string | null>(telefonStart);
+  // Nach dem Tippen der Adresse nachsehen, ob zu ihr eine Nummer hinterlegt ist.
+  async function nummerSuchen() {
+    const a = an.trim();
+    if (!a.includes('@')) { setTelefon(null); return; }
+    const { ok, j } = await ruf('GET', `/api/postfach?telefon=${encodeURIComponent(a)}`);
+    setTelefon(ok ? ((j.telefon as string | null) ?? null) : null);
+  }
   const [laeuft, setLaeuft] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ art: 'ok' | 'err'; feld: 'an' | 'betreff' | 'text' | 'knopf'; text: string } | null>(null);
 
@@ -173,7 +194,7 @@ function NeueMail({ entwurf, versand, onFertig, onZu }: { entwurf?: Mail; versan
         {entwurf && <span style={{ ...klein, marginLeft: 'auto' }}>{zeit(entwurf.datum)}</span>}
       </div>
       <label style={feldTitel}>An
-        <input type="email" inputMode="email" autoCapitalize="none" value={an} onChange={e => setAn(e.target.value)} placeholder="name@beispiel.de" style={eingabe} />
+        <input type="email" inputMode="email" autoCapitalize="none" value={an} onChange={e => setAn(e.target.value)} onBlur={() => void nummerSuchen()} placeholder="name@beispiel.de" style={eingabe} />
         {m('an')}
       </label>
       <label style={feldTitel}>Betreff
@@ -190,6 +211,7 @@ function NeueMail({ entwurf, versand, onFertig, onZu }: { entwurf?: Mail; versan
           <button type="button" onClick={() => void senden()} disabled={!!laeuft || !versand} style={{ ...knopf(true), opacity: laeuft || !versand ? 0.6 : 1 }}>{laeuft === 'neu_senden' ? 'Sende …' : 'Senden'}</button>
           <button type="button" onClick={() => void speichern()} disabled={!!laeuft} style={knopf(false)}>Entwurf speichern</button>
           <button type="button" onClick={() => void verwerfen()} disabled={!!laeuft} style={knopf(false)}>{id ? 'Entwurf löschen' : 'Abbrechen'}</button>
+          <WhatsAppKnopf telefon={telefon} text={text} />
         </div>
         {m('knopf')}
       </div>
@@ -197,7 +219,7 @@ function NeueMail({ entwurf, versand, onFertig, onZu }: { entwurf?: Mail; versan
   );
 }
 
-function MailKarte({ m, auf, verlauf, versand, onAuf, onGeaendert }: { m: Mail; auf: boolean; verlauf: Mail[]; versand: boolean; onAuf: () => void; onGeaendert: () => void }) {
+function MailKarte({ m, auf, verlauf, versand, telefon, onAuf, onGeaendert }: { m: Mail; auf: boolean; verlauf: Mail[]; versand: boolean; telefon: string | null; onAuf: () => void; onGeaendert: () => void }) {
   const ein = m.richtung === 'ein';
   const [antwort, setAntwort] = useState(m.entwurf ?? leererEntwurf(m));
   const [notiz, setNotiz] = useState(m.notiz ?? '');
@@ -297,6 +319,7 @@ function MailKarte({ m, auf, verlauf, versand, onAuf, onGeaendert }: { m: Mail; 
                       <button type="button" onClick={() => void senden()} disabled={!!laeuft || !versand} style={{ ...knopf(true), opacity: laeuft || !versand ? 0.6 : 1 }}>{laeuft === 'senden' ? 'Sende …' : 'Antwort senden'}</button>
                       <button type="button" onClick={() => void tu('antwort', { aktion: 'entwurf', text: antwort }, 'Entwurf gespeichert.', false)} disabled={!!laeuft} style={knopf(false)}>Entwurf speichern</button>
                       <button type="button" onClick={() => void tu('status', { aktion: 'status', status: 'erledigt' })} disabled={!!laeuft} style={knopf(false)}>Erledigt ohne Antwort</button>
+                      <WhatsAppKnopf telefon={telefon} text={antwort} />
                     </div>
                     {meldung('antwort')}{meldung('status')}
                   </div>

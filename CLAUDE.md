@@ -374,6 +374,10 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   erst nach Freigabe. Datenschutz-Absatz dazu: nur auf Anweisung.
   „Neue Mail“ (18.11.2026): eigene Mails schreiben, nicht nur antworten — Entwurf = Zeile mit `richtung 'aus'`, `status 'offen'`,
   Text in `entwurf` (liegt unter „Offen“, auch von Claude vorbereitbar), gesendet über `neueMailSenden()` (`email_logs` Typ `postfach_neu`).
+  „📲 Per WhatsApp“ (19.11.2026) an Antwort und Entwurf, wenn zur Adresse eine Nummer hinterlegt ist (`telefonZu()`: Ansprechpartner
+  der Anmeldung per Adresse → Kapitäns-Konto → Spielerprofil → Absendername, wenn er auf GENAU eine Nummer führt); öffnet wa.me mit
+  dem Text (`waLink`), gesendet wird in WhatsApp von Hand. Werbung/Spam (`istNewsletter`: Kopfzeile `list`, X-Spam-Flag, bekannte
+  Werbe-Absender) landet ohne Glocke unter „Erledigt“.
   Dazu ein geplanter Claude-Lauf „MDU-Postfach durchsehen“ (seit 18.11.2026, täglich 8:40/13:40/19:40 Berliner Zeit, je eine frische
   Cloud-Sitzung, Push an den Betreiber): liest offene Mails ohne `notiz`, schaut nur LESEND in die DB und schreibt je Mail `notiz`
   (Vorschlag) und IMMER `entwurf` (Antwort mit der Signatur des Betreibers) — sonst nichts. Anpassen/Abschalten: geplante Aufgaben in Claude.
