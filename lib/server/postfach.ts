@@ -150,10 +150,16 @@ async function ablegen(p: ParsedMail, uid: number, eingang: Date | null): Promis
   const betreff = (p.subject || '').trim().slice(0, 300);
   const text = ((p.text && p.text.trim()) || (typeof p.html === 'string' ? htmlZuText(p.html) : '') || '').slice(0, TEXT_MAX);
   const kopf = (n: string) => { const w = p.headers.get(n); return typeof w === 'string' ? w : w ? 'ja' : null; };
-  const merkmale = { listUnsubscribe: p.headers.has('list-unsubscribe'), autoSubmitted: kopf('auto-submitted'), precedence: kopf('precedence') };
+  // mailparser fasst alle List-*-Kopfzeilen unter „list“ zusammen (List-Unsubscribe → list.unsubscribe) — die Abfrage nach
+  // „list-unsubscribe“ fand deshalb nie etwas, und Instagram-Werbung blieb offen (19.11.2026).
+  const liste = p.headers.get('list') as Record<string, unknown> | undefined;
+  const merkmale = {
+    listUnsubscribe: !!(liste && typeof liste === 'object' && ('unsubscribe' in liste || 'id' in liste)),
+    autoSubmitted: kopf('auto-submitted'), precedence: kopf('precedence'), spam: /^\s*yes/i.test(kopf('x-spam-flag') ?? ''),
+  };
   const automatisch = istAutomatisch(vonEmail, betreff, merkmale);
   // Newsletter/Werbung: gleich abgehakt (unter „Erledigt“ zu finden), keine Glocke.
-  const werbung = istNewsletter(merkmale) && !vonEmail.endsWith(`@${POSTFACH_ADRESSE.split('@')[1]}`);
+  const werbung = istNewsletter(merkmale, vonEmail) && !vonEmail.endsWith(`@${POSTFACH_ADRESSE.split('@')[1]}`);
 
   const { data: zeile, error } = await db.from('postfach_mails').insert({
     richtung: 'ein', message_id: messageId, imap_uid: uid, in_reply_to: (p.inReplyTo || null),

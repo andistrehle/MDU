@@ -103,14 +103,21 @@ export function vorschau(text: string, max = 140): string {
 }
 
 /** Kopfzeilen, an denen man Massen- und Automatenpost erkennt. */
-export interface MailMerkmale { listUnsubscribe?: boolean; autoSubmitted?: string | null; precedence?: string | null }
+export interface MailMerkmale { listUnsubscribe?: boolean; autoSubmitted?: string | null; precedence?: string | null; spam?: boolean }
 
 const KEIN_MENSCH = /^(no-?reply|do-?not-?reply|mailer-daemon|postmaster|bounces?)([+.\-_][^@]*)?@/i;
 const eigeneDomain = (email: string) => (email ?? '').toLowerCase().endsWith(`@${POSTFACH_ADRESSE.split('@')[1]}`);
 
-/** Newsletter/Werbung (Instagram & Co.): trägt einen Abmelde-Kopf oder ist als Massenpost markiert. */
-export function istNewsletter(m: MailMerkmale | undefined): boolean {
-  return !!m && (!!m.listUnsubscribe || /^(bulk|list|junk)$/i.test((m.precedence ?? '').trim()));
+// Absender, die nur Werbung/Benachrichtigungen schicken — falls die Kopfzeilen einmal fehlen.
+const WERBE_DOMAIN = /@([a-z0-9-]+\.)*(instagram\.com|facebookmail\.com|facebook\.com|linkedin\.com|tiktok\.com|youtube\.com|x\.com|twitter\.com)$/i;
+// Nur der GENAUE Postfachname (ggf. mit +Zusatz) — „news.mueller@…“ ist ein Mensch.
+const WERBE_NAME = /^(newsletter|news|marketing|notifications?|notify|updates?|digest|follow-suggestions|promo(tions)?|mailer|info-noreply)(\+[^@]*)?@/i;
+
+/** Newsletter/Werbung/Spam (Instagram & Co.): Abmelde-Kopf, Massenpost, vom Anbieter als Spam markiert oder bekannter Werbe-Absender. */
+export function istNewsletter(m: MailMerkmale | undefined, vonEmail = ''): boolean {
+  const v = (vonEmail ?? '').trim().toLowerCase();
+  if (v && (WERBE_DOMAIN.test(v) || WERBE_NAME.test(v))) return true;
+  return !!m && (!!m.listUnsubscribe || !!m.spam || /^(bulk|list|junk)$/i.test((m.precedence ?? '').trim()));
 }
 
 /**
@@ -121,7 +128,7 @@ export function istNewsletter(m: MailMerkmale | undefined): boolean {
 export function istAutomatisch(vonEmail: string, betreff: string, m?: MailMerkmale): boolean {
   const v = (vonEmail ?? '').toLowerCase();
   if (eigeneDomain(v)) return false;
-  if (istNewsletter(m)) return true;
+  if (istNewsletter(m, v)) return true;
   const auto = (m?.autoSubmitted ?? '').trim().toLowerCase();
   if (auto && auto !== 'no') return true;
   return KEIN_MENSCH.test(v) || /^(undeliverable|unzustellbar|delivery status|automatische antwort|abwesenheit|out of office)/i.test((betreff ?? '').trim());

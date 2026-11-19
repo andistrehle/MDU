@@ -56,6 +56,12 @@ describe('Postfach', () => {
     expect(istAutomatisch('w@example.de', 'Re: Frage', { autoSubmitted: 'auto-replied' })).toBe(true);
     expect(istAutomatisch('w@example.de', 'Re: Frage', { autoSubmitted: 'no' })).toBe(false);
     expect(istNewsletter({ precedence: 'bulk' })).toBe(true);
+    expect(istNewsletter({ spam: true })).toBe(true);
+    // Werbe-Absender auch ohne Kopfzeilen (Instagram, 19.11.2026)
+    expect(istNewsletter({}, 'follow-suggestions@mail.instagram.com')).toBe(true);
+    expect(istNewsletter({}, 'newsletter@irgendein-shop.de')).toBe(true);
+    expect(istNewsletter({}, 'marcus.kampmann@gmx.de')).toBe(false);
+    expect(istNewsletter({}, 'news.mueller@web.de')).toBe(false); // ein Mensch, kein Werbe-Postfach
     expect(istNewsletter({})).toBe(false);
     expect(istNewsletter(undefined)).toBe(false);
   });
