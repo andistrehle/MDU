@@ -31,7 +31,37 @@ export const KIOSK_KOPF = 'x-kiosk-token';
 /** So lange gilt ein Kopplungscode. */
 export const CODE_MINUTEN = 15;
 
-export interface Geraet { id: string; team_id: string; name: string; erstellt_von: string | null; last_seen_at: string | null }
+export interface Geraet { id: string; team_id: string; name: string; erstellt_von: string | null; last_seen_at: string | null; test_bis?: string | null; test_fertig?: boolean | null }
+
+// ── Testspiel (Migration 0073) ─────────────────────────────────
+// Zum Ausprobieren vor dem ersten echten Heimspiel: Der Kapitän schaltet ein
+// gekoppeltes Gerät für TEST_STUNDEN in den Testmodus. Das Tablet zeigt dann
+// „eigenes Team – Testgegner“ und speichert über denselben Weg wie im
+// Echtbetrieb — aber in einen Bericht OHNE Saison (season_id null, Kennzeichen
+// `league_label = TEST_LABEL`, kein Gastteam). Alles Öffentliche (Live-Ticker,
+// Tabellen, Ergebnisse, Statistik) liest nur Berichte der Saison und sieht ihn
+// nicht. „Absenden“ reicht im Test NICHT wirklich ein (sonst Glocke + Push an
+// die ganze Ligaleitung), es merkt sich nur `test_fertig`. Kein Start-Push,
+// kein Neubau. Beenden löscht den Testbericht.
+export const TEST_STUNDEN = 3;
+export const TEST_LABEL = 'Tablet-Test';
+const TEST_GAST = 'Testgegner';
+const TEST_KADER = ['Test Gast 1', 'Test Gast 2', 'Test Gast 3', 'Test Gast 4', 'Test Gast 5', 'Test Gast 6'];
+export const testLaeuft = (g: Pick<Geraet, 'test_bis'>) => !!g.test_bis && new Date(g.test_bis).getTime() > Date.now();
+
+const testBerichte = (team: string) => db().from('match_reports').delete().is('season_id', null).eq('home_team_id', team).eq('league_label', TEST_LABEL);
+export async function testStarten(team: string, id: string): Promise<string | null> {
+  await testBerichte(team);
+  const { data, error } = await db().from('kiosk_geraete')
+    .update({ test_bis: new Date(Date.now() + TEST_STUNDEN * 3600_000).toISOString(), test_fertig: false })
+    .eq('id', id).eq('team_id', team).not('token_hash', 'is', null).select('id');
+  if (error) return /test_bis|test_fertig/.test(error.message) ? 'Die Datenbank kennt das Testspiel noch nicht — Migration 0073 fehlt.' : 'Das hat nicht geklappt.';
+  return data?.length ? null : 'Das Gerät ist noch nicht eingerichtet – erst den Code am Tablet eintippen.';
+}
+export async function testBeenden(team: string): Promise<void> {
+  await testBerichte(team);
+  await db().from('kiosk_geraete').update({ test_bis: null, test_fertig: false }).eq('team_id', team).not('test_bis', 'is', null);
+}
 
 export const hash = (s: string) => createHash('sha256').update(s).digest('hex');
 export const neuerCode = () => String(randomInt(0, 10 ** CODE_LAENGE)).padStart(CODE_LAENGE, '0');
@@ -49,8 +79,11 @@ export async function geraetVon(request: Request): Promise<Geraet | null> {
   const cookie = (request.headers.get('cookie') ?? '').split(/;\s*/).find(c => c.startsWith(`${KIOSK_COOKIE}=`))?.slice(KIOSK_COOKIE.length + 1);
   const token = (request.headers.get(KIOSK_KOPF) ?? '').trim() || cookie || '';
   if (token.length < 30 || token.length > 100) return null;
-  const { data } = await supabaseAdmin.from('kiosk_geraete').select('id, team_id, name, erstellt_von, last_seen_at')
+  const sp = 'id, team_id, name, erstellt_von, last_seen_at';
+  let { data, error } = await supabaseAdmin.from('kiosk_geraete').select(`${sp}, test_bis, test_fertig`)
     .eq('token_hash', hash(token)).is('gesperrt_am', null).maybeSingle();
+  // Ohne Migration 0073 gibt es die Test-Spalten nicht — dann eben ohne Testmodus.
+  if (error) ({ data, error } = await supabaseAdmin.from('kiosk_geraete').select(sp).eq('token_hash', hash(token)).is('gesperrt_am', null).maybeSingle() as never);
   const g = data as Geraet | null;
   if (!g) return null;
   // „Zuletzt aktiv“ höchstens alle 5 Minuten schreiben.
@@ -96,9 +129,11 @@ async function kader(team: string): Promise<KaderZeile[]> {
 }
 
 interface Bericht { id: string; status: string; forfeit: string | null; updated_at: string; highlights: HighlightEntry[] | null }
-async function berichtZu(b: Begegnung27): Promise<Bericht | null> {
-  const { data } = await db().from('match_reports').select('id, status, forfeit, updated_at, highlights')
-    .eq('season_id', NEUE_SAISON.id).eq('home_team_id', b.home).eq('guest_team_id', b.away).limit(1).maybeSingle();
+async function berichtZu(b: Begegnung27, test = false): Promise<Bericht | null> {
+  const q = db().from('match_reports').select('id, status, forfeit, updated_at, highlights').eq('home_team_id', b.home);
+  const { data } = await (test
+    ? q.is('season_id', null).eq('league_label', TEST_LABEL)
+    : q.eq('season_id', NEUE_SAISON.id).eq('guest_team_id', b.away)).limit(1).maybeSingle();
   return data as Bericht | null;
 }
 
@@ -131,43 +166,53 @@ export type KioskLage =
   | { art: 'aus' | 'kein_premium'; team: string }
   | { art: 'kein_spiel'; team: string; naechstes: { gegner: string; datum: string; uhrzeit: string | null } | null }
   | {
-    art: 'spiel'; team: string; key: string; heimId: string; gastId: string; heimName: string; gastName: string; liga: string; datum: string; ort: string; bestOf: BestOf;
+    art: 'spiel'; team: string; key: string; heimId: string; gastId: string | null; test: boolean; heimName: string; gastName: string; liga: string; datum: string; ort: string; bestOf: BestOf;
     kaderHeim: string[]; kaderGast: string[];
     /** offen = Entwurf (oder noch nichts), abgesendet = eingereicht/bestätigt, gesperrt = Wertung der Ligaleitung */
     status: 'offen' | 'abgesendet' | 'gesperrt';
     stand: KioskStand; basis: string | null;
   };
 
-interface Rahmen { b: Begegnung27; datum: string; bestOf: BestOf }
+interface Rahmen { b: Begegnung27; datum: string; bestOf: BestOf; test: boolean }
 async function rahmen(g: Geraet): Promise<Rahmen | { lage: KioskLage }> {
   const teamName = team27(g.team_id)?.name ?? g.team_id;
   if (!kioskErlaubt(g.team_id)) return { lage: { art: 'aus', team: teamName } };
   if (!(await teamManagerAktiv(g.team_id))) return { lage: { art: 'kein_premium', team: teamName } };
   const datum = spieltagDatum(new Date());
+  if (testLaeuft(g)) {
+    const liga = team27(g.team_id)?.league ?? 'c';
+    const b: Begegnung27 = { key: `test|${g.team_id}`, liga, spieltag: 0, half: 'hin', fri: datum, sun: datum, home: g.team_id, away: '', derby: false, termin: null };
+    return { b, datum, bestOf: bestOfFuerLiga(liga), test: true };
+  }
+  // Abgelaufenes Testspiel: Testbericht wegräumen.
+  if (g.test_bis) await testBeenden(g.team_id).catch(() => {});
   const plan = alleBegegnungen27();
   const b = heimspielAm(plan, g.team_id, datum);
   if (!b) {
     const n = naechstesHeimspiel(plan, g.team_id, datum);
     return { lage: { art: 'kein_spiel', team: teamName, naechstes: n ? { gegner: team27(n.away)?.name ?? n.away, datum: n.termin!.datum, uhrzeit: n.termin!.uhrzeit ?? null } : null } };
   }
-  return { b, datum, bestOf: bestOfFuerLiga(b.liga) };
+  return { b, datum, bestOf: bestOfFuerLiga(b.liga), test: false };
 }
 
 export async function lage(g: Geraet): Promise<KioskLage> {
   const r = await rahmen(g);
   if ('lage' in r) return r.lage;
-  const { b, datum, bestOf } = r;
-  const [kh, kg, bericht] = await Promise.all([kader(b.home), kader(b.away), berichtZu(b)]);
-  const stand: KioskStand = bericht ? await standVon(bericht) : { ...(await vorbelegung(b, kh, kg)), games: leereSpiele(), highlights: [] };
+  const { b, datum, bestOf, test } = r;
+  const [kh, kg, bericht] = await Promise.all([kader(b.home), test ? gastKaderTest() : kader(b.away), berichtZu(b, test)]);
+  const stand: KioskStand = bericht ? await standVon(bericht)
+    : { ...(test ? { heim: [], gast: [] } : await vorbelegung(b, kh, kg)), games: leereSpiele(), highlights: [] };
   return {
-    art: 'spiel', team: team27(b.home)?.name ?? b.home, key: b.key, heimId: b.home, gastId: b.away,
-    heimName: team27(b.home)?.name ?? b.home, gastName: team27(b.away)?.name ?? b.away,
+    art: 'spiel', team: team27(b.home)?.name ?? b.home, key: b.key, heimId: b.home, gastId: test ? null : b.away, test,
+    heimName: team27(b.home)?.name ?? b.home, gastName: test ? TEST_GAST : team27(b.away)?.name ?? b.away,
     liga: findLiga27(b.liga)?.name ?? b.liga, datum, ort: venue27(team27(b.home)?.venueId)?.name ?? '', bestOf,
     kaderHeim: kh.map(k => k.name), kaderGast: kg.map(k => k.name),
-    status: !bericht ? 'offen' : bericht.forfeit ? 'gesperrt' : bericht.status === 'draft' ? 'offen' : 'abgesendet',
+    status: test ? (g.test_fertig ? 'abgesendet' : 'offen') : !bericht ? 'offen' : bericht.forfeit ? 'gesperrt' : bericht.status === 'draft' ? 'offen' : 'abgesendet',
     stand, basis: bericht?.updated_at ?? null,
   };
 }
+
+const gastKaderTest = async (): Promise<KaderZeile[]> => TEST_KADER.map(name => ({ id: null, name, passNo: null, kapitaen: false }));
 
 /** Konto, unter dem der Bericht läuft (Pflichtfeld): Kapitän des Teams, sonst wer das Gerät eingerichtet hat. */
 async function kapitaenKonto(g: Geraet): Promise<string | null> {
@@ -188,17 +233,18 @@ export type SpeicherErgebnis =
 export async function speichern(g: Geraet, roh: unknown, basis: string | null, absenden: boolean): Promise<SpeicherErgebnis> {
   const r = await rahmen(g);
   if ('lage' in r) return { ok: false, status: 409, fehler: r.lage.art === 'kein_spiel' ? 'Heute ist kein Heimspiel.' : 'Die Tablet-Eingabe ist für dieses Team nicht aktiv.' };
-  const { b, datum, bestOf } = r;
+  const { b, datum, bestOf, test } = r;
+  if (test && g.test_fertig) return { ok: false, status: 409, konflikt: true, fehler: 'Das Testspiel ist schon abgesendet.' };
   const p = pruefeStand(roh, bestOf);
   if (!p.stand) return { ok: false, status: 400, fehler: p.fehler };
   const stand = p.stand;
   if (absenden) { const f = absendeFehler(stand); if (f) return { ok: false, status: 400, fehler: f }; }
 
-  let bericht = await berichtZu(b);
+  let bericht = await berichtZu(b, test);
   if (bericht && (bericht.status !== 'draft' || bericht.forfeit)) return { ok: false, status: 409, konflikt: true, fehler: 'Der Spielbericht ist schon abgesendet.' };
   if (bericht && bericht.updated_at !== basis) return { ok: false, status: 409, konflikt: true, fehler: 'Auf einem anderen Gerät wurde inzwischen gespeichert.' };
 
-  const [kh, kg] = await Promise.all([kader(b.home), kader(b.away)]);
+  const [kh, kg] = await Promise.all([kader(b.home), test ? gastKaderTest() : kader(b.away)]);
   const totals = computeTotals(stand.games);
   const summen = {
     highlights: stand.highlights,
@@ -211,12 +257,14 @@ export async function speichern(g: Geraet, roh: unknown, basis: string | null, a
     const konto = await kapitaenKonto(g);
     if (!konto) return { ok: false, status: 409, fehler: 'Für das Team ist kein Kapitäns-Konto hinterlegt.' };
     const { data, error } = await db().from('match_reports').insert({
-      season_id: NEUE_SAISON.id, league_label: findLiga27(b.liga)?.name ?? b.liga, matchday: b.spieltag, match_date: datum,
+      // Testspiel: OHNE Saison und ohne Gastteam — nichts Öffentliches liest so einen Bericht.
+      season_id: test ? null : NEUE_SAISON.id, league_label: test ? TEST_LABEL : findLiga27(b.liga)?.name ?? b.liga,
+      matchday: test ? null : b.spieltag, match_date: datum,
       venue: venue27(team27(b.home)?.venueId)?.name ?? '',
-      home_team_id: b.home, guest_team_id: b.away,
-      home_team_name: team27(b.home)?.name ?? b.home, guest_team_name: team27(b.away)?.name ?? b.away,
+      home_team_id: b.home, guest_team_id: test ? null : b.away,
+      home_team_name: team27(b.home)?.name ?? b.home, guest_team_name: test ? `${TEST_GAST} (Tablet-Test)` : team27(b.away)?.name ?? b.away,
       tc_home: kh.find(k => k.kapitaen)?.name ?? '', tc_guest: kg.find(k => k.kapitaen)?.name ?? '',
-      protest: false, protest_note: '', confirm_team_id: b.away, home_captain_user_id: konto, status: 'draft', ...summen,
+      protest: false, protest_note: '', confirm_team_id: test ? null : b.away, home_captain_user_id: konto, status: 'draft', ...summen,
     }).select('id, status, forfeit, updated_at, highlights').maybeSingle();
     if (error || !data) {
       // Zwei Geräte legen gleichzeitig an (Unique-Index je Begegnung) → das Tablet holt den Stand neu.
@@ -250,15 +298,18 @@ export async function speichern(g: Geraet, roh: unknown, basis: string | null, a
 
   // Erfassungs-Statistik (Migration 0055) — schlägt sie fehl, merkt niemand etwas.
   const gefuellt = stand.games.filter(s => s.legs_home != null).length;
-  await db().from('match_report_saves').insert({ report_id: id, games_filled: gefuellt, live_mode: true }).then(() => {}, () => {});
+  if (!test) await db().from('match_report_saves').insert({ report_id: id, games_filled: gefuellt, live_mode: true }).then(() => {}, () => {});
 
-  if (absenden) {
+  if (absenden && test) {
+    // Im Test wird NICHT eingereicht (keine Glocke, kein Push, kein Neubau) — das Gerät merkt sich nur „fertig“.
+    await db().from('kiosk_geraete').update({ test_fertig: true }).eq('id', g.id);
+  } else if (absenden) {
     // Der Trigger schreibt Verlauf + Glocke an den Gast, wie beim Absenden aus dem Formular.
     const { data, error } = await db().from('match_reports').update({ status: 'submitted' }).eq('id', id).eq('status', 'draft').select('id');
     if (error || !data?.length) return { ok: false, status: 500, fehler: 'Absenden hat nicht geklappt – bitte noch einmal.' };
     await db().from('match_report_history').insert({ report_id: id, action: 'kiosk_abgesendet', actor_user_id: null, note: `Tablet „${g.name}“` });
     ergebnisSeitenMarkieren();
-  } else if (gefuellt) {
+  } else if (gefuellt && !test) {
     void liveStartPush(id).catch(() => {});
   }
   const { data: neu } = await db().from('match_reports').select('updated_at').eq('id', id).maybeSingle();

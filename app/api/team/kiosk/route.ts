@@ -5,6 +5,8 @@
 // POST { team, aktion: 'neu', name }    → neues Gerät + Kopplungscode (einmal sichtbar)
 // POST { team, aktion: 'code', id }     → neuer Code für ein Gerät (koppelt es neu, alter Schlüssel erlischt)
 // POST { team, aktion: 'entfernen', id }→ Gerät löschen (Schlüssel sofort ungültig)
+// POST { team, aktion: 'test_start', id } → Testspiel auf diesem Gerät (Migration 0073, lib/server/kiosk.ts)
+// POST { team, aktion: 'test_ende' }      → Testspiel beenden, Testbericht löschen
 // Darf: Kapitän, Co-Captain mit Recht „Spielberichte“, Ligaleitung — und nur
 // mit Team Manager und solange das Team für das Tablet freigegeben ist.
 // ============================================================
@@ -14,7 +16,7 @@ import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { teamManagerAktiv } from '@/lib/server/premium';
 import { kioskErlaubt } from '@/lib/kiosk';
-import { CODE_MINUTEN, hash, migrationFehlt, neuerCode } from '@/lib/server/kiosk';
+import { CODE_MINUTEN, hash, migrationFehlt, neuerCode, testBeenden, testStarten } from '@/lib/server/kiosk';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,7 +40,9 @@ export async function GET(request: Request) {
   if ('antwort' in p) return p.antwort;
   const erlaubt = kioskErlaubt(team) && await teamManagerAktiv(team);
   if (!erlaubt) return NextResponse.json({ geraete: [], erlaubt: false });
-  const { data, error } = await p.db.from('kiosk_geraete').select(SPALTEN).eq('team_id', team).order('erstellt_am');
+  let { data, error } = await p.db.from('kiosk_geraete').select(`${SPALTEN}, test_bis, test_fertig`).eq('team_id', team).order('erstellt_am');
+  // Ohne Migration 0073 fehlen die Test-Spalten — die Karte bleibt trotzdem benutzbar.
+  if (error && /test_bis|test_fertig/.test(error.message)) ({ data, error } = await p.db.from('kiosk_geraete').select(SPALTEN).eq('team_id', team).order('erstellt_am') as never);
   if (error) return dbFehler(error.message);
   return NextResponse.json({ geraete: data ?? [], erlaubt: true }, { headers: { 'Cache-Control': 'no-store' } });
 }
@@ -49,6 +53,16 @@ export async function POST(request: Request) {
   const p = await pruefe(request, team);
   if ('antwort' in p) return p.antwort;
   if (!kioskErlaubt(team) || !(await teamManagerAktiv(team))) return fehler('Die Tablet-Eingabe ist für dieses Team nicht freigeschaltet.', 403);
+  if (b.aktion === 'test_ende') {
+    try { await testBeenden(team); } catch { return fehler('Das hat nicht geklappt.', 500); }
+    return NextResponse.json({ ok: true });
+  }
+  if (b.aktion === 'test_start') {
+    if (!b.id) return fehler('Gerät fehlt.');
+    let f: string | null;
+    try { f = await testStarten(team, b.id); } catch { f = 'Das hat nicht geklappt.'; }
+    return f ? fehler(f) : NextResponse.json({ ok: true });
+  }
   const code = neuerCode();
   const frisch = { code_hash: hash(code), code_bis: new Date(Date.now() + CODE_MINUTEN * 60_000).toISOString() };
 

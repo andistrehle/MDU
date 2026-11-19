@@ -181,7 +181,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (`basis`) — speichert der Kapitän am Handy, lädt das Tablet dessen Stand. Start-Push über `liveStartPush` (lib/server/live-start.ts, gemeinsam
   mit `/api/live/start`), Neubau über `ergebnisSeitenMarkieren`. Der Bericht läuft unter dem Konto des Kapitäns (`home_captain_user_id` ist
   Pflicht), Verlauf `kiosk_angelegt`/`kiosk_abgesendet` mit Gerätename. Nur mit Team Manager UND `KIOSK_TEAMS` (zum Start nur Bazis; `null` = alle,
-  dann auch FAQ-Eintrag ergänzen — bis dahin bewusst keiner), Not-Aus `KIOSK_AN`. Probe `/kiosk?probe=1`: erfundene Begegnung, rechnet nur im
+  dann auch FAQ-Eintrag ergänzen — bis dahin bewusst keiner), Not-Aus `KIOSK_AN`. **Testspiel** (Migration 0073, Betreiber 19.11.2026): Knopf „Testspiel
+  starten“ je gekoppeltem Gerät in der Karte (`test_start`/`test_ende`) → 3 h lang zeigt das Tablet „eigenes Team – Testgegner“ und speichert über
+  denselben Weg, aber in einen Bericht OHNE Saison (`season_id null`, `league_label = 'Tablet-Test'`, kein Gastteam) — alles Öffentliche liest nur
+  Berichte der Saison. Im Test reicht „Absenden“ NICHT ein (der DB-Auslöser schickte sonst Glocke + Push an die Ligaleitung), es setzt nur
+  `test_fertig`; kein Start-Push, kein Neubau. Beenden/Ablauf/neuer Start löscht den Testbericht. NEUE Lader von `match_reports` deshalb immer
+  mit `season_id` filtern. Probe `/kiosk?probe=1`: erfundene Begegnung, rechnet nur im
   Gerät. Datenschutz-Absatz: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),
   Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).

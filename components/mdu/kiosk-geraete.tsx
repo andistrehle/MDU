@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase/client';
 import { codeAnzeige } from '@/lib/kiosk';
 import { karte, h2 } from '@/components/mdu/zusagen-ui';
 
-interface Geraet { id: string; name: string; erstellt_am: string; gekoppelt_am: string | null; last_seen_at: string | null; code_bis: string | null }
+interface Geraet { id: string; name: string; erstellt_am: string; gekoppelt_am: string | null; last_seen_at: string | null; code_bis: string | null; test_bis?: string | null; test_fertig?: boolean | null }
 
 async function aufruf(url: string, body?: unknown): Promise<{ ok: boolean; json: Record<string, unknown> }> {
   const token = (await supabase?.auth.getSession())?.data.session?.access_token;
@@ -81,9 +81,12 @@ export function KioskGeraete({ teamId }: { teamId: string }) {
           <div style={{ flex: 1, minWidth: 160 }}>
             <div style={{ ...text, fontWeight: 800, color: 'var(--th-text-strong)' }}>{g.name}</div>
             <div style={leise}>
-              {g.gekoppelt_am ? `Eingerichtet · zuletzt aktiv ${g.last_seen_at ? wann(g.last_seen_at) : '–'}` : g.code_bis && new Date(g.code_bis) > new Date() ? `Wartet auf den Code (bis ${wann(g.code_bis)})` : 'Noch nicht eingerichtet – Code abgelaufen'}
+              {g.test_bis && new Date(g.test_bis) > new Date() ? `TESTSPIEL läuft bis ${wann(g.test_bis)}${g.test_fertig ? ' (abgesendet)' : ''} · ` : ''}{g.gekoppelt_am ? `Eingerichtet · zuletzt aktiv ${g.last_seen_at ? wann(g.last_seen_at) : '–'}` : g.code_bis && new Date(g.code_bis) > new Date() ? `Wartet auf den Code (bis ${wann(g.code_bis)})` : 'Noch nicht eingerichtet – Code abgelaufen'}
             </div>
           </div>
+          {g.gekoppelt_am && (g.test_bis && new Date(g.test_bis) > new Date()
+            ? <button type="button" disabled={laeuft} onClick={() => void tun({ aktion: 'test_ende' })} style={knopf(true)}>Testspiel beenden</button>
+            : <button type="button" disabled={laeuft} onClick={() => void tun({ aktion: 'test_start', id: g.id })} style={knopf(false)}>Testspiel starten</button>)}
           <button type="button" disabled={laeuft} onClick={() => { if (!g.gekoppelt_am || confirm(`„${g.name}“ neu einrichten? Das Tablet braucht dann den neuen Code, bis dahin kann es nichts eintragen.`)) void tun({ aktion: 'code', id: g.id }, g.name); }} style={knopf(false)}>Neuer Code</button>
           <button type="button" disabled={laeuft} onClick={() => { if (confirm(`„${g.name}“ entfernen? Das Tablet kann danach nichts mehr eintragen.`)) void tun({ aktion: 'entfernen', id: g.id }); }} style={{ ...knopf(false), borderColor: 'var(--th-loss, #d64545)', color: 'var(--th-loss, #d64545)' }}>Entfernen</button>
         </div>
@@ -94,6 +97,7 @@ export function KioskGeraete({ teamId }: { teamId: string }) {
         <button type="submit" disabled={laeuft} style={knopf(true)}>Gerät einrichten</button>
       </form>
       {fehler && <div role="alert" style={{ ...text, fontWeight: 700, color: 'var(--th-loss, #d64545)' }}>{fehler}</div>}
+      <div style={leise}>„Testspiel starten“: Das Tablet zeigt für 3 Stunden „euer Team – Testgegner“ und speichert wie an einem echten Abend. Davon erscheint nichts im Live-Ticker, in Tabellen oder Ergebnissen, niemand wird benachrichtigt, und „Beenden“ löscht alles wieder.</div>
       <div style={leise}>Ausprobieren ohne Code: <a href="/kiosk?probe=1" target="_blank" rel="noreferrer" style={{ color: 'var(--th-accent)' }}>mdudarts.de/kiosk?probe=1</a> (erfundenes Spiel, nichts wird gespeichert).</div>
     </section>
   );

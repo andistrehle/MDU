@@ -203,14 +203,14 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
     const n = lage.naechstes;
     return <Tafel titel="Heute kein Spiel" text={n
       ? `Nächstes Heimspiel von ${lage.team}: ${new Date(n.datum + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}${n.uhrzeit ? `, ${n.uhrzeit} Uhr` : ''} gegen ${n.gegner}.`
-      : `Für ${lage.team} steht kein weiteres Heimspiel im Plan.`} />;
+      : `Für ${lage.team} steht kein weiteres Heimspiel im Plan.`} knopfText="Aktualisieren" onKnopf={() => void laden(true)} leise />;
   }
   if (!z || !spiel) return <div style={rahmen} />;
   const kopf = { heimName: spiel.heimName, gastName: spiel.gastName, heimId: spiel.heimId, gastId: spiel.gastId, liga: spiel.liga, datum: spiel.datum, ort: spiel.ort, bestOf: spiel.bestOf };
 
   if (spiel.status !== 'offen') return (
     <div style={rahmen}>
-      <Band farbe={GRUEN} hell>{spiel.status === 'gesperrt' ? 'Für dieses Spiel hat die Ligaleitung eine Wertung eingetragen.' : '✓ Der Spielbericht ist abgesendet. Danke! Der Gast bestätigt ihn jetzt.'}</Band>
+      <Band farbe={GRUEN} hell>{spiel.status === 'gesperrt' ? 'Für dieses Spiel hat die Ligaleitung eine Wertung eingetragen.' : spiel.test ? '✓ Testspiel abgesendet – so sieht es nach einem echten Abend aus. Der Kapitän beendet den Test im Team Manager.' : '✓ Der Spielbericht ist abgesendet. Danke! Der Gast bestätigt ihn jetzt.'}</Band>
       <LiveAnzeige s={liveStand(z, kopf)} />
     </div>
   );
@@ -218,6 +218,7 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
   const grund = absendeFehler(zuStand(z));
   return (
     <div style={rahmen}>
+      {spiel.test && <Band farbe={GOLD}>TESTSPIEL – wird nicht veröffentlicht und am Ende gelöscht</Band>}
       <Eingabe z={z} setZ={setZ} {...kopf} kaderHeim={spiel.kaderHeim} kaderGast={spiel.kaderGast}
         onAbsenden={() => (grund ? setMeldung(grund) : setFrage(true))}
         status={!spiel.basis && !z.games.some(g => g.legs_home != null) ? '' : speicher === 'ok' ? '✓ gespeichert' : speicher === 'fehler' ? '⚠ Kein Netz – wird nachgeholt' : 'speichert …'} statusFehler={speicher === 'fehler'} />
@@ -381,13 +382,13 @@ const bandKnopf: React.CSSProperties = { border: 0, borderRadius: 999, padding: 
 function Band({ farbe, hell, children }: { farbe: string; hell?: boolean; children: React.ReactNode }) {
   return <div style={{ position: 'sticky', top: 0, zIndex: 5, background: farbe, color: hell ? '#fff' : '#1a1300', fontWeight: 800, fontSize: 16, padding: '10px 14px', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', textAlign: 'center' }}>{children}</div>;
 }
-function Tafel({ titel, text, knopfText, onKnopf }: { titel: string; text: string; knopfText?: string; onKnopf?: () => void }) {
+function Tafel({ titel, text, knopfText, onKnopf, leise }: { titel: string; text: string; knopfText?: string; onKnopf?: () => void; leise?: boolean }) {
   return (
     <div style={{ ...rahmen, display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center' }}>
       <div style={{ maxWidth: 640 }}>
         <div style={{ ...gross, fontSize: 'clamp(40px, 7vw, 84px)' }}>{titel}</div>
         <p style={{ fontSize: 20, opacity: 0.8, margin: '16px 0 0', lineHeight: 1.45 }}>{text}</p>
-        {knopfText && <button type="button" onClick={onKnopf} style={{ ...knopf, background: GRUEN, marginTop: 24 }}>{knopfText}</button>}
+        {knopfText && <button type="button" onClick={onKnopf} style={{ ...knopf, background: leise ? 'rgba(255,255,255,0.14)' : GRUEN, marginTop: 24 }}>{knopfText}</button>}
       </div>
     </div>
   );
