@@ -1021,6 +1021,12 @@ frühere, `app/mdc/spieler/[id]/page.tsx` leitet von dort dauerhaft um.
   `sec-purpose`, `x-middleware-prefetch`), aber `next-router-prefetch` sieht er NICHT:
   Next entfernt den Kopf absichtlich (`next/dist/docs/…/proxy.md`, „RSC requests and
   rewrites"). Das `<a>` ist deshalb die eigentliche Vorsorge.
+- **Alte Browser: `browserslist` in `package.json`** (19.11.2026, Anlass: Kiosk-Test auf einem iPad Air 2). Next liefert seine Skripte
+  ohne Angabe nur für Safari ≥ 16.4 / Chrome ≥ 111 aus; auf Älterem bricht ALLES mit einem Syntaxfehler ab (Seite bleibt beim
+  ausgelieferten HTML stehen, nichts ist bedienbar). Jetzt Ziel Safari/iOS 15 — das letzte iPadOS für iPad Air 2/mini 4 und iPhone 6s/7.
+  Nicht geprüft auf einem echten Safari 15 (hier gibt es nur Chromium); die gebauten Dateien sind gegen die Sprachstufe geprüft
+  (keine `static {}`-Blöcke mehr). Noch Älteres (Safari 13/14) bewusst NICHT: dort fehlen auch Funktionen, nicht nur Schreibweisen.
+  `/kiosk` zeigt auf solchen Geräten nach 6 s einen roten Streifen mit Browser-Kennung und Fehler (`app/kiosk/layout.tsx`).
 - **Schriften liegen im Projekt** (`app/fonts/*.woff2`, `next/font/local` in `app/layout.tsx`, seit 01.11.2026):
   `next/font/google` holte sie bei JEDEM Build von Google, und wenn Google kurz hakte, brach der Vercel-Build ab
   („next/font/google queries have exactly one entry“). Nicht auf `next/font/google` zurückstellen; neue Stärken

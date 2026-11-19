@@ -43,5 +43,12 @@
     "typescript": "^5",
     "vite": "7.3.7",
     "vitest": "5.0.5"
-  }
+  },
+  "browserslist": [
+    "chrome 111",
+    "edge 111",
+    "firefox 111",
+    "safari 15",
+    "ios_saf 15"
+  ]
 }
