@@ -12,11 +12,12 @@ import { canUploadMatchReport, hatTcRecht } from '@/lib/auth/roles';
 import { findTeam } from '@/lib/data';
 import { team27 } from '@/lib/data/saison-2027';
 import {
-  listMyReports, confirmReport, bestaetigendesTeam,
+  listMyReports, confirmReport, bestaetigendesTeam, ladeAenderungen,
   REPORT_STATUS_LABELS, type MatchReport,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads } from '@/lib/supabase/match-report-uploads';
 import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
+import { BerichtAenderungen, type BerichtAenderung } from '@/components/mdu/bericht-aenderungen';
 import { getOcrAvailability } from '@/lib/supabase/match-report-uploads';
 
 export default function SpielberichteUebersichtPage() {
@@ -27,6 +28,9 @@ export default function SpielberichteUebersichtPage() {
   const darfBestaetigen = hatTcRecht(user, user?.teamId, 'spielberichte');
 
   const [alleRows, setRows] = useState<MatchReport[] | null>(null);
+  // Was die Heimmannschaft nach dem Einreichen noch geändert hat — damit man weiß, was man bestätigt (19.11.2026).
+  const [aenderungen, setAenderungen] = useState<Map<string, BerichtAenderung[]>>(new Map());
+  useEffect(() => { if (user) void ladeAenderungen().then(setAenderungen); }, [user, alleRows]);
   // Kapitänsmodus: auch Ligaleitungs-Konten mit eigenem Team sehen hier nur die
   // Berichte ihres Teams — alle anderen stehen unter Admin → Spielberichte.
   const eigenesTeam = user?.teamId ?? null;
@@ -93,6 +97,7 @@ export default function SpielberichteUebersichtPage() {
                   <div key={r.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--th-line-4)' }}>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13, color: 'var(--th-text-strong)' }}>{r.home_team_name} {r.spiele_home}:{r.spiele_guest} {r.guest_team_name}</div>
                     <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-muted)' }}>{r.league_label}{r.match_date ? ` · ${new Date(r.match_date).toLocaleDateString('de-DE')}` : ''}</div>
+                    <BerichtAenderungen liste={aenderungen.get(r.id)} style={{ marginTop: 6 }} />
                     <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                       <Link href={`/mein-bereich/spielberichte?id=${r.id}`} style={{ ...btn, color: 'var(--th-accent)', borderColor: 'var(--th-accent)', textDecoration: 'none' }}>Ansehen</Link>
                       <button onClick={() => onConfirm(r.id)} disabled={busy} style={{ ...btn, color: 'var(--th-win)', borderColor: 'var(--th-win)' }}>Bestätigen</button>

@@ -190,6 +190,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   und Erfassungsweg (Live/Foto/Abgeschrieben — seit 19.11.2026 Knöpfe statt Auswahlfeld), dazu Liga, Spieltag, Wochenende (echter Termin), Team-Suche. „Fehlt“ = Termin vorbei,
   nichts eingereicht (Entwurf zählt als fehlt); Problemfälle = überfällig (nach Di 24 Uhr), Wertung,
   Änderung angefordert, offener Protest. Die alte Liste je Liga ist darunter als „Rohliste“ eingeklappt.
+  **Änderungen an eingereichten Berichten nachvollziehen** (Betreiber, 19.11.2026): `updateReport()` ruft VOR dem Überschreiben
+  `/api/match-reports/aenderung` (nicht beim Autospeichern eines Entwurfs); der Server vergleicht den Stand in der DB mit dem neuen
+  (`unterschiede` aus lib/spielbericht-korrektur.ts → „Spiel 2: Ergebnis 1:2 → 0:2“), legt einen Verlaufseintrag `geaendert` an und
+  schickt Glocke + Push „Spielbericht geändert: …“ mit den Änderungen an Ligaleitung und das bestätigende Team. Anzeige
+  `components/mdu/bericht-aenderungen.tsx` („✎ Geändert …“) in Admin → Spielberichte (dort auch der Text einer angeforderten
+  Änderung) und unter „Zu prüfen“ in der Übersicht der Kapitäne (`ladeAenderungen`). Die alte Glocke „Neuer Spielbericht“ des
+  DB-Auslösers kommt bei einer Wiedervorlage zusätzlich.
   **Protest** (Migration 0057, Betreiber 25.10.2026): nur mit Begründung (≥ `PROTEST_MIN` = 15 Zeichen,
   Rückfrage beim Anhaken). Beim Einreichen ruft das Formular `/api/match-reports/protest` (`melden`):
   Ligaleitung Glocke + E-Mail, Gegner-TC Glocke — einmal je Protest (`protest_notified_at`). Offen bis

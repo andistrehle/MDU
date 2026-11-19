@@ -15,10 +15,11 @@ import { ladeErfassung, WEG, WEGE, type Erfassungsweg } from '@/lib/supabase/erf
 import { berichtPfad } from '@/lib/spieltag';
 import {
   listAllReports, deleteReport, notifyReportChange, setzeWertung,
-  REPORT_STATUS_LABELS, WERTUNG_LABELS, protestErledigt, ladeEinreichzeiten, type MatchReport, type Wertung,
+  REPORT_STATUS_LABELS, WERTUNG_LABELS, protestErledigt, ladeEinreichzeiten, ladeAenderungen, type MatchReport, type Wertung,
 } from '@/lib/supabase/match-reports';
 import { cleanupReportUploads, loescheSaisonFotos } from '@/lib/supabase/match-report-uploads';
 import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
+import { BerichtAenderungen, type BerichtAenderung } from '@/components/mdu/bericht-aenderungen';
 
 export default function AdminSpielberichtePage() {
   const { user } = useAuth();
@@ -57,6 +58,9 @@ export default function AdminSpielberichtePage() {
   // Wann wurde eingereicht? (Verlauf; ältere Berichte ohne Eintrag → Anlagezeit)
   const [eingereichtAm, setEingereichtAm] = useState<Map<string, string>>(new Map());
   useEffect(() => { if (canManage) void ladeEinreichzeiten().then(setEingereichtAm); }, [canManage, rows]);
+  // Was wurde nachträglich geändert? (Verlauf „geaendert“, Betreiber 19.11.2026)
+  const [aenderungen, setAenderungen] = useState<Map<string, BerichtAenderung[]>>(new Map());
+  useEffect(() => { if (canManage) void ladeAenderungen().then(setAenderungen); }, [canManage, rows]);
   const heute = berlinHeute();
   const alle = useMemo(() => alleBegegnungen27().map(b => {
     const r = berichtJeBegegnung.get(b.key) ?? null;
@@ -228,7 +232,7 @@ export default function AdminSpielberichtePage() {
                   {g.list.length} {g.list.length === 1 ? 'Partie' : 'Partien'}{!g.begonnen && ' · kommt noch'}
                 </span>
               </div>
-              {g.list.map(x => <PartieZeile key={x.b.key} x={x} busy={busy} onDelete={onDelete} onProtestErledigt={onProtestErledigt} />)}
+              {g.list.map(x => <PartieZeile key={x.b.key} x={x} busy={busy} aenderungen={x.r ? aenderungen.get(x.r.id) : undefined} onDelete={onDelete} onProtestErledigt={onProtestErledigt} />)}
             </div>
           ))}
         </div>
@@ -366,7 +370,7 @@ interface Partie {
   ueberfaellig: boolean; problem: boolean; woche: string; weg: Erfassungsweg | null;
 }
 
-function PartieZeile({ x, busy, onDelete, onProtestErledigt }: { x: Partie; busy: string | null; onDelete: (r: MatchReport) => void; onProtestErledigt: (r: MatchReport) => void }) {
+function PartieZeile({ x, busy, aenderungen, onDelete, onProtestErledigt }: { x: Partie; busy: string | null; aenderungen?: BerichtAenderung[]; onDelete: (r: MatchReport) => void; onProtestErledigt: (r: MatchReport) => void }) {
   const { b, r } = x;
   const t = b.termin;
   const etikett = x.st === 'kommend' ? { text: 'kommt noch', farbe: 'var(--th-text-faint)' }
@@ -390,6 +394,10 @@ function PartieZeile({ x, busy, onDelete, onProtestErledigt }: { x: Partie; busy
           Protest: „{(r.protest_note ?? '').trim() || 'ohne Begründung'}“{r.protest_handled_at && r.protest_handled_note ? ` · Erledigt: ${r.protest_handled_note}` : ''}
         </span>
       )}
+      {r?.status === 'changes_requested' && r.guest_change_note && (
+        <span style={{ flexBasis: '100%', paddingLeft: 130, fontSize: 12, color: '#9A6B00' }}>Änderung angefordert: „{r.guest_change_note.trim()}“</span>
+      )}
+      {aenderungen && <BerichtAenderungen liste={aenderungen} style={{ flexBasis: '100%', paddingLeft: 130 }} />}
       <span style={{ display: 'flex', gap: 12, flex: '0 0 auto' }}>
         {r ? (
           <>

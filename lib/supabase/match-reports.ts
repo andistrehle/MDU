@@ -11,6 +11,7 @@
 import { supabase } from './client';
 import { pointsForLegs, bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 import type { Korrektur } from '@/lib/spielbericht-korrektur';
+import { mitAnmeldung } from '@/lib/auth/mit-anmeldung';
 
 export type ReportStatus = 'draft' | 'submitted' | 'confirmed' | 'changes_requested';
 
@@ -345,6 +346,19 @@ export async function getReportHistory(reportId: string): Promise<ReportHistoryE
   return (data ?? []) as ReportHistoryEntry[];
 }
 
+/** Nachträgliche Änderungen an eingereichten Berichten (Verlauf „geaendert“), neueste zuerst je Bericht. Zeile = eine Änderung in Worten. */
+export async function ladeAenderungen(): Promise<Map<string, { am: string; zeilen: string[] }[]>> {
+  const m = new Map<string, { am: string; zeilen: string[] }[]>();
+  if (!supabase) return m;
+  const { data } = await supabase.from('match_report_history').select('report_id, created_at, note')
+    .eq('action', 'geaendert').order('created_at', { ascending: false });
+  for (const r of (data ?? []) as { report_id: string; created_at: string; note: string | null }[]) {
+    const zeilen = (r.note ?? '').split('\n').map(z => z.trim()).filter(Boolean);
+    if (zeilen.length) m.set(r.report_id, [...(m.get(r.report_id) ?? []), { am: r.created_at, zeilen }]);
+  }
+  return m;
+}
+
 /** Erstes Einreichen je Bericht (Verlauf, Aktion „submitted“) — für „neueste eingereichte oben“ im Admin. */
 export async function ladeEinreichzeiten(): Promise<Map<string, string>> {
   const m = new Map<string, string>();
@@ -383,6 +397,14 @@ export async function updateReport(
   opts: { neuBauen?: boolean } = {},
 ): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
+  // Vor dem Überschreiben festhalten, WAS sich ändert (Verlauf + Glocke, /api/match-reports/aenderung, 19.11.2026).
+  // Nicht beim Autospeichern eines Entwurfs; ein Fehler dort hält das Speichern nie auf.
+  if (opts.neuBauen !== false) {
+    await mitAnmeldung('/api/match-reports/aenderung', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, stand: { players, games, ...(header.highlights ? { highlights: header.highlights } : {}) } }),
+    }).catch(() => null);
+  }
   const totals = computeTotals(games);
   const row = {
     ...header,
