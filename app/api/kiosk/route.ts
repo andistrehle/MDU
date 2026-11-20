@@ -11,7 +11,7 @@
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { geraetVon, lage, speichern } from '@/lib/server/kiosk';
+import { geraetVon, KIOSK_COOKIE, KIOSK_COOKIE_TAGE, kioskToken, lage, speichern } from '@/lib/server/kiosk';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,13 @@ const kopf = { 'Cache-Control': 'no-store' };
 export async function GET(request: Request) {
   const g = await geraetVon(request);
   if (!g) return nichtGekoppelt();
-  try { return NextResponse.json(await lage(g), { headers: kopf }); }
+  try {
+    const res = NextResponse.json(await lage(g), { headers: kopf });
+    // Kopplung hält, solange das Gerät benutzt wird: Cookie bei jedem Aufruf um 400 Tage verlängern
+    // (und wieder setzen, falls nur noch der Schlüssel im localStorage übrig war).
+    res.cookies.set(KIOSK_COOKIE, kioskToken(request), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: KIOSK_COOKIE_TAGE * 24 * 3600 });
+    return res;
+  }
   catch { return NextResponse.json({ error: 'Laden hat nicht geklappt.' }, { status: 500 }); }
 }
 

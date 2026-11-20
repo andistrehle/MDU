@@ -73,6 +73,13 @@ function db() {
   return supabaseAdmin;
 }
 
+/** Schlüssel aus Kopfzeile oder Cookie (für das Nachsetzen des Cookies, `app/api/kiosk/route.ts`). */
+export function kioskToken(request: Request): string {
+  const cookie = (request.headers.get('cookie') ?? '').split(/;\s*/).find(c => c.startsWith(`${KIOSK_COOKIE}=`))?.slice(KIOSK_COOKIE.length + 1);
+  return (request.headers.get(KIOSK_KOPF) ?? '').trim() || cookie || '';
+}
+export const KIOSK_COOKIE_TAGE = 400;
+
 /** Schlüssel aus Kopfzeile oder Cookie → Gerät (oder null). */
 export async function geraetVon(request: Request): Promise<Geraet | null> {
   if (!supabaseAdmin) return null;

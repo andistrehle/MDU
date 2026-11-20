@@ -1,10 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
-// Eingabeseite fürs Tablet im Lokal — gehört in keinen Suchindex.
+// Eingabeseite fürs Tablet im Lokal — gehört in keinen Suchindex. Eigenes Manifest
+// (app/kiosk-app.webmanifest): Vom Home-Bildschirm startet die App direkt hier.
 export const metadata: Metadata = {
   title: 'Spielbericht – Tablet',
   robots: { index: false, follow: false },
+  manifest: '/kiosk-app.webmanifest',
+  appleWebApp: { capable: true, title: 'MDU Tablet', statusBarStyle: 'black' },
 };
+export const viewport: Viewport = { themeColor: '#0B0E14' };
 
 // Diagnose für alte Geräte (19.11.2026): Next liefert Skripte für Safari ab 16.4 /
 // Chrome ab 111. Auf älteren Tablets bleibt die Seite bei „Lädt …“ stehen, ohne dass
