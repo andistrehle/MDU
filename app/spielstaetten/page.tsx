@@ -5,6 +5,7 @@ import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { TeamBadge } from '@/components/mdu/team-badge';
 import { Icon } from '@/components/mdu/icon';
+import { SuchListe } from '@/components/mdu/such-liste';
 import { SaisonUmschalter, InfoZeile } from '@/components/mdu/saison-umschalter';
 import { alleVenues27, alleTeams27, findLiga27, NEUE_SAISON } from '@/lib/data/saison-2027';
 
@@ -32,11 +33,15 @@ export default function SpielstaettenPage() {
           {' '}Für die Wirte: Unter „Heimspiel-Plan“ stehen alle Heimspiele eines Lokals nach Wochenenden, auch zum Ausdrucken.
         </InfoZeile>
 
-        <div className="mdu-league-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
-          {venues.map(({ v, teams: ts }) => {
+        <SuchListe
+          platzhalter="Lokal, Team oder Straße suchen"
+          leer="Nichts gefunden – probier einen anderen Namen."
+          className="mdu-league-grid"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}
+          eintraege={venues.map(({ v, teams: ts }) => {
             const maps = v.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${v.name}, ${v.address}`)}` : null;
-            return (
-              <div key={v.id} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '16px 18px' }}>
+            return { id: v.id, text: [v.name, v.address ?? '', ...ts.map(t => `${t.name} ${t.short}`)].join(' '), karte: (
+              <div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 12, padding: '16px 18px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
                   <Icon name="pin" size={14} stroke={2} style={{ color: 'var(--th-accent)', flexShrink: 0, marginTop: 3 }} />
                   <div>
@@ -78,9 +83,9 @@ export default function SpielstaettenPage() {
                   Heimspiel-Plan nach Wochenenden <Icon name="arrow-right" size={13} stroke={2.5} />
                 </Link>
               </div>
-            );
+            ) };
           })}
-        </div>
+        />
       </div>
 
       <Footer />

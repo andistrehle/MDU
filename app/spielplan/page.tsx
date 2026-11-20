@@ -4,6 +4,7 @@ import { PageBanner } from '@/components/mdu/page-banner';
 import { Footer } from '@/components/mdu/footer';
 import { LiveBand } from '@/components/mdu/live-ticker';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { LigaFilter } from '@/components/mdu/liga-filter';
 import { LigaSpielplan27 } from '@/components/mdu/spielplan-27';
 import { LIGEN_2027, NEUE_SAISON } from '@/lib/data/saison-2027';
 import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
@@ -24,21 +25,10 @@ export default async function SpielplanPage() {
       <div className="mdu-section-pad" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 28px 80px' }}>
         <SaisonUmschalter archiv={false} neuHref="/spielplan" archivHref="/spielplan/2025-26" />
 
-        {/* Sprungmarken zu den Ligen */}
-        <nav aria-label="Liga wählen" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
-          {LIGEN_2027.map(l => (
-            <a key={l.code} href={`#liga-${l.code}`} style={{
-              padding: '7px 14px', borderRadius: 6, textDecoration: 'none',
-              fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: 'var(--th-bg-card)', color: 'var(--th-text-body)',
-              border: '1px solid var(--th-line-8)', borderLeft: `3px solid ${l.color}`,
-            }}>{l.name}</a>
-          ))}
-        </nav>
-
+        <LigaFilter ligen={LIGEN_2027.map(l => ({ code: l.code, name: l.name, color: l.color }))}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
           {LIGEN_2027.map(liga => (
-            <section key={liga.code} id={`liga-${liga.code}`} style={{ scrollMarginTop: 90 }}>
+            <section key={liga.code} data-liga={liga.code}>
               {/* Deckende Kopfleiste — auf dem Desktop liegt das Dartboard dahinter. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '10px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
                 <div style={{ width: 4, height: 24, borderRadius: 2, background: liga.color, flexShrink: 0 }} />
@@ -49,10 +39,11 @@ export default async function SpielplanPage() {
                   {liga.teams.length} Teams
                 </span>
               </div>
-              <LigaSpielplan27 liga={liga} ergebnisse={ergebnisse} />
+              <LigaSpielplan27 liga={liga} ergebnisse={ergebnisse} aktuellZuerst />
             </section>
           ))}
         </div>
+        </LigaFilter>
       </div>
 
       <Footer />

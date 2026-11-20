@@ -4,6 +4,7 @@ import { TeamLink } from './team-link';
 import { Icon } from './icon';
 import { VerlegungEtikett } from './verlegung-etikett';
 import { MeinSpielLink } from './mein-spiel-link';
+import { SpieltageGeteilt } from './spieltage-geteilt';
 import {
   team27, venue27, spieltage27, spieleFuerTeam27, wochenendeText, begegnungKey,
   termin27, terminVerlegt,
@@ -168,8 +169,21 @@ export function SpieltagKarte27({ md, color, ergebnisse }: { md: Spieltag27; col
 }
 
 /** Alle Spieltage einer Liga, Hin- und Rückrunde mit Zwischenüberschrift. */
-export function LigaSpielplan27({ liga, ergebnisse }: { liga: Liga27; ergebnisse?: ErgebnisMap27 }) {
+export function LigaSpielplan27({ liga, ergebnisse, aktuellZuerst }: { liga: Liga27; ergebnisse?: ErgebnisMap27; aktuellZuerst?: boolean }) {
   const mds = spieltage27(liga.code);
+  if (aktuellZuerst) {
+    // Öffentlicher Spielplan: aktueller Spieltag oben, gespielte eingeklappt (SpieltageGeteilt teilt nach heute).
+    // Ein Spieltag bleibt „kommend“, solange ein verlegtes Spiel ohne Ergebnis noch aussteht.
+    const eintraege = mds.map(md => {
+      let bis = md.sun;
+      for (const g of md.games) {
+        const t = termin27(g.home, g.away);
+        if (t && t.datum > bis && !ergebnisse?.[begegnungKey(g.home, g.away)]) bis = t.datum;
+      }
+      return { nr: md.nr, bis, karte: <SpieltagKarte27 md={md} color={liga.color} ergebnisse={ergebnisse} /> };
+    });
+    return <SpieltageGeteilt eintraege={eintraege} heute={new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' })} />;
+  }
   const hin = mds.filter(m => m.half === 'hin'), rueck = mds.filter(m => m.half === 'rueck');
   const block = (titel: string, list: Spieltag27[]) => (
     <div>

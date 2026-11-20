@@ -409,6 +409,14 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Dazu ein geplanter Claude-Lauf „MDU-Postfach durchsehen“ (seit 18.11.2026, täglich 8:40/13:40/19:40 Berliner Zeit, je eine frische
   Cloud-Sitzung, Push an den Betreiber): liest offene Mails ohne `notiz`, schaut nur LESEND in die DB und schreibt je Mail `notiz`
   (Vorschlag) und IMMER `entwurf` (Antwort mit der Signatur des Betreibers) — sonst nichts. Anpassen/Abschalten: geplante Aufgaben in Claude.
+  **Liga-Knöpfe auf den Listen-Seiten** (Betreiber, 20.11.2026, per Klick-Umfrage; Anlass Umfrage-Kritik „man muss sich zu viel durch
+  alles prügeln“, Spielplan war am Handy 50 Bildschirme lang): `components/mdu/liga-filter.tsx` (`LigaFilter`) auf `/spielplan`,
+  `/ergebnisse`, `/tabellen`, `/teams` — der Server rendert weiter ALLE Ligen, jeder Abschnitt trägt `data-liga`, ausgeblendet wird per
+  CSS über `data-aktiv`; Knopfleiste klebt unter der Kopfzeile, letzter Knopf „Alle“. Vorauswahl: `#liga-<code>` → Wahl dieses Besuchs
+  (sessionStorage) → eigene Liga des Kontos (★) → zuletzt gewählt (localStorage `mdu-liga`) → La Liga; ein Skript im HTML setzt sie vor
+  dem ersten Bild. Öffentlicher Spielplan: `LigaSpielplan27 aktuellZuerst` → `spieltage-geteilt.tsx` (aktuell + kommend oben, gespielte
+  hinter „Frühere Spieltage anzeigen (n)“, geteilt im Browser nach heute; ein Spieltag bleibt oben, solange ein verlegtes Spiel ohne
+  Ergebnis aussteht). Spielstätten: Suchfeld (`such-liste.tsx`, Lokal/Team/Straße). Neue Listen über alle Ligen: `LigaFilter` nutzen.
   **Querverweise + „Zurück = Absprungstelle“ im Team Manager** (Betreiber, 16.11.2026): `components/mdu/scroll-merker.tsx` (global in
   GlobalChrome) merkt je Adresse die Scroll-Position und setzt sie nach „Zurück“ noch einmal, sobald die im Browser nachgeladene
   Seite lang genug ist. `components/mdu/zurueck-link.tsx`: `ZurueckLink` (statt fester „‹ Team Manager“-Verweise — geht ZURÜCK, wenn es

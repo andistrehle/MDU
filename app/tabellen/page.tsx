@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { DesktopHeader } from '@/components/mdu/desktop-header';
 import { Footer } from '@/components/mdu/footer';
 import { Icon } from '@/components/mdu/icon';
+import { LigaFilter } from '@/components/mdu/liga-filter';
 import { Tabelle27 } from '@/components/mdu/tabelle-27';
 import { PageBanner } from '@/components/mdu/page-banner';
 import { SaisonUmschalter, InfoZeile } from '@/components/mdu/saison-umschalter';
@@ -35,10 +36,11 @@ export default async function TabellenPage() {
           <a href="#auf-abstieg" style={{ color: 'var(--th-accent)', fontWeight: 700, textDecoration: 'none' }}>Auf- und Abstieg</a>
         </InfoZeile>
 
+        <LigaFilter ligen={LIGEN_2027.map(l => ({ code: l.code, name: l.name, color: l.color }))}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {LIGEN_2027.map(liga => {
             return (
-              <div key={liga.code} style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden', borderLeft: `3px solid ${liga.color}` }}>
+              <div key={liga.code} data-liga={liga.code}><div style={{ background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)', borderRadius: 14, overflow: 'hidden', borderLeft: `3px solid ${liga.color}` }}>
                 <div style={{ padding: '13px 18px 11px', borderBottom: '1px solid var(--th-line-6)' }}>
                   <div style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 17, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--th-text-strong)' }}>{liga.name}</div>
                   <div style={{ fontFamily: 'var(--font-manrope)', fontSize: 10, color: 'var(--th-text-faint2)', marginTop: 2 }}>{NEUE_SAISON.name} · {liga.teams.length} Teams</div>
@@ -56,10 +58,11 @@ export default async function TabellenPage() {
                     <Icon name="arrow-right" size={13} stroke={2.5} />
                   </Link>
                 </div>
-              </div>
+              </div></div>
             );
           })}
         </div>
+        </LigaFilter>
 
         <AufAbstiegUebersicht />
       </div>

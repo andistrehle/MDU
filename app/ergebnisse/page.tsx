@@ -5,6 +5,7 @@ import { PageBanner } from '@/components/mdu/page-banner';
 import { LiveBand } from '@/components/mdu/live-ticker';
 import { Footer } from '@/components/mdu/footer';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
+import { LigaFilter } from '@/components/mdu/liga-filter';
 import { SpieltagKarte27 } from '@/components/mdu/spielplan-27';
 import { NEUE_SAISON, SAISON_START, LIGEN_2027, datumText, spieltage27, begegnungKey } from '@/lib/data/saison-2027';
 import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
@@ -32,18 +33,10 @@ export default async function ErgebnissePage() {
 
         {ligen.length ? (
           <>
-            <nav aria-label="Liga wählen" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-              {ligen.map(({ liga }) => (
-                <a key={liga.code} href={`#liga-${liga.code}`} style={{
-                  padding: '7px 14px', borderRadius: 6, textDecoration: 'none',
-                  fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  background: 'var(--th-bg-card)', color: 'var(--th-text-body)', border: '1px solid var(--th-line-8)', borderLeft: `3px solid ${liga.color}`,
-                }}>{liga.name}</a>
-              ))}
-            </nav>
+            <LigaFilter ligen={ligen.map(({ liga }) => ({ code: liga.code, name: liga.name, color: liga.color }))}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
               {ligen.map(({ liga, mds }) => (
-                <section key={liga.code} id={`liga-${liga.code}`} style={{ scrollMarginTop: 90 }}>
+                <section key={liga.code} data-liga={liga.code}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, padding: '10px 16px', borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-6)' }}>
                     <div style={{ width: 4, height: 24, borderRadius: 2, background: liga.color, flexShrink: 0 }} />
                     <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 22, letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase' }}>{liga.name}</h2>
@@ -55,6 +48,7 @@ export default async function ErgebnissePage() {
                 </section>
               ))}
             </div>
+            </LigaFilter>
             <p style={{ marginTop: 24, fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-faint)' }}>
               <span style={{ color: '#9A6B00', fontWeight: 800 }}>*</span> Ergebnis eingereicht, vom Gegner noch nicht bestätigt — kann sich noch ändern.
             </p>

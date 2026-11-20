@@ -8,6 +8,7 @@ import { findPlayer, getPlayerDisplayName } from '@/lib/data';
 import { getSeasonTeams, type SeasonTeam } from '@/lib/server/season-data';
 import { SaisonUmschalter } from '@/components/mdu/saison-umschalter';
 import { LIGEN_2027, NEUE_SAISON, team27 } from '@/lib/data/saison-2027';
+import { LigaFilter } from '@/components/mdu/liga-filter';
 import { CaptainContact } from '@/components/mdu/captain-contact';
 
 // Saison 2026/2027: Teams aus den freigegebenen Anmeldungen (Supabase, live —
@@ -52,10 +53,11 @@ function SelfManagedTeams({ seasonName, teams }: { seasonName: string; teams: Se
             Für {seasonName} sind noch keine Mannschaften freigegeben.
           </p>
         ) : (
+          <LigaFilter ligen={sections.filter(s => s.teams.length && s.key !== 'none').map(s => ({ code: s.key, name: s.name, color: s.color }))}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
             {sections.filter(s => s.teams.length).map(({ key, name, color, teams: ts }) => {
               return (
-                <section key={key}>
+                <section key={key} data-liga={key === 'none' ? undefined : key}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                     <div style={{ width: 4, height: 28, borderRadius: 2, background: color, flexShrink: 0 }} />
                     <h2 style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 900, fontSize: 26, letterSpacing: '0.06em', color: 'var(--th-text-strong)', margin: 0, textTransform: 'uppercase' }}>{name}</h2>
@@ -88,6 +90,7 @@ function SelfManagedTeams({ seasonName, teams }: { seasonName: string; teams: Se
               );
             })}
           </div>
+          </LigaFilter>
         )}
       </div>
       <Footer />
