@@ -171,6 +171,7 @@ async function vorbelegung(b: Begegnung27, kh: KaderZeile[], kg: KaderZeile[]): 
 }
 
 export type KioskLage =
+  | { art: 'gleich' }
   | { art: 'aus' | 'kein_premium'; team: string }
   | { art: 'kein_spiel'; team: string; auswaerts?: boolean; naechstes: { gegner: string; datum: string; uhrzeit: string | null; heim?: boolean } | null }
   | {
@@ -205,10 +206,18 @@ async function rahmen(g: Geraet): Promise<Rahmen | { lage: KioskLage }> {
   return { b, datum, bestOf: bestOfFuerLiga(b.liga), test: false };
 }
 
-export async function lage(g: Geraet): Promise<KioskLage> {
+/**
+ * Lage des Geräts. Mit `seit` (zuletzt gesehener Zeitstempel des Berichts, 'leer' = noch keiner) fragt das
+ * Tablet alle paar Sekunden nach: Hat sich nichts geändert, kommt nur `{ art: 'gleich' }` — eine Abfrage statt sechs.
+ */
+export async function lage(g: Geraet, seit?: string | null): Promise<KioskLage> {
   const r = await rahmen(g);
   if ('lage' in r) return r.lage;
   const { b, datum, bestOf, test } = r;
+  if (seit) {
+    const vorhanden = await berichtZu(b, test);
+    if ((vorhanden?.updated_at ?? 'leer') === seit && !(test && g.test_fertig)) return { art: 'gleich' };
+  }
   const [kh, kg, bericht] = await Promise.all([kader(b.home), test ? gastKaderTest() : kader(b.away), berichtZu(b, test)]);
   const stand: KioskStand = bericht ? await standVon(bericht)
     : { ...(test ? { heim: [], gast: [] } : await vorbelegung(b, kh, kg)), games: leereSpiele(), highlights: [] };

@@ -17,7 +17,8 @@ import {
 import { ladeKader, type KaderOption } from '@/lib/supabase/season-teams';
 import { ladeAufstellungen } from '@/lib/supabase/zusagen';
 import { zusagenFuerTeam } from '@/lib/features';
-import { sendeLive, type LiveStand } from '@/lib/spielbericht-live';
+import { sendeLive, abonniereAktionen, type LiveStand } from '@/lib/spielbericht-live';
+import { zusammenfuehren, gleicherStand as gleicherMergeStand, type MergeStand } from '@/lib/spielbericht-merge';
 import { supabase } from '@/lib/supabase/client';
 import { LiveAnzeige, LIVE_HINTERGRUND } from '@/components/mdu/live-anzeige';
 import { LigaTickerLeiste, LiveTeilenKnopf } from '@/components/mdu/live-ticker';
@@ -190,9 +191,9 @@ function SpielberichteInner() {
       homeTeamId: header.home_team_id, guestTeamId: header.guest_team_id,
       homeName: header.home_team_name, guestName: header.guest_team_name,
       liga: header.league_label ?? '', datum: header.match_date, ort: header.venue ?? '',
-      homePlayers, guestPlayers, games, highlights: header.highlights ?? [], bestOf, zeit: Date.now(),
+      homePlayers, guestPlayers, games, highlights: header.highlights ?? [], bestOf, zeit: Date.now(), bearbeitbar: !readOnly,
     });
-  }, [header, homePlayers, guestPlayers, games, bestOf]);
+  }, [header, homePlayers, guestPlayers, games, bestOf, readOnly]);
   // Live-Modus (Tablet): die Anzeige im Vollbild, Eingabe direkt durch Antippen.
   const [liveModus, setLiveModus] = useState(false);
   // Live-Ticker der eigenen Liga (ohne das eigene Spiel) — erscheint nur, wenn dort gerade etwas läuft.
@@ -349,11 +350,19 @@ function SpielberichteInner() {
       } catch { /* kein Speicher */ }
       return;
     }
+    if (uebernommenRef.current) {
+      // Gerade vom anderen Gerät übernommen (ohne eigene offene Eingaben): das IST der gespeicherte Stand.
+      uebernommenRef.current = false;
+      basisRef.current = { key: sicherungsKey, json: standJson };
+      letzterAutoKey.current = `${idParam ?? 'neu'}#${games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}`).join(',')}`;
+      queueMicrotask(() => setUngespeichert(false));
+      return;
+    }
     const anders = basisRef.current.json !== standJson;
     queueMicrotask(() => setUngespeichert(anders));
     if (!anders) return;
     try { localStorage.setItem(sicherungsKey, JSON.stringify({ header, homePlayers, guestPlayers, games, regId, zeit: Date.now() })); } catch { /* voll/privat */ }
-  }, [geladen, sicherungsKey, standJson, header, homePlayers, guestPlayers, games, regId]);
+  }, [geladen, sicherungsKey, standJson, header, homePlayers, guestPlayers, games, regId, idParam]);
   useEffect(() => {
     if (!ungespeichert || readOnly) return;
     const warnen = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
@@ -373,6 +382,31 @@ function SpielberichteInner() {
   // nach 15 s erneut versucht. Hat inzwischen jemand anders gespeichert, wird NICHT
   // überschrieben, sondern gemeldet. Absenden bleibt Handarbeit.
   const zeitstempelRef = useRef<string | null>(null);
+
+  // ── Zweites Gerät: zusammenführen statt Konflikt (Betreiber, 20.11.2026, lib/spielbericht-merge.ts) ──
+  // Tablet im Lokal, Handy und dieses Formular schreiben in denselben Entwurf. `serverBasis` ist der
+  // Server-Stand, den dieses Formular zuletzt geladen oder geschrieben hat. Alle 3 s wird nachgesehen,
+  // ob ein anderes Gerät gespeichert hat; dann werden dessen Eingaben übernommen (eigene bleiben).
+  const serverBasis = useRef<MergeStand<ReportPlayer> | null>(null);
+  const meinStandRef = useRef<MergeStand<ReportPlayer>>({ heim: homePlayers, gast: guestPlayers, games, highlights: header.highlights ?? [] });
+  meinStandRef.current = { heim: homePlayers, gast: guestPlayers, games, highlights: header.highlights ?? [] };
+  const uebernommenRef = useRef(false);
+  const leererStand = (): MergeStand<ReportPlayer> => ({ heim: emptyPlayers('home'), gast: emptyPlayers('guest'), games: emptyGames(), highlights: [] });
+  function alsStand(ps: ReportPlayer[], gs: ReportGame[], hl: HighlightEntry[]): MergeStand<ReportPlayer> {
+    const seite = (side: 'home' | 'guest') => SLOTS.map(slot => ps.find(p => p.side === side && p.slot === slot) ?? { side, slot, pass_no: '', name: '', player_id: null, points: 0 });
+    return { heim: seite('home'), gast: seite('guest'), games: GAME_SCHEDULE.map(s => gs.find(g => g.game_no === s.no) ?? emptyGames().find(g => g.game_no === s.no)!), highlights: hl };
+  }
+  async function holeServerStand(id: string) {
+    const r = await getReport(id);
+    if (!r) return null;
+    const [ps, gs] = await Promise.all([getReportPlayers(id), getReportGames(id)]);
+    return { stand: alsStand(ps, gs, r.highlights ?? []), updatedAt: r.updated_at ?? null, status: r.status, forfeit: r.forfeit ?? null };
+  }
+  function standSetzen(s: MergeStand<ReportPlayer>) {
+    const voll = (liste: ReportPlayer[], side: 'home' | 'guest') => SLOTS.map(slot => liste.find(p => p.slot === slot) ?? { side, slot, pass_no: '', name: '', player_id: null, points: 0 });
+    setHomePlayers(voll(s.heim, 'home')); setGuestPlayers(voll(s.gast, 'guest')); setGames(s.games);
+    setHeader(h => ({ ...h, highlights: s.highlights }));
+  }
   const [autoStatus, setAutoStatus] = useState<{ art: 'ok' | 'fehler' | 'konflikt'; zeit: number } | null>(null);
   const ergebnisKey = games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}`).join(',');
   const autoErlaubt = geladen && !readOnly && !isAdminRole && !proposing && !korrigieren && !wertung
@@ -388,10 +422,22 @@ function SpielberichteInner() {
       const players = [...homePlayers, ...guestPlayers];
       const payload: ReportHeaderDraft = { ...header, season_id: seasonId || header.season_id };
       let id = regId;
+      let geschrieben: MergeStand<ReportPlayer> = meinStandRef.current;
+      if (!id && header.home_team_id && header.guest_team_id && (header.season_id ?? NEUE_SAISON.id) === NEUE_SAISON.id) {
+        // Hat inzwischen ein anderes Gerät (Tablet) den Bericht angelegt? Dann dort hinein zusammenführen.
+        const vorhanden = await findeBerichtZurBegegnung(NEUE_SAISON.id, header.home_team_id, header.guest_team_id);
+        if (vorhanden) { id = vorhanden; setRegId(vorhanden); serverBasis.current = leererStand(); zeitstempelRef.current = 'neu'; }
+      }
       if (id) {
         const jetzt = await berichtZeitstempel(id);
-        if (zeitstempelRef.current && jetzt && jetzt !== zeitstempelRef.current) { setAutoStatus({ art: 'konflikt', zeit: Date.now() }); return false; }
-        const { error } = await updateReport(id, payload, players, games, { neuBauen: false });
+        if (zeitstempelRef.current && jetzt && jetzt !== zeitstempelRef.current) {
+          // Ein anderes Gerät hat gespeichert (Tablet, Handy): dessen Stand holen und die eigenen Eingaben darüberlegen.
+          const s = await holeServerStand(id);
+          if (!s || s.status !== 'draft' || s.forfeit) { setAutoStatus({ art: 'konflikt', zeit: Date.now() }); return false; }
+          geschrieben = zusammenfuehren(serverBasis.current ?? s.stand, meinStandRef.current, s.stand);
+          standSetzen(geschrieben);
+        }
+        const { error } = await updateReport(id, { ...payload, highlights: geschrieben.highlights }, [...geschrieben.heim, ...geschrieben.gast], geschrieben.games, { neuBauen: false });
         if (error) { setAutoStatus({ art: 'fehler', zeit: Date.now() }); return false; }
       } else {
         payload.confirm_team_id = user?.teamId && user.teamId === header.guest_team_id ? header.home_team_id : header.guest_team_id;
@@ -399,7 +445,8 @@ function SpielberichteInner() {
         if (r.error || !r.id) { setAutoStatus({ art: 'fehler', zeit: Date.now() }); return false; }
         id = r.id; setRegId(r.id);
       }
-      void protokolliereSpeichern(id, games, liveModus, erfassungLesen());
+      serverBasis.current = geschrieben;
+      void protokolliereSpeichern(id, geschrieben.games, liveModus, erfassungLesen());
       zeitstempelRef.current = await berichtZeitstempel(id);
       sicherungErledigt();
       setAutoStatus({ art: 'ok', zeit: Date.now() });
@@ -416,10 +463,63 @@ function SpielberichteInner() {
     if (letzterAutoKey.current === `${fuer}#${ergebnisKey}` && autoStatus?.art !== 'fehler') return;
     const t = setTimeout(() => {
       void autoSpeichern().then(ok => { if (ok) letzterAutoKey.current = `${fuer}#${ergebnisKey}`; });
-    }, autoStatus?.art === 'fehler' ? 15000 : 3000);
+    }, autoStatus?.art === 'fehler' ? 15000 : 1500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoErlaubt, ungespeichert, ergebnisKey, autoStatus, idParam]);
+
+  // Nachsehen, ob ein anderes Gerät gespeichert hat — alle 3 s, solange der Bericht ein Entwurf ist und
+  // hier bearbeitet werden kann. Ein Zeitstempel ist eine winzige Abfrage; nur bei einer Änderung wird
+  // der ganze Stand geholt. Gibt es noch keinen Bericht, wird nach einem vom Tablet angelegten gesucht.
+  const syncAn = geladen && !readOnly && !proposing && !korrigieren && !wertung && (!loadedStatus || loadedStatus === 'draft')
+    && !!header.home_team_id && !!header.guest_team_id;
+  const syncLaeuft = useRef(false);
+  useEffect(() => {
+    if (!syncAn) return;
+    const t = setInterval(() => {
+      if (syncLaeuft.current || autoLaeuft.current || busy || document.visibilityState === 'hidden') return;
+      syncLaeuft.current = true;
+      void (async () => {
+        try {
+          let id = regId;
+          if (!id) {
+            if ((header.season_id ?? NEUE_SAISON.id) !== NEUE_SAISON.id) return;
+            const vorhanden = await findeBerichtZurBegegnung(NEUE_SAISON.id, header.home_team_id!, header.guest_team_id!);
+            if (!vorhanden) return;
+            id = vorhanden; setRegId(vorhanden); serverBasis.current = leererStand(); zeitstempelRef.current = 'neu';
+          }
+          const jetzt = await berichtZeitstempel(id);
+          if (!jetzt || jetzt === zeitstempelRef.current || autoLaeuft.current) return;
+          const s = await holeServerStand(id);
+          if (!s || autoLaeuft.current) return;
+          if (s.status !== 'draft' || s.forfeit) { await loadExisting(id); setMsg({ kind: 'ok', text: 'Der Spielbericht wurde auf einem anderen Gerät abgesendet.', ort: 'aktionen' }); return; }
+          const basis = serverBasis.current ?? s.stand;
+          const mein = meinStandRef.current;
+          const ohneEigenes = gleicherMergeStand(mein, basis);
+          zeitstempelRef.current = s.updatedAt;
+          serverBasis.current = s.stand;
+          if (ohneEigenes) uebernommenRef.current = true;
+          standSetzen(ohneEigenes ? s.stand : zusammenfuehren(basis, mein, s.stand));
+          if (autoStatus?.art === 'konflikt') setAutoStatus(null);
+        } catch { /* nächster Versuch in 3 s */ } finally { syncLaeuft.current = false; }
+      })();
+    }, 3000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncAn, regId, busy, header.home_team_id, header.guest_team_id, header.season_id]);
+
+  // Eingaben aus dem zweiten Fenster (Monitor/Fernseher, Maus von überall; Betreiber 20.11.2026):
+  // Das Fenster schickt Aktionen über den BroadcastChannel, ausgeführt werden sie HIER — dieselben
+  // Funktionen wie beim Antippen im Live-Modus, gespeichert wird wie sonst auch.
+  useEffect(() => {
+    if (readOnly) return;
+    return abonniereAktionen(a => {
+      if (a.typ === 'legs') setGameLegs(a.no, a.res);
+      else if (a.typ === 'slot') setGameSlot(a.no, a.feld, a.slot);
+      else if (a.typ === 'highlight') setHeader(x => ({ ...x, highlights: highlightHinzufuegen(x.highlights ?? [], a.h) }));
+      else if (a.typ === 'highlight_weg') removeHighlight(a.index);
+    });
+  }, [readOnly]);
 
   /** Start-Push „Live-Ticker läuft“ — der Server entscheidet, ob es der erste Live-Stand des Abends ist. */
   async function meldeLiveStart(id: string) {
@@ -545,6 +645,7 @@ function SpielberichteInner() {
     setGuestPlayers(SLOTS.map(slot => ps.find(p => p.side === 'guest' && p.slot === slot) ?? { side: 'guest', slot, pass_no: '', name: '', player_id: null, points: 0 }));
     const loadedGames = GAME_SCHEDULE.map(s => gs.find(g => g.game_no === s.no) ?? { game_no: s.no, game_type: s.type, home_slot: s.homeSlot ?? null, guest_slot: s.guestSlot ?? null, home_slot2: null, guest_slot2: null, legs_home: null, legs_guest: null });
     setGames(loadedGames);
+    serverBasis.current = alsStand(ps, gs, r.highlights ?? []);
     // Bei ?propose=1 die aktuellen Werte als Vergleichsbasis sichern.
     if (proposeParam === '1' && guestViewer) setSubmitBase(loadedGames.map(g => ({ ...g })));
   }

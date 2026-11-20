@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const g = await geraetVon(request);
   if (!g) return nichtGekoppelt();
   try {
-    const res = NextResponse.json(await lage(g), { headers: kopf });
+    const res = NextResponse.json(await lage(g, new URL(request.url).searchParams.get('seit')), { headers: kopf });
     // Kopplung hält, solange das Gerät benutzt wird: Cookie bei jedem Aufruf um 400 Tage verlängern
     // (und wieder setzen, falls nur noch der Schlüssel im localStorage übrig war).
     res.cookies.set(KIOSK_COOKIE, kioskToken(request), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: KIOSK_COOKIE_TAGE * 24 * 3600 });

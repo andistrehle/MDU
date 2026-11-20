@@ -22,6 +22,7 @@ import {
   PROBE, type KioskStand,
 } from '@/lib/kiosk';
 import type { KioskLage } from '@/lib/server/kiosk';
+import { zusammenfuehren } from '@/lib/spielbericht-merge';
 
 interface Zustand { schritt: 'aufstellung' | 'spiel'; heim: ReportPlayer[]; gast: ReportPlayer[]; games: ReportGame[]; highlights: HighlightEntry[] }
 
@@ -113,20 +114,42 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
   const zRef = useRef<Zustand | null>(null);
   const keyRef = useRef<string | null>(null);
 
+  // Zusammenführen mit einem zweiten Gerät (Handy, zweites Tablet; lib/spielbericht-merge.ts):
+  // `basisZ` ist der Server-Stand, den dieses Gerät zuletzt gesehen oder geschrieben hat.
+  const basisZ = useRef<Zustand | null>(null);
+
   const uebernehmen = useCallback((l: KioskLage, sicherungNutzen: boolean) => {
+    if (l.art === 'gleich') return;
     setLage(l);
-    if (l.art !== 'spiel') { setZ0(null); zRef.current = null; keyRef.current = null; return; }
+    if (l.art !== 'spiel') { setZ0(null); zRef.current = null; keyRef.current = null; basisZ.current = null; return; }
     basis.current = l.basis;
+    basisZ.current = ausStand(l.stand);
     let neu = ausStand(l.stand);
-    // Noch nicht gespeicherte Eingaben dieses Spiels (Netz weg, Tablet neu gestartet) gehen vor.
-    const s = sicherungNutzen ? lesen<{ key: string; datum: string; z: Zustand }>(SICHERUNG) : null;
+    // Noch nicht gespeicherte Eingaben dieses Spiels (Netz weg, Tablet neu gestartet) gehen vor —
+    // zusammengeführt mit dem, was inzwischen auf dem Server steht.
+    const s = sicherungNutzen ? lesen<{ key: string; datum: string; z: Zustand; basisZ?: Zustand }>(SICHERUNG) : null;
     const ausSicherung = !!s && s.key === l.key && s.datum === l.datum && s.z?.games?.length === 18 && l.status === 'offen';
-    if (ausSicherung) neu = s!.z;
+    if (ausSicherung) neu = { ...s!.z, ...zusammenfuehren(s!.basisZ ?? neu, s!.z, neu) };
     // Bei einem neuen Stand vom Server bleibt man auf der Seite, auf der man gerade ist.
     if (!ausSicherung && keyRef.current === l.key && zRef.current) neu = { ...neu, schritt: zRef.current.schritt };
     keyRef.current = l.key; zRef.current = neu; setZ0(neu);
     if (ausSicherung) { version.current += 1; setSpeicher('offen'); } else { gespeichert.current = version.current; setSpeicher('ok'); }
   }, []);
+
+  /** Neuer Stand vom Server: ohne eigene offene Eingaben übernehmen, sonst zusammenführen und gleich wieder speichern. */
+  const nachziehen = useCallback((l: KioskLage) => {
+    if (l.art !== 'spiel' || l.status !== 'offen' || !zRef.current || !basisZ.current || keyRef.current !== l.key
+      || version.current === gespeichert.current) { uebernehmen(l, false); return false; }
+    const deins = ausStand(l.stand);
+    const neu: Zustand = { ...zRef.current, ...zusammenfuehren(basisZ.current, zRef.current, deins) };
+    setLage(l);
+    basis.current = l.basis; basisZ.current = deins;
+    zRef.current = neu; setZ0(neu);
+    version.current += 1;
+    schreiben(SICHERUNG, { key: l.key, datum: l.datum, z: neu, basisZ: deins });
+    setSpeicher('offen');
+    return true;
+  }, [uebernehmen]);
 
   const laden = useCallback(async (sicherungNutzen = false) => {
     const r = await api('/api/kiosk');
@@ -147,7 +170,7 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
       // Nur der Wechsel zwischen Aufstellung und Spiel ist keine Eingabe.
       if (neu.heim !== alt.heim || neu.gast !== alt.gast || neu.games !== alt.games || neu.highlights !== alt.highlights) {
         version.current += 1;
-        if (keyRef.current && spiel) schreiben(SICHERUNG, { key: spiel.key, datum: spiel.datum, z: neu });
+        if (keyRef.current && spiel) schreiben(SICHERUNG, { key: spiel.key, datum: spiel.datum, z: neu, basisZ: basisZ.current });
         setSpeicher('offen');
       }
       return neu;
@@ -155,47 +178,67 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
   }, [spiel]);
 
   const speichern = useCallback(async (absenden = false): Promise<boolean> => {
-    const stand = zRef.current;
-    if (!stand || laeuft.current) return false;
+    if (!zRef.current || laeuft.current) return false;
     laeuft.current = true; setSpeicher('speichert');
-    const v = version.current;
-    const r = await api('/api/kiosk', { stand: zuStand(stand), basis: basis.current, absenden });
-    laeuft.current = false;
-    if (r.status === 200) {
-      basis.current = String(r.json.basis ?? '') || basis.current;
-      gespeichert.current = v;
-      if (version.current === v) { setSpeicher('ok'); try { localStorage.removeItem(SICHERUNG); } catch { /* egal */ } } else setSpeicher('offen');
-      if (absenden) await laden();
-      return true;
-    }
-    if (r.status === 401) { setLage('koppeln'); return false; }
-    if (r.json.konflikt) {
-      // Jemand anderes hat gespeichert (Kapitän am Handy) — dessen Stand gilt.
-      try { localStorage.removeItem(SICHERUNG); } catch { /* egal */ }
-      setMeldung(String(r.json.error ?? 'Der Stand wurde auf einem anderen Gerät geändert.') + ' Der neue Stand wurde geladen.');
-      await laden();
+    try {
+      // Bis zu vier Anläufe: Hat ein anderes Gerät dazwischen gespeichert, dessen Stand holen,
+      // die eigenen Eingaben darüberlegen (nachziehen) und noch einmal.
+      for (let versuch = 0; versuch < 4; versuch++) {
+        const stand = zRef.current;
+        if (!stand) return false;
+        const v = version.current;
+        const r = await api('/api/kiosk', { stand: zuStand(stand), basis: basis.current, absenden });
+        if (r.status === 200) {
+          basis.current = String(r.json.basis ?? '') || basis.current;
+          basisZ.current = stand;
+          gespeichert.current = v;
+          if (version.current === v) { setSpeicher('ok'); try { localStorage.removeItem(SICHERUNG); } catch { /* egal */ } } else setSpeicher('offen');
+          if (absenden) await laden();
+          return true;
+        }
+        if (r.status === 401) { setLage('koppeln'); return false; }
+        if (!r.json.konflikt) {
+          if (r.status === 400 || r.status === 409) setMeldung(String(r.json.error ?? 'Das hat nicht geklappt.'));
+          setSpeicher('fehler');
+          return false;
+        }
+        const neu = await api('/api/kiosk');
+        if (neu.status !== 200) { setSpeicher('fehler'); return false; }
+        if (!nachziehen(neu.json as unknown as KioskLage)) {
+          if ((neu.json as { status?: string }).status !== 'offen') setMeldung(String(r.json.error ?? 'Der Spielbericht wurde auf einem anderen Gerät abgesendet.'));
+          return false;
+        }
+      }
+      setSpeicher('fehler');
       return false;
-    }
-    if (r.status === 400 || r.status === 409) setMeldung(String(r.json.error ?? 'Das hat nicht geklappt.'));
-    setSpeicher('fehler');
-    return false;
-  }, [laden]);
+    } finally { laeuft.current = false; }
+  }, [laden, nachziehen]);
 
-  // Autospeichern: 3 s nach der letzten Eingabe; nach einem Fehler neuer Versuch nach 15 s.
+  // Autospeichern: 1,5 s nach der letzten Eingabe; nach einem Fehler neuer Versuch nach 15 s.
   // Gespeichert wird ab dem ersten Ergebnis (wie im Formular) — vorher liegt die Aufstellung nur im Gerät.
   useEffect(() => {
     if (!offen || !z || (speicher !== 'offen' && speicher !== 'fehler')) return;
     if (basis.current == null && !z.games.some(g => g.legs_home != null)) return;
-    const t = setTimeout(() => void speichern(), speicher === 'fehler' ? 15_000 : 3000);
+    const t = setTimeout(() => void speichern(), speicher === 'fehler' ? 15_000 : 1500);
     return () => clearTimeout(t);
   }, [z, speicher, offen, speichern]);
 
-  // Nachsehen, ob sich etwas getan hat: Spiel läuft → alle 45 s (nur ohne offene Eingaben), sonst alle 5 Min.
+  // Nachsehen, ob sich etwas getan hat. Spiel läuft → alle 3 s (kurze Anfrage mit `seit`, damit Handy und Tablet
+  // gleich aussehen), sonst alle 5 Min. Steht ein Speichern an oder läuft eins, wartet die Nachfrage.
   useEffect(() => {
     if (lage === null || lage === 'koppeln') return;
-    const t = setInterval(() => { if (!laeuft.current && version.current === gespeichert.current) void laden(); }, spiel ? 45_000 : 300_000);
+    const t = setInterval(() => {
+      if (laeuft.current || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      if (!offen) { void laden(); return; }
+      void api(`/api/kiosk?seit=${encodeURIComponent(basis.current ?? 'leer')}`).then(r => {
+        if (r.status === 401) { setLage('koppeln'); return; }
+        if (r.status !== 200 || laeuft.current) return;
+        const l = r.json as unknown as KioskLage;
+        if (l.art !== 'gleich') nachziehen(l);
+      });
+    }, offen ? 3_000 : 300_000);
     return () => clearInterval(t);
-  }, [lage, spiel, laden]);
+  }, [lage, offen, laden, nachziehen]);
 
   if (lage === null) return <Laedt />;
   if (lage === 'koppeln') return <Koppeln vorgabe={codeVorgabe} fertig={() => { setLage(null); void laden(true); }} />;

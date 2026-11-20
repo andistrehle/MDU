@@ -192,6 +192,15 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   die Heimmannschaft wie im Admin-Modus (Bericht unter deren Kapitäns-Konto, sonst unter der Ligaleitung; Verlauf „(Ligaleitung, Auswärtsspiel)“),
   der Gast bestätigt. **Eigene Web-App** (20.11.2026): `/kiosk` verweist auf `app/kiosk-app.webmanifest` (start_url/scope `/kiosk`, „MDU Tablet“);
   auf iPhone/iPad hat die Home-Bildschirm-App eigenen Speicher → einmal neu koppeln. Das Geräte-Cookie verlängert sich bei jedem Aufruf (400 Tage).
+  **Zwei Geräte gleichzeitig / Fernbedienung** (Betreiber 20.11.2026): Formular, Tablet und Handy schreiben in DENSELBEN Entwurf und führen
+  zusammen statt sich zu blockieren — `zusammenfuehren(basis, meins, deins)` in `lib/spielbericht-merge.ts` (getestet): je Feld gilt meins, wenn ICH
+  es seit der Basis geändert habe, sonst deins (Spieler je Platz, je Spiel 4 Spielerfelder + Ergebnis, Highlights als Mengen/Zähler); gleiches Feld
+  auf beiden Geräten → das zusammenführende gewinnt. Tablet: `basisZ`, bei 409 holen + zusammenführen + bis zu 4 Anläufe, Nachladen alle 3 s über
+  `/api/kiosk?seit=<updated_at|leer>` (antwortet `{art:'gleich'}` mit EINER Abfrage), Autospeichern nach 1,5 s. Formular: `serverBasis`, Konflikt
+  beim Autospeichern → zusammenführen statt „Neu laden nötig“, alle 3 s `berichtZeitstempel` (findet auch einen vom Tablet angelegten Bericht über
+  `findeBerichtZurBegegnung`), Autospeichern nach 1,5 s. **Zweites Fenster klickbar**: `/mein-bereich/spielberichte/live` schickt Eingaben über
+  `sendeAktion`/`abonniereAktionen` (BroadcastChannel `mdu-spielbericht-aktion`) ans Formular desselben Browsers, das sie ausführt und speichert;
+  klickbar nur mit `bearbeitbar` im `LiveStand`. Erlaubte Spieler im Fenster über `erlaubteSlots` (lib/kiosk.ts) — dieselben Regeln wie im Formular.
   Probe `/kiosk?probe=1`: erfundene Begegnung, rechnet nur im
   Gerät. Datenschutz-Absatz: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),

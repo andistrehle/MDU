@@ -11,10 +11,29 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
-import { abonniereLive, letzterLiveStand, type LiveStand } from '@/lib/spielbericht-live';
+import { abonniereLive, letzterLiveStand, sendeAktion, type LiveStand } from '@/lib/spielbericht-live';
+import { erlaubteSlots } from '@/lib/kiosk';
+import { legResults } from '@/lib/supabase/match-reports';
+import type { LiveBearbeiten } from '@/components/mdu/live-anzeige';
 import { LiveAnzeige, LIVE_HINTERGRUND, fz } from '@/components/mdu/live-anzeige';
 import { LigaTickerLeiste } from '@/components/mdu/live-ticker';
 import { team27 } from '@/lib/data/saison-2027';
+
+/**
+ * Klicken im zweiten Fenster (Betreiber, 20.11.2026): Jede Eingabe geht als Aktion ans Formular im ersten
+ * Fenster (lib/spielbericht-live.ts), das sie ausführt und speichert. Erlaubte Spieler je Feld nach denselben
+ * Regeln wie im Formular (lib/kiosk.ts `erlaubteSlots`).
+ */
+function fernbedienung(s: LiveStand): LiveBearbeiten {
+  return {
+    legOptionen: legResults(s.bestOf),
+    slotOptionen: (no, feld) => erlaubteSlots(s.games, feld.startsWith('home') ? s.homePlayers : s.guestPlayers, no, feld),
+    onLegs: (no, res) => sendeAktion({ typ: 'legs', no, res }),
+    onSlot: (no, feld, slot) => sendeAktion({ typ: 'slot', no, feld, slot }),
+    onHighlight: h => sendeAktion({ typ: 'highlight', h }),
+    onHighlightWeg: index => sendeAktion({ typ: 'highlight_weg', index }),
+  };
+}
 
 export default function LivePage() {
   const [stand, setStand] = useState<LiveStand | null>(null);
@@ -52,7 +71,7 @@ export default function LivePage() {
             <div style={{ marginTop: 10, fontSize: fz(14, 1.2, 20), opacity: 0.75 }}>Wartet auf den Spielbericht … Öffne im anderen Fenster „Spielbericht erfassen“ und wähle die Begegnung.</div>
           </div>
         </div>
-      ) : <div style={{ paddingBottom: leisteDa ? 40 : 0 }}><LiveAnzeige s={stand} /></div>}
+      ) : <div style={{ paddingBottom: leisteDa ? 40 : 0 }}><LiveAnzeige s={stand} bearbeiten={stand.bearbeitbar ? fernbedienung(stand) : undefined} /></div>}
       {tickerLiga && <LigaTickerLeiste liga={tickerLiga} ohneKey={tickerOhne} fest dunkel onSichtbar={setLeisteDa} />}
     </div>
   );
