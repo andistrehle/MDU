@@ -427,6 +427,14 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
     titel: 'Sonstiges',
     fragen: [
       {
+        id: 'dein-team-startseite',
+        frage: 'Wie komme ich schnell zu meinem Team und meiner Liga?',
+        antwort: `Auf der **Startseite** steht ganz oben die Karte **„Dein Team“**: Tabellenplatz und nächstes Spiel auf einen Blick, ein Tipp klappt sie auf – dann siehst du auch das letzte Ergebnis mit Spielbericht und kommst direkt zu Tabelle, Spielplan und Kader. Bist du angemeldet, ist es dein eigenes Team; hat es den Team Manager, sagst du dort gleich zu oder ab. Ohne Konto wählst du ein Team aus, das du verfolgen willst – gemerkt wird das nur auf deinem Gerät.
+
+Auf **Spielplan, Ergebnisse, Tabellen und Teams** wählst du oben eine Liga, die Seite zeigt dann nur diese. Mit Konto ist deine eigene Liga vorgewählt (★), sonst die zuletzt gewählte. „Alle“ zeigt wie früher alle Ligen untereinander. Im Spielplan stehen der aktuelle und die kommenden Spieltage oben, die gespielten findest du unter „Frühere Spieltage anzeigen“.`,
+        stichworte: ['übersicht', 'startseite', 'lieblingsteam', 'liga wählen', 'filter', 'mein team', 'suchen'],
+      },
+      {
         id: 'app',
         frage: 'Gibt es eine App?',
         antwort: `Eine eigene App aus dem App Store gibt es nicht, die Seite lässt sich aber wie eine App installieren – mit MDU-Symbol, im Vollbild und mit Benachrichtigungen:

@@ -417,6 +417,14 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   dem ersten Bild. Öffentlicher Spielplan: `LigaSpielplan27 aktuellZuerst` → `spieltage-geteilt.tsx` (aktuell + kommend oben, gespielte
   hinter „Frühere Spieltage anzeigen (n)“, geteilt im Browser nach heute; ein Spieltag bleibt oben, solange ein verlegtes Spiel ohne
   Ergebnis aussteht). Spielstätten: Suchfeld (`such-liste.tsx`, Lokal/Team/Straße). Neue Listen über alle Ligen: `LigaFilter` nutzen.
+  **„Dein Team“ auf der Startseite** (Betreiber, 20.11.2026, gleiche Umfrage-Kritik): `components/mdu/dein-team.tsx` direkt unter Kopfzeile und
+  Laufbändern, startet IMMER zugeklappt (Logo, Team, Platz, nächstes Spiel kurz); aufgeklappt nächstes Spiel, letztes Ergebnis → Spielbericht,
+  Schnellwege. Mit Konto = eigenes Team; mit Team Manager Zu-/Absage direkt in der Karte („Bin dabei“ ein Tipp, „Vielleicht“/„Kann nicht“ mit
+  Begründung wie überall, Stand über `/api/spieltag/stand`); Kapitän/Co-Captain (team_manager) ohne Team Manager sieht „Team Manager holen“.
+  Ohne Konto bzw. ohne Team: Zeile „Welches Team verfolgst du?“ → Auswahl, gemerkt nur auf dem Gerät (`mdu-lieblingsteam`), × blendet aus
+  (`mdu-dein-team-aus`). Daten ALLER Teams rechnet der Server in die statische Seite (`lib/server/dein-team.ts`, Rechnung
+  `lib/dein-team.ts` getestet: nächstes = frühestes offenes Spiel ab heute, letztes = jüngstes Ergebnis) — klein halten, steht im HTML.
+  FAQ `dein-team-startseite`.
   **Querverweise + „Zurück = Absprungstelle“ im Team Manager** (Betreiber, 16.11.2026): `components/mdu/scroll-merker.tsx` (global in
   GlobalChrome) merkt je Adresse die Scroll-Position und setzt sie nach „Zurück“ noch einmal, sobald die im Browser nachgeladene
   Seite lang genug ist. `components/mdu/zurueck-link.tsx`: `ZurueckLink` (statt fester „‹ Team Manager“-Verweise — geht ZURÜCK, wenn es

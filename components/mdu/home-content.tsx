@@ -13,6 +13,8 @@ import { ladeSpieltagBanner } from '@/lib/server/spieltag-banner';
 import { SpieltagBanner } from '@/components/mdu/spieltag-banner';
 import { TeamManagerBanner } from '@/components/mdu/team-manager-banner';
 import { LiveBand } from '@/components/mdu/live-ticker';
+import { DeinTeam } from '@/components/mdu/dein-team';
+import { ladeDeinTeam } from '@/lib/server/dein-team';
 import { PREMIUM_OEFFENTLICH, TM_START } from '@/lib/premium';
 import {
   getRecentResults,
@@ -80,7 +82,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
     : getRecentResults(undefined, 5).map(m => ({ homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId, leagueName: findLeague(m.leagueId)?.name ?? m.leagueId, date: m.date, result: m.result, offen: false, neu: false as const, bericht: null }));
   // Nächstes Spielwochenende der Saison 2026/27 (vorläufiger Plan), alle Ligen.
   const naechstes = naechstesWochenende27();
-  const [newsArticles, banner] = await Promise.all([getHomepageNews(), ladeSpieltagBanner()]);
+  const [newsArticles, banner, deinTeam] = await Promise.all([getHomepageNews(), ladeSpieltagBanner(), ladeDeinTeam()]);
   const tmBanner = tmBannerAktiv();
 
   return (
@@ -97,6 +99,7 @@ export async function HomeContent({ hero = 'classic' }: { hero?: 'classic' | 'fu
           <LiveBand />
           {banner && <SpieltagBanner daten={banner} />}
           {tmBanner && <TeamManagerBanner />}
+          <DeinTeam teams={deinTeam} />
 
           {/* Hero */}
           <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--th-bg-page)', borderBottom: '1px solid var(--th-line-4)' }}>
