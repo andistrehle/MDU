@@ -425,6 +425,12 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (`mdu-dein-team-aus`). Daten ALLER Teams rechnet der Server in die statische Seite (`lib/server/dein-team.ts`, Rechnung
   `lib/dein-team.ts` getestet: nächstes = frühestes offenes Spiel ab heute, letztes = jüngstes Ergebnis) — klein halten, steht im HTML.
   FAQ `dein-team-startseite`.
+  **Suche in der Kopfzeile** (Betreiber, 20.11.2026, per Klick-Umfrage): Lupe auf jeder Seite (`components/mdu/suche.tsx`, `SucheKnopf` in
+  `desktop-header.tsx`, Fenster als Portal an `<body>` — die Kopfzeile hat `backdrop-filter`). Findet Teams, Spieler (Kader 2026/27; wer nur
+  im festen Stamm 2025/26 steht, mit „Archiv“), Spielstätten, Seiten, FAQ. Index `lib/server/suche.ts` → `/api/suche` (erst beim Öffnen geholt,
+  1 h am CDN; Spieler über den anon-Client wie die Teamseiten, also nur Freigegebenes, KEINE Spitznamen/Passnummern), gefiltert im Browser
+  (`lib/suche.ts`, getestet: jedes Wort muss vorkommen; Titelanfang 100 · Wortanfang 70 · im Titel 50 · zweite Zeile/Suchwörter 20).
+  Neue öffentliche Seiten in `SEITEN` nachtragen. FAQ `suche`.
   **Querverweise + „Zurück = Absprungstelle“ im Team Manager** (Betreiber, 16.11.2026): `components/mdu/scroll-merker.tsx` (global in
   GlobalChrome) merkt je Adresse die Scroll-Position und setzt sie nach „Zurück“ noch einmal, sobald die im Browser nachgeladene
   Seite lang genug ist. `components/mdu/zurueck-link.tsx`: `ZurueckLink` (statt fester „‹ Team Manager“-Verweise — geht ZURÜCK, wenn es

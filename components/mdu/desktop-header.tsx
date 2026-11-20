@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from './icon';
 import { ThemeToggle } from './theme-toggle';
 import { NotificationBell } from './notification-bell';
+import { SucheKnopf } from './suche';
 import { LIGEN_2027, NEUE_SAISON, ARCHIV_SAISON } from '@/lib/data/saison-2027';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -221,6 +222,9 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
         </nav>
 
         {/* Old School / New Design switch — desktop top right, next to Login */}
+        <span className="mdu-header-login" style={{ display: 'inline-flex', flexShrink: 0 }}>
+          <SucheKnopf gross />
+        </span>
         <span className="mdu-header-login" data-tour="theme" style={{ display: 'inline-flex', flexShrink: 0 }}>
           <ThemeToggle compact />
         </span>
@@ -251,6 +255,7 @@ export function DesktopHeader({ activeHref }: DesktopHeaderProps) {
 
         {/* Mobile actions — compact theme toggle + account button (mobile only) */}
         <span className="mdu-mobile-actions" style={{ alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <SucheKnopf />
           <span data-tour="theme" style={{ display: 'inline-flex' }}>
             <ThemeToggle mini />
           </span>

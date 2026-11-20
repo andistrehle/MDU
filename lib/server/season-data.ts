@@ -347,3 +347,30 @@ export async function getDbPlayer(playerId: string): Promise<DbPlayerProfile | n
 
   return { player, assignments };
 }
+
+/** Alle Kaderspieler einer Saison mit Team (für die Suche). Wie `getSeasonRoster`: anon-Client, also nur
+ *  freigegebene Teams (RLS), dazu bestätigte Nachmeldungen. Nur Spieler mit Kennung (= mit Profilseite). */
+export async function getSeasonKaderAlle(seasonId: string): Promise<{ playerId: string; name: string; teamId: string }[]> {
+  const c = anon();
+  if (!c || !seasonId) return [];
+  const out = new Map<string, { playerId: string; name: string; teamId: string }>();
+  const { data } = await c.from('season_roster_assignments')
+    .select('first_name, last_name, player_id, team_id').eq('season_id', seasonId).limit(5000);
+  for (const r of (data ?? []) as { first_name: string | null; last_name: string | null; player_id: string | null; team_id: string }[]) {
+    const name = `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim();
+    if (r.player_id && name) out.set(r.player_id, { playerId: r.player_id, name, teamId: r.team_id });
+  }
+  const { data: nom } = await c.from('player_assignments')
+    .select('player_id, team_id').eq('season_id', seasonId).eq('source', 'nomination').eq('status', 'active').limit(5000);
+  const neu = ((nom ?? []) as { player_id: string | null; team_id: string }[]).filter(a => a.player_id && !out.has(a.player_id));
+  if (neu.length) {
+    const { data: pl } = await c.from('players').select('id, first_name, last_name').in('id', neu.map(a => a.player_id as string));
+    const pm = new Map(((pl ?? []) as { id: string; first_name: string | null; last_name: string | null }[]).map(x => [x.id, x]));
+    for (const a of neu) {
+      const x = pm.get(a.player_id as string);
+      const name = `${x?.first_name ?? ''} ${x?.last_name ?? ''}`.trim();
+      if (x && name) out.set(x.id, { playerId: x.id, name, teamId: a.team_id });
+    }
+  }
+  return [...out.values()];
+}

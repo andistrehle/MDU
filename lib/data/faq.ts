@@ -427,6 +427,12 @@ Eine Strafe oder ein Beitrag zählt in den Kassenstand, sobald er als bezahlt ab
     titel: 'Sonstiges',
     fragen: [
       {
+        id: 'suche',
+        frage: 'Wie finde ich einen Spieler, ein Team oder ein Lokal?',
+        antwort: `Über die **Lupe oben in der Kopfzeile**, auf jeder Seite. Tippe einen Teil des Namens – die Suche findet Teams, Spieler, Spielstätten, Seiten der Homepage und Antworten aus diesen häufigen Fragen. Umlaute und Großschreibung spielen keine Rolle. Spieler, die nur in der Saison 2025/26 gespielt haben, sind mit „Archiv“ markiert. Neue Spieler und Teams erscheinen spätestens nach etwa einer Stunde.`,
+        stichworte: ['suchen', 'lupe', 'spieler finden', 'profil finden'],
+      },
+      {
         id: 'dein-team-startseite',
         frage: 'Wie komme ich schnell zu meinem Team und meiner Liga?',
         antwort: `Auf der **Startseite** steht ganz oben die Karte **„Dein Team“**: Tabellenplatz und nächstes Spiel auf einen Blick, ein Tipp klappt sie auf – dann siehst du auch das letzte Ergebnis mit Spielbericht und kommst direkt zu Tabelle, Spielplan und Kader. Bist du angemeldet, ist es dein eigenes Team; hat es den Team Manager, sagst du dort gleich zu oder ab. Ohne Konto wählst du ein Team aus, das du verfolgen willst – gemerkt wird das nur auf deinem Gerät.

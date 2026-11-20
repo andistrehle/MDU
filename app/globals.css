@@ -170,7 +170,8 @@ html[data-theme="light"] .mdu-nav-link:hover {
 }
 html[data-theme="light"] .mdu-header-login a,
 html[data-theme="light"] a.mdu-header-login,
-html[data-theme="light"] a.mdu-mobile-login {
+html[data-theme="light"] a.mdu-mobile-login,
+html[data-theme="light"] .mdu-suche-knopf {
   color: #FFFFFF !important;
   border-color: rgba(255,255,255,0.85) !important;
   background: rgba(255,255,255,0.10) !important;
