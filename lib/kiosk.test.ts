@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   absendeFehler, alleGespielt, aufstellungFertig, codeNormal, erlaubteSlots, heimspielAm, kioskErlaubt, leereSpiele, leereSpieler, legsSetzen,
-  naechstesHeimspiel, pruefeStand, slotSetzen, type KioskStand,
+  naechstesHeimspiel, pruefeStand, slotSetzen, spielAm, type KioskStand,
 } from './kiosk';
 
 const mit = (side: 'home' | 'guest', namen: Record<number, string>) =>
@@ -79,6 +79,15 @@ describe('Kiosk — Echtbetrieb', () => {
   it('nächstes Heimspiel: das früheste NACH dem Tag, Spiele ohne Termin zählen nicht', () => {
     expect(naechstesHeimspiel(plan, 'a', '2026-11-20')?.key).toBe('a|c');
     expect(naechstesHeimspiel(plan, 'a', '2026-12-11')).toBeNull();
+  });
+
+  it('Auswärtsspiel nur mit Freigabe der Ligaleitung; ein Heimspiel geht vor', () => {
+    expect(spielAm(plan, 'a', '2026-11-27')).toBeNull();                  // a spielt auswärts, keine Freigabe
+    expect(spielAm(plan, 'a', '2026-11-27', true)?.key).toBe('b|a');      // mit Freigabe
+    expect(spielAm(plan, 'a', '2026-11-20', true)?.key).toBe('a|b');      // Heimspiel bleibt Heimspiel
+    expect(spielAm(plan, 'c', '2026-11-27', true)).toBeNull();            // fremdes Spiel nie
+    expect(naechstesHeimspiel(plan, 'a', '2026-11-21', true)?.key).toBe('b|a');
+    expect(naechstesHeimspiel(plan, 'a', '2026-11-21')?.key).toBe('a|c');
   });
 
   it('freigegeben sind zum Start nur die Bazis', () => {

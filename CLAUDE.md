@@ -186,7 +186,13 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   denselben Weg, aber in einen Bericht OHNE Saison (`season_id null`, `league_label = 'Tablet-Test'`, kein Gastteam) — alles Öffentliche liest nur
   Berichte der Saison. Im Test reicht „Absenden“ NICHT ein (der DB-Auslöser schickte sonst Glocke + Push an die Ligaleitung), es setzt nur
   `test_fertig`; kein Start-Push, kein Neubau. Beenden/Ablauf/neuer Start löscht den Testbericht. NEUE Lader von `match_reports` deshalb immer
-  mit `season_id` filtern. Probe `/kiosk?probe=1`: erfundene Begegnung, rechnet nur im
+  mit `season_id` filtern. **Auswärtsspiele für die Ligaleitung** (Migration 0074, Betreiber 20.11.2026): Häkchen „Auch Auswärtsspiele“ je
+  gekoppeltem Gerät, nur für die Ligaleitung (`aktion: 'auswaerts'`, `auswaerts_von` = wer freigegeben hat; erlischt, wenn das Konto nicht mehr
+  Ligaleitung ist). Dann zeigt das Tablet auch das Auswärtsspiel seines Teams (`spielAm`, getestet; Heimspiel geht vor) — eingetragen wird für
+  die Heimmannschaft wie im Admin-Modus (Bericht unter deren Kapitäns-Konto, sonst unter der Ligaleitung; Verlauf „(Ligaleitung, Auswärtsspiel)“),
+  der Gast bestätigt. **Eigene Web-App** (20.11.2026): `/kiosk` verweist auf `app/kiosk-app.webmanifest` (start_url/scope `/kiosk`, „MDU Tablet“);
+  auf iPhone/iPad hat die Home-Bildschirm-App eigenen Speicher → einmal neu koppeln. Das Geräte-Cookie verlängert sich bei jedem Aufruf (400 Tage).
+  Probe `/kiosk?probe=1`: erfundene Begegnung, rechnet nur im
   Gerät. Datenschutz-Absatz: vom Betreiber als nicht nötig entschieden.
   **Umfragen** (Migration 0068, `lib/umfrage.ts`): mehrere Umfragen teilen Tabelle `umfrage_antworten` (Spalte `umfrage`),
   Formular (`UmfrageFormular def/fragen`), `/api/umfrage` (`umfrage` im Body / `?umfrage=`) und Admin → Umfrage (Umschalter).

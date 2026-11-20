@@ -126,10 +126,20 @@ export interface KioskPlan { key: string; home: string; away: string; termin: { 
 export const heimspielAm = <T extends KioskPlan>(plan: T[], team: string, datum: string): T | null =>
   plan.find(b => b.home === team && b.termin?.datum === datum) ?? null;
 
-/** Das nächste Heimspiel nach diesem Datum (für „Heute kein Spiel“). */
-export const naechstesHeimspiel = <T extends KioskPlan>(plan: T[], team: string, datum: string): T | null =>
-  plan.filter(b => b.home === team && !!b.termin && b.termin.datum > datum)
+/** Das nächste Heimspiel nach diesem Datum (für „Heute kein Spiel“); mit `auswaerts` auch Auswärtsspiele. */
+export const naechstesHeimspiel = <T extends KioskPlan>(plan: T[], team: string, datum: string, auswaerts = false): T | null =>
+  plan.filter(b => (b.home === team || (auswaerts && b.away === team)) && !!b.termin && b.termin.datum > datum)
     .sort((a, b) => a.termin!.datum.localeCompare(b.termin!.datum))[0] ?? null;
+
+/**
+ * Spiel des Tages für das Tablet. Normal NUR das Heimspiel (es trägt immer die
+ * Heimmannschaft ein). Hat die Ligaleitung das Gerät für Auswärtsspiele
+ * freigegeben (`auswaerts`, Betreiber 20.11.2026), auch das Auswärtsspiel des
+ * Teams — dann trägt die Ligaleitung für die Heimmannschaft ein, wie im
+ * Admin-Modus des Formulars. Ein Heimspiel geht immer vor.
+ */
+export const spielAm = <T extends KioskPlan>(plan: T[], team: string, datum: string, auswaerts = false): T | null =>
+  heimspielAm(plan, team, datum) ?? (auswaerts ? plan.find(b => b.away === team && b.termin?.datum === datum) ?? null : null);
 
 /** Kopplungscode: acht Ziffern, Leerzeichen und Striche beim Tippen egal. */
 export const CODE_LAENGE = 8;

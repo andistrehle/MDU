@@ -204,7 +204,7 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
   if (lage.art === 'kein_spiel') {
     const n = lage.naechstes;
     return <Tafel titel="Heute kein Spiel" text={n
-      ? `Nächstes Heimspiel von ${lage.team}: ${new Date(n.datum + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}${n.uhrzeit ? `, ${n.uhrzeit} Uhr` : ''} gegen ${n.gegner}.`
+      ? `${n.heim === false ? 'Nächstes Spiel' : 'Nächstes Heimspiel'} von ${lage.team}: ${new Date(n.datum + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}${n.uhrzeit ? `, ${n.uhrzeit} Uhr` : ''} ${n.heim === false ? 'bei' : 'gegen'} ${n.gegner}.`
       : `Für ${lage.team} steht kein weiteres Heimspiel im Plan.`} knopfText="Aktualisieren" onKnopf={() => void laden(true)} leise />;
   }
   if (!z || !spiel) return <Laedt />;

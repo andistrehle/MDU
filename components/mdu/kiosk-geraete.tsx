@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase/client';
 import { codeAnzeige } from '@/lib/kiosk';
 import { karte, h2 } from '@/components/mdu/zusagen-ui';
 
-interface Geraet { id: string; name: string; erstellt_am: string; gekoppelt_am: string | null; last_seen_at: string | null; code_bis: string | null; test_bis?: string | null; test_fertig?: boolean | null }
+interface Geraet { id: string; name: string; erstellt_am: string; gekoppelt_am: string | null; last_seen_at: string | null; code_bis: string | null; test_bis?: string | null; test_fertig?: boolean | null; auswaerts_von?: string | null }
 
 async function aufruf(url: string, body?: unknown): Promise<{ ok: boolean; json: Record<string, unknown> }> {
   const token = (await supabase?.auth.getSession())?.data.session?.access_token;
@@ -32,7 +32,7 @@ const feld: React.CSSProperties = { flex: 1, minWidth: 0, boxSizing: 'border-box
 const knopf = (voll: boolean): React.CSSProperties => ({ padding: '9px 14px', borderRadius: 10, cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 800, fontSize: 13, border: '1.5px solid var(--th-accent)', background: voll ? 'var(--th-accent)' : 'transparent', color: voll ? '#fff' : 'var(--th-accent)' });
 const wann = (iso: string) => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
-export function KioskGeraete({ teamId }: { teamId: string }) {
+export function KioskGeraete({ teamId, ligaleitung = false }: { teamId: string; ligaleitung?: boolean }) {
   const [geraete, setGeraete] = useState<Geraet[] | null>(null);
   const [erlaubt, setErlaubt] = useState(false);
   const [name, setName] = useState('');
@@ -87,6 +87,12 @@ export function KioskGeraete({ teamId }: { teamId: string }) {
           {g.gekoppelt_am && (g.test_bis && new Date(g.test_bis) > new Date()
             ? <button type="button" disabled={laeuft} onClick={() => void tun({ aktion: 'test_ende' })} style={knopf(true)}>Testspiel beenden</button>
             : <button type="button" disabled={laeuft} onClick={() => void tun({ aktion: 'test_start', id: g.id })} style={knopf(false)}>Testspiel starten</button>)}
+          {ligaleitung && g.gekoppelt_am && (
+            <label style={{ ...text, display: 'flex', alignItems: 'center', gap: 6, width: '100%', fontSize: 12.5 }}>
+              <input type="checkbox" checked={!!g.auswaerts_von} disabled={laeuft} onChange={e => void tun({ aktion: 'auswaerts', id: g.id, an: e.target.checked })} />
+              Auch Auswärtsspiele (nur Ligaleitung: du trägst dann für die Heimmannschaft ein)
+            </label>
+          )}
           <button type="button" disabled={laeuft} onClick={() => { if (!g.gekoppelt_am || confirm(`„${g.name}“ neu einrichten? Das Tablet braucht dann den neuen Code, bis dahin kann es nichts eintragen.`)) void tun({ aktion: 'code', id: g.id }, g.name); }} style={knopf(false)}>Neuer Code</button>
           <button type="button" disabled={laeuft} onClick={() => { if (confirm(`„${g.name}“ entfernen? Das Tablet kann danach nichts mehr eintragen.`)) void tun({ aktion: 'entfernen', id: g.id }); }} style={{ ...knopf(false), borderColor: 'var(--th-loss, #d64545)', color: 'var(--th-loss, #d64545)' }}>Entfernen</button>
         </div>

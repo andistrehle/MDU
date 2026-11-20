@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { MemberShell, Notice, Muted, LoginLink } from '@/components/mdu/member-area';
 import { useAuth } from '@/lib/auth/auth-context';
-import { hatTcRecht } from '@/lib/auth/roles';
+import { hatTcRecht, hasMinRole } from '@/lib/auth/roles';
 import { KapitaensTeam } from '@/components/mdu/kapitaens-team';
 import { KioskGeraete } from '@/components/mdu/kiosk-geraete';
 import { zusagenFreigeschaltet } from '@/lib/features';
@@ -205,7 +205,7 @@ export function TeamManager({ ansicht }: { ansicht: 'dashboard' | 'termine' }) {
             ) : null}
             {dash && istKapitaen && <NachrichtAnsTeam teamId={teamId} />}
             {dash && <KapitaensTeam teamId={teamId} />}
-            {dash && hatTcRecht(user, teamId, 'spielberichte') && <KioskGeraete teamId={teamId} />}
+            {dash && hatTcRecht(user, teamId, 'spielberichte') && <KioskGeraete teamId={teamId} ligaleitung={hasMinRole(user, 'league_admin')} />}
             {dash && <TeamEinladen teamId={teamId} teamName={t.name} />}
             {dash ? null : (<>
             <ZurueckLink href="/mein-team/zusagen" text="Team Manager" />

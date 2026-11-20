@@ -24,14 +24,14 @@ import { spieltagDatum } from '@/lib/live-ticker';
 import { teamManagerAktiv } from '@/lib/server/premium';
 import { ergebnisSeitenMarkieren } from '@/lib/server/ergebnis-neubau';
 import { liveStartPush } from '@/lib/server/live-start';
-import { absendeFehler, CODE_LAENGE, heimspielAm, kioskErlaubt, leereSpiele, naechstesHeimspiel, pruefeStand, type KioskStand } from '@/lib/kiosk';
+import { absendeFehler, CODE_LAENGE, spielAm, kioskErlaubt, leereSpiele, naechstesHeimspiel, pruefeStand, type KioskStand } from '@/lib/kiosk';
 
 export const KIOSK_COOKIE = 'mdu-kiosk';
 export const KIOSK_KOPF = 'x-kiosk-token';
 /** So lange gilt ein Kopplungscode. */
 export const CODE_MINUTEN = 15;
 
-export interface Geraet { id: string; team_id: string; name: string; erstellt_von: string | null; last_seen_at: string | null; test_bis?: string | null; test_fertig?: boolean | null }
+export interface Geraet { id: string; team_id: string; name: string; erstellt_von: string | null; last_seen_at: string | null; test_bis?: string | null; test_fertig?: boolean | null; auswaerts_von?: string | null }
 
 // ── Testspiel (Migration 0073) ─────────────────────────────────
 // Zum Ausprobieren vor dem ersten echten Heimspiel: Der Kapitän schaltet ein
@@ -87,9 +87,10 @@ export async function geraetVon(request: Request): Promise<Geraet | null> {
   const token = (request.headers.get(KIOSK_KOPF) ?? '').trim() || cookie || '';
   if (token.length < 30 || token.length > 100) return null;
   const sp = 'id, team_id, name, erstellt_von, last_seen_at';
-  let { data, error } = await supabaseAdmin.from('kiosk_geraete').select(`${sp}, test_bis, test_fertig`)
+  let { data, error } = await supabaseAdmin.from('kiosk_geraete').select(`${sp}, test_bis, test_fertig, auswaerts_von`)
     .eq('token_hash', hash(token)).is('gesperrt_am', null).maybeSingle();
-  // Ohne Migration 0073 gibt es die Test-Spalten nicht — dann eben ohne Testmodus.
+  // Ohne Migration 0073/0074 fehlen Spalten — dann eben ohne Testmodus/Auswärtsspiele.
+  if (error) ({ data, error } = await supabaseAdmin.from('kiosk_geraete').select(`${sp}, test_bis, test_fertig`).eq('token_hash', hash(token)).is('gesperrt_am', null).maybeSingle() as never);
   if (error) ({ data, error } = await supabaseAdmin.from('kiosk_geraete').select(sp).eq('token_hash', hash(token)).is('gesperrt_am', null).maybeSingle() as never);
   const g = data as Geraet | null;
   if (!g) return null;
@@ -171,7 +172,7 @@ async function vorbelegung(b: Begegnung27, kh: KaderZeile[], kg: KaderZeile[]): 
 
 export type KioskLage =
   | { art: 'aus' | 'kein_premium'; team: string }
-  | { art: 'kein_spiel'; team: string; naechstes: { gegner: string; datum: string; uhrzeit: string | null } | null }
+  | { art: 'kein_spiel'; team: string; auswaerts?: boolean; naechstes: { gegner: string; datum: string; uhrzeit: string | null; heim?: boolean } | null }
   | {
     art: 'spiel'; team: string; key: string; heimId: string; gastId: string | null; test: boolean; heimName: string; gastName: string; liga: string; datum: string; ort: string; bestOf: BestOf;
     kaderHeim: string[]; kaderGast: string[];
@@ -194,10 +195,12 @@ async function rahmen(g: Geraet): Promise<Rahmen | { lage: KioskLage }> {
   // Abgelaufenes Testspiel: Testbericht wegräumen.
   if (g.test_bis) await testBeenden(g.team_id).catch(() => {});
   const plan = alleBegegnungen27();
-  const b = heimspielAm(plan, g.team_id, datum);
+  const auswaerts = await auswaertsFrei(g);
+  const b = spielAm(plan, g.team_id, datum, auswaerts);
   if (!b) {
-    const n = naechstesHeimspiel(plan, g.team_id, datum);
-    return { lage: { art: 'kein_spiel', team: teamName, naechstes: n ? { gegner: team27(n.away)?.name ?? n.away, datum: n.termin!.datum, uhrzeit: n.termin!.uhrzeit ?? null } : null } };
+    const n = naechstesHeimspiel(plan, g.team_id, datum, auswaerts);
+    const gegner = n ? (n.home === g.team_id ? n.away : n.home) : '';
+    return { lage: { art: 'kein_spiel', team: teamName, auswaerts, naechstes: n ? { gegner: team27(gegner)?.name ?? gegner, datum: n.termin!.datum, uhrzeit: n.termin!.uhrzeit ?? null, heim: n.home === g.team_id } : null } };
   }
   return { b, datum, bestOf: bestOfFuerLiga(b.liga), test: false };
 }
@@ -221,11 +224,25 @@ export async function lage(g: Geraet): Promise<KioskLage> {
 
 const gastKaderTest = async (): Promise<KaderZeile[]> => TEST_KADER.map(name => ({ id: null, name, passNo: null, kapitaen: false }));
 
-/** Konto, unter dem der Bericht läuft (Pflichtfeld): Kapitän des Teams, sonst wer das Gerät eingerichtet hat. */
-async function kapitaenKonto(g: Geraet): Promise<string | null> {
-  const { data } = await db().from('profiles').select('id').eq('team_id', g.team_id).eq('role', 'team_captain').limit(1);
-  return (data as { id: string }[] | null)?.[0]?.id ?? g.erstellt_von;
+/**
+ * Auswärtsspiele freigegeben? Nur, solange wer sie freigegeben hat (`auswaerts_von`,
+ * Migration 0074) noch Ligaleitung ist — sonst erlischt die Freigabe von selbst.
+ */
+async function auswaertsFrei(g: Geraet): Promise<boolean> {
+  if (!g.auswaerts_von) return false;
+  const { data } = await db().from('profiles').select('role').eq('id', g.auswaerts_von).maybeSingle();
+  return ['league_admin', 'super_admin'].includes((data as { role?: string } | null)?.role ?? '');
 }
+
+/**
+ * Konto, unter dem der Bericht läuft (Pflichtfeld): Kapitän der HEIMmannschaft; sonst bei
+ * einem Auswärtsspiel die Ligaleitung, die es freigegeben hat, beim Heimspiel wer das Gerät eingerichtet hat.
+ */
+async function kapitaenKonto(g: Geraet, heimTeam: string): Promise<string | null> {
+  const { data } = await db().from('profiles').select('id').eq('team_id', heimTeam).eq('role', 'team_captain').limit(1);
+  return (data as { id: string }[] | null)?.[0]?.id ?? (heimTeam === g.team_id ? g.erstellt_von : g.auswaerts_von ?? null);
+}
+const notizVon = (g: Geraet, b: Begegnung27) => `Tablet „${g.name}“${b.home !== g.team_id ? ' (Ligaleitung, Auswärtsspiel)' : ''}`;
 
 export type SpeicherErgebnis =
   | { ok: true; basis: string; abgesendet: boolean }
@@ -261,7 +278,7 @@ export async function speichern(g: Geraet, roh: unknown, basis: string | null, a
   };
 
   if (!bericht) {
-    const konto = await kapitaenKonto(g);
+    const konto = await kapitaenKonto(g, b.home);
     if (!konto) return { ok: false, status: 409, fehler: 'Für das Team ist kein Kapitäns-Konto hinterlegt.' };
     const { data, error } = await db().from('match_reports').insert({
       // Testspiel: OHNE Saison und ohne Gastteam — nichts Öffentliches liest so einen Bericht.
@@ -279,7 +296,7 @@ export async function speichern(g: Geraet, roh: unknown, basis: string | null, a
       return { ok: false, status: 500, fehler: 'Speichern hat nicht geklappt.' };
     }
     bericht = data as Bericht;
-    await db().from('match_report_history').insert({ report_id: bericht.id, action: 'kiosk_angelegt', actor_user_id: null, note: `Tablet „${g.name}“` });
+    await db().from('match_report_history').insert({ report_id: bericht.id, action: 'kiosk_angelegt', actor_user_id: null, note: notizVon(g, b) });
   } else {
     // Nur solange der Bericht Entwurf ist UND noch dem Stand entspricht, den das Tablet kennt.
     const { data, error } = await db().from('match_reports').update(summen)
@@ -314,7 +331,7 @@ export async function speichern(g: Geraet, roh: unknown, basis: string | null, a
     // Der Trigger schreibt Verlauf + Glocke an den Gast, wie beim Absenden aus dem Formular.
     const { data, error } = await db().from('match_reports').update({ status: 'submitted' }).eq('id', id).eq('status', 'draft').select('id');
     if (error || !data?.length) return { ok: false, status: 500, fehler: 'Absenden hat nicht geklappt – bitte noch einmal.' };
-    await db().from('match_report_history').insert({ report_id: id, action: 'kiosk_abgesendet', actor_user_id: null, note: `Tablet „${g.name}“` });
+    await db().from('match_report_history').insert({ report_id: id, action: 'kiosk_abgesendet', actor_user_id: null, note: notizVon(g, b) });
     ergebnisSeitenMarkieren();
   } else if (gefuellt && !test) {
     void liveStartPush(id).catch(() => {});

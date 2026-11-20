@@ -7,12 +7,13 @@
 // POST { team, aktion: 'entfernen', id }→ Gerät löschen (Schlüssel sofort ungültig)
 // POST { team, aktion: 'test_start', id } → Testspiel auf diesem Gerät (Migration 0073, lib/server/kiosk.ts)
 // POST { team, aktion: 'test_ende' }      → Testspiel beenden, Testbericht löschen
+// POST { team, aktion: 'auswaerts', id, an } → NUR Ligaleitung: Gerät darf auch Auswärtsspiele des Teams führen (Migration 0074)
 // Darf: Kapitän, Co-Captain mit Recht „Spielberichte“, Ligaleitung — und nur
 // mit Team Manager und solange das Team für das Tablet freigegeben ist.
 // ============================================================
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest, hatTcRechtServer } from '@/lib/server/auth';
+import { authenticateRequest, hatTcRechtServer, isAdminUser } from '@/lib/server/auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { teamManagerAktiv } from '@/lib/server/premium';
 import { kioskErlaubt } from '@/lib/kiosk';
@@ -40,7 +41,8 @@ export async function GET(request: Request) {
   if ('antwort' in p) return p.antwort;
   const erlaubt = kioskErlaubt(team) && await teamManagerAktiv(team);
   if (!erlaubt) return NextResponse.json({ geraete: [], erlaubt: false });
-  let { data, error } = await p.db.from('kiosk_geraete').select(`${SPALTEN}, test_bis, test_fertig`).eq('team_id', team).order('erstellt_am');
+  let { data, error } = await p.db.from('kiosk_geraete').select(`${SPALTEN}, test_bis, test_fertig, auswaerts_von`).eq('team_id', team).order('erstellt_am');
+  if (error && /auswaerts_von/.test(error.message)) ({ data, error } = await p.db.from('kiosk_geraete').select(`${SPALTEN}, test_bis, test_fertig`).eq('team_id', team).order('erstellt_am') as never);
   // Ohne Migration 0073 fehlen die Test-Spalten — die Karte bleibt trotzdem benutzbar.
   if (error && /test_bis|test_fertig/.test(error.message)) ({ data, error } = await p.db.from('kiosk_geraete').select(SPALTEN).eq('team_id', team).order('erstellt_am') as never);
   if (error) return dbFehler(error.message);
@@ -48,11 +50,19 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const b = await request.json().catch(() => ({})) as { team?: string; aktion?: string; name?: string; id?: string };
+  const b = await request.json().catch(() => ({})) as { team?: string; aktion?: string; name?: string; id?: string; an?: boolean };
   const team = b.team ?? '';
   const p = await pruefe(request, team);
   if ('antwort' in p) return p.antwort;
   if (!kioskErlaubt(team) || !(await teamManagerAktiv(team))) return fehler('Die Tablet-Eingabe ist für dieses Team nicht freigeschaltet.', 403);
+  if (b.aktion === 'auswaerts') {
+    if (!isAdminUser(p.user)) return fehler('Das darf nur die Ligaleitung.', 403);
+    if (!b.id) return fehler('Gerät fehlt.');
+    const { data, error } = await p.db.from('kiosk_geraete').update({ auswaerts_von: b.an ? p.user.id : null }).eq('id', b.id).eq('team_id', team).select('id');
+    if (error) return fehler(/auswaerts_von/.test(error.message) ? 'Die Datenbank kennt das noch nicht — Migration 0074 fehlt.' : 'Das hat nicht geklappt.', 500);
+    if (!data?.length) return fehler('Gerät nicht gefunden.', 404);
+    return NextResponse.json({ ok: true });
+  }
   if (b.aktion === 'test_ende') {
     try { await testBeenden(team); } catch { return fehler('Das hat nicht geklappt.', 500); }
     return NextResponse.json({ ok: true });
