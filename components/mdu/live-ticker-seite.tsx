@@ -123,6 +123,13 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
               </div>
             );
           })}
+          {(s.highlights ?? []).some(h => h.spiel == null) && (
+            <div style={{ padding: '6px 0', fontSize: 12 }}>
+              {/* Eigene Überschrift (Betreiber 20.11.2026): ohne sie sahen sie aus wie Highlights der letzten Zeile darüber. */}
+              <div style={{ ...klein, margin: '4px 0 2px' }} title="Eingetragen bei einer Partie, die die Person verloren hat (ohne gewonnenes Leg) – sie wandern zur nächsten Partie der Person mit gewonnenem Leg.">Highlights, noch keiner Partie zugeordnet</div>
+              <HighlightZeile hl={s.highlights.filter(h => h.spiel == null)} />
+            </div>
+          )}
           {!!s.laufend?.length && (
             <>
               <div style={{ ...klein, color: LIVE_ROT }}>{s.laufend.every(g => g.pause) ? '● Pause' : '● Jetzt dran'}</div>
@@ -142,9 +149,6 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
                 </div>
               ))}
             </>
-          )}
-          {(s.highlights ?? []).some(h => h.spiel == null) && (
-            <div style={{ padding: '6px 0', fontSize: 12 }}><HighlightZeile hl={s.highlights.filter(h => h.spiel == null)} /></div>
           )}
         </div>
       )}
