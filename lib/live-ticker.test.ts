@@ -174,23 +174,23 @@ describe('High Finish nur an einem Spiel mit gewonnenem Leg (Fall Jolly Pirates 
 });
 
 describe('laufendeSpiele', () => {
-  const runde = new Map<number, string>([[1, 'E1'], [2, 'E1'], [3, 'E1'], [4, 'E1'], [5, 'E2'], [6, 'E2'], [9, 'D']]);
-  const nr = [1, 2, 3, 4, 5, 6, 9];
+  // Zwei Boards (Betreiber 20.11.2026): die ersten zwei Partien ohne Ergebnis, Reihenfolge 1–18.
+  const nr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   const g = (n: number, h: number | null, x: number | null) => ({ nr: n, doppel: false, heim: [`H${n}`], gast: [`G${n}`], legsHeim: h, legsGast: x });
-  it('Rest der laufenden Runde: Spiele 1 und 2 fertig → 3 und 4 sind dran', () => {
-    const r = laufendeSpiele([g(1, 1, 2), g(2, 2, 1), g(3, null, null), g(4, null, null)], runde, nr);
+  it('1 und 2 fertig → 3 und 4 laufen', () => {
+    const r = laufendeSpiele([g(1, 1, 2), g(2, 2, 1), g(3, null, null), g(4, null, null)], nr);
     expect(r.map(x => x.nr)).toEqual([3, 4]);
     expect(r[0].heim).toEqual(['H3']);
   });
-  it('fertige Partie mitten in der Runde fällt raus, auch wenn eine frühere noch offen ist', () => {
-    expect(laufendeSpiele([g(1, 2, 0), g(2, null, null), g(3, 2, 1)], runde, nr).map(x => x.nr)).toEqual([2, 4]);
+  it('Partie 4 vor 3 fertig → 3 und 5 laufen (Belfort, 20.11.2026)', () => {
+    expect(laufendeSpiele([g(1, 1, 2), g(2, 2, 1), g(4, 1, 2)], nr).map(x => x.nr)).toEqual([3, 5]);
   });
-  it('Runde fertig → nächste Runde; Doppel allein', () => {
-    const fertig = [1, 2, 3, 4, 5, 6].map(n => g(n, 2, 0));
-    expect(laufendeSpiele(fertig.slice(0, 4), runde, nr).map(x => x.nr)).toEqual([5, 6]);
-    expect(laufendeSpiele(fertig, runde, nr).map(x => x.nr)).toEqual([9]);
+  it('1–4 und 6 fertig → 5 und 7 laufen (Ohne Jackie, 20.11.2026)', () => {
+    expect(laufendeSpiele([1, 2, 3, 4, 6].map(n => g(n, 3, 0)), nr).map(x => x.nr)).toEqual([5, 7]);
   });
-  it('alles gespielt → nichts', () => {
-    expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), runde, nr)).toEqual([]);
+  it('nur noch eine offen → eine; alles gespielt → nichts; anderes Board-Zahl', () => {
+    expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1)), nr).map(x => x.nr)).toEqual([9]);
+    expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), nr)).toEqual([]);
+    expect(laufendeSpiele([], nr, 3).map(x => x.nr)).toEqual([1, 2, 3]);
   });
 });
