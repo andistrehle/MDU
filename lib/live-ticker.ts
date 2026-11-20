@@ -168,13 +168,23 @@ export const BOARDS = 2;
 
 /**
  * Welche Partien laufen gerade? Der Bericht kennt keinen „begonnen“-Zeitpunkt je Partie, deshalb: die ersten
- * `boards` Partien ohne Ergebnis in der Reihenfolge 1–18 (zwei Boards: ist eine fertig, kommt die nächste offene dran).
+ * `boards` Partien ohne Ergebnis in der Reihenfolge 1–18 (zwei Boards: ist eine fertig, kommt die nächste offene dran),
+ * aber nie über ein Doppel hinweg (`doppelNr`).
  * Alles gespielt → leer.
  */
-export function laufendeSpiele(spiele: TickerBericht['spiele'], alleNr: number[], boards = BOARDS): LaufendeSpiel[] {
+export function laufendeSpiele(spiele: TickerBericht['spiele'], alleNr: number[], boards = BOARDS, doppelNr: number[] = []): LaufendeSpiel[] {
   const nach = new Map(spiele.map(g => [g.nr, g]));
   const offen = (nr: number) => { const g = nach.get(nr); return !g || g.legsHeim == null || g.legsGast == null; };
-  return [...alleNr].sort((a, b) => a - b).filter(offen).slice(0, boards).map(nr => {
+  // Ein Doppel ist eine Grenze (Betreiber 20.11.2026): es beginnt erst, wenn alles davor fertig ist, und danach geht es erst nach
+  // dem Doppel weiter. Vor dem Doppel läuft also nur noch EINE Partie, wenn nur eine offen ist; das Doppel selbst läuft allein.
+  const reihe = [...alleNr].sort((a, b) => a - b).filter(offen);
+  const dran: number[] = [];
+  for (const nr of reihe) {
+    if (dran.length >= boards) break;
+    if (doppelNr.includes(nr)) { if (!dran.length) dran.push(nr); break; }
+    dran.push(nr);
+  }
+  return dran.map(nr => {
     const g = nach.get(nr);
     return { nr, doppel: !!g?.doppel, heim: g?.heim ?? [], gast: g?.gast ?? [] };
   });

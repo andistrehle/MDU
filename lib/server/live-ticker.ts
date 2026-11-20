@@ -109,7 +109,7 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
     // Partien, die gerade dran sind (nur Entwurf, keine Wertung). Einzel ohne eingetragene Zeile: Spieler aus dem Plan.
     let laufend: ReturnType<typeof laufendeSpiele> | undefined;
     if (r && !r.forfeit && r.status === 'draft' && b) {
-      laufend = laufendeSpiele(b.spiele, GAME_SCHEDULE.map(g => g.no)).map(l => {
+      laufend = laufendeSpiele(b.spiele, GAME_SCHEDULE.map(g => g.no), undefined, GAME_SCHEDULE.filter(g => g.type === 'double').map(g => g.no)).map(l => {
         const plan = GAME_SCHEDULE.find(g => g.no === l.nr)!;
         return { ...l, doppel: plan.type === 'double',
           heim: l.heim.length ? l.heim : plan.homeSlot ? [name(r.id, 'home', plan.homeSlot)].filter(Boolean) : [],

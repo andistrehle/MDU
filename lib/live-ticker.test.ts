@@ -188,6 +188,12 @@ describe('laufendeSpiele', () => {
   it('1–4 und 6 fertig → 5 und 7 laufen (Ohne Jackie, 20.11.2026)', () => {
     expect(laufendeSpiele([1, 2, 3, 4, 6].map(n => g(n, 3, 0)), nr).map(x => x.nr)).toEqual([5, 7]);
   });
+  it('vor dem Doppel: nur noch eine offen → nur die; dann das Doppel allein; danach wieder zwei', () => {
+    const D = [9];
+    expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7].map(n => g(n, 2, 1)), nr, 2, D).map(x => x.nr)).toEqual([8]);
+    expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1)), [...nr, 10, 11], 2, D).map(x => x.nr)).toEqual([9]);
+    expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), [...nr, 10, 11], 2, D).map(x => x.nr)).toEqual([10, 11]);
+  });
   it('nur noch eine offen → eine; alles gespielt → nichts; anderes Board-Zahl', () => {
     expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1)), nr).map(x => x.nr)).toEqual([9]);
     expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), nr)).toEqual([]);
