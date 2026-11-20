@@ -153,7 +153,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Ergebnis vor Beginn + 3,5 h) / abgeschrieben; ohne Protokoll „geschätzt“ aus `created_at`.
   Admin → Erfassung + Kachel im Dashboard; lesen nur service_role.
   **Live-Ticker + Autospeichern** (Migration 0069, Betreiber 11.11.2026): Das Formular speichert einen ENTWURF 3 s nach
-  jedem neuen Ergebnis selbst (`autoSpeichern` in app/mein-bereich/spielberichte/page.tsx; nicht im Admin-Modus, nicht bei
+  jedem neuen Ergebnis UND jeder Spieleränderung je Partie (seit 20.11.2026, sonst fehlten die Doppel-Paare im Ticker) selbst (`autoSpeichern` in app/mein-bereich/spielberichte/page.tsx; nicht im Admin-Modus, nicht bei
   Korrektur/Wertung/eingereichten Berichten; Konfliktschutz über `updated_at` = `berichtZeitstempel`; Fehler → neuer Versuch
   nach 15 s; Hinweis „Automatisch gespeichert“ am Knopf). Entwürfe bauen KEINE Seiten neu (`updateReport(…, { neuBauen: false })`).
   Rechnung rein in `lib/live-ticker.ts` (Spieltag = Berliner Datum von jetzt − 4 h; offen/live/beendet; `meldungText`;

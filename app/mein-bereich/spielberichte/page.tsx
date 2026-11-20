@@ -408,7 +408,9 @@ function SpielberichteInner() {
     setHeader(h => ({ ...h, highlights: s.highlights }));
   }
   const [autoStatus, setAutoStatus] = useState<{ art: 'ok' | 'fehler' | 'konflikt'; zeit: number } | null>(null);
-  const ergebnisKey = games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}`).join(',');
+  // Löst das Autospeichern aus: Ergebnisse UND Spieler je Partie (Betreiber 20.11.2026 — sonst landeten die Doppel-Paare
+  // erst mit dem Doppel-Ergebnis in der DB und der Live-Ticker zeigte während des Doppels „Pause“).
+  const ergebnisKey = games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}:${g.home_slot ?? ''}.${g.home_slot2 ?? ''}.${g.guest_slot ?? ''}.${g.guest_slot2 ?? ''}`).join(',');
   const autoErlaubt = geladen && !readOnly && !isAdminRole && !proposing && !korrigieren && !wertung
     && (!loadedStatus || loadedStatus === 'draft') && !!header.home_team_id && !!header.guest_team_id
     && games.some(g => g.legs_home != null && g.legs_guest != null);
