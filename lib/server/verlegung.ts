@@ -232,15 +232,40 @@ async function uebernehmen(v: Verlegung, wer: string): Promise<Verlegung> {
       ...alt, [v.match_key]: { datum: v.new_date, ...(v.new_time ? { uhrzeit: v.new_time } : {}), am: heute() },
     }), `Spiel verlegt: ${paarung(v)} auf ${termin(v.new_date, v.new_time)}\n\nBestätigt über die Seite (${wer}), Anfrage ${v.id}.`);
     const neu = await setze(v.id, { status: 'uebernommen', applied_at: new Date().toISOString(), applied_commit: sha, note: null }, ['bestaetigt']);
-    await zusagenZuruecksetzen(v).catch(() => {});
+    if (nurUhrzeit(v)) await uhrzeitMelden(v).catch(() => {});
+    else await zusagenZuruecksetzen(v).catch(() => {});
     return neu;
   } catch (e) {
     return await setze(v.id, { note: `Noch nicht übernommen: ${(e as Error).message}` }, ['bestaetigt']);
   }
 }
 
+/** Gleicher Tag, nur andere Uhrzeit? Dann bleiben die Zu-/Absagen (Betreiber, 20.11.2026). */
+export const nurUhrzeit = (v: Pick<Verlegung, 'old_date' | 'new_date'>) => !!v.old_date && v.old_date === v.new_date;
+
 /**
- * Neuer Termin → alte Zu-/Absagen gelten nicht mehr (Betreiber, 11.11.2026, nach Hinweis eines Spielers):
+ * Nur die Uhrzeit ändert sich (Betreiber, 20.11.2026: „übertrieben, wenn ich nur eine halbe Stunde verlege“):
+ * Zu-/Absagen BLEIBEN, alle Konten beider Teams bekommen eine kurze Info (Glocke + Push).
+ */
+async function uhrzeitMelden(v: Verlegung) {
+  const teams = [v.home_team_id, v.away_team_id];
+  const [{ data: profile }, { data: antworten }] = await Promise.all([
+    db().from('profiles').select('id, player_id, team_id').in('team_id', teams),
+    db().from('match_availability').select('team_id, player_id').eq('season_id', NEUE_SAISON.id).eq('match_key', v.match_key),
+  ]);
+  const geantwortet = new Set(((antworten ?? []) as { team_id: string; player_id: string }[]).map(z => `${z.team_id}|${z.player_id}`));
+  const titel = 'Neue Anfangszeit';
+  const glocken = ((profile ?? []) as { id: string; player_id: string | null; team_id: string }[]).map(p => {
+    const text = `${paarung(v)} am ${tag(v.new_date!)} beginnt um ${v.new_time ?? '?'} statt ${v.old_time ?? '?'} Uhr.`
+      + (p.player_id && geantwortet.has(`${p.team_id}|${p.player_id}`) ? ' Deine Zu-/Absage bleibt bestehen.' : '');
+    return { recipient_user_id: p.id, type: 'match_reschedule', title: titel, message: text, short_text: text,
+      related_entity_type: 'match_reschedules', action_url: spieltagPfad(p.team_id, v.match_key) };
+  });
+  if (glocken.length) await db().from('notifications').insert(glocken);
+}
+
+/**
+ * Neuer Termin an einem ANDEREN Tag → alte Zu-/Absagen gelten nicht mehr (Betreiber, 11.11.2026, nach Hinweis eines Spielers):
  * alle Antworten der Begegnung (beide Teams) löschen und wer geantwortet hatte bekommt Glocke + Push
  * „bitte neu zu- oder absagen“. Aufstellung, Treffzeit und Aufgaben bleiben.
  */
