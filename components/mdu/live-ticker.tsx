@@ -13,6 +13,7 @@
 // ============================================================
 
 import Link from 'next/link';
+import { LiveBandGriff } from './live-band-fenster';
 import { useEffect, useRef, useState } from 'react';
 import { LIVE_TICKER_AN, liveLink, liveTeilenErlaubt, liveTeilenText, meldungText, type LiveAntwort, type TickerAnzeige } from '@/lib/live-ticker';
 
@@ -87,6 +88,7 @@ export function LiveBand({ liga }: { liga?: string }) {
         </span>
       </span>
       <span style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Zum Ticker ›</span>
+      <LiveBandGriff eintraege={laufend.map(s => `${s.homeName} ${s.standHeim}:${s.standGast} ${s.awayName}${s.status === 'beendet' ? ' (Ende)' : ''}`)} />
       <LivePunktStil />
     </Link>
   );
