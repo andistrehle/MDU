@@ -125,8 +125,13 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
           })}
           {!!s.laufend?.length && (
             <>
-              <div style={{ ...klein, color: LIVE_ROT }}>● Jetzt dran</div>
-              {s.laufend.map(g => (
+              <div style={{ ...klein, color: LIVE_ROT }}>{s.laufend.every(g => g.pause) ? '● Pause' : '● Jetzt dran'}</div>
+              {s.laufend.map(g => g.pause ? (
+                <div key={g.nr} style={{ padding: '6px 0', fontSize: 13, borderBottom: '1px solid var(--th-line-4, var(--th-line-6))', display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 8, alignItems: 'center' }}>
+                  <span style={{ color: 'var(--th-text-faint)', fontSize: 11 }}>{g.nr} D</span>
+                  <span style={{ color: 'var(--th-text-muted)' }}>Pause – das Doppel ist noch nicht aufgestellt</span>
+                </div>
+              ) : (
                 <div key={g.nr} style={{ padding: '6px 0', fontSize: 13, borderBottom: '1px solid var(--th-line-4, var(--th-line-6))' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr) auto minmax(0,1fr)', gap: 8, alignItems: 'center' }}>
                     <span style={{ color: 'var(--th-text-faint)', fontSize: 11 }}>{g.nr}{g.doppel ? ' D' : ''}</span>

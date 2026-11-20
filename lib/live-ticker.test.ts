@@ -194,6 +194,14 @@ describe('laufendeSpiele', () => {
     expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1)), [...nr, 10, 11], 2, D).map(x => x.nr)).toEqual([9]);
     expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), [...nr, 10, 11], 2, D).map(x => x.nr)).toEqual([10, 11]);
   });
+  it('Doppel ohne eingetragene Spieler = Pause; mit Spielern läuft es', () => {
+    const vorher = [1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1));
+    const leer = { nr: 9, doppel: true, heim: [], gast: [], legsHeim: null, legsGast: null };
+    expect(laufendeSpiele([...vorher, leer], nr, 2, [9])).toEqual([{ nr: 9, doppel: true, heim: [], gast: [], pause: true }]);
+    expect(laufendeSpiele(vorher, nr, 2, [9])[0].pause).toBe(true);
+    const besetzt = { ...leer, heim: ['Wolf', 'Ruhland'], gast: ['Lohsi', 'Obrstar'] };
+    expect(laufendeSpiele([...vorher, besetzt], nr, 2, [9])[0]).toEqual({ nr: 9, doppel: true, heim: ['Wolf', 'Ruhland'], gast: ['Lohsi', 'Obrstar'] });
+  });
   it('nur noch eine offen → eine; alles gespielt → nichts; anderes Board-Zahl', () => {
     expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1)), nr).map(x => x.nr)).toEqual([9]);
     expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), nr)).toEqual([]);

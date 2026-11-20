@@ -161,7 +161,7 @@ export function tickerEintrag(plan: TickerPlan, b: TickerBericht | null): Ticker
 }
 
 /** Partie, die gerade dran ist: noch ohne Ergebnis, Spieler soweit eingetragen. */
-export interface LaufendeSpiel { nr: number; doppel: boolean; heim: string[]; gast: string[] }
+export interface LaufendeSpiel { nr: number; doppel: boolean; heim: string[]; gast: string[]; /** Doppel ohne eingetragene Spieler = Pause (Betreiber 20.11.2026) */ pause?: boolean }
 
 /** Wie viele Partien gleichzeitig laufen (Betreiber, 20.11.2026: „immer 2“). */
 export const BOARDS = 2;
@@ -186,7 +186,10 @@ export function laufendeSpiele(spiele: TickerBericht['spiele'], alleNr: number[]
   }
   return dran.map(nr => {
     const g = nach.get(nr);
-    return { nr, doppel: !!g?.doppel, heim: g?.heim ?? [], gast: g?.gast ?? [] };
+    const doppel = !!g?.doppel || doppelNr.includes(nr);
+    const heim = g?.heim ?? [], gast = g?.gast ?? [];
+    // Doppel noch nicht aufgestellt (keine Seite hat Spieler eingetragen) → noch Pause, nicht „läuft“.
+    return { nr, doppel, heim, gast, ...(doppel && !heim.length && !gast.length ? { pause: true } : {}) };
   });
 }
 
