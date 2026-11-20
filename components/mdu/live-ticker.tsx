@@ -62,6 +62,15 @@ export function LiveBand({ liga }: { liga?: string }) {
   const text = live
     ? `${live} ${live === 1 ? 'Spiel läuft' : 'Spiele laufen'} gerade${fertig ? ` · ${fertig} beendet` : ''}`
     : `${fertig} ${fertig === 1 ? 'Spiel' : 'Spiele'} heute beendet`;
+  // Laufende zuerst, dann beendete; je Spiel „Heim 3:1 Gast“.
+  const laufend = [...spiele.filter(s => s.status === 'live'), ...spiele.filter(s => s.status === 'beendet')];
+  const band = laufend.map(s => (
+    <span key={s.key} style={{ padding: '0 16px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      {s.homeName} <strong style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 800 }}>{s.standHeim}:{s.standGast}</strong> {s.awayName}
+      {s.status === 'beendet' ? <span style={{ opacity: 0.75 }}>(Ende)</span> : null}
+      <span aria-hidden style={{ opacity: 0.5, paddingLeft: 10 }}>·</span>
+    </span>
+  ));
   return (
     <Link href={liga ? `/live?liga=${liga}` : '/live'} style={{
       display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', background: LIVE_ROT, color: '#fff',
@@ -70,7 +79,13 @@ export function LiveBand({ liga }: { liga?: string }) {
       <span style={{ fontFamily: 'var(--font-saira-condensed)', fontWeight: 800, fontSize: 14, letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         <span className="mdu-live-punkt" aria-hidden /> LIVE
       </span>
-      <span style={{ flex: 1, minWidth: 0 }}>{text}</span>
+      {/* Zwischenstände laufen durch wie das Spieltag-Laufband (Betreiber, 20.11.2026); die Zahl steht für Vorleser im aria-label. */}
+      <span aria-label={text} style={{ flex: 1, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <span aria-hidden className="mdu-lt-band" style={{ display: 'inline-flex', animation: `mdu-lt-lauf ${Math.max(16, laufend.length * 8)}s linear infinite` }}>
+          <span style={{ display: 'inline-flex' }}>{band}</span>
+          <span style={{ display: 'inline-flex' }}>{band}</span>
+        </span>
+      </span>
       <span style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Zum Ticker ›</span>
       <LivePunktStil />
     </Link>

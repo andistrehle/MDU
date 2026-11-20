@@ -159,7 +159,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Rechnung rein in `lib/live-ticker.ts` (Spieltag = Berliner Datum von jetzt − 4 h; offen/live/beendet; `meldungText`;
   Not-Aus `LIVE_TICKER_AN`), Lader `lib/server/live-ticker.ts` (service_role — Entwürfe sind per RLS gesperrt; öffentlich
   nur Stand, Spieler, Legs), `/api/live` (CDN 20 s). Anzeige `components/mdu/live-ticker.tsx`: `LiveBand` (rot, nur wenn
-  heute etwas läuft/fertig ist, fragt nur 16–04 Uhr; Startseite, Spielplan, Ergebnisse, Ligaseite gefiltert),
+  heute etwas läuft/fertig ist; seit 20.11.2026 laufen darin die Zwischenstände „Heim 3:1 Gast“ durch, laufende vor beendeten, fragt nur 16–04 Uhr; Startseite, Spielplan, Ergebnisse, Ligaseite gefiltert),
   `LigaTickerLeiste` (eigene Liga ohne eigenes Spiel + Meldung oben; Formular, Live-Modus, zweites Fenster); Seite `/live`.
   Aufgeklappt zeigt `/live` auch Aufstellung H1–H8/G1–G8 und Wechsel (Betreiber 14.11.2026): Wechsel = Einzel, in dem auf der
   Plan-Position (`GAME_SCHEDULE`) ein anderer Slot steht als zuletzt, Rückwechsel = wieder der Stammspieler (`wechselErmitteln`, getestet).
