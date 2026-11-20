@@ -80,7 +80,7 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
     : s.status === 'beendet'
       ? <span>{s.wertung ? 'Wertung' : s.bestaetigt ? 'Endstand' : 'Endstand*'}</span>
       : <span>{s.uhrzeit ? `${s.uhrzeit} Uhr` : 'noch nicht begonnen'}</span>;
-  const klappbar = s.spiele.length > 0;
+  const klappbar = s.spiele.length > 0 || !!s.laufend?.length;
   return (
     <div id={`spiel-${s.key}`} style={{ scrollMarginTop: 90, borderRadius: 12, background: 'var(--th-bg-card)', border: `1px solid ${s.status === 'live' ? LIVE_ROT : 'var(--th-line-8)'}`, borderLeft: `4px solid ${s.ligaFarbe}`, overflow: 'hidden' }}>
       <button type="button" onClick={klappbar ? umschalten : undefined} aria-expanded={klappbar ? auf : undefined} disabled={!klappbar} style={{
@@ -123,6 +123,21 @@ function Karte({ s, auf, umschalten }: { s: TickerAnzeige; auf: boolean; umschal
               </div>
             );
           })}
+          {!!s.laufend?.length && (
+            <>
+              <div style={{ ...klein, color: LIVE_ROT }}>● Jetzt dran</div>
+              {s.laufend.map(g => (
+                <div key={g.nr} style={{ padding: '6px 0', fontSize: 13, borderBottom: '1px solid var(--th-line-4, var(--th-line-6))' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr) auto minmax(0,1fr)', gap: 8, alignItems: 'center' }}>
+                    <span style={{ color: 'var(--th-text-faint)', fontSize: 11 }}>{g.nr}{g.doppel ? ' D' : ''}</span>
+                    <span style={{ color: 'var(--th-text-body)', overflowWrap: 'anywhere', minWidth: 0 }}>{g.heim.join(' / ') || (g.doppel ? 'Doppel' : '–')}</span>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700, color: LIVE_ROT, fontSize: 12 }}>läuft</span>
+                    <span style={{ color: 'var(--th-text-body)', textAlign: 'right', overflowWrap: 'anywhere', minWidth: 0 }}>{g.gast.join(' / ') || (g.doppel ? 'Doppel' : '–')}</span>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
           {(s.highlights ?? []).some(h => h.spiel == null) && (
             <div style={{ padding: '6px 0', fontSize: 12 }}><HighlightZeile hl={s.highlights.filter(h => h.spiel == null)} /></div>
           )}

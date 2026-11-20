@@ -160,6 +160,27 @@ export function tickerEintrag(plan: TickerPlan, b: TickerBericht | null): Ticker
   return { ...plan, status, standHeim: h, standGast: g, gespielt: spiele.length, bestaetigt: b?.status === 'confirmed', spiele, highlights: [] };
 }
 
+/** Partie, die gerade dran ist: noch ohne Ergebnis, Spieler soweit eingetragen. */
+export interface LaufendeSpiel { nr: number; doppel: boolean; heim: string[]; gast: string[] }
+
+/**
+ * Welche Partien laufen gerade? (Betreiber, 20.11.2026.) Der Bericht kennt keinen „begonnen“-Zeitpunkt je Partie,
+ * deshalb: die Runde des Abends, in der die erste Partie ohne Ergebnis steht — davon alle ohne Ergebnis. Eine Runde
+ * wird parallel gespielt (1. Einzel-Runde = Spiele 1–4 usw., Doppel einzeln). `runde` ordnet jede Spielnummer ihrer
+ * Runde zu (aus GAME_SCHEDULE). Alles gespielt → leer.
+ */
+export function laufendeSpiele(spiele: TickerBericht['spiele'], runde: Map<number, string>, alleNr: number[]): LaufendeSpiel[] {
+  const nach = new Map(spiele.map(g => [g.nr, g]));
+  const offen = (nr: number) => { const g = nach.get(nr); return !g || g.legsHeim == null || g.legsGast == null; };
+  const erste = [...alleNr].sort((a, b) => a - b).find(offen);
+  if (erste == null) return [];
+  const r = runde.get(erste);
+  return alleNr.filter(nr => runde.get(nr) === r && offen(nr)).sort((a, b) => a - b).map(nr => {
+    const g = nach.get(nr);
+    return { nr, doppel: !!g?.doppel, heim: g?.heim ?? [], gast: g?.gast ?? [] };
+  });
+}
+
 /** Reihenfolge: live zuerst (meiste Spiele vorn), dann beendet, dann offen nach Beginn. */
 export function sortiereTicker(e: TickerEintrag[]): TickerEintrag[] {
   const rang: Record<TickerStatus, number> = { live: 0, beendet: 1, offen: 2 };
@@ -185,6 +206,8 @@ export interface TickerAnzeige extends TickerEintrag {
   aufstellung?: { heim: AufstellungPlatz[]; gast: AufstellungPlatz[] };
   /** Ein- und Rückwechsel, aus den eingetragenen Einzeln errechnet */
   wechsel?: WechselEreignis[];
+  /** Partien, die gerade dran sind (nur solange der Bericht ein Entwurf ist) */
+  laufend?: LaufendeSpiel[];
 }
 
 // ── Aufstellung + Wechsel (Betreiber, 14.11.2026) ─────────────────────────

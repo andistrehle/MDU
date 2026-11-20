@@ -15,7 +15,7 @@ import { ergebnisAusBericht } from '@/lib/tabelle-2027';
 import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 import { GAME_SCHEDULE } from '@/lib/supabase/match-reports';
 import {
-  highlightsZuordnen, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type AufstellungPlatz, type RohHighlight,
+  highlightsZuordnen, laufendeSpiele, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type AufstellungPlatz, type RohHighlight,
   type LiveAntwort, type TickerAnzeige, type TickerBericht, type TickerPlan,
 } from '@/lib/live-ticker';
 
@@ -106,9 +106,20 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
         heim: new Map(aufstellung.heim.map(x => [x.slot, x.name])), gast: new Map(aufstellung.gast.map(x => [x.slot, x.name])),
       });
     }
+    // Partien, die gerade dran sind (nur Entwurf, keine Wertung). Einzel ohne eingetragene Zeile: Spieler aus dem Plan.
+    let laufend: ReturnType<typeof laufendeSpiele> | undefined;
+    if (r && !r.forfeit && r.status === 'draft' && b) {
+      const runde = new Map(GAME_SCHEDULE.map(g => [g.no, g.round]));
+      laufend = laufendeSpiele(b.spiele, runde, GAME_SCHEDULE.map(g => g.no)).map(l => {
+        const plan = GAME_SCHEDULE.find(g => g.no === l.nr)!;
+        return { ...l, doppel: plan.type === 'double',
+          heim: l.heim.length ? l.heim : plan.homeSlot ? [name(r.id, 'home', plan.homeSlot)].filter(Boolean) : [],
+          gast: l.gast.length ? l.gast : plan.guestSlot ? [name(r.id, 'guest', plan.guestSlot)].filter(Boolean) : [] };
+      });
+    }
     const H = team27(p.home), A = team27(p.away);
     return { ...e, homeName: H?.name ?? p.home, awayName: A?.name ?? p.away, ligaName: findLiga27(p.liga)?.name ?? p.liga, ligaFarbe: findLiga27(p.liga)?.color ?? '#888',
-      ort: venue27(H?.venueId)?.name ?? null, wertung: !!r?.forfeit, aufstellung, wechsel };
+      ort: venue27(H?.venueId)?.name ?? null, wertung: !!r?.forfeit, aufstellung, wechsel, laufend };
   });
   const sortiert = sortiereTicker(eintraege) as TickerAnzeige[];
   return { datum, aktiv: tickerAktiv(sortiert), spiele: sortiert };
