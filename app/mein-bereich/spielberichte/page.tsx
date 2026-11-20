@@ -792,10 +792,22 @@ function SpielberichteInner() {
       payload.confirm_team_id = user?.teamId && user.teamId === header.guest_team_id ? header.home_team_id : header.guest_team_id;
     }
     if (regId) {
+      // Entwurf, an dem ein anderes Gerät (Tablet) inzwischen gespeichert hat: erst zusammenführen,
+      // sonst überschriebe der Knopf dessen letzte Eingaben.
+      let geschrieben: MergeStand<ReportPlayer> = { heim: homePlayers, gast: guestPlayers, games, highlights: header.highlights ?? [] };
+      if (!loadedStatus || loadedStatus === 'draft') {
+        const jetzt = await berichtZeitstempel(regId);
+        if (zeitstempelRef.current && jetzt && jetzt !== zeitstempelRef.current) {
+          const s = await holeServerStand(regId);
+          if (s && s.status !== 'draft') { setMsg({ kind: 'err', text: 'Der Spielbericht wurde inzwischen auf einem anderen Gerät abgesendet. Bitte neu laden.', ort: 'aktionen' }); return null; }
+          if (s) { geschrieben = zusammenfuehren(serverBasis.current ?? s.stand, geschrieben, s.stand); standSetzen(geschrieben); }
+        }
+      }
       // Entwürfe zählen noch nicht → kein Neubau der Ergebnisseiten (Absenden baut selbst neu).
-      const { error } = await updateReport(regId, payload, players, games, { neuBauen: !!loadedStatus && loadedStatus !== 'draft' });
+      const { error } = await updateReport(regId, { ...payload, highlights: geschrieben.highlights }, [...geschrieben.heim, ...geschrieben.gast], geschrieben.games, { neuBauen: !!loadedStatus && loadedStatus !== 'draft' });
       if (error) { setMsg({ kind: 'err', text: error, ort: 'aktionen' }); return null; }
-      void protokolliereSpeichern(regId, games, liveModus, erfassungLesen());
+      serverBasis.current = geschrieben;
+      void protokolliereSpeichern(regId, geschrieben.games, liveModus, erfassungLesen());
       zeitstempelRef.current = await berichtZeitstempel(regId);
       return regId;
     }
