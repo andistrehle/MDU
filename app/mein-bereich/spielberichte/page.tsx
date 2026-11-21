@@ -410,10 +410,15 @@ function SpielberichteInner() {
   const [autoStatus, setAutoStatus] = useState<{ art: 'ok' | 'fehler' | 'konflikt'; zeit: number } | null>(null);
   // Löst das Autospeichern aus: Ergebnisse UND Spieler je Partie (Betreiber 20.11.2026 — sonst landeten die Doppel-Paare
   // erst mit dem Doppel-Ergebnis in der DB und der Live-Ticker zeigte während des Doppels „Pause“).
-  const ergebnisKey = games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}:${g.home_slot ?? ''}.${g.home_slot2 ?? ''}.${g.guest_slot ?? ''}.${g.guest_slot2 ?? ''}`).join(',');
+  const ergebnisKey = games.map(g => `${g.game_no}:${g.legs_home ?? ''}:${g.legs_guest ?? ''}:${g.home_slot ?? ''}.${g.home_slot2 ?? ''}.${g.guest_slot ?? ''}.${g.guest_slot2 ?? ''}`).join(',')
+    + '|' + [...homePlayers, ...guestPlayers].map(p => `${p.side[0]}${p.slot}=${p.name.trim()}`).join(',');
+  // Aufstellung eingetragen (Betreiber 21.11.2026): dann gibt es den Entwurf schon VOR dem ersten Ergebnis — sonst sah das
+  // Tablet im Lokal (oder ein zweites Handy) die Aufstellung nicht und alle trugen sie doppelt ein.
+  const hatAufstellung = [...homePlayers, ...guestPlayers].some(p => p.name.trim());
+  const hatErgebnis = games.some(g => g.legs_home != null && g.legs_guest != null);
   const autoErlaubt = geladen && !readOnly && !isAdminRole && !proposing && !korrigieren && !wertung
     && (!loadedStatus || loadedStatus === 'draft') && !!header.home_team_id && !!header.guest_team_id
-    && games.some(g => g.legs_home != null && g.legs_guest != null);
+    && (hatErgebnis || hatAufstellung);
   const autoLaeuft = useRef(false);
   const letzterAutoKey = useRef<string | null>(null);
   async function autoSpeichern(): Promise<boolean> {
@@ -452,7 +457,8 @@ function SpielberichteInner() {
       zeitstempelRef.current = await berichtZeitstempel(id);
       sicherungErledigt();
       setAutoStatus({ art: 'ok', zeit: Date.now() });
-      void meldeLiveStart(id);
+      // Start-Push erst mit dem ersten Ergebnis (der Merker im Gerät würde sonst schon beim Aufstellungs-Speichern gesetzt).
+      if (geschrieben.games.some(g => g.legs_home != null && g.legs_guest != null)) void meldeLiveStart(id);
       return true;
     } catch { setAutoStatus({ art: 'fehler', zeit: Date.now() }); return false; }
     finally { autoLaeuft.current = false; }

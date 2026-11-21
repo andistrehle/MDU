@@ -149,14 +149,16 @@ export function spieltagDatum(jetzt: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date(jetzt.getTime() - 4 * 3600 * 1000));
 }
 
-export function tickerEintrag(plan: TickerPlan, b: TickerBericht | null): TickerEintrag {
+/** `begonnen` = Anfangszeit erreicht UND Aufstellung im Entwurf eingetragen (Betreiber 21.11.2026): dann ist das Spiel
+ *  schon „live“, auch ohne Ergebnis — 0:0, und „Jetzt dran“ zeigt die ersten Partien. */
+export function tickerEintrag(plan: TickerPlan, b: TickerBericht | null, begonnen = false): TickerEintrag {
   const spiele: TickerSpiel[] = (b?.spiele ?? [])
     .filter((g): g is TickerSpiel => g.legsHeim != null && g.legsGast != null)
     .sort((x, y) => x.nr - y.nr);
   let h = 0, g = 0;
   for (const s of spiele) { if (s.legsHeim > s.legsGast) h += 1; else if (s.legsGast > s.legsHeim) g += 1; }
   const eingereicht = !!b && b.status !== 'draft';
-  const status: TickerStatus = eingereicht ? 'beendet' : spiele.length ? 'live' : 'offen';
+  const status: TickerStatus = eingereicht ? 'beendet' : spiele.length || (b && begonnen) ? 'live' : 'offen';
   return { ...plan, status, standHeim: h, standGast: g, gespielt: spiele.length, bestaetigt: b?.status === 'confirmed', spiele, highlights: [] };
 }
 
@@ -191,6 +193,14 @@ export function laufendeSpiele(spiele: TickerBericht['spiele'], alleNr: number[]
     // Doppel noch nicht aufgestellt (keine Seite hat Spieler eingetragen) → noch Pause, nicht „läuft“.
     return { nr, doppel, heim, gast, ...(doppel && !heim.length && !gast.length ? { pause: true } : {}) };
   });
+}
+
+/** Ist die Anfangszeit (Berliner Zeit) erreicht? `datum` YYYY-MM-DD, `uhrzeit` HH:MM (ohne → 20:00). */
+export function anfangErreicht(datum: string, uhrzeit: string | null, jetzt: Date): boolean {
+  const teile = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+    .formatToParts(jetzt).reduce<Record<string, string>>((a, t) => { a[t.type] = t.value; return a; }, {});
+  const hier = `${teile.year}-${teile.month}-${teile.day} ${teile.hour === '24' ? '00' : teile.hour}:${teile.minute}`;
+  return hier >= `${datum} ${uhrzeit || '20:00'}`;
 }
 
 /** Reihenfolge: live zuerst (meiste Spiele vorn), dann beendet, dann offen nach Beginn. */

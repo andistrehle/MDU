@@ -3,7 +3,7 @@
 // Stand = gewonnene Spiele. Spieltag läuft bis 4 Uhr früh weiter (Berliner Zeit).
 
 import { describe, expect, it } from 'vitest';
-import { highlightKurz, highlightsZuordnen, laufendeSpiele, spieleVon, vorschlagSpiel, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
+import { anfangErreicht, highlightKurz, highlightsZuordnen, laufendeSpiele, spieleVon, vorschlagSpiel, meldungText, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type TickerAnzeige, type TickerBericht, type TickerPlan } from './live-ticker';
 
 const plan = (key: string, uhrzeit: string | null = '20:00'): TickerPlan => ({ key, liga: 'a', home: key.split('|')[0], away: key.split('|')[1], uhrzeit });
 const spiel = (nr: number, h: number | null, g: number | null) => ({ nr, doppel: nr === 9 || nr === 18, heim: ['H'], gast: ['G'], legsHeim: h, legsGast: g });
@@ -206,5 +206,22 @@ describe('laufendeSpiele', () => {
     expect(laufendeSpiele([1, 2, 3, 4, 5, 6, 7, 8].map(n => g(n, 2, 1)), nr).map(x => x.nr)).toEqual([9]);
     expect(laufendeSpiele(nr.map(n => g(n, 2, 1)), nr)).toEqual([]);
     expect(laufendeSpiele([], nr, 3).map(x => x.nr)).toEqual([1, 2, 3]);
+  });
+});
+
+describe('Ticker startet mit Anfangszeit + Aufstellung', () => {
+  const plan = { key: 'h|g', liga: 'a', home: 'h', away: 'g', uhrzeit: '20:00' };
+  const entwurf = { status: 'draft', spiele: [] };
+  it('Entwurf ohne Ergebnis, begonnen → live 0:0; nicht begonnen → offen; ohne Entwurf → offen', () => {
+    expect(tickerEintrag(plan, entwurf, true).status).toBe('live');
+    expect(tickerEintrag(plan, entwurf, true).standHeim).toBe(0);
+    expect(tickerEintrag(plan, entwurf, false).status).toBe('offen');
+    expect(tickerEintrag(plan, null, true).status).toBe('offen');
+  });
+  it('anfangErreicht rechnet in Berliner Zeit (Winter UTC+1)', () => {
+    expect(anfangErreicht('2026-11-21', '20:30', new Date('2026-11-21T19:29:00Z'))).toBe(false);
+    expect(anfangErreicht('2026-11-21', '20:30', new Date('2026-11-21T19:30:00Z'))).toBe(true);
+    expect(anfangErreicht('2026-11-21', null, new Date('2026-11-21T19:00:00Z'))).toBe(true);
+    expect(anfangErreicht('2026-11-21', '20:00', new Date('2026-11-22T01:00:00Z'))).toBe(true);
   });
 });

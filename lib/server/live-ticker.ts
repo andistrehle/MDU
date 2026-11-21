@@ -15,7 +15,7 @@ import { ergebnisAusBericht } from '@/lib/tabelle-2027';
 import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 import { GAME_SCHEDULE } from '@/lib/supabase/match-reports';
 import {
-  highlightsZuordnen, laufendeSpiele, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type AufstellungPlatz, type RohHighlight,
+  anfangErreicht, highlightsZuordnen, laufendeSpiele, sortiereTicker, spieltagDatum, tickerAktiv, tickerEintrag, wechselErmitteln, type AufstellungPlatz, type RohHighlight,
   type LiveAntwort, type TickerAnzeige, type TickerBericht, type TickerPlan,
 } from '@/lib/live-ticker';
 
@@ -82,7 +82,9 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
         }),
       };
     }
-    const e = tickerEintrag(p, b);
+    // Begonnen: Anfangszeit erreicht und im Entwurf steht schon eine Aufstellung (Betreiber 21.11.2026).
+    const aufgestellt = !!r && ((spieler ?? []) as Spieler[]).some(x => x.report_id === r.id && x.name?.trim());
+    const e = tickerEintrag(p, b, aufgestellt && anfangErreicht(r?.match_date || datum, p.uhrzeit, jetzt));
     if (r && !r.forfeit) {
       e.highlights = highlightsZuordnen(r.highlights ?? [], ((spiele ?? []) as Spiel[]).filter(g => g.report_id === r.id), (side, slot) => name(r.id, side, slot));
     }

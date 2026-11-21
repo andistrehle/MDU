@@ -215,10 +215,11 @@ function Echt({ codeVorgabe }: { codeVorgabe: string }) {
   }, [laden, nachziehen]);
 
   // Autospeichern: 1,5 s nach der letzten Eingabe; nach einem Fehler neuer Versuch nach 15 s.
-  // Gespeichert wird ab dem ersten Ergebnis (wie im Formular) — vorher liegt die Aufstellung nur im Gerät.
+  // Gespeichert wird, sobald die Aufstellung oder ein Ergebnis eingetragen ist (wie im Formular).
   useEffect(() => {
     if (!offen || !z || (speicher !== 'offen' && speicher !== 'fehler')) return;
-    if (basis.current == null && !z.games.some(g => g.legs_home != null)) return;
+    // Ab dem ersten Ergebnis ODER sobald Spieler eingetragen sind (Betreiber 21.11.2026: sonst sah das Handy des Gegners die Aufstellung nicht).
+    if (basis.current == null && !z.games.some(g => g.legs_home != null) && ![...z.heim, ...z.gast].some(p => p.name?.trim())) return;
     const t = setTimeout(() => void speichern(), speicher === 'fehler' ? 15_000 : 1500);
     return () => clearTimeout(t);
   }, [z, speicher, offen, speichern]);

@@ -166,6 +166,9 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   `LigaTickerLeiste` (eigene Liga ohne eigenes Spiel + Meldung oben; Formular, Live-Modus, zweites Fenster); Seite `/live`.
   Aufgeklappt zeigt `/live` auch Aufstellung H1–H8/G1–G8 und Wechsel (Betreiber 14.11.2026): Wechsel = Einzel, in dem auf der
   Plan-Position (`GAME_SCHEDULE`) ein anderer Slot steht als zuletzt, Rückwechsel = wieder der Stammspieler (`wechselErmitteln`, getestet).
+  Formular UND Tablet legen den Entwurf schon an, sobald eine Aufstellung eingetragen ist (Betreiber 21.11.2026 — sonst sah das andere Gerät
+  sie nicht); Start-Push weiter erst mit dem ersten Ergebnis. Im Ticker ist ein Spiel „live“ ab Anfangszeit, wenn der Entwurf eine Aufstellung hat
+  (`anfangErreicht`, `tickerEintrag(…, begonnen)`), auch bei 0:0.
   „● Jetzt dran“ (Betreiber 20.11.2026): aufgeklappt zeigt `/live` unter den Partien die gerade laufenden — die ersten `BOARDS` = 2 Partien ohne Ergebnis in der
   Reihenfolge 1–18 (Betreiber: „immer 2“ Boards, nie über ein Doppel hinweg — davor nur die letzte offene, das Doppel allein, Doppel ohne eingetragene Spieler = „Pause“; `laufendeSpiele`, getestet; nur solange Entwurf, Einzel-Spieler notfalls aus dem Plan).
   Highlight-Spiel (Betreiber 14.11.2026): Vorschlag im Formular/Live-Modus = erstes OFFENES Spiel der Person (live wird vor dem
