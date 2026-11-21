@@ -40,7 +40,7 @@ export interface LiveBearbeiten {
 type Blatt =
   | { art: 'legs'; g: ReportGame }
   | { art: 'spieler'; g: ReportGame; seite: 'home' | 'guest' }
-  | { art: 'highlight' }
+  | { art: 'highlight'; bearbeite?: { index: number; h: HighlightEntry } }
   | null;
 
 export function LiveAnzeige({ s, bearbeiten }: { s: LiveStand; bearbeiten?: LiveBearbeiten }) {
@@ -119,11 +119,11 @@ export function LiveAnzeige({ s, bearbeiten }: { s: LiveStand; bearbeiten?: Live
           <Kasten titel="Highlights" rechts={bearbeiten && (
             <button type="button" onClick={() => setBlatt({ art: 'highlight' })} style={tippKnopf}>+ Highlight</button>
           )}>
-            <Highlights s={s} onWeg={bearbeiten?.onHighlightWeg} />
+            <Highlights s={s} onTippe={bearbeiten ? (index, h) => setBlatt({ art: 'highlight', bearbeite: { index, h } }) : undefined} />
           </Kasten>
         </div>
       </div>
-      {bearbeiten && blatt && <EingabeBlatt blatt={blatt} s={s} b={bearbeiten} onClose={() => setBlatt(null)} />}
+      {bearbeiten && blatt && <EingabeBlatt key={blatt.art === 'highlight' ? `hl-${blatt.bearbeite?.index ?? 'neu'}` : blatt.art} blatt={blatt} s={s} b={bearbeiten} onClose={() => setBlatt(null)} />}
     </div>
   );
 }
@@ -266,15 +266,15 @@ function Aufstellung({ spieler, punkte, prefix, farbe, wechsel }: { spieler: Rep
   );
 }
 
-function Highlights({ s, onWeg }: { s: LiveStand; onWeg?: (i: number) => void }) {
+function Highlights({ s, onTippe }: { s: LiveStand; onTippe?: (i: number, h: HighlightEntry) => void }) {
   const liste = s.highlights.map((h, i) => ({ ...h, i })).filter(h => h.value != null);
   if (!liste.length) return <div style={{ fontSize: fz(10, 0.85, 16), opacity: 0.55 }}>Noch keine — 180er, 171er, High Finishes und Short Legs erscheinen hier.</div>;
   const name = (h: (typeof liste)[number]) => nameVon(h.side === 'home' ? s.homePlayers : s.guestPlayers, h.slot);
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5vw' }}>
       {liste.map((h, i) => (
-        <span key={i} onClick={onWeg && (() => { if (confirm('Dieses Highlight entfernen?')) onWeg(h.i); })} style={{ cursor: onWeg ? 'pointer' : undefined, padding: '0.4vh 0.7vw', borderRadius: 999, fontSize: fz(10, 0.85, 16), fontWeight: 700, background: h.side === 'home' ? 'rgba(62,156,51,0.3)' : 'rgba(78,125,189,0.35)', border: '1px solid rgba(255,255,255,0.15)' }}>
-          <b style={{ color: GOLD }}>{h.type === '180' || h.type === '171' ? `${h.value}× ${HIGHLIGHT_TYPE_LABELS[h.type]}` : `${HIGHLIGHT_TYPE_LABELS[h.type]} ${h.value}${h.type === 'short_leg' ? ' Darts' : ''}`}</b> · {name(h)}{onWeg && <span style={{ marginLeft: 6, opacity: 0.6 }}>✕</span>}
+        <span key={i} onClick={onTippe && (() => { const { i: idx, ...eintrag } = h; onTippe(idx, eintrag); })} title={onTippe ? 'Antippen zum Ändern oder Löschen' : undefined} style={{ cursor: onTippe ? 'pointer' : undefined, padding: '0.4vh 0.7vw', borderRadius: 999, fontSize: fz(10, 0.85, 16), fontWeight: 700, background: h.side === 'home' ? 'rgba(62,156,51,0.3)' : 'rgba(78,125,189,0.35)', border: '1px solid rgba(255,255,255,0.15)' }}>
+          <b style={{ color: GOLD }}>{h.type === '180' || h.type === '171' ? `${h.value}× ${HIGHLIGHT_TYPE_LABELS[h.type]}` : `${HIGHLIGHT_TYPE_LABELS[h.type]} ${h.value}${h.type === 'short_leg' ? ' Darts' : ''}`}</b> · {name(h)}{onTippe && <span style={{ marginLeft: 6, opacity: 0.6 }}>✎</span>}
         </span>
       ))}
     </div>
@@ -283,12 +283,13 @@ function Highlights({ s, onWeg }: { s: LiveStand; onWeg?: (i: number) => void })
 
 // ── Eingabe im Live-Modus (Tablet) ─────────────────────────────
 function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: LiveStand; b: LiveBearbeiten; onClose: () => void }) {
-  const [hlSeite, setHlSeite] = useState<'home' | 'guest'>('home');
-  const [hlSlot, setHlSlot] = useState<number | null>(null);
+  const alt = blatt.art === 'highlight' ? blatt.bearbeite : undefined;
+  const [hlSeite, setHlSeite] = useState<'home' | 'guest'>(alt?.h.side ?? 'home');
+  const [hlSlot, setHlSlot] = useState<number | null>(alt?.h.slot ?? null);
   // In welchem Spiel? Vorschlag = letztes fertiges Spiel der Person, per Tipp änderbar (13.11.2026).
-  const [hlSpielWahl, setHlSpielWahl] = useState<number | null>(null);
-  const [hlTyp, setHlTyp] = useState<HighlightType>('180');
-  const [hlWert, setHlWert] = useState('1');
+  const [hlSpielWahl, setHlSpielWahl] = useState<number | null>(alt?.h.game_no ?? null);
+  const [hlTyp, setHlTyp] = useState<HighlightType>(alt?.h.type ?? '180');
+  const [hlWert, setHlWert] = useState(alt?.h.value != null ? String(alt.h.value) : '1');
   const spielerVon = (seite: 'home' | 'guest') => (seite === 'home' ? s.homePlayers : s.guestPlayers).filter(p => p.name.trim());
   const knopf = (aktiv = false): React.CSSProperties => ({ padding: '12px 14px', minHeight: 48, borderRadius: 10, border: `1.5px solid ${aktiv ? GOLD : 'rgba(255,255,255,0.2)'}`, background: aktiv ? 'rgba(232,184,74,0.22)' : 'rgba(255,255,255,0.06)', color: '#fff', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'var(--font-manrope)' });
 
@@ -335,7 +336,7 @@ function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: 
     const ok = hlSlot != null && wert >= cfg.min && wert <= cfg.max;
     const meineSpiele = hlSlot != null ? spieleVon(s.games, hlSeite, hlSlot) : [];
     const hlSpiel = hlSpielWahl != null && meineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlSlot != null ? vorschlagSpiel(s.games, hlSeite, hlSlot, hlTyp) : null);
-    titel = 'Highlight eintragen';
+    titel = alt ? 'Highlight ändern' : 'Highlight eintragen';
     inhalt = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -361,7 +362,9 @@ function EingabeBlatt({ blatt, s, b, onClose }: { blatt: NonNullable<Blatt>; s: 
             style={{ width: 110, padding: '12px 12px', borderRadius: 10, border: '1.5px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 20, fontWeight: 800 }} />
           <span style={{ opacity: 0.6, fontSize: 13 }}>{cfg.min}–{cfg.max}</span>
         </label>
-        <button type="button" disabled={!ok} onClick={() => { b.onHighlight({ side: hlSeite, slot: hlSlot!, type: hlTyp, value: wert, game_no: hlSpiel }); onClose(); }} style={{ ...knopf(true), opacity: ok ? 1 : 0.4 }}>Eintragen</button>
+        {/* Ändern = alten Eintrag weg, neuen hinein (Betreiber 21.11.2026: „bearbeiten, nicht nur löschen“). */}
+        <button type="button" disabled={!ok} onClick={() => { if (alt) b.onHighlightWeg(alt.index); b.onHighlight({ side: hlSeite, slot: hlSlot!, type: hlTyp, value: wert, game_no: hlSpiel }); onClose(); }} style={{ ...knopf(true), opacity: ok ? 1 : 0.4 }}>{alt ? 'Änderung speichern' : 'Eintragen'}</button>
+        {alt && <button type="button" onClick={() => { if (confirm('Dieses Highlight löschen?')) { b.onHighlightWeg(alt.index); onClose(); } }} style={{ ...knopf(), color: '#FF8A8A', borderColor: 'rgba(255,120,120,0.5)' }}>Highlight löschen</button>}
       </div>
     );
   }

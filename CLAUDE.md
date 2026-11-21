@@ -171,6 +171,8 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   (`anfangErreicht`, `tickerEintrag(…, begonnen)`), auch bei 0:0.
   „● Jetzt dran“ (Betreiber 20.11.2026): aufgeklappt zeigt `/live` unter den Partien die gerade laufenden — die ersten `BOARDS` = 2 Partien ohne Ergebnis in der
   Reihenfolge 1–18 (Betreiber: „immer 2“ Boards, nie über ein Doppel hinweg — davor nur die letzte offene, das Doppel allein, Doppel ohne eingetragene Spieler = „Pause“; `laufendeSpiele`, getestet; nur solange Entwurf, Einzel-Spieler notfalls aus dem Plan).
+  Highlights BEARBEITEN (Betreiber 21.11.2026, Anlass doppelt eingetragene 180er): Tablet/Live-Modus — Chip antippen öffnet das Eingabeblatt vorbelegt
+  („Änderung speichern“ = alter Eintrag weg + neuer hinein, „Highlight löschen“); Formular — ✎ am Chip lädt den Eintrag in die Felder (`hlEdit`).
   Highlight-Spiel (Betreiber 14.11.2026): Vorschlag im Formular/Live-Modus = erstes OFFENES Spiel der Person (live wird vor dem
   Ergebnis eingetragen), alles fertig → bei HF/SL das letzte mit gewonnenem Leg (`vorschlagSpiel(…, typ)`). Anzeige: HF/SL an einem
   fertigen Spiel ohne gewonnenes Leg rutscht zum nächsten Spiel der Person mit gewonnenem Leg (`plausiblesSpiel`), Daten bleiben.

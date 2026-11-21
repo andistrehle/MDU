@@ -665,6 +665,8 @@ function SpielberichteInner() {
   const [hlType, setHlType] = useState<HighlightType>('180');
   const [hlValue, setHlValue] = useState('');
   const [hlSpielWahl, setHlSpielWahl] = useState<number | null>(null);
+  // Highlight bearbeiten (Betreiber 21.11.2026): Index des Eintrags, der gerade in den Feldern oben steht.
+  const [hlEdit, setHlEdit] = useState<number | null>(null);
   const hlPickSide = hlPick ? (hlPick.split(':')[0] as 'home' | 'guest') : null, hlPickSlot = hlPick ? Number(hlPick.split(':')[1]) : null;
   const hlMeineSpiele = hlPickSide && hlPickSlot ? spieleVon(games, hlPickSide, hlPickSlot) : [];
   const hlSpiel = hlSpielWahl != null && hlMeineSpiele.includes(hlSpielWahl) ? hlSpielWahl : (hlPickSide && hlPickSlot ? vorschlagSpiel(games, hlPickSide, hlPickSlot, hlType) : null);
@@ -681,11 +683,18 @@ function SpielberichteInner() {
       setMsg({ kind: 'err', text: `Bitte ${cfg.label} zwischen ${cfg.min} und ${cfg.max} angeben.`, ort: 'highlight' }); return;
     }
     const entry: HighlightEntry = { side: side as 'home' | 'guest', slot: Number(slotStr), type: hlType, value, game_no: hlSpiel };
-    setHeader(h => ({ ...h, highlights: highlightHinzufuegen(h.highlights ?? [], entry) }));
-    setHlValue(''); setMsg(null);
+    const bearbeitet = hlEdit;
+    setHeader(h => ({ ...h, highlights: highlightHinzufuegen((h.highlights ?? []).filter((_, j) => j !== bearbeitet), entry) }));
+    setHlValue(''); setMsg(null); setHlEdit(null);
+  }
+  function editHighlight(i: number) {
+    const hl = (header.highlights ?? [])[i];
+    if (!hl) return;
+    setHlEdit(i); setHlPick(`${hl.side}:${hl.slot}`); setHlType(hl.type); setHlValue(hl.value != null ? String(hl.value) : ''); setHlSpielWahl(hl.game_no ?? null);
   }
   function removeHighlight(i: number) {
     setHeader(h => ({ ...h, highlights: (h.highlights ?? []).filter((_, j) => j !== i) }));
+    setHlEdit(e => (e == null ? e : e === i ? null : e > i ? e - 1 : e));
   }
   function setGameLegs(no: number, res: string) {
     setGames(arr => arr.map(g => {
@@ -1283,7 +1292,8 @@ function SpielberichteInner() {
                       placeholder={`${HIGHLIGHT_VALUE_CONFIG[hlType].min}–${HIGHLIGHT_VALUE_CONFIG[hlType].max}`} style={input} />
                   </Field>
                 </div>
-                <button type="button" onClick={addHighlight} style={{ ...ghost, padding: '9px 16px' }}>Hinzufügen</button>
+                <button type="button" onClick={addHighlight} style={{ ...ghost, padding: '9px 16px' }}>{hlEdit != null ? 'Änderung speichern' : 'Hinzufügen'}</button>
+                {hlEdit != null && <button type="button" onClick={() => { setHlEdit(null); setHlValue(''); }} style={{ ...ghost, padding: '9px 16px' }}>Abbrechen</button>}
               </div>
               {hinweis('highlight')}
 
@@ -1294,6 +1304,7 @@ function SpielberichteInner() {
                   {(header.highlights ?? []).map((hl, i) => (
                     <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: 'var(--th-accent-a07)', border: '1px solid var(--th-accent-a25)', fontFamily: 'var(--font-manrope)', fontSize: 12, color: 'var(--th-text-body)' }}>
                       <strong style={{ color: 'var(--th-text-strong)' }}>{hl.side === 'home' ? 'H' : 'G'}{hl.slot}</strong> {playerName(hl.side, hl.slot)}{hl.game_no ? ` · Spiel ${hl.game_no}` : ''} · {HIGHLIGHT_TYPE_LABELS[hl.type]}{hl.value ? (HIGHLIGHT_VALUE_CONFIG[hl.type].isCount ? ` ×${hl.value}` : ` ${hl.value}`) : ''}
+                      <button type="button" onClick={() => editHighlight(i)} aria-label="Ändern" title="Ändern" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-accent)', fontSize: 14, lineHeight: 1, padding: 0 }}>✎</button>
                       <button type="button" onClick={() => removeHighlight(i)} aria-label="Entfernen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--th-loss)', fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
                     </span>
                   ))}
