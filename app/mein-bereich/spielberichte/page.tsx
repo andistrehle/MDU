@@ -542,7 +542,10 @@ function SpielberichteInner() {
   // Wann kam auf diesem Gerät das erste und das letzte Spielergebnis dazu?
   // Geladene Stände zählen nicht, nur Eingaben. Liegt im localStorage, weil
   // wer live tippt, oft erst am Ende in die Datenbank speichert.
-  const erfassungKey = user ? `mdu-sb-erfassung:${user.id}:${idParam ?? 'neu'}` : null;
+  // Schlüssel = Begegnung (je Begegnung ein Bericht). Früher „neu“ für jeden neuen Bericht — dann erbte der
+  // nächste Bericht auf dem Gerät die Zeiten des vorigen und galt als „live“ (Silberpfeile II, 22.11.2026).
+  const erfassungKey = user && header.home_team_id && header.guest_team_id
+    ? `mdu-sb-erfassung:${user.id}:${header.home_team_id}|${header.guest_team_id}` : null;
   const gefuellt = games.filter(g => g.legs_home != null && g.legs_guest != null).length;
   const gefuelltRef = useRef<{ key: string; n: number } | null>(null);
   useEffect(() => {

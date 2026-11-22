@@ -86,8 +86,11 @@ export async function ladeErfassung(): Promise<Erfassung> {
     const min = (l: (string | null)[]) => l.filter((x): x is string => !!x).sort()[0] ?? null;
     const max = (l: (string | null)[]) => l.filter((x): x is string => !!x).sort().at(-1) ?? null;
     const mitErgebnis = saves.filter(s => s.games_filled > 0);
-    const erstes = min(saves.map(s => s.first_input_at)) ?? min(mitErgebnis.map(s => s.saved_at));
-    const letztes = max(saves.map(s => s.last_input_at)) ?? max(mitErgebnis.map(s => s.saved_at));
+    // Gerätezeiten vor dem Spieltag (ab 6 h vor Beginn) gehören zu einem anderen Bericht (alter Merker im Gerät) → nicht zählen.
+    const frueh = beginn.getTime() - 6 * 3600 * 1000;
+    const passt = (x: string | null) => !!x && new Date(x).getTime() >= frueh;
+    const erstes = min(saves.map(s => s.first_input_at).filter(passt)) ?? min(mitErgebnis.map(s => s.saved_at));
+    const letztes = max(saves.map(s => s.last_input_at).filter(passt)) ?? max(mitErgebnis.map(s => s.saved_at));
     const geschaetzt = !erstes;
     const bezug = erstes ?? r.created_at;
     const weg: Erfassungsweg = r.source === 'ocr' ? 'foto'
