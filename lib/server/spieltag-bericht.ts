@@ -348,16 +348,20 @@ export function tabellenHinweis(f: Pick<Fakten, 'fri' | 'tabellen'>): string[] {
   return [`Hinweis: In der ${liste(ligen)} haben durch vorgezogene, verlegte oder noch offene Spiele nicht alle Teams gleich viele Begegnungen – die Tabelle ist dadurch im Moment ein bisschen verfälscht.`];
 }
 
-/** Live-Ticker-Absatz am Ende (Betreiber 15.11.2026). `live` = wie viele der Begegnungen dieses Berichts
- *  nachweislich live eingetragen wurden (Speicher-Protokoll, lib/server/erfassung.ts); ohne Zahl nur der Hinweis. */
+/** Live-Ticker-Absatz am Ende (Betreiber 15.11.2026). `live` = wie viele der an diesem Wochenende GESPIELTEN Begegnungen
+ *  nachweislich live eingetragen wurden (Speicher-Protokoll, lib/server/erfassung.ts); ohne Zahl nur der Hinweis.
+ *  Ab der Hälfte lobt der Absatz ausdrücklich (Betreiber 22.11.2026: „den Live-Ticker mehr loben, war echt geil“). */
 export function LIVE_TICKER_ABSATZ(live?: { live: number; von: number }): string[] {
   if (!LIVE_TICKER_AN) return [];
-  const zahl = live && live.live > 0
-    ? ` An diesem Wochenende ${live.live === 1 ? 'wurde schon eine' : `wurden schon ${live.live}`} von ${live.von} Begegnungen live eingetragen – je mehr Teams mitmachen, desto spannender wird’s.`
-    : '';
-  return ['## Live dabei: der Live-Ticker',
-    `An den Spielabenden könnt ihr die Begegnungen live mitverfolgen: jedes Spiel mit Spielern, Legs und Highlights, sobald es im Spielbericht eingetragen ist.${zahl}`,
-    '[Zum Live-Ticker](/live)'];
+  const wie = 'An den Spielabenden könnt ihr jede Begegnung live mitverfolgen: Spiel für Spiel mit Spielern, Legs und Highlights, sobald es im Spielbericht eingetragen ist.';
+  let text = wie;
+  if (live && live.live > 0) {
+    const zahl = `${live.live === 1 ? 'eine' : live.live} von ${live.von} Begegnungen`;
+    text = live.live * 2 >= live.von
+      ? `Was für ein Wochenende für den Live-Ticker: ${zahl} wurden live eingetragen – so konnte man bis zum letzten Doppel mitfiebern, auch ohne selbst im Lokal zu stehen. Ein großes Danke an alle Teams, die mitgemacht haben! ${wie} Je mehr Teams dabei sind, desto mehr ist an den Abenden los.`
+      : `${wie} An diesem Wochenende ${live.live === 1 ? 'wurde schon eine' : `wurden schon ${live.live}`} von ${live.von} Begegnungen live eingetragen – je mehr Teams mitmachen, desto spannender wird’s.`;
+  }
+  return ['## Live dabei: der Live-Ticker', text, '[Zum Live-Ticker](/live)'];
 }
 
 export function inhalt(f: Fakten, t: BerichtText, live?: { live: number; von: number }): string[] {
@@ -417,8 +421,14 @@ export const TEAM_MANAGER_ABSATZ = (): string[] => (PREMIUM_OEFFENTLICH
 const HASHTAGS = '#münchnerdartunion #mdu #darts #edarts #dartsliga #münchen';
 
 /** Fertiger Facebook-Text: fette Überschrift (seit 15.11.2026) + Claudes Teaser + Hinweis + Direktlink + Hashtags. */
-export const facebookText = (teaser: string, newsId: string, titel?: string) =>
-  `${titel?.trim() ? `${facebookKopf(titel)}\n\n` : ''}${teaser.trim()}\n\nDen vollständigen Bericht mit allen Ergebnissen und Tabellen gibt's auf mdudarts.de:\n👉 ${berichtLink(newsId)}\n\n${HASHTAGS}`;
+/** Lob für den Live-Ticker im Facebook-Text, wenn mindestens die Hälfte live eingetragen wurde (Betreiber 22.11.2026). */
+export function facebookLive(live?: { live: number; von: number }): string {
+  if (!LIVE_TICKER_AN || !live || live.live <= 0 || live.live * 2 < live.von) return '';
+  return `📲 ${live.live} von ${live.von} Begegnungen liefen dieses Wochenende im Live-Ticker – merci fürs Live-Tickern, so macht's Spaß! 🙌`;
+}
+
+export const facebookText = (teaser: string, newsId: string, titel?: string, live?: { live: number; von: number }) =>
+  `${titel?.trim() ? `${facebookKopf(titel)}\n\n` : ''}${teaser.trim()}${facebookLive(live) ? `\n\n${facebookLive(live)}` : ''}\n\nDen vollständigen Bericht mit allen Ergebnissen und Tabellen gibt's auf mdudarts.de:\n👉 ${berichtLink(newsId)}\n\n${HASHTAGS}`;
 
 export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDaten {
   const spieler = (z: SpielerWertung) => ({ name: z.name, team: name(z.teamId), text: [`Einzel ${z.einzelSiege}:${z.einzelNiederlagen}`, hlText(z)].filter(Boolean).join(' · ') });
@@ -446,7 +456,10 @@ export function socialDaten(f: Fakten, newsId: string, titel: string): SocialDat
 /** Wie viele Begegnungen des Berichts wurden live eingetragen? Nur mit Protokoll (nicht geschätzt); bei Fehlern keine Zahl. */
 async function liveZahl(f: Fakten): Promise<{ live: number; von: number } | undefined> {
   try {
-    const keys = new Set(f.eintraege.filter(x => !x.e.wertung).map(x => x.b.key));
+    // Gezählt wird, was in diesem Zeitraum GESPIELT wurde (auch vorgezogene Spiele späterer Spieltage, nicht früher
+    // vorgezogene wie am 06.11.) — sonst stand „6 von 7“ statt „6 von 8“ (22.11.2026).
+    const von = f.nachtrag?.von ?? f.fri, bis = f.nachtrag?.bis ?? f.sun;
+    const keys = new Set([...f.eintraege, ...f.vorab].filter(x => !x.e.wertung && x.datum >= von && x.datum <= bis).map(x => x.b.key));
     const { bereit, zeilen } = await ladeErfassung();
     if (!bereit || !keys.size) return undefined;
     return { live: zeilen.filter(z => keys.has(z.key) && z.weg === 'live' && !z.geschaetzt).length, von: keys.size };
@@ -473,10 +486,11 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean; n
 
   const claude = await mitClaude(f);
   const t = claude ?? vorlage(f);
+  const live = await liveZahl(f);
   const zeile = {
     title: t.titel.trim().slice(0, 120), teaser: t.teaser.trim().slice(0, 240), source: 'Münchner Dart Union',
     display_date: new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date()),
-    category: 'Spieltag', content: inhalt(f, t, await liveZahl(f)), status: 'draft',
+    category: 'Spieltag', content: inhalt(f, t, live), status: 'draft',
   };
   const { error } = vorhanden
     ? await db.from('news').update(zeile).eq('id', id)
@@ -484,7 +498,7 @@ export async function erzeugen(fri: string, opts: { benachrichtigen?: boolean; n
   if (error) return { ok: false, grund: error.message };
   const basis = { wochenende: schluessel, news_id: id, keys: f.eintraege.map(x => x.b.key), quelle: claude ? 'claude' : 'vorlage', erstellt_at: new Date().toISOString() };
   let { error: le } = await db.from('spieltag_berichte').upsert({
-    ...basis, facebook: facebookText(t.facebook || t.teaser, id, zeile.title), social: socialDaten(f, id, zeile.title),
+    ...basis, facebook: facebookText(t.facebook || t.teaser, id, zeile.title, live), social: socialDaten(f, id, zeile.title),
   });
   // Ohne Migration 0060 (Spalten facebook/social) trotzdem den Bericht ablegen.
   if (le && /facebook|social/.test(le.message)) ({ error: le } = await db.from('spieltag_berichte').upsert(basis));

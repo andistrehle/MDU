@@ -302,7 +302,8 @@ function instaText(facebook: string, d: SocialDaten): string {
   const teile = facebook.split('\n\n');
   const teaser = teile[0]?.trim() || d.titel;
   const tags = teile.find(t => t.trim().startsWith('#'))?.trim() ?? '#münchnerdartunion #mdu #darts #edarts #dartsliga #münchen';
-  return `${teaser}\n\nAlle Ergebnisse, Tabellen und der ganze Bericht: mdudarts.de/news\n\n${tags}`;
+  const live = teile.find(t => t.trim().startsWith('📲'))?.trim();
+  return `${teaser}${live ? `\n\n${live}` : ''}\n\nAlle Ergebnisse, Tabellen und der ganze Bericht: mdudarts.de/news\n\n${tags}`;
 }
 
 const leinwandDatei = (c: HTMLCanvasElement, name: string) =>
