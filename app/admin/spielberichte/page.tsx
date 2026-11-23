@@ -20,6 +20,7 @@ import {
 import { cleanupReportUploads, loescheSaisonFotos } from '@/lib/supabase/match-report-uploads';
 import { FOTOS_AUFBEWAHREN } from '@/lib/ocr/aufbewahrung';
 import { BerichtAenderungen, type BerichtAenderung } from '@/components/mdu/bericht-aenderungen';
+import { berichtParam, useSprungZuBericht } from '@/components/mdu/sprung-zu-bericht';
 
 export default function AdminSpielberichtePage() {
   const { user } = useAuth();
@@ -94,6 +95,13 @@ export default function AdminSpielberichtePage() {
   const [fWoche, setFWoche] = useState('');
   const [fTeam, setFTeam] = useState('');
   const [fWeg, setFWeg] = useState<Erfassungsweg | ''>('');
+  // Direktlink aus der Glocke „Spielbericht geändert“: ?bericht=<id> → auf die Begegnung filtern und hinspringen.
+  useEffect(() => {
+    const id = berichtParam();
+    const r = id ? rows?.find(x => x.id === id) : null;
+    if (r?.home_team_id) queueMicrotask(() => { setFStatus('alle'); setFTeam(team27(r.home_team_id!)?.name ?? r.home_team_name ?? ''); });
+  }, [rows]);
+  useSprungZuBericht(!!rows);
   const wochen = useMemo(() => [...new Set(alle.map(x => x.woche))].sort(), [alle]);
   const spieltage = useMemo(() => [...new Set(alle.map(x => x.b.spieltag))].sort((a, b) => a - b), [alle]);
   // Alle Filter außer Status — die Status-Knöpfe zählen darauf.
@@ -379,7 +387,7 @@ function PartieZeile({ x, busy, aenderungen, onDelete, onProtestErledigt }: { x:
     : { text: `${r!.spiele_home}:${r!.spiele_guest} · ${REPORT_STATUS_LABELS[r!.status]}`, farbe: x.st === 'bestaetigt' ? 'var(--th-win)' : r!.status === 'changes_requested' ? 'var(--th-gold)' : '#9A6B00' };
   const link: React.CSSProperties = { fontWeight: 700, color: 'var(--th-accent)', textDecoration: 'none', whiteSpace: 'nowrap' };
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px 12px', flexWrap: 'wrap', padding: '9px 0', borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
+    <div id={r ? `bericht-${r.id}` : undefined} style={{ display: 'flex', alignItems: 'center', gap: '6px 12px', flexWrap: 'wrap', padding: '9px 0', borderTop: '1px solid var(--th-line-4)', fontFamily: 'var(--font-manrope)', fontSize: 12.5 }}>
       <span style={{ width: 118, flexShrink: 0, color: 'var(--th-text-muted)' }}>
         {t ? <>{tagKurz(t.datum)}{t.uhrzeit && ` ${t.uhrzeit}`}</> : wochenendeText(b.fri, b.sun, false)}
       </span>

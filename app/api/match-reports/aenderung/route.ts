@@ -59,13 +59,14 @@ export async function POST(request: Request) {
   const { data: ll } = await db.from('profiles').select('id').in('role', ['league_admin', 'super_admin']);
   const tcs = await tcEmpfaenger(bericht.confirm_team_id ?? bericht.guest_team_id, 'spielberichte', false);
   const leitung = new Set(((ll ?? []) as { id: string }[]).map(p => p.id));
-  const kurz = `${liste.slice(0, 3).join(' · ')}${liste.length > 3 ? ` · und ${liste.length - 3} weitere` : ''}`.slice(0, 240);
+  // Die Glocke zeigt nur short_text → Begegnung voran, sonst weiß niemand, welcher Bericht (Betreiber, 23.11.2026).
+  const kurz = `Spielbericht geändert: ${label} – ${liste.slice(0, 2).join(' · ')}${liste.length > 2 ? ` · und ${liste.length - 2} weitere` : ''}`.slice(0, 240);
   const an = [...new Set([...leitung, ...tcs])].filter(x => x !== auth.user.id);
   if (an.length) {
     await db.from('notifications').insert(an.map(uid => ({
       recipient_user_id: uid, type: 'match_report_geaendert', title: `Spielbericht geändert: ${label}`.slice(0, 120),
       message: text, short_text: kurz, related_entity_type: 'match_report', related_entity_id: id,
-      action_url: leitung.has(uid) ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht',
+      action_url: `${leitung.has(uid) ? '/admin/spielberichte' : '/mein-bereich/spielberichte/uebersicht'}?bericht=${id}`,
     })));
   }
   return NextResponse.json({ ok: true, unterschiede: liste });
