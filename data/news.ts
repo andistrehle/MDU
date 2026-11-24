@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-12-26-fiakerstueberl-zusatz",
+    "date": "2026-11-24",
+    "title": "Zusätzliches Ranking am 26.12.2026 im Fiakerstüberl",
+    "teaser": "Am Samstag, 26.12.2026 gibt es im Fiakerstüberl ein zusätzliches Ranking, Beginn 19:30 Uhr.",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Samstag, 26.12.2026** gibt es im **Fiakerstüberl** ein zusätzliches Ranking. Beginn: **19:30 Uhr**. Angemeldet wird wie immer vor Ort im Lokal."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-29-aubinger-boazn-zusatz",
     "date": "2026-11-24",
     "title": "Zusätzliches Ranking am 29.11.2026 im Aubinger Boazn",
