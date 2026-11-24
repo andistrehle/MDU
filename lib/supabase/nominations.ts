@@ -69,6 +69,40 @@ async function zielSaisonId(): Promise<string> {
   return aktiv?.id ?? getCurrentSeason().id;
 }
 
+type StammSpieler = { id: string; first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null };
+
+/** Spieler im Stamm mit genau diesem Namen (Teamwechsel, schon einmal gespielt). */
+async function namensTreffer(vorname: string, nachname: string): Promise<StammSpieler[]> {
+  if (!supabase) return [];
+  const { data } = await supabase.from('players').select('id, first_name, last_name, display_name, license_number');
+  const target = normalizePersonName(`${vorname} ${nachname}`);
+  return ((data ?? []) as StammSpieler[])
+    .filter(p => normalizePersonName(`${p.first_name ?? ''} ${p.last_name ?? ''}`) === target
+              || (p.display_name ? normalizePersonName(p.display_name) === target : false));
+}
+
+/** Für die Prüfung einer Nachmeldung (Betreiber, 24.11.2026: „Der hat schon eine Passnummer aus der letzten
+ *  Saison“): Gibt es den Spieler schon — mit welcher Nummer — und steht er schon in einem Kader der Saison?
+ *  Genau ein Treffer mit Nummer = die Nummer wird beim Bestätigen übernommen (siehe reviewNomination). */
+export interface BekannterSpieler { treffer: number; playerId: string | null; license: string | null; kader: string[] }
+export async function bekannteSpieler(noms: PlayerNomination[]): Promise<Map<string, BekannterSpieler>> {
+  const out = new Map<string, BekannterSpieler>();
+  if (!supabase || !noms.length) return out;
+  const seasonId = await zielSaisonId();
+  for (const n of noms) {
+    const hits = await namensTreffer(n.first_name, n.last_name);
+    if (!hits.length) continue;
+    const eins = hits.length === 1 ? hits[0] : null;
+    let kader: string[] = [];
+    if (eins) {
+      const { data } = await supabase.from('season_roster_assignments').select('team_id').eq('season_id', seasonId).eq('player_id', eins.id).eq('status', 'active');
+      kader = ((data ?? []) as { team_id: string }[]).map(r => r.team_id);
+    }
+    out.set(n.id, { treffer: hits.length, playerId: eins?.id ?? null, license: eins?.license_number ?? null, kader });
+  }
+  return out;
+}
+
 export async function createNomination(teamId: string, teamName: string, firstName: string, lastName: string, lastLeague: LastLeague): Promise<{ error: string | null }> {
   if (!supabase) return { error: NOT_CONFIGURED };
   if (!firstName.trim() || !lastName.trim()) return { error: 'Bitte Vor- und Nachname angeben.' };
@@ -109,12 +143,7 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       let license = '';
       let provisional = true;
       if (!slug) {
-        const { data: allP } = await supabase.from('players')
-          .select('id, first_name, last_name, display_name, license_number');
-        const target = normalizePersonName(`${n.first_name} ${n.last_name}`);
-        const hits = ((allP ?? []) as { id: string; first_name: string | null; last_name: string | null; display_name: string | null; license_number: string | null }[])
-          .filter(p => normalizePersonName(`${p.first_name ?? ''} ${p.last_name ?? ''}`) === target
-                    || (p.display_name ? normalizePersonName(p.display_name) === target : false));
+        const hits = await namensTreffer(n.first_name, n.last_name);
         if (hits.length === 1 && hits[0].license_number) { slug = hits[0].id; license = hits[0].license_number!; provisional = false; }
       }
       // Saison der Nachmeldung = offene Anmelde-Saison (z. B. 2026/2027), NICHT

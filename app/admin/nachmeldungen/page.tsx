@@ -8,9 +8,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { AdminGuard } from '@/components/mdu/admin-guard';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManageLeague } from '@/lib/auth/roles';
+import { team27 } from '@/lib/data/saison-2027';
 import {
-  listAllNominations, reviewNomination, updateNominationLicense, reprocessNominationSeason, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
-  type PlayerNomination, type NominationStatus,
+  listAllNominations, reviewNomination, bekannteSpieler, updateNominationLicense, reprocessNominationSeason, NOMINATION_STATUS_LABELS, LAST_LEAGUE_LABELS,
+  type PlayerNomination, type NominationStatus, type BekannterSpieler,
 } from '@/lib/supabase/nominations';
 
 const STATUSES: NominationStatus[] = ['pending', 'approved', 'rejected'];
@@ -29,6 +30,11 @@ export default function AdminNachmeldungenPage() {
 
   useEffect(() => { if (canReview) listAllNominations().then(setRows); }, [canReview]);
 
+  // Schon bekannte Spieler (Passnummer aus früherer Saison, schon im Kader) — nur für offene Nachmeldungen.
+  const [bekannt, setBekannt] = useState<Map<string, BekannterSpieler>>(new Map());
+  useEffect(() => { if (rows) void bekannteSpieler(rows.filter(r => r.status === 'pending')).then(setBekannt); }, [rows]);
+  const teamName = (id: string) => team27(id)?.name ?? id;
+
   const filtered = useMemo(() => (rows ?? []).filter(r => !statusFilter || r.status === statusFilter), [rows, statusFilter]);
 
   async function approve(id: string) {
@@ -36,7 +42,11 @@ export default function AdminNachmeldungenPage() {
     // Kader → vor dieser folgenreichen Aktion rückfragen (REV-035).
     const nom = (rows ?? []).find(n => n.id === id);
     const who = nom ? `${nom.first_name} ${nom.last_name}`.trim() : 'diesen Spieler';
-    if (!window.confirm(`„${who}" freigeben?\n\nEs wird eine vorläufige Passnummer erzeugt und der Spieler in den Kader übernommen.`)) return;
+    const k = bekannt.get(id);
+    const text = k?.license && k.treffer === 1
+      ? `Er behält seine Passnummer ${k.license} und wird in den Kader übernommen.${k.kader.length ? `\n\nAchtung: Er steht schon im Kader von ${k.kader.map(teamName).join(', ')}.` : ''}`
+      : 'Es wird eine vorläufige Passnummer erzeugt und der Spieler in den Kader übernommen.';
+    if (!window.confirm(`„${who}" freigeben?\n\n${text}`)) return;
     setBusy(true); setMsg(null);
     const { error } = await reviewNomination(id, 'approved');
     setBusy(false);
@@ -102,6 +112,19 @@ export default function AdminNachmeldungenPage() {
                   </div>
                   <span style={{ fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', color: r.status === 'approved' ? 'var(--th-win)' : r.status === 'rejected' ? 'var(--th-loss)' : 'var(--th-accent)' }}>{NOMINATION_STATUS_LABELS[r.status]}</span>
                 </div>
+
+                {r.status === 'pending' && bekannt.get(r.id) && (() => {
+                  const k = bekannt.get(r.id)!;
+                  const box = (farbe: string, inhalt: React.ReactNode) => (
+                    <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, border: `1px solid ${farbe}`, fontFamily: 'var(--font-manrope)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--th-text-body)' }}>{inhalt}</div>
+                  );
+                  if (k.treffer > 1) return box('var(--th-gold)', <>Es gibt <strong>{k.treffer} Spieler</strong> mit diesem Namen. Beim Bestätigen wird deshalb eine NEUE Passnummer vergeben – falls er einer davon ist, danach unter „Nummer ändern“ seine alte eintragen.</>);
+                  return box(k.kader.length ? 'var(--th-loss)' : 'var(--th-win)', <>
+                    Schon bekannt{k.license ? <>: Passnummer <strong style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>{k.license}</strong> – wird beim Bestätigen übernommen, keine neue Nummer.</> : ' (ohne Passnummer) – beim Bestätigen wird eine Nummer vergeben.'}
+                    {k.playerId && <> <a href={`/spieler/${k.playerId}`} style={{ color: 'var(--th-accent)', fontWeight: 700 }}>Profil</a></>}
+                    {k.kader.length > 0 && <><br /><strong style={{ color: 'var(--th-loss)' }}>Steht schon im Kader 2026/27: {k.kader.map(teamName).join(', ')}.</strong>{k.kader.includes(r.team_id) ? ' Die Nachmeldung ist damit doppelt – Ablehnen genügt.' : ''}</>}
+                  </>);
+                })()}
 
                 {r.status === 'pending' && (
                   <div style={{ marginTop: 10 }}>
