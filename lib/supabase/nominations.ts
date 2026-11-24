@@ -6,6 +6,7 @@
 // Benachrichtigungen laufen über DB-Trigger (Migration 0019). RLS aktiv.
 // ============================================================
 
+import { dbFehler } from '@/lib/db-fehler';
 import { supabase } from './client';
 import { generateNextPassNumber, nominationPlayerSlug, parseLicenseNumber, staticTeamBlock, nextFreeBlock } from '@/lib/data/pass-numbers';
 import { getCurrentSeason } from '@/lib/data';
@@ -109,7 +110,7 @@ export async function createNomination(teamId: string, teamName: string, firstNa
   const { error } = await supabase.from('player_nominations').insert({
     team_id: teamId, team_name: teamName, first_name: firstName.trim(), last_name: lastName.trim(), last_league: lastLeague, status: 'pending',
   });
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 export async function listMyNominations(): Promise<PlayerNomination[]> {
@@ -215,7 +216,7 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
       // Fallback NUR, solange Migration 0033 noch nicht eingespielt ist (Funktion
       // fehlt) — dann der bisherige, nicht-atomare Pfad, damit nichts blockiert.
       const rpcMissing = /PGRST202|could not find the function|does not exist/i.test(rpcError.message);
-      if (!rpcMissing) return { error: rpcError.message };
+      if (!rpcMissing) return { error: dbFehler(rpcError.message) };
 
       patch.license_number = license;
       patch.license_provisional = provisional;
@@ -235,7 +236,7 @@ export async function reviewNomination(id: string, status: Extract<NominationSta
   }
 
   const { error } = await supabase.from('player_nominations').update(patch).eq('id', id);
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 /**
@@ -288,7 +289,7 @@ export async function reprocessNominationSeason(id: string): Promise<{ error: st
 
   if (newLicense && newLicense !== n.license_number) {
     const { error: ne } = await supabase.from('player_nominations').update({ license_number: newLicense }).eq('id', id);
-    if (ne) return { error: ne.message };
+    if (ne) return { error: dbFehler(ne.message) };
     if (n.player_id) await supabase.from('players').update({ license_number: newLicense }).eq('id', n.player_id);
   }
   await supabase.from('player_assignments').update({ season_id: seasonId }).eq('id', `pa-nom-${id}`);
@@ -301,7 +302,7 @@ export async function updateNominationLicense(id: string, license: string): Prom
   const { error } = await supabase.from('player_nominations')
     .update({ license_number: license.trim() || null, license_provisional: false })
     .eq('id', id);
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 export interface NominatedPlayerOption {

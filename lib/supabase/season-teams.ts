@@ -7,6 +7,7 @@
 // ihre eigenen Zuordnungen sehen.
 // ============================================================
 
+import { dbFehler } from '@/lib/db-fehler';
 import { supabase } from './client';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { generateNextPassNumber, parseLicenseNumber, nominationPlayerSlug, nextFreeBlock, staticTeamBlock } from '@/lib/data/pass-numbers';
@@ -161,7 +162,7 @@ export async function setRosterPlayerName(rowId: string, first: string, last: st
   if (!rowId.startsWith('pa-')) {
     const { error } = await supabase.from('season_roster_assignments')
       .update({ first_name: f, last_name: l }).eq('id', rowId);
-    if (error) return { error: error.message };
+    if (error) return { error: dbFehler(error.message) };
   }
   if (playerId) {
     // Profil mitziehen; display_name nur überschreiben, wenn es kein Spitzname ist
@@ -191,7 +192,7 @@ export async function deleteRosterPlayer(seasonId: string, teamId: string, rowId
   // Kaderzeile (echte season_roster-Zeile; Nachmeldungs-Zeilen haben pa-…-Ids).
   if (!rowId.startsWith('pa-')) {
     const { error } = await supabase.from('season_roster_assignments').delete().eq('id', rowId);
-    if (error) return { error: error.message };
+    if (error) return { error: dbFehler(error.message) };
   }
   if (playerId) {
     await supabase.from('player_assignments').delete().eq('season_id', seasonId).eq('team_id', teamId).eq('player_id', playerId);
@@ -227,9 +228,9 @@ export async function setTeamShortName(teamId: string, shortName: string): Promi
   if (!error) return { error: null };
   // Fallback wie in saveTeamProfile, falls Migration 0036 noch fehlt (Admins via teams_admin_write).
   if (!/PGRST202|could not find the function|does not exist/i.test(error.message))
-    return { error: `Kürzel konnte nicht gespeichert werden: ${error.message}` };
+    return { error: `Kürzel konnte nicht gespeichert werden: ${dbFehler(error.message)}` };
   const { error: dErr } = await supabase.from('teams').update({ short_name: sn, updated_at: new Date().toISOString() }).eq('id', teamId);
-  return { error: dErr ? `Kürzel konnte nicht gespeichert werden: ${dErr.message}` : null };
+  return { error: dErr ? `Kürzel konnte nicht gespeichert werden: ${dbFehler(dErr.message)}` : null };
 }
 
 /** Spielstätte eines Saison-Teams ändern. Sucht eine passende Venue (Name +
@@ -248,11 +249,11 @@ export async function setSeasonTeamVenue(seasonId: string, teamId: string, name:
     const rnd = (globalThis.crypto?.randomUUID?.() ?? `${Math.random()}${Math.random()}`).replace(/[^a-z0-9]/gi, '').slice(0, 10);
     venueId = `venue-${rnd}`;
     const { error: ve } = await supabase.from('venues').insert({ id: venueId, name: nm, address: addr || null });
-    if (ve) return { error: ve.message };
+    if (ve) return { error: dbFehler(ve.message) };
   }
   const { error } = await supabase.from('season_team_assignments')
     .update({ venue_id: venueId }).eq('season_id', seasonId).eq('team_id', teamId);
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 /**
@@ -284,11 +285,11 @@ export async function setSeasonTeamContact(
   const { error } = await supabase.from('team_registrations')
     .update({ contact_name: name, contact_email: email, contact_phone: contact.phone.trim() || null })
     .eq('id', registrationId);
-  if (error) return { error: error.message };
+  if (error) return { error: dbFehler(error.message) };
   if (clearCaptainUser) {
     const { error: e2 } = await supabase.from('season_team_assignments')
       .update({ captain_user_id: null }).eq('season_id', seasonId).eq('team_id', teamId);
-    if (e2) return { error: e2.message };
+    if (e2) return { error: dbFehler(e2.message) };
   }
   return { error: null };
 }
@@ -303,14 +304,14 @@ export async function addRosterPlayer(seasonId: string, teamId: string, first: s
     first_name: first.trim(), last_name: last.trim(),
     is_captain: false, status: 'pending_review',
   });
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 /** Schaltet die aktive Saison um (Admin-only RPC). Ziel → active, bisher aktive → archived. */
 export async function setActiveSeason(seasonId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: 'Supabase ist nicht konfiguriert.' };
   const { error } = await supabase.rpc('set_active_season', { p_season_id: seasonId });
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 /**
@@ -332,7 +333,7 @@ export async function finalizeNewRosterPlayers(
     .from('season_roster_assignments')
     .select('id, first_name, last_name, player_id, is_captain, license_number, registration_player_id')
     .eq('season_id', seasonId).eq('team_id', teamId).eq('status', 'pending_review');
-  if (loadErr) return { finalized: 0, error: loadErr.message };
+  if (loadErr) return { finalized: 0, error: dbFehler(loadErr.message) };
   const todo = ((rows ?? []) as { id: string; first_name: string; last_name: string; player_id: string | null; is_captain: boolean; license_number: string | null; registration_player_id: string | null }[])
     .filter(r => !r.license_number);   // schon vergebene nicht doppelt behandeln
   if (todo.length === 0) return { finalized: 0, error: null };
@@ -461,10 +462,10 @@ export async function finalizeNewRosterPlayers(
       const { error: ae } = await supabase.from('player_assignments').upsert(
         { id: `pa-reg-${row.id}`, season_id: seasonId, team_id: teamId, player_id: existingId, status: 'active', is_captain: row.is_captain, source: 'registration' },
         { onConflict: 'id' });
-      if (ae) return { finalized: created + linked, error: `Zuordnung ${fullName}: ${ae.message}` };
+      if (ae) return { finalized: created + linked, error: `Zuordnung ${fullName}: ${dbFehler(ae.message)}` };
       const { error: ue } = await supabase.from('season_roster_assignments')
         .update({ player_id: existingId, license_number: lic, status: 'active' }).eq('id', row.id);
-      if (ue) return { finalized: created + linked, error: `Kader ${fullName}: ${ue.message}` };
+      if (ue) return { finalized: created + linked, error: `Kader ${fullName}: ${dbFehler(ue.message)}` };
       if (row.is_captain) {
         await supabase.from('season_team_assignments')
           .update({ captain_player_id: existingId }).eq('season_id', seasonId).eq('team_id', teamId);
@@ -483,16 +484,16 @@ export async function finalizeNewRosterPlayers(
     const { error: pe } = await supabase.from('players').upsert(
       { id: slug, first_name: row.first_name, last_name: row.last_name, license_number: gen.license, status: 'active', source: 'registration' },
       { onConflict: 'id' });
-    if (pe) return { finalized: created + linked, error: `Spieler ${fullName}: ${pe.message}` };
+    if (pe) return { finalized: created + linked, error: `Spieler ${fullName}: ${dbFehler(pe.message)}` };
 
     const { error: ae } = await supabase.from('player_assignments').upsert(
       { id: `pa-reg-${row.id}`, season_id: seasonId, team_id: teamId, player_id: slug, status: 'active', is_captain: row.is_captain, source: 'registration' },
       { onConflict: 'id' });
-    if (ae) return { finalized: created + linked, error: `Zuordnung ${fullName}: ${ae.message}` };
+    if (ae) return { finalized: created + linked, error: `Zuordnung ${fullName}: ${dbFehler(ae.message)}` };
 
     const { error: ue } = await supabase.from('season_roster_assignments')
       .update({ player_id: slug, license_number: gen.license, status: 'active' }).eq('id', row.id);
-    if (ue) return { finalized: created + linked, error: `Kader ${fullName}: ${ue.message}` };
+    if (ue) return { finalized: created + linked, error: `Kader ${fullName}: ${dbFehler(ue.message)}` };
 
     if (row.is_captain) {
       await supabase.from('season_team_assignments')
@@ -753,7 +754,7 @@ export async function setTeamPaid(seasonId: string, teamId: string, paid: boolea
   if (error && /paid_amount/.test(error.message)) {
     ({ error } = await supabase.from('season_team_payments').upsert(row, { onConflict: 'season_id,team_id' }));
   }
-  return { error: error?.message ?? null };
+  return { error: dbFehler(error?.message) };
 }
 
 /** Einzelner DB-Teamname (Fallback, wenn nicht im statischen Stamm). */
