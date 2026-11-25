@@ -65,7 +65,8 @@ describe('Folgefragen, Freitext und Tipps (Betreiber 15.11.2026)', () => {
 
 describe('Einstieg (Betreiber 15.11.2026)', () => {
   it('zählt nicht als Frage und erscheint nicht in den Schritten, die Antwort wird aber gespeichert', () => {
-    expect(fragenZahl(FRAGEN)).toBe(16);
+    // 16 eigene Fragen + „Bock auf ein MDU-Tippspiel?“ (die anderen WM-Fragen hängen an einem „Ja“, zählen also nicht)
+    expect(fragenZahl(FRAGEN)).toBe(17);
     expect(sichtbareFragen(FRAGEN, {}).some(f => f.id === 'einstieg')).toBe(false);
     expect(antwortenPruefen({ einstieg: 'muas', rolle: 'spieler' })).toEqual({ einstieg: 'muas', rolle: 'spieler' });
   });
@@ -76,7 +77,8 @@ describe('Rolle steuert Fragen und Optionen (Betreiber 15.11.2026)', () => {
     const ids = sichtbareFragen(FRAGEN, { rolle: 'fan' }).map(f => f.id);
     expect(ids).not.toContain('spielbericht');
     expect(ids).not.toContain('team_manager');
-    expect(sichtbareFragen(FRAGEN, { rolle: 'fan' })).toHaveLength(14);
+    // 14 für Fans + die WM-Frage, die seit dem WM-Start (25.11.2026) hinten dranhängt
+    expect(sichtbareFragen(FRAGEN, { rolle: 'fan' })).toHaveLength(15);
     const ticker = FRAGEN.find(f => f.id === 'ticker')!;
     expect(sichtbareOptionen(ticker, { rolle: 'fan' }).map(o => o.wert)).toEqual(['zuschauer', 'noch_nicht', 'kenne_nicht']);
     expect(antwortenPruefen({ rolle: 'fan', spielbericht: '5', ticker: 'eintragen' })).toEqual({ rolle: 'fan' });
