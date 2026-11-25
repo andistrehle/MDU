@@ -9,7 +9,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { authenticateRequest, isAdminUser } from '@/lib/server/auth';
-import { TM_UMFRAGE, UMFRAGE, antwortenPruefen, findeUmfrage, umfrageLaeuft, type Antworten } from '@/lib/umfrage';
+import { TM_UMFRAGE, UMFRAGE, WM_UMFRAGE, antwortenPruefen, findeUmfrage, umfrageLaeuft, type Antworten } from '@/lib/umfrage';
 import { betreiber } from '@/lib/server/premium';
 
 export const runtime = 'nodejs';
@@ -60,5 +60,13 @@ export async function GET(request: Request) {
   const { data, error } = await supabaseAdmin.from('umfrage_antworten')
     .select('antworten, created_at').eq('umfrage', u.def.id).order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: /umfrage_antworten/.test(error.message) ? 'Migration 0068 fehlt noch.' : error.message }, { status: 500 });
-  return NextResponse.json({ antworten: data ?? [] }, { headers: { 'Cache-Control': 'no-store' } });
+  let antworten = (data ?? []) as { antworten: Antworten; created_at: string }[];
+  // WM-Tippspiel: dieselben Fragen stecken auch am Ende der Website-Umfrage → beide zusammen auswerten (nur die WM-Antworten).
+  if (u.def.id === WM_UMFRAGE.id) {
+    const { data: web } = await supabaseAdmin.from('umfrage_antworten').select('antworten, created_at').eq('umfrage', UMFRAGE.id).not('antworten->wm_bock', 'is', null);
+    const nurWm = ((web ?? []) as { antworten: Antworten; created_at: string }[])
+      .map(r => ({ created_at: r.created_at, antworten: Object.fromEntries(Object.entries(r.antworten).filter(([k]) => k.startsWith('wm_'))) as Antworten }));
+    antworten = [...antworten, ...nurWm].sort((x, y) => y.created_at.localeCompare(x.created_at));
+  }
+  return NextResponse.json({ antworten }, { headers: { 'Cache-Control': 'no-store' } });
 }

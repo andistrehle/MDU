@@ -10,6 +10,8 @@
 
 export type FrageTyp = 'eine' | 'mehr' | 'sterne' | 'skala' | 'text' | 'name';
 
+export interface Tipp { wert: string; text: string; link?: { href: string; text: string } }
+
 export interface Frage {
   id: string;
   frage: string;
@@ -20,7 +22,7 @@ export interface Frage {
   /** Platzhalter/Überschrift des Freitexts (sonst „Was wünschst du dir?“). */
   freitextFrage?: string;
   /** Tipp unter der Frage, wenn diese Option gewählt ist (nur Anzeige, nichts gespeichert). */
-  tippBei?: { wert: string; text: string; link?: { href: string; text: string } };
+  tippBei?: Tipp | Tipp[];
   /** Einstiegs-Bildschirm vor Frage 1 (zählt nicht mit, Betreiber 15.11.2026). */
   einstieg?: boolean;
   /** Frage nur zeigen, wenn eine andere Frage so beantwortet wurde (Betreiber 15.11.2026). */
@@ -74,7 +76,7 @@ export function umfrageLaeuft(jetzt = new Date(), def: UmfrageDef = UMFRAGE): bo
 
 const o = (...p: [string, string][]) => p.map(([wert, text]) => ({ wert, text }));
 
-export const FRAGEN: Frage[] = [
+const BASIS_FRAGEN: Frage[] = [
   // Einstieg mit Augenzwinkern (Betreiber 15.11.2026) — eigener Bildschirm, zählt nicht als Frage.
   { gruppe: 'Einstieg', id: 'einstieg', typ: 'eine', einstieg: true, frage: 'Hast du 2 Minuten für uns?',
     optionen: o(['dabei', 'Ok, bin dabei 💪'], ['muas', 'Wenn’s sei muas 🙄'], ['spaeter', 'Später vielleicht ⏳'], ['ned', 'Geh ma ned auf’n Wecker 😤']) },
@@ -128,6 +130,43 @@ export const FRAGEN: Frage[] = [
     optionen: o(['okay', 'Okay, ich teste ihn'], ['captain', 'Ich sag’s dem Captain'], ['stur', 'Nein, ich bleib stur']),
     optionNichtWenn: { captain: { id: 'rolle', werte: ['tc', 'co'] } } },
 ];
+
+// ── WM-Tippspiel (Betreiber, 25.11.2026) ─────────────────────────────────
+// Kurz-Umfrage, ob es Interesse an einem Tippspiel zur Darts-WM gibt. Wer die Website-Umfrage schon
+// beantwortet hat, bekommt sie als eigenes Popup; alle anderen finden dieselben Fragen am Ende der
+// Website-Umfrage (FRAGEN unten). Ausgewertet wird beides zusammen (Admin → Umfrage → WM-Tippspiel).
+// Solange `live = false`: kein Popup, keine Fragen in der Website-Umfrage; Vorschau über ?umfrage=wm-probe.
+export const WM_UMFRAGE: UmfrageDef = {
+  id: 'wm-tipp-2026',
+  live: false,
+  start: '2026-11-25',
+  tage: 16,   // bis 10.12., dem Tag vor dem WM-Start
+  titel: 'WM-Tippspiel',
+  pfad: '/umfrage/wm-tipp',
+  intro: 'Vier kurze Fragen zu einem MDU-Tippspiel zur Darts-WM im Ally Pally.',
+  danke: 'Danke dir! 🎯 Ob und wie das Tippspiel kommt, liest du demnächst in den News.',
+};
+
+export const WM_FRAGEN: Frage[] = [
+  { gruppe: 'WM-Tippspiel', id: 'wm_bock', typ: 'eine', frage: 'Bock auf ein Ally-Pally-WM-Tippspiel? 🏆',
+    hinweis: 'Darts-WM ab 11. Dezember – jedes Spiel tippen, gewertet im Team, in der Liga und über die ganze MDU.',
+    optionen: o(['ja', 'Ja, auf jeden Fall!'], ['nein', 'Nein, eher nicht']),
+    tippBei: { wert: 'nein', text: 'Ok, danke dir für die Antwort! 👍' } },
+  { gruppe: 'WM-Tippspiel', id: 'wm_konto', typ: 'eine', nurWenn: { id: 'wm_bock', wert: 'ja' }, frage: 'Hast du ein MDU-Konto?',
+    hinweis: 'Mittippen geht nur mit Konto – so landest du automatisch in der Wertung deines Teams und deiner Liga.',
+    optionen: o(['ja', 'Ja'], ['nein', 'Nein']),
+    tippBei: [
+      { wert: 'ja', text: 'Super, dann bist du startklar! 💪' },
+      { wert: 'nein', text: 'Dann leg dir am besten gleich eins an – dauert nur eine Minute.', link: { href: '/registrieren', text: 'Konto anlegen' } },
+    ] },
+  { gruppe: 'WM-Tippspiel', id: 'wm_einsatz', typ: 'eine', nurWenn: { id: 'wm_bock', wert: 'ja' }, frage: 'Welcher Einsatz wäre für dich okay?',
+    optionen: o(['10', '10 €'], ['15', '15 €'], ['ohne', 'Lieber ohne Einsatz']) },
+  { gruppe: 'WM-Tippspiel', id: 'wm_wertung', typ: 'eine', nurWenn: { id: 'wm_bock', wert: 'ja' }, frage: 'Gegen wen tippst du am liebsten?',
+    optionen: o(['alle', 'Ligaübergreifend – die ganze MDU'], ['liga', 'Nur meine Liga'], ['team', 'Nur mein Team']) },
+];
+
+/** Website-Umfrage; sobald das WM-Tippspiel live ist, hängen dessen Fragen hinten dran. */
+export const FRAGEN: Frage[] = [...BASIS_FRAGEN, ...(WM_UMFRAGE.live ? WM_FRAGEN : [])];
 
 export const UMFRAGE: UmfrageDef = {
   id: 'website-2026-11',
@@ -185,7 +224,12 @@ export const TM_FRAGEN: Frage[] = [
 export const UMFRAGEN: { def: UmfrageDef; fragen: Frage[] }[] = [
   { def: UMFRAGE, fragen: FRAGEN },
   { def: TM_UMFRAGE, fragen: TM_FRAGEN },
+  { def: WM_UMFRAGE, fragen: WM_FRAGEN },
 ];
+
+/** Tipp unter einer Frage für diese Antwort (einer oder keiner). */
+export const tippFuer = (f: Frage, v: unknown): Tipp | undefined =>
+  (Array.isArray(f.tippBei) ? f.tippBei : f.tippBei ? [f.tippBei] : []).find(t => t.wert === v);
 export const findeUmfrage = (id: string | null | undefined) => UMFRAGEN.find(u => u.def.id === id);
 
 export const TEXT_MAX = 1000;

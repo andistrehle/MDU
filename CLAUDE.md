@@ -527,6 +527,11 @@ SQL UND `WM_START`), Rangliste rechnet der Server (`lib/server/wm-tipp.ts`, `/ap
 WM-Tipp: Spielplan einfügen (`spielplanLesen`, Runde; Datum; A; B), Ergebnisse, Bonusfragen auflösen. Automatischer Abgleich mit
 einer Quelle erst nach der Auslosung (Wikipedia war aus der Cloud-Session rate-limitiert). Freischalten: `WM_TIPP_LIVE` (bis dahin
 nur Ligaleitung), dann Link in Navigation/Startseite + FAQ ergänzen.
+Kurz-Umfrage dazu (Betreiber 25.11.2026, `WM_UMFRAGE`/`WM_FRAGEN` in lib/umfrage.ts, Seite `/umfrage/wm-tipp`, `live = false` bis zur
+Freigabe): Bock? → bei Ja Konto (Tipp je Antwort, `tippFuer`), Einsatz (10/15/ohne), Wertung (alle/Liga/Team). Wer die Website-Umfrage
+schon beantwortet hat bzw. sie nicht mehr läuft, bekommt sie als eigenes Popup (1×/Tag, nicht nach „Geh ma ned …“); sonst hängen die
+Fragen hinten an der Website-Umfrage (`FRAGEN`), und deren Absenden setzt das WM-„fertig“ mit. Admin → Umfrage → WM-Tippspiel wertet
+beide Quellen zusammen aus (`/api/umfrage` GET). Vorschau `?umfrage=wm-probe`.
 
 **FAQ** (`/faq`, seit 16.10.2026): Inhalt in `lib/data/faq.ts`, wird laufend erweitert. Bei neuen
 oder geänderten Funktionen die passende Antwort mitpflegen; nichts beschreiben, was die Plattform

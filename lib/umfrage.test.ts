@@ -87,3 +87,23 @@ describe('Rolle steuert Fragen und Optionen (Betreiber 15.11.2026)', () => {
     expect(sichtbareOptionen(f, { rolle: 'spieler', team_manager: 'nein' }).map(o => o.wert)).toEqual(['okay', 'captain', 'stur']);
   });
 });
+
+describe('WM-Tippspiel-Umfrage', () => {
+  it('bei „Nein“ nur die erste Frage, Folgefragen fliegen beim Prüfen raus', async () => {
+    const { WM_FRAGEN, sichtbareFragen, antwortenPruefen } = await import('./umfrage');
+    expect(sichtbareFragen(WM_FRAGEN, { wm_bock: 'nein' }).map(f => f.id)).toEqual(['wm_bock']);
+    expect(antwortenPruefen({ wm_bock: 'nein', wm_einsatz: '10' }, WM_FRAGEN)).toEqual({ wm_bock: 'nein' });
+  });
+  it('bei „Ja“ alle vier, Einsatz nur aus den Optionen', async () => {
+    const { WM_FRAGEN, sichtbareFragen, antwortenPruefen } = await import('./umfrage');
+    expect(sichtbareFragen(WM_FRAGEN, { wm_bock: 'ja' }).map(f => f.id)).toEqual(['wm_bock', 'wm_konto', 'wm_einsatz', 'wm_wertung']);
+    expect(antwortenPruefen({ wm_bock: 'ja', wm_konto: 'nein', wm_einsatz: '20', wm_wertung: 'liga' }, WM_FRAGEN)).toEqual({ wm_bock: 'ja', wm_konto: 'nein', wm_wertung: 'liga' });
+  });
+  it('Tipp je Antwort', async () => {
+    const { WM_FRAGEN, tippFuer } = await import('./umfrage');
+    const konto = WM_FRAGEN.find(f => f.id === 'wm_konto')!;
+    expect(tippFuer(konto, 'nein')?.link?.href).toBe('/registrieren');
+    expect(tippFuer(konto, 'ja')?.text).toMatch(/^Super/);
+    expect(tippFuer(konto, 'vielleicht')).toBeUndefined();
+  });
+});

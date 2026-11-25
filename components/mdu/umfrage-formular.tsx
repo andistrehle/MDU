@@ -14,7 +14,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
-import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, sichtbareOptionen, umfrageEnde, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
+import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, sichtbareOptionen, tippFuer, umfrageEnde, WM_UMFRAGE, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
 import { SprachKnopf } from './sprach-knopf';
 
@@ -100,7 +100,7 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
     const f = fragen.find(x => x.id === id);
     // Nicht selbst weiter, wenn unter der Frage etwas erscheint (Freitext, Tipp, Team-Manager-Hinweis) oder eine
     // Folgefrage dranhängt — die Liste der sichtbaren Fragen ändert sich dann erst mit dieser Antwort.
-    const haengtDran = !!f && (typeof v === 'string' && (freitextBei(f).includes(v) || f.tippBei?.wert === v)
+    const haengtDran = !!f && (typeof v === 'string' && (freitextBei(f).includes(v) || !!tippFuer(f, v))
       || f.id === 'team_manager' || f.id === 'tm_nein' || fragen.some(x => x.nurWenn?.id === f.id));
     const selbst = f && v !== undefined && !haengtDran && (f.typ === 'sterne' || f.typ === 'skala' || f.typ === 'eine');
     const i = sichtbar.findIndex(x => x.id === id);
@@ -119,7 +119,11 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
     const r = await fetch('/api/umfrage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ umfrage: def.id, geraet: geraetId(), antworten: sauber }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) as { ok?: boolean; error?: string } : { error: 'Keine Verbindung.' };
     if (!r?.ok || !j.ok) { setStatus('neu'); setFehler(j.error ?? 'Absenden fehlgeschlagen. Versuch es bitte noch einmal.'); return; }
-    try { localStorage.setItem(umfrageFertigKey(def), new Date().toISOString()); localStorage.removeItem(umfrageStandKey(def)); } catch { /* egal */ }
+    try {
+      localStorage.setItem(umfrageFertigKey(def), new Date().toISOString()); localStorage.removeItem(umfrageStandKey(def));
+      // WM-Fragen steckten in der Website-Umfrage → das eigene WM-Popup nicht noch einmal zeigen.
+      if (def.id !== WM_UMFRAGE.id && sauber.wm_bock) localStorage.setItem(umfrageFertigKey(WM_UMFRAGE), new Date().toISOString());
+    } catch { /* egal */ }
     setStatus('fertig');
     window.scrollTo({ top: 0, behavior: 'smooth' }); // sonst steht man nach dem Absenden in der Fußzeile
   }
@@ -319,11 +323,11 @@ function FrageFeld({ f, nr, a, setze, children }: { f: Frage; nr: number; a: Ant
           </label>
         );
       })()}
-      {f.tippBei && v === f.tippBei.wert && (
+      {tippFuer(f, v) && (() => { const t = tippFuer(f, v)!; return (
         <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: 'var(--th-accent-a07, rgba(46,140,87,0.08))', border: '1px solid var(--th-accent-a25, rgba(46,140,87,0.3))', fontFamily: font, fontSize: 13.5, lineHeight: 1.5, color: 'var(--th-text-body)' }}>
-          💡 {f.tippBei.text}{f.tippBei.link && <> <Link href={f.tippBei.link.href} target="_blank" style={{ color: 'var(--th-accent)', fontWeight: 700 }}>{f.tippBei.link.text} →</Link></>}
+          💡 {t.text}{t.link && <> <Link href={t.link.href} target="_blank" style={{ color: 'var(--th-accent)', fontWeight: 700 }}>{t.link.text} →</Link></>}
         </div>
-      )}
+      ); })()}
       {children}
     </fieldset>
   );
