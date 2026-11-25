@@ -138,7 +138,7 @@ const BASIS_FRAGEN: Frage[] = [
 // Solange `live = false`: kein Popup, keine Fragen in der Website-Umfrage; Vorschau über ?umfrage=wm-probe.
 export const WM_UMFRAGE: UmfrageDef = {
   id: 'wm-tipp-2026',
-  live: false,
+  live: true,   // Betreiber 25.11.2026: „Live“ — eine Woche, bis 01.12.
   start: '2026-11-25',
   tage: 7,    // eine Woche ab Start (Betreiber 25.11.2026) — beim Freischalten `start` auf den Tag der Freigabe setzen
   titel: 'WM-Tippspiel',
