@@ -148,7 +148,7 @@ export const WM_UMFRAGE: UmfrageDef = {
 };
 
 export const WM_FRAGEN: Frage[] = [
-  { gruppe: 'WM-Tippspiel', id: 'wm_bock', typ: 'eine', frage: 'Bock auf ein Ally-Pally-WM-Tippspiel? 🏆',
+  { gruppe: 'WM-Tippspiel', id: 'wm_bock', typ: 'eine', frage: 'Bock auf ein MDU-Tippspiel zur Darts-WM? 🏆',
     hinweis: 'Darts-WM ab 11. Dezember – jedes Spiel tippen, gewertet im Team, in der Liga und über die ganze MDU.',
     optionen: o(['ja', 'Ja, auf jeden Fall!'], ['nein', 'Nein, eher nicht']),
     tippBei: { wert: 'nein', text: 'Ok, danke dir für die Antwort! 👍' } },

@@ -28,7 +28,13 @@ export async function POST(request: Request) {
   if (!supabaseAdmin) return NextResponse.json({ ok: false, error: 'Speichern geht gerade nicht.' }, { status: 503 });
   const { error } = await supabaseAdmin.from('umfrage_antworten').insert({ umfrage: u.def.id, geraet_id: b.geraet, antworten });
   if (error) {
-    if (/duplicate key/.test(error.message)) return NextResponse.json({ ok: true, schonDa: true });
+    if (/duplicate key/.test(error.message)) {
+      // Erst „Geh ma ned …“ (nur die Absage gespeichert), dann doch mitgemacht → die Absage durch die Antworten ersetzen.
+      const { data: alt } = await supabaseAdmin.from('umfrage_antworten').select('id, antworten').eq('umfrage', u.def.id).eq('geraet_id', b.geraet).maybeSingle();
+      const nurAbsage = !!alt && Object.keys(alt.antworten ?? {}).every(k => k === 'einstieg') && Object.keys(antworten).some(k => k !== 'einstieg');
+      if (nurAbsage) await supabaseAdmin.from('umfrage_antworten').update({ antworten, created_at: new Date().toISOString() }).eq('id', alt!.id);
+      return NextResponse.json({ ok: true, schonDa: !nurAbsage });
+    }
     return NextResponse.json({ ok: false, error: /umfrage_antworten/.test(error.message) ? 'Migration 0068 fehlt noch.' : 'Speichern fehlgeschlagen.' }, { status: 500 });
   }
   // Team-Manager-Umfrage: Glocke (+ Push über 0056) an den Super-Admin (Betreiber, 11.11.2026).

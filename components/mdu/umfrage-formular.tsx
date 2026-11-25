@@ -14,7 +14,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { hatTcRecht } from '@/lib/auth/roles';
-import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, sichtbareOptionen, tippFuer, umfrageEnde, WM_UMFRAGE, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
+import { FRAGEN, NAME_MAX, TEXT_MAX, UMFRAGE, antwortenPruefen, fragenZahl, freitextBei, sichtbareFragen, sichtbareOptionen, tippFuer, umfrageEnde, WM_UMFRAGE, WM_FRAGEN, umfrageLaeuft, type Antworten, type Frage, type UmfrageDef } from '@/lib/umfrage';
 import { TESTTAGE } from '@/lib/premium';
 import { SprachKnopf } from './sprach-knopf';
 
@@ -24,6 +24,12 @@ export const umfrageFertigKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${de
 export const umfrageAbgelehntKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-abgelehnt`;
 /** Zwischenstand (Antworten + Frage), damit ein × nichts kostet (Betreiber 15.11.2026). */
 export const umfrageStandKey = (def: UmfrageDef = UMFRAGE) => `mdu-umfrage-${def.id}-stand`;
+
+function wmNachfragen(): boolean {
+  if (typeof window === 'undefined') return false;
+  try { if (localStorage.getItem(umfrageFertigKey(WM_UMFRAGE))) return false; } catch { return false; }
+  return umfrageLaeuft(new Date(), WM_UMFRAGE) || new URLSearchParams(window.location.search).get('wm') === '1';
+}
 
 function geraetId(): string {
   try {
@@ -103,6 +109,9 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
     const haengtDran = !!f && (typeof v === 'string' && (freitextBei(f).includes(v) || !!tippFuer(f, v))
       || f.id === 'team_manager' || f.id === 'tm_nein' || fragen.some(x => x.nurWenn?.id === f.id));
     const selbst = f && v !== undefined && !haengtDran && (f.typ === 'sterne' || f.typ === 'skala' || f.typ === 'eine');
+    // WM-Tippspiel (Betreiber 25.11.2026: „tracke auch die Nein“): „Nein“ wird sofort abgeschickt — sonst ginge es verloren,
+    // wenn jemand danach nur noch das Popup schließt.
+    if (def.id === WM_UMFRAGE.id && id === 'wm_bock' && v === 'nein') { void absenden({ ...a, wm_bock: 'nein' }); return; }
     const i = sichtbar.findIndex(x => x.id === id);
     if (selbst && i < sichtbar.length - 1) {
       if (weiterTimer.current) clearTimeout(weiterTimer.current);
@@ -110,9 +119,9 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
     }
   };
 
-  async function absenden() {
+  async function absenden(stand: Antworten = a) {
     setFehler(null);
-    const sauber = antwortenPruefen(a, fragen);
+    const sauber = antwortenPruefen(stand, fragen);
     if (!sauber) { setFehler('Bitte beantworte mindestens eine Frage.'); return; }
     if (!laeuft) { try { localStorage.removeItem(umfrageStandKey(def)); } catch { /* egal */ } setStatus('fertig'); window.scrollTo({ top: 0 }); return; } // Vorschau: nichts speichern
     setStatus('sende');
@@ -166,6 +175,8 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
             setA(alt => ({ ...alt, [einstiegsFrage.id]: o.wert }));
             if (o.wert === 'ned') {
               try { localStorage.setItem(umfrageAbgelehntKey(def), new Date().toISOString()); } catch { /* egal */ }
+              // Absagen mitzählen (Betreiber 25.11.2026) — still, ohne „fertig“; macht er doch noch mit, ersetzt der Server die Zeile.
+              if (laeuft) void fetch('/api/umfrage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ umfrage: def.id, geraet: geraetId(), antworten: { [einstiegsFrage.id]: 'ned' } }) }).catch(() => {});
               setStatus('nein');
             } else if (o.wert === 'spaeter') { if (imPopup && onSchliessen) onSchliessen(); else setStatus('spaeter'); }
             else { setSchritt(0); setStatus('neu'); }
@@ -176,6 +187,15 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
           }}>{o.text}</button>
         ))}
       </div>
+    </Karte>
+  );
+  // „Geh ma ned auf'n Wecker“ in der großen Umfrage → gleich die eine Frage zum WM-Tippspiel (Betreiber 25.11.2026),
+  // solange die WM-Umfrage läuft und auf dem Gerät noch nicht beantwortet ist. Vorschau: ?umfrage=probe&wm=1.
+  if (status === 'nein' && def.id !== WM_UMFRAGE.id && wmNachfragen()) return (
+    <Karte>
+      <h2 style={h2}>Na guad, dann hoid ned 😅</h2>
+      <p style={{ ...p, margin: '0 0 14px' }}>Wir nerven dich auf diesem Gerät nicht mehr mit der großen Umfrage. Nur eine Sache noch, ganz kurz:</p>
+      <FormularInnen def={WM_UMFRAGE} fragen={WM_FRAGEN} imPopup={imPopup} onSchliessen={onSchliessen} />
     </Karte>
   );
   if (status === 'nein' || status === 'spaeter') return (
@@ -260,7 +280,7 @@ function FormularInnen({ def = UMFRAGE, fragen = FRAGEN, imPopup = false, onSchl
                 ? <button type="button" onClick={() => geheZu(nr - 1)} style={{ fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-body)', cursor: 'pointer' }}>← Zurück</button>
                 : <span />}
               {letzte
-                ? <button type="button" onClick={absenden} disabled={status === 'sende'} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '12px 22px', opacity: status === 'sende' ? 0.6 : 1 }}>{status === 'sende' ? 'Sende …' : 'Absenden'}</button>
+                ? <button type="button" onClick={() => void absenden()} disabled={status === 'sende'} style={{ ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '12px 22px', opacity: status === 'sende' ? 0.6 : 1 }}>{status === 'sende' ? 'Sende …' : 'Absenden'}</button>
                 : <button type="button" onClick={() => geheZu(nr + 1)} style={beantwortet ? { ...knopf, border: 'none', cursor: 'pointer', fontSize: 15, padding: '11px 20px' } : { fontFamily: font, fontWeight: 700, fontSize: 14, padding: '10px 14px', borderRadius: 10, background: 'transparent', border: '1px solid var(--th-line-10)', color: 'var(--th-text-muted)', cursor: 'pointer' }}>
                     {beantwortet ? 'Weiter →' : 'Überspringen →'}
                   </button>}
