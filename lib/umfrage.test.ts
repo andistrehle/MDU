@@ -108,10 +108,10 @@ describe('WM-Tippspiel-Umfrage', () => {
   });
 });
 
-describe('WM-Umfrage endet mit der Website-Umfrage', () => {
-  it('gleicher letzter Tag (28.11.2026)', async () => {
-    const { WM_UMFRAGE, UMFRAGE, umfrageEnde } = await import('./umfrage');
-    expect(umfrageEnde(WM_UMFRAGE)).toBe('2026-11-28');
-    expect(umfrageEnde(WM_UMFRAGE)).toBe(umfrageEnde(UMFRAGE));
+describe('WM-Umfrage läuft eine Woche ab Start', () => {
+  it('7 Tage einschließlich Starttag', async () => {
+    const { WM_UMFRAGE, umfrageEnde } = await import('./umfrage');
+    const ende = new Date(WM_UMFRAGE.start + 'T12:00:00Z'); ende.setUTCDate(ende.getUTCDate() + 6);
+    expect(umfrageEnde(WM_UMFRAGE)).toBe(ende.toISOString().slice(0, 10));
   });
 });

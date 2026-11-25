@@ -140,7 +140,7 @@ export const WM_UMFRAGE: UmfrageDef = {
   id: 'wm-tipp-2026',
   live: false,
   start: '2026-11-25',
-  tage: 4,    // bis 28.11., genau wie die Website-Umfrage (Betreiber 25.11.2026: bis dahin muss das Tippspiel online)
+  tage: 7,    // eine Woche ab Start (Betreiber 25.11.2026) — beim Freischalten `start` auf den Tag der Freigabe setzen
   titel: 'WM-Tippspiel',
   pfad: '/umfrage/wm-tipp',
   intro: 'Vier kurze Fragen zu einem MDU-Tippspiel zur Darts-WM im Ally Pally.',
