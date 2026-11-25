@@ -107,3 +107,11 @@ describe('WM-Tippspiel-Umfrage', () => {
     expect(tippFuer(konto, 'vielleicht')).toBeUndefined();
   });
 });
+
+describe('WM-Umfrage endet mit der Website-Umfrage', () => {
+  it('gleicher letzter Tag (28.11.2026)', async () => {
+    const { WM_UMFRAGE, UMFRAGE, umfrageEnde } = await import('./umfrage');
+    expect(umfrageEnde(WM_UMFRAGE)).toBe('2026-11-28');
+    expect(umfrageEnde(WM_UMFRAGE)).toBe(umfrageEnde(UMFRAGE));
+  });
+});
