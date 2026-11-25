@@ -517,6 +517,17 @@ Gruppe, eigenes Geheimnis; fehlt es, passiert nichts), am Ende den Endstand; hö
 Dazu im Formular/Live-Modus „📲 Live-Link teilen“ (`LiveTeilenKnopf`, nur `LIVE_TEILEN_TEAMS` = Bazis; `null` = alle) → WhatsApp
 mit Link `/live?spiel=<Heim|Gast>` (Seite klappt das Spiel auf und springt hin).
 
+**WM-Tipp** (Migration 0075, Betreiber 25.11.2026 per Klick-Umfrage, Darts-WM ab 11.12.2026): `/wm-tipp` (noindex), Rechnung rein in
+`lib/wm-tipp.ts` (getestet): jedes Spiel Sieger 3 / genaues Ergebnis 5 (genau = Satzdifferenz, keine eigene Stufe), Vorab bis `WM_START`
+VF 3 · HF 5 · Finale 8 · Weltmeister 15 je Treffer, Bonus 180er (nächster 10, Platz 2/3 je 5, gleicher Abstand = gleicher Platz),
+Neun-Darter 5, bester Deutscher 5; Gleichstand → mehr genaue, mehr Sieger, sonst geteilt. Nur mit MDU-Konto; Wertung Team · Liga ·
+Gesamt aus EINEM Tipp (`ausschnitt`). KEIN Geld (rechtlich heikel) — Sachpreise in `WM_PREISE` (components/mdu/wm-tipp.tsx). Tipps
+schreibt der Browser per RLS (nur eigene, nur bis Spielbeginn `wm_spiel_offen`, Vorab bis `wm_vorab_offen()` — WM-Start steht in
+SQL UND `WM_START`), Rangliste rechnet der Server (`lib/server/wm-tipp.ts`, `/api/wm-tipp`, nur mit Konto). Admin → Spielbetrieb →
+WM-Tipp: Spielplan einfügen (`spielplanLesen`, Runde; Datum; A; B), Ergebnisse, Bonusfragen auflösen. Automatischer Abgleich mit
+einer Quelle erst nach der Auslosung (Wikipedia war aus der Cloud-Session rate-limitiert). Freischalten: `WM_TIPP_LIVE` (bis dahin
+nur Ligaleitung), dann Link in Navigation/Startseite + FAQ ergänzen.
+
 **FAQ** (`/faq`, seit 16.10.2026): Inhalt in `lib/data/faq.ts`, wird laufend erweitert. Bei neuen
 oder geänderten Funktionen die passende Antwort mitpflegen; nichts beschreiben, was die Plattform
 nicht kann, und nie von den Spielbedingungen abweichen. Die `id` ist der Direktlink (`/faq#id`) —
