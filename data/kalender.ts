@@ -212,6 +212,14 @@ export const KALENDER: Terminaenderung[] = [
     "note": null
   },
   {
+    "id": "2026-11-29-harlekin-zusatz",
+    "date": "2026-11-29",
+    "venueId": "harlekin",
+    "art": "zusatz",
+    "time": "18:00",
+    "note": null
+  },
+  {
     "id": "2026-12-26-fiakerstueberl-zusatz",
     "date": "2026-12-26",
     "venueId": "fiakerstueberl",
