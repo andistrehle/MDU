@@ -134,9 +134,15 @@ export function SiteFooter({ logo }: { logo?: BrandImage | null }) {
                         und ein solcher Vorabruf auf `/admin` beantwortet der
                         Wächter mit 401 — der Browser fragt dann mitten im
                         Scrollen nach dem Passwort. Ein `<a>` lädt erst beim
-                        Klick, und dann ist die Abfrage ja gewollt. */}
+                        Klick, und dann ist die Abfrage ja gewollt.
+
+                        `nofollow`, weil dieser Verweis auf JEDER Seite steht:
+                        Google folgt ihm, prallt an `Disallow: /admin` ab und
+                        meldet das als „Durch robots.txt blockiert" (26.11.2026).
+                        Gesperrt bleibt der Bereich natürlich — die Meldung
+                        soll nur nicht entstehen. */}
                     {link.guarded
-                      ? <a href={link.href}>{link.label}</a>
+                      ? <a href={link.href} rel="nofollow">{link.label}</a>
                       : <Link href={link.href}>{link.label}</Link>}
                   </li>
                 ))}

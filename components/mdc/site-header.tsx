@@ -135,6 +135,9 @@ export function SiteHeader({ nextRankingLabel, nextRankingHref, logo, thrower }:
           <a
             href={mdcPath('/admin')}
             className="mdc-header-admin"
+            // Google folgt dem Verweis sonst von jeder Seite aus und meldet
+            // ihn als „Durch robots.txt blockiert" (26.11.2026).
+            rel="nofollow"
             aria-label="Turnierverwaltung"
             title="Turnierverwaltung — Ergebnis hochladen, Kalender, News"
           >

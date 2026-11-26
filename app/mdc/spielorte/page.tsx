@@ -93,6 +93,7 @@ export default function SpielortePage() {
               </p>
               <a
                 href={mdcPath('/admin/ansetzen')}
+                rel="nofollow"
                 className="mdc-btn mdc-btn-primary mdc-btn-sm"
                 style={{ marginTop: 14 }}
               >
