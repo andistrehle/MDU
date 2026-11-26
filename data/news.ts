@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-12-06-aubinger-boazn-zusatz",
+    "date": "2026-11-26",
+    "title": "Zusätzliches Ranking am 06.12.2026 im Aubinger Boazn",
+    "teaser": "Am Sonntag, 06.12.2026 gibt es im Aubinger Boazn ein zusätzliches Ranking, Beginn 17:00 Uhr.",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Sonntag, 06.12.2026** gibt es im **Aubinger Boazn** ein zusätzliches Ranking. Beginn: **17:00 Uhr**. Angemeldet wird wie immer vor Ort im Lokal."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-29-harlekin-zusatz",
     "date": "2026-11-26",
     "title": "Zusätzliches Ranking am 29.11.2026 im Harlekin",
