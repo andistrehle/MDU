@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-11-27-harlekin-zusatz",
+    "date": "2026-11-26",
+    "title": "Zusätzliches Ranking am 27.11.2026 im Harlekin",
+    "teaser": "Am Freitag, 27.11.2026 gibt es im Harlekin ein zusätzliches Ranking, Beginn 20:00 Uhr.",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Freitag, 27.11.2026** gibt es im **Harlekin** ein zusätzliches Ranking. Beginn: **20:00 Uhr**. Angemeldet wird wie immer vor Ort im Lokal."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2027-01-02-fiakerstueberl-zusatz",
     "date": "2026-11-24",
     "title": "Zusätzliches Ranking am 02.01.2027 im Fiakerstüberl",
