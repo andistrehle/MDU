@@ -204,6 +204,14 @@ export const KALENDER: Terminaenderung[] = [
     "note": null
   },
   {
+    "id": "2026-11-29-aubinger-boazn-zusatz",
+    "date": "2026-11-29",
+    "venueId": "aubinger-boazn",
+    "art": "zusatz",
+    "time": "17:00",
+    "note": null
+  },
+  {
     "id": "2026-11-29-harlekin-zusatz",
     "date": "2026-11-29",
     "venueId": "harlekin",
