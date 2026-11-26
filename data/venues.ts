@@ -22,6 +22,7 @@ import {
   type SpielortAenderung,
 } from './spielorte-aenderungen';
 import { NEUE_SPIELORTE } from './spielorte-neu';
+import { ENTFERNTE_SPIELORTE, istEntfernt } from './spielorte-entfernt';
 
 /**
  * Sollen die Telefonnummern öffentlich angezeigt werden?
@@ -212,7 +213,16 @@ export const ALLE_BASIS: Venue[] = [...VENUES_BASIS, ...NEUE_SPIELORTE];
  * Ergebnis-Upload, Kalender. Eine Änderung wirkt damit überall zugleich,
  * statt an einer Stelle zu stimmen und an der nächsten nicht.
  */
-export const VENUES: Venue[] = ALLE_BASIS.map(wendeAn);
+export const VENUES: Venue[] = ALLE_BASIS
+  // Herausgenommene Lokale sind aus dem laufenden Betrieb verschwunden — sie
+  // stehen weder auf der Spielorte-Seite noch im Wochenplan, und beim
+  // Ergebnis-Upload lassen sie sich nicht mehr auswählen. Ihre alten Turniere
+  // behalten den Namen trotzdem, über `FORMER_VENUES`.
+  .filter(v => !istEntfernt(v.id))
+  .map(wendeAn);
+
+/** Alle Lokale, auch die herausgenommenen — für die Verwaltung. */
+export const ALLE_SPIELORTE: Venue[] = ALLE_BASIS.map(wendeAn);
 
 /** Ist das ein Lokal, das auf der Seite angelegt wurde? */
 export function istNeuerSpielort(id: string): boolean {
@@ -256,10 +266,20 @@ export const FLEXIBLE_RANKING_NOTE =
  * keine `Venue`-Einträge: Es gibt keine Spielort-Seite dazu, nur den Namen in
  * der Ergebnisliste.
  */
-export const FORMER_VENUES: { id: string; name: string }[] = [
+const FORMER_BASIS: { id: string; name: string }[] = [
   { id: 'rg-bar', name: 'RG Bar' },
   { id: 'gisi', name: 'Gisi' },
   { id: 'flair', name: 'Flair' },
+];
+
+/**
+ * Dazu kommen die Lokale, die die Turnierleitung unter `/admin/spielorte`
+ * herausgenommen hat (`data/spielorte-entfernt.ts`). Für die Ergebnisse von
+ * damals ist das genau dasselbe: Der Name bleibt, die eigene Seite fällt weg.
+ */
+export const FORMER_VENUES: { id: string; name: string }[] = [
+  ...FORMER_BASIS,
+  ...ENTFERNTE_SPIELORTE.map(e => ({ id: e.venueId, name: e.name })),
 ];
 
 const BY_ID = new Map(VENUES.map(v => [v.id, v]));

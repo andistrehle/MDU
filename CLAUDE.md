@@ -931,9 +931,22 @@ Lokal wird **direkt in seiner Datei geändert**, nicht über
 Berichtigung legen müsste (`istNeuerSpielort` entscheidet das in der Aktion).
 Die Kennung entsteht aus dem Namen und wird gegen `ALLE_BASIS` UND
 `FORMER_VENUES` geprüft — sie steht in jeder Ergebniszeile, zweimal dieselbe
-wäre ein zweites Lokal auf derselben Seite. **Entfernen** geht nur bei einem
-auf der Seite angelegten Lokal und nur, solange weder Turnier noch
-Kalendereintrag daran hängt; Lokale der Übersicht gehören dort heraus.
+wäre ein zweites Lokal auf derselben Seite.
+**Entfernen geht seit 26.11.2026 bei JEDEM Lokal** (Betreiber: „dass ich die
+auch komplett rauslöschen kann"), und der Server entscheidet wie: Ein auf der
+Seite angelegtes Lokal OHNE Turniere fliegt ganz aus `spielorte-neu.ts`; alles
+andere bekommt einen Eintrag in `data/spielorte-entfernt.ts`
+(`nimmSpielortHeraus`/`nimmSpielortWiederAuf`). Der nimmt es aus `VENUES` —
+also aus Spielorte-Seite, Wochenplan, Ergebnis-Upload und Kalenderauswahl —
+und hängt es an `FORMER_VENUES`: **spurlos löschen geht nicht**, die Kennung
+steht in jeder Ergebniszeile, dort stünde sonst „Unbekannter Spielort". Alte
+Turniere behalten den Namen, die eigene Spielort-Seite fällt weg (`isFormerVenue`,
+`generateStaticParams` aus `VENUES`). `ALLE_SPIELORTE` ist die Liste MIT den
+herausgenommenen — nur die Verwaltung rechnet damit. Künftige Kalendereinträge
+sperren das Entfernen (sie zeigten ins Leere), vergangene nicht. Jederzeit
+zurücknehmbar; ein Eintrag zu einem Lokal, das der Betreiber inzwischen selbst
+aus der Übersicht gestrichen hat, meldet `scripts/mdc-check-saison.ts` als
+„ERLEDIGT".
 **`boards` ist `number | null`:** Steht die Zahl nicht fest (Aubinger Boazn,
 Oktober 2026 — das Plakat nannte sie nicht), bleibt das Feld leer, die Seite
 sagt „noch nicht bekannt" und die Gesamtsumme zählt das Lokal nicht mit.

@@ -14,7 +14,10 @@ import { PageHero } from '@/components/mdc/ui';
 import { AdminNav } from '@/components/mdc/admin-nav';
 import { SpielortEditor, type EditorSpielort } from '@/components/mdc/spielort-editor';
 import { ALLE_BASIS, WEEKDAY_NAMES, istNeuerSpielort } from '@/data/venues';
+import { entfernungFuer } from '@/data/spielorte-entfernt';
 import { ALL_TOURNAMENTS } from '@/data/tournament-results';
+import { KALENDER } from '@/data/kalender';
+import { todayInMunich } from '@/data/season';
 import {
   FELD_NAMEN, SPIELORT_FELDER, aenderungFuer, gleicherWert,
   type SpielortFeld,
@@ -42,6 +45,11 @@ function alsText(feld: SpielortFeld, wert: unknown): string {
 }
 
 export default function AdminSpielortePage() {
+  // Nur die Termine ab heute zählen: Ein Lokal herauszunehmen, zu dem noch
+  // ein Abend im Plan steht, ließe den Wochenplan auf etwas zeigen, das es
+  // nicht mehr gibt. Vergangene stören nicht.
+  const heute = todayInMunich();
+
   const spielorte: EditorSpielort[] = ALLE_BASIS.map(basis => {
     const aenderung = aenderungFuer(basis);
     const jetzt: Venue = aenderung ? { ...basis, ...aenderung.neu } : basis;
@@ -78,9 +86,14 @@ export default function AdminSpielortePage() {
       note: aenderung?.note ?? null,
       datum: aenderung ? formatDate(aenderung.datum) : null,
       neu: istNeuerSpielort(basis.id),
-      // Entscheidet, ob „Entfernen" angeboten wird — ein Lokal mit Turnieren
-      // zu löschen hieße, Ergebnissen ihren Ort zu nehmen.
+      // Entscheidet, WIE entfernt wird: Mit Turnieren bleibt der Name an den
+      // Ergebnissen (früheres Lokal), ohne verschwindet es ganz.
       turniere: ALL_TOURNAMENTS.filter(t => t.venueId === basis.id).length,
+      kommendeTermine: KALENDER.filter(k => k.venueId === basis.id && k.date >= heute).length,
+      entfernt: (() => {
+        const e = entfernungFuer(basis.id);
+        return e ? { datum: formatDate(e.datum), note: e.note } : null;
+      })(),
     };
   });
 
@@ -110,10 +123,17 @@ export default function AdminSpielortePage() {
             </p>
             <p style={{ marginTop: 10 }}>
               Ein <strong>neues Lokal</strong> wird oben angelegt und landet in
-              <code> data/spielorte-neu.ts</code>. Zurücknehmen lässt es sich nur, solange dort
-              noch nichts gespielt wurde — ein Lokal mit Turnieren zu entfernen hieße,
-              Ergebnissen ihren Ort zu nehmen. Lokale aus der Übersicht des Betreibers lassen
-              sich hier gar nicht entfernen; die gehören dort heraus.
+              <code> data/spielorte-neu.ts</code>.
+            </p>
+            <p style={{ marginTop: 10 }}>
+              <strong>Herausnehmen</strong> geht bei jedem Lokal. Es verschwindet dann von der
+              Spielorte-Seite, aus dem Wochenplan, aus dem Ergebnis-Upload und aus dem Kalender.
+              Hängen <strong>Turniere</strong> daran, bleibt der Name an den Ergebnissen und das
+              Lokal wird zu einem früheren Lokal (<code>data/spielorte-entfernt.ts</code>) — spurlos
+              löschen ginge nicht, die Kennung steht in jeder Ergebniszeile, dort stünde danach
+              „Unbekannter Spielort&ldquo;. Wurde dort nie gespielt und war es auf der Seite angelegt,
+              ist es wirklich weg. <strong>Zurücknehmen geht immer</strong>; nur künftige
+              Kalendereinträge müssen vorher raus.
             </p>
           </div>
         </div>

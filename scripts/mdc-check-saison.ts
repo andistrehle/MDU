@@ -27,7 +27,7 @@
 
 import {
   tournamentsOfSeason, seasonStats, getTournamentRecord, AKTIVE_PASS_KORREKTUREN,
-  PARALLEL_GEPRUEFT, GRUNDBESTAND_IDS,
+  PARALLEL_GEPRUEFT, GRUNDBESTAND_IDS, ALL_TOURNAMENTS,
 } from '../data/tournament-results';
 import { CORRECTIONS, PASS_KORREKTUREN } from '../data/corrections';
 import { FINAL_RANKING_2025_26 } from '../data/ranking-final';
@@ -42,7 +42,8 @@ import { jackpotStand } from '../lib/mdc/jackpot';
 import { doppelteEintraege } from '../lib/mdc/passnummern';
 import { REGISTER_KORREKTUREN, type RegisterKorrektur } from '../data/register-korrekturen';
 import { AKTIVE_REGISTER_KORREKTUREN, ERLEDIGTE_REGISTER_KORREKTUREN } from '../data/register';
-import { GEAENDERTE_SPIELORTE, ERLEDIGTE_SPIELORT_AENDERUNGEN, WEEKDAY_NAMES } from '../data/venues';
+import { GEAENDERTE_SPIELORTE, ERLEDIGTE_SPIELORT_AENDERUNGEN, ALLE_BASIS, WEEKDAY_NAMES } from '../data/venues';
+import { ENTFERNTE_SPIELORTE } from '../data/spielorte-entfernt';
 import { FELD_NAMEN, SPIELORT_FELDER, gleicherWert, type SpielortFeld } from '../data/spielorte-aenderungen';
 import type { Division, Season } from '../data/types';
 
@@ -359,6 +360,27 @@ if (GEAENDERTE_SPIELORTE.length || ERLEDIGTE_SPIELORT_AENDERUNGEN.length) {
     meldung(`WIRKUNGSLOS: Die Änderung an „${a.venueId}" passt auf keine Zeile der `
       + 'Spielorte-Übersicht mehr. Bitte prüfen, ob der Eintrag weg kann '
       + '(data/spielorte-aenderungen.ts).');
+  }
+}
+
+// ── Spielorte, die herausgenommen wurden ───────────────────
+//
+// Dieselbe Bremse wie bei allem anderen: Der Eintrag greift nur, solange es
+// das Lokal in der Übersicht überhaupt noch gibt. Streicht der Betreiber es
+// dort selbst, läuft er ins Leere und kann weg.
+if (ENTFERNTE_SPIELORTE.length) {
+  console.log('\nHerausgenommene Spielorte (data/spielorte-entfernt.ts)');
+  for (const e of ENTFERNTE_SPIELORTE) {
+    const basis = ALLE_BASIS.find(v => v.id === e.venueId);
+    const turniere = ALL_TOURNAMENTS.filter(t => t.venueId === e.venueId).length;
+    if (!basis) {
+      console.log(`  ERLEDIGT  ${e.name} steht ohnehin nicht mehr in der Übersicht — `
+        + 'der Eintrag kann weg (data/spielorte-entfernt.ts).');
+      continue;
+    }
+    console.log(`  aktiv     ${e.name} (seit ${e.datum})`
+      + (turniere ? ` — ${turniere} Turniere behalten den Namen` : ' — nie gespielt')
+      + (e.note ? `, ${e.note}` : ''));
   }
 }
 

@@ -3,7 +3,7 @@ import { PageHero } from '@/components/mdc/ui';
 import { PlayerDirectory, type DirectoryEntry } from '@/components/mdc/player-directory';
 import { PLAYERS } from '@/data/players';
 import { getFinalEntry } from '@/data/ranking-final';
-import { getVenue } from '@/data/venues';
+import { venueName } from '@/data/venues';
 import { formatNumber } from '@/lib/mdc/format';
 import { mdcSeite } from '@/lib/mdc/metadata';
 
@@ -25,7 +25,10 @@ export default function SpielerPage() {
       lastName: player.lastName,
       nickname: player.nickname,
       division: player.division,
-      venueName: player.homeVenueId ? getVenue(player.homeVenueId)?.name ?? null : null,
+      // Über `venueName`, nicht über `getVenue`: Ein Lokal, in dem nicht mehr
+      // gespielt wird, hat keine eigene Seite mehr — sein NAME gehört aber
+      // weiter ans Stammlokal, sonst stünde dort plötzlich nichts.
+      venueName: player.homeVenueId ? venueName(player.homeVenueId) : null,
       rank: final?.rank ?? null,
       points: final?.points ?? 0,
       tournaments: final?.tournaments ?? 0,

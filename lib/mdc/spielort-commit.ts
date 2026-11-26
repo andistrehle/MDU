@@ -15,6 +15,7 @@
 
 import 'server-only';
 import type { SpielortAenderung } from '@/data/spielorte-aenderungen';
+import type { EntfernterSpielort } from '@/data/spielorte-entfernt';
 import type { Venue } from '@/data/types';
 import { CommitFehler, committe, kontext, leseDatei } from './github';
 
@@ -217,5 +218,101 @@ export async function entferneNeuenSpielort(
     [{ pfad: NEU_PFAD, inhalt: schreibeNeue(quelle, uebrig) }],
     `MDC Spielort: ${name} wieder entfernt\n\n`
     + 'Über /admin/spielorte angelegt und zurückgenommen; dort wurde nie gespielt.',
+  );
+}
+
+// ------------------------------------------------------------
+// Lokale herausnehmen (Betreiber, 26.11.2026)
+// ------------------------------------------------------------
+//
+// Bis dahin ließ sich nur ein Lokal zurücknehmen, das auf der Seite angelegt
+// worden war und an dem noch kein Turnier hing. Alles andere ging nur von
+// Hand in `data/venues.ts`. Jetzt geht beides von der Seite aus:
+//
+//   • Lokal auf der Seite angelegt, nie gespielt  → wirklich weg
+//     (`entferneNeuenSpielort`, siehe oben — die Datei bleibt sauber).
+//   • Alles andere → Eintrag in `data/spielorte-entfernt.ts`. Es verschwindet
+//     aus dem laufenden Betrieb, die alten Ergebnisse behalten ihren Ort.
+// ------------------------------------------------------------
+
+const ENTFERNT_PFAD = 'data/spielorte-entfernt.ts';
+const ENTFERNT_ANFANG = 'export const ENTFERNTE_SPIELORTE: EntfernterSpielort[] = ';
+
+function leseEntfernte(quelle: string): EntfernterSpielort[] {
+  const von = quelle.indexOf(ENTFERNT_ANFANG);
+  if (von === -1) {
+    throw new CommitFehler(`In ${ENTFERNT_PFAD} fehlt die Liste ENTFERNTE_SPIELORTE.`);
+  }
+  const start = von + ENTFERNT_ANFANG.length;
+  const bis = quelle.indexOf('];', start);
+  if (bis === -1) throw new CommitFehler('Die Liste ENTFERNTE_SPIELORTE ist nicht abgeschlossen.');
+  try {
+    return JSON.parse(quelle.slice(start, bis + 1)) as EntfernterSpielort[];
+  } catch {
+    throw new CommitFehler(
+      `Die Liste ENTFERNTE_SPIELORTE in ${ENTFERNT_PFAD} ist nicht mehr maschinenlesbar. `
+      + 'Vermutlich wurde sie von Hand bearbeitet — bitte prüfen.',
+    );
+  }
+}
+
+function schreibeEntfernte(quelle: string, liste: EntfernterSpielort[]): string {
+  const von = quelle.indexOf(ENTFERNT_ANFANG);
+  const start = von + ENTFERNT_ANFANG.length;
+  const bis = quelle.indexOf('];', start);
+  // Nach Lokal sortiert — wie die Änderungen, damit sich beide Dateien gleich
+  // lesen.
+  const sortiert = [...liste].sort((a, b) => a.venueId.localeCompare(b.venueId));
+  return quelle.slice(0, start) + JSON.stringify(sortiert, null, 2) + quelle.slice(bis + 1);
+}
+
+/** Nimmt ein Lokal aus dem laufenden Betrieb — die Ergebnisse behalten es. */
+export async function nimmSpielortHeraus(
+  eintrag: EntfernterSpielort,
+  /** Wie viele Turniere daran hängen — steht in der Commit-Nachricht. */
+  turniere: number,
+): Promise<{ sha: string; url: string }> {
+  const ctx = kontext();
+  const quelle = await leseDatei(ctx, ENTFERNT_PFAD);
+  const bisher = leseEntfernte(quelle);
+  if (bisher.some(e => e.venueId === eintrag.venueId)) {
+    throw new CommitFehler(
+      `${eintrag.name} ist dort schon herausgenommen. Bitte die Seite neu laden.`,
+    );
+  }
+
+  return committe(
+    ctx,
+    [{ pfad: ENTFERNT_PFAD, inhalt: schreibeEntfernte(quelle, [...bisher, eintrag]) }],
+    [
+      `MDC Spielort: ${eintrag.name} herausgenommen`,
+      '',
+      eintrag.note ? `Grund: ${eintrag.note}` : 'Ohne Begründung eingetragen.',
+      turniere > 0
+        ? `${turniere} ausgewertete Turniere behalten den Namen (früheres Lokal).`
+        : 'Dort wurde nie gespielt.',
+      '',
+      'Über /admin/spielorte herausgenommen, dort auch wieder aufnehmbar.',
+    ].join('\n'),
+  );
+}
+
+/** Nimmt ein herausgenommenes Lokal wieder in den Betrieb. */
+export async function nimmSpielortWiederAuf(
+  venueId: string,
+  name: string,
+): Promise<{ sha: string; url: string }> {
+  const ctx = kontext();
+  const quelle = await leseDatei(ctx, ENTFERNT_PFAD);
+  const bisher = leseEntfernte(quelle);
+  const uebrig = bisher.filter(e => e.venueId !== venueId);
+  if (uebrig.length === bisher.length) {
+    throw new CommitFehler(`${name} ist gar nicht herausgenommen. Bitte die Seite neu laden.`);
+  }
+  return committe(
+    ctx,
+    [{ pfad: ENTFERNT_PFAD, inhalt: schreibeEntfernte(quelle, uebrig) }],
+    `MDC Spielort: ${name} wieder aufgenommen\n\n`
+    + 'Steht wieder im Wochenplan, auf der Spielorte-Seite und im Ergebnis-Upload.',
   );
 }

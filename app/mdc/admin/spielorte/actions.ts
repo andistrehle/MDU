@@ -18,8 +18,9 @@
 // ============================================================
 
 import { headers } from 'next/headers';
-import { VENUES_BASIS, ALLE_BASIS, istNeuerSpielort } from '@/data/venues';
+import { VENUES_BASIS, ALLE_BASIS, ALLE_SPIELORTE, istNeuerSpielort } from '@/data/venues';
 import { FORMER_VENUES } from '@/data/venues';
+import { istEntfernt } from '@/data/spielorte-entfernt';
 import { ALL_TOURNAMENTS } from '@/data/tournament-results';
 import { KALENDER } from '@/data/kalender';
 import type { Venue, Weekday } from '@/data/types';
@@ -30,6 +31,7 @@ import {
 import {
   speichereSpielort, setzeSpielortZurueck,
   legeSpielortAn, aendereNeuenSpielort, entferneNeuenSpielort,
+  nimmSpielortHeraus, nimmSpielortWiederAuf,
 } from '@/lib/mdc/spielort-commit';
 import { CommitFehler } from '@/lib/mdc/github';
 import { getUploadStatus } from '@/lib/mdc/upload-config';
@@ -305,48 +307,102 @@ export async function legeSpielortNeuAn(
 }
 
 /**
- * Nimmt ein auf der Seite angelegtes Lokal wieder zurück — nur, solange dort
- * nichts hängt. Ein Lokal mit Turnieren zu entfernen hieße, Ergebnissen ihren
- * Ort zu nehmen; ein Kalendereintrag zeigte danach ins Leere.
+ * Nimmt ein Lokal aus dem laufenden Betrieb (Betreiber, 26.11.2026: „dass ich
+ * die auch komplett rauslöschen kann").
+ *
+ * ZWEI WEGE, und welcher gilt, entscheidet nicht der Browser:
+ *
+ *   • Auf der Seite angelegt und nie gespielt → wirklich weg, der Eintrag
+ *     verschwindet aus `data/spielorte-neu.ts`. Es gibt nichts, was darauf
+ *     zeigt, also bleibt die Datei sauber.
+ *   • Alles andere (Lokal aus der Übersicht des Betreibers, oder eines mit
+ *     Turnieren) → Eintrag in `data/spielorte-entfernt.ts`. Es verschwindet
+ *     aus Spielorte-Seite, Wochenplan, Ergebnis-Upload und Kalender, und
+ *     wird zu einem FRÜHEREN Lokal: Die alten Turniere behalten ihren Ort.
+ *     Spurlos löschen ginge nicht — die Kennung steht in jeder Ergebniszeile,
+ *     dort stünde danach „Unbekannter Spielort".
+ *
+ * Beides lässt sich zurücknehmen (`nimmSpielortWiederAufAktion`).
  */
-export async function entferneSpielort(venueId: string): Promise<SpielortErgebnis> {
+export async function entferneSpielort(
+  venueId: string,
+  /** Kurze Begründung, z. B. „Lokal hat zugesperrt". Freiwillig. */
+  grund?: string,
+): Promise<SpielortErgebnis> {
   if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
   const nichtBereit = bereit();
   if (nichtBereit) return { ok: false, fehler: nichtBereit };
 
-  const venue = ALLE_BASIS.find(v => v.id === venueId);
+  // Der Name, der GERADE gilt — samt einer laufenden Änderung. Unter dem
+  // Namen kennen die Leute das Lokal, und unter dem steht es später an den
+  // alten Turnieren.
+  const venue = ALLE_SPIELORTE.find(v => v.id === venueId);
   if (!venue) return { ok: false, fehler: 'Diesen Spielort gibt es nicht.' };
-  if (!istNeuerSpielort(venueId)) {
+  if (istEntfernt(venueId)) {
+    return { ok: false, fehler: `${venue.name} ist schon herausgenommen. Bitte die Seite neu laden.` };
+  }
+
+  // Künftige Kalendereinträge zeigten danach ins Leere: Im Wochenplan stünde
+  // ein Termin in einem Lokal, das es auf der Seite nicht mehr gibt.
+  // Vergangene stören nicht, der Plan schaut nur nach vorn.
+  const heute = todayInMunich();
+  const kommende = KALENDER.filter(k => k.venueId === venueId && k.date >= heute);
+  if (kommende.length > 0) {
     return {
       ok: false,
-      fehler: `${venue.name} steht in der Spielorte-Übersicht und lässt sich hier nicht `
-        + 'entfernen. Dort gehört es auch heraus.',
+      fehler: `Im Kalender ${kommende.length === 1 ? 'steht noch ein Eintrag' : `stehen noch ${kommende.length} Einträge`} `
+        + `zu ${venue.name} (ab ${kommende[0].date}). Bitte die zuerst zurücknehmen.`,
     };
   }
 
   const turniere = ALL_TOURNAMENTS.filter(t => t.venueId === venueId).length;
-  if (turniere > 0) {
-    return {
-      ok: false,
-      fehler: `In ${venue.name} sind schon ${turniere} Turniere ausgewertet. `
-        + 'Ein Lokal mit Ergebnissen lässt sich nicht entfernen — die Turniere verlören ihren Ort.',
-    };
-  }
-  const termine = KALENDER.filter(k => k.venueId === venueId).length;
-  if (termine > 0) {
-    return {
-      ok: false,
-      fehler: `Im Kalender stehen noch ${termine} Einträge zu ${venue.name}. `
-        + 'Bitte die zuerst zurücknehmen.',
-    };
-  }
+  const note = (grund ?? '').trim().slice(0, 200) || null;
 
   try {
-    const commit = await entferneNeuenSpielort(venueId, venue.name);
-    return { ok: true, url: commit.url, beschreibung: venue.name, zurueckgesetzt: true };
+    // Auf der Seite angelegt und nie gespielt: Es gibt nichts, was darauf
+    // zeigt — also ganz heraus, statt eine Karteileiche anzulegen.
+    if (istNeuerSpielort(venueId) && turniere === 0) {
+      const commit = await entferneNeuenSpielort(venueId, venue.name);
+      return { ok: true, url: commit.url, beschreibung: `${venue.name} entfernt`, zurueckgesetzt: true };
+    }
+
+    const commit = await nimmSpielortHeraus(
+      { venueId, name: venue.name, datum: heute, note },
+      turniere,
+    );
+    return {
+      ok: true,
+      url: commit.url,
+      beschreibung: turniere > 0
+        ? `${venue.name} herausgenommen — ${turniere} Turniere behalten den Namen`
+        : `${venue.name} herausgenommen`,
+      zurueckgesetzt: true,
+    };
   } catch (f) {
     if (f instanceof CommitFehler) return { ok: false, fehler: f.message };
     console.error('[mdc] Spielort entfernen fehlgeschlagen', f);
     return { ok: false, fehler: 'Das Lokal konnte nicht entfernt werden. Bitte noch einmal versuchen.' };
+  }
+}
+
+/** Holt ein herausgenommenes Lokal zurück in den laufenden Betrieb. */
+export async function nimmSpielortWiederAufAktion(venueId: string): Promise<SpielortErgebnis> {
+  if (!await zugangGeprueft()) return { ok: false, fehler: KEIN_ZUGANG };
+  const nichtBereit = bereit();
+  if (nichtBereit) return { ok: false, fehler: nichtBereit };
+
+  const venue = ALLE_SPIELORTE.find(v => v.id === venueId);
+  if (!venue) return { ok: false, fehler: 'Diesen Spielort gibt es nicht.' };
+  if (!istEntfernt(venueId)) {
+    return { ok: false, fehler: `${venue.name} steht ohnehin im Betrieb. Bitte die Seite neu laden.` };
+  }
+
+  try {
+    const commit = await nimmSpielortWiederAuf(venueId, venue.name);
+    return { ok: true, url: commit.url, beschreibung: `${venue.name} wieder aufgenommen`, zurueckgesetzt: true };
+  } catch (f) {
+    if (f instanceof CommitFehler) return { ok: false, fehler: f.message };
+    console.error('[mdc] Spielort wieder aufnehmen fehlgeschlagen', f);
+    return { ok: false, fehler: 'Das Lokal konnte nicht wieder aufgenommen werden. Bitte noch einmal versuchen.' };
   }
 }

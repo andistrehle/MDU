@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import {
   speichereSpielortAenderung, nimmSpielortAenderungZurueck,
-  legeSpielortNeuAn, entferneSpielort,
+  legeSpielortNeuAn, entferneSpielort, nimmSpielortWiederAufAktion,
 } from '@/app/mdc/admin/spielorte/actions';
 
 export interface SpielortStatus {
@@ -55,8 +55,12 @@ export interface EditorSpielort {
   };
   /** Auf der Seite angelegt? Dann gibt es keine Übersicht dahinter. */
   neu: boolean;
-  /** Turniere, die an diesem Lokal hängen — entfernen geht nur bei null. */
+  /** Turniere, die an diesem Lokal hängen. Mit Turnieren bleibt der Name. */
   turniere: number;
+  /** Kalendereinträge ab heute — die müssen vor dem Entfernen weg. */
+  kommendeTermine: number;
+  /** Herausgenommen? Dann steht hier, wann und warum. */
+  entfernt: { datum: string; note: string | null } | null;
   /** Die Felder, die gerade von der Übersicht abweichen — für den Hinweis. */
   geaendert: { feld: string; vorher: string; jetzt: string }[];
   /** Begründung der laufenden Änderung, falls eine hinterlegt ist. */
@@ -123,6 +127,11 @@ export function SpielortEditor({ spielorte, status }: {
   const [laeuft, setLaeuft] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [fertig, setFertig] = useState<{ url: string; text: string } | null>(null);
+  // Welches Lokal gerade gefragt wird, ob es wirklich heraus soll — plus der
+  // Grund, der in der Commit-Nachricht landet. Bewusst eine Karte in der
+  // Seite statt `window.confirm`: Dort lässt sich schreiben, was mit den
+  // alten Turnieren passiert, und das ist die eigentliche Frage.
+  const [raus, setRaus] = useState<{ id: string; grund: string } | null>(null);
 
   if (!status.canPublish) {
     return (
@@ -223,17 +232,24 @@ export function SpielortEditor({ spielorte, status }: {
     zumachen();
   }
 
-  async function entfernen(v: EditorSpielort) {
-    if (!window.confirm(
-      `${v.name} wirklich entfernen?\n\n`
-      + 'Das Lokal verschwindet von der Seite, aus dem Wochenplan und aus den Auswahllisten.',
-    )) return;
+  async function entfernen(v: EditorSpielort, grund: string) {
     setLaeuft(true);
     setFehler(null);
-    const antwort = await entferneSpielort(v.id);
+    const antwort = await entferneSpielort(v.id, grund);
     setLaeuft(false);
     if (!antwort.ok) { setFehler(antwort.fehler); return; }
-    setFertig({ url: antwort.url, text: `${antwort.beschreibung} ist entfernt.` });
+    setRaus(null);
+    setFertig({ url: antwort.url, text: `${antwort.beschreibung}.` });
+    zumachen();
+  }
+
+  async function wiederAufnehmen(v: EditorSpielort) {
+    setLaeuft(true);
+    setFehler(null);
+    const antwort = await nimmSpielortWiederAufAktion(v.id);
+    setLaeuft(false);
+    if (!antwort.ok) { setFehler(antwort.fehler); return; }
+    setFertig({ url: antwort.url, text: `${antwort.beschreibung}.` });
     zumachen();
   }
 
@@ -331,11 +347,19 @@ export function SpielortEditor({ spielorte, status }: {
           style={{
             padding: '18px 18px',
             borderColor: v.geaendert.length ? 'var(--mdc-blue-soft)' : undefined,
+            // Herausgenommenes bleibt stehen, aber blass — man soll sehen,
+            // dass es das Lokal gab, ohne es mit den laufenden zu verwechseln.
+            opacity: v.entfernt ? 0.62 : undefined,
           }}
         >
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0 }}>
-              <h3 className="mdc-display" style={{ fontSize: '1.05rem' }}>{v.name}</h3>
+              <h3
+                className="mdc-display"
+                style={{ fontSize: '1.05rem', textDecoration: v.entfernt ? 'line-through' : undefined }}
+              >
+                {v.name}
+              </h3>
               <p style={{ marginTop: 4, fontSize: '0.88rem', color: 'var(--mdc-ink-soft)', display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                 <MapPin size={13} style={{ flexShrink: 0 }} />
                 {v.street}, {v.zip} {v.city}
@@ -355,34 +379,145 @@ export function SpielortEditor({ spielorte, status }: {
               )}
             </div>
 
-            {offen !== v.id && (
+            {offen !== v.id && raus?.id !== v.id && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => aufmachen(v)}
-                  className="mdc-btn mdc-btn-ghost mdc-btn-sm"
-                  disabled={laeuft}
-                >
-                  <Pencil size={14} />
-                  Ändern
-                </button>
-                {/* Entfernen nur bei einem Lokal, das auf der Seite angelegt
-                    wurde UND an dem noch kein Turnier hängt — sonst verlören
-                    Ergebnisse ihren Ort. Der Server prüft beides noch einmal. */}
-                {v.neu && v.turniere === 0 && (
+                {v.entfernt ? (
                   <button
                     type="button"
-                    onClick={() => entfernen(v)}
+                    onClick={() => wiederAufnehmen(v)}
                     className="mdc-btn mdc-btn-ghost mdc-btn-sm"
                     disabled={laeuft}
                   >
-                    <Trash2 size={14} />
-                    Entfernen
+                    <RotateCcw size={14} />
+                    Wieder aufnehmen
                   </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => aufmachen(v)}
+                      className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                      disabled={laeuft}
+                    >
+                      <Pencil size={14} />
+                      Ändern
+                    </button>
+                    {/* Entfernen geht bei jedem Lokal. Was dabei passiert,
+                        hängt davon ab, ob Turniere daran hängen — das steht
+                        in der Rückfrage, nicht erst in der Fehlermeldung. */}
+                    <button
+                      type="button"
+                      onClick={() => { setRaus({ id: v.id, grund: '' }); setFehler(null); setFertig(null); }}
+                      className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                      disabled={laeuft}
+                    >
+                      <Trash2 size={14} />
+                      Entfernen
+                    </button>
+                  </>
                 )}
               </div>
             )}
           </div>
+
+          {/* ── Herausgenommen: seit wann und warum ── */}
+          {v.entfernt && (
+            <div
+              style={{
+                marginTop: 12, padding: '10px 12px', borderRadius: 9,
+                background: 'var(--mdc-red-a08)', fontSize: '0.85rem', lineHeight: 1.65,
+              }}
+            >
+              <strong>Herausgenommen</strong> am {v.entfernt.datum}
+              {v.entfernt.note ? ` — ${v.entfernt.note}` : ''}.
+              {v.turniere > 0
+                ? ` Die ${v.turniere} ausgewerteten Turniere behalten den Namen; eine eigene Spielort-Seite gibt es nicht mehr.`
+                : ' Dort wurde nie gespielt.'}
+            </div>
+          )}
+
+          {/* ── Rückfrage vorm Entfernen ──
+              Was genau passiert, hängt am Lokal: Mit Turnieren bleibt der
+              Name an den Ergebnissen, ohne verschwindet es ganz. Beides steht
+              hier, BEVOR jemand tippt — nicht erst hinterher. */}
+          {raus?.id === v.id && (
+            <div
+              className="mdc-card"
+              style={{
+                marginTop: 12, padding: '14px 14px',
+                background: 'var(--mdc-card-2)', borderColor: 'var(--mdc-red-a35)',
+              }}
+            >
+              <p style={{ fontSize: '0.92rem', lineHeight: 1.65 }}>
+                <strong>{v.name} herausnehmen?</strong>
+              </p>
+              <p style={{ marginTop: 6, fontSize: '0.88rem', lineHeight: 1.65, color: 'var(--mdc-ink-soft)' }}>
+                Das Lokal verschwindet von der Spielorte-Seite, aus dem Wochenplan, aus dem
+                Ergebnis-Upload und aus dem Kalender.
+                {v.turniere > 0 ? (
+                  <>
+                    {' '}Die <strong>{v.turniere} ausgewerteten Turniere</strong> bleiben, wie sie
+                    sind, und behalten den Namen — spurlos löschen ginge nicht, die Kennung steht
+                    in jeder Ergebniszeile.
+                  </>
+                ) : v.neu ? (
+                  <> Dort wurde nie gespielt, also ist es danach ganz weg.</>
+                ) : (
+                  <> Dort wurde nie gespielt.</>
+                )}
+                {' '}Zurücknehmen geht jederzeit.
+              </p>
+
+              {v.kommendeTermine > 0 && (
+                <p style={{ marginTop: 8, fontSize: '0.86rem', lineHeight: 1.6, color: 'var(--mdc-red-deep)' }}>
+                  Im Kalender {v.kommendeTermine === 1 ? 'steht noch ein Termin' : `stehen noch ${v.kommendeTermine} Termine`}{' '}
+                  zu diesem Lokal. Die bitte zuerst zurücknehmen — sonst stünde im Wochenplan ein
+                  Abend in einem Lokal, das es auf der Seite nicht mehr gibt.
+                </p>
+              )}
+
+              <label style={{ display: 'block', marginTop: 12 }}>
+                <span style={{
+                  fontFamily: 'var(--mdc-font-display)', fontSize: '0.72rem',
+                  letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--mdc-ink-dim)',
+                }}>
+                  Grund (freiwillig, steht beim Eintrag)
+                </span>
+                <input
+                  value={raus.grund}
+                  maxLength={200}
+                  placeholder="z. B. Lokal hat zugesperrt"
+                  onChange={e => setRaus({ id: v.id, grund: e.target.value })}
+                  style={{
+                    marginTop: 6, width: '100%', padding: '9px 11px', fontSize: '0.95rem',
+                    border: '1px solid var(--mdc-line-hard)', borderRadius: 9,
+                    background: 'var(--mdc-card)', color: 'var(--mdc-ink)',
+                  }}
+                />
+              </label>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="mdc-btn mdc-btn-primary mdc-btn-sm"
+                  disabled={laeuft || v.kommendeTermine > 0}
+                  onClick={() => entfernen(v, raus.grund)}
+                >
+                  {laeuft ? <Loader2 size={14} className="mdc-spin" /> : <Trash2 size={14} />}
+                  {laeuft ? 'Wird abgelegt …' : 'Herausnehmen'}
+                </button>
+                <button
+                  type="button"
+                  className="mdc-btn mdc-btn-ghost mdc-btn-sm"
+                  disabled={laeuft}
+                  onClick={() => setRaus(null)}
+                >
+                  <X size={14} />
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Weicht etwas von der Übersicht des Betreibers ab, steht es hier —
               samt dem Wert, der dort noch steht. Sonst wüsste später niemand
