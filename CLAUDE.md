@@ -478,7 +478,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Typen in `lib/team-statistik.ts`), Aufgaben (erledigte `match_tasks` je Bezeichnung, Pokale). Filter: Terminart
   (MDU-Spiel · andere Spiele · Training · Event · Sonstiges), Zeitraum (Saison/Hin-/Rückrunde/30 Tage), Heim/Auswärts.
   Eigene Termine kennen dafür seit Migration 0067 `kind` = spiel · training · event · sonstiges (`TERMIN_ARTEN`).
-  **Teamkasse** (Migration 0051, `/mein-team/kasse`, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
+  **Teamkasse** (Migration 0051, `/mein-team/kasse`, Kopf zeigt seit 26.11.2026 die letzten 3 Bewegungen + „Ganzes Kassenbuch →“, `lib/supabase/kasse.ts`, Betreiber 16.10.2026,
   Vorbild SpielerPlus, Teil des Team Managers = Premium): Strafenkatalog, Strafen/Beiträge je Spieler
   (Kader-Kennung wie `ladeKader`, auch Spieler ohne Konto), Kassenbuch, Kassenstand = Anfangsbestand +
   Einnahmen − Ausgaben + BEZAHLTE Strafen/Beiträge. Buchen: TC, Kassenwart (`treasurer_player_id`,

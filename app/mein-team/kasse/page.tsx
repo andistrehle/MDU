@@ -158,6 +158,7 @@ export default function KassePage() {
                 {kassenwart ? <>Kassenwart: <b style={{ color: 'var(--th-text-strong)' }}>{kassenwart}</b></> : 'Gebucht wird vom Kapitän.'}
                 {!darfBuchen && ' · Du kannst die Kasse ansehen, buchen dürfen Kapitän und Kassenwart.'}
               </div>
+              <LetzteBewegungen buchungen={buchungen} onAlle={() => { setReiter('buch'); queueMicrotask(() => document.getElementById('kasse-reiter')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }} />
             </div>
 
             {/* Strafen-Tracker am Spielabend (Migration 0066) */}
@@ -181,7 +182,7 @@ export default function KassePage() {
             ))}
 
             {/* Reiter */}
-            <div role="tablist" style={{ display: 'flex', gap: 4, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
+            <div id="kasse-reiter" role="tablist" style={{ scrollMarginTop: 80, display: 'flex', gap: 4, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
               {([...(darfBuchen ? [['offen', 'Offen']] : []), ['spieler', 'Spieler'], ['beitraege', 'Beiträge'], ['buch', 'Kassenbuch'], ['katalog', 'Strafen']] as [Reiter, string][]).map(([r, n]) => (
                 <button key={r} role="tab" aria-selected={reiter === r} type="button" onClick={() => setReiter(r)} style={{
                   flex: '1 0 auto', padding: '8px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
@@ -613,12 +614,37 @@ function BeitragKarte({ g, kader, darfBuchen, onBezahlt, onLoeschen, onNachtrage
   );
 }
 
-function Kassenbuch({ buchungen, opening, darfBuchen, onLoeschen }: { buchungen: Buchung[]; opening: number; darfBuchen: boolean; onLoeschen: (b: Buchung) => void }) {
-  // Bewegungen der Kasse: Einnahmen, Ausgaben und bezahlte Strafen/Beiträge (am Zahltag).
-  const zeilen = buchungen
+/** Bewegungen der Kasse: Einnahmen, Ausgaben und bezahlte Strafen/Beiträge (am Zahltag), neueste zuerst. */
+function bewegungen(buchungen: Buchung[]) {
+  return buchungen
     .filter(b => !istForderung(b) || b.paid_at)
     .map(b => ({ b, datum: istForderung(b) ? b.paid_at!.slice(0, 10) : b.entry_date, plus: b.kind !== 'ausgabe' }))
     .sort((x, y) => y.datum.localeCompare(x.datum) || y.b.created_at.localeCompare(x.b.created_at));
+}
+
+/** Die letzten Bewegungen gleich im Kopf (Betreiber 26.11.2026: „nicht erst suchen müssen“). */
+function LetzteBewegungen({ buchungen, onAlle }: { buchungen: Buchung[]; onAlle: () => void }) {
+  const zeilen = bewegungen(buchungen).slice(0, 3);
+  if (!zeilen.length) return null;
+  return (
+    <div style={{ flexBasis: '100%', borderTop: '1px solid var(--th-line-6)', paddingTop: 10, fontFamily: 'var(--font-manrope)' }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--th-text-muted)', marginBottom: 6 }}>Letzte Bewegungen</div>
+      {zeilen.map(({ b, datum, plus }) => (
+        <div key={b.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '4px 0', fontSize: 13 }}>
+          <span style={{ width: 46, flexShrink: 0, fontSize: 12, color: 'var(--th-text-muted)' }}>{datumKurz(datum)}</span>
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--th-text-strong)', fontWeight: 600 }}>
+            {b.title}{b.player_name ? <span style={{ color: 'var(--th-text-muted)', fontWeight: 400 }}> · {b.player_name}</span> : null}
+          </span>
+          <span style={{ fontWeight: 800, color: plus ? GRUEN : ROT, whiteSpace: 'nowrap' }}>{plus ? '+' : '−'} {euro(b.amount_cents)}</span>
+        </div>
+      ))}
+      <button type="button" onClick={onAlle} style={{ marginTop: 4, padding: 0, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontSize: 12.5, fontWeight: 700, color: 'var(--th-accent)' }}>Ganzes Kassenbuch →</button>
+    </div>
+  );
+}
+
+function Kassenbuch({ buchungen, opening, darfBuchen, onLoeschen }: { buchungen: Buchung[]; opening: number; darfBuchen: boolean; onLoeschen: (b: Buchung) => void }) {
+  const zeilen = bewegungen(buchungen);
   if (zeilen.length === 0 && !opening) return <Muted>Noch keine Bewegungen in der Kasse.</Muted>;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
