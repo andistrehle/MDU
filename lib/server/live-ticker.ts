@@ -10,7 +10,9 @@
 
 import 'server-only';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { NEUE_SAISON, alleBegegnungen27, findLiga27, team27, venue27 } from '@/lib/data/saison-2027';
+import { NEUE_SAISON, LIGEN_2027, alleBegegnungen27, findLiga27, team27, venue27 } from '@/lib/data/saison-2027';
+import { ladeErgebnisse27 } from '@/lib/server/ergebnisse-2027';
+import { liveTabelle, type HeuteBegegnung } from '@/lib/live-tabelle';
 import { ergebnisAusBericht } from '@/lib/tabelle-2027';
 import { bestOfFuerLiga, legsJeSpiel } from '@/lib/legs';
 import { GAME_SCHEDULE } from '@/lib/supabase/match-reports';
@@ -123,5 +125,27 @@ export async function ladeLiveTicker(jetzt = new Date()): Promise<LiveAntwort> {
       ort: venue27(H?.venueId)?.name ?? null, wertung: !!r?.forfeit, aufstellung, wechsel, laufend };
   });
   const sortiert = sortiereTicker(eintraege) as TickerAnzeige[];
-  return { datum, aktiv: tickerAktiv(sortiert), spiele: sortiert };
+  return { datum, aktiv: tickerAktiv(sortiert), spiele: sortiert, tabellen: await liveTabellen(sortiert) };
+}
+
+/** Live-Tabelle je Liga, die heute spielt (Betreiber 27.11.2026): Basis = alle zählenden Ergebnisse, die heutigen
+ *  Begegnungen mit Zwischen- bzw. Endstand darüber (lib/live-tabelle.ts). Fehler → keine Tabellen, der Ticker läuft weiter. */
+async function liveTabellen(spiele: TickerAnzeige[]): Promise<LiveAntwort['tabellen']> {
+  try {
+    const { byKey } = await ladeErgebnisse27();
+    const out: NonNullable<LiveAntwort['tabellen']> = {};
+    for (const code of new Set(spiele.map(s => s.liga))) {
+      const liga = LIGEN_2027.find(l => l.code === code);
+      if (!liga) continue;
+      const teams = new Set(liga.teams);
+      const basis = Object.values(byKey).filter(e => teams.has(e.home) && teams.has(e.away));
+      const heute: HeuteBegegnung[] = spiele.filter(s => s.liga === code).map(s => ({
+        key: s.key, home: s.home, away: s.away, status: s.status, standHeim: s.standHeim, standGast: s.standGast,
+        legsHeim: s.spiele.reduce((n, g) => n + g.legsHeim, 0), legsGast: s.spiele.reduce((n, g) => n + g.legsGast, 0),
+        ergebnis: byKey[s.key] ?? null,
+      }));
+      out[code] = liveTabelle(liga.teams, basis, heute, id => team27(id)?.name ?? id);
+    }
+    return out;
+  } catch { return undefined; }
 }

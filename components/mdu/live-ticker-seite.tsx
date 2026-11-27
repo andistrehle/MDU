@@ -9,6 +9,9 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LIVE_ROT, LivePunktStil, useLiveTicker } from './live-ticker';
 import { SPIELE_JE_BEGEGNUNG, highlightKurz, type TickerAnzeige, type TickerHighlight } from '@/lib/live-ticker';
+import type { LiveTabellenZeile } from '@/lib/live-tabelle';
+import { useAuth } from '@/lib/auth/auth-context';
+import { team27 } from '@/lib/data/saison-2027';
 
 type Liga = { code: string; name: string; farbe: string };
 
@@ -22,6 +25,9 @@ export function LiveTickerSeite({ ligen }: { ligen: Liga[] }) {
   const spiel = params.get('spiel');
   const [liga, setLiga] = useState<string | null>(ligen.some(l => l.code === start) ? start : null);
   const [offen, setOffen] = useState<string | null>(spiel);
+  // Reiter „Spiele · Live-Tabelle“ nur mit gewählter Liga (Betreiber 27.11.2026); ?ansicht=tabelle öffnet direkt die Tabelle.
+  const [ansicht, setAnsicht] = useState<'spiele' | 'tabelle'>(params.get('ansicht') === 'tabelle' ? 'tabelle' : 'spiele');
+  const { user } = useAuth();
   const geladen = !!d;
   useEffect(() => {
     if (!spiel || !geladen) return;
@@ -61,15 +67,79 @@ export function LiveTickerSeite({ ligen }: { ligen: Liga[] }) {
               );
             })}
           </nav>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {spiele.map(s => <Karte key={s.key} s={s} auf={offen === s.key} umschalten={() => setOffen(offen === s.key ? null : s.key)} />)}
-          </div>
+          {liga && (
+            <div role="tablist" style={{ display: 'flex', gap: 4, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4, marginBottom: 14, width: 'fit-content' }}>
+              {([['spiele', 'Spiele'], ['tabelle', 'Live-Tabelle']] as const).map(([k, t]) => (
+                <button key={k} role="tab" aria-selected={ansicht === k} type="button" onClick={() => setAnsicht(k)} style={{
+                  padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
+                  background: ansicht === k ? 'var(--th-accent)' : 'transparent', color: ansicht === k ? '#fff' : 'var(--th-text-muted)',
+                }}>{t}</button>
+              ))}
+            </div>
+          )}
+          {liga && ansicht === 'tabelle' ? (
+            d.tabellen?.[liga]
+              ? <LiveTabelle zeilen={d.tabellen[liga]} eigenes={user?.teamId ?? null} />
+              : <p style={{ fontSize: 14, color: 'var(--th-text-muted)' }}>Die Live-Tabelle ist gerade nicht verfügbar.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {spiele.map(s => <Karte key={s.key} s={s} auf={offen === s.key} umschalten={() => setOffen(offen === s.key ? null : s.key)} />)}
+            </div>
+          )}
           <p style={{ margin: '18px 0 0', fontSize: 12, color: 'var(--th-text-faint)' }}>
             Live-Stände sind vorläufig, so wie die Teams sie eintragen. In Tabelle und Rangliste zählt erst der eingereichte Spielbericht.
             Die Seite aktualisiert sich alle 30 Sekunden von selbst.
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+/** Live-Tabelle einer Liga (Betreiber 27.11.2026): „als wäre jetzt Schluss“, Pfeile zum Platz vor dem Abend,
+ *  roter Punkt + Stand bei Teams, die heute spielen, eigenes Team hervorgehoben. Rechnung: lib/live-tabelle.ts. */
+function LiveTabelle({ zeilen, eigenes }: { zeilen: LiveTabellenZeile[]; eigenes: string | null }) {
+  const name = (id: string) => team27(id)?.name ?? id;
+  const zahl: React.CSSProperties = { width: 30, textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' };
+  return (
+    <div>
+      <div style={{ borderRadius: 12, background: 'var(--th-bg-card)', border: '1px solid var(--th-line-8)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--th-text-muted)', borderBottom: '1px solid var(--th-line-6)' }}>
+          <span style={{ width: 46 }}>Pl.</span><span style={{ flex: 1 }}>Team</span>
+          <span style={zahl}>Sp</span><span style={{ ...zahl, width: 44 }}>Diff</span><span style={{ ...zahl, width: 36 }}>Pkt</span>
+        </div>
+        {zeilen.map(z => {
+          const d = z.vorher - z.pos;
+          const sd = z.spieleFor - z.spieleAgainst;
+          const ich = z.team === eigenes;
+          return (
+            <div key={z.team} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderTop: '1px solid var(--th-line-4)', fontSize: 13.5,
+              background: ich ? 'var(--th-accent-a07)' : undefined, boxShadow: ich ? 'inset 3px 0 0 var(--th-accent)' : undefined }}>
+              <span style={{ width: 46, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 800, color: 'var(--th-text-strong)' }}>
+                {z.pos}.
+                {d !== 0 && <span title={`vor dem Abend Platz ${z.vorher}`} style={{ fontSize: 11, fontWeight: 800, color: d > 0 ? '#1E9E5A' : LIVE_ROT }}>{d > 0 ? '▲' : '▼'}{Math.abs(d)}</span>}
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--th-text-strong)' }}>
+                  {z.heute?.status === 'live' && <span className="mdu-live-punkt" aria-label="spielt gerade" style={{ color: LIVE_ROT, background: LIVE_ROT }} />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name(z.team)}</span>
+                </span>
+                {z.heute && (
+                  <span style={{ display: 'block', fontSize: 11.5, color: z.heute.status === 'live' ? LIVE_ROT : 'var(--th-text-muted)', fontWeight: 600 }}>
+                    {z.heute.status === 'live' ? 'Live ' : 'Heute '}{z.heute.eigene}:{z.heute.andere} gg. {name(z.heute.gegner)}
+                  </span>
+                )}
+              </span>
+              <span style={{ ...zahl, color: 'var(--th-text-body)' }}>{z.sp}</span>
+              <span style={{ ...zahl, width: 44, color: 'var(--th-text-body)' }}>{sd > 0 ? `+${sd}` : sd}</span>
+              <span style={{ ...zahl, width: 36, fontWeight: 800, color: 'var(--th-text-strong)' }}>{z.pts}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--th-text-faint)' }}>
+        Stand „als wäre jetzt Schluss“: laufende Begegnungen zählen mit ihrem Zwischenstand. ▲▼ = Plätze gegenüber vor dem Spieltag. Die offizielle Tabelle zählt erst den eingereichten Spielbericht.
+      </p>
     </div>
   );
 }

@@ -258,7 +258,11 @@ export function wechselErmitteln(einzel: EinzelBesetzung[], namen: { heim: Map<n
   }
   return out.sort((a, b) => a.nr - b.nr || (a.seite === 'heim' ? -1 : 1));
 }
-export interface LiveAntwort { datum: string; aktiv: boolean; spiele: TickerAnzeige[] }
+export interface LiveAntwort {
+  datum: string; aktiv: boolean; spiele: TickerAnzeige[];
+  /** Live-Tabelle je Liga, die heute spielt (Betreiber 27.11.2026, lib/live-tabelle.ts) */
+  tabellen?: Record<string, import('./live-tabelle').LiveTabellenZeile[]>;
+}
 
 /** Text für die kurze Meldung, wenn sich ein Stand ändert (null = nichts melden). */
 export function meldungText(alt: TickerEintrag | undefined, neu: TickerAnzeige): string | null {
