@@ -224,7 +224,7 @@ export const KALENDER: Terminaenderung[] = [
     "date": "2026-11-29",
     "venueId": "machete-1",
     "art": "zusatz",
-    "time": "07:00",
+    "time": "19:00",
     "note": null
   },
   {
