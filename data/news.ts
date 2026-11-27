@@ -52,6 +52,17 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "termin-2026-11-29-machete-1-zusatz",
+    "date": "2026-11-27",
+    "title": "Zusätzliches Ranking am 29.11.2026 im Machete 1",
+    "teaser": "Am Sonntag, 29.11.2026 gibt es im Machete 1 ein zusätzliches Ranking, Beginn 07:00 Uhr.",
+    "category": "Termine",
+    "paragraphs": [
+      "Am **Sonntag, 29.11.2026** gibt es im **Machete 1** ein zusätzliches Ranking. Beginn: **07:00 Uhr**. Angemeldet wird wie immer vor Ort im Lokal."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-29-aubinger-boazn-zusatz",
     "date": "2026-11-26",
     "title": "Zusätzliches Ranking am 29.11.2026 im Aubinger Boazn",
