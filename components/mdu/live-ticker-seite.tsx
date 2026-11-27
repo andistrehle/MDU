@@ -67,9 +67,9 @@ export function LiveTickerSeite({ ligen }: { ligen: Liga[] }) {
               );
             })}
           </nav>
-          {liga && (
+          {(
             <div role="tablist" style={{ display: 'flex', gap: 4, background: 'var(--th-bg-card3)', border: '1px solid var(--th-line-6)', borderRadius: 999, padding: 4, marginBottom: 14, width: 'fit-content' }}>
-              {([['spiele', 'Spiele'], ['tabelle', 'Live-Tabelle']] as const).map(([k, t]) => (
+              {([['spiele', 'Spiele'], ['tabelle', liga ? 'Live-Tabelle' : 'Live-Tabellen']] as const).map(([k, t]) => (
                 <button key={k} role="tab" aria-selected={ansicht === k} type="button" onClick={() => setAnsicht(k)} style={{
                   padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-manrope)', fontWeight: 700, fontSize: 13,
                   background: ansicht === k ? 'var(--th-accent)' : 'transparent', color: ansicht === k ? '#fff' : 'var(--th-text-muted)',
@@ -77,11 +77,24 @@ export function LiveTickerSeite({ ligen }: { ligen: Liga[] }) {
               ))}
             </div>
           )}
-          {liga && ansicht === 'tabelle' ? (
-            d.tabellen?.[liga]
-              ? <LiveTabelle zeilen={d.tabellen[liga]} eigenes={user?.teamId ?? null} />
-              : <p style={{ fontSize: 14, color: 'var(--th-text-muted)' }}>Die Live-Tabelle ist gerade nicht verfügbar.</p>
-          ) : (
+          {ansicht === 'tabelle' ? (() => {
+            // „Alle“: die Tabellen aller Ligen, die heute spielen, untereinander (Betreiber 27.11.2026: Reiter „Live-Tabellen“).
+            const codes = (liga ? [liga] : ligen.map(l => l.code).filter(c => mitSpielen.has(c))).filter(c => d.tabellen?.[c]);
+            if (!codes.length) return <p style={{ fontSize: 14, color: 'var(--th-text-muted)' }}>Die Live-Tabelle ist gerade nicht verfügbar.</p>;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+                {codes.map(c => {
+                  const l = ligen.find(x => x.code === c);
+                  return (
+                    <section key={c}>
+                      {!liga && <h3 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--th-text-strong)', borderLeft: `3px solid ${l?.farbe ?? '#888'}`, paddingLeft: 8 }}>{l?.name ?? c}</h3>}
+                      <LiveTabelle zeilen={d.tabellen![c]} eigenes={user?.teamId ?? null} hinweis={c === codes[codes.length - 1]} />
+                    </section>
+                  );
+                })}
+              </div>
+            );
+          })() : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {spiele.map(s => <Karte key={s.key} s={s} auf={offen === s.key} umschalten={() => setOffen(offen === s.key ? null : s.key)} />)}
             </div>
@@ -98,7 +111,7 @@ export function LiveTickerSeite({ ligen }: { ligen: Liga[] }) {
 
 /** Live-Tabelle einer Liga (Betreiber 27.11.2026): „als wäre jetzt Schluss“, Pfeile zum Platz vor dem Abend,
  *  roter Punkt + Stand bei Teams, die heute spielen, eigenes Team hervorgehoben. Rechnung: lib/live-tabelle.ts. */
-function LiveTabelle({ zeilen, eigenes }: { zeilen: LiveTabellenZeile[]; eigenes: string | null }) {
+function LiveTabelle({ zeilen, eigenes, hinweis = true }: { zeilen: LiveTabellenZeile[]; eigenes: string | null; hinweis?: boolean }) {
   const name = (id: string) => team27(id)?.name ?? id;
   const zahl: React.CSSProperties = { width: 30, textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' };
   return (
@@ -137,9 +150,9 @@ function LiveTabelle({ zeilen, eigenes }: { zeilen: LiveTabellenZeile[]; eigenes
           );
         })}
       </div>
-      <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--th-text-faint)' }}>
+      {hinweis && <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--th-text-faint)' }}>
         Stand „als wäre jetzt Schluss“: laufende Begegnungen zählen mit ihrem Zwischenstand. ▲▼ = Plätze gegenüber vor dem Spieltag. Die offizielle Tabelle zählt erst den eingereichten Spielbericht.
-      </p>
+      </p>}
     </div>
   );
 }

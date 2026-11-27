@@ -163,7 +163,7 @@ Resend (E-Mail) · Anthropic Claude Vision (OCR, `lib/ocr/`).
   Griff „✥“ im Band (Betreiber 20.11.2026, `components/mdu/live-band-fenster.tsx`): herausziehen/antippen → das durchlaufende Band schwebt im eigenen
   Fenster über anderen Programmen — PC per Document Picture-in-Picture (Chrome/Edge), Handy als TEST per Canvas → stummes Video → Bild-in-Bild
   (ob es im Hintergrund weiterläuft, entscheidet das Gerät); kann das Gerät beides nicht, kein Griff.
-  **Live-Tabelle** (Betreiber 27.11.2026, per Klick-Umfrage): auf `/live` mit gewählter Liga Reiter „Spiele · Live-Tabelle“ (`?ansicht=tabelle`),
+  **Live-Tabelle** (Betreiber 27.11.2026, per Klick-Umfrage): auf `/live` Reiter „Spiele · Live-Tabelle“ (`?ansicht=tabelle`; bei „Alle“ „Live-Tabellen“ = alle heute spielenden Ligen untereinander),
   „als wäre jetzt Schluss“ (laufende mit Zwischenstand + Legs der eingetragenen Partien, eingereichte/Wertungen mit ihrem Ergebnis), ▲▼ =
   Plätze gegenüber der Tabelle ohne die heutigen Begegnungen, roter Punkt + „Live 5:3 gg. …“, eigenes Team unterlegt. Rechnung rein in
   `lib/live-tabelle.ts` (getestet, nutzt `berechneTabelle`), geliefert in `/api/live` als `tabellen` je heute spielender Liga.
