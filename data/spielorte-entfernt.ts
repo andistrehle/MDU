@@ -47,7 +47,14 @@ export interface EntfernterSpielort {
   note: string | null;
 }
 
-export const ENTFERNTE_SPIELORTE: EntfernterSpielort[] = [];
+export const ENTFERNTE_SPIELORTE: EntfernterSpielort[] = [
+  {
+    "venueId": "tonys-wirtshaus",
+    "name": "Tonys Wirtshaus",
+    "datum": "2026-11-28",
+    "note": null
+  }
+];
 
 const BY_ID = new Map(ENTFERNTE_SPIELORTE.map(e => [e.venueId, e]));
 
