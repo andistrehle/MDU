@@ -49,6 +49,12 @@ export interface EntfernterSpielort {
 
 export const ENTFERNTE_SPIELORTE: EntfernterSpielort[] = [
   {
+    "venueId": "lustiger-bauer",
+    "name": "Lustiger Bauer",
+    "datum": "2026-11-28",
+    "note": null
+  },
+  {
     "venueId": "tonys-wirtshaus",
     "name": "Tonys Wirtshaus",
     "datum": "2026-11-28",
