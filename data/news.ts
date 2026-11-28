@@ -52,6 +52,18 @@ export interface NewsPost {
 
 export const NEWS: NewsPost[] = [
   {
+    "id": "mdc-ranking-im-tonys-wirtshaus-und-lustiger-bauer",
+    "date": "2026-11-28",
+    "title": "MDC RANKING im Tonys Wirtshaus und Lustiger Bauer",
+    "teaser": "MDC Ranking im Tonys und Lustiger Bauer",
+    "category": "Neuigkeiten",
+    "paragraphs": [
+      "**Bis auf weiteres finden MDC Rankings in den beiden Lokalen nur nach Vorankündigung statt.**",
+      "d.h. sie werden aus der offiz. Terminliste entfernt.  ..und erscheinen erst dort wieder, wenn sich wer um den Ablauf und Teilnehmer vor Ort kümmert."
+    ],
+    "published": true
+  },
+  {
     "id": "termin-2026-11-29-machete-1-zusatz",
     "date": "2026-11-27",
     "title": "Zusätzliches Ranking am 29.11.2026 im Machete 1",
